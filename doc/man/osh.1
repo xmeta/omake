@@ -1,0 +1,174 @@
+'\" t
+.\" Manual page created with latex2man
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "OSH" "1" "April 11, 2006" "Build Tools " "Build Tools "
+.SH NAME
+
+osh
+is command interpreter based on the \fIomake\fP(1)
+build system.
+.PP
+.SH THE OSH SHELL
+
+.PP
+OMake also includes a standalone command\-line interpreter osh
+that can be used as an
+interactive shell. The shell uses the same syntax, and provides the same features on all platforms
+omake
+supports, including Win32.
+.PP
+.SS STARTUP
+.PP
+On startup, osh
+reads the file ~/.oshrc if it exists. The syntax of this file is the
+same as an OMakefile\&.
+The following additional variables are significant.
+.PP
+.TP
+prompt
+The prompt variable specifies the command\-line prompt.
+It can be a simple string.
+.PP
+.Vb
+    prompt = osh>
+.Ve
+.PP
+Or you may choose to define it as a function of no arguments.
+.PP
+.Vb
+    prompt() =
+        return $"<$(USER):$(HOST) $(homename $(CWD))>"
+.Ve
+.PP
+An example of the latter prompt is as follows.
+.PP
+.Vb
+    <jyh:kenai.yapper.org ~>cd links/omake
+    <jyh:kenai.yapper.org ~/links/omake>
+.Ve
+.PP
+.TP
+ignoreeof
+If the ignoreeof is true, then osh will not exit on
+a terminal end\-of\-file (usually ^D on Unix systems).
+.PP
+.SS ALIASES
+.PP
+Command aliases are defined by adding functions to the Shell. object. The following alias
+adds the \-AF option to the ls command.
+.PP
+.Vb
+    Shell. +=
+       ls(argv) =
+          "ls" \-AF $(argv)
+.Ve
+.PP
+Quoted commands do not undergo alias expansion. The quotation "ls" prevents the alias from
+being recursive.
+.PP
+.SS INTERACTIVE SYNTAX
+.PP
+The interactive syntax in osh is the same as the syntax of an OMakefile, with one
+exception in regard to indentation. The line before an indented block must have a colon at the end
+of the line. A block is terminated with a \&. on a line by itself, or ^D\&. In the
+following example, the first line if true has no body, because there is no colon.
+.PP
+.Vb
+   # The following if has no body
+   osh>if true
+   # The following if has a body
+   osh>if true:
+   if>       if true:
+   if>          println(Hello world)
+   if>          .
+   Hello world
+.Ve
+.PP
+Note that osh makes some effort to modify the prompt while in an indented body, and it
+auto\-indents the text.
+.PP
+The colon signifier is also allowed in files, although it is not required.
+.PP
+.SS SEE ALSO
+.PP
+See Section
+.\"omake\-shell.html
+omake\-shell
+for more information on the shell language,
+and Section
+.\"omake\-system.html
+omake\-system
+for more information on job control.
+.PP
+.SH REFERENCES
+
+.PP
+.SS SEE ALSO
+.PP
+.\"omake.html
+omake(1),
+.\"omake\-quickstart.html
+omake\-quickstart(1),
+.\"omake\-options.html
+omake\-options(1),
+.\"omake\-root.html
+omake\-root(1),
+.\"omake\-language.html
+omake\-language(1),
+.\"omake\-shell.html
+omake\-shell(1),
+.\"omake\-rules.html
+omake\-rules(1),
+.\"omake\-base.html
+omake\-base(1),
+.\"omake\-system.html
+omake\-system(1),
+.\"omake\-pervasives.html
+omake\-pervasives(1),
+.\"osh.html
+osh(1),
+\fImake\fP(1)
+.PP
+.SS VERSION
+.PP
+Version: 0.9.6.9 of April 11, 2006\&.
+.PP
+.SS LICENSE AND COPYRIGHT
+.PP
+(C)2003\-2006, Mojave Group, Caltech
+.PP
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.PP
+.SS AUTHOR
+.PP
+Jason Hickey \fIet. al.\fP.br
+Caltech 256\-80
+.br
+Pasadena, CA 91125, USA
+.br
+Email: \fBomake\-devel@metaprl.org\fP
+.br
+WWW: \fBhttp://www.cs.caltech.edu/~jyh\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.

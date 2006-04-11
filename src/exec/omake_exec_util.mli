@@ -1,0 +1,69 @@
+(*
+ * Utilities for process execution on any platform.
+ *
+ * ----------------------------------------------------------------
+ *
+ * @begin[license]
+ * Copyright (C) 2003 Jason Hickey, Caltech
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * Author: Jason Hickey
+ * @email{jyh@cs.caltech.edu}
+ * @end[license]
+ *)
+open Lm_printf
+open Lm_map_sig
+
+open Omake_node
+open Omake_exec_id
+open Omake_cache_type
+
+(*
+ * Debugging.
+ *)
+val debug_exec : bool ref
+
+(*
+ * File descriptor table.
+ *)
+module IntTable : LmMap with type key = int;;
+module FdTable : LmMap with type key = Unix.file_descr;;
+
+(*
+ * Open a pipe.  Close automatically on exceptions.
+ *)
+val with_pipe : (Unix.file_descr -> Unix.file_descr -> 'a) -> 'a
+
+(*
+ * Copy data to standard channels.
+ *)
+val copy_stdout : id -> string -> int -> int -> unit
+val copy_stderr : id -> string -> int -> int -> unit
+
+(*
+ * Copy data to a file.
+ *)
+val copy_file : string -> (id -> string -> int -> int -> unit)
+
+(*!
+ * @docoff
+ *
+ * -*-
+ * Local Variables:
+ * Caml-master: "compile"
+ * End:
+ * -*-
+ *)

@@ -1,0 +1,208 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE</title></head>
+<body bgcolor="white">
+<h1 align=center>
+The OMake build system
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a build system designed to scale from small projects to very large projects
+spanning many directories. <tt>omake</tt>
+uses a syntax similar to <em>make</em>(1),
+with many
+additional features, including accurate automated dependency analysis based on MD5 digests.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">Description </a>
+<ul>
+<li><a href="#section_2">Automatic dependency analysis </a></li>
+<li><a href="#section_3">Content-based dependency analysis </a></li>
+</ul>
+<li><a href="#section_4">References </a>
+<ul>
+<li><a href="#section_5">See Also </a></li>
+<li><a href="#section_6">Version </a></li>
+<li><a href="#section_7">License and Copyright </a></li>
+<li><a href="#section_8">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">Description</a></h2>
+
+<p>
+<tt>omake</tt>
+is designed for building projects that might have source files in several directories.
+Projects are normally specified using an <tt>OMakefile</tt>
+in each of the project directories, and an
+<tt>OMakeroot</tt>
+file in the root directory of the project. The <tt>OMakeroot</tt>
+file specifies
+general build rules, and the <tt>OMakefile</tt>s
+specify the build parameters specific to each of the
+subdirectories. When <tt>omake</tt>
+runs, it walks the configuration tree, evaluating rules from all
+of the <tt>OMakefile</tt>s.
+The project is then built from the entire collection of build rules.
+<p>
+<h4><a name="section_2">Automatic dependency analysis</a></h4>
+
+<p>
+Dependency analysis has always been problematic with the <em>make</em>(1)
+program. <tt>omake</tt>
+addresses this by adding the <tt>.SCANNER</tt> target, which specifies a command to produce
+dependencies. For example, the following rule
+<p>
+<pre>
+    .SCANNER: %.o: %.c
+        $(CC) $(INCLUDE) -MM $&lt;
+</pre>
+<p>
+is the standard way to generate dependencies for <tt>.c</tt> files. <tt>omake</tt>
+will automatically
+run the scanner when it needs to determine dependencies for a file.
+<p>
+<h4><a name="section_3">Content-based dependency analysis</a></h4>
+
+<p>
+Dependency analysis in omake uses MD5 digests to determine whether files have changed. After each
+run, <tt>omake</tt>
+stores the dependency information in a file called <tt>.omakedb</tt>
+in the project
+root directory. When a rule is considered for execution, the command is not executed if the target,
+dependencies, and command sequence are unchanged since the last run of <tt>omake</tt>.
+As an
+optimization, <tt>omake</tt>
+does not recompute the digest for a file that has an unchanged
+modification time, size, and inode number.
+<p>
+See the following manual pages for more information.
+<p>
+<dl compact>
+<dt><a href="omake-quickstart.html">omake-quickstart</a>
+</dt>
+<dd>
+A quickstart guide to using <tt>omake</tt>.
+</dd>
+<dt><a href="omake-options.html">omake-options</a>
+</dt>
+<dd>
+Command-line options for <tt>omake</tt>.
+</dd>
+<dt><a href="omake-root.html">omake-root</a>
+</dt>
+<dd>
+The system <tt>OMakeroot</tt>
+contains the default specification of how to build C, OCaml, and
+LaTeXprograms.
+</dd>
+<dt><a href="omake-language.html">omake-language</a>
+</dt>
+<dd>
+The <tt>omake</tt>
+language, including a description of objects, expressions, and values.
+</dd>
+<dt><a href="omake-shell.html">omake-shell</a>
+</dt>
+<dd>
+Using the <tt>omake</tt>
+shell for command-line interpretation.
+</dd>
+<dt><a href="omake-rules.html">omake-rules</a>
+</dt>
+<dd>
+Using <tt>omake</tt>
+rules to build program.
+</dd>
+<dt><a href="omake-base.html">omake-base</a>
+</dt>
+<dd>
+Functions and variables in the core standard library.
+</dd>
+<dt><a href="omake-system.html">omake-system</a>
+</dt>
+<dd>
+Functions on files, input/output, and system commands.
+</dd>
+<dt><a href="omake-pervasives.html">omake-pervasives</a>
+</dt>
+<dd>
+Pervasives defines the built-in objects.
+</dd>
+<dt><a href="osh.html">osh</a>
+</dt>
+<dd>
+The <tt>osh</tt>
+command-line interpreter.
+</dd>
+<dt><a href="omake-doc.html">omake-doc</a>
+</dt>
+<dd>
+All the OMake documentation in a single page.
+</dd>
+</dl>
+<p>
+<h2><a name="section_4">References</a></h2>
+
+<p>
+<h4><a name="section_5">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_6">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_7">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_8">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->

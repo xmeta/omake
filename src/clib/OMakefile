@@ -1,0 +1,45 @@
+#
+# This is indirecto to be compatible with nmake
+#
+EXTERNAL = ../libmojave-external
+
+CUTIL_FILES[] =
+    lm_heap.c
+    lm_heap.h
+    lm_channel.c
+    lm_compat_win32.c
+    lm_compat_win32.h
+    lm_ctype.c
+    lm_printf.c
+    lm_uname_ext.c
+    lm_unix_cutil.c
+    unixsupport.h
+
+MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
+
+CGeneratedFiles($(CUTIL_FILES))
+
+FILES[] =
+    lm_heap
+    lm_channel
+    lm_printf
+    lm_ctype
+    lm_uname_ext
+    lm_unix_cutil
+    lm_compat_win32
+    fam_win32
+    fam_kqueue
+    readline
+    omake_notify
+    omake_shell_sys
+
+MakeStaticCLibrary(clib, $(FILES))
+
+clean:
+    $(CLEAN) $(CUTIL_FILES)
+
+#
+# Generate the Makefile
+#
+MakeLinkFiles(fam_pseudo.h)
+MakeMakefile()

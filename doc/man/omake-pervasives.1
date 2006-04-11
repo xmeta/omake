@@ -1,0 +1,786 @@
+'\" t
+.\" Manual page created with latex2man
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "OMAKE\-PERVASIVES" "1" "April 11, 2006" "Build Tools " "Build Tools "
+.SH NAME
+
+omake
+is a flexible build system designed for building a wide variety of projects.
+This document describes the built\-in objects available to all programs.
+For an overview of omake,
+see the
+.\"omake.html
+omake(1)
+man page.
+.PP
+.SH PERVASIVES
+
+.PP
+Pervasives defines the objects that are defined in all
+programs. The following objects are defined.
+.PP
+.SS OBJECT
+.PP
+Parent objects: none.
+.PP
+The Object object is the root object.
+Every class is a subclass of Object\&.
+.PP
+It provides the following fields:
+.PP
+.TP
+.B *
+$(o.object\-length): the number of fields and methods in the object.
+.TP
+.B *
+$(o.object\-mem <var>): returns true iff the <var> is a field
+or method of the object.
+.TP
+.B *
+$(o.object\-add <var>, <value>): adds the field to the object,
+returning a new object.
+.TP
+.B *
+$(o.object\-find <var>): fetches the field or method from the object;
+it is equivalent to $(o.<var>), but the variable can be non\-constant.
+.TP
+.B *
+$(o.object\-map <fun>): maps a function over the object. The function
+should take two arguments; the first is a field name, the second is the
+value of that field. The result is a new object constructed from the
+values returned by the function.
+.TP
+.B *
+o.object\-foreach: the foreach form is equivalent to map,
+but with altered syntax.
+.PP
+.Vb
+   o.foreach(<var1>, <var2>)
+      <body>
+.Ve
+.PP
+For example, the following function prints all the fields of an
+object o\&.
+.PP
+.Vb
+   PrintObject(o) =
+      o.foreach(v, x)
+         println($(v) = $(x))
+.Ve
+.PP
+The export form is valid in a foreach body. The following
+function collects just the field names of an object.
+.PP
+.Vb
+   FieldNames(o) =
+      names =
+      o.foreach(v, x)
+         names += $(v)
+         export
+      return $(names)
+.Ve
+.PP
+.SS MAP
+.PP
+Parent objects: Object\&.
+.PP
+A Map object is a dictionary from values to values. The <key>
+values are restricted to simple values: integers, floating\-point numbers,
+strings, files, directories, and arrays of simple values.
+.PP
+The Map object provides the following methods.
+.PP
+.TP
+.B *
+$(o.mem <key>): returns true iff the <key> is defined
+in the map.
+.TP
+.B *
+$(o.add <key>, <value>): adds the field to the map,
+returning a new map.
+.TP
+.B *
+$(o.find <key>): fetches the field from the map.
+.TP
+.B *
+$(o.map <fun>): maps a function over the map. The function
+should take two arguments; the first is a field name, the second is the
+value of that field. The result is a new object constructed from the
+values returned by the function.
+.TP
+.B *
+o.foreach: the foreach form is equivalent to map,
+but with altered syntax.
+.PP
+.Vb
+   o.foreach(<var1>, <var2>)
+      <body>
+.Ve
+.PP
+For example, the following function prints all the fields of an
+object o\&.
+.PP
+.Vb
+   PrintObject(o) =
+      o.foreach(v, x)
+         println($(v) = $(x))
+.Ve
+.PP
+The export form is valid in a foreach body. The following
+function collects just the field names of the map.
+.PP
+.Vb
+   FieldNames(o) =
+      names =
+      o.foreach(v, x)
+         names += $(v)
+         export
+      return $(names)
+.Ve
+.PP
+There is also simpler syntax when the key is a string. The table can be
+defined using definitions with the form $|key|
+(the number of pipe symbols | is allowed to vary).
+.PP
+.Vb
+    $|key 1| = value1
+    $||key1|key2|| = value2    # The key is key1|key2
+    X = $|key 1|               # Define X to be the value of field $|key 1|
+.Ve
+.PP
+The usual modifiers are also allowed. The expression $`|key| represents
+lazy evaluation of the key, and $,|key| is normal evaluation.
+.PP
+.SS NUMBER
+.PP
+Parent objects: Object\&.
+.PP
+The Number object is the parent object for integers
+and floating\-point numbers.
+.SS INT
+.PP
+Parent objects: Number\&.
+.PP
+The Int object represents integer values.
+.SS FLOAT
+.PP
+Parent objects: Number\&.
+.PP
+The Float object represents floating\-point numbers.
+.SS SEQUENCE
+.PP
+Parent objects: Object\&.
+.PP
+The Sequence object represents a generic object containing
+sequential elements. It provides the following methods.
+.PP
+.TP
+.B *
+$(s.length): the number of elements in the sequence.
+.TP
+.B *
+$(s.map <fun>): maps a function over the fields in the sequence.
+The function should take one argument. The result is a new sequence
+constructed from the values returned by the function.
+.TP
+.B *
+s.foreach: the foreach form is equivalent to map,
+but with altered syntax.
+.PP
+.Vb
+   s.foreach(<var>)
+      <body>
+.Ve
+.PP
+For example, the following function prints all the elements of the sequence.
+.PP
+.Vb
+   PrintSequence(s) =
+      s.foreach(x)
+         println(Elem = $(x))
+.Ve
+.PP
+The export form is valid in a foreach body. The following
+function counts the number of zeros in the sequence.
+.PP
+.Vb
+   Zeros(s) =
+      count = $(int 0)
+      s.foreach(v)
+         if $(equal $(v), 0)
+            count = $(add $(count), 1)
+            export
+         export
+      return $(count)
+.Ve
+.PP
+.SS ARRAY
+.PP
+Parent objects: Sequence\&.
+.PP
+The Array is a random\-access sequence.
+It provides the following additional methods.
+.PP
+.TP
+.B *
+$(s.nth <i>): returns element i of the sequence.
+.TP
+.B *
+$(s.rev <i>): returns the reversed sequence.
+.PP
+.SS STRING
+.PP
+Parent objects: Array\&.
+.SS FUN
+.PP
+Parent objects: Object\&.
+.PP
+The Fun object provides the following methods.
+.TP
+.B *
+$(f.arity): the arity if the function.
+.PP
+.SS RULE
+.PP
+Parent objects: Object\&.
+.PP
+The Rule object represents a build rule.
+It does not currently have any methods.
+.SS TARGET
+.PP
+Parent object: Object\&.
+.PP
+The Target object contains information collected for
+a specific target file.
+.PP
+.TP
+.B *
+target: the target file.
+.TP
+.B *
+effects: the files that may be modified by a
+side\-effect when this target is built.
+.TP
+.B *
+scanner_deps: static dependencies that must be built
+before this target can be scanned.
+.TP
+.B *
+static\-deps: statically\-defined build dependencies
+of this target.
+.TP
+.B *
+build\-deps: all the build dependencies for the target,
+including static and scanned dependencies.
+.TP
+.B *
+build\-values: all the value dependencies associated
+with the build.
+.TP
+.B *
+build\-commands: the commands to build the target.
+.PP
+The object supports the following methods.
+.PP
+.TP
+.B *
+find(file): returns a Target object for the given file.
+Raises a RuntimeException if the specified target is
+not part of the project.
+.TP
+.B *
+find\-optional(file): returns a Target object
+for the given file, or false if the file is not
+part of the project.
+.PP
+NOTE: the information for a target is constructed dynamically,
+so it is possible that the Target object for a node will
+contain different values in different contexts. The easiest way
+to make sure that the Target information is complete is
+to compute it within a rule body, where the rule depends on
+the target file, or the dependencies of the target file.
+.SS NODE
+.PP
+Parent objects: Object\&.
+.PP
+The Node object is the parent object for files and directories.
+It supports the following operations.
+.TP
+.B *
+$(node.stat): returns a stat object for the file. If the
+file is a symbolic link, the stat information is for the destination of
+the link, not the link itself.
+.PP
+.TP
+.B *
+$(node.lstat): returns a stat object for the file or symbolic link.
+.TP
+.B *
+$(node.unlink): removes the file.
+.TP
+.B *
+$(node.rename <file>): renames the file.
+.TP
+.B *
+$(node.link <file>): creates a hard link <dst> to this file.
+.TP
+.B *
+$(node.symlink <file>): create a symbolic link <dst> to this file.
+.TP
+.B *
+$(node.chmod <perm>): change the permission of this file.
+.TP
+.B *
+$(node.chown <uid>, <gid>): change the owner and group id of this file.
+.PP
+.SS FILE
+.PP
+Parent objects: Node\&.
+.PP
+The file object represents the name of a file.
+.SS DIR
+.PP
+Parent objects: Node\&.
+.PP
+The Dir object represents the name of a directory.
+.SS CHANNEL
+.PP
+Parent objects: Object\&.
+.PP
+A Channel is a generic IO channel.
+It provides the following methods.
+.TP
+.B *
+$(o.close): close the channel.
+.PP
+.SS INCHANNEL
+.PP
+Parent objects: Channel\&.
+.PP
+A InChannel is an input channel. The variable stdin is the
+standard input channel.
+.PP
+It provides the following methods.
+.TP
+.B *
+$(InChannel.fopen <file>): open a new input channel.
+.PP
+.SS OUTCHANNEL
+.PP
+Parent object: Channel\&.
+.PP
+A OutChannel is an output channel. The variables stdout
+and stderr are the standard output and error channels.
+.PP
+It provides the following methods.
+.TP
+.B *
+$(OutChannel.fopen <file>): open a new output channel.
+.TP
+.B *
+$(OutChannel.append <file>): opens a new output channel,
+appending to the file.
+.TP
+.B *
+$(c.flush): flush the output channel.
+.TP
+.B *
+$(c.print <string>): print a string to the channel.
+.TP
+.B *
+$(c.println <string>): print a string to the channel,
+followed by a line terminator.
+.PP
+.SS LOCATION
+.PP
+Parent objects: Location\&.
+.PP
+The Location object represents a location in a file.
+.SS POSITION
+.PP
+Parent objects: Position\&.
+.PP
+The Position object represents a stack trace.
+.SS EXCEPTION
+.PP
+Parent objects: Object\&.
+.PP
+The Exception object is used as the base object for exceptions.
+It has no fields.
+.SS RUNTIMEEXCEPTION
+.PP
+Parent objects: Exception\&.
+.PP
+The RuntimeException object represents an exception from the
+runtime system. It has the following fields.
+.PP
+.TP
+.B *
+position: a string representing the location where the
+exception was raised.
+.TP
+.B *
+message: a string containing the exception message.
+.PP
+.SS SHELL
+.PP
+Parent objects: Object\&.
+.PP
+The Shell object contains the collection of builtin functions
+available as shell commands.
+.PP
+You can define aliases by extending this object with additional methods.
+All methods in this class are called with one argument: a single array
+containing an argument list.
+.PP
+.TP
+.B *
+echo
+.PP
+The echo function prints its arguments to the standard output channel.
+.TP
+.B *
+jobs
+.PP
+The jobs method prints the status of currently running commands.
+.TP
+.B *
+cd
+.PP
+The cd function changes the current directory.
+Note that the current directory follows the usual scoping
+rules. For example, the following program lists the
+files in the foo directory, but the current
+directory is not changed.
+.PP
+.Vb
+   section
+      echo Listing files in the foo directory...
+      cd foo
+      ls
+
+   echo Listing files in the current directory...
+   ls
+.Ve
+.TP
+.B *
+bg
+.PP
+The bg method places a job in the background.
+The job is resumed if it has been suspended.
+.TP
+.B *
+fg
+.PP
+The fg method brings a job to the foreground.
+The job is resumed if it has been suspended.
+.TP
+.B *
+stop
+.PP
+The stop method suspends a running job.
+.TP
+.B *
+wait
+.PP
+The wait function waits for a running job to terminate.
+It is not possible to wait for a suspended job.
+.PP
+The job is not brought to the foreground. If the wait
+is interrupted, the job continues to run in the background.
+.TP
+.B *
+kill
+.PP
+The kill function signal a job.
+.PP
+kill [signal] <pid...>\&.
+.PP
+The signals are either numeric, or symbolic.
+The symbolic signals are named as follows.
+.PP
+ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
+USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
+.TP
+.B *
+exit
+.PP
+The exit function terminates the current session.
+.TP
+.B *
+which, where
+.PP
+See the documentation for the corresponding functions.
+.TP
+.B *
+rehash
+.PP
+Reset the search path.
+.TP
+.B *
+history
+.PP
+Print the current command\-line history.
+.TP
+.B *
+Win32 functions.
+.PP
+Win32 doesn\&'t provide very many programs for scripting, except
+for the functions that are builtin to the DOS cmd.exe\&.
+The following functions are defined on Win32 and only on Win32.
+On other systems, it is expected that these programs already
+exist.
+.PP
+.RS
+.TP
+.B *
+grep
+.RS
+.PP
+.Vb
+   grep [\-q] [\-n] pattern files...
+.Ve
+.PP
+The grep function calls the omake
+grep function.
+.RE
+.RE
+.PP
+By default, omake
+uses internal versions of the following commands:
+cp, mv, cat, rm, mkdir, chmod,
+test, find\&.
+If you really want to use the standard system versions of these
+commands, set the USE_SYSTEM_COMMANDS as one of the first
+definitions in your OMakeroot file.
+.PP
+.RS
+.RE
+.TP
+.B *
+mkdir
+.RS
+.PP
+.Vb
+    mkdir [\-m <mode>] [\-p] files
+.Ve
+.PP
+The mkdir function is used to create directories.
+The \-verb+\-m+ option can be used to specify the permission
+mode of the created directory. If the \-p option
+is specified, the full path is created.
+.RE
+.TP
+.B *
+cp
+.TP
+.B *
+mv
+.RS
+.PP
+.Vb
+    cp [\-f] [\-i] [\-v] src dst
+    cp [\-f] [\-i] [\-v] files dst
+    mv [\-f] [\-i] [\-v] src dst
+    mv [\-f] [\-i] [\-v] files dst
+.Ve
+.PP
+The cp function copies a src file to
+a dst file, overwriting it if it already exists.
+If more than one source file is specified, the final file
+must be a directory, and the source files are copied
+into the directory.
+.PP
+.RS
+.RE
+.TP
+\-f
+Copy files forcibly, do not prompt.
+.TP
+\-i
+Prompt before removing destination files.
+.TP
+\-v
+Explain what is happening.
+.RE
+.RS
+.PP
+.RE
+.TP
+.B *
+rm
+.RS
+.PP
+.Vb
+   rm [\-f] [\-i] [\-v] [\-r] files
+   rmdir [\-f] [\-i] [\-v] [\-r] dirs
+.Ve
+.PP
+The rm function removes a set of files.
+No warnings are issued if the files do not exist, or if
+they cannot be removed.
+.PP
+Options:
+.RS
+.RE
+.TP
+\-f
+Forcibly remove files, do not prompt.
+.TP
+\-i
+Prompt before removal.
+.TP
+\-v
+Explain what is happening.
+.TP
+\-r
+Remove contents of directories recursively.
+.RE
+.RS
+.PP
+.RE
+.TP
+.B *
+chmod
+.RS
+.PP
+.Vb
+    chmod [\-r] [\-v] [\-f] mode files
+.Ve
+.PP
+The chmod function changes the permissions on a set of
+files or directories. This function does nothing on Win32.
+The mode may be specified as an octal number,
+or in symbolic form [ugoa]*[\-=][rwxXstugo]+.
+See the man page for chmod for details.
+.PP
+Options:
+.RS
+.RE
+.TP
+\-r
+Change permissions of all files in a directory recursively.
+.TP
+\-v
+Explain what is happening.
+.TP
+\-f
+Continue on errors.
+.RE
+.RS
+.PP
+.RE
+.TP
+.B *
+cat
+.RS
+.PP
+.Vb
+   cat files...
+.Ve
+.PP
+The cat function prints the contents of the files to stdout
+.RE
+.TP
+.B *
+test
+.RS
+.PP
+.Vb
+   test \\emph{expression}
+   \\verb+[+ \\emph{expression} +]+
+   \\verb+[ \-\-help+
+   \\verb+[ \-\-version+
+.Ve
+.PP
+See the documentation for the test function.
+.PP
+.RE
+.TP
+.B *
+find
+.RS
+.PP
+.Vb
+   find \\emph{expression}
+.Ve
+.PP
+See the documentation for the find function.
+.PP
+.RE
+.RE
+.PP
+.RE
+.PP
+.SH REFERENCES
+
+.PP
+.SS SEE ALSO
+.PP
+.\"omake.html
+omake(1),
+.\"omake\-quickstart.html
+omake\-quickstart(1),
+.\"omake\-options.html
+omake\-options(1),
+.\"omake\-root.html
+omake\-root(1),
+.\"omake\-language.html
+omake\-language(1),
+.\"omake\-shell.html
+omake\-shell(1),
+.\"omake\-rules.html
+omake\-rules(1),
+.\"omake\-base.html
+omake\-base(1),
+.\"omake\-system.html
+omake\-system(1),
+.\"omake\-pervasives.html
+omake\-pervasives(1),
+.\"osh.html
+osh(1),
+\fImake\fP(1)
+.PP
+.SS VERSION
+.PP
+Version: 0.9.6.9 of April 11, 2006\&.
+.PP
+.SS LICENSE AND COPYRIGHT
+.PP
+(C)2003\-2006, Mojave Group, Caltech
+.PP
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.PP
+.SS AUTHOR
+.PP
+Jason Hickey \fIet. al.\fP.br
+Caltech 256\-80
+.br
+Pasadena, CA 91125, USA
+.br
+Email: \fBomake\-devel@metaprl.org\fP
+.br
+WWW: \fBhttp://www.cs.caltech.edu/~jyh\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.

@@ -1,0 +1,89 @@
+#
+# Configuration utilities
+#
+
+#
+# Check whether a header file exists.
+# We call the C compiler.
+#
+CheckHeader(files) =
+    includes = $(add-wrapper $(nl)$'#include <', >, $(files))
+
+    # The command line
+    tmp = $(tmpfile omake)
+    command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c
+
+    # The program
+    program = $"""/* Configuration file; you can remove this. */
+/* Command line: $(command) */
+#ifdef __cplusplus
+extern "C"
+#endif
+#include <stdio.h>
+$(includes)
+int main(int argc, char **argv) {
+    return 0;
+}
+"""
+
+    # Compile it
+    fprint($(tmp).c, $(program))
+    success = $(shell-success-null $(command))
+
+    # Remove temporaries
+    rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
+
+    return $(success)
+
+VerboseCheckHeader(files) =
+    print(--- Testing for $(files)... )
+    success = $(CheckHeader $(files))
+    if $(success)
+        println($'(success)')
+    else
+        println($'(failed)')
+    return $(success)
+
+#
+# Check whether the libraries have the given functions
+#
+CheckLib(libs, funs) =
+    declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
+    funs = $(add-wrapper $(nl)    , $'();', $(funs))
+    clibs = $(addprefix -l, $(libs))
+
+    # The command line
+    tmp = $(tmpfile omake)
+    command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c $(clibs)
+
+    # The program
+    program = $"""/* Configuration file, you can remove this. */
+/* command line: $(command) */
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+$(declares)
+int main(int argc, char **argv) {
+$(funs)
+    return 0;
+}
+"""
+
+    # Compile it
+    fprint($(tmp).c, $(program))
+    success = $(shell-success-null $(command))
+
+    # Remove temporaries
+    rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
+
+    return $(success)
+
+CheckProg(prog) =
+   print($"--- Testing for $(prog)... ")
+   if $(where $(prog))
+      println($"($(prog) found)")
+      return true
+   else
+      println($"(FAILED - no $(prog) found)")
+      return false

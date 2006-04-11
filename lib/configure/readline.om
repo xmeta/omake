@@ -1,0 +1,37 @@
+open configure/Configure
+open configure/ncurses
+
+#
+# Readline configuration
+#
+static. =
+    READLINE_AVAILABLE = false
+    READLINE_CLIBS =
+    READLINE_CFLAGS =
+    if $(and $(NCURSES_AVAILABLE), $(not $(equal $(OSTYPE), Win32)))
+        print(--- Testing for readline... )
+
+        # Test that readline exists
+        if $(and $(CheckHeader readline/readline.h readline/history.h), $(CheckLib ncurses readline, tgetent tgetstr readline))
+            READLINE_AVAILABLE = true
+            READLINE_CLIBS = -lncurses -lreadline
+            READLINE_CFLAGS += -DREADLINE_ENABLED
+
+            # Test for GNU
+            READLINE_GNU = false
+            if $(CheckLib ncurses readline, rl_on_new_line)
+                READLINE_GNU = true
+                READLINE_CFLAGS += -DREADLINE_GNU
+                export
+
+            export
+
+        if $(READLINE_AVAILABLE)
+            if $(READLINE_GNU)
+                println($'(enabled) (GNU)')
+            else
+                println($'(enabled) (non-GNU)')
+        else
+            println($'(disabled)')
+
+        export

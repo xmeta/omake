@@ -1,0 +1,7313 @@
+'\" t
+.\" Manual page created with latex2man
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "OMAKE" "1" "April 11, 2006" "Build Tools " "Build Tools "
+.SH NAME
+
+omake
+is a build system designed to scale from small projects to very large projects
+spanning many directories. omake
+uses a syntax similar to \fImake\fP(1),
+with many
+additional features, including accurate automated dependency analysis based on MD5 digests.
+.PP
+.SH DESCRIPTION
+
+.PP
+omake
+is designed for building projects that might have source files in several directories.
+Projects are normally specified using an OMakefile
+in each of the project directories, and an
+OMakeroot
+file in the root directory of the project. The OMakeroot
+file specifies
+general build rules, and the OMakefiles
+specify the build parameters specific to each of the
+subdirectories. When omake
+runs, it walks the configuration tree, evaluating rules from all
+of the OMakefiles.
+The project is then built from the entire collection of build rules.
+.PP
+.SS AUTOMATIC DEPENDENCY ANALYSIS
+.PP
+Dependency analysis has always been problematic with the \fImake\fP(1)
+program. omake
+addresses this by adding the \&.SCANNER target, which specifies a command to produce
+dependencies. For example, the following rule
+.PP
+.Vb
+    .SCANNER: %.o: %.c
+        $(CC) $(INCLUDE) \-MM $<
+.Ve
+.PP
+is the standard way to generate dependencies for \&.c files. omake
+will automatically
+run the scanner when it needs to determine dependencies for a file.
+.PP
+.SS CONTENT\-BASED DEPENDENCY ANALYSIS
+.PP
+Dependency analysis in omake uses MD5 digests to determine whether files have changed. After each
+run, omake
+stores the dependency information in a file called \&.omakedb
+in the project
+root directory. When a rule is considered for execution, the command is not executed if the target,
+dependencies, and command sequence are unchanged since the last run of omake\&.
+As an
+optimization, omake
+does not recompute the digest for a file that has an unchanged
+modification time, size, and inode number.
+.PP
+See the following manual pages for more information.
+.PP
+.TP
+.\"omake\-quickstart.html
+omake\-quickstart
+ A quickstart guide to using omake\&.
+.TP
+.\"omake\-options.html
+omake\-options
+ Command\-line options for omake\&.
+.TP
+.\"omake\-root.html
+omake\-root
+ The system OMakeroot
+contains the default specification of how to build C, OCaml, and
+LaTeXprograms.
+.TP
+.\"omake\-language.html
+omake\-language
+ The omake
+language, including a description of objects, expressions, and values.
+.TP
+.\"omake\-shell.html
+omake\-shell
+ Using the omake
+shell for command\-line interpretation.
+.TP
+.\"omake\-rules.html
+omake\-rules
+ Using omake
+rules to build program.
+.TP
+.\"omake\-base.html
+omake\-base
+ Functions and variables in the core standard library.
+.TP
+.\"omake\-system.html
+omake\-system
+ Functions on files, input/output, and system commands.
+.TP
+.\"omake\-pervasives.html
+omake\-pervasives
+ Pervasives defines the built\-in objects.
+.TP
+.\"osh.html
+osh
+ The osh
+command\-line interpreter.
+.TP
+.\"omake\-doc.html
+omake\-doc
+ All the OMake documentation in a single page.
+.PP
+.SH OMAKE QUICKSTART GUIDE
+
+.PP
+.SS FOR USERS ALREADY FAMILIAR WITH MAKE
+.PP
+For users already familiar with the \fImake\fP(1)
+command, here is a list of
+differences to keep in mind when using omake\&.
+.PP
+.TP
+.B *
+In omake, you are much less likely to define build rules of your own.
+The system provides many standard function (like StaticCLibrary and CProgram)
+to specify these builds more simply.
+.TP
+.B *
+Implicit rules using \&.SUFFIXES and the \&.suf1.suf2: are not supported.
+You should use wildcard patterns instead %.suf2: %.suf1\&.
+.TP
+.B *
+Scoping is significant: you should define variables and \&.PHONY targets before they are used.
+.TP
+.B *
+Subdirectories are incorporated into a project using the \&.SUBDIRS:
+target.
+.PP
+.SS BUILDING A SMALL C PROGRAM
+.PP
+To start a new project, the easiest method is to change directories to the project
+root and use the command omake \-\-install to install default OMakefiles.
+.PP
+.Vb
+    $ cd ~/newproject
+    $ omake \-\-install
+    *** omake: creating OMakeroot
+    *** omake: creating OMakefile
+    *** omake: project files OMakefile and OMakeroot have been installed
+    *** omake: you should edit these files before continuing
+.Ve
+.PP
+The default OMakefile
+contains sections for building C and OCaml programs.
+For now, we\&'ll build a simple C project.
+.PP
+Suppose we have a C file called hello_code.c containing the following code:
+.PP
+.Vb
+    #include <stdio.h>
+
+    int main(int argc, char **argv)
+    {
+        printf("Hello world\\n");
+        return 0;
+    }
+.Ve
+.PP
+To build the program a program hello from this file, we can use the CProgram function.
+The OMakefile
+contains just one line that specifies that the program hello is
+to be built from the source code in the hello_code.c file (note that file suffixes
+are not passed to these functions).
+.PP
+.Vb
+    CProgram(hello, hello_code)
+.Ve
+.PP
+Now we can run omake
+to build the project. Note that the first time we run omake,
+it both scans the hello_code.c file for dependencies, and compiles it using the cc
+compiler. The status line printed at the end indicates how many files were scanned, how many
+were built, and how many MD5 digests were computed.
+.PP
+.Vb
+    $ omake hello
+    *** omake: reading OMakefiles
+    *** omake: finished reading OMakefiles (0.0 sec)
+    \- scan . hello_code.o
+    + cc \-I. \-MM hello_code.c
+    \- build . hello_code.o
+    + cc \-I. \-c \-o hello_code.o hello_code.c
+    \- build . hello
+    + cc \-o hello hello_code.o
+    *** omake: done (0.5 sec, 1/6 scans, 2/6 rules, 5/22 digests)
+    $ omake
+    *** omake: reading OMakefiles
+    *** omake: finished reading OMakefiles (0.1 sec)
+    *** omake: done (0.1 sec, 0/4 scans, 0/4 rules, 0/9 digests)
+.Ve
+.PP
+If we want to change the compile options, we can redefine the CC and CFLAGS
+variables \fIbefore\fP
+the CProgram line. In this example, we will use the gcc
+compiler with the \-g option. In addition, we will specify a \&.DEFAULT target
+to be built by default. The EXE variable is defined to be \&.exe on Win32
+systems; it is empty otherwise.
+.PP
+.Vb
+    CC = gcc
+    CFLAGS += \-g
+    CProgram(hello, hello_code)
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+Here is the corresponding run for omake\&.
+.PP
+.Vb
+    $ omake
+    *** omake: reading OMakefiles
+    *** omake: finished reading OMakefiles (0.0 sec)
+    \- scan . hello_code.o
+    + gcc \-g \-I. \-MM hello_code.c
+    \- build . hello_code.o
+    + gcc \-g \-I. \-c \-o hello_code.o hello_code.c
+    \- build . hello
+    + gcc \-g \-o hello hello_code.o
+    *** omake: done (0.4 sec, 1/7 scans, 2/7 rules, 3/22 digests)
+.Ve
+.PP
+We can, of course, include multiple files in the program. Suppose we write a new
+file hello_helper.c\&. We would include this in the project as follows.
+.PP
+.Vb
+    CC = gcc
+    CFLAGS += \-g
+    CProgram(hello, hello_code hello_helper)
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+.SS LARGER PROJECTS
+.PP
+As the project grows it is likely that we will want to build libraries of code.
+Libraries can be built using the StaticCLibrary function. Here is an example
+of an OMakefile
+with two libraries.
+.PP
+.Vb
+    CC = gcc
+    CFLAGS += \-g
+
+    FOO_FILES = foo_a foo_b
+    BAR_FILES = bar_a bar_b bar_c
+
+    StaticCLibrary(libfoo, $(FOO_FILES))
+    StaticCLibrary(libbar, $(BAR_FILES))
+
+    # The hello program is linked with both libraries
+    LIBS = libfoo libbar
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+.SS SUBDIRECTORIES
+.PP
+As the project grows even further, it is a good idea to split it into several directories.
+Suppose we place the libfoo and libbar into subdirectories.
+.PP
+In each subdirectory, we define an OMakefile
+for that directory. For example, here
+is an example OMakefile
+for the foo subdirectory.
+.PP
+.Vb
+    INCLUDES += .. ../bar
+
+    FOO_FILES = foo_a foo_b
+    StaticCLibrary(libfoo, $(FOO_FILES))
+.Ve
+.PP
+Note the the INCLUDES variable is defined to include the other directories in the project.
+.PP
+Now, the next step is to link the subdirectories into the main project. The project OMakefile
+should be modified to include a \&.SUBDIRS: target.
+.PP
+.Vb
+    # Project configuration
+    CC = gcc
+    CFLAGS += \-g
+
+    # Subdirectories
+    .SUBDIRS: foo bar
+
+    # The libraries are now in subdirectories
+    LIBS = foo/libfoo bar/libbar
+
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+Note that the variables CC and CFLAGS are defined \fIbefore\fP
+the \&.SUBDIRS
+target. These variables remain defined in the subdirectories, so that libfoo and libbar
+use gcc \-g\&.
+.PP
+If the two directories are to be configured differently, we have two choices. The OMakefile
+in each subdirectory can be modified with its configuration (this is how it would normally be done).
+Alternatively, we can also place the change in the root OMakefile\&.
+.PP
+.Vb
+    # Default project configuration
+    CC = gcc
+    CFLAGS += \-g
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    CFLAGS += \-O3
+    .SUBDIRS: bar
+
+    # Main program
+    LIBS = foo/libfoo bar/libbar
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+Note that the way we have specified it, the CFLAGS variable also contains the \-O3
+option for the CProgram, and hello_code.c and hello_helper.c file will both be
+compiled with the \-O3 option. If we want to make the change truly local to libbar, we
+can put the bar subdirectory in its own scope using the section form.
+.PP
+.Vb
+    # Default project configuration
+    CC = gcc
+    CFLAGS += \-g
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    section
+        CFLAGS += \-O3
+        .SUBDIRS: bar
+
+    # Main program does not use the optimizing compiler
+    LIBS = foo/libfoo bar/libbar
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+Later, suppose we decide to port this project to Win32, and we discover that we need
+different compiler flags and an additional library.
+.PP
+.Vb
+    # Default project configuration
+    if $(equal $(OSTYPE), Win32)
+        CC = cl /nologo
+        CFLAGS += /DWIN32 /MT
+        export
+    else
+        CC = gcc
+        CFLAGS += \-g
+        export
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    section
+        CFLAGS += $(if $(equal $(OSTYPE), Win32), $(EMPTY), \-O3)
+        .SUBDIRS: bar
+
+    # Default libraries
+    LIBS = foo/libfoo bar/libbar
+
+    # We need libwin32 only on Win32
+    if $(equal $(OSTYPE), Win32)
+       LIBS += win32/libwin32
+
+       .SUBDIRS: win32
+       export
+
+    # Main program does not use the optimizing compiler
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+Note the use of the export directives to export the variable definitions from the
+if\-statements. Variables in omake
+are \fIscoped\fP\-\-\-variables
+in nested blocks (blocks
+with greater indentation), are not normally defined in outer blocks. The export directive
+specifies that the variable definitions in the nested blocks should be exported to their parent
+block.
+.PP
+Finally, for this example, we decide to copy all libraries into a common lib directory. We
+first define a directory variable, and replace occurrences of the lib string with the
+variable.
+.PP
+.Vb
+    # The common lib directory
+    LIB = $(dir lib)
+
+    # phony target to build just the libraries
+    .PHONY: makelibs
+
+    # Default project configuration
+    if $(equal $(OSTYPE), Win32)
+        CC = cl /nologo
+        CFLAGS += /DWIN32 /MT
+        export
+    else
+        CC = gcc
+        CFLAGS += \-g
+        export
+
+    # libfoo uses the default configuration
+    .SUBDIRS: foo
+
+    # libbar uses the optimizing compiler
+    section
+        CFLAGS += $(if $(equal $(OSTYPE), Win32), $(EMPTY), \-O3)
+        .SUBDIRS: bar
+
+    # Default libraries
+    LIBS = $(LIB)/libfoo $(LIB)/libbar
+
+    # We need libwin32 only on Win32
+    if $(equal $(OSTYPE), Win32)
+       LIBS += $(LIB)/libwin32
+
+       .SUBDIRS: win32
+       export
+
+    # Main program does not use the optimizing compiler
+    CProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello$(EXE)
+.Ve
+.PP
+In each subdirectory, we modify the OMakefiles
+in the library directories to install them
+into the $(LIB) directory. Here is the relevant change to foo/OMakefile\&.
+.PP
+.Vb
+    INCLUDES += .. ../bar
+
+    FOO_FILES = foo_a foo_b
+    StaticCLibraryInstall(makelib, $(LIB), libfoo, $(FOO_FILES))
+.Ve
+.PP
+Directory (and file names) evaluate to relative pathnames. Within the foo directory, the
+$(LIB) variable evaluates to \&../lib\&.
+.PP
+As another example, instead of defining the INCLUDES variable separately
+in each subdirectory, we can define it in the toplevel as follows.
+.PP
+.Vb
+    INCLUDES = $(ROOT) $(dir foo bar win32)
+.Ve
+.PP
+In the foo directory, the INCLUDES variable will evaluate to
+the string \&.. . ../bar ../win32\&. In the bar directory,
+it would be \&.. ../foo . ../win32\&. In the root directory it
+would be \&. foo bar win32\&.
+.PP
+.SS OTHER THINGS TO CONSIDER
+.PP
+omake
+also handles recursive subdirectories. For example, suppose the foo
+directory itself contains several subdirectories. The foo/OMakefile
+would then
+contain its own \&.SUBDIRS target, and each of its subdirectories would
+contain its own OMakefile\&.
+.PP
+.SS BUILDING OCAML PROGRAMS
+.PP
+By default, omake
+is also configured with functions for building OCaml programs.
+The functions for OCaml program use the OCaml prefix. For example, suppose
+we reconstruct the previous example in OCaml, and we have a file called hello_code.ml
+that contains the following code.
+.PP
+.Vb
+   open Printf
+
+   let () = printf "Hello world\\n"
+.Ve
+.PP
+An example OMakefile
+for this simple project would contain the following.
+.PP
+.Vb
+    # Use the byte\-code compiler
+    BYTE_ENABLED = true
+    NATIVE_ENABLED = false
+    OCAMLCFLAGS += \-g
+
+    # Build the program
+    OCamlProgram(hello, hello_code)
+    .DEFAULT: hello.run
+.Ve
+.PP
+Next, suppose the we have two library subdirectories: the foo subdirectory
+is written in C, the bar directory is written in OCaml, and we need to
+use the standard OCaml Unix module.
+.PP
+.Vb
+    # Default project configuration
+    if $(equal $(OSTYPE), Win32)
+        CC = cl /nologo
+        CFLAGS += /DWIN32 /MT
+        export
+    else
+        CC = gcc
+        CFLAGS += \-g
+        export
+
+    # Use the byte\-code compiler
+    BYTE_ENABLED = true
+    NATIVE_ENABLED = false
+    OCAMLCFLAGS += \-g
+
+    # library subdirectories
+    INCLUDES += $(dir foo bar)
+    OCAMLINCLUDES += $(dir foo bar)
+    .SUBDIRS: foo bar
+
+    # C libraries
+    LIBS = foo/libfoo
+
+    # OCaml libraries
+    OCAML_LIBS = bar/libbar
+
+    # Also use the Unix module
+    OCAML_OTHER_LIBS = unix
+
+    # The main program
+    OCamlProgram(hello, hello_code hello_helper)
+
+    .DEFAULT: hello
+.Ve
+.PP
+The foo/OMakefile
+would be configured as a C library.
+.PP
+.Vb
+    FOO_FILES = foo_a foo_b
+    StaticCLibrary(libfoo, $(FOO_FILES))
+.Ve
+.PP
+The bar/OMakefile
+would build an ML library.
+.PP
+.Vb
+   BAR_FILES = bar_a bar_b bar_c
+   OCamlLibrary(libbar, $(BAR_FILES))
+.Ve
+.PP
+.SH NOTES
+
+.PP
+.SS THE OMAKEFILE AND OMAKEROOT FILES
+.PP
+OMake
+uses the OMakefile
+and OMakeroot
+files for configuring a project. The
+syntax of these files is the same, but their role is slightly different. For one thing, every
+project must have exactly one OMakeroot
+file in the project root directory. This file serves
+to identify the project root, and it contains code that sets up the project. In contrast, a
+multi\-directory project will often have an OMakefile
+in each of the project subdirectories,
+specifying how to build the files in that subdirectory.
+.PP
+Normally, the OMakeroot
+file is boilerplate. The following listing is a typical example.
+.PP
+.Vb
+    include $(STDLIB)/build/Common
+    include $(STDLIB)/build/C
+    include $(STDLIB)/build/OCaml
+    include $(STDLIB)/build/LaTeX
+
+    # Redefine the command\-line variables
+    DefineCommandVars(.)
+
+    # The current directory is part of the project
+    .SUBDIRS: .
+.Ve
+.PP
+The include lines include the standard configuration files needed for the project. The
+$(STDLIB) represents the omake
+library directory. The only required configuration
+file is Common\&. The others are optional; for example, the $(STDLIB)/build/OCaml file
+is needed only when the project contains programs written in OCaml.
+.PP
+The DefineCommandVars function defines any variables specified on the command line (as
+arguments of the form VAR=<value>). The \&.SUBDIRS line specifies that the current
+directory is part of the project (so the OMakefile should be read).
+.PP
+Normally, the OMakeroot file should be small and project\-independent. Any project\-specific
+configuration should be placed in the OMakefiles of the project.
+.PP
+.SH MULTIPLE VERSION SUPPORT
+
+.PP
+OMake version 0.9.6 introduced preliminary support for multiple, simultaneous versions of a
+project. Versioning uses the vmount(dir1, dir2) function, which defines a ``virtual mount\&''
+of directory dir1 over directory dir2\&. A ``virtual mount\&'' is like a transparent
+mount in Unix, where the files from dir1 appear in the dir2 namespace, but new files
+are created in dir2\&. More precisely, the filename dir2/foo refers to: a) the file
+dir1/foo if it exists, or b) dir2/foo otherwise.
+.PP
+The vmount function makes it easy to specify multiple versions of a project. Suppose we have
+a project where the source files are in the directory src/, and we want to compile two
+versions, one with debugging support and one optimized. We create two directories, debug
+and
+opt,
+and mount the src
+directory over them.
+.PP
+.Vb
+    section
+        CFLAGS += \-g
+        vmount(\-l, src, debug)
+        .SUBDIRS: debug
+
+    section
+        CFLAGS += \-O3
+        vmount(\-l, src, opt)
+        .SUBDIRS: opt
+.Ve
+.PP
+Here, we are using section blocks to define the scope of the vmount\-\-\-you may not need
+them in your project.
+.PP
+The \-l option is optional. It specifies that files form the src directory should be
+linked into the target directories (or copied, if the system is Win32). The links are added as
+files are referenced. If no options are given, then files are not copied or linked, but filenames
+are translated to refer directly to the src/ files.
+.PP
+Now, when a file is referenced in the debug directory, it is linked from the src
+directory if it exists. For example, when the file debug/OMakefile is read, the
+src/OMakefile is linked into the debug/ directory.
+.PP
+The vmount model is fairly transparent. The OMakefiles can be written \fIas if\fP
+referring to files in the src/ directory\-\-\-they need not be aware of mounting.
+However, there are a few points to keep in mind.
+.PP
+.SS NOTES
+.PP
+.TP
+.B *
+When using the vmount function for versioning, it wise to keep the source files
+distinct from the compiled versions. For example, suppose the source directory contained a file
+src/foo.o\&. When mounted, the foo.o file will be the same in all versions, which is
+probably not what you want. It is better to keep the src/ directory pristine, containing no
+compiled code.
+.PP
+.TP
+.B *
+When using the vmount \-l option, files are linked into the version directory only if
+they are referenced in the project. Functions that examine the filesystem (like $(ls ...))
+may produce unexpected results.
+.PP
+.SH SYNOPSIS
+
+.PP
+omake
+[\fB\-k\fP]
+[\fB\-j\fP\fIcount\fP]
+[\fB\-n\fP]
+[\fB\-s\fP]
+[\fB\-S\fP]
+[\fB\-p\fP]
+[\fB\-P\fP]
+[\fB\-w\fP]
+[\fB\-t\fP]
+[\fB\-u\fP]
+[\fB\-U\fP]
+[\fB\-R\fP]
+[\fB\-\-project\fP]
+[\fB\-\-progress\fP]
+[\fB\-\-no\-progress\fP]
+[\fB\-\-print\-status\fP]
+[\fB\-\-no\-print\-status\fP]
+[\fB\-\-print\-exit\fP]
+[\fB\-\-no\-print\-exit\fP]
+[\fB\-\-print\-dependencies\fP]
+[\fB\-\-show\-dependencies\fP\fI target\fP]
+[\fB\-\-force\-dotomake\fP]
+[\fB\-\-dotomake\fP\fI dir\fP]
+[\fB\-\-flush\-includes\fP]
+[\fB\-\-configure\fP]
+[\fB\-\-install\fP]
+[\fB\-\-install\-all\fP]
+[\fB\-\-install\-force\fP]
+[\fB\-\-version\fP]
+[\fIfilename...\fP]
+[\fBvar\-definition...\fP]
+.PP
+.SH COMMAND\-LINE OPTIONS
+
+.PP
+.TP
+\fB\-k\fP
+ Do not abort when a build command fails;
+continue to build as much of the project as possible.
+.PP
+.TP
+\fB\-n\fP
+ Print the commands that would be executed, but do no execute them.
+This can be used to see what would happen if the project were to be built.
+.PP
+.TP
+\fB\-s\fP
+ Do not print commands as they are executed (be ``silent\&'').
+.PP
+.TP
+\fB\-S\fP
+ Do not print commands as they are executed \fIunless\fP
+they produce output.
+.PP
+.TP
+\fB\-\-progress\fP
+ Print a progress indicator.
+This is normally used with the \fB\-s\fP
+or \fB\-S\fP
+options.
+.PP
+.TP
+\fB\-\-no\-progress\fP
+ Do not print a progress indicator (default).
+.PP
+.TP
+\fB\-\-print\-exit\fP
+ Print termination codes when commands complete.
+.PP
+.TP
+\fB\-\-no\-print\-exit\fP
+ Do not print termination codes when commands complete (default).
+.PP
+.TP
+\fB\-w\fP
+ Print directory information in make
+format as commands are executed.
+This is mainly useful for editors that expect make\-style
+directory information for determining the location of errors.
+.PP
+.TP
+\fB\-p\fP
+ Watch the filesystem for changes, and continue the build until it succeeds. If this
+option is specified, omake
+will restart the build whenever source files are modified.
+.PP
+.TP
+\fB\-P\fP
+ Watch the filesystem for changes forever. If this option is specified, omake
+will restart the build whenever source files are modified.
+.PP
+.TP
+\fB\-R\fP
+ Ignore the current directory and build the project from its root directory. When
+omake
+is run in a subdirectory of a project, it normally builds files within the current
+directory and its subdirectories. If the \fB\-R\fP
+option is specified, the build is performed as if
+omake
+were run in the project root.
+.PP
+.TP
+\fB\-t\fP
+ Update the omake
+database to force the project to be considered up\-to\-date.
+.PP
+.TP
+\fB\-U\fP
+ Do not trust cached build information. This will force the entire project to be rebuilt.
+.PP
+.TP
+\fB\-\-depend\fP
+ Do not trust cached dependency information. This will force files to be rescanned
+for dependency information.
+.PP
+.TP
+\fB\-\-configure\fP
+ Re\-run static.\\ sections of the included omake files, instead of
+trusting the cached results.
+.PP
+.TP
+[\fB\-\-force\-dotomake\fP]
+ Always use the $HOME/.omake for the \&.omc cache files.
+.PP
+.TP
+[\fB\-\-dotomake\fP\fI dir\fP]
+ Use the specified directory instead of the $HOME/.omake
+for the placement of the \&.omc cache files.
+.PP
+.TP
+\fB\-j\fP\fIcount\fP
+ Run multiple build commands in parallel. The \fIcount\fP
+specifies a
+bound on the number of commands to run simultaneously. In addition, the count may specify servers
+for remote execution of commands in the form server=count\&. For example, the option
+\-j 2:small.host.org=1:large.host.org=4 would specify that up to 2 jobs can be executed
+locally, 1 on the server small.host.org and 4 on large.host.org\&. Each remote server
+must use the same filesystem location for the project.
+.PP
+Remote execution is currently an experimental feature. Remote filesystems like NFS do not provide
+adequate file consistency for this to work.
+.PP
+.TP
+\fB\-\-print\-dependencies\fP
+ Print dependency information for the targets on the command line.
+.PP
+.TP
+\fB\-\-show\-dependencies\fP\fI target\fP
+ Print dependency information \fIif\fP
+the target is built.
+.PP
+.TP
+\fB\-\-install\fP
+ Install default files OMakefile
+and OMakeroot
+into the current
+directory. You would typically do this to start a project in the current directory.
+.PP
+.TP
+\fB\-\-install\-all\fP
+ In addition to installing files OMakefile
+and OMakeroot,
+install default OMakefiles
+into each subdirectory of the current directory.
+\fIcvs\fP(1)
+rules are used for filtering the subdirectory list. For example, OMakefiles
+are not copied into directories called CVS, RCCS, etc.
+.PP
+.TP
+\fB\-\-install\-force\fP
+ Normally, omake
+will prompt before it overwrites any
+existing OMakefile\&.
+If this option is given, all files are forcibly overwritten
+without prompting.
+.PP
+.TP
+\fBvar\-definition\fP
+ omake
+variables can also be defined on the command
+line in the form name=value\&. For example, the CFLAGS variable might be defined
+on the command line with the argument CFLAGS="\-Wall \-g"\&.
+.PP
+In addition, omake
+supports a number of debugging flags on the command line. Run
+omake \-\-help to get a summary of these flags.
+.PP
+.SH OMAKE CONCEPTS AND SYNTAX
+
+.PP
+Projects are specified to omake
+with OMakefiles.
+The OMakefile
+has a format
+similar to a Makefile\&.
+An OMakefile
+has three main kinds of syntactic objects:
+variable definitions, function definitions, and rule definitions.
+.PP
+.SS VARIABLES
+.PP
+Variables are defined with the following syntax. The name is any sequence of alphanumeric
+characters, underscore _, and hyphen \-\&.
+.PP
+.Vb
+   <name> = <value>
+.Ve
+.PP
+Values are defined as a sequence of literal characters and variable expansions. A variable
+expansion has the form $(<name>), which represents the value of the <name>
+variable in the current environment. Some examples are shown below.
+.PP
+.Vb
+   CC = gcc
+   CFLAGS = \-Wall \-g
+   COMMAND = $(CC) $(CFLAGS) \-O2
+.Ve
+.PP
+In this example, the value of the COMMAND variable is the string gcc \-Wall \-g \-O2\&.
+.PP
+Unlike \fImake\fP(1),
+variable expansion is \fIeager\fP
+and \fIfunctional\fP
+(see also the section
+on Scoping). That is, variable values are expanded immediately and new variable definitions do not
+affect old ones. For example, suppose we extend the previous example with following variable
+definitions.
+.PP
+.Vb
+   X = $(COMMAND)
+   COMMAND = $(COMMAND) \-O3
+   Y = $(COMMAND)
+.Ve
+.PP
+In this example, the value of the X variable is the string gcc \-Wall \-g \-O2 as
+before, and the value of the Y variable is gcc \-Wall \-g \-O2 \-O3\&.
+.PP
+.SS ADDING TO A VARIABLE DEFINITION
+.PP
+Variables definitions may also use the += operator, which adds the new text to an existing
+definition. The following two definitions are equivalent.
+.PP
+.Vb
+   # Add options to the CFLAGS variable
+   CFLAGS = $(CFLAGS) \-Wall \-g
+
+   # The following definition is equivalent
+   CFLAGS += \-Wall \-g
+.Ve
+.PP
+.SS ARRAYS
+.PP
+Arrays can be defined by appending the [] sequence to the variable name and defining initial
+values for the elements as separate lines. Whitespace is significant on each line. The following
+code sequence prints c d e\&.
+.PP
+.Vb
+    X[] =
+        a b
+        c d e
+        f
+
+    println($(nth 2, $(X)))
+.Ve
+.PP
+.SS SPECIAL CHARACTERS AND QUOTING
+.PP
+The following characters are special to omake:
+$():,=#\\\&. To treat
+any of these characters as normal text, they should be escaped with the backslash
+character \\\&.
+.PP
+.Vb
+    DOLLAR = \\$
+.Ve
+.PP
+Newlines may also be escaped with a backslash to concatenate several lines.
+.PP
+.Vb
+    FILES = a.c\\
+            b.c\\
+            c.c
+.Ve
+.PP
+Note that the backslash is \fInot\fP
+an escape for any other character, so the following
+works as expected (that is, it preserves the backslashes in the string).
+.PP
+.Vb
+    DOSTARGET = C:\\WINDOWS\\control.ini
+.Ve
+.PP
+An alternative mechanism for quoting special text is the use $"..." escapes. The number of
+double\-quotations is arbitrary. The outermost quotations are not included in the text.
+.PP
+.Vb
+    A = $""String containing "quoted text" ""
+    B = $"""Multi\-line
+        text.
+        The # character is not special"""
+.Ve
+.PP
+.SS FUNCTION DEFINITIONS
+.PP
+Functions are defined using the following syntax.
+.PP
+.Vb
+   <name>(<params>) =
+      <indented\-body>
+.Ve
+.PP
+The parameters are a comma\-separated list of identifiers, and the body must be placed on a separate
+set of lines that are indented from the function definition itself. For example, the following text
+defines a function that concatenates its arguments, separating them with a colon.
+.PP
+.Vb
+    ColonFun(a, b) =
+        return($(a):$(b))
+.Ve
+.PP
+The return expression can be used to return a value from the function. A return
+statement is not required; if it is omitted, the returned value is the value of the last expression
+in the body to be evaluated. NOTE: as of version 0.9.6, return is a control
+operation, causing the function to immediately return. In the following example, when the argument
+a is true, the function f immediately returns the value 1 without evaluating the print
+statement.
+.PP
+.Vb
+    f(a) =
+       if $(a)
+          return 1
+       println(The argument is false)
+       return 0
+.Ve
+.PP
+In many cases, you may wish to return a value from a section or code block without returning from
+the function. In this case, you would use the value operator. In fact, the value
+operator is not limited to functions, it can be used any place where a value is required. In the
+following definition, the variable X is defined as 1 or 2, depending on the value of a,
+then result is printed, and returned from the function.
+.PP
+.Vb
+    f_value(a) =
+       X =
+          if $(a)
+             value 1
+          else
+             value 2
+       println(The value of X is $(X))
+       value $(X)
+.Ve
+.PP
+Functions are called using the GNU\-make syntax, $(<name> <args)),
+where <args> is a comma\-separated list of values. For example,
+in the following program, the variable X contains the
+value foo:bar\&.
+.PP
+.Vb
+   X = $(ColonFun foo, bar)
+.Ve
+.PP
+If the value of a function is not needed, the function may also be called
+using standard function call notation. For example, the following program
+prints the string ``She says: Hello world\&''\&.
+.PP
+.Vb
+    Printer(name) =
+        println($(name) says: Hello world)
+
+    Printer(She)
+.Ve
+.PP
+.SS COMMENTS
+.PP
+Comments begin with the # character and continue to the end of the line.
+.PP
+.SS FILE INCLUSION
+.PP
+Files may be included with the include form. The included file must use
+the same syntax as an OMakefile\&.
+.PP
+.Vb
+    include files.omake
+.Ve
+.PP
+.SS SCOPING, SECTIONS
+.PP
+Scopes in omake
+are defined by indentation level. When indentation is
+increased, such as in the body of a function, a new scope is introduced.
+.PP
+The section form can also be used to define a new scope. For example, the following code
+prints the line X = 2, followed by the line X = 1\&.
+.PP
+.Vb
+    X = 1
+    section
+        X = 2
+        println(X = $(X))
+
+    println(X = $(X))
+.Ve
+.PP
+This result may seem surprising\-\-the variable definition within the
+section is not visible outside the scope of the section\&.
+.PP
+The export form can be used to circumvent this restriction by
+exporting variable values from an inner scope. It must be the final
+expression in a scope. For example, if we modify the previous example
+by adding an export expression, the new value for the X
+variable is retained, and the code prints the line X = 2 twice.
+.PP
+.Vb
+    X = 1
+    section
+        X = 2
+        println(X = $(X))
+        export
+
+    println(X = $(X))
+.Ve
+.PP
+There are also cases where separate scoping is quite important. For example,
+each OMakefile
+is evaluated in its own scope. Since each part of a project
+may have its own configuration, it is important that variable definitions in one
+OMakefile
+do not affect the definitions in another.
+.PP
+To give another example, in some cases it is convenient to specify a
+separate set of variables for different build targets. A frequent
+idiom in this case is to use the section command to define a
+separate scope.
+.PP
+.Vb
+   section
+      CFLAGS += \-g
+      %.c: %.y
+          $(YACC) $<
+      .SUBDIRS: foo
+
+   .SUBDIRS: bar baz
+.Ve
+.PP
+In this example, the \-g option is added to the CFLAGS
+variable by the foo subdirectory, but not by the bar and
+baz directories. The implicit rules are scoped as well and in this
+example, the newly added yacc rule will be inherited by the foo
+subdirectory, but not by the bar and baz ones; furthermore
+this implicit rule will not be in scope in the current directory.
+.PP
+.SS CONDITIONALS
+.PP
+Top level conditionals have the following form.
+.PP
+.Vb
+    if <test>
+       <true\-clause>
+    elseif <text>
+       <elseif\-clause>
+    else
+       <else\-clause>
+.Ve
+.PP
+The <test> expression is evaluated, and if it evaluates to a
+\fItrue\fP
+value (see the Logic section), the code for the
+<true\-clause> is evaluated; otherwise the remaining clauses
+are evaluated. There may be multiple elseif clauses;
+both the elseif and else clauses are optional.
+Note that the clauses are indented, so they introduce new
+scopes.
+.PP
+The following example illustrates a typical use of a conditional. The
+OSTYPE variable is the current machine architecture.
+.PP
+.Vb
+    # Common suffixes for files
+    if $(equal $(OSTYPE), Win32)
+       EXT_LIB = .lib
+       EXT_OBJ = .obj
+       EXT_ASM = .asm
+       EXE = .exe
+       export
+    elseif $(mem $(OSTYPE), Unix Cygwin)
+       EXT_LIB = .a
+       EXT_OBJ = .o
+       EXT_ASM = .s
+       EXE =
+       export
+    else
+       # Abort on other architectures
+       eprintln(OS type $(OSTYPE) is not recognized)
+       exit(1)
+.Ve
+.PP
+.SS MATCHING
+.PP
+Pattern matching is performed with the switch and match forms.
+.PP
+.Vb
+    switch <string>
+    case <pattern1>
+        <clause1>
+    case <pattern2>
+        <clause2>
+    ...
+    default
+       <default\-clause>
+.Ve
+.PP
+The number of cases is arbitrary.
+The default clause is optional; however, if it is used it should
+be the last clause in the pattern match.
+.PP
+For switch, the string is compared with the patterns literally.
+.PP
+.Vb
+    switch $(HOST)
+    case mymachine
+        println(Building on mymachine)
+    default
+        println(Building on some other machine)
+.Ve
+.PP
+Patterns need not be constant strings. The following function tests
+for a literal match against pattern1, and a match against
+pattern2 with ## delimiters.
+.PP
+.Vb
+   Switch2(s, pattern1, pattern2) =
+      switch $(s)
+      case $(pattern1)
+          println(Pattern1)
+      case $"##$(pattern2)##"
+          println(Pattern2)
+      default
+          println(Neither pattern matched)
+.Ve
+.PP
+For match the patterns are \fIegrep\fP(1)\-style
+regular expressions.
+The numeric variables $1, $2, ... can be used to retrieve values
+that are matched by \\(...\\) expressions.
+.PP
+.Vb
+    match $(NODENAME)@$(SYSNAME)@$(RELEASE)
+    case $"mymachine.*@\\(.*\\)@\\(.*\\)"
+        println(Compiling on mymachine; sysname $1 and release $2 are ignored)
+
+    case $".*@Linux@.*2\\.4\\.\\(.*\\)"
+        println(Compiling on a Linux 2.4 system; subrelease is $1)
+
+    default
+        eprintln(Machine configuration not implemented)
+        exit(1)
+.Ve
+.PP
+.SH OBJECTS
+
+.PP
+OMake is an object\-oriented language. Generally speaking, an object is a value that contains fields
+and methods. An object is defined with a \&. suffix for a variable. For example, the
+following object might be used to specify a point $(1, 5)$ on the two\-dimensional plane.
+.PP
+.Vb
+    Coord. =
+        x = 1
+        y = 5
+        print(message) =
+           println($"$(message): the point is ($(x), $(y)")
+
+    # Define X to be 5
+    X = $(Coord.x)
+
+    # This prints the string, "Hi: the point is (1, 5)"
+    Coord.print(Hi)
+.Ve
+.PP
+The fields x and y represent the coordinates of the point. The method print
+prints out the position of the point.
+.PP
+.SS CLASSES
+.PP
+We can also define \fIclasses\fP\&.
+For example, suppose we wish to define a generic Point
+class with some methods to create, move, and print a point. A class is really just an object with
+a name, defined with the class directive.
+.PP
+.Vb
+    Point. =
+        class Point
+
+        # Default values for the fields
+        x = 0
+        y = 0
+
+        # Create a new point from the coordinates
+        new(x, y) =
+           this.x = $(x)
+           this.y = $(y)
+           return $(this)
+
+        # Move the point to the right
+        move\-right() =
+           x = $(add $(x), 1)
+           return $(this)
+
+        # Print the point
+        print() =
+           println($"The point is ($(x), $(y)")
+
+    p1 = $(Point.new 1, 5)
+    p2 = $(p1.move\-right)
+
+    # Prints "The point is (1, 5)"
+    p1.print()
+
+    # Prints "The point is (2, 5)"
+    p2.print()
+.Ve
+.PP
+Note that the variable $(this) is used to refer to the current object. Also, classes and
+objects are \fIfunctional\fP\-\-\-the
+new and move\-right methods return new objects. In
+this example, the object p2 is a different object from p1, which retains the original
+$(1, 5)$ coordinates.
+.PP
+.SS INHERITANCE
+.PP
+Classes and objects support inheritance (including multiple inheritance) with the extends
+directive. The following definition of Point3D defines a point with x, y, and
+z fields. The new object inherits all of the methods and fields of the parent classes/objects.
+.PP
+.Vb
+    Z. =
+       z = 0
+
+    Point3D. =
+       extends $(Point)
+       extends $(Z)
+       class Point3D
+
+       print() =
+          println($"The 3D point is ($(x), $(y), $(z))")
+
+    # The "new" method was not redefined, so this
+    # defines a new point (1, 5, 0).
+    p = $(Point3D.new 1, 5)
+.Ve
+.PP
+.SH SPECIAL OBJECTS/SECTIONS
+
+.PP
+Objects provide one way to manage the OMake namespace. There are also four special objects that are
+further used to control the namespace.
+.PP
+.SS PRIVATE.
+.PP
+The private. section is used to define variables that are private to the current file/scope.
+The values are not accessible outside the scope. Variables defined in a private. object can
+be accessed only from within the section where they are defined.
+.PP
+.Vb
+    Obj. =
+       private. =
+          X = 1
+
+       print() =
+          println(The value of X is: $(X))
+
+    # Prints:
+    #    The private value of X is: 1
+    Obj.print()
+
+    # This is an error\-\-X is private in Obj
+    y = $(Obj.X)
+.Ve
+.PP
+In addition, private definitions do not affect the global value of a variable.
+.PP
+.Vb
+   # The public value of x is 1
+   x = 1
+   f() =
+       println(The public value of x is: $(x))
+
+   # This object uses a private value of x
+   Obj. =
+       private. =
+          x = 2
+
+       print() =
+          x = 3
+          println(The private value of x is: $(x))
+          f()
+
+   # Prints:
+   #    The private value of x is: 3
+   #    The public value of x is: 1
+   Obj.print()
+.Ve
+.PP
+Private variables have two additional properties.
+.PP
+.TP
+1.
+Private variables are local to the file in which they are defined.
+.TP
+2.
+Private variables are not exported by the export directive, unless they are
+mentioned explicitly.
+.PP
+.Vb
+       private. =
+          FLAG = true
+
+       section
+          FLAG = false
+          export
+
+       # FLAG is still true
+       section
+          FLAG = false
+          export FLAG
+
+       # FLAG is now false
+.Ve
+.PP
+.SS PROTECTED.
+.PP
+The protected. object is used to define fields that are local to an object. They can
+be accessed as fields, but they are not passed dynamically to other functions. The purpose of a
+protected variable is to prevent a variable definition within the object from affecting other parts
+of the project.
+.PP
+.Vb
+    X = 1
+    f() =
+       println(The public value of X is: $(X))
+
+    # Prints:
+    #    The public value of X is: 2
+    section
+       X = 2
+       f()
+
+    # X is a protected field in the object
+    Obj. =
+       protected. =
+          X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The public value of X is: 1
+    Obj.print()
+
+    # This is legal, it defines Y as 3
+    Y = $(Obj.X)
+.Ve
+.PP
+In general, it is a good idea to define object variables as protected. The resulting code is more
+modular because variables in your object will not produce unexpected clashes with variables defined
+in other parts of the project.
+.PP
+.SS PUBLIC.
+.PP
+The public. object is used to specify public dynamically\-scoped variables. In the following
+example, the public. object specifies that the value X = 4 is to be dynamically
+scoped. Public variables \fIare not\fP
+defined as fields of an object.
+.PP
+.Vb
+    X = 1
+    f() =
+       println(The public value of X is: $(X))
+
+    # Prints:
+    #    The public value of X is: 2
+    section
+       X = 2
+       f()
+
+    Obj. =
+       protected. =
+          X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          public. =
+             X = 4
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The public value of X is: 4
+    Obj.print()
+.Ve
+.PP
+.SS STATIC.
+.PP
+The static. object is used to specify values that are persistent across runs of OMake. They
+are frequently used for configuring a project. Configuring a project can be expensive, so the
+static. object ensure that the configuration is performed just once. In the following
+(somewhat trivial) example, a static section is used to determine if the LaTeX command is
+available. The $(where latex) function returns the full pathname for latex, or
+false if the command is not found.
+.PP
+.Vb
+   static. =
+      LATEX_ENABLED = false
+      print(\-\-\- Determining if LaTeX is installed )
+      if $(where latex)
+          LATEX_ENABLED = true
+          export
+
+      if $(LATEX_ENABLED)
+         println($'(enabled)')
+      else
+         println($'(disabled)')
+.Ve
+.PP
+As a matter of style, a static. section that is used for configuration should print what it
+is doing, using \-\-\- as a print prefix.
+.PP
+.SS SHORT SYNTAX FOR SCOPING OBJECTS
+.PP
+The usual dot\-notation can be used for private, protected, and public variables (but not
+static variables).
+.PP
+.Vb
+    # Public definition of X
+    public.X = 1
+
+    # Private definition of X
+    private.X = 2
+
+    # Prints:
+    #    The public value of X is: 1
+    #    The private value of X is: 2
+    println(The public value of X is: $(public.X))
+    println(The private value of X is: $(private.X))
+.Ve
+.PP
+.SS MODULAR PROGRAMMING
+.PP
+The scoping objects help provide a form of modularity. When you write a new file or program,
+explicit scoping declarations can be used to define an explicit interface for your code, and help
+avoid name clashes with other parts of the project. Variable definitions are public by default, but
+you can control this with private definitions.
+.PP
+.Vb
+    # These variables are private to this file
+    private. =
+       FILES = foo1 foo2 foo3
+       SUFFIX = .o
+       OFILES = $(addsuffix $(SUFFIX), $(FILES))
+
+    # These variables are public
+    public. =
+       CFLAGS += \-g
+
+    # Build the files with the \-g option
+    $(OFILES):
+.Ve
+.PP
+.SH RULES
+
+.PP
+Rules are used by OMake to specify how to build files. At its simplest, a rule has the following
+form.
+.PP
+.Vb
+    <target>: <dependencies>
+        <commands>
+.Ve
+.PP
+The <target> is the name of a file to be built. The <dependencies> are a list of
+files that are needed before the <target> can be built. The <commands> are a list of
+indented lines specifying commands to build the target. For example, the following rule specifies
+how to compile a file hello.c\&.
+.PP
+.Vb
+    hello.o: hello.c
+        $(CC) $(CFLAGS) \-c \-o hello.o hello.c
+.Ve
+.PP
+This rule states that the hello.o
+file depends on the hello.c
+file. If the
+hello.c
+file has changed, the command $(CC) $(CFLAGS) \-c \-o hello.o hello.c is to
+be executed to update the target file hello.o\&.
+.PP
+A rule can have an arbitrary number of commands. The individual command lines are executed
+independently by the command shell. The commands do not have to begin with a tab, but they must be
+indented from the dependency line.
+.PP
+In addition to normal variables, the following special variables may be used in the body of a rule.
+.PP
+.TP
+.B *
+$*: the target name, without a suffix.
+.TP
+.B *
+$@: the target name.
+.TP
+.B *
+$^: a list of the sources, in alphabetical order, with
+duplicates removed.
+.TP
+.B *
+$+: all the sources, in the original order.
+.TP
+.B *
+$<: the first source.
+.PP
+For example, the above hello.c rule may be simplified as follows.
+.PP
+.Vb
+    hello.o: hello.c
+        $(CC) $(CFLAGS) \-c \-o $@ $<
+.Ve
+.PP
+Unlike normal values, the variables in a rule body are expanded lazily, and binding is dynamic. The
+following function definition illustrates some of the issues.
+.PP
+.Vb
+    CLibrary(name, files) =
+        OFILES = $(addsuffix .o, $(files))
+
+        $(name).a: $(OFILES)
+            $(AR) cq $@ $(OFILES)
+.Ve
+.PP
+This function defines a rule to build a program called $(name) from a list of \&.o
+files. The files in the argument are specified without a suffix, so the first line of the function
+definition defines a variable OFILES that adds the \&.o suffix to each of the file
+names. The next step defines a rule to build a target library $(name).a from the
+$(OFILES) files. The expression $(AR) is evaluated when the function is called, and
+the value of the variable AR is taken from the caller\&'s scope (see also the section on
+Scoping).
+.PP
+.SS IMPLICIT RULES
+.PP
+Rules may also be implicit. That is, the files may be specified by wildcard patterns.
+The wildcard character is %\&. For example, the following rule specifies a default
+rule for building \&.o files.
+.PP
+.Vb
+    %.o: %.c
+        $(CC) $(CFLAGS) \-c \-o $@ $*.c
+.Ve
+.PP
+This rule is a template for building an arbitrary \&.o file from
+a \&.c file.
+.PP
+By default, implicit rules are only used for the targets in the current
+directory. However subdirectories included via the \&.SUBDIRS rules
+inherit all the implicit rules that are in scope (see also the section on
+Scoping).
+.PP
+.SS BOUNDED IMPLICIT RULES
+.PP
+Implicit rules may specify the set of files they apply to. The following syntax is used.
+.PP
+.Vb
+    <targets>: <pattern>: <dependencies>
+        <commands>
+.Ve
+.PP
+For example, the following rule applies only to the files a.o and b.o\&.
+.PP
+.Vb
+   a.o b.o: %.o: %.c
+        $(CC) $(CFLAGS) \-DSPECIAL \-c $*.c
+.Ve
+.PP
+.SS SECTION
+.PP
+Frequently, the commands in a rule body are expressions to be evaluated by the shell. omake
+also allows expressions to be evaluated by omake
+itself.
+.PP
+The syntax of these ``computed rules\&'' uses the section expression. The following rule uses
+the omake
+IO functions to produce the target hello.c\&.
+.PP
+.Vb
+    hello.c:
+        section
+            FP = fopen(hello.c, w)
+            fprintln($(FP), $""#include <stdio.h> int main() { printf("Hello world\\n"); }"")
+            close($(FP))
+.Ve
+.PP
+This example uses the quotation $""..."" to quote the text being printed. These quotes are
+not included in the output file. The fopen, fprintln, and close functions
+perform file IO as discussed in the IO section.
+.PP
+In addition, commands that are function calls, or special expressions, are interpreted correctly.
+Since the fprintln function can take a file directly, the above rule can be abbreviated as
+follows.
+.PP
+.Vb
+    hello.c:
+       fprintln($@, $""#include <stdio.h> int main() { printf("Hello world\\n"); }"")
+.Ve
+.PP
+.SS SECTION RULE
+.PP
+Rules can also be computed using the section rule form, where a rule body is expected instead
+of an expression. In the following rule, the file a.c is copied onto the hello.c file
+if it exists, otherwise hello.c is created from the file default.c\&.
+.PP
+.Vb
+    hello.c:
+        section rule
+           if $(target\-exists a.c)
+              hello.c: a.c
+                 cat a.c > hello.c
+           else
+              hello.c: default.c
+                 cp default.c hello.c
+.Ve
+.PP
+.SH SPECIAL DEPENDENCIES
+
+.PP
+.SS :EXISTS:
+.PP
+In some cases, the contents of a dependency do not matter, only whether the file exists or not. In
+this case, the :exists: qualifier can be used for the dependency.
+.PP
+.Vb
+    foo.c: a.c :exists: .flag
+       if $(test \-e .flag)
+           $(CP) a.c $@
+.Ve
+.PP
+.SS :EFFECTS:
+.PP
+Some commands produce files by side\-effect. For example, the
+\fIlatex\fP(1)
+command produces a \&.aux file as a side\-effect of
+producing a \&.dvi file. In this case, the :effects:
+qualifier can be used to list the side\-effect explicitly.
+omake
+is careful to avoid simultaneously running programs that
+have overlapping side\-effects.
+.PP
+.Vb
+    paper.dvi: paper.tex :effects: paper.aux
+        latex paper
+.Ve
+.PP
+.SS :VALUE:
+The :value: dependency is used to specify that the rule execution depends on the value of an
+expression. For example, the following rule
+.PP
+.Vb
+    a: b c :value: $(X)
+        ...
+.Ve
+.PP
+specifies that ``a\&'' should be recompiled if the value of $(X) changes
+(X does not have to be a filename). This is intended to allow greater
+control over dependencies.
+.PP
+In addition, it can be used instead of other kinds of dependencies. For example,
+the following rule:
+.PP
+.Vb
+    a: b :exists: c
+        commands
+.Ve
+.PP
+is the same as
+.PP
+.Vb
+    a: b :value: $(target\-exists c)
+        commands
+.Ve
+.PP
+Notes:
+.TP
+.B *
+The values are arbitrary (they are not limited to variables)
+.TP
+.B *
+The values are evaluated at rule expansion time, so expressions
+containing variables like $@, $^, etc are legal.
+.PP
+.SH \&.SCANNER RULES
+
+.PP
+Scanner rules define a way to specify automatic dependency scanning. A \&.SCANNER rule has the
+following form.
+.PP
+.Vb
+    .SCANNER: target: dependencies
+        commands
+.Ve
+.PP
+The rule is used to compute additional dependencies that might be defined in the source files for
+the specified target. The scanner produces dependencies for the specified target (which may be a
+pattern) by running the commands, which \fImust\fP
+produce output that is compatible with omake.
+For example, on GNU systems the gcc \-MM foo.c produces dependencies for the file foo.c
+(based on #include information).
+.PP
+We can use this to specify a scanner for C files that adds the scanned dependencies for the
+\&.o file. The following scanner specifies that dependencies for a file, say foo.o can
+be computed by running gcc \-MM foo.c\&. Furthermore, foo.c is a dependency, so the
+scanner should be recomputed whenever the foo.c file changes.
+.PP
+.Vb
+    .SCANNER: %.o: %.c
+        gcc \-MM $<
+.Ve
+.PP
+Let\&'s suppose that the command gcc \-MM foo.c prints the following line.
+.PP
+.Vb
+    foo.o: foo.h /usr/include/stdio.h
+.Ve
+.PP
+The result is that the files foo.h and /usr/include/stdio.h are considered to be
+dependencies of foo.o\-\-\-that is, foo.o should be rebuilt if either of these files
+changes.
+.PP
+This works, to an extent. One nice feature is that the scanner will be re\-run whenever the
+foo.c file changes. However, one problem is that dependencies in C are \fIrecursive\fP\&.
+That is, if the file foo.h is modified, it might include other files, establishing further
+dependencies. What we need is to re\-run the scanner if foo.h changes too.
+.PP
+We can do this with a \fIvalue\fP
+dependency. The variable $& is defined as the dependency
+results from any previous scan. We can add these as dependencies using the digest function,
+which computes an MD5 digest of the files.
+.PP
+.Vb
+    .SCANNER: %.o: %.c :value: $(digest $&)
+        gcc \-MM $<
+.Ve
+.PP
+Now, when the file foo.h changes, its digest will also change, and the scanner will be re\-run
+because of the value dependency (since $& will include foo.h).
+.PP
+This still is not quite right. The problem is that the C compiler uses a \fIsearch\-path\fP
+for
+include files. There may be several versions of the file foo.h, and the one that is chosen
+depends on the include path. What we need is to base the dependencies on the search path.
+.PP
+The $(digest\-in\-path\-optional ...) function computes the digest based on a search path,
+giving us a solution that works.
+.PP
+.Vb
+    .SCANNER: %.o: %.c :value: $(digest\-in\-path\-optional $(INCLUDES), $&)
+       gcc \-MM $(addprefix \-I, $(INCLUDES)) $<
+.Ve
+.PP
+.SS NAMED SCANNERS, AND THE :SCANNER: TARGET
+.PP
+Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
+example, we might compile \&.c files with different options, or (heaven help us) we may be
+using both gcc and the Microsoft Visual C++ compiler cl\&. In general, the target of a
+\&.SCANNER is not tied to a particular target, and we may name it as we like.
+.PP
+.Vb
+    .SCANNER: scan\-gcc\-%.c: %.c :value: $(digest\-in\-path\-optional $(INCLUDES), $&)
+        gcc \-MM $(addprefix \-I, $(INCLUDES)) $<
+
+    .SCANNER: scan\-cl\-%.c: %.c :value: $(digest\-in\-path\-optional $(INCLUDES), $&)
+        cl \-\-scan\-dependencies\-or\-something $(addprefix /I, $(INCLUDES)) $<
+.Ve
+.PP
+The next step is to define explicit scanner dependencies. The :scanner: dependency is used
+for this. In this case, the scanner dependencies are specified explicitly.
+.PP
+.Vb
+    $(GCC_FILES): %.o: %.c :scanner: scan\-gcc\-%c
+        gcc ...
+
+    $(CL_FILES): %.obj: %.c :scanner: scan\-cl\-%c
+        cl ...
+.Ve
+.PP
+Explicit :scanner: scanner specification may also be used to state that a single
+\&.SCANNER rule should be used to generate dependencies for more than one target. For example,
+.PP
+.Vb
+    .SCANNER: scan\-all\-c: $(GCC_FILES) :value: $(digest\-in\-path\-optional $(INCLUDES), $&)
+        gcc \-MM $(addprefix \-I, $(INCLUDES)) $(GCC_FILES)
+
+    $(GCC_FILES): %.o: %.c :scanner: scan\-all\-c
+        ...
+.Ve
+.PP
+The above has the advantage of only running gcc
+once and a disadvantage that when a single
+source file changes, all the files will end up being re\-scanned.
+.PP
+.SS NOTES
+.PP
+In most cases, you won\&'t need to define scanners of your own. The standard installation includes
+default scanners (both explicitly and implicitly named ones) for C, OCaml, and LaTeX files.
+.PP
+The SCANNER_MODE variable controls the usage of implicit scanner dependencies. See
+.\"omake\-root.html#SCANNERMODE
+the documentation
+for the SCANNER_MODE variable in
+\fIomake\-root\fP(1)
+for detail.
+.PP
+The explicit :scanner: dependencies reduce the chances of scanner mis\-specifications. In
+large complicated projects it might be a good idea to set SCANNER_MODE to error and
+use only the named \&.SCANNER rules and explicit :scanner: specifications.
+.PP
+.SH OTHER SPECIAL TARGETS
+
+.PP
+There are several other special targets that define special actions to be take by omake\&.
+.PP
+.SS \&.DEFAULT
+.PP
+The \&.DEFAULT target specifies a target to be built by default
+if omake
+is run without explicit targets. The following rule
+instructs omake
+to build the program hello by default
+.PP
+.Vb
+   .DEFAULT: hello
+.Ve
+.PP
+.SS \&.SUBDIRS
+.PP
+The \&.SUBDIRS target is used to specify a set of subdirectories
+that are part of the project. Each subdirectory should have its own
+OMakefile,
+which is evaluated in the context of the current
+environment.
+.PP
+.Vb
+   .SUBDIRS: src doc tests
+.Ve
+.PP
+This rule specifies that the OMakefiles in each of the src, doc, and
+tests directories should be read.
+.PP
+In some cases, especially when the OMakefiles are very similar in a large number of
+subdirectories, it is inconvenient to have a separate OMakefile for each directory. If the
+\&.SUBDIRS rule has a body, the body is used instead of the OMakefile\&.
+.PP
+.Vb
+   .SUBDIRS: src1 src2 src3
+      println(Subdirectory $(CWD))
+      .DEFAULT: lib.a
+.Ve
+.PP
+In this case, the src1, src2, and src3 files do not need OMakefiles.
+Furthermore, if one exists, it is ignored. The following includes the file if it exists.
+.PP
+.Vb
+   .SUBDIRS: src1 src2 src3
+       if $(file\-exists OMakefile)
+          include OMakefile
+       .DEFAULT: lib.a
+.Ve
+.PP
+.SS \&.INCLUDE
+.PP
+The \&.INCLUDE target is like the include directive, but it specifies a rule to build
+the file if it does not exist.
+.PP
+.Vb
+   .INCLUDE: config
+       echo "CONFIG_READ = true" > config
+
+    echo CONFIG_READ is $(CONFIG_READ)
+.Ve
+.PP
+.SS \&.PHONY
+.PP
+A ``phony\&'' target is a target that is not a real file, but exists to collect a set of dependencies.
+Phony targets are specified with the \&.PHONY rule. In the following example, the
+install target does not correspond to a file, but it corresponds to some commands that should
+be run whenever the install target is built (for example, by running omake install).
+.PP
+.Vb
+   .PHONY: install
+
+   install: myprogram.exe
+      cp myprogram.exe /usr/bin
+.Ve
+.PP
+.SH RULE SCOPING
+
+.PP
+As we have mentioned before, omake
+is a \fIscoped\fP
+language. This provides great
+flexibility\-\-\-different parts of the project can define different configurations without interfering
+with one another (for example, one part of the project might be compiled with CFLAGS=\-O3 and
+another with CFLAGS=\-g).
+.PP
+But how is the scope for a target file selected? Suppose we are building a file dir/foo.o\&.
+omake
+uses the following rules to determine the scope.
+.PP
+.TP
+.B *
+First, if there is an \fIexplicit\fP rule for building
+dir/foo.o (a rule with no
+wildcards), the context for that rule determines the scope for building the target.
+.TP
+.B *
+Otherwise, the directory dir/ must be part of the project. This normally means that a
+configuration file dir/OMakefile exists (although, see the \&.SUBDIRS section for
+another way to specify the OMakefile). In this case, the scope of the target is the scope at
+the end of the dir/OMakefile\&.
+.PP
+To illustrate rule scoping, let\&'s go back to the example of a ``Hello world\&'' program with two
+files. Here is an example OMakefile (the two definitions of CFLAGS are for
+illustration).
+.PP
+.Vb
+    # The executable is compiled with debugging
+    CFLAGS = \-g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) \-o $@ $+
+
+    # Redefine CFLAGS
+    CFLAGS += \-O3
+.Ve
+.PP
+In this project, the target hello is \fIexplicit\fP\&.
+The scope of the hello target
+is the line beginning with hello:, where the value of CFLAGS is \-g\&. The other
+two targets, hello_code.o and hello_lib.o do not appear as explicit targets, so their
+scope is at the end of the OMakefile, where the CFLAGS variable is defined to be
+\-g \-O3\&. That is, hello will be linked with CFLAGS=\-g and the \&.o files
+will be compiled with CFLAGS=\-g \-O3\&.
+.PP
+We can change this behavior for any of the targets by specifying them as explicit targets. For
+example, suppose we wish to compile hello_lib.o with a preprocessor variable LIBRARY\&.
+.PP
+.Vb
+    # The executable is compiled with debugging
+    CFLAGS = \-g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) \-o $@ $+
+
+    # Compile hello_lib.o with CFLAGS = \-g \-DLIBRARY
+    section
+        CFLAGS += \-DLIBRARY
+        hello_lib.o:
+
+    # Redefine CFLAGS
+    CFLAGS += \-O3
+.Ve
+.PP
+In this case, hello_lib.o is also mentioned as an explicit target, in a scope where
+CFLAGS=\-g \-DLIBRARY\&. Since no rule body is specified, it is compiled using the usual
+implicit rule for building \&.o files (in a context where CFLAGS=\-g \-DLIBRARY).
+.PP
+.SS SCOPING OF IMPLICIT RULES
+.PP
+Implicit rules (rules containing wildcard patterns) are \fInot\fP
+global, they follow the normal
+scoping convention. This allows different parts of a project to have different sets of implicit
+rules. If we like, we can modify the example above to provide a new implicit rule for building
+hello_lib.o\&.
+.PP
+.Vb
+    # The executable is compiled with debugging
+    CFLAGS = \-g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) \-o $@ $+
+
+    # Compile hello_lib.o with CFLAGS = \-g \-DLIBRARY
+    section
+        %.o: %.c
+            $(CC) $(CFLAGS) \-DLIBRARY \-c $<
+        hello_lib.o:
+
+    # Redefine CFLAGS
+    CFLAGS += \-O3
+.Ve
+.PP
+In this case, the target hello_lib.o is built in a scope with a new implicit rule for
+building %.o files. The implicit rule adds the \-DLIBRARY option. This implicit rule
+is defined only for the target hello_lib.o; the target hello_code.o is built as
+normal.
+.PP
+.SS SCOPING OF .SCANNER RULES
+.PP
+Scanner rules are scoped the same way as normal rules. If the \&.SCANNER rule is explicit
+(containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
+If the \&.SCANNER rule is implicit, then the environment is taken from the :scanner:
+dependency.
+.PP
+.Vb
+    # The executable is compiled with debugging
+    CFLAGS = \-g
+    hello: hello_code.o hello_lib.o
+       $(CC) $(CFLAGS) \-o $@ $+
+
+    # scanner for .c files
+    .SCANNER: scan\-c\-%.c: %.c
+       $(CC) $(CFLAGS) \-MM $<
+
+    # Compile hello_lib.o with CFLAGS = \-g \-DLIBRARY
+    section
+        CFLAGS += \-DLIBRARY
+        hello_lib.o: hello_lib.c :scanner: scan\-c\-hello_lib.c
+           $(CC) $(CFLAGS) \-c $<
+
+    # Compile hello_code.c with CFLAGS = \-g \-O3
+    section
+        CFLAGS += \-O3
+        hello_code.o: hello_code.c :scanner: scan\-c\-hello_code.c
+           $(CC) $(CFLAGS) \-c $<
+.Ve
+.PP
+Again, this is for illustration\-\-\-it is unlikely you would need to write a complicated configuration
+like this! In this case, the \&.SCANNER rule specifies that the C\-compiler should be called
+with the \-MM flag to compute dependencies. For the target hello_lib.o, the scanner
+is called with CFLAGS=\-g \-DLIBRARY, and for hello_code.o it is called with
+CFLAGS=\-g \-O3\&.
+.PP
+.SS SCOPING FOR .PHONY TARGETS
+.PP
+Phony targets (targets that do not correspond to files) are defined with a \&.PHONY: rule.
+Phony targets are scoped as usual. The following illustrates a common mistake, where the
+\&.PHONY target is declared \fIafter\fP
+it is used.
+.PP
+.Vb
+    # This example is broken!
+    all: hello
+
+    hello: hello_code.o hello_lib.o
+        $(CC) $(CFLAGS) \-o $@ $+
+
+    .PHONY: all
+.Ve
+.PP
+This doesn\&'t work as expected because the \&.PHONY declaration occurs too late. The proper way
+to write this example is to place the \&.PHONY declaration first.
+.PP
+.Vb
+    # Phony targets must be declared before being used
+    .PHONY: all
+
+    all: hello
+
+    hello: hello_code.o hello_lib.o
+        $(CC) $(CFLAGS) \-o $@ $+
+.Ve
+.PP
+Phony targets are passed to subdirectories. As a practical matter, it is wise to declare all
+\&.PHONY targets in your root OMakefile, before any \&.SUBDIRS\&. This will ensure
+that 1) they are considered as phony targets in each of the sbdirectories, and 2) you can build them
+from the project root.
+.PP
+.Vb
+    .PHONY: all install clean
+
+    .SUBDIRS: src lib clib
+.Ve
+.PP
+.SH THE OSH SHELL
+
+.PP
+OMake also includes a standalone command\-line interpreter osh
+that can be used as an
+interactive shell. The shell uses the same syntax, and provides the same features on all platforms
+omake
+supports, including Win32.
+.PP
+.SS STARTUP
+.PP
+On startup, osh
+reads the file ~/.oshrc if it exists. The syntax of this file is the
+same as an OMakefile\&.
+The following additional variables are significant.
+.PP
+.TP
+prompt
+The prompt variable specifies the command\-line prompt.
+It can be a simple string.
+.PP
+.Vb
+    prompt = osh>
+.Ve
+.PP
+Or you may choose to define it as a function of no arguments.
+.PP
+.Vb
+    prompt() =
+        return $"<$(USER):$(HOST) $(homename $(CWD))>"
+.Ve
+.PP
+An example of the latter prompt is as follows.
+.PP
+.Vb
+    <jyh:kenai.yapper.org ~>cd links/omake
+    <jyh:kenai.yapper.org ~/links/omake>
+.Ve
+.PP
+.TP
+ignoreeof
+If the ignoreeof is true, then osh will not exit on
+a terminal end\-of\-file (usually ^D on Unix systems).
+.PP
+.SS ALIASES
+.PP
+Command aliases are defined by adding functions to the Shell. object. The following alias
+adds the \-AF option to the ls command.
+.PP
+.Vb
+    Shell. +=
+       ls(argv) =
+          "ls" \-AF $(argv)
+.Ve
+.PP
+Quoted commands do not undergo alias expansion. The quotation "ls" prevents the alias from
+being recursive.
+.PP
+.SS INTERACTIVE SYNTAX
+.PP
+The interactive syntax in osh is the same as the syntax of an OMakefile, with one
+exception in regard to indentation. The line before an indented block must have a colon at the end
+of the line. A block is terminated with a \&. on a line by itself, or ^D\&. In the
+following example, the first line if true has no body, because there is no colon.
+.PP
+.Vb
+   # The following if has no body
+   osh>if true
+   # The following if has a body
+   osh>if true:
+   if>       if true:
+   if>          println(Hello world)
+   if>          .
+   Hello world
+.Ve
+.PP
+Note that osh makes some effort to modify the prompt while in an indented body, and it
+auto\-indents the text.
+.PP
+The colon signifier is also allowed in files, although it is not required.
+.PP
+.SS SEE ALSO
+.PP
+See Section
+.\"omake\-shell.html
+omake\-shell
+for more information on the shell language,
+and Section
+.\"omake\-system.html
+omake\-system
+for more information on job control.
+.PP
+.SH BUILTIN VARIABLES
+
+.PP
+.SS OSTYPE
+Set to the machine architecture omake
+is running on. Possible values are
+Unix (for all Unix versions, including Linux and Mac OS X), Win32
+(for MS\-Windows, OMake compiled with MSVC++ or Mingw), and Cygwin (for
+MS\-Windows, OMake compiled with Cygwin).
+.SS SYSNAME
+The name of the operating system for the current machine.
+.SS NODENAME
+The hostname of the current machine.
+.SS OS_VERSION
+The operating system release.
+.SS MACHINE
+The machine architecture, e.g.  i386, sparc, etc.
+.SS HOST
+Same as NODENAME\&.
+.SS OMAKE_VERSION
+Version of OMake.
+.SS USER
+The login name of the user executing the process.
+.SS HOME
+The home directory of the user executing the process.
+.SS PID
+The OMake process id.
+.SH BOOLEAN FUNCTIONS AND CONTROL FLOW
+
+.PP
+.SS NOT
+.PP
+.Vb
+   $(not e) : String
+      e : String
+.Ve
+.PP
+Boolean values in omake are represented by case\-insensitive strings. The
+\fIfalse\fP
+value can be represented by the strings false, no,
+nil, undefined or 0, and everything else is true. The
+not function negates a Boolean value.
+.PP
+For example, $(not false) expands to the string true, and $(not hello world) expands to false\&.
+.SS EQUAL
+.PP
+.Vb
+   $(equal e1, e2) : String
+      e1 : String
+      e2 : String
+.Ve
+.PP
+The equal function tests for equality of two values.
+.PP
+For example $(equal a, b) expands to false, and $(equal hello world, hello world) expands to true\&.
+.SS AND
+.PP
+.Vb
+    $(and e1, ..., en) : String
+       e1, ..., en: Sequence
+.Ve
+.PP
+The and function evaluates to the conjunction of its arguments.
+.PP
+For example, in the following code, X is true, and Y is false.
+.PP
+.Vb
+    A = a
+    B = b
+    X = $(and $(equal $(A), a) true $(equal $(B), b))
+    Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
+.Ve
+.SS OR
+.PP
+.Vb
+   $(or e1, ..., en) : String
+      e1, ..., en: String Sequence
+.Ve
+.PP
+The or function evaluates to the disjunction of its arguments.
+.PP
+For example, in the following code, X is true, and Y is false.
+.PP
+.Vb
+    A = a
+    B = b
+    X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
+    Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
+.Ve
+.SS IF
+.PP
+.Vb
+    $(if e1, e2[, e3]) : value
+       e1 : String
+       e2, e3 : value
+.Ve
+.PP
+The if function represents a conditional based on a Boolean value.
+For example $(if $(equal a, b), c, d) evaluates to d\&.
+.PP
+Conditionals may also be declared with an alternate syntax.
+.PP
+.Vb
+   if e1
+      body1
+   elseif e2
+      body2
+   ...
+   else
+      bodyn
+.Ve
+.PP
+If the expression e1 is not false, then the expressions in body1
+are evaluated and the result is returned as the value of the conditional. Otherwise,
+if e1 evaluates to false, the evaluation continues with the e2
+expression. If none of the conditional expressions is true, then the expressions
+in bodyn are evaluated and the result is returned as the value
+of the conditional.
+.PP
+There can be any number of elseif clauses; the else clause is
+optional.
+.PP
+Note that each branch of the conditional defines its own scope, so variables
+defined in the branches are normally not visible outside the conditional.
+The export command may be used to export the variables defined in
+a scope. For example, the following expression represents a common idiom
+for defining the C compiler configuration.
+.PP
+.Vb
+   if $(equal $(OSTYPE), Win32)
+      CC = cl
+      CFLAGS += /DWIN32
+      export
+   else
+      CC = gcc
+      CFLAGS += \-g \-O2
+      export
+.Ve
+.SS SWITCH, MATCH
+.PP
+The switch and match functions perform pattern matching.
+.PP
+$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)
+$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)
+.PP
+The number of <pattern>/<value> pairs is arbitrary. They strictly
+alternate; the total number of arguments to <match> must be odd.
+.PP
+The <arg> is evaluated to a string, and compared with <pattern_1>\&.
+If it matches, the result of the expression is <value_1>\&. Otherwise
+evaluation continues with the remaining patterns until a match is found.
+If no pattern matches, the value is the empty string.
+.PP
+The switch function uses string comparison to compare
+the argument with the patterns. For example, the following
+expression defines the FILE variable to be either
+foo, bar, or the empty string, depending
+on the value of the OSTYPE variable.
+.PP
+.Vb
+    FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
+.Ve
+.PP
+The match function uses regular expression patterns (see the
+grep function). If a match is found, the variables
+$1, $2, ... are bound to the substrings matched between
+\\( and \\) delimiters.
+The $0 variable contains the entire match, and $*
+is an array of the matched substrings.
+to the matched substrings.
+.PP
+.Vb
+    FILE = $(match foo_xyz/bar.a, foo_\\\\\\(.*\\\\\\)/\\\\\\(.*\\\\\\)\\.a, foo_$2/$1.o)
+.Ve
+.PP
+The switch and match functions also have an alternate (more usable)
+form.
+.PP
+.Vb
+   match e
+   case pattern1
+      body1
+   case pattern2
+      body2
+   ...
+   default
+      bodyd
+.Ve
+.PP
+If the value of expression e matches pattern_i and no previous pattern,
+then body_i is evaluated and returned as the result of the match\&.
+The switch function uses string comparison; the match function
+uses regular expression matching.
+.PP
+.Vb
+   match $(FILE)
+   case $".*\\(\\.[^\\/.]*\\)"
+      println(The string $(FILE) has suffix $1)
+   default
+      println(The string $(FILE) has no suffix)
+.Ve
+.SS TRY
+.PP
+.Vb
+   try
+      try\-body
+   catch class1(v1)
+      catch\-body
+   when expr
+      when\-body
+   ...
+   finally
+      finally\-body
+.Ve
+.PP
+The try form is used for exception handling.
+First, the expressions in the try\-body are evaluated.
+.PP
+If evaluation results in a value v without raising an
+exception, then the expressions in the finally\-body
+are evaluated and the value v is returned as the result.
+.PP
+If evaluation of the try\-body results in a exception object obj,
+the catch clauses are examined in order. When examining catch
+clause catch class(v), if the exception object obj
+is an instance of the class name class, the variable v is bound
+to the exception object, and the expressions in the catch\-body
+are evaluated.
+.PP
+If a when clause is encountered while a catch body is being evaluated,
+the predicate expr is evaluated. If the result is true, evaluation continues
+with the expressions in the when\-body\&. Otherwise, the next catch
+clause is considered for evaluation.
+.PP
+If evaluation of a catch\-body or when\-body completes successfully,
+returning a value v, without encountering another when clause,
+then the expressions in the finally\-body
+are evaluated and the value v is returned as the result.
+.PP
+There can be any number of catch clauses; the finally clause
+is optional.
+.SS RAISE
+.PP
+.Vb
+   raise exn
+      exn : Exception
+.Ve
+.PP
+The raise function raises an exception.
+The exn object can be any object. However,
+the normal convention is to raise an Exception
+object.
+.SS EXIT
+.PP
+.Vb
+   exit(code)
+      code : Int
+.Ve
+.PP
+The exit function terminates omake
+abnormally.
+.PP
+$(exit <code>)
+.PP
+The exit function takes one integer argument, which is exit code.
+Non\-zero values indicate abnormal termination.
+.SS DEFINED
+.PP
+.Vb
+   $(defined sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The defined function test whether all the variables in the sequence are
+currently defined. For example, the following code defines the X variable
+if it is not already defined.
+.PP
+.Vb
+    if $(not $(defined X))
+       X = a b c
+       export
+.Ve
+.SS DEFINED\-ENV
+.PP
+.Vb
+   $(defined\-env sequence) : String
+      sequence : String
+.Ve
+.PP
+The defined\-env function tests whether a variable is defined
+as part of the process environment.
+.PP
+For example, the following code adds the \-g compile
+option if the environment variable DEBUG is defined.
+.PP
+.Vb
+if $(defined\-env DEBUG)
+    CFLAGS += \-g
+    export
+.Ve
+.SS GETENV
+.PP
+.Vb
+   $(getenv name) : String
+   $(getenv name, default) : String
+.Ve
+.PP
+The getenv function gets the value of a variable from
+the process environment. The function takes one or two arguments.
+.PP
+In the single argument form, an exception is raised if the variable
+variable is not defined in the environment. In the two\-argument form,
+the second argument is returned as the result if the value is not
+defined.
+.PP
+For example, the following code defines the variable X
+to be a space\-separated list of elements of the PATH
+environment variable if it is defined, and to /bin /usr/bin
+otherwise.
+.PP
+.Vb
+    X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
+.Ve
+.PP
+You may also use the alternate form.
+.Vb
+     getenv(NAME)
+         default
+.Ve
+.SS SETENV
+.PP
+.Vb
+   setenv(name, value)
+      name : String
+      value : String
+.Ve
+.PP
+The setenv function sets the value of a variable in
+the process environment. Environment variables are scoped
+like normal variables.
+.PP
+.SS GET\-REGISTRY
+.PP
+.Vb
+   get\-registry(hkey, key, field) : String
+   get\-registry(hkey, key, field, default) : String
+       hkey : String
+       key : String
+       field : String
+.Ve
+.PP
+The get\-registry function retrieves a string value from the
+system registry on Win32. On other architectures, there is no
+registry.
+.PP
+The hive (I think that is the right word), indicates which part
+of the registry to use. It should be one of the following values.
+.PP
+.TP
+.B *
+HKEY_CLASSES_ROOT
+.TP
+.B *
+HKEY_CURRENT_CONFIG
+.TP
+.B *
+HKEY_CURRENT_USER
+.TP
+.B *
+HKEY_LOCAL_MACHINE
+.TP
+.B *
+HKEY_USERS
+.PP
+Refer to the Microsoft documentation if you want to know what these mean.
+.PP
+The key is the field you want to get from the registry.
+It should have a form like A\\B\\C (if you use forward slashes, they will
+be converted to backslashes). The field is the sub\-field of the key.
+.PP
+In the 4\-argument form, the default is returned on failure.
+You may also use the alternate form.
+.PP
+.Vb
+    get\-registry(hkey, key, field)
+       default
+.Ve
+.PP
+.SS GETVAR
+.PP
+.Vb
+   $(getvar name) : String
+.Ve
+.PP
+The getvar function gets the value of a variable.
+.PP
+An exception is raised if the variable
+variable is not defined.
+.PP
+For example, the following code defines X to be the string abc.
+.PP
+.Vb
+    NAME = foo
+    foo_1 = abc
+    X = $(getvar $(NAME)_1)
+.Ve
+.SS SETVAR
+.PP
+.Vb
+   setvar(name, value)
+      name : String
+      value : String
+.Ve
+.PP
+The setvar function defines a new variable. For example, the
+following code defines the variable X to be the string abc\&.
+.PP
+.Vb
+   NAME = X
+   setvar($(NAME), abc)
+.Ve
+.SH ARRAYS AND SEQUENCES
+
+.PP
+.SS ARRAY
+.PP
+.Vb
+    $(array elements) : Array
+       elements : Sequence
+.Ve
+.PP
+The array function creates an array from a sequence.
+If the <arg> is a string, the elements of the array
+are the whitespace\-separated elements of the string, respecting
+quotes.
+.PP
+In addition, array variables can be declared as follows.
+.PP
+.Vb
+    A[] =
+       <val1>
+       ...
+       <valn>
+.Ve
+.PP
+In this case, the elements of the array are exactly
+<val1>, \&.\&.\&., <valn>, and whitespace is
+preserved literally.
+.SS SPLIT
+.PP
+.Vb
+   $(split sep, elements) : Array
+      sep : String
+      elements : Sequence
+.Ve
+.PP
+The split function takes two arguments, a string of separators, and
+a string argument. The result is an array of elements determined by
+splitting the elements by all occurrence of the separator in the
+elements sequence.
+.PP
+For example, in the following code, the X variable is
+defined to be the array /bin /usr/bin /usr/local/bin\&.
+.PP
+.Vb
+    PATH = /bin:/usr/bin:/usr/local/bin
+    X = $(split :, $(PATH))
+.Ve
+.PP
+The sep argument may be omitted. In this case split breaks its
+arguments along the white space. Quotations are not split.
+.SS CONCAT
+.PP
+.Vb
+   $(concat sep, elements) : String
+      sep : String
+      elements : Sequence
+.Ve
+.PP
+The concat function takes two arguments, a separator string, and
+a sequence of elements. The result is a string formed by concatenating
+the elements, placing the separator between adjacent elements.
+.PP
+For example, in the following code, the X variable is
+defined to be the string foo_x_bar_x_baz\&.
+.PP
+.Vb
+    X = foo  bar     baz
+    Y = $(concat _x_, $(X))
+.Ve
+.SS LENGTH
+.PP
+.Vb
+   $(length sequence) : Int
+      sequence : Sequence
+.Ve
+.PP
+The length function returns the number of elements in its argument.
+.PP
+For example, the expression $(length a b "c d") evaluates to 3.
+.SS NTH
+.PP
+.Vb
+   $(nth i, sequence) : value
+      i : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The nth function returns the nth element of its argument, treated as
+a list. Counting starts at 0. An exception is raised if the index is not in bounds.
+.PP
+For example, the expression $(nth 1, a "b c" d) evaluates to "b c"\&.
+.SS NTH\-HD
+.PP
+.Vb
+   $(nth\-hd i, sequence) : value
+      i : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The nth\-hd function returns the first i elements of
+the sequence. An exception is raised if the sequence is not
+at least i elements long.
+.PP
+For example, the expression $(nth\-hd 2, a "b c" d) evaluates to a "b c"\&.
+.PP
+.SS NTH\-TL
+.PP
+.Vb
+   $(nth\-tl i, sequence) : value
+      i : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The nth\-tl function skips i elements of the sequence
+and returns the rest. An exception is raised if the sequence is not
+at least i elements long.
+.PP
+For example, the expression $(nth\-tl 1, a "b c" d) evaluates to "b c" d\&.
+.PP
+.SS SUB
+.PP
+.Vb
+   $(sub off, len, sequent) : value
+      off : Int
+      len : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The sub function returns a subrange of the sequence.
+Counting starts at 0. An exception is raised if the specified
+range is not in bounds.
+.PP
+For example, the expression $(sub 1, 2, a "b c" d e) evaluates to "b c" d\&.
+.SS REV
+.PP
+.Vb
+    $(rev sequence) : Sequence
+       sequence : Sequence
+.Ve
+.PP
+The rev function returns the elements of a sequence in reverse order.
+For example, the expression $(rev a "b c" d) evaluates to d "b c" a\&.
+.SS STRING
+.PP
+.Vb
+   $(string sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The string function flattens a sequence into a single string.
+This is similar to the concat function, but the elements are
+separated by whitespace. The result is treated as a unit; whitespace
+is significant.
+.SS QUOTE
+.PP
+.Vb
+   $(quote sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The quote function flattens a sequence into a single string
+and adds quotes around the string. Inner quotation symbols are
+escaped.
+.PP
+For example, the expression $(quote a "b c" d) evaluates
+to "a \\"b c\\" d", and $(quote abc) evaluates to
+"abc"\&.
+.SS QUOTE\-ARGV
+.PP
+.Vb
+   $(quote\-argv sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The quote\-argv function flattens a sequence into a single string,
+and adds quotes around the string. The quotation is formed so that
+a command\-line parse can separate the string back into its components.
+.SS HTML\-STRING
+.PP
+.Vb
+   $(html\-string sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The html\-string function flattens a sequence into a single string,
+and escaped special HTML characters.
+This is similar to the concat function, but the elements are
+separated by whitespace. The result is treated as a unit; whitespace
+is significant.
+.SS ADDSUFFIX
+.PP
+.Vb
+   $(addsuffix suffix, sequence) : Array
+      suffix : String
+      sequence : Sequence
+.Ve
+.PP
+The addsuffix function adds a suffix to each component of sequence.
+The number of elements in the array is exactly the same as the number of
+elements in the sequence.
+.PP
+For example, $(addsuffix .c, a b "c d") evaluates to a.c b.c "c d".c\&.
+.SS MAPSUFFIX
+.PP
+.Vb
+   $(mapsuffix suffix, sequence) : Array
+      suffix : value
+      sequence : Sequence
+.Ve
+.PP
+The mapsuffix function adds a suffix to each component of sequence.
+It is similar to addsuffix, but uses array concatenation instead
+of string concatenation. The number of elements in the array is
+twice the number of elements in the sequence.
+.PP
+For example, $(mapsuffix .c, a b "c d") evaluates to a .c b .c "c d" .c\&.
+.SS ADDSUFFIXES
+.PP
+.Vb
+   $(addsuffixes suffixes, sequence) : Array
+      suffixes : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The addsuffixes function adds all suffixes in its first argument
+to each component of a sequence. If suffixes has n elements,
+and sequence has m elements, the the result has n * m elements.
+.PP
+For example, the $(addsuffixes .c .o, a b c) expressions evaluates to
+a.c a.o b.c b.o c.o c.a\&.
+.SS REMOVEPREFIX
+.PP
+.Vb
+   $(removeprefix prefix, sequence) : Array
+      prefix : String
+      sequence : Array
+.Ve
+.PP
+The removeprefix function removes a prefix from each component
+of a sequence.
+.SS REMOVESUFFIX
+.PP
+.Vb
+   $(removesuffix sequence) : Array
+      sequence : String
+.Ve
+.PP
+The removesuffix function removes the suffixes from each component
+of a sequence.
+.PP
+For example, $(removesuffix a.c b.foo "c d") expands to a b "c d"\&.
+.SS REPLACESUFFIXES
+.PP
+.Vb
+   $(replacesuffixes old\-suffixes, new\-suffixes, sequence) : Array
+      old\-suffixes : Sequence
+      new\-suffixes : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The replacesuffixes function modifies the suffix of each component
+in sequence. The old\-suffixes and new\-suffixes sequences
+should have the same length.
+.PP
+For example, $(replacesuffixes, .h .c, .o .o, a.c b.h c.z) expands to a.o b.o c.z\&.
+.SS ADDPREFIX
+.PP
+.Vb
+   $(addprefix prefix, sequence) : Array
+      prefix : String
+      sequence : Sequence
+.Ve
+.PP
+The addprefix function adds a prefix to each component of a sequence.
+The number of element in the result array is exactly the same as the number
+of elements in the argument sequence.
+.PP
+For example, $(addprefix foo/, a b "c d") evaluates to foo/a foo/b foo/"c d"\&.
+.SS MAPPREFIX
+.PP
+.Vb
+   $(mapprefix prefix, sequence) : Array
+      prefix : String
+      sequence : Sequence
+.Ve
+.PP
+The mapprefix function adds a prefix to each component of a sequence.
+It is similar to addprefix, but array concatenation is used instead of
+string concatenation. The result array contains twice as many elements
+as the argument sequence.
+.PP
+For example, $(mapprefix foo, a b "c d") expands to foo a foo b foo "c d"\&.
+.SS ADD\-WRAPPER
+.PP
+.Vb
+   $(add\-wrapper prefix, suffix, sequence) : Array
+      prefix : String
+      suffix : String
+      sequence : Sequence
+.Ve
+.PP
+The add\-wrapper functions adds both a prefix and a suffix to each component of a sequence.
+For example, the expression $(add\-wrapper dir/, .c, a b) evaluates to
+dir/a.c dir/b.c\&. String concatenation is used. The array result
+has the same number of elements as the argument sequence.
+.SS SET
+.PP
+.Vb
+   $(set sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The set function sorts a set of string components, eliminating duplicates.
+.PP
+For example, $(set z y z "m n" w a) expands to "m n" a w y z\&.
+.SS MEM
+.PP
+.Vb
+   $(mem elem, sequence) : Boolean
+      elem : String
+      sequence : Sequence
+.Ve
+.PP
+The mem function tests for membership in a sequence.
+.PP
+For example, $(mem "m n", y z "m n" w a) evaluates to true,
+while $(mem m n, y z "m n" w a) evaluates to false\&.
+.SS INTERSECTION
+.PP
+.Vb
+   $(intersection sequence1, sequence2) : Array
+      sequence1 : Sequence
+      sequence2 : Sequence
+.Ve
+.PP
+The intersection function takes two arguments, treats them
+as sets of strings, and computes their intersection. The order of the result
+is undefined, and it may contain duplicates. Use the set
+function to sort the result and eliminate duplicates in the result
+if desired.
+.PP
+For example, the expression $(intersection c a b a, b a) evaluates to
+a b a\&.
+.SS INTERSECTS
+.PP
+.Vb
+   $(intersects sequence1, sequence2) : Boolean
+      sequence1 : Sequence
+      sequence2 : Sequence
+.Ve
+.PP
+The intersects function tests whether two sets have a non\-empty intersection.
+This is slightly more efficient than computing the intersection and testing whether
+it is empty.
+.PP
+For example, the expression $(intersects a b c, d c e) evaluates to true,
+and $(intersects a b c a, d e f) evaluates to false\&.
+.SS SET\-DIFF
+.PP
+.Vb
+   $(set\-diff sequence1, sequence2) : Array
+      sequence1 : Sequence
+      sequence2 : Sequence
+.Ve
+.PP
+The set\-diff function takes two arguments, treats them
+as sets of strings, and computes their difference (all the elements of the
+first set that are not present in the second one). The order of the result
+is undefined and it may contain duplicates. Use the set
+function to sort the result and eliminate duplicates in the result
+if desired.
+.PP
+For example, the expression $(set\-diff c a b a e, b a) evaluates to
+c e\&.
+.SS FILTER
+.PP
+.Vb
+   $(filter patterns, sequence) : Array
+      patterns : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The filter function picks elements from a sequence.
+The patterns is a non\-empty sequence of patterns, each may contain one occurrence of the wildcard
+% character.
+.PP
+For example $(filter %.h %.o, a.c x.o b.h y.o "hello world".c) evaluates to x.o b.h y.o\&.
+.SS FILTER\-OUT
+.PP
+.Vb
+   $(filter\-out patterns, sequence) : Array
+      patterns : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The filter\-out function removes elements from a sequence.
+The patterns is a non\-empty sequence of patterns, each may contain one occurrence of the wildcard
+% character.
+.PP
+For example $(filter\-out %.c %.h, a.c x.o b.h y.o "hello world".c) evaluates to x.o y.o\&.
+.SS CAPITALIZE
+.PP
+.Vb
+   $(capitalize sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The capitalize function capitalizes each word in a sequence.
+For example, $(capitalize through the looking Glass) evaluates to
+Through The Looking Glass\&.
+.SS UNCAPITALIZE
+.PP
+.Vb
+   $(uncapitalize sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The uncapitalize function uncapitalizes each word in its argument.
+.PP
+For example, $(uncapitalize through the looking Glass) evaluates to
+through the looking glass\&.
+.SS UPPERCASE
+.PP
+.Vb
+   $(uppercase sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The uppercase function converts each word in a sequence to uppercase.
+For example, $(uppercase through the looking Glass) evaluates to
+THROUGH THE LOOKING GLASS\&.
+.SS LOWERCASE
+.PP
+.Vb
+   $(lowercase sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The lowercase function reduces each word in its argument to lowercase.
+.PP
+For example, $(lowercase through tHe looking Glass) evaluates to
+through the looking glass\&.
+.SS SYSTEM
+.PP
+.Vb
+   system(s)
+      s : Sequence
+.Ve
+.PP
+The system function is used to evaluate a shell expression.
+This function is used internally by omake
+to evaluate
+shell commands.
+.PP
+For example, the following program is equivalent to the
+expression system(ls foo)\&.
+.PP
+.Vb
+   ls foo
+.Ve
+.SS SHELL
+.PP
+.Vb
+   $(shell command) : Array
+   $(shella command) : Array
+   $(shell\-code command) : Int
+      command : Sequence
+.Ve
+.PP
+The shell function evaluates a command using the command shell,
+and returns the whitespace\-separated words of the standard output as the result.
+.PP
+The shella function acts similarly, but it returns the lines
+as separate items in the array.
+.PP
+The shell\-code function returns the exit code. The output is not
+diverted.
+.PP
+For example, if the current directory contains the files OMakeroot,
+OMakefile, and hello.c, then $(shell ls) evaluates to
+hello.c OMakefile OMakeroot (on a Unix system).
+.SH ARITHMETIC
+
+.SS INT
+.PP
+The int function can be used to create integers.
+It returns an Int object.
+.PP
+$(int 17)\&.
+.PP
+.SS FLOAT
+The float function can be used to create floating\-point numbers.
+It returns a Float object.
+.PP
+$(float 3.1415926)\&.
+.SS BASIC ARITHMETIC
+.PP
+The following functions can be used to perform basic arithmetic.
+.PP
+.TP
+.B *
+$(neg <numbers>): arithmetic inverse
+.TP
+.B *
+$(add <numbers>): addition.
+.TP
+.B *
+$(sub <numbers>): subtraction.
+.TP
+.B *
+$(mul <numbers>): multiplication.
+.TP
+.B *
+$(div <numbers>): division.
+.TP
+.B *
+$(mod <numbers>): remainder.
+.TP
+.B *
+$(lnot <numbers>): bitwise inverse.
+.TP
+.B *
+$(land <numbers>): bitwise and.
+.TP
+.B *
+$(lor <numbers>): bitwise or.
+.TP
+.B *
+$(lxor <numbers>): bitwise exclusive\-or.
+.TP
+.B *
+$(lsl <numbers>): logical shift left.
+.TP
+.B *
+$(lsr <numbers>): logical shift right.
+.TP
+.B *
+$(asr <numbers>): arithmetic shift right.
+.PP
+.SS COMPARISONS
+.PP
+The following functions can be used to perform numerical comparisons.
+.PP
+.TP
+.B *
+$(lt <numbers>): less then.
+.TP
+.B *
+$(le <numbers>): no more than.
+.TP
+.B *
+$(eq <numbers>): equal.
+.TP
+.B *
+$(ge <numbers>): no less than.
+.TP
+.B *
+$(gt <numbers>): greater than.
+.TP
+.B *
+$(ult <numbers>): unsigned less than.
+.TP
+.B *
+$(ule <numbers>): unsigned greater than.
+.TP
+.B *
+$(uge <numbers>): unsigned greater than or equal.
+.TP
+.B *
+$(ugt <numbers>): unsigned greater than.
+.PP
+.SH FIRST\-CLASS FUNCTIONS
+
+.SS FUN
+.PP
+The fun form introduces anonymous functions.
+.PP
+$(fun <v1>, ..., <vn>, <body>)
+.PP
+The last argument is the body of the function.
+The other arguments are the parameter names.
+.PP
+The three following definitions are equivalent.
+.PP
+.Vb
+    F(X, Y) =
+       return($(addsuffix $(Y), $(X)))
+
+    F = $(fun X, Y, $(addsuffix $(Y), $(X)))
+
+    F =
+       fun(X, Y)
+          value $(addsuffix $(Y), $(X))
+.Ve
+.SS APPLY
+.PP
+The apply operator is used to apply a function.
+.PP
+$(apply <fun>, <args>)
+.PP
+Suppose we have the following function definition.
+.PP
+.Vb
+    F(X, Y) =
+       return($(addsuffix $(Y), $(X)))
+.Ve
+.PP
+The the two expressions below are equivalent.
+.PP
+.Vb
+    X = F(a b c, .c)
+    X = $(apply $(F), a b c, .c)
+.Ve
+.SS APPLYA
+.PP
+The applya operator is used to apply a function to
+an array of arguments.
+.PP
+$(applya <fun>, <args>)
+.PP
+For example, in the following program, the value
+of Z is file.c\&.
+.PP
+.Vb
+    F(X, Y) =
+       return($(addsuffix $(Y), $(X)))
+    args[] =
+       file
+       .c
+    Z = $(applya $(F), $(args))
+.Ve
+.SH ITERATION AND MAPPING
+
+.PP
+.SS FOREACH
+.PP
+The foreach function maps a function over a sequence.
+.PP
+.Vb
+    $(foreach <fun>, <args>)
+
+    foreach(<var>, <args>)
+       <body>
+.Ve
+.PP
+For example, the following program defines the variable X
+as an array a.c b.c c.c\&.
+.PP
+.Vb
+    X =
+       foreach(x, a b c)
+          value $(x).c
+
+    # Equivalent expression
+    X = $(foreach $(fun x, $(x).c), abc)
+.Ve
+.PP
+There is also an abbreviated syntax.
+.PP
+The export form can also be used in a foreach
+body. The final value of X is a.c b.c c.c\&.
+.PP
+.Vb
+    X =
+    foreach(x, a b c)
+       X += $(x).c
+       export
+.Ve
+.SH FILE OPERATIONS
+
+.SS FILE, DIR
+.PP
+.Vb
+   $(file sequence) : File Sequence
+      sequence : Sequence
+   $(dir sequence) : Dir Sequence
+      sequence : Sequence
+.Ve
+.PP
+The file and dir functions define location\-independent references to files and directories.
+In omake,
+the commands to build a target are executed in the target\&'s directory. Since there may be
+many directories in an omake
+project, the build system provides a way to construct a reference to a file
+in one directory, and use it in another without explicitly modifying the file name. The functions have the following
+syntax, where the name should refer to a file or directory.
+.PP
+For example, we can construct a reference to a file foo in the current directory.
+.PP
+.Vb
+   FOO = $(file foo)
+   .SUBDIRS: bar
+.Ve
+.PP
+If the FOO variable is expanded in the bar subdirectory, it will expand to \&../foo\&.
+.PP
+These commands are often used in the top\-level OMakefile to provide location\-independent references to
+top\-level directories, so that build commands may refer to these directories as if they were absolute.
+.PP
+.Vb
+   ROOT = $(dir .)
+   LIB  = $(dir lib)
+   BIN  = $(dir bin)
+.Ve
+.PP
+Once these variables are defined, they can be used in build commands in subdirectories as follows, where
+$(BIN) will expand to the location of the bin directory relative to the command being executed.
+.PP
+.Vb
+   install: hello
+	cp hello $(BIN)
+.Ve
+.SS TMPFILE
+.PP
+.Vb
+    $(tmpfile prefix) : File
+    $(tmpfile prefix, suffix) : File
+        prefix : String
+        suffix : String
+.Ve
+.PP
+The tmpfile function returns the name of a fresh temporary file in
+the temporary directory.
+.SS IN
+.PP
+.Vb
+   $(in dir, exp) : String Array
+      dir : Dir
+      exp : expression
+.Ve
+.PP
+The in function is closely related to the dir and
+file functions. It takes a directory and an expression, and
+evaluates the expression in that effective directory.
+For example, one common way to install a file is to define a symbol link, where the
+value of the link is relative to the directory where the link is created.
+.PP
+The following commands create links in the $(LIB) directory.
+.PP
+.Vb
+    FOO = $(file foo)
+    install:
+       ln \-s $(in $(LIB), $(FOO)) $(LIB)/foo
+.Ve
+.PP
+Note that the in function only affects the expansion of Node
+(File and Dir) values.
+.SS WHICH
+.PP
+.Vb
+   $(which files) : File Sequence
+      files : String Sequence
+.Ve
+.PP
+The which function searches for executables in the
+current command search path, and returns file values
+for each of the commands. It is an error if a command is
+not found.
+.SS WHERE
+.PP
+The where function is similar to which, except it returns the list of
+all the locations of the given executable (in the order in which the
+corresponding directories appear in $PATH). In case a command is handled
+internally by the Shell object, the first string in the output will
+describe the command as a built\-in function.
+.PP
+.Vb
+    % where echo
+    echo is a Shell object method (a built\-in function)
+    /bin/echo
+.Ve
+.SS EXISTS\-IN\-PATH
+.PP
+.Vb
+   $(exists\-in\-path files) : String
+      files : String Sequence
+.Ve
+.PP
+The exists\-in\-path function tests whether all executables
+are present in the current search path.
+.SS BASENAME
+.PP
+.Vb
+   $(basename files) : String Sequence
+      files : String Sequence
+.Ve
+.PP
+The basename function returns the base names for a list of files.
+The basename is the filename with any leading directory components removed.
+.PP
+For example, the expression $(basename dir1/dir2/a.out /etc/modules.conf /foo.ml) evaluates to
+a.out modules.conf foo.ml\&.
+.SS ROOTNAME
+.PP
+.Vb
+   $(rootname files) : String Sequence
+      files : String Sequence
+.Ve
+.PP
+The rootname function returns the root name for a list of files.
+The rootname is the filename with the final suffix removed.
+.PP
+For example, the expression $(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml) evaluates to
+dir1/dir2/a /etc/a.b /foo\&.
+.SS DIROF
+.PP
+.Vb
+   $(dirof files) : Dir Sequence
+      files : File Sequence
+.Ve
+.PP
+The dirof function returns the directory for each of the listed files.
+.PP
+For example, the expression $(dirof dir/dir2/a.out /etc/modules.conf /foo.ml) evaluates
+to the directories dir1/dir2 /etc /\&.
+.SS FULLNAME
+.PP
+.Vb
+   $(fullname files) : String Sequence
+      files : File Sequence
+.Ve
+.PP
+The fullname function returns the pathname relative to the project root
+for each of the files or directories.
+.SS ABSNAME
+.PP
+.Vb
+   $(absname files) : String Sequence
+      files : File Sequence
+.Ve
+.PP
+The absname function returns the absolute pathname for each of the files
+or directories.
+.SS HOMENAME
+.PP
+.Vb
+   $(homename files) : String Sequence
+      files : File Sequence
+.Ve
+.PP
+The homename function returns the name of a file in
+tilde form, if possible. The unexpanded forms are computed
+lazily: the homename function will usually evaluate to an absolute
+pathname until the first tilde\-expansion for the same directory.
+.SS SUFFIX
+.PP
+.Vb
+   $(suffix files) : String Sequence
+      files : StringSequence
+.Ve
+.PP
+The suffix function returns the suffixes for a list of files.
+If a file has no suffix, the function returns the empty string.
+.PP
+For example, the expression $(suffix dir1/dir2/a.out /etc/a /foo.ml) evaluates
+to \&.out .ml\&.
+.SS FILE\-EXISTS, TARGET\-EXISTS, TARGET\-IS\-PROPER
+.PP
+.Vb
+   $(file\-exists files) : String
+   $(target\-exists files) : String
+   $(target\-is\-proper files) : String
+       files : File Sequence
+.Ve
+.PP
+The file\-exists function checks whether the files listed exist.
+The target\-exists function is similar to the file\-exists function.
+However, it returns true if the file exists \fIor\fP
+if it can be built
+by the current project. The target\-is\-proper returns true only
+if the file can be generated in the current project.
+.SS STAT\-RESET
+.PP
+.Vb
+   $(stat\-reset files) : String
+       files : File Sequence
+.Ve
+.PP
+OMake uses a stat\-cache. The stat\-reset function reset the stat
+information for the given files, forcing the stat information to
+be recomputed the next time it is requested.
+.SS FILTER\-EXISTS, FILTER\-TARGETS, FILTER\-PROPER\-TARGETS
+.PP
+.Vb
+   $(filter\-exists files) : File Sequence
+   $(filter\-targets files) : File Sequence
+   $(filter\-proper\-targets) : File Sequence
+      files : File Sequence
+.Ve
+.PP
+The filter\-exists, filter\-targets, and filter\-proper\-targets
+functions remove files from a list of files.
+.TP
+.B *
+filter\-exists: the result is the list of files that exist.
+.TP
+.B *
+filter\-targets: the result is the list of files either exist, or
+can be built by the current project.
+.TP
+.B *
+filter\-proper\-targets: the result is the list of files that can
+be built in the current project.
+.PP
+One way to create a simple ``clean\&'' rule that removes generated files from
+the project is by removing all files that can be built in the current
+project. CAUTION: you should be careful before you do this. The rule
+removes \fIany\fP
+file that can \fIpotentially\fP
+be reconstructed.
+There is no check to make sure that the commands to rebuild the file
+would actually succeed. Also, note that no file outside the
+current project will be deleted.
+.PP
+.Vb
+    .PHONY: clean
+
+    clean:
+        rm $(filter\-proper\-targets $(ls R, .))
+.Ve
+.PP
+See the dependencies\-proper function to see an alternate method
+for removing intermediate files.
+.PP
+If you use CVS, you may wish to use the cvs_realclean program that
+is distributed with omake\&.
+.PP
+.SS FILE\-SORT
+.PP
+.Vb
+   $(file\-sort order, files) : File Sequence
+      order : String
+      files : File Sequence
+.Ve
+.PP
+The file\-sort function sorts a list of filenames by
+build order augmented by a set of sort rules. Sort
+rules are declared using the \&.ORDER target.
+The \&.BUILDORDER defines the default order.
+.PP
+$(file\-sort <order>, <files>)
+.PP
+For example, suppose we have the following set of rules.
+.PP
+.Vb
+   a: b c
+   b: d
+   c: d
+
+   .DEFAULT: a b c d
+      echo $(file\-sort .BUILDORDER, a b c d)
+.Ve
+.PP
+In the case, the sorter produces the result d b c a\&.
+That is, a target is sorted \fIafter\fP
+its dependencies.
+The sorter is frequently used to sort files that are to be linked
+by their dependencies (for languages where this matters).
+.PP
+There are three important restrictions to the sorter:
+.TP
+.B *
+The sorter can be used only within a rule body.
+The reason for this is that \fIall\fP
+dependencies
+must be known before the sort is performed.
+.TP
+.B *
+The sorter can only sort files that are buildable
+in the current project.
+.TP
+.B *
+The sorter will fail if the dependencies are cyclic.
+.PP
+.SS SORT RULE
+.PP
+It is possible to further constrain the sorter through the use of
+sort rules. A sort rule is declared in two steps. The
+target must be listed as an \&.ORDER target; and then
+a set of sort rules must be given. A sort rule defines
+a pattern constraint.
+.PP
+.Vb
+   .ORDER: .MYORDER
+
+   .MYORDER: %.foo: %.bar
+   .MYORDER: %.bar: %.baz
+
+   .DEFAULT: a.foo b.bar c.baz d.baz
+      echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
+.Ve
+.PP
+In this example, the \&.MYORDER sort rule specifies that any
+file with a suffix \&.foo should be placed after any file with
+suffix \&.bar, and any file with suffix \&.bar should be
+placed after a file with suffix \&.baz\&.
+.PP
+In this example, the result of the sort is d.baz c.baz b.bar a.foo\&.
+.SS FILE\-CHECK\-SORT
+.PP
+.Vb
+   file\-check\-sort(files)
+      files : File Sequence
+   raises RuntimeException
+.Ve
+.PP
+The file\-check\-sort function checks whether a list of files
+is in sort order. If so, the list is returned unchanged.
+If not, the function raises an exception.
+.PP
+$(file\-check\-sort <order>, <files>)
+.SS GLOB
+.PP
+.Vb
+   $(glob strings) : Node Array
+      strings : String Sequence
+   $(glob options, strings) : Node Array
+      options : String
+      strings : String Sequence
+.Ve
+.PP
+The glob function performs glob\-expansion.
+.PP
+The \&. and \&.\&. entries are always ignored.
+.PP
+The options are:
+.TP
+b
+Do not perform \fIcsh\fP(1)\-style
+brace expansion.
+.TP
+e
+The \\ character does not escape special characters.
+.TP
+n
+If an expansion fails, return the expansion literally instead of aborting.
+.TP
+i
+If an expansion fails, it expands to nothing.
+.TP
+\&.
+Allow wildcard patterns to match files beginning with a \&.
+.TP
+A
+Return all files, including files that begin with a \&.
+.TP
+D
+Match only directory files.
+.TP
+C
+Ignore files according to \fIcvs\fP(1)
+rules.
+.TP
+P
+Include only proper subdirectories.
+.PP
+In addition, the following variables may be defined that affect the
+behavior of glob\&.
+.PP
+.TP
+GLOB_OPTIONS
+A string containing default options.
+.TP
+GLOB_IGNORE
+A list of shell patterns for filenames that glob should ignore.
+.TP
+GLOB_ALLOW
+A list of shell patterns. If a file does not match a pattern in
+GLOB_ALLOW, it is ignored.
+.PP
+The returned files are sorted by name.
+.SS LS
+.PP
+.Vb
+   $(ls files) : Node Array
+      files : String Sequence
+   $(ls options, files) : Node Array
+      files : String Sequence
+.Ve
+.PP
+The ls function returns the filenames in a directory.
+.PP
+The \&. and \&.\&. entries are always ignored.
+The patterns are shell\-style patterns, and are glob\-expanded.
+.PP
+The options include all of the options to the glob function,
+plus the following.
+.PP
+.TP
+R
+Perform a recursive listing.
+.PP
+The GLOB_ALLOW and GLOB_IGNORE variables can be defined
+to control the globbing behavior.
+The returned files are sorted by name.
+.SS SUBDIRS
+.PP
+.Vb
+   $(subdirs dirs) : Dir Array
+      dirs : String Sequence
+   $(subdirs options, dirs) : Dir Array
+      options : String
+      dirs : String Sequence
+.Ve
+.PP
+The subdirs function returns all the subdirectories
+of a list of directories, recursively.
+.PP
+The possible options are the following:
+.TP
+A
+Return directories that begin with a \&.
+.TP
+C
+Ignore files according to \&.cvsignore
+rules.
+.TP
+P
+Include only proper subdirectories.
+.PP
+.SS MKDIR
+.PP
+.Vb
+   mkdir(mode, node...)
+      mode : Int
+      node : Node
+   raises RuntimeException
+
+   mkdir(node...)
+      node : Node
+   raises RuntimeException
+.Ve
+.PP
+The mkdir function creates a directory, or a set of directories.
+The following options are supported.
+.TP
+\-m mode
+Specify the permissions of the created directory.
+.TP
+\-p
+Create parent directories if they do not exist.
+.TP
+\-\-
+Interpret the remaining names literally.
+.PP
+.SS STAT
+.PP
+The Stat object represents the result returned by the stat
+and lstat functions. It contains the following fields.
+.PP
+A stat object has the following fields. Not all of the fields
+will have meaning on all architectures.
+.PP
+.TP
+dev
+: the device number.
+.TP
+ino
+: the inode number.
+.TP
+kind
+: the kind of the file, one of the following:
+REG (regular file),
+DIR (directory),
+CHR (character device),
+BLK (block device),
+LNK (symbolic link),
+FIFO (named pipe),
+SOCK (socket).
+.TP
+perm
+: access rights, represented as an integer.
+.TP
+nlink
+: number of links.
+.TP
+uid
+: user id of the owner.
+.TP
+gid
+: group id of the file\&'s group.
+.TP
+rdev
+: device minor number.
+.TP
+size
+: size in bytes.
+.TP
+atime
+: last access time, as a floating point number.
+.TP
+mtime
+: last modification time, as a floating point number.
+.TP
+ctime
+: last status change time, as a floating point number.
+.PP
+.SS STAT
+.PP
+.Vb
+    $(stat node...) : Stat
+       node : Node or Channel
+    $(lstat node...) : Stat
+       node : Node or Channel
+    raises RuntimeException
+.Ve
+.PP
+The stat functions return file information.
+If the file is a symbolic link, the stat function refers to the
+destination of the link; the lstat function refers to the link
+itself.
+.SS UNLINK
+.PP
+.Vb
+   $(unlink file...)
+      file : File
+   #(rm file...)
+      file : File
+   $(rmdir dir...)
+      dir : Dir
+   raises RuntimeException
+.Ve
+.PP
+The unlink and rm functions remove a file.
+The rmdir function removes a directory.
+.PP
+The following options are supported for rm and rmdir\&.
+.TP
+\-f
+ignore nonexistent files, never prompt.
+.TP
+\-i
+prompt before removal.
+.TP
+\-r
+remove the contents of directories recursively.
+.TP
+\-v
+explain what is going on.
+.TP
+\-\-
+the rest of the values are interpreted literally.
+.PP
+.SS RENAME
+.PP
+.Vb
+    rename(old, new)
+       old : Node
+       new : Node
+    mv(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    cp(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    raises RuntimeException
+.Ve
+.PP
+The rename function changes the name of a file or directory named old
+to new\&.
+.PP
+The mv function is similar, but if new is a directory, and it exists,
+then the files specified by the sequence are moved into the directory. If not,
+the behavior of mv is identical to rename\&. The cp function
+is similar, but the original file is not removed.
+.PP
+The mv and cp functions take the following options.
+.TP
+\-f
+Do not prompt before overwriting.
+.TP
+\-i
+Prompt before overwriting.
+.TP
+\-v
+Explain what it happening.
+.TP
+\-r
+Copy the contents of directories recursively.
+.TP
+\-\-
+Interpret the remaining arguments literally.
+.PP
+.SS LINK
+.PP
+.Vb
+   link(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+.Ve
+.PP
+The link function creates a hard link named dst to the file
+or directory src\&.
+.PP
+Hard links are not supported in Win32.
+.PP
+Normally, only the superuser can create hard links to directories.
+.SS SYMLINK
+.PP
+.Vb
+   symlink(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+.Ve
+.PP
+The symlink function creates a symbolic link dst that
+points to the src file.
+.PP
+The link name is computed relative to
+the target directory. For example, the expression
+$(symlink a/b, c/d) creates a link named
+c/d \-> ../a/b\&.
+.PP
+Symbolic links are not supported in Win32.
+.SS READLINK
+.PP
+.Vb
+   $(readlink node...) : Node
+      node : Node
+.Ve
+.PP
+The readlink function reads the value of a symbolic link.
+.SS CHMOD
+.PP
+.Vb
+   chmod(mode, dst...)
+      mode : Int
+      dst : Node or Channel
+   chmod(mode dst...)
+      mode : String
+      dst : Node Sequence
+   raises RuntimeException
+.Ve
+.PP
+The chmod function changes the permissions of the targets.
+The chmod function does nothing on Win32 platforms.
+.PP
+Options:
+.TP
+\-v
+Explain what is happening.
+.TP
+\-r
+Change files and directories recursively.
+.TP
+\-f
+Continue on errors.
+.TP
+\-\-
+Interpret the remaining argument literally.
+.PP
+.SS CHOWN
+.PP
+.Vb
+   chown(uid, gid, node...)
+      uid : Int
+      gid : Int
+      node : Node or Channel
+   chown(uid, node...)
+      uid : Int
+      node : Node or Channel
+   raises RuntimeException
+.Ve
+.PP
+The chown function changes the user and group id of the file.
+If the gid is not specified, it is not changed. If either
+id is \-1, that id is not changed.
+.SS UMASK
+.PP
+.Vb
+    $(umask mode) : Int
+       mode : Int
+    raises RuntimeException
+.Ve
+.PP
+Sets the file mode creation mask.
+The previous mask is returned.
+This value is not scoped, changes have global effect.
+.SS DIGEST
+.PP
+.Vb
+     $(digest files) : String Array
+        file : File Array
+     raises RuntimeException
+
+     $(digest\-optional files) : String Array
+        file : File Array
+.Ve
+.PP
+The digest and digest\-optional functions compute MD5 digests
+of files. The digest function raises an exception if a file
+does no exist. The digest\-optional returns false if a
+file does no exist. MD5 digests are cached.
+.SS FIND\-IN\-PATH
+.PP
+.Vb
+    $(find\-in\-path path, files) : File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(find\-in\-path\-optional path, files) : File Array
+.Ve
+.PP
+The find\-in\-path function searches for the files in a search
+path. Only the tail of the filename is significant. The find\-in\-path
+function raises an exception if the file can\&'t be found.
+The find\-in\-path\-optional function silently removes
+files that can\&'t be found.
+.SS DIGEST\-PATH
+.PP
+.Vb
+    $(digest\-in\-path path, files) : String/File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(digest\-in\-path\-optional path, files) : String/File Array
+.Ve
+.PP
+The digest\-in\-path function searches for the files in a search
+path and returns the file and digest for each file. Only the tail of the
+filename is significant. The digest\-in\-path function raises an exception
+if the file can\&'t be found. The digest\-in\-path\-optional
+function silently removes elements that can\&'t be found.
+.SS REHASH
+.PP
+.Vb
+    rehash()
+.Ve
+.PP
+The rehash function resets all search paths.
+.SS VMOUNT
+.PP
+.Vb
+    vmount(src, dst)
+       src, dst : Dir
+    vmount(flags, src, dst)
+       flags : String
+       src, dst : Dir
+.Ve
+.PP
+``Mount\&'' the src directory on the dst directory. This is
+a virtual mount, changing the behavior of the $(file ...) function.
+When the $(file str) function is used, the resulting file is taken
+relative to the src directory if the file exists. Otherwise, the
+file is relative to the current directory.
+.PP
+The main purpose of the vmount function is to support multiple
+builds with separate configurations or architectures.
+.PP
+The options are as follows.
+.TP
+l
+Create symbolic links to files in the src directory.
+.TP
+c
+Copy files from the src directory.
+.PP
+Mount operations are scoped.
+.SS ADD\-PROJECT\-DIRECTORIES
+.PP
+.Vb
+    add\-project\-directories(dirs)
+       dirs : Dir Array
+.Ve
+.PP
+Add the directories to the set of directories that omake considers to be part
+of the project. This is mainly used to avoid omake complaining that the
+current directory is not part of the project.
+.SS REMOVE\-PROJECT\-DIRECTORIES
+.PP
+.Vb
+    remove\-project\-directories(dirs)
+       dirs : Dir Array
+.Ve
+.PP
+Removed the directories from the set of directories that omake considers to be part
+of the project. This is mainly used to cancel a \&.SUBDIRS from including
+a directory if it is determined that the directory does not need to be compiled.
+.SS TEST
+.PP
+.Vb
+   test(exp) : Bool
+      exp : String Sequence
+.Ve
+.PP
+The \fIexpression\fP
+grammar is as follows:
+.PP
+.TP
+.B *
+! \fIexpression\fP : \fIexpression\fP is not true
+.TP
+.B *
+\fIexpression1\fP
+\-a \fIexpression2\fP : both expressions are true
+.TP
+.B *
+\fIexpression1\fP
+\-o \fIexpression2\fP : at least one expression is true
+.TP
+.B *
+( \fIexpression\fP
+) : \fIexpression\fP is true
+.PP
+The base expressions are:
+.PP
+.TP
+.B *
+\-n \fIstring\fP : The \fIstring\fP has nonzero length
+.TP
+.B *
+\-z \fIstring\fP : The \fIstring\fP has zero length
+.TP
+.B *
+\fIstring\fP
+= \fIstring\fP : The strings are equal
+.TP
+.B *
+\fIstring\fP
+!= \fIstring\fP : The strings are not equal
+.PP
+.TP
+.B *
+\fIint1\fP
+\-eq \fIint2\fP : The integers are equal
+.TP
+.B *
+\fIint1\fP
+\-ne \fIint2\fP : The integers are not equal
+.TP
+.B *
+\fIint1\fP
+\-gt \fIint2\fP : \fIint1\fP is larger than \fIint2\fP
+.TP
+.B *
+\fIint1\fP
+\-ge \fIint2\fP : \fIint2\fP is not larger than \fIint1\fP
+.TP
+.B *
+\fIint1\fP
+\-lt \fIint2\fP : \fIint1\fP is smaller than \fIint2\fP
+.TP
+.B *
+\fIint1\fP
+\-le \fIint2\fP : \fIint1\fP is not larger than \fIint2\fP
+.PP
+.TP
+.B *
+\fIfile1\fP
+\-ef \fIfile2\fP : On Unix, \fIfile1\fP and \fIfile2\fP have the
+same device and inode number.
+On Win32, \fIfile1\fP
+and \fIfile2\fP
+have the
+same name.
+.TP
+.B *
+\fIfile1\fP
+\-nt \fIfile2\fP : \fIfile1\fP is newer than \fIfile2\fP
+.TP
+.B *
+\fIfile1\fP
+\-ot \fIfile2\fP : \fIfile1\fP is older than \fIfile2\fP
+.PP
+.TP
+.B *
+\-b \fIfile\fP : The file is a block special file
+.TP
+.B *
+\-c \fIfile\fP : The file is a character special file
+.TP
+.B *
+\-d \fIfile\fP : The file is a directory
+.TP
+.B *
+\-e \fIfile\fP : The file exists
+.TP
+.B *
+\-f \fIfile\fP : The file is a normal file
+.TP
+.B *
+\-g \fIfile\fP : The set
+\-group\-id bit is set on the file
+.TP
+.B *
+\-G \fIfile\fP : The file\&'s group is the current effective group
+.TP
+.B *
+\-h \fIfile\fP : The file is a symbolic link (also
+\-L)
+.TP
+.B *
+\-k \fIfile\fP : The file\&'s sticky bit is set
+.TP
+.B *
+\-L \fIfile\fP : The file is a symbolic link (also
+\-h)
+.TP
+.B *
+\-O \fIfile\fP : The file\&'s owner is the current effective user
+.TP
+.B *
+\-p \fIfile\fP : The file is a named pipe
+.TP
+.B *
+\-r \fIfile\fP : The file is readable
+.TP
+.B *
+\-s \fIfile\fP : The file is empty
+.TP
+.B *
+\-S \fIfile\fP : The file is a socket
+.TP
+.B *
+\-u \fIfile\fP : The set
+\-user\-id bit is set on the file
+.TP
+.B *
+\-w \fIfile\fP : The file is writable
+.TP
+.B *
+\-x \fIfile\fP : The file is executable
+.PP
+A \fIstring\fP
+is any sequence of characters; leading \- characters are allowed.
+.PP
+An \fIint\fP
+is a \fIstring\fP
+that can be interpreted as an integer. Unlike traditional
+versions of the test program, the leading characters may specify an arity. The
+prefix 0b means the numbers is in binary; the prefix 0o means
+the number is in octal; the prefix 0x means the number is in hexadecimal.
+An \fIint\fP
+can also be specified as \-l \fIstring\fP,
+which evaluates to the length of
+the \fIstring\fP\&.
+.PP
+A \fIfile\fP
+is a \fIstring\fP
+that represents the name of a file.
+.SS FIND
+.PP
+.Vb
+   find(exp) : Node Array
+      exp : String Sequence
+.Ve
+.PP
+The find function searches a directory recursively, returning the
+files for which the expression evaluates to true.
+.PP
+The expression argument uses the same syntax as the test function,
+with the following exceptions.
+.PP
+.TP
+1.
+The expression may begin with a directory. If not specified, the current
+directory is searched.
+.TP
+2.
+The {} string expands to the current file being examined.
+.PP
+The syntax of the expression is the same as test, with the following
+additions.
+.PP
+.TP
+.B *
+\-name \fIstring\fP : The current file matches the regular expression.
+.PP
+.SH IO FUNCTIONS
+
+.SS STANDARD CHANNELS
+.PP
+The following variables define the standard channels.
+.PP
+.TP
+stdin
+.PP
+.Vb
+stdin : InChannel
+.Ve
+.PP
+The standard input channel, open for reading.
+.PP
+.TP
+stdout
+.Vb
+stdout : OutChannel
+.Ve
+.PP
+The standard output channel, open for writing.
+.PP
+.TP
+stderr
+.Vb
+stderr : OutChannel
+.Ve
+.PP
+The standard error channel, open for writing.
+.PP
+.SS FOPEN
+.PP
+The fopen function opens a file for reading or writing.
+.PP
+.Vb
+   $(fopen file, mode) : Channel
+      file : File
+      mode : String
+.Ve
+.PP
+The file is the name of the file to be opened.
+The mode is a combination of the following characters.
+.TP
+r
+Open the file for reading; it is an error if the file does not exist.
+.TP
+w
+Open the file for writing; the file is created if it does not exist.
+.TP
+a
+Open the file in append mode; the file is created if it does not exist.
+.TP
++
+Open the file for both reading an writing.
+.TP
+t
+Open the file in text mode (default).
+.TP
+b
+Open the file in binary mode.
+.TP
+n
+Open the file in nonblocking mode.
+.TP
+x
+Fail if the file already exists.
+.PP
+Binary mode is not significant on Unix systems, where
+text and binary modes are equivalent.
+.SS CLOSE
+.PP
+.Vb
+    $(close channel...)
+       channel : Channel
+.Ve
+.PP
+The close function closes a file that was previously opened
+with fopen\&.
+.SS READ
+.PP
+.Vb
+   $(read channel, amount) : String
+      channel : InChannel
+      amount  : Int
+   raises RuntimeException
+.Ve
+.PP
+The read function reads up to amount
+bytes from an input channel, and returns
+the data that was read. If an end\-of\-file condition is reached,
+the function raises a RuntimeException exception.
+.SS WRITE
+.PP
+.Vb
+   $(write channel, buffer, offset, amount) : String
+      channel : OutChannel
+      buffer  : String
+      offset  : Int
+      amount  : Int
+   $(write channel, buffer) : String
+      channel : OutChannel
+      buffer  : String
+   raises RuntimeException
+.Ve
+.PP
+In the 4\-argument form, the write function writes
+bytes to the output channel channel from the buffer,
+starting at position offset\&. Up to amount bytes
+are written. The function returns the number of bytes that were
+written.
+.PP
+The 3\-argument form is similar, but the offset is 0.
+.PP
+In the 2\-argument form, the offset is 0, and the amount
+if the length of the buffer\&.
+.PP
+If an end\-of\-file condition is reached,
+the function raises a RuntimeException exception.
+.SS LSEEK
+.PP
+.Vb
+    $(lseek channel, offset, whence) : Int
+       channel : Channel
+       offset  : Int
+       whence  : String
+    raises RuntimeException
+.Ve
+.PP
+The lseek function repositions the offset of the
+channel channel according to the whence directive, as
+follows:
+.PP
+.TP
+SEEK_SET
+The offset is set to offset\&.
+.TP
+SEEK_CUR
+The offset is set to its current position plus offset bytes.
+.TP
+SEEK_END
+The offset is set to the size of the file plus offset bytes.
+.PP
+The lseek function returns the new position in the file.
+.SS REWIND
+.PP
+.Vb
+   rewind(channel...)
+      channel : Channel
+.Ve
+.PP
+The rewind function set the current file position to the
+beginning of the file.
+.SS TELL
+.PP
+.Vb
+    $(tell channel...) : Int...
+       channel : Channel
+    raises RuntimeException
+.Ve
+.PP
+The tell function returns the current position of the channel\&.
+.SS FLUSH
+.PP
+.Vb
+   $(flush channel...)
+      channel : OutChannel
+.Ve
+.PP
+The flush function can be used only on files that are open for writing.
+It flushes all pending data to the file.
+.SS DUP
+.PP
+.Vb
+    $(dup channel) : Channel
+       channel : Channel
+    raises RuntimeException
+.Ve
+.PP
+The dup function returns a new channel referencing the
+same file as the argument.
+.SS DUP2
+.PP
+.Vb
+   dup2(channel1, channel2)
+      channel1 : Channel
+      channel2 : Channel
+   raises RuntimeException
+.Ve
+.PP
+The dup2 function causes channel2 to refer to the same
+file as channel1\&.
+.SS SET\-NONBLOCK
+.PP
+.Vb
+   set\-nonblock\-mode(mode, channel...)
+      channel : Channel
+      mode : String
+.Ve
+.PP
+The set\-nonblock\-mode function sets the nonblocking flag on the
+given channel. When IO is performed on the channel, and the operation
+cannot be completed immediately, the operations raises a RuntimeException\&.
+.SS SET\-CLOSE\-ON\-EXEC\-MODE
+.PP
+.Vb
+   set\-close\-on\-exec\-mode(mode, channel...)
+      channel : Channel
+      mode : String
+   raises RuntimeException
+.Ve
+.PP
+The set\-close\-on\-exec\-mode function sets the close\-on\-exec
+flags for the given channels. If the close\-on\-exec flag is set, the channel
+is not inherited by child processes. Otherwise it is.
+.SS PIPE
+.PP
+.Vb
+   $(pipe) : Pipe
+   raises RuntimeException
+.Ve
+.PP
+The pipe function creates a Pipe object, which has two
+fields. The read field is a channel that is opened for
+reading, and the write field is a channel that is opened
+for writing.
+.SS MKFIFO
+.PP
+.Vb
+   mkfifo(mode, node...)
+      mode : Int
+      node : Node
+.Ve
+.PP
+The mkfifo function creates a named pipe.
+.SS SELECT
+.PP
+.Vb
+   $(select rfd..., wfd..., wfd..., timeout) : Select
+      rfd : InChannel
+      wfd : OutChannel
+      efd : Channel
+      timeout : float
+   raises RuntimeException
+.Ve
+.PP
+The select function polls for possible IO on a set of channels.
+The rfd are a sequence of channels for reading, wfd are a
+sequence of channels for writing, and efd are a sequence of
+channels to poll for error conditions. The timeout specifies
+the maximum amount of time to wait for events.
+.PP
+On successful return, select returns a Select object,
+which has the following fields:
+.TP
+read
+An array of channels available for reading.
+.TP
+write
+An array of channels available for writing.
+.TP
+error
+An array of channels on which an error has occurred.
+.PP
+.SS LOCKF
+.PP
+.Vb
+    lockf(channel, command, len)
+       channel : Channel
+       command : String
+       len : Int
+    raises RuntimeException
+.Ve
+.PP
+The lockf function places a lock on a region of the channel.
+The region starts at the current position and extends for len
+bytes.
+.PP
+The possible values for command are the following.
+.TP
+F_ULOCK
+Unlock a region.
+.TP
+F_LOCK
+Lock a region for writing; block if already locked.
+.TP
+F_TLOCK
+Lock a region for writing; fail if already locked.
+.TP
+F_TEST
+Test a region for other locks.
+.TP
+F_RLOCK
+Lock a region for reading; block if already locked.
+.TP
+F_TRLOCK
+Lock a region for reading; fail is already locked.
+.PP
+.SS INETADDR
+.PP
+The InetAddr object describes an Internet address.
+It contains the following fields.
+.PP
+.TP
+addr
+String: the Internet address.
+.TP
+port
+Int: the port number.
+.PP
+.SS HOST
+.PP
+A Host object contains the following fields.
+.PP
+.TP
+name
+String: the name of the host.
+.TP
+aliases
+String Array: other names by which the host is known.
+.TP
+addrtype
+String: the preferred socket domain.
+.TP
+addrs
+InetAddr Array: an array of Internet addresses belonging to the host.
+.PP
+.SS GETHOSTBYNAME
+.PP
+.Vb
+   $(gethostbyname host...) : Host...
+      host : String
+   raises RuntimeException
+.Ve
+.PP
+The gethostbyname function returns a Host object
+for the specified host. The host may specify a domain name
+or an Internet address.
+.PP
+.SS PROTOCOL
+.PP
+The Protocol object represents a protocol entry.
+It has the following fields.
+.PP
+.TP
+name
+String: the canonical name of the protocol.
+.TP
+aliases
+String Array: aliases for the protocol.
+.TP
+proto
+Int: the protocol number.
+.PP
+.SS GETPROTOBYNAME
+.PP
+.Vb
+   $(getprotobyname name...) : Protocol...
+      name : Int or String
+   raises RuntimeException
+.Ve
+.PP
+The getprotobyname function returns a Protocol object for the
+specified protocol. The name may be a protocol name, or a
+protocol number.
+.SS SERVICE
+.PP
+The Service object represents a network service.
+It has the following fields.
+.PP
+.TP
+name
+String: the name of the service.
+.TP
+aliases
+String Array: aliases for the service.
+.TP
+port
+Int: the port number of the service.
+.TP
+proto
+Protocol: the protocol for the service.
+.PP
+.SS GETSERVBYNAME
+.PP
+.Vb
+   $(getservbyname service...) : Service...
+      service : String or Int
+   raises RuntimeException
+.Ve
+.PP
+The getservbyname function gets the information for a network service.
+The service may be specified as a service name or number.
+.SS SOCKET
+.PP
+.Vb
+   $(socket domain, type, protocol) : Channel
+      domain : String
+      type : String
+      protocol : String
+   raises RuntimeException
+.Ve
+.PP
+The socket function creates an unbound socket.
+.PP
+The possible values for the arguments are as follows.
+.PP
+The domain may have the following values.
+.TP
+PF_UNIX or unix
+Unix domain, available only on Unix systems.
+.TP
+PF_INET or inet
+Internet domain, IPv4.
+.TP
+PF_INET6 or inet6
+Internet domain, IPv6.
+.PP
+The type may have the following values.
+.TP
+SOCK_STREAM or stream
+Stream socket.
+.TP
+SOCK_DGRAM or dgram
+Datagram socket.
+.TP
+SOCK_RAW or raw
+Raw socket.
+.TP
+SOCK_SEQPACKET or seqpacket
+Sequenced packets socket
+.PP
+The protocol is an Int or String that specifies
+a protocol in the protocols database.
+.SS BIND
+.PP
+.Vb
+   bind(socket, host, port)
+      socket : InOutChannel
+      host : String
+      port : Int
+   bind(socket, file)
+      socket : InOutChannel
+      file : File
+   raise RuntimeException
+.Ve
+.PP
+The bind function binds a socket to an address.
+.PP
+The 3\-argument form specifies an Internet connection, the host specifies a host name
+or IP address, and the port is a port number.
+.PP
+The 2\-argument form is for Unix sockets. The file specifies the filename
+for the address.
+.SS LISTEN
+.PP
+.Vb
+   listen(socket, requests)
+      socket : InOutChannel
+      requests : Int
+   raises RuntimeException
+.Ve
+.PP
+The listen function sets up the socket for receiving up to requests number
+of pending connection requests.
+.SS ACCEPT
+.PP
+.Vb
+   $(accept socket) : InOutChannel
+      socket : InOutChannel
+   raises RuntimeException
+.Ve
+.PP
+The accept function accepts a connection on a socket.
+.SS CONNECT
+.PP
+.Vb
+    connect(socket, addr, port)
+       socket : InOutChannel
+       addr : String
+       port : int
+    connect(socket, name)
+       socket : InOutChannel
+       name : File
+    raise RuntimeException
+.Ve
+.PP
+The connect function connects a socket to a remote address.
+.PP
+The 3\-argument form specifies an Internet connection.
+The addr argument is the Internet address of the remote host,
+specified as a domain name or IP address. The port argument
+is the port number.
+.PP
+The 2\-argument form is for Unix sockets. The name argument
+is the filename of the socket.
+.SS GETCHAR
+.PP
+.Vb
+    $(getc) : String
+    $(getc file) : String
+       file : InChannel or File
+    raises RuntimeException
+.Ve
+.PP
+The getc function returns the next character of a file.
+If the argument is not specified, stdin is used as input.
+If the end of file has been reached, the function returns false\&.
+.SS GETS
+.PP
+.Vb
+   $(gets) : String
+   $(gets channel) : String
+      channel : InChannel or File
+   raises RuntimeException
+.Ve
+.PP
+The gets function returns the next line from a file.
+The function returns the empty string if the end of file has been reached.
+The line terminator is removed.
+.SS FGETS
+.PP
+.Vb
+   $(fgets) : String
+   $(fgets channel) : String
+      channel : InChannel or File
+   raises RuntimeException
+.Ve
+.PP
+The fgets function returns the next line from a file that has been
+opened for reading with fopen\&. The function returns the empty string
+if the end of file has been reached. The returned string is returned as
+literal data. The line terminator is not removed.
+.SS PRINTING FUNCTIONS
+.PP
+Output is printed with the print and println functions.
+The println function adds a terminating newline to the value being
+printed, the print function does not.
+.PP
+.Vb
+    fprint(<file>, <string>)
+    print(<string>)
+    eprint(<string>)
+    fprintln(<file>, <string>)
+    println(<string>)
+    eprintln(<string>)
+.Ve
+.PP
+The fprint functions print to a file that has been previously opened with
+fopen\&. The print functions print to the standard output channel, and
+the eprint functions print to the standard error channel.
+.SS VALUE PRINTING FUNCTIONS
+.PP
+Values can be printed with the printv and printvln functions.
+The printvln function adds a terminating newline to the value being
+printed, the printv function does not.
+.PP
+.Vb
+    fprintv(<file>, <string>)
+    printv(<string>)
+    eprintv(<string>)
+    fprintvln(<file>, <string>)
+    printvln(<string>)
+    eprintvln(<string>)
+.Ve
+.PP
+The fprintv functions print to a file that has been previously opened with
+fopen\&. The printv functions print to the standard output channel, and
+the eprintv functions print to the standard error channel.
+.SH HIGHER\-LEVEL IO FUNCTIONS
+
+.PP
+.SS REGULAR EXPRESSIONS
+.PP
+Many of the higher\-level functions use regular expressions.
+Regular expressions are defined by strings with syntax nearly identical
+to \fIawk\fP(1)\&.
+.PP
+Strings may contain the following character constants.
+.PP
+.TP
+.B *
+\\\\ : a literal backslash.
+.TP
+.B *
+\\a : the alert character ^G\&.
+.TP
+.B *
+\\b : the backspace character ^H\&.
+.TP
+.B *
+\\f : the formfeed character ^L\&.
+.TP
+.B *
+: the newline character ^J\&.
+.TP
+.B *
+\\r : the carriage return character ^M\&.
+.TP
+.B *
+\\t : the tab character ^I\&.
+.TP
+.B *
+\\v : the vertical tab character.
+.TP
+.B *
+\\xhh... : the character represented by the string
+of hexadecimal digits h\&. All valid hexadecimal digits
+following the sequence are considered to be part of the sequence.
+.TP
+.B *
+\\ddd : the character represented by 1, 2, or 3 octal
+digits.
+.PP
+Regular expressions are defined using the special characters \&.\\^$[(){}*?+.
+.PP
+.TP
+.B *
+c : matches the literal character c if c is not
+a special character.
+.TP
+.B *
+\\c : matches the literal character c, even if c
+is a special character.
+.TP
+.B *
+\&. : matches any character, including newline.
+.TP
+.B *
+^ : matches the beginning of a line.
+.TP
+.B *
+$ : matches the end of line.
+.TP
+.B *
+[abc...] : matches any of the characters abc...
+.TP
+.B *
+[^abc...] : matches any character except abc...
+.TP
+.B *
+r1|r2 : matches either r1 or r2\&.
+.TP
+.B *
+r1r2 : matches r1 and then r2\&.
+.TP
+.B *
+r+ : matches one or more occurrences of r\&.
+.TP
+.B *
+r* : matches zero or more occurrences of r\&.
+.TP
+.B *
+r? : matches zero or one occurrence of r\&.
+.TP
+.B *
+(r) : parentheses are used for grouping; matches r\&.
+.TP
+.B *
+\\(r\\) : also defines grouping, but the expression matched
+within the parentheses is available to the output processor
+through one of the variables $1, $2, \&.\&.\&.
+.TP
+.B *
+r{n} : matches exactly n occurrences of r\&.
+.TP
+.B *
+r{n,} : matches n or more occurrences of r\&.
+.TP
+.B *
+r{n,m} : matches at least n occurrences of r,
+and no more than m occurrences.
+.TP
+.B *
+\\y: matches the empty string at either the beginning or
+end of a word.
+.TP
+.B *
+\\B: matches the empty string within a word.
+.TP
+.B *
+\\<: matches the empty string at the beginning of a word.
+.TP
+.B *
+\\>: matches the empty string at the end of a word.
+.TP
+.B *
+\\w: matches any character in a word.
+.TP
+.B *
+\\W: matches any character that does not occur within a word.
+.TP
+.B *
+\\`: matches the empty string at the beginning of a file.
+.TP
+.B *
+\\': matches the empty string at the end of a file.
+.PP
+Character classes can be used to specify character sequences
+abstractly. Some of these sequences can change depending on your LOCALE.
+.PP
+.TP
+.B *
+[:alnum:] Alphanumeric characters.
+.TP
+.B *
+[:alpha:] Alphabetic characters.
+.TP
+.B *
+[:lower:] Lowercase alphabetic characters.
+.TP
+.B *
+[:upper:] Uppercase alphabetic characters.
+.TP
+.B *
+[:cntrl:] Control characters.
+.TP
+.B *
+[:digit:] Numeric characters.
+.TP
+.B *
+[:xdigit:] Numeric and hexadecimal characters.
+.TP
+.B *
+[:graph:] Characters that are printable and visible.
+.TP
+.B *
+[:print:] Characters that are printable, whether they are visible or not.
+.TP
+.B *
+[:punct:] Punctuation characters.
+.TP
+.B *
+[:blank:] Space or tab characters.
+.TP
+.B *
+[:space:] Whitespace characters.
+.PP
+.SS CAT
+.PP
+.Vb
+    cat(files) : Sequence
+       files : File or InChannel Sequence
+.Ve
+.PP
+The cat function concatenates the output from multiple files
+and returns it as a string.
+.SS GREP
+.PP
+.Vb
+   grep(pattern) : String  # input from stdin, default options
+      pattern : String
+   grep(pattern, files) : String  # default options
+      pattern : String
+      files   : File Sequence
+   grep(options, pattern, files) : String
+     options : String
+     pattern : String
+     files   : File Sequence
+.Ve
+.PP
+The grep function searches for occurrences of a regular
+expression pattern in a set of files, and prints lines that match.
+This is like a highly\-simplified version of \fIgrep\fP(1)\&.
+.PP
+The options are:
+.TP
+q
+If specified, the output from grep is not displayed.
+.TP
+n
+If specified, output lines include the filename.
+.PP
+The pattern is a regular expression.
+.PP
+If successful (grep found a match), the function returns true\&.
+Otherwise, it returns false\&.
+.SS SCAN
+.PP
+.Vb
+   scan(input\-files)
+   case string1
+      body1
+   case string2
+      body2
+   ...
+   default
+      bodyd
+.Ve
+.PP
+The scan function provides input processing in command\-line form.
+The function takes file/filename arguments. If called with no
+arguments, the input is taken from stdin\&. If arguments are provided,
+each specifies an InChannel, or the name of a file for input.
+Output is always to stdout\&.
+.PP
+The scan function operates by reading the input one line at a time,
+and processing it according to the following algorithm.
+.PP
+For each line,
+the record is first split into fields, and
+the fields are bound to the variables $1, $2, ...\&. The variable
+$0 is defined to be the entire line, and $* is an array
+of all the field values. The $(NF) variable is defined to be the number
+of fields.
+.PP
+Next, a case expression is selected. If string_i matches the token $1,
+then body_i is evaluated. If the body ends in an export, the state
+is passed to the next clause. Otherwise the value is discarded.
+.PP
+For example, here is an scan function that acts as a simple command processor.
+.PP
+.Vb
+    calc() =
+       i = 0
+       scan(script.in)
+       case print
+          println($i)
+       case inc
+          i = $(add $i, 1)
+          export
+       case dec
+          i = $(sub $i, 1)
+          export
+       case addconst
+          i = $(add $i, $2)
+          export
+       default
+          eprintln($"Unknown command: $1")
+.Ve
+.PP
+The scan function also supports several options.
+.PP
+.Vb
+    scan(options, files)
+    ...
+.Ve
+.PP
+.TP
+A
+Parse each line as an argument list, where arguments
+may be quoted. For example, the following line has three words,
+``ls\&'',
+``\-l\&'',
+``Program Files\&''\&.
+.PP
+.Vb
+       ls \-l "Program Files"
+.Ve
+.TP
+O
+Parse each line using white space as the separator, using the
+usual OMake algorithm for string parsing. This is the default.
+.TP
+x
+Once each line is split, reduce each word using the
+hex representation. This is the usual hex representation used
+in URL specifiers, so the string ``Program Files\&'' may be
+alternately represented in the form Program%20Files or
+Program+Files.
+.PP
+Note, if you want to redirect the output to a file, the easiest way is to
+redefine the stdout variable. The stdout variable is scoped the
+same way as other variables, so this definition does not affect the meaning of
+stdout outside the calc function.
+.PP
+.Vb
+    calc() =
+        stdout = $(fopen script.out, w)
+        scan(script.in)
+           ...
+        close(stdout)
+.Ve
+.SS AWK
+.PP
+.Vb
+   awk(input\-files)
+   case pattern1:
+      body1
+   case pattern2:
+      body2
+   ...
+   default:
+      bodyd
+.Ve
+.PP
+The awk function provides input processing similar to \fIawk\fP(1),
+but more limited. The function takes filename arguments. If called with no
+arguments, the input is taken from stdin\&. If arguments are provided,
+each specifies an InChannel, or the name of a file for input.
+Output is always to stdout\&.
+.PP
+The variables RS and FS define record and field separators
+as regular expressions.
+The default value of RS is the regular expression \\r|
+|\\r
+\&.
+The default value of FS is the regular expression [ \\t]+.
+.PP
+The awk function operates by reading the input one record at a time,
+and processing it according to the following algorithm.
+.PP
+For each line,
+the record is first split into fields using the field separator FS, and
+the fields are bound to the variables $1, $2, ...\&. The variable
+$0 is defined to be the entire line, and $* is an array
+of all the field values. The $(NF) variable is defined to be the number
+of fields.
+.PP
+Next, the cases are evaluated in order.
+For each case, if the regular expression pattern_i matches the record $0,
+then body_i is evaluated. If the body ends in an export, the state
+is passed to the next clause. Otherwise the value is discarded. If the regular
+expression contains \\(r\\) expression, those expression override the
+fields $1, $2, ...\&.
+.PP
+For example, here is an awk function to print the text between two
+delimiters \\begin{<name>} and \\end{<name>}, where the <name>
+must belong to a set passed as an argument to the filter function.
+.PP
+.Vb
+    filter(names) =
+       print = false
+
+       awk(Awk.in)
+       case $"^\\\\end\\{\\([:alpha:]+\\)\\}"
+          if $(mem $1, $(names))
+             print = false
+             export
+          export
+       default
+          if $(print)
+             println($0)
+       case $"^\\\\begin\\{\\([:alpha:]+\\)\\}"
+          print = $(mem $1, $(names))
+          export
+.Ve
+.PP
+Note, if you want to redirect the output to a file, the easiest way is to
+redefine the stdout variable. The stdout variable is scoped the
+same way as other variables, so this definition does not affect the meaning of
+stdout outside the filter function.
+.PP
+.Vb
+    filter(names) =
+        stdout = $(fopen file.out, w)
+        awk(Awk.in)
+           ...
+        close(stdout)
+.Ve
+.SS FSUBST
+.PP
+.Vb
+   fsubst(files)
+   case pattern1 [options]
+      body1
+   case pattern2 [options]
+      body2
+   ...
+   default
+      bodyd
+.Ve
+.PP
+The fsubst function provides a \fIsed\fP(1)\-like
+substitution
+function. Similar to awk, if fsubst is called with no
+arguments, the input is taken from stdin\&. If arguments are provided,
+each specifies an InChannel, or the name of a file for input.
+.PP
+The RS variable defines a regular expression that determines a record separator,
+The default value of RS is the regular expression \\r|
+|\\r
+\&.
+.PP
+The fsubst function reads the file one record at a time.
+.PP
+For each record, the cases are evaluated in order. Each case defines
+a substitution from a substring matching the pattern to
+replacement text defined by the body.
+.PP
+Currently, there is only one option: g\&.
+If specified, each clause specifies a global replacement,
+and all instances of the pattern define a substitution.
+Otherwise, the substitution is applied only once.
+.PP
+Output can be redirected by redefining the stdout variable.
+.PP
+For example, the following program replaces all occurrences of
+an expression word. with its capitalized form.
+.PP
+.Vb
+    section
+       stdout = $(fopen Subst.out, w)
+       fsubst(Subst.in)
+       case $"\\<\\([[:alnum:]]+\\)\\." g
+          value $(capitalize $1).
+       close(stdout)
+.Ve
+.SS LEXER
+.PP
+The Lexer object defines a facility for lexical analysis, similar to the
+\fIlex\fP(1)
+and \fIflex\fP(1)
+programs.
+.PP
+In omake,
+lexical analyzers can be constructed dynamically by extending
+the Lexer class. A lexer definition consists of a set of directives specified
+with method calls, and set of clauses specified as rules.
+.PP
+For example, consider the following lexer definition, which is intended
+for lexical analysis of simple arithmetic expressions for a desktop
+calculator.
+.PP
+.Vb
+   lexer1. =
+      extends $(Lexer)
+
+      other: .
+         eprintln(Illegal character: $* )
+         lex()
+
+      white: $"[[:space:]]+"
+         lex()
+
+      op: $"[\-+*/()]"
+         switch $*
+         case +
+            Token.unit($(loc), plus)
+         case \-
+            Token.unit($(loc), minus)
+         case *
+            Token.unit($(loc), mul)
+         case /
+            Token.unit($(loc), div)
+         case $"("
+            Token.unit($(loc), lparen)
+         case $")"
+            Token.unit($(loc), rparen)
+
+      number: $"[[:digit:]]+"
+         Token.pair($(loc), exp, $(int $* ))
+
+      eof: $"\\'"
+         Token.unit($(loc), eof)
+.Ve
+.PP
+This program defines an object lexer1 the extends the Lexer
+object, which defines lexing environment.
+.PP
+The remainder of the definition consists of a set of clauses,
+each with a method name before the colon; a regular expression
+after the colon; and in this case, a body. The body is optional,
+if it is not specified, the method with the given name should
+already exist in the lexer definition.
+.PP
+\fINB\fP
+The clause that matches the \fIlongest\fP
+prefix of the input
+is selected. If two clauses match the same input prefix, then the \fIlast\fP
+one is selected. This is unlike most standard lexers, but makes more sense
+for extensible grammars.
+.PP
+The first clause matches any input that is not matched by the other clauses.
+In this case, an error message is printed for any unknown character, and
+the input is skipped. Note that this clause is selected only if no other
+clause matches.
+.PP
+The second clause is responsible for ignoring white space.
+If whitespace is found, it is ignored, and the lexer is called
+recursively.
+.PP
+The third clause is responsible for the arithmetic operators.
+It makes use of the Token object, which defines three
+fields: a loc field that represents the source location;
+a name; and a value\&.
+.PP
+The lexer defines the loc variable to be the location
+of the current lexeme in each of the method bodies, so we can use
+that value to create the tokens.
+.PP
+The Token.unit($(loc), name)
+method constructs a new Token object with the given name,
+and a default value.
+.PP
+The number clause matches nonnegative integer constants.
+The Token.pair($(loc), name, value) constructs a token with the
+given name and value.
+.PP
+Lexer object operate on InChannel objects.
+The method lexer1.lex\-channel(channel) reads the next
+token from the channel argument.
+.PP
+.SS LEXER MATCHING
+.PP
+During lexical analysis, clauses are selected by longest match.
+That is, the clause that matches the longest sequence of input
+characters is chosen for evaluation. If no clause matches, the
+lexer raises a RuntimeException\&. If more than one clause
+matches the same amount of input, the first one is chosen
+for evaluation.
+.PP
+.SS EXTENDING LEXER DEFINITIONS
+.PP
+Suppose we wish to augment the lexer example so that it ignores
+comments. We will define comments as any text that begins with
+the string (*, ends with *), and comments may
+be nested.
+.PP
+One convenient way to do this is to define a separate lexer
+just to skip comments.
+.PP
+.Vb
+   lex\-comment. =
+      extends $(Lexer)
+
+      level = 0
+
+      other: .
+         lex()
+
+      term: $"[*][)]"
+         if $(not $(eq $(level), 0))
+            level = $(sub $(level), 1)
+            lex()
+
+      next: $"[(][*]"
+         level = $(add $(level), 1)
+         lex()
+
+      eof: $"\\'"
+         eprintln(Unterminated comment)
+.Ve
+.PP
+This lexer contains a field level that keeps track of the nesting
+level. On encountering a (* string, it increments the level,
+and for *), it decrements the level if nonzero, and continues.
+.PP
+Next, we need to modify our previous lexer to skip comments.
+We can do this by extending the lexer object lexer1
+that we just created.
+.PP
+.Vb
+   lexer1. +=
+      comment: $"[(][*]"
+         lex\-comment.lex\-channel($(channel))
+         lex()
+.Ve
+.PP
+The body for the comment clause calls the lex\-comment lexer when
+a comment is encountered, and continues lexing when that lexer returns.
+.PP
+.SS THREADING THE LEXER OBJECT
+.PP
+Clause bodies may also end with an export directive. In this case
+the lexer object itself is used as the returned token. If used with
+the Parser object below, the lexer should define the loc, name
+and value fields in each export clause. Each time
+the Parser calls the lexer, it calls it with the lexer returned
+from the previous lex invocation.
+.SS PARSER
+.PP
+The Parser object provides a facility for syntactic analysis based
+on context\-free grammars.
+.PP
+Parser objects are specified as a sequence of directives,
+specified with method calls; and productions, specified as rules.
+.PP
+For example, let\&'s finish building the desktop calculator started
+in the Lexer example.
+.PP
+.Vb
+   parser1. =
+      extends $(Parser)
+
+      #
+      # Use the main lexer
+      #
+      lexer = $(lexer1)
+
+      #
+      # Precedences, in ascending order
+      #
+      left(plus minus)
+      left(mul div)
+      right(uminus)
+
+      #
+      # A program
+      #
+      start(prog)
+
+      prog: exp eof
+         return $1
+
+      #
+      # Simple arithmetic expressions
+      #
+      exp: minus exp :prec: uminus
+         neg($2)
+
+      exp: exp plus exp
+         add($1, $3)
+
+      exp: exp minus exp
+         sub($1, $3)
+
+      exp: exp mul exp
+         mul($1, $3)
+
+      exp: exp div exp
+         div($1, $3)
+
+      exp: lparen exp rparen
+         return $2
+.Ve
+.PP
+Parsers are defined as extensions of the Parser class.
+A Parser object must have a lexer field. The lexer
+is not required to be a Lexer object, but it must provide
+a lexer.lex() method that returns a token object with
+name and value fields. For this example, we use the
+lexer1 object that we defined previously.
+.PP
+The next step is to define precedences for the terminal symbols.
+The precedences are defined with the left, right,
+and nonassoc methods in order of increasing precedence.
+.PP
+The grammar must have at least one start symbol, declared with
+the start method.
+.PP
+Next, the productions in the grammar are listed as rules.
+The name of the production is listed before the colon, and
+a sequence of variables is listed to the right of the colon.
+The body is a semantic action to be evaluated when the production
+is recognized as part of the input.
+.PP
+In this example, these are the productions for the arithmetic
+expressions recognized by the desktop calculator. The semantic
+action performs the calculation. The variables $1, $2, ...
+correspond to the values associated with each of the variables
+on the right\-hand\-side of the production.
+.PP
+.SS CALLING THE PARSER
+.PP
+The parser is called with the $(parser1.parse\-channel start, channel)
+or $(parser1.parse\-file start, file) functions. The start
+argument is the start symbol, and the channel or file
+is the input to the parser.
+.PP
+.SS PARSING CONTROL
+.PP
+The parser generator generates a pushdown automation based on LALR(1)
+tables. As usual, if the grammar is ambiguous, this may generate shift/reduce
+or reduce/reduce conflicts. These conflicts are printed to standard
+output when the automaton is generated.
+.PP
+By default, the automaton is not constructed until the parser is
+first used.
+.PP
+The build(debug) method forces the construction of the automaton.
+While not required, it is wise to finish each complete parser with
+a call to the build(debug) method. If the debug variable
+is set, this also prints with parser table together with any conflicts.
+.PP
+The loc variable is defined within action bodies, and represents
+the input range for all tokens on the right\-hand\-side of the production.
+.PP
+.SS EXTENDING PARSERS
+.PP
+Parsers may also be extended by inheritance.
+For example, let\&'s extend the grammar so that it also recognizes
+the << and >> shift operations.
+.PP
+First, we extend the lexer so that it recognizes these tokens.
+This time, we choose to leave lexer1 intact, instead of
+using the += operator.
+.PP
+.Vb
+   lexer2. =
+      extends $(lexer1)
+
+      lsl: $"<<"
+         Token.unit($(loc), lsl)
+
+      asr: $">>"
+         Token.unit($(loc), asr)
+.Ve
+.PP
+Next, we extend the parser to handle these new operators.
+We intend that the bitwise operators have lower precedence
+than the other arithmetic operators. The two\-argument form
+of the left method accomplishes this.
+.PP
+.Vb
+   parser2. =
+      extends $(parser1)
+
+      left(plus, lsl lsr asr)
+
+      lexer = $(lexer2)
+
+      exp: exp lsl exp
+         lsl($1, $3)
+
+      exp: exp asr exp
+         asr($1, $3)
+.Ve
+.PP
+In this case, we use the new lexer lexer2, and we add productions
+for the new shift operations.
+.SS GETTIMEOFDAY
+.PP
+.Vb
+   $(gettimeofday) : Float
+.Ve
+.PP
+The gettimeofday function returns the time of day in seconds
+since January 1, 1970.
+.SH SHELL FUNCTIONS
+
+.SS ECHO
+.PP
+The echo function prints a string.
+.PP
+$(echo <args>)
+echo <args>
+.SS JOBS
+.PP
+The jobs function prints a list of jobs.
+.PP
+jobs
+.SS CD
+.PP
+The cd function changes the current directory.
+.PP
+.Vb
+    cd(dir)
+       dir : Dir
+.Ve
+.PP
+The cd function also supports a 2\-argument form:
+.PP
+.Vb
+    $(cd dir, e)
+       dir : Dir
+       e : expression
+.Ve
+.PP
+In the two\-argument form, expression e is evaluated
+in the directory dir\&. The current directory is not
+changed otherwise.
+.PP
+The behavior of the cd function can be changed with the
+CDPATH variable, which specifies a search path for
+directories. This is normally useful only in the osh
+command interpreter.
+.PP
+.Vb
+    CDPATH : Dir Sequence
+.Ve
+.PP
+For example, the following will change directory to the first
+directory \&./foo, ~/dir1/foo, ~/dir2/foo\&.
+.PP
+.Vb
+    CDPATH[] =
+       .
+       $(HOME)/dir1
+       $(HOME)/dir2
+    cd foo
+.Ve
+.PP
+.SS BG
+.PP
+The bg function places a job in the background.
+.PP
+bg <pid...>
+.SS FG
+.PP
+The fg function brings a job to the foreground.
+.PP
+fg <pid...>
+.SS STOP
+.PP
+The stop function suspends a job.
+.PP
+stop <pid...>
+.SS WAIT
+.PP
+The wait function waits for a job to finish.
+If no process identifiers are given, the shell waits for
+all jobs to complete.
+.PP
+wait <pid...>
+.SS KILL
+.PP
+The kill function signals a job.
+.PP
+kill [signal] <pid...>
+.SS HISTORY
+.PP
+.Vb
+    $(history\-index) : Int
+    $(history) : String Sequence
+    history\-file : File
+    history\-length : Int
+.Ve
+.PP
+The history variables manage the command\-line history in osh\&.
+They have no effect
+in omake\&.
+.PP
+The history\-index variable is the current index into the command\-line history.
+The history variable is the current command\-line history.
+.PP
+The history\-file variable can be redefined if you want the command\-line history
+to be saved. The default value is ~/.omake/osh_history\&.
+.PP
+The history\-length variable can be redefined to specify the maximum number of
+lines in the history that you want saved. The default value is 100\&.
+.PP
+.SH PERVASIVES
+
+.PP
+Pervasives defines the objects that are defined in all
+programs. The following objects are defined.
+.PP
+.SS OBJECT
+.PP
+Parent objects: none.
+.PP
+The Object object is the root object.
+Every class is a subclass of Object\&.
+.PP
+It provides the following fields:
+.PP
+.TP
+.B *
+$(o.object\-length): the number of fields and methods in the object.
+.TP
+.B *
+$(o.object\-mem <var>): returns true iff the <var> is a field
+or method of the object.
+.TP
+.B *
+$(o.object\-add <var>, <value>): adds the field to the object,
+returning a new object.
+.TP
+.B *
+$(o.object\-find <var>): fetches the field or method from the object;
+it is equivalent to $(o.<var>), but the variable can be non\-constant.
+.TP
+.B *
+$(o.object\-map <fun>): maps a function over the object. The function
+should take two arguments; the first is a field name, the second is the
+value of that field. The result is a new object constructed from the
+values returned by the function.
+.TP
+.B *
+o.object\-foreach: the foreach form is equivalent to map,
+but with altered syntax.
+.PP
+.Vb
+   o.foreach(<var1>, <var2>)
+      <body>
+.Ve
+.PP
+For example, the following function prints all the fields of an
+object o\&.
+.PP
+.Vb
+   PrintObject(o) =
+      o.foreach(v, x)
+         println($(v) = $(x))
+.Ve
+.PP
+The export form is valid in a foreach body. The following
+function collects just the field names of an object.
+.PP
+.Vb
+   FieldNames(o) =
+      names =
+      o.foreach(v, x)
+         names += $(v)
+         export
+      return $(names)
+.Ve
+.PP
+.SS MAP
+.PP
+Parent objects: Object\&.
+.PP
+A Map object is a dictionary from values to values. The <key>
+values are restricted to simple values: integers, floating\-point numbers,
+strings, files, directories, and arrays of simple values.
+.PP
+The Map object provides the following methods.
+.PP
+.TP
+.B *
+$(o.mem <key>): returns true iff the <key> is defined
+in the map.
+.TP
+.B *
+$(o.add <key>, <value>): adds the field to the map,
+returning a new map.
+.TP
+.B *
+$(o.find <key>): fetches the field from the map.
+.TP
+.B *
+$(o.map <fun>): maps a function over the map. The function
+should take two arguments; the first is a field name, the second is the
+value of that field. The result is a new object constructed from the
+values returned by the function.
+.TP
+.B *
+o.foreach: the foreach form is equivalent to map,
+but with altered syntax.
+.PP
+.Vb
+   o.foreach(<var1>, <var2>)
+      <body>
+.Ve
+.PP
+For example, the following function prints all the fields of an
+object o\&.
+.PP
+.Vb
+   PrintObject(o) =
+      o.foreach(v, x)
+         println($(v) = $(x))
+.Ve
+.PP
+The export form is valid in a foreach body. The following
+function collects just the field names of the map.
+.PP
+.Vb
+   FieldNames(o) =
+      names =
+      o.foreach(v, x)
+         names += $(v)
+         export
+      return $(names)
+.Ve
+.PP
+There is also simpler syntax when the key is a string. The table can be
+defined using definitions with the form $|key|
+(the number of pipe symbols | is allowed to vary).
+.PP
+.Vb
+    $|key 1| = value1
+    $||key1|key2|| = value2    # The key is key1|key2
+    X = $|key 1|               # Define X to be the value of field $|key 1|
+.Ve
+.PP
+The usual modifiers are also allowed. The expression $`|key| represents
+lazy evaluation of the key, and $,|key| is normal evaluation.
+.PP
+.SS NUMBER
+.PP
+Parent objects: Object\&.
+.PP
+The Number object is the parent object for integers
+and floating\-point numbers.
+.SS INT
+.PP
+Parent objects: Number\&.
+.PP
+The Int object represents integer values.
+.SS FLOAT
+.PP
+Parent objects: Number\&.
+.PP
+The Float object represents floating\-point numbers.
+.SS SEQUENCE
+.PP
+Parent objects: Object\&.
+.PP
+The Sequence object represents a generic object containing
+sequential elements. It provides the following methods.
+.PP
+.TP
+.B *
+$(s.length): the number of elements in the sequence.
+.TP
+.B *
+$(s.map <fun>): maps a function over the fields in the sequence.
+The function should take one argument. The result is a new sequence
+constructed from the values returned by the function.
+.TP
+.B *
+s.foreach: the foreach form is equivalent to map,
+but with altered syntax.
+.PP
+.Vb
+   s.foreach(<var>)
+      <body>
+.Ve
+.PP
+For example, the following function prints all the elements of the sequence.
+.PP
+.Vb
+   PrintSequence(s) =
+      s.foreach(x)
+         println(Elem = $(x))
+.Ve
+.PP
+The export form is valid in a foreach body. The following
+function counts the number of zeros in the sequence.
+.PP
+.Vb
+   Zeros(s) =
+      count = $(int 0)
+      s.foreach(v)
+         if $(equal $(v), 0)
+            count = $(add $(count), 1)
+            export
+         export
+      return $(count)
+.Ve
+.PP
+.SS ARRAY
+.PP
+Parent objects: Sequence\&.
+.PP
+The Array is a random\-access sequence.
+It provides the following additional methods.
+.PP
+.TP
+.B *
+$(s.nth <i>): returns element i of the sequence.
+.TP
+.B *
+$(s.rev <i>): returns the reversed sequence.
+.PP
+.SS STRING
+.PP
+Parent objects: Array\&.
+.SS FUN
+.PP
+Parent objects: Object\&.
+.PP
+The Fun object provides the following methods.
+.TP
+.B *
+$(f.arity): the arity if the function.
+.PP
+.SS RULE
+.PP
+Parent objects: Object\&.
+.PP
+The Rule object represents a build rule.
+It does not currently have any methods.
+.SS TARGET
+.PP
+Parent object: Object\&.
+.PP
+The Target object contains information collected for
+a specific target file.
+.PP
+.TP
+.B *
+target: the target file.
+.TP
+.B *
+effects: the files that may be modified by a
+side\-effect when this target is built.
+.TP
+.B *
+scanner_deps: static dependencies that must be built
+before this target can be scanned.
+.TP
+.B *
+static\-deps: statically\-defined build dependencies
+of this target.
+.TP
+.B *
+build\-deps: all the build dependencies for the target,
+including static and scanned dependencies.
+.TP
+.B *
+build\-values: all the value dependencies associated
+with the build.
+.TP
+.B *
+build\-commands: the commands to build the target.
+.PP
+The object supports the following methods.
+.PP
+.TP
+.B *
+find(file): returns a Target object for the given file.
+Raises a RuntimeException if the specified target is
+not part of the project.
+.TP
+.B *
+find\-optional(file): returns a Target object
+for the given file, or false if the file is not
+part of the project.
+.PP
+NOTE: the information for a target is constructed dynamically,
+so it is possible that the Target object for a node will
+contain different values in different contexts. The easiest way
+to make sure that the Target information is complete is
+to compute it within a rule body, where the rule depends on
+the target file, or the dependencies of the target file.
+.SS NODE
+.PP
+Parent objects: Object\&.
+.PP
+The Node object is the parent object for files and directories.
+It supports the following operations.
+.TP
+.B *
+$(node.stat): returns a stat object for the file. If the
+file is a symbolic link, the stat information is for the destination of
+the link, not the link itself.
+.PP
+.TP
+.B *
+$(node.lstat): returns a stat object for the file or symbolic link.
+.TP
+.B *
+$(node.unlink): removes the file.
+.TP
+.B *
+$(node.rename <file>): renames the file.
+.TP
+.B *
+$(node.link <file>): creates a hard link <dst> to this file.
+.TP
+.B *
+$(node.symlink <file>): create a symbolic link <dst> to this file.
+.TP
+.B *
+$(node.chmod <perm>): change the permission of this file.
+.TP
+.B *
+$(node.chown <uid>, <gid>): change the owner and group id of this file.
+.PP
+.SS FILE
+.PP
+Parent objects: Node\&.
+.PP
+The file object represents the name of a file.
+.SS DIR
+.PP
+Parent objects: Node\&.
+.PP
+The Dir object represents the name of a directory.
+.SS CHANNEL
+.PP
+Parent objects: Object\&.
+.PP
+A Channel is a generic IO channel.
+It provides the following methods.
+.TP
+.B *
+$(o.close): close the channel.
+.PP
+.SS INCHANNEL
+.PP
+Parent objects: Channel\&.
+.PP
+A InChannel is an input channel. The variable stdin is the
+standard input channel.
+.PP
+It provides the following methods.
+.TP
+.B *
+$(InChannel.fopen <file>): open a new input channel.
+.PP
+.SS OUTCHANNEL
+.PP
+Parent object: Channel\&.
+.PP
+A OutChannel is an output channel. The variables stdout
+and stderr are the standard output and error channels.
+.PP
+It provides the following methods.
+.TP
+.B *
+$(OutChannel.fopen <file>): open a new output channel.
+.TP
+.B *
+$(OutChannel.append <file>): opens a new output channel,
+appending to the file.
+.TP
+.B *
+$(c.flush): flush the output channel.
+.TP
+.B *
+$(c.print <string>): print a string to the channel.
+.TP
+.B *
+$(c.println <string>): print a string to the channel,
+followed by a line terminator.
+.PP
+.SS LOCATION
+.PP
+Parent objects: Location\&.
+.PP
+The Location object represents a location in a file.
+.SS POSITION
+.PP
+Parent objects: Position\&.
+.PP
+The Position object represents a stack trace.
+.SS EXCEPTION
+.PP
+Parent objects: Object\&.
+.PP
+The Exception object is used as the base object for exceptions.
+It has no fields.
+.SS RUNTIMEEXCEPTION
+.PP
+Parent objects: Exception\&.
+.PP
+The RuntimeException object represents an exception from the
+runtime system. It has the following fields.
+.PP
+.TP
+.B *
+position: a string representing the location where the
+exception was raised.
+.TP
+.B *
+message: a string containing the exception message.
+.PP
+.SS SHELL
+.PP
+Parent objects: Object\&.
+.PP
+The Shell object contains the collection of builtin functions
+available as shell commands.
+.PP
+You can define aliases by extending this object with additional methods.
+All methods in this class are called with one argument: a single array
+containing an argument list.
+.PP
+.TP
+.B *
+echo
+.PP
+The echo function prints its arguments to the standard output channel.
+.TP
+.B *
+jobs
+.PP
+The jobs method prints the status of currently running commands.
+.TP
+.B *
+cd
+.PP
+The cd function changes the current directory.
+Note that the current directory follows the usual scoping
+rules. For example, the following program lists the
+files in the foo directory, but the current
+directory is not changed.
+.PP
+.Vb
+   section
+      echo Listing files in the foo directory...
+      cd foo
+      ls
+
+   echo Listing files in the current directory...
+   ls
+.Ve
+.TP
+.B *
+bg
+.PP
+The bg method places a job in the background.
+The job is resumed if it has been suspended.
+.TP
+.B *
+fg
+.PP
+The fg method brings a job to the foreground.
+The job is resumed if it has been suspended.
+.TP
+.B *
+stop
+.PP
+The stop method suspends a running job.
+.TP
+.B *
+wait
+.PP
+The wait function waits for a running job to terminate.
+It is not possible to wait for a suspended job.
+.PP
+The job is not brought to the foreground. If the wait
+is interrupted, the job continues to run in the background.
+.TP
+.B *
+kill
+.PP
+The kill function signal a job.
+.PP
+kill [signal] <pid...>\&.
+.PP
+The signals are either numeric, or symbolic.
+The symbolic signals are named as follows.
+.PP
+ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
+USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
+.TP
+.B *
+exit
+.PP
+The exit function terminates the current session.
+.TP
+.B *
+which, where
+.PP
+See the documentation for the corresponding functions.
+.TP
+.B *
+rehash
+.PP
+Reset the search path.
+.TP
+.B *
+history
+.PP
+Print the current command\-line history.
+.TP
+.B *
+Win32 functions.
+.PP
+Win32 doesn\&'t provide very many programs for scripting, except
+for the functions that are builtin to the DOS cmd.exe\&.
+The following functions are defined on Win32 and only on Win32.
+On other systems, it is expected that these programs already
+exist.
+.PP
+.RS
+.TP
+.B *
+grep
+.RS
+.PP
+.Vb
+   grep [\-q] [\-n] pattern files...
+.Ve
+.PP
+The grep function calls the omake
+grep function.
+.RE
+.RE
+.PP
+By default, omake
+uses internal versions of the following commands:
+cp, mv, cat, rm, mkdir, chmod,
+test, find\&.
+If you really want to use the standard system versions of these
+commands, set the USE_SYSTEM_COMMANDS as one of the first
+definitions in your OMakeroot file.
+.PP
+.RS
+.RE
+.TP
+.B *
+mkdir
+.RS
+.PP
+.Vb
+    mkdir [\-m <mode>] [\-p] files
+.Ve
+.PP
+The mkdir function is used to create directories.
+The \-verb+\-m+ option can be used to specify the permission
+mode of the created directory. If the \-p option
+is specified, the full path is created.
+.RE
+.TP
+.B *
+cp
+.TP
+.B *
+mv
+.RS
+.PP
+.Vb
+    cp [\-f] [\-i] [\-v] src dst
+    cp [\-f] [\-i] [\-v] files dst
+    mv [\-f] [\-i] [\-v] src dst
+    mv [\-f] [\-i] [\-v] files dst
+.Ve
+.PP
+The cp function copies a src file to
+a dst file, overwriting it if it already exists.
+If more than one source file is specified, the final file
+must be a directory, and the source files are copied
+into the directory.
+.PP
+.RS
+.RE
+.TP
+\-f
+Copy files forcibly, do not prompt.
+.TP
+\-i
+Prompt before removing destination files.
+.TP
+\-v
+Explain what is happening.
+.RE
+.RS
+.PP
+.RE
+.TP
+.B *
+rm
+.RS
+.PP
+.Vb
+   rm [\-f] [\-i] [\-v] [\-r] files
+   rmdir [\-f] [\-i] [\-v] [\-r] dirs
+.Ve
+.PP
+The rm function removes a set of files.
+No warnings are issued if the files do not exist, or if
+they cannot be removed.
+.PP
+Options:
+.RS
+.RE
+.TP
+\-f
+Forcibly remove files, do not prompt.
+.TP
+\-i
+Prompt before removal.
+.TP
+\-v
+Explain what is happening.
+.TP
+\-r
+Remove contents of directories recursively.
+.RE
+.RS
+.PP
+.RE
+.TP
+.B *
+chmod
+.RS
+.PP
+.Vb
+    chmod [\-r] [\-v] [\-f] mode files
+.Ve
+.PP
+The chmod function changes the permissions on a set of
+files or directories. This function does nothing on Win32.
+The mode may be specified as an octal number,
+or in symbolic form [ugoa]*[\-=][rwxXstugo]+.
+See the man page for chmod for details.
+.PP
+Options:
+.RS
+.RE
+.TP
+\-r
+Change permissions of all files in a directory recursively.
+.TP
+\-v
+Explain what is happening.
+.TP
+\-f
+Continue on errors.
+.RE
+.RS
+.PP
+.RE
+.TP
+.B *
+cat
+.RS
+.PP
+.Vb
+   cat files...
+.Ve
+.PP
+The cat function prints the contents of the files to stdout
+.RE
+.TP
+.B *
+test
+.RS
+.PP
+.Vb
+   test \\emph{expression}
+   \\verb+[+ \\emph{expression} +]+
+   \\verb+[ \-\-help+
+   \\verb+[ \-\-version+
+.Ve
+.PP
+See the documentation for the test function.
+.PP
+.RE
+.TP
+.B *
+find
+.RS
+.PP
+.Vb
+   find \\emph{expression}
+.Ve
+.PP
+See the documentation for the find function.
+.PP
+.RE
+.RE
+.PP
+.RE
+.PP
+.SH BUILD FUNCTIONS
+
+.PP
+.SS OMAKEFLAGS
+.PP
+.Vb
+   OMakeFlags(options)
+      options : String
+.Ve
+.PP
+The OMakeFlags function is used to set omake options from
+within OMakefiles.
+The options have exactly the same format as
+options on the command line.
+.PP
+For example, the following code displays the progress bar unless
+the VERBOSE environment variable is defined.
+.PP
+.Vb
+    if $(not $(defined\-env VERBOSE))
+        OMakeFlags(\-S \-\-progress)
+        export
+.Ve
+.SS OMAKEVERSION
+.PP
+.Vb
+   OMakeVersion(version1)
+   OMakeVersion(version1, version2)
+      version1, version2 : String
+.Ve
+.PP
+The OMakeVersion function is used for version checking
+in OMakefiles.
+It takes one or two arguments.
+.PP
+In the one argument form, if the omake
+version number
+is less than <version1>,
+then an exception is raised. In the two argument form,
+the version must lie between version1 and version2\&.
+.PP
+.SS CMP\-VERSIONS
+.Vb
+   $(cmp\-versions version1, version2)
+      version1, version2 : String
+.Ve
+.PP
+The cmp\-versions\\ functions can be used to compare arbitrary version strings.
+It returns 0 when the two version strings are equal, a negative number when the first
+string represents an earlier version, and a positive number otherwise.
+.SS DEFINECOMMANDVARS
+.PP
+.Vb
+   DefineCommandVars()
+.Ve
+.PP
+The DefineCommandVars function redefines the variables passed on
+the commandline. Variables definitions are passed on the command line
+in the form name=value\&. This function is primarily for internal
+use by omake
+to define these variables for the first time.
+.SH THE OMAKEROOT FILE
+
+.PP
+The standard OMakeroot
+file defines the functions are rules
+for building standard projects.
+.PP
+.SS VARIABLES
+.RE
+.TP
+ROOT
+The root directory of the current project.
+.TP
+CWD
+The current working directory (the directory is set for each OMakefile
+in the project).
+.TP
+EMPTY
+The empty string.
+.TP
+STDROOT
+The name of the standard installed OMakeroot
+file.
+.TP
+VERBOSE
+Whether certain commands should be verbose (false by default).
+.PP
+.TP
+ABORT_ON_COMMAND_ERROR
+If set to true, the construction of a target should
+be aborted whenever one of the commands to build it fail. This defaults to true,
+and should normally be left that way.
+.PP
+.TP
+.\"SCANNERMODE
+SCANNER_MODE
+ This variable should be defined as one of four values
+(defaults to enabled).
+.RS
+.TP
+enabled
+Allow the use of default \&.SCANNER rules. Whenever a rule does
+not specify a :scanner: dependency explicitly, try to find a
+\&.SCANNER with the same target name.
+.TP
+disabled
+Never use default \&.SCANNER rules.
+.TP
+warning
+Allow the use of default \&.SCANNER rules, but print a warning
+whenever one is selected.
+.TP
+error
+Do not allow the use of default \&.SCANNER rules. If a rule
+does not specify a :scanner: dependency, and there is a default
+\&.SCANNER rule, the build will terminate abnormally.
+.RE
+.RS
+.PP
+.RE
+.PP
+.SS SYSTEM VARIABLES
+.PP
+.RE
+.TP
+INSTALL
+The command to install a program (install on Unix, cp on Win32).
+.TP
+PATHSEP
+The normal path separator (: on Unix, ; on Win32).
+.TP
+DIRSEP
+The normal directory separator (/ on Unix, \\ on Win32).
+.TP
+EXT_LIB
+File suffix for a static library (default is \&.a on Unix, and \&.lib on Win32).
+.TP
+EXT_OBJ
+File suffix for an object file (default is \&.o on Unix, and \&.obj on Win32).
+.TP
+EXT_ASM
+File suffix for an assembly file (default is \&.s on Unix, and \&.asm on Win32).
+.TP
+EXE
+File suffix for executables (default is empty for Unix, and \&.exe on Win32 and Cygwin).
+.PP
+.SH BUILDING C PROGRAMS
+
+.PP
+omake
+provides extensive support for building C programs.
+.PP
+.SS C CONFIGURATION VARIABLES
+.PP
+The following variables can be redefined in your project.
+.PP
+.TP
+CC
+The name of the C compiler (on Unix it defaults to gcc when gcc is present and
+to cc otherwise; on Win32 defaults to cl /nologo).
+.TP
+CXX
+The name of the C++ compiler (on Unix it defaults to gcc when gcc is present
+and to c++ otherwise; on Win32 defaults to cl /nologo).
+.TP
+CPP
+The name of the C preprocessor (defaults to cpp on Unix, and cl /E on Win32).
+.TP
+CFLAGS
+Compilation flags to pass to the C compiler (default empty on Unix, and /DWIN32
+on Win32).
+.TP
+CXXFLAGS
+Compilation flags to pass to the C++ compiler (default empty on Unix, and /DWIN32
+on Win32).
+.TP
+INCLUDES
+Additional directories that specify the search path to the C and C++ compilers (default is \&.).
+The directories are passed to the C and C++ compilers with the \-I option.
+The include path with \-I prefixes is defined in the PREFIXED_INCLUDES variable.
+.TP
+LIBS
+Additional libraries needed when building a program (default is empty).
+.TP
+AS
+The name of the assembler (defaults to as on Unix, and ml on Win32).
+.TP
+ASFLAGS
+Flags to pass to the assembler (default is empty on Unix, and /c /coff on Win32).
+.TP
+AR
+The name of the program to create static libraries (defaults to ar cq on Unix,
+and lib on Win32).
+.TP
+AROUT
+The option string that specifies the output file for AR\&.
+.TP
+LD
+The name of the linker (defaults to ld on Unix, and cl on Win32).
+.TP
+LDFLAGS
+Options to pass to the linker (default is empty).
+.TP
+YACC
+The name of the yacc parser generator (default is yacc on Unix, empty on Win32).
+.TP
+LEX
+The name of the lex lexer generator (default is lex on Unix, empty on Win32).
+.PP
+.SS CGENERATEDFILES, LOCALCGENERATEDFILES
+.Vb
+CGeneratedFiles(files)
+LocalCGeneratedFiles(files)
+.Ve
+.PP
+The CGeneratedFiles and LocalCGeneratedFiles functions specify files
+that need to be generated before any C files are scanned for dependencies. For example,
+if config.h and inputs.h are both generated files, specify:
+.Vb
+CGeneratedFiles(config.h inputs.h)
+.Ve
+.PP
+The CGeneratedFiles function is \fIglobal\fP
+\-\-\- its arguments will be generated
+before any C files anywhere in the project are scanned for dependencies. The
+LocalCGeneratedFiles function follows the normal scoping rules of OMake.
+.PP
+.SS STATICCLIBRARY
+.PP
+The StaticCLibrary builds a static library.
+.PP
+StaticCLibrary(<target>, <files>)
+.PP
+The <target> does \fInot\fP
+include the library suffix, and
+The <files> list does not include the object suffix. These
+are obtained from the EXT_LIB and EXT_OBJ variables.
+.PP
+This function returns the library filename.
+.PP
+The following command builds the library libfoo.a from the
+files a.o b.o c.o on Unix, or the library
+libfoo.lib from the files a.obj b.obj c.obj
+on Win32\&.
+.PP
+.Vb
+StaticCLibrary(libfoo, a b c)
+.DEFAULT: $(StaticCLibrary libbar, a b c d)
+.Ve
+.SS STATICCLIBRARYCOPY
+.PP
+The StaticCLibraryCopy function copies the static library
+to an install location.
+.PP
+StaticCLibraryCopy(<tag>, <dir>, <lib>)
+.PP
+The <tag> is the name of a target (typically a \&.PHONY target);
+the <dir> is the installation directory, and <lib> is
+the library to be copied (without the library suffix).
+.PP
+This function returns the filename of the library in the target directory.
+.PP
+For example, the following code copies the library
+libfoo.a to the /usr/lib directory.
+.PP
+.Vb
+.PHONY: install
+
+StaticCLibraryCopy(install, /usr/lib, libfoo)
+.Ve
+.SS STATICCLIBRARYINSTALL
+.PP
+The StaticCLibraryInstall function builds a library, and
+sets the install location in one step. It returns the filename of the library
+in the target directory.
+.PP
+StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+.PP
+.Vb
+StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
+.Ve
+.SS STATICCOBJECT, STATICCOBJECTCOPY, STATICCOBJECTINSTALL
+.PP
+These functions mirror the StaticCLibrary, StaticCLibraryCopy,
+and StaticCLibraryInstall functions, but they build an \fIobject\fP
+file (a \&.o file on Unix, and a \&.obj file on Win32).
+.SS CPROGRAM
+.PP
+The CProgram function builds a C program from a set
+of object files and libraries.
+.PP
+CProgram(<name>, <files>)
+.PP
+The <name> argument specifies the name of the program to be built;
+the <files> argument specifies the files to be linked. The function
+returns the filename of the executable.
+.PP
+Additional options can be passed through the following variables.
+.TP
+CFLAGS
+Flags used by the C compiler during the link step.
+.TP
+LDFLAGS
+Flags to pass to the loader.
+.TP
+LIBS
+Additional libraries to be linked.
+.PP
+For example, the following code specifies that the program
+foo is to be produced by linking the files bar.o
+and baz.o and libraries libfoo.a\&.
+.PP
+.Vb
+section
+   LIBS = libfoo$(EXT_LIB)
+   CProgram(foo, bar baz)
+.Ve
+.SS CPROGRAMCOPY
+.PP
+The CProgramCopy function copies a file to an install location.
+.PP
+CProgramCopy(<tag>, <dir>, <program>)
+.PP
+.Vb
+CProgramCopy(install, /usr/bin, foo)
+.Ve
+.SS CPROGRAMINSTALL
+.PP
+The CProgramInstall function specifies a program to build,
+and a location to install, simultaneously.
+.PP
+CProgramInstall(<tag>, <dir>, <name>, <files>)
+.PP
+.Vb
+section
+   LIBS = libfoo$(EXT_LIB)
+   CProgramInstall(install, /usr/bin, foo, bar baz)
+.Ve
+.SS CXXPROGRAM, CXXPROGRAMINSTALL
+.PP
+The CXXProgram and CXXProgramInstall functions are
+equivalent to their C counterparts, except that would use $(CXX) and $(CXXFLAGS)
+for linking instead of $(CC) and $(CFLAGS)\&.
+.SH BUILDING OCAML PROGRAMS
+
+.PP
+.SS VARIABLES FOR OCAML PROGRAMS
+.PP
+The following variables can be redefined in your project.
+.TP
+USE_OCAMLFIND
+Whether to use the ocamlfind utility (default false\\)
+.TP
+OCAMLC
+The OCaml bytecode compiler (default ocamlc.opt if it exists
+and USE_OCAMLFIND is not set, otherwise ocamlc).
+.TP
+OCAMLOPT
+The OCaml native\-code compiler (default ocamlopt.opt if it
+exists and USE_OCAMLFIND is not set, otherwise ocamlopt).
+.TP
+CAMLP4
+The camlp4 preprocessor (default camlp4).
+.TP
+OCAMLLEX
+The OCaml lexer generator (default ocamllex).
+.TP
+OCAMLLEXFLAGS
+The flags to pass to ocamllex (default \-q).
+.TP
+OCAMLYACC
+The OCaml parser generator (default ocamlyacc).
+.TP
+OCAMLDEP
+The OCaml dependency analyzer (default ocamldep).
+.TP
+OCAMLMKTOP
+The OCaml toploop compiler (default ocamlmktop).
+.TP
+OCAMLLINK
+The OCaml bytecode linker (default $(OCAMLC)).
+.TP
+OCAMLOPTLINK
+The OCaml native\-code linker (default $(OCAMLOPT)).
+.TP
+OCAMLINCLUDES
+Search path to pass to the OCaml compilers (default \&.).
+The search path with the \-I prefix is defined by the PREFIXED_OCAMLINCLUDES
+variable.
+.TP
+OCAMLFIND
+The ocamlfind utility (default ocamlfind if
+USE_OCAMLFIND is set, otherwise empty).
+.TP
+OCAMLFINDFLAGS
+The flags to pass to ocamlfind (default empty, USE_OCAMLFIND must be set).
+.TP
+OCAMLPACKS
+Package names to pass to ocamlfind (USE_OCAMLFIND must be set).
+.TP
+BYTE_ENABLED
+Flag indicating whether to use the bytecode compiler (default true, when no ocamlopt found, false otherwise).
+.TP
+NATIVE_ENABLED
+Flag indicating whether to use the native\-code compiler (default true, when ocamlopt is found, false otherwise).
+Both BYTE_ENABLED and NATIVE_ENABLED can be set to true;
+at least one should be set to true.
+.PP
+.SS OCAML COMMAND FLAGS
+.PP
+The following variables specify additional options to be passed to
+the OCaml tools.
+.TP
+OCAMLDEPFLAGS
+Flags to pass to OCAMLDEP\&.
+.TP
+OCAMLPPFLAGS
+Flags to pass to CAMLP4\&.
+.TP
+OCAMLCFLAGS
+Flags to pass to the byte\-code compiler (default \-g).
+.TP
+OCAMLOPTFLAGS
+Flags to pass to the native\-code compiler (default empty).
+.TP
+OCAMLFLAGS
+Flags to pass to either compiler (default \-warn\-error A).
+.TP
+OCAMLINCLUDES
+Include path (default \&.).
+.TP
+OCAML_BYTE_LINK_FLAGS
+Flags to pass to the byte\-code linker (default empty).
+.TP
+OCAML_NATIVE_LINK_FLAGS
+Flags to pass to the native\-code linker (default empty).
+.TP
+OCAML_LINK_FLAGS
+Flags to pass to either linker.
+.PP
+.SS LIBRARY VARIABLES
+.PP
+The following variables are used during linking.
+.PP
+.TP
+OCAML_LIBS
+Libraries to pass to the linker. These libraries become dependencies
+of the link step.
+.TP
+OCAML_OTHER_LIBS
+Additional libraries to pass to the linker. These libraries are
+\fInot\fP
+included as dependencies to the link step. Typical use is for the OCaml
+standard libraries like unix or str\&.
+.TP
+OCAML_CLIBS
+C libraries to pass to the linker.
+.TP
+OCAML_LIB_FLAGS
+Extra flags for the library.
+.PP
+.SS OCAMLGENERATEDFILES, LOCALOCAMLGENERATEDFILES
+.Vb
+OCamlGeneratedFiles(files)
+LocalOCamlGeneratedFiles(files)
+.Ve
+.PP
+The OCamlGeneratedFiles and LocalOCamlGeneratedFiles functions specify files
+that need to be generated before any OCaml files are scanned for dependencies. For example,
+if parser.ml and lexer.ml are both generated files, specify:
+.Vb
+OCamlGeneratedFiles(parser.ml lexer.ml)
+.Ve
+.PP
+The OCamlGeneratedFiles function is \fIglobal\fP
+\-\-\- its arguments will be generated
+before any OCaml files anywhere in the project are scanned for dependencies. The
+LocalOCamlGeneratedFiles function follows the normal scoping rules of OMake.
+.PP
+.SS OCAMLLIBRARY
+.PP
+The OCamlLibrary function builds an OCaml library.
+.PP
+OCamlLibrary(<libname>, <files>)
+.PP
+The <libname> and <files> are listed \fIwithout\fP
+suffixes.
+.PP
+Additional variables used by the function:
+.TP
+ABORT_ON_DEPENDENCY_ERRORS
+The linker requires that the files to be
+listed in dependency order. If this variable is true, the order of
+the files is determined by the command line, but omake
+will
+abort with an error message if the order is illegal. Otherwise,
+the files are sorted automatically.
+.PP
+This function returns the list of all the targets that it defines the rules
+for (including the $(name)$(EXT_LIB) file when NATIVE_ENABLED is set).
+.PP
+The following code builds the libfoo.cmxa library from the files foo.cmx
+and bar.cmx (if NATIVE_ENABLED is set), and libfoo.cma from
+foo.cmo and bar.cmo (if BYTE_ENABLED is set).
+.PP
+.Vb
+OCamlLibrary(libfoo, foo bar)
+.Ve
+.SS OCAMLLIBRARYCOPY
+.PP
+The OCamlLibraryCopy function copies a library to an install location.
+.PP
+OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface\-files>)
+.PP
+The <interface\-files> specify additional interface files
+to be copied if the INSTALL_INTERFACES variable is true.
+.SS OCAMLLIBRARYINSTALL
+.PP
+The OCamlLibraryInstall function builds a library
+and copies it to an install location in one step.
+.PP
+OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)
+.SS OCAMLPROGRAM
+.PP
+The OCamlProgram function builds an OCaml program. It returns the array with all
+the targets for which it have defined the rules ($(name)$(EXE) and $(name).run
+and/or $(name).opt, depending on the NATIVE_ENABLED and BYTE_ENABLED
+variables).
+.PP
+OCamlProgram(<name>, <files>)
+.PP
+Additional variables used:
+.TP
+OCAML_LIBS
+Additional libraries passed to the linker, without suffix. These files
+become dependencies of the target program.
+.TP
+OCAML_OTHER_LIBS
+Additional libraries passed to the linker, without suffix. These
+files do \fInot\fP
+become dependencies of the target program.
+.TP
+OCAML_CLIBS
+C libraries to pass to the linker.
+.TP
+OCAML_BYTE_LINK_FLAGS
+Flags to pass to the bytecode linker.
+.TP
+OCAML_NATIVE_LINK_FLAGS
+Flags to pass to the native code linker.
+.TP
+OCAML_LINK_FLAGS
+Flags to pass to both linkers.
+.PP
+.SS OCAMLPROGRAMCOPY
+.PP
+The OCamlProgramCopy function copies an OCaml program to an install location.
+.PP
+OCamlProgramCopy(<tag>, <bindir>, <name>)
+.PP
+Additional variables used:
+.TP
+NATIVE_ENABLED
+If NATIVE_ENABLED is set, the native\-code executable
+is copied; otherwise the byte\-code executable is copied.
+.PP
+.SS OCAMLPROGRAMINSTALL
+.PP
+The OCamlProgramInstall function builds a programs and copies it to
+an install location in one step.
+.PP
+OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)
+.SH BUILDING LaTeX PROGRAMS
+
+.PP
+.SS CONFIGURATION VARIABLES
+.PP
+The following variables can be modified in your project.
+.TP
+LATEX
+The LaTeX command (default latex).
+.TP
+TETEX2_ENABLED
+Flag indicating whether to use advanced LaTeX options
+present in TeTeX v.2 (default value is determined the first time omake reads LaTeX.src
+and depends on the version of LaTeX you have installed).
+.TP
+LATEXFLAGS
+The LaTeX flags (defaults depend on the TETEX2_ENABLED variable)
+.TP
+BIBTEX
+The BibTeX command (default bibtex).
+.TP
+MAKEINDEX
+The command to build an index (default makeindex).
+.TP
+DVIPS
+The \&.dvi to PostScript converter (default dvips).
+.TP
+DVIPSFLAGS
+Flags to pass to dvips (default \-t letter).
+.TP
+DVIPDFM
+The \&.dvi to \&.pdf converter (default dvipdfm).
+.TP
+DVIPDFMFLAGS
+Flags to pass to dvipdfm (default \-p letter).
+.TP
+PDFLATEX
+The \&.latex to \&.pdf converter (default pdflatex).
+.TP
+PDFLATEXFLAGS
+Flags to pass to pdflatex (default is empty).
+.TP
+USEPDFLATEX
+Flag indicating whether to use pdflatex instead of dvipdfm
+to generate the \&.pdf document (default false).
+.PP
+.SS LATEXDOCUMENT
+.PP
+The LaTeXDocument produces a LaTeX document.
+.PP
+LaTeXDocument(<name>, <texfiles>)
+.PP
+The document <name> and <texfiles> are listed without suffixes. This function
+returns the filenames for the generated \&.ps and \&.pdf files.
+.PP
+Additional variables used:
+.TP
+TEXINPUTS
+The LaTeX search path (an array of directories, default is
+taken from the TEXINPUTS environment variable).
+.TP
+TEXDEPS
+Additional files this document depends on.
+.PP
+.SS TEXGENERATEDFILES, LOCALTEXGENERATEDFILES
+.Vb
+TeXGeneratedFiles(files)
+LocalTeXGeneratedFiles(files)
+.Ve
+.PP
+The TeXGeneratedFiles and LocalTeXGeneratedFiles functions specify files
+that need to be generated before any LaTeXfiles are scanned for dependencies. For example,
+if config.tex and inputs.tex are both generated files, specify:
+.Vb
+TeXGeneratedFiles(config.tex inputs.tex)
+.Ve
+.PP
+The TeXGeneratedFiles function is \fIglobal\fP
+\-\-\- its arguments will be generated
+before any TeX files anywhere in the project are scanned for dependencies. The
+LocalTeXGeneratedFiles function follows the normal scoping rules of OMake.
+.PP
+.SS LATEXDOCUMENTCOPY
+.PP
+The LaTeXDocumentCopy copies the document to an install location.
+.PP
+LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)
+.PP
+This function copies just the \&.pdf and \&.ps files.
+.SS LATEXDOCUMENTINSTALL
+.PP
+The LaTeXDocumentInstall builds a document and copies it to an
+install location in one step.
+.PP
+LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>, <files>)
+.SH EXAMINING THE DEPENDENCY GRAPH
+
+.SS DEPENDENCIES, DEPENDENCIES\-ALL
+.PP
+.Vb
+   $(dependencies targets) : File Array
+   $(dependencies\-all targets) : File Array
+   $(dependencies\-proper targets) : File Array
+      targets : File Array
+   raises RuntimeException
+.Ve
+.PP
+The dependencies function returns the set of immediate dependencies of
+the given targets. This function can only be used within a rule body and
+all the arguments to the dependency function must also be dependencies of
+this rule. This restriction ensures that all the dependencies are known when
+this function is executed.
+.PP
+The dependencies\-all function is similar, but it expands the dependencies
+recursively, returning all of the dependencies of a target, not just the immediate
+ones.
+.PP
+The dependencies\-proper function returns all recursive dependencies, except
+the dependencies that are leaf targets. A leaf target is a target that has no
+dependencies and no build commands; a leaf target corresponds to a source file
+in the current project.
+.PP
+In all three functions, files that are not part of the current project are silently
+discarded.
+.PP
+One purpose of the dependencies\-proper function is for ``clean\&'' targets.
+For example, one way to delete all intermediate files in a build is with a rule
+that uses the dependencies\-proper\&. Note however, that the rule requires
+building the project before it can be deleted. For a shorter form, see the
+filter\-proper\-targets function.
+.PP
+.Vb
+    .PHONY: clean
+
+    APP = ...     # the name of the target application
+    clean: $(APP)
+       rm $(dependencies\-proper $(APP))
+.Ve
+.PP
+.SS TARGET
+.Vb
+   $(target targets) : Rule Array
+      targets : File Sequence
+   raises RuntimeException
+.Ve
+.PP
+The target function returns the Target object associated with each
+of the targets. See the Target object for more information.
+.SS RULE
+.PP
+The rule function is called whenever a build rule is defined.
+It is unlikely that you will need to redefine this function, except in
+very exceptional cases.
+.PP
+.Vb
+   rule(multiple, target, pattern, sources, options, body) : Rule
+      multiple : String
+      target   : Sequence
+      pattern  : Sequence
+      sources  : Sequence
+      options  : Array
+      body     : Body
+.Ve
+.PP
+The rule function is called when a rule is evaluated.
+.PP
+.TP
+multiple
+A Boolean value indicating whether the rule was defined
+with a double colon ::\&.
+.TP
+target
+The sequence of target names.
+.TP
+pattern
+The sequence of patterns. This sequence will be empty
+for two\-part rules.
+.TP
+sources
+The sequence of dependencies.
+.TP
+options
+An array of options. Each option is represented
+as a two\-element array with an option name, and the option value.
+.TP
+body
+The body expression of the rule.
+.PP
+Consider the following rule.
+.PP
+.Vb
+   target: pattern: sources :name1: option1 :name2: option2
+      expr1
+      expr2
+.Ve
+.PP
+This expression represents the following function call, where
+square brackets are used to indicate arrays.
+.PP
+.Vb
+   rule(false, target, pattern, sources,
+        [[:name1:, option1], [:name2:, option2]]
+        [expr1; expr2])
+.Ve
+.SH REFERENCES
+
+.PP
+.SS SEE ALSO
+.PP
+.\"omake.html
+omake(1),
+.\"omake\-quickstart.html
+omake\-quickstart(1),
+.\"omake\-options.html
+omake\-options(1),
+.\"omake\-root.html
+omake\-root(1),
+.\"omake\-language.html
+omake\-language(1),
+.\"omake\-shell.html
+omake\-shell(1),
+.\"omake\-rules.html
+omake\-rules(1),
+.\"omake\-base.html
+omake\-base(1),
+.\"omake\-system.html
+omake\-system(1),
+.\"omake\-pervasives.html
+omake\-pervasives(1),
+.\"osh.html
+osh(1),
+\fImake\fP(1)
+.PP
+.SS VERSION
+.PP
+Version: 0.9.6.9 of April 11, 2006\&.
+.PP
+.SS LICENSE AND COPYRIGHT
+.PP
+(C)2003\-2006, Mojave Group, Caltech
+.PP
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.PP
+.SS AUTHOR
+.PP
+Jason Hickey \fIet. al.\fP.br
+Caltech 256\-80
+.br
+Pasadena, CA 91125, USA
+.br
+Email: \fBomake\-devel@metaprl.org\fP
+.br
+WWW: \fBhttp://www.cs.caltech.edu/~jyh\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.

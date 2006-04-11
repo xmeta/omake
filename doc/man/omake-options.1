@@ -1,0 +1,278 @@
+'\" t
+.\" Manual page created with latex2man
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "OMAKE\-OPTIONS" "1" "April 11, 2006" "Build Tools " "Build Tools "
+.SH NAME
+
+omake
+is a flexible build system designed for building a wide variety of projects.
+This document describes the command\-line options.
+For an overview of omake,
+see the
+.\"omake.html
+omake(1)
+man page.
+.PP
+.SH SYNOPSIS
+
+.PP
+omake
+[\fB\-k\fP]
+[\fB\-j\fP\fIcount\fP]
+[\fB\-n\fP]
+[\fB\-s\fP]
+[\fB\-S\fP]
+[\fB\-p\fP]
+[\fB\-P\fP]
+[\fB\-w\fP]
+[\fB\-t\fP]
+[\fB\-u\fP]
+[\fB\-U\fP]
+[\fB\-R\fP]
+[\fB\-\-project\fP]
+[\fB\-\-progress\fP]
+[\fB\-\-no\-progress\fP]
+[\fB\-\-print\-status\fP]
+[\fB\-\-no\-print\-status\fP]
+[\fB\-\-print\-exit\fP]
+[\fB\-\-no\-print\-exit\fP]
+[\fB\-\-print\-dependencies\fP]
+[\fB\-\-show\-dependencies\fP\fI target\fP]
+[\fB\-\-force\-dotomake\fP]
+[\fB\-\-dotomake\fP\fI dir\fP]
+[\fB\-\-flush\-includes\fP]
+[\fB\-\-configure\fP]
+[\fB\-\-install\fP]
+[\fB\-\-install\-all\fP]
+[\fB\-\-install\-force\fP]
+[\fB\-\-version\fP]
+[\fIfilename...\fP]
+[\fBvar\-definition...\fP]
+.PP
+.SH COMMAND\-LINE OPTIONS
+
+.PP
+.TP
+\fB\-k\fP
+ Do not abort when a build command fails;
+continue to build as much of the project as possible.
+.PP
+.TP
+\fB\-n\fP
+ Print the commands that would be executed, but do no execute them.
+This can be used to see what would happen if the project were to be built.
+.PP
+.TP
+\fB\-s\fP
+ Do not print commands as they are executed (be ``silent\&'').
+.PP
+.TP
+\fB\-S\fP
+ Do not print commands as they are executed \fIunless\fP
+they produce output.
+.PP
+.TP
+\fB\-\-progress\fP
+ Print a progress indicator.
+This is normally used with the \fB\-s\fP
+or \fB\-S\fP
+options.
+.PP
+.TP
+\fB\-\-no\-progress\fP
+ Do not print a progress indicator (default).
+.PP
+.TP
+\fB\-\-print\-exit\fP
+ Print termination codes when commands complete.
+.PP
+.TP
+\fB\-\-no\-print\-exit\fP
+ Do not print termination codes when commands complete (default).
+.PP
+.TP
+\fB\-w\fP
+ Print directory information in make
+format as commands are executed.
+This is mainly useful for editors that expect make\-style
+directory information for determining the location of errors.
+.PP
+.TP
+\fB\-p\fP
+ Watch the filesystem for changes, and continue the build until it succeeds. If this
+option is specified, omake
+will restart the build whenever source files are modified.
+.PP
+.TP
+\fB\-P\fP
+ Watch the filesystem for changes forever. If this option is specified, omake
+will restart the build whenever source files are modified.
+.PP
+.TP
+\fB\-R\fP
+ Ignore the current directory and build the project from its root directory. When
+omake
+is run in a subdirectory of a project, it normally builds files within the current
+directory and its subdirectories. If the \fB\-R\fP
+option is specified, the build is performed as if
+omake
+were run in the project root.
+.PP
+.TP
+\fB\-t\fP
+ Update the omake
+database to force the project to be considered up\-to\-date.
+.PP
+.TP
+\fB\-U\fP
+ Do not trust cached build information. This will force the entire project to be rebuilt.
+.PP
+.TP
+\fB\-\-depend\fP
+ Do not trust cached dependency information. This will force files to be rescanned
+for dependency information.
+.PP
+.TP
+\fB\-\-configure\fP
+ Re\-run static.\\ sections of the included omake files, instead of
+trusting the cached results.
+.PP
+.TP
+[\fB\-\-force\-dotomake\fP]
+ Always use the $HOME/.omake for the \&.omc cache files.
+.PP
+.TP
+[\fB\-\-dotomake\fP\fI dir\fP]
+ Use the specified directory instead of the $HOME/.omake
+for the placement of the \&.omc cache files.
+.PP
+.TP
+\fB\-j\fP\fIcount\fP
+ Run multiple build commands in parallel. The \fIcount\fP
+specifies a
+bound on the number of commands to run simultaneously. In addition, the count may specify servers
+for remote execution of commands in the form server=count\&. For example, the option
+\-j 2:small.host.org=1:large.host.org=4 would specify that up to 2 jobs can be executed
+locally, 1 on the server small.host.org and 4 on large.host.org\&. Each remote server
+must use the same filesystem location for the project.
+.PP
+Remote execution is currently an experimental feature. Remote filesystems like NFS do not provide
+adequate file consistency for this to work.
+.PP
+.TP
+\fB\-\-print\-dependencies\fP
+ Print dependency information for the targets on the command line.
+.PP
+.TP
+\fB\-\-show\-dependencies\fP\fI target\fP
+ Print dependency information \fIif\fP
+the target is built.
+.PP
+.TP
+\fB\-\-install\fP
+ Install default files OMakefile
+and OMakeroot
+into the current
+directory. You would typically do this to start a project in the current directory.
+.PP
+.TP
+\fB\-\-install\-all\fP
+ In addition to installing files OMakefile
+and OMakeroot,
+install default OMakefiles
+into each subdirectory of the current directory.
+\fIcvs\fP(1)
+rules are used for filtering the subdirectory list. For example, OMakefiles
+are not copied into directories called CVS, RCCS, etc.
+.PP
+.TP
+\fB\-\-install\-force\fP
+ Normally, omake
+will prompt before it overwrites any
+existing OMakefile\&.
+If this option is given, all files are forcibly overwritten
+without prompting.
+.PP
+.TP
+\fBvar\-definition\fP
+ omake
+variables can also be defined on the command
+line in the form name=value\&. For example, the CFLAGS variable might be defined
+on the command line with the argument CFLAGS="\-Wall \-g"\&.
+.PP
+In addition, omake
+supports a number of debugging flags on the command line. Run
+omake \-\-help to get a summary of these flags.
+.PP
+.SH REFERENCES
+
+.PP
+.SS SEE ALSO
+.PP
+.\"omake.html
+omake(1),
+.\"omake\-quickstart.html
+omake\-quickstart(1),
+.\"omake\-options.html
+omake\-options(1),
+.\"omake\-root.html
+omake\-root(1),
+.\"omake\-language.html
+omake\-language(1),
+.\"omake\-shell.html
+omake\-shell(1),
+.\"omake\-rules.html
+omake\-rules(1),
+.\"omake\-base.html
+omake\-base(1),
+.\"omake\-system.html
+omake\-system(1),
+.\"omake\-pervasives.html
+omake\-pervasives(1),
+.\"osh.html
+osh(1),
+\fImake\fP(1)
+.PP
+.SS VERSION
+.PP
+Version: 0.9.6.9 of April 11, 2006\&.
+.PP
+.SS LICENSE AND COPYRIGHT
+.PP
+(C)2003\-2006, Mojave Group, Caltech
+.PP
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.PP
+.SS AUTHOR
+.PP
+Jason Hickey \fIet. al.\fP.br
+Caltech 256\-80
+.br
+Pasadena, CA 91125, USA
+.br
+Email: \fBomake\-devel@metaprl.org\fP
+.br
+WWW: \fBhttp://www.cs.caltech.edu/~jyh\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.

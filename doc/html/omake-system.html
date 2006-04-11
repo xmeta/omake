@@ -1,0 +1,1522 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE-SYSTEM</title></head>
+<body bgcolor="white">
+<h1 align=center>
+OMake system functions
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a flexible build system designed for building a wide variety of projects.
+This document describes the functions for interacting with the operating system,
+including commands for input/output, and system commands for information about
+the filesystem.
+For an overview of <tt>omake</tt>,
+see the <a href="omake.html">omake(1)</a>
+man page.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">IO functions </a>
+<ul>
+<li><a href="#section_2">Standard channels </a></li>
+<li><a href="#section_3">fopen </a></li>
+<li><a href="#section_4">close </a></li>
+<li><a href="#section_5">read </a></li>
+<li><a href="#section_6">write </a></li>
+<li><a href="#section_7">lseek </a></li>
+<li><a href="#section_8">rewind </a></li>
+<li><a href="#section_9">tell </a></li>
+<li><a href="#section_10">flush </a></li>
+<li><a href="#section_11">dup </a></li>
+<li><a href="#section_12">dup2 </a></li>
+<li><a href="#section_13">set-nonblock </a></li>
+<li><a href="#section_14">set-close-on-exec-mode </a></li>
+<li><a href="#section_15">pipe </a></li>
+<li><a href="#section_16">mkfifo </a></li>
+<li><a href="#section_17">select </a></li>
+<li><a href="#section_18">lockf </a></li>
+<li><a href="#section_19">InetAddr </a></li>
+<li><a href="#section_20">Host </a></li>
+<li><a href="#section_21">gethostbyname </a></li>
+<li><a href="#section_22">Protocol </a></li>
+<li><a href="#section_23">getprotobyname </a></li>
+<li><a href="#section_24">Service </a></li>
+<li><a href="#section_25">getservbyname </a></li>
+<li><a href="#section_26">socket </a></li>
+<li><a href="#section_27">bind </a></li>
+<li><a href="#section_28">listen </a></li>
+<li><a href="#section_29">accept </a></li>
+<li><a href="#section_30">connect </a></li>
+<li><a href="#section_31">getchar </a></li>
+<li><a href="#section_32">gets </a></li>
+<li><a href="#section_33">fgets </a></li>
+<li><a href="#section_34">Printing functions </a></li>
+<li><a href="#section_35">Value printing functions </a></li>
+</ul>
+<li><a href="#section_36">Higher-level IO functions </a>
+<ul>
+<li><a href="#section_37">Regular expressions </a></li>
+<li><a href="#section_38">cat </a></li>
+<li><a href="#section_39">grep </a></li>
+<li><a href="#section_40">awk </a></li>
+<li><a href="#section_41">fsubst </a></li>
+<li><a href="#section_42">Lexer </a></li>
+<li><a href="#section_43">Lexer matching </a></li>
+<li><a href="#section_44">Extending lexer definitions </a></li>
+<li><a href="#section_45">Threading the lexer object </a></li>
+<li><a href="#section_46">Parser </a></li>
+<li><a href="#section_47">Calling the parser </a></li>
+<li><a href="#section_48">Parsing control </a></li>
+<li><a href="#section_49">Extending parsers </a></li>
+<li><a href="#section_50">gettimeofday </a></li>
+</ul>
+<li><a href="#section_51">Shell functions </a>
+<ul>
+<li><a href="#section_52">echo </a></li>
+<li><a href="#section_53">jobs </a></li>
+<li><a href="#section_54">cd </a></li>
+<li><a href="#section_55">bg </a></li>
+<li><a href="#section_56">fg </a></li>
+<li><a href="#section_57">stop </a></li>
+<li><a href="#section_58">wait </a></li>
+<li><a href="#section_59">kill </a></li>
+<li><a href="#section_60">history </a></li>
+</ul>
+<li><a href="#section_61">References </a>
+<ul>
+<li><a href="#section_62">See Also </a></li>
+<li><a href="#section_63">Version </a></li>
+<li><a href="#section_64">License and Copyright </a></li>
+<li><a href="#section_65">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">IO functions</a></h2>
+
+<h4><a name="section_2">Standard channels</a></h4>
+
+<p>
+The following variables define the standard channels.
+<p>
+<dl compact>
+<dt>stdin</dt>
+<dd>
+<p>
+<pre>
+stdin : InChannel
+</pre>
+<p>
+The standard input channel, open for reading.
+<p>
+</dd>
+<dt>stdout</dt>
+<dd>
+<pre>
+stdout : OutChannel
+</pre>
+<p>
+The standard output channel, open for writing.
+<p>
+</dd>
+<dt>stderr</dt>
+<dd>
+<pre>
+stderr : OutChannel
+</pre>
+<p>
+The standard error channel, open for writing.
+</dd>
+</dl>
+<h4><a name="section_3">fopen</a></h4>
+
+<p>
+The <tt>fopen</tt> function opens a file for reading or writing.
+<p>
+<pre>
+   $(fopen file, mode) : Channel
+      file : File
+      mode : String
+</pre>
+<p>
+The <tt>file</tt> is the name of the file to be opened.
+The <tt>mode</tt> is a combination of the following characters.
+<dl compact>
+<dt>r</dt>
+<dd> Open the file for reading; it is an error if the file does not exist.
+</dd>
+<dt>w</dt>
+<dd> Open the file for writing; the file is created if it does not exist.
+</dd>
+<dt>a</dt>
+<dd> Open the file in append mode; the file is created if it does not exist.
+</dd>
+<dt>+</dt>
+<dd> Open the file for both reading an writing.
+</dd>
+<dt>t</dt>
+<dd> Open the file in text mode (default).
+</dd>
+<dt>b</dt>
+<dd> Open the file in binary mode.
+</dd>
+<dt>n</dt>
+<dd> Open the file in nonblocking mode.
+</dd>
+<dt>x</dt>
+<dd> Fail if the file already exists.
+</dd>
+</dl>
+<p>
+Binary mode is not significant on Unix systems, where
+text and binary modes are equivalent.
+<h4><a name="section_4">close</a></h4>
+
+<p>
+<pre>
+    $(close channel...)
+       channel : Channel
+</pre>
+<p>
+The <tt>close</tt> function closes a file that was previously opened
+with <tt>fopen</tt>.
+<h4><a name="section_5">read</a></h4>
+
+<p>
+<pre>
+   $(read channel, amount) : String
+      channel : InChannel
+      amount  : Int
+   raises RuntimeException
+</pre>
+<p>
+The <tt>read</tt> function reads up to <tt>amount</tt>
+bytes from an input channel, and returns
+the data that was read. If an end-of-file condition is reached,
+the function raises a <tt>RuntimeException</tt> exception.
+<h4><a name="section_6">write</a></h4>
+
+<p>
+<pre>
+   $(write channel, buffer, offset, amount) : String
+      channel : OutChannel
+      buffer  : String
+      offset  : Int
+      amount  : Int
+   $(write channel, buffer) : String
+      channel : OutChannel
+      buffer  : String
+   raises RuntimeException
+</pre>
+<p>
+In the 4-argument form, the <tt>write</tt> function writes
+bytes to the output channel <tt>channel</tt> from the <tt>buffer</tt>,
+starting at position <tt>offset</tt>. Up to <tt>amount</tt> bytes
+are written. The function returns the number of bytes that were
+written.
+<p>
+The 3-argument form is similar, but the <tt>offset</tt> is 0.
+<p>
+In the 2-argument form, the <tt>offset</tt> is 0, and the <tt>amount</tt>
+if the length of the <tt>buffer</tt>.
+<p>
+If an end-of-file condition is reached,
+the function raises a <tt>RuntimeException</tt> exception.
+<h4><a name="section_7">lseek</a></h4>
+
+<p>
+<pre>
+    $(lseek channel, offset, whence) : Int
+       channel : Channel
+       offset  : Int
+       whence  : String
+    raises RuntimeException
+</pre>
+<p>
+The <tt>lseek</tt> function repositions the offset of the
+channel <tt>channel</tt> according to the <tt>whence</tt> directive, as
+follows:
+<p>
+<dl compact>
+<dt>SEEK_SET</dt>
+<dd> The offset is set to <tt>offset</tt>.
+</dd>
+<dt>SEEK_CUR</dt>
+<dd> The offset is set to its current position plus <tt>offset</tt> bytes.
+</dd>
+<dt>SEEK_END</dt>
+<dd> The offset is set to the size of the file plus <tt>offset</tt> bytes.
+</dd>
+</dl>
+<p>
+The <tt>lseek</tt> function returns the new position in the file.
+<h4><a name="section_8">rewind</a></h4>
+
+<p>
+<pre>
+   rewind(channel...)
+      channel : Channel
+</pre>
+<p>
+The <tt>rewind</tt> function set the current file position to the
+beginning of the file.
+<h4><a name="section_9">tell</a></h4>
+
+<p>
+<pre>
+    $(tell channel...) : Int...
+       channel : Channel
+    raises RuntimeException
+</pre>
+<p>
+The <tt>tell</tt> function returns the current position of the <tt>channel</tt>.
+<h4><a name="section_10">flush</a></h4>
+
+<p>
+<pre>
+   $(flush channel...)
+      channel : OutChannel
+</pre>
+<p>
+The <tt>flush</tt> function can be used only on files that are open for writing.
+It flushes all pending data to the file.
+<h4><a name="section_11">dup</a></h4>
+
+<p>
+<pre>
+    $(dup channel) : Channel
+       channel : Channel
+    raises RuntimeException
+</pre>
+<p>
+The <tt>dup</tt> function returns a new channel referencing the
+same file as the argument.
+<h4><a name="section_12">dup2</a></h4>
+
+<p>
+<pre>
+   dup2(channel1, channel2)
+      channel1 : Channel
+      channel2 : Channel
+   raises RuntimeException
+</pre>
+<p>
+The <tt>dup2</tt> function causes <tt>channel2</tt> to refer to the same
+file as <tt>channel1</tt>.
+<h4><a name="section_13">set-nonblock</a></h4>
+
+<p>
+<pre>
+   set-nonblock-mode(mode, channel...)
+      channel : Channel
+      mode : String
+</pre>
+<p>
+The <tt>set-nonblock-mode</tt> function sets the nonblocking flag on the
+given channel. When IO is performed on the channel, and the operation
+cannot be completed immediately, the operations raises a <tt>RuntimeException</tt>.
+<h4><a name="section_14">set-close-on-exec-mode</a></h4>
+
+<p>
+<pre>
+   set-close-on-exec-mode(mode, channel...)
+      channel : Channel
+      mode : String
+   raises RuntimeException
+</pre>
+<p>
+The <tt>set-close-on-exec-mode</tt> function sets the close-on-exec
+flags for the given channels. If the close-on-exec flag is set, the channel
+is not inherited by child processes. Otherwise it is.
+<h4><a name="section_15">pipe</a></h4>
+
+<p>
+<pre>
+   $(pipe) : Pipe
+   raises RuntimeException
+</pre>
+<p>
+The <tt>pipe</tt> function creates a <tt>Pipe</tt> object, which has two
+fields. The <tt>read</tt> field is a channel that is opened for
+reading, and the <tt>write</tt> field is a channel that is opened
+for writing.
+<h4><a name="section_16">mkfifo</a></h4>
+
+<p>
+<pre>
+   mkfifo(mode, node...)
+      mode : Int
+      node : Node
+</pre>
+<p>
+The <tt>mkfifo</tt> function creates a named pipe.
+<h4><a name="section_17">select</a></h4>
+
+<p>
+<pre>
+   $(select rfd..., wfd..., wfd..., timeout) : Select
+      rfd : InChannel
+      wfd : OutChannel
+      efd : Channel
+      timeout : float
+   raises RuntimeException
+</pre>
+<p>
+The <tt>select</tt> function polls for possible IO on a set of channels.
+The <tt>rfd</tt> are a sequence of channels for reading, <tt>wfd</tt> are a
+sequence of channels for writing, and <tt>efd</tt> are a sequence of
+channels to poll for error conditions. The <tt>timeout</tt> specifies
+the maximum amount of time to wait for events.
+<p>
+On successful return, <tt>select</tt> returns a <tt>Select</tt> object,
+which has the following fields:
+<dl compact>
+<dt>read</dt>
+<dd> An array of channels available for reading.
+</dd>
+<dt>write</dt>
+<dd> An array of channels available for writing.
+</dd>
+<dt>error</dt>
+<dd> An array of channels on which an error has occurred.
+</dd>
+</dl>
+<h4><a name="section_18">lockf</a></h4>
+
+<p>
+<pre>
+    lockf(channel, command, len)
+       channel : Channel
+       command : String
+       len : Int
+    raises RuntimeException
+</pre>
+<p>
+The <tt>lockf</tt> function places a lock on a region of the channel.
+The region starts at the current position and extends for <tt>len</tt>
+bytes.
+<p>
+The possible values for <tt>command</tt> are the following.
+<dl compact>
+<dt>F_ULOCK</dt>
+<dd> Unlock a region.
+</dd>
+<dt>F_LOCK</dt>
+<dd> Lock a region for writing; block if already locked.
+</dd>
+<dt>F_TLOCK</dt>
+<dd> Lock a region for writing; fail if already locked.
+</dd>
+<dt>F_TEST</dt>
+<dd> Test a region for other locks.
+</dd>
+<dt>F_RLOCK</dt>
+<dd> Lock a region for reading; block if already locked.
+</dd>
+<dt>F_TRLOCK</dt>
+<dd> Lock a region for reading; fail is already locked.
+</dd>
+</dl>
+<h4><a name="section_19">InetAddr</a></h4>
+
+<p>
+The <tt>InetAddr</tt> object describes an Internet address.
+It contains the following fields.
+<p>
+<dl compact>
+<dt>addr</dt>
+<dd> <tt>String</tt>: the Internet address.
+</dd>
+<dt>port</dt>
+<dd> <tt>Int</tt>: the port number.
+</dd>
+</dl>
+<p>
+<h4><a name="section_20">Host</a></h4>
+
+<p>
+A <tt>Host</tt> object contains the following fields.
+<p>
+<dl compact>
+<dt>name</dt>
+<dd> <tt>String</tt>: the name of the host.
+</dd>
+<dt>aliases</dt>
+<dd> <tt>String Array</tt>: other names by which the host is known.
+</dd>
+<dt>addrtype</dt>
+<dd> <tt>String</tt>: the preferred socket domain.
+</dd>
+<dt>addrs</dt>
+<dd> <tt>InetAddr Array</tt>: an array of Internet addresses belonging to the host.
+</dd>
+</dl>
+<p>
+<h4><a name="section_21">gethostbyname</a></h4>
+
+<p>
+<pre>
+   $(gethostbyname host...) : Host...
+      host : String
+   raises RuntimeException
+</pre>
+<p>
+The <tt>gethostbyname</tt> function returns a <tt>Host</tt> object
+for the specified host. The <tt>host</tt> may specify a domain name
+or an Internet address.
+<p>
+<h4><a name="section_22">Protocol</a></h4>
+
+<p>
+The <tt>Protocol</tt> object represents a protocol entry.
+It has the following fields.
+<p>
+<dl compact>
+<dt>name</dt>
+<dd> <tt>String</tt>: the canonical name of the protocol.
+</dd>
+<dt>aliases</dt>
+<dd> <tt>String Array</tt>: aliases for the protocol.
+</dd>
+<dt>proto</dt>
+<dd> <tt>Int</tt>: the protocol number.
+</dd>
+</dl>
+<p>
+<h4><a name="section_23">getprotobyname</a></h4>
+
+<p>
+<pre>
+   $(getprotobyname name...) : Protocol...
+      name : Int or String
+   raises RuntimeException
+</pre>
+<p>
+The <tt>getprotobyname</tt> function returns a <tt>Protocol</tt> object for the
+specified protocol. The <tt>name</tt> may be a protocol name, or a
+protocol number.
+<h4><a name="section_24">Service</a></h4>
+
+<p>
+The <tt>Service</tt> object represents a network service.
+It has the following fields.
+<p>
+<dl compact>
+<dt>name</dt>
+<dd> <tt>String</tt>: the name of the service.
+</dd>
+<dt>aliases</dt>
+<dd> <tt>String Array</tt>: aliases for the service.
+</dd>
+<dt>port</dt>
+<dd> <tt>Int</tt>: the port number of the service.
+</dd>
+<dt>proto</dt>
+<dd> <tt>Protocol</tt>: the protocol for the service.
+</dd>
+</dl>
+<p>
+<h4><a name="section_25">getservbyname</a></h4>
+
+<p>
+<pre>
+   $(getservbyname service...) : Service...
+      service : String or Int
+   raises RuntimeException
+</pre>
+<p>
+The <tt>getservbyname</tt> function gets the information for a network service.
+The <tt>service</tt> may be specified as a service name or number.
+<h4><a name="section_26">socket</a></h4>
+
+<p>
+<pre>
+   $(socket domain, type, protocol) : Channel
+      domain : String
+      type : String
+      protocol : String
+   raises RuntimeException
+</pre>
+<p>
+The <tt>socket</tt> function creates an unbound socket.
+<p>
+The possible values for the arguments are as follows.
+<p>
+The <tt>domain</tt> may have the following values.
+<dl compact>
+<dt>PF_UNIX or unix</dt>
+<dd> Unix domain, available only on Unix systems.
+</dd>
+<dt>PF_INET or inet</dt>
+<dd> Internet domain, IPv4.
+</dd>
+<dt>PF_INET6 or inet6</dt>
+<dd> Internet domain, IPv6.
+</dd>
+</dl>
+<p>
+The <tt>type</tt> may have the following values.
+<dl compact>
+<dt>SOCK_STREAM or stream</dt>
+<dd> Stream socket.
+</dd>
+<dt>SOCK_DGRAM or dgram</dt>
+<dd> Datagram socket.
+</dd>
+<dt>SOCK_RAW or raw</dt>
+<dd> Raw socket.
+</dd>
+<dt>SOCK_SEQPACKET or seqpacket</dt>
+<dd> Sequenced packets socket
+</dd>
+</dl>
+<p>
+The <tt>protocol</tt> is an <tt>Int</tt> or <tt>String</tt> that specifies
+a protocol in the protocols database.
+<h4><a name="section_27">bind</a></h4>
+
+<p>
+<pre>
+   bind(socket, host, port)
+      socket : InOutChannel
+      host : String
+      port : Int
+   bind(socket, file)
+      socket : InOutChannel
+      file : File
+   raise RuntimeException
+</pre>
+<p>
+The <tt>bind</tt> function binds a socket to an address.
+<p>
+The 3-argument form specifies an Internet connection, the <tt>host</tt> specifies a host name
+or IP address, and the <tt>port</tt> is a port number.
+<p>
+The 2-argument form is for <tt>Unix</tt> sockets. The <tt>file</tt> specifies the filename
+for the address.
+<h4><a name="section_28">listen</a></h4>
+
+<p>
+<pre>
+   listen(socket, requests)
+      socket : InOutChannel
+      requests : Int
+   raises RuntimeException
+</pre>
+<p>
+The <tt>listen</tt> function sets up the socket for receiving up to <tt>requests</tt> number
+of pending connection requests.
+<h4><a name="section_29">accept</a></h4>
+
+<p>
+<pre>
+   $(accept socket) : InOutChannel
+      socket : InOutChannel
+   raises RuntimeException
+</pre>
+<p>
+The <tt>accept</tt> function accepts a connection on a socket.
+<h4><a name="section_30">connect</a></h4>
+
+<p>
+<pre>
+    connect(socket, addr, port)
+       socket : InOutChannel
+       addr : String
+       port : int
+    connect(socket, name)
+       socket : InOutChannel
+       name : File
+    raise RuntimeException
+</pre>
+<p>
+The <tt>connect</tt> function connects a socket to a remote address.
+<p>
+The 3-argument form specifies an Internet connection.
+The <tt>addr</tt> argument is the Internet address of the remote host,
+specified as a domain name or IP address. The <tt>port</tt> argument
+is the port number.
+<p>
+The 2-argument form is for Unix sockets. The <tt>name</tt> argument
+is the filename of the socket.
+<h4><a name="section_31">getchar</a></h4>
+
+<p>
+<pre>
+    $(getc) : String
+    $(getc file) : String
+       file : InChannel or File
+    raises RuntimeException
+</pre>
+<p>
+The <tt>getc</tt> function returns the next character of a file.
+If the argument is not specified, <tt>stdin</tt> is used as input.
+If the end of file has been reached, the function returns <tt>false</tt>.
+<h4><a name="section_32">gets</a></h4>
+
+<p>
+<pre>
+   $(gets) : String
+   $(gets channel) : String
+      channel : InChannel or File
+   raises RuntimeException
+</pre>
+<p>
+The <tt>gets</tt> function returns the next line from a file.
+The function returns the empty string if the end of file has been reached.
+The line terminator is removed.
+<h4><a name="section_33">fgets</a></h4>
+
+<p>
+<pre>
+   $(fgets) : String
+   $(fgets channel) : String
+      channel : InChannel or File
+   raises RuntimeException
+</pre>
+<p>
+The <tt>fgets</tt> function returns the next line from a file that has been
+opened for reading with <tt>fopen</tt>. The function returns the empty string
+if the end of file has been reached. The returned string is returned as
+literal data. The line terminator is not removed.
+<h4><a name="section_34">Printing functions</a></h4>
+
+<p>
+Output is printed with the <tt>print</tt> and <tt>println</tt> functions.
+The <tt>println</tt> function adds a terminating newline to the value being
+printed, the <tt>print</tt> function does not.
+<p>
+<pre>
+    fprint(&lt;file&gt;, &lt;string&gt;)
+    print(&lt;string&gt;)
+    eprint(&lt;string&gt;)
+    fprintln(&lt;file&gt;, &lt;string&gt;)
+    println(&lt;string&gt;)
+    eprintln(&lt;string&gt;)
+</pre>
+<p>
+The <tt>fprint</tt> functions print to a file that has been previously opened with
+<tt>fopen</tt>. The <tt>print</tt> functions print to the standard output channel, and
+the <tt>eprint</tt> functions print to the standard error channel.
+<h4><a name="section_35">Value printing functions</a></h4>
+
+<p>
+Values can be printed with the <tt>printv</tt> and <tt>printvln</tt> functions.
+The <tt>printvln</tt> function adds a terminating newline to the value being
+printed, the <tt>printv</tt> function does not.
+<p>
+<pre>
+    fprintv(&lt;file&gt;, &lt;string&gt;)
+    printv(&lt;string&gt;)
+    eprintv(&lt;string&gt;)
+    fprintvln(&lt;file&gt;, &lt;string&gt;)
+    printvln(&lt;string&gt;)
+    eprintvln(&lt;string&gt;)
+</pre>
+<p>
+The <tt>fprintv</tt> functions print to a file that has been previously opened with
+<tt>fopen</tt>. The <tt>printv</tt> functions print to the standard output channel, and
+the <tt>eprintv</tt> functions print to the standard error channel.
+<h2><a name="section_36">Higher-level IO functions</a></h2>
+
+<p>
+<h4><a name="section_37">Regular expressions</a></h4>
+
+<p>
+Many of the higher-level functions use regular expressions.
+Regular expressions are defined by strings with syntax nearly identical
+to <em>awk</em>(1).
+<p>
+Strings may contain the following character constants.
+<p>
+<ul compact>
+<li><tt>\\</tt> : a literal backslash.
+</li>
+<li><tt>\a</tt> : the alert character <tt>^G</tt>.
+</li>
+<li><tt>\b</tt> : the backspace character <tt>^H</tt>.
+</li>
+<li><tt>\f</tt> : the formfeed character <tt>^L</tt>.
+</li>
+<li><tt>
+</tt>: the newline character <tt>^J</tt>.
+</li>
+<li><tt>\r</tt> : the carriage return character <tt>^M</tt>.
+</li>
+<li><tt>\t</tt> : the tab character <tt>^I</tt>.
+</li>
+<li><tt>\v</tt> : the vertical tab character.
+</li>
+<li><tt>\xhh...</tt> : the character represented by the string
+of hexadecimal digits <tt>h</tt>. All valid hexadecimal digits
+following the sequence are considered to be part of the sequence.
+</li>
+<li><tt>\ddd</tt> : the character represented by 1, 2, or 3 octal
+digits.
+</li>
+</ul>
+<p>
+Regular expressions are defined using the special characters <tt>.\^$[(){}*?</tt>+.
+<p>
+<ul compact>
+<li><tt>c</tt> : matches the literal character <tt>c</tt> if <tt>c</tt> is not
+a special character.
+</li>
+<li><tt>\c</tt> : matches the literal character <tt>c</tt>, even if <tt>c</tt>
+is a special character.
+</li>
+<li><tt>.</tt> : matches any character, including newline.
+</li>
+<li><tt>^</tt> : matches the beginning of a line.
+</li>
+<li><tt>$</tt> : matches the end of line.
+</li>
+<li><tt>[abc...]</tt> : matches any of the characters <tt>abc...</tt>
+</li>
+<li><tt>[^abc...]</tt> : matches any character except <tt>abc...</tt>
+</li>
+<li><tt>r1|r2</tt> : matches either <tt>r1</tt> or <tt>r2</tt>.
+</li>
+<li><tt>r1r2</tt> : matches <tt>r1</tt> and then <tt>r2</tt>.
+</li>
+<li><tt>r</tt>+ : matches one or more occurrences of <tt>r</tt>.
+</li>
+<li><tt>r*</tt> : matches zero or more occurrences of <tt>r</tt>.
+</li>
+<li><tt>r?</tt> : matches zero or one occurrence of <tt>r</tt>.
+</li>
+<li><tt>(r)</tt> : parentheses are used for grouping; matches <tt>r</tt>.
+</li>
+<li><tt>\(r\)</tt> : also defines grouping, but the expression matched
+within the parentheses is available to the output processor
+through one of the variables <tt>$1</tt>, <tt>$2</tt>, ...
+</li>
+<li><tt>r{n}</tt> : matches exactly <tt>n</tt> occurrences of <tt>r</tt>.
+</li>
+<li><tt>r{n,}</tt> : matches <tt>n</tt> or more occurrences of <tt>r</tt>.
+</li>
+<li><tt>r{n,m}</tt> : matches at least <tt>n</tt> occurrences of <tt>r</tt>,
+and no more than <tt>m</tt> occurrences.
+</li>
+<li><tt>\y</tt>: matches the empty string at either the beginning or
+end of a word.
+</li>
+<li><tt>\B</tt>: matches the empty string within a word.
+</li>
+<li><tt>\&lt;</tt>: matches the empty string at the beginning of a word.
+</li>
+<li><tt>\&gt;</tt>: matches the empty string at the end of a word.
+</li>
+<li><tt>\w</tt>: matches any character in a word.
+</li>
+<li><tt>\W</tt>: matches any character that does not occur within a word.
+</li>
+<li><tt>\`</tt>: matches the empty string at the beginning of a file.
+</li>
+<li><tt>\'</tt>: matches the empty string at the end of a file.
+</li>
+</ul>
+<p>
+Character classes can be used to specify character sequences
+abstractly. Some of these sequences can change depending on your LOCALE.
+<p>
+<ul compact>
+<li><tt>[:alnum:]</tt> Alphanumeric characters.
+</li>
+<li><tt>[:alpha:]</tt> Alphabetic characters.
+</li>
+<li><tt>[:lower:]</tt> Lowercase alphabetic characters.
+</li>
+<li><tt>[:upper:]</tt> Uppercase alphabetic characters.
+</li>
+<li><tt>[:cntrl:]</tt> Control characters.
+</li>
+<li><tt>[:digit:]</tt> Numeric characters.
+</li>
+<li><tt>[:xdigit:]</tt> Numeric and hexadecimal characters.
+</li>
+<li><tt>[:graph:]</tt> Characters that are printable and visible.
+</li>
+<li><tt>[:print:]</tt> Characters that are printable, whether they are visible or not.
+</li>
+<li><tt>[:punct:]</tt> Punctuation characters.
+</li>
+<li><tt>[:blank:]</tt> Space or tab characters.
+</li>
+<li><tt>[:space:]</tt> Whitespace characters.
+</li>
+</ul>
+<h4><a name="section_38">cat</a></h4>
+
+<p>
+<pre>
+    cat(files) : Sequence
+       files : File or InChannel Sequence
+</pre>
+<p>
+The <tt>cat</tt> function concatenates the output from multiple files
+and returns it as a string.
+<h4><a name="section_39">grep</a></h4>
+
+<p>
+<pre>
+   grep(pattern) : String  # input from stdin, default options
+      pattern : String
+   grep(pattern, files) : String  # default options
+      pattern : String
+      files   : File Sequence
+   grep(options, pattern, files) : String
+     options : String
+     pattern : String
+     files   : File Sequence
+</pre>
+<p>
+The <tt>grep</tt> function searches for occurrences of a regular
+expression <tt>pattern</tt> in a set of files, and prints lines that match.
+This is like a highly-simplified version of <em>grep</em>(1).
+<p>
+The options are:
+<dl compact>
+<dt>q</dt>
+<dd> If specified, the output from <tt>grep</tt> is not displayed.
+</dd>
+<dt>n</dt>
+<dd> If specified, output lines include the filename.
+</dd>
+</dl>
+<p>
+The <tt>pattern</tt> is a regular expression.
+<p>
+If successful (<tt>grep</tt> found a match), the function returns <tt>true</tt>.
+Otherwise, it returns <tt>false</tt>.
+<h4><a name="section_40">awk</a></h4>
+
+<p>
+<pre>
+   awk(input-files)
+   case pattern1:
+      body1
+   case pattern2:
+      body2
+   ...
+   default:
+      bodyd
+</pre>
+<p>
+The <tt>awk</tt> function provides input processing similar to <em>awk</em>(1),
+but more limited. The function takes filename arguments. If called with no
+arguments, the input is taken from <tt>stdin</tt>. If arguments are provided,
+each specifies an <tt>InChannel</tt>, or the name of a file for input.
+Output is always to <tt>stdout</tt>.
+<p>
+The variables <tt>RS</tt> and <tt>FS</tt> define record and field separators
+as regular expressions.
+The default value of <tt>RS</tt> is the regular expression <tt>\r|
+|\r
+</tt>.
+The default value of <tt>FS</tt> is the regular expression <tt>[ \t]</tt>+.
+<p>
+The <tt>awk</tt> function operates by reading the input one record at a time,
+and processing it according to the following algorithm.
+<p>
+For each line,
+the record is first split into fields using the field separator <tt>FS</tt>, and
+the fields are bound to the variables <tt>$1, $2, ...</tt>. The variable
+<tt>$0</tt> is defined to be the entire line, and <tt>$*</tt> is an array
+of all the field values. The <tt>$(NF)</tt> variable is defined to be the number
+of fields.
+<p>
+Next, the cases are evaluated in order.
+For each case, if the regular expression <tt>pattern_i</tt> matches the record <tt>$0</tt>,
+then <tt>body_i</tt> is evaluated. If the body ends in an <tt>export</tt>, the state
+is passed to the next clause. Otherwise the value is discarded. If the regular
+expression contains <tt>\(r\)</tt> expression, those expression override the
+fields <tt>$1, $2, ...</tt>.
+<p>
+For example, here is an <tt>awk</tt> function to print the text between two
+delimiters <tt>\begin{&lt;name&gt;}</tt> and <tt>\end{&lt;name&gt;}</tt>, where the <tt>&lt;name&gt;</tt>
+must belong to a set passed as an argument to the <tt>filter</tt> function.
+<p>
+<pre>
+    filter(names) =
+       print = false
+
+       awk(Awk.in)
+       case $"^\\end\{\([:alpha:]+\)\}"
+          if $(mem $1, $(names))
+             print = false
+             export
+          export
+       default
+          if $(print)
+             println($0)
+       case $"^\\begin\{\([:alpha:]+\)\}"
+          print = $(mem $1, $(names))
+          export
+</pre>
+<p>
+Note, if you want to redirect the output to a file, the easiest way is to
+redefine the <tt>stdout</tt> variable. The <tt>stdout</tt> variable is scoped the
+same way as other variables, so this definition does not affect the meaning of
+<tt>stdout</tt> outside the <tt>filter</tt> function.
+<p>
+<pre>
+    filter(names) =
+        stdout = $(fopen file.out, w)
+        awk(Awk.in)
+           ...
+        close(stdout)
+</pre>
+<h4><a name="section_41">fsubst</a></h4>
+
+<p>
+<pre>
+   fsubst(files)
+   case pattern1 [options]
+      body1
+   case pattern2 [options]
+      body2
+   ...
+   default
+      bodyd
+</pre>
+<p>
+The <tt>fsubst</tt> function provides a <em>sed</em>(1)-like
+substitution
+function. Similar to <tt>awk</tt>, if <tt>fsubst</tt> is called with no
+arguments, the input is taken from <tt>stdin</tt>. If arguments are provided,
+each specifies an <tt>InChannel</tt>, or the name of a file for input.
+<p>
+The <tt>RS</tt> variable defines a regular expression that determines a record separator,
+The default value of <tt>RS</tt> is the regular expression <tt>\r|
+|\r
+</tt>.
+<p>
+The <tt>fsubst</tt> function reads the file one record at a time.
+<p>
+For each record, the cases are evaluated in order. Each case defines
+a substitution from a substring matching the <tt>pattern</tt> to
+replacement text defined by the body.
+<p>
+Currently, there is only one option: <tt>g</tt>.
+If specified, each clause specifies a global replacement,
+and all instances of the pattern define a substitution.
+Otherwise, the substitution is applied only once.
+<p>
+Output can be redirected by redefining the <tt>stdout</tt> variable.
+<p>
+For example, the following program replaces all occurrences of
+an expression <tt>word.</tt> with its capitalized form.
+<p>
+<pre>
+    section
+       stdout = $(fopen Subst.out, w)
+       fsubst(Subst.in)
+       case $"\&lt;\([[:alnum:]]+\)\." g
+          value $(capitalize $1).
+       close(stdout)
+</pre>
+<h4><a name="section_42">Lexer</a></h4>
+
+<p>
+The <tt>Lexer</tt> object defines a facility for lexical analysis, similar to the
+<em>lex</em>(1)
+and <em>flex</em>(1)
+programs.
+<p>
+In <tt>omake</tt>,
+lexical analyzers can be constructed dynamically by extending
+the <tt>Lexer</tt> class. A lexer definition consists of a set of directives specified
+with method calls, and set of clauses specified as rules.
+<p>
+For example, consider the following lexer definition, which is intended
+for lexical analysis of simple arithmetic expressions for a desktop
+calculator.
+<p>
+<pre>
+   lexer1. =
+      extends $(Lexer)
+
+      other: .
+         eprintln(Illegal character: $* )
+         lex()
+
+      white: $"[[:space:]]+"
+         lex()
+
+      op: $"[-+*/()]"
+         switch $*
+         case +
+            Token.unit($(loc), plus)
+         case -
+            Token.unit($(loc), minus)
+         case *
+            Token.unit($(loc), mul)
+         case /
+            Token.unit($(loc), div)
+         case $"("
+            Token.unit($(loc), lparen)
+         case $")"
+            Token.unit($(loc), rparen)
+
+      number: $"[[:digit:]]+"
+         Token.pair($(loc), exp, $(int $* ))
+
+      eof: $"\'"
+         Token.unit($(loc), eof)
+</pre>
+<p>
+This program defines an object <tt>lexer1</tt> the extends the <tt>Lexer</tt>
+object, which defines lexing environment.
+<p>
+The remainder of the definition consists of a set of clauses,
+each with a method name before the colon; a regular expression
+after the colon; and in this case, a body. The body is optional,
+if it is not specified, the method with the given name should
+already exist in the lexer definition.
+<p>
+<em>NB</em>
+The clause that matches the <em>longest</em>
+prefix of the input
+is selected. If two clauses match the same input prefix, then the <em>last</em>
+one is selected. This is unlike most standard lexers, but makes more sense
+for extensible grammars.
+<p>
+The first clause matches any input that is not matched by the other clauses.
+In this case, an error message is printed for any unknown character, and
+the input is skipped. Note that this clause is selected only if no other
+clause matches.
+<p>
+The second clause is responsible for ignoring white space.
+If whitespace is found, it is ignored, and the lexer is called
+recursively.
+<p>
+The third clause is responsible for the arithmetic operators.
+It makes use of the <tt>Token</tt> object, which defines three
+fields: a <tt>loc</tt> field that represents the source location;
+a <tt>name</tt>; and a <tt>value</tt>.
+<p>
+The lexer defines the <tt>loc</tt> variable to be the location
+of the current lexeme in each of the method bodies, so we can use
+that value to create the tokens.
+<p>
+The <tt>Token.unit($(loc), name)</tt>
+method constructs a new <tt>Token</tt> object with the given name,
+and a default value.
+<p>
+The <tt>number</tt> clause matches nonnegative integer constants.
+The <tt>Token.pair($(loc), name, value)</tt> constructs a token with the
+given name and value.
+<p>
+Lexer object operate on <tt>InChannel</tt> objects.
+The method <tt>lexer1.lex-channel(channel)</tt> reads the next
+token from the channel argument.
+<p>
+<h4><a name="section_43">Lexer matching</a></h4>
+
+<p>
+During lexical analysis, clauses are selected by longest match.
+That is, the clause that matches the longest sequence of input
+characters is chosen for evaluation. If no clause matches, the
+lexer raises a <tt>RuntimeException</tt>. If more than one clause
+matches the same amount of input, the first one is chosen
+for evaluation.
+<p>
+<h4><a name="section_44">Extending lexer definitions</a></h4>
+
+<p>
+Suppose we wish to augment the lexer example so that it ignores
+comments. We will define comments as any text that begins with
+the string <tt>(*</tt>, ends with <tt>*)</tt>, and comments may
+be nested.
+<p>
+One convenient way to do this is to define a separate lexer
+just to skip comments.
+<p>
+<pre>
+   lex-comment. =
+      extends $(Lexer)
+
+      level = 0
+
+      other: .
+         lex()
+
+      term: $"[*][)]"
+         if $(not $(eq $(level), 0))
+            level = $(sub $(level), 1)
+            lex()
+
+      next: $"[(][*]"
+         level = $(add $(level), 1)
+         lex()
+
+      eof: $"\'"
+         eprintln(Unterminated comment)
+</pre>
+<p>
+This lexer contains a field <tt>level</tt> that keeps track of the nesting
+level. On encountering a <tt>(*</tt> string, it increments the level,
+and for <tt>*)</tt>, it decrements the level if nonzero, and continues.
+<p>
+Next, we need to modify our previous lexer to skip comments.
+We can do this by extending the lexer object <tt>lexer1</tt>
+that we just created.
+<p>
+<pre>
+   lexer1. +=
+      comment: $"[(][*]"
+         lex-comment.lex-channel($(channel))
+         lex()
+</pre>
+<p>
+The body for the comment clause calls the <tt>lex-comment</tt> lexer when
+a comment is encountered, and continues lexing when that lexer returns.
+<p>
+<h4><a name="section_45">Threading the lexer object</a></h4>
+
+<p>
+Clause bodies may also end with an <tt>export</tt> directive. In this case
+the lexer object itself is used as the returned token. If used with
+the <tt>Parser</tt> object below, the lexer should define the <tt>loc</tt>, <tt>name</tt>
+and <tt>value</tt> fields in each <tt>export</tt> clause. Each time
+the <tt>Parser</tt> calls the lexer, it calls it with the lexer returned
+from the previous lex invocation.
+<h4><a name="section_46">Parser</a></h4>
+
+<p>
+The <tt>Parser</tt> object provides a facility for syntactic analysis based
+on context-free grammars.
+<p>
+<tt>Parser</tt> objects are specified as a sequence of directives,
+specified with method calls; and productions, specified as rules.
+<p>
+For example, let's finish building the desktop calculator started
+in the <tt>Lexer</tt> example.
+<p>
+<pre>
+   parser1. =
+      extends $(Parser)
+
+      #
+      # Use the main lexer
+      #
+      lexer = $(lexer1)
+
+      #
+      # Precedences, in ascending order
+      #
+      left(plus minus)
+      left(mul div)
+      right(uminus)
+
+      #
+      # A program
+      #
+      start(prog)
+
+      prog: exp eof
+         return $1
+
+      #
+      # Simple arithmetic expressions
+      #
+      exp: minus exp :prec: uminus
+         neg($2)
+
+      exp: exp plus exp
+         add($1, $3)
+
+      exp: exp minus exp
+         sub($1, $3)
+
+      exp: exp mul exp
+         mul($1, $3)
+
+      exp: exp div exp
+         div($1, $3)
+
+      exp: lparen exp rparen
+         return $2
+</pre>
+<p>
+Parsers are defined as extensions of the <tt>Parser</tt> class.
+A <tt>Parser</tt> object must have a <tt>lexer</tt> field. The <tt>lexer</tt>
+is not required to be a <tt>Lexer</tt> object, but it must provide
+a <tt>lexer.lex()</tt> method that returns a token object with
+<tt>name</tt> and <tt>value</tt> fields. For this example, we use the
+<tt>lexer1</tt> object that we defined previously.
+<p>
+The next step is to define precedences for the terminal symbols.
+The precedences are defined with the <tt>left</tt>, <tt>right</tt>,
+and <tt>nonassoc</tt> methods in order of increasing precedence.
+<p>
+The grammar must have at least one start symbol, declared with
+the <tt>start</tt> method.
+<p>
+Next, the productions in the grammar are listed as rules.
+The name of the production is listed before the colon, and
+a sequence of variables is listed to the right of the colon.
+The body is a semantic action to be evaluated when the production
+is recognized as part of the input.
+<p>
+In this example, these are the productions for the arithmetic
+expressions recognized by the desktop calculator. The semantic
+action performs the calculation. The variables <tt>$1, $2, ...</tt>
+correspond to the values associated with each of the variables
+on the right-hand-side of the production.
+<p>
+<h4><a name="section_47">Calling the parser</a></h4>
+
+<p>
+The parser is called with the <tt>$(parser1.parse-channel start, channel)</tt>
+or <tt>$(parser1.parse-file start, file)</tt> functions. The <tt>start</tt>
+argument is the start symbol, and the <tt>channel</tt> or <tt>file</tt>
+is the input to the parser.
+<p>
+<h4><a name="section_48">Parsing control</a></h4>
+
+<p>
+The parser generator generates a pushdown automation based on LALR(1)
+tables. As usual, if the grammar is ambiguous, this may generate shift/reduce
+or reduce/reduce conflicts. These conflicts are printed to standard
+output when the automaton is generated.
+<p>
+By default, the automaton is not constructed until the parser is
+first used.
+<p>
+The <tt>build(debug)</tt> method forces the construction of the automaton.
+While not required, it is wise to finish each complete parser with
+a call to the <tt>build(debug)</tt> method. If the <tt>debug</tt> variable
+is set, this also prints with parser table together with any conflicts.
+<p>
+The <tt>loc</tt> variable is defined within action bodies, and represents
+the input range for all tokens on the right-hand-side of the production.
+<p>
+<h4><a name="section_49">Extending parsers</a></h4>
+
+<p>
+Parsers may also be extended by inheritance.
+For example, let's extend the grammar so that it also recognizes
+the <tt>&lt;&lt;</tt> and <tt>&gt;&gt;</tt> shift operations.
+<p>
+First, we extend the lexer so that it recognizes these tokens.
+This time, we choose to leave <tt>lexer1</tt> intact, instead of
+using the += operator.
+<p>
+<pre>
+   lexer2. =
+      extends $(lexer1)
+
+      lsl: $"&lt;&lt;"
+         Token.unit($(loc), lsl)
+
+      asr: $"&gt;&gt;"
+         Token.unit($(loc), asr)
+</pre>
+<p>
+Next, we extend the parser to handle these new operators.
+We intend that the bitwise operators have lower precedence
+than the other arithmetic operators. The two-argument form
+of the <tt>left</tt> method accomplishes this.
+<p>
+<pre>
+   parser2. =
+      extends $(parser1)
+
+      left(plus, lsl lsr asr)
+
+      lexer = $(lexer2)
+
+      exp: exp lsl exp
+         lsl($1, $3)
+
+      exp: exp asr exp
+         asr($1, $3)
+</pre>
+<p>
+In this case, we use the new lexer <tt>lexer2</tt>, and we add productions
+for the new shift operations.
+<h4><a name="section_50">gettimeofday</a></h4>
+
+<p>
+<pre>
+   $(gettimeofday) : Float
+</pre>
+<p>
+The <tt>gettimeofday</tt> function returns the time of day in seconds
+since January 1, 1970.
+<h2><a name="section_51">Shell functions</a></h2>
+
+<h4><a name="section_52">echo</a></h4>
+
+<p>
+The <tt>echo</tt> function prints a string.
+<p>
+<tt>$(echo &lt;args&gt;)</tt>
+<tt>echo &lt;args&gt;</tt>
+<h4><a name="section_53">jobs</a></h4>
+
+<p>
+The <tt>jobs</tt> function prints a list of jobs.
+<p>
+<tt>jobs</tt>
+<h4><a name="section_54">cd</a></h4>
+
+<p>
+The <tt>cd</tt> function changes the current directory.
+<p>
+<pre>
+    cd(dir)
+       dir : Dir
+</pre>
+<p>
+The <tt>cd</tt> function also supports a 2-argument form:
+<p>
+<pre>
+    $(cd dir, e)
+       dir : Dir
+       e : expression
+</pre>
+<p>
+In the two-argument form, expression <tt>e</tt> is evaluated
+in the directory <tt>dir</tt>. The current directory is not
+changed otherwise.
+<p>
+The behavior of the <tt>cd</tt> function can be changed with the
+<tt>CDPATH</tt> variable, which specifies a search path for
+directories. This is normally useful only in the <tt>osh</tt>
+command interpreter.
+<p>
+<pre>
+    CDPATH : Dir Sequence
+</pre>
+<p>
+For example, the following will change directory to the first
+directory <tt>./foo</tt>, <tt>~/dir1/foo</tt>, <tt>~/dir2/foo</tt>.
+<p>
+<pre>
+    CDPATH[] =
+       .
+       $(HOME)/dir1
+       $(HOME)/dir2
+    cd foo
+</pre>
+<p>
+<h4><a name="section_55">bg</a></h4>
+
+<p>
+The <tt>bg</tt> function places a job in the background.
+<p>
+<tt>bg &lt;pid...&gt;</tt>
+<h4><a name="section_56">fg</a></h4>
+
+<p>
+The <tt>fg</tt> function brings a job to the foreground.
+<p>
+<tt>fg &lt;pid...&gt;</tt>
+<h4><a name="section_57">stop</a></h4>
+
+<p>
+The <tt>stop</tt> function suspends a job.
+<p>
+<tt>stop &lt;pid...&gt;</tt>
+<h4><a name="section_58">wait</a></h4>
+
+<p>
+The <tt>wait</tt> function waits for a job to finish.
+If no process identifiers are given, the shell waits for
+all jobs to complete.
+<p>
+<tt>wait &lt;pid...&gt;</tt>
+<h4><a name="section_59">kill</a></h4>
+
+<p>
+The <tt>kill</tt> function signals a job.
+<p>
+<tt>kill [signal] &lt;pid...&gt;</tt>
+<h4><a name="section_60">history</a></h4>
+
+<p>
+<pre>
+    $(history-index) : Int
+    $(history) : String Sequence
+    history-file : File
+    history-length : Int
+</pre>
+<p>
+The history variables manage the command-line history in <tt>osh</tt>.
+They have no effect
+in <tt>omake</tt>.
+<p>
+The <tt>history-index</tt> variable is the current index into the command-line history.
+The <tt>history</tt> variable is the current command-line history.
+<p>
+The <tt>history-file</tt> variable can be redefined if you want the command-line history
+to be saved. The default value is <tt>~/.omake/osh_history</tt>.
+<p>
+The <tt>history-length</tt> variable can be redefined to specify the maximum number of
+lines in the history that you want saved. The default value is <tt>100</tt>.
+<h2><a name="section_61">References</a></h2>
+
+<p>
+<h4><a name="section_62">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_63">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_64">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_65">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->

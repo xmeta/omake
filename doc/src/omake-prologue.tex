@@ -1,0 +1,38 @@
+%
+% Document start
+%
+%% do we have the `fancyhdr' package?
+\IfFileExists{fancyhdr.sty}{
+\documentclass[english,fancyhdr,dvipdfm]{article}
+}{
+%% do we have the `fancyheadings' package?
+\IfFileExists{fancyheadings.sty}{
+\documentclass[english,fancy,dvipdfm]{article}
+}{
+\documentclass[english,nofancy,dvipdfm]{article}
+\message{no fancyhdr or fancyheadings package present, discard it}
+}}
+
+\usepackage[latin1]{inputenc}
+\usepackage{babel}
+\usepackage{hyperref}
+\usepackage{latex2man}
+\newcommand{\authors}{Jason Hickey \emph{et. al.}}
+
+%% do we have the `rcsinfo' package?
+\IfFileExists{rcsinfo.sty}{
+\usepackage{rcsinfo}
+\rcsInfo $Id$
+}{
+\message{package rcsinfo not present, discard it}
+}
+
+\setVersionWord{Version:}  %%% that's the default, no need to set it.
+\setVersion{0.9.6.9}
+
+\begin{document}
+\IfFileExists{rcsinfo.sty}{
+\setDate{\rcsInfoLongDate}
+}{
+\setDate{April 11, 2006}    %%%% must be manually set, if rcsinfo is not present
+}

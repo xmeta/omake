@@ -1,0 +1,195 @@
+OMAKE-OPTIONS(1)                 Build Tools                  OMAKE-OPTIONS(1)
+
+
+
+NAME
+       omake  is  a flexible build system designed for building a wide variety
+       of projects.  This document describes the command-line options.  For an
+       overview of omake, see the omake(1) man page.
+
+
+SYNOPSIS
+       omake  [-k] [-jcount] [-n] [-s] [-S] [-p] [-P] [-w] [-t] [-u] [-U] [-R]
+       [--project]     [--progress]      [--no-progress]      [--print-status]
+       [--no-print-status] [--print-exit] [--no-print-exit] [--print-dependen-
+       cies] [--show-dependencies target] [--force-dotomake] [--dotomake  dir]
+       [--flush-includes]     [--configure]     [--install]    [--install-all]
+       [--install-force] [--version] [filename...]  [var-definition...]
+
+
+COMMAND-LINE OPTIONS
+       -k      Do not abort when a build command fails; continue to  build  as
+              much of the project as possible.
+
+
+       -n       Print  the  commands that would be executed, but do no execute
+              them.  This can be used to see what would happen if the  project
+              were to be built.
+
+
+       -s      Do not print commands as they are executed (be ``silent'').
+
+
+       -S       Do not print commands as they are executed unless they produce
+              output.
+
+
+       --progress
+               Print a progress indicator.  This is normally used with the  -s
+              or -S options.
+
+
+       --no-progress
+               Do not print a progress indicator (default).
+
+
+       --print-exit
+               Print termination codes when commands complete.
+
+
+       --no-print-exit
+               Do   not   print   termination  codes  when  commands  complete
+              (default).
+
+
+       -w      Print directory information in make format as commands are exe-
+              cuted.  This is mainly useful for editors that expect make-style
+              directory information for determining the location of errors.
+
+
+       -p      Watch the filesystem for changes, and continue the build  until
+              it succeeds. If this option is specified, omake will restart the
+              build whenever source files are modified.
+
+
+       -P      Watch the filesystem for changes forever.  If  this  option  is
+              specified,  omake  will  restart the build whenever source files
+              are modified.
+
+
+       -R      Ignore the current directory and build  the  project  from  its
+              root  directory.  When  omake  is  run  in  a  subdirectory of a
+              project, it normally builds files within the  current  directory
+              and its subdirectories. If the -R option is specified, the build
+              is performed as if omake were run in the project root.
+
+
+       -t      Update the omake database to force the project to be considered
+              up-to-date.
+
+
+       -U       Do  not  trust  cached  build information. This will force the
+              entire project to be rebuilt.
+
+
+       --depend
+               Do not trust cached dependency  information.  This  will  force
+              files to be rescanned for dependency information.
+
+
+       --configure
+               Re-run  static.\  sections of the included omake files, instead
+              of trusting the cached results.
+
+
+       [--force-dotomake]
+               Always use the $HOME/.omake for the .omc cache files.
+
+
+       [--dotomake dir]
+               Use the specified directory instead of the $HOME/.omake for the
+              placement of the .omc cache files.
+
+
+       -jcount
+               Run  multiple build commands in parallel. The count specifies a
+              bound on the number of commands to run simultaneously. In  addi-
+              tion, the count may specify servers for remote execution of com-
+              mands in the form  server=count.  For  example,  the  option  -j
+              2:small.host.org=1:large.host.org=4  would  specify that up to 2
+              jobs can be executed locally, 1 on the server small.host.org and
+              4  on  large.host.org.  Each  remote  server  must  use the same
+              filesystem location for the project.
+
+       Remote execution is currently an experimental feature. Remote  filesys-
+       tems  like  NFS  do  not  provide adequate file consistency for this to
+       work.
+
+
+       --print-dependencies
+               Print dependency information for the  targets  on  the  command
+              line.
+
+
+       --show-dependencies target
+               Print dependency information if the target is built.
+
+
+       --install
+               Install  default files OMakefile and OMakeroot into the current
+              directory. You would typically do this to start a project in the
+              current directory.
+
+
+       --install-all
+               In  addition  to  installing  files  OMakefile  and  OMakeroot,
+              install default OMakefiles into each subdirectory of the current
+              directory.  cvs(1) rules are used for filtering the subdirectory
+              list. For example, OMakefiles are not  copied  into  directories
+              called CVS, RCCS, etc.
+
+
+       --install-force
+               Normally,  omake  will prompt before it overwrites any existing
+              OMakefile.  If this option is  given,  all  files  are  forcibly
+              overwritten without prompting.
+
+
+       var-definition
+               omake  variables can also be defined on the command line in the
+              form name=value. For  example,  the  CFLAGS  variable  might  be
+              defined on the command line with the argument CFLAGS="-Wall -g".
+
+       In addition, omake supports a number of debugging flags on the  command
+       line. Run omake --help to get a summary of these flags.
+
+
+REFERENCES
+   SEE ALSO
+       omake(1),    omake-quickstart(1),    omake-options(1),   omake-root(1),
+       omake-language(1),   omake-shell(1),   omake-rules(1),   omake-base(1),
+       omake-system(1), omake-pervasives(1), osh(1), make(1)
+
+
+   VERSION
+       Version: 0.9.6.9 of April 11, 2006.
+
+
+   LICENSE AND COPYRIGHT
+       (C)2003-2006, Mojave Group, Caltech
+
+       This program is free software; you can redistribute it and/or modify it
+       under the terms of the GNU General Public License as published  by  the
+       Free  Software Foundation; either version 2 of the License, or (at your
+       option) any later version.
+
+       This program is distributed in the hope that it  will  be  useful,  but
+       WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty  of MER-
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the  GNU  General
+       Public License for more details.
+
+       You should have received a copy of the GNU General Public License along
+       with this program; if not, write to the Free Software Foundation, Inc.,
+       675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+   AUTHOR
+       Jason Hickey et. al..br Caltech 256-80
+       Pasadena, CA 91125, USA
+       Email: omake-devel@metaprl.org
+       WWW: http://www.cs.caltech.edu/~jyh
+
+
+
+
+Build Tools                     April 11, 2006                OMAKE-OPTIONS(1)

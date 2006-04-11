@@ -1,0 +1,2183 @@
+'\" t
+.\" Manual page created with latex2man
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "OMAKE\-BASE" "1" "April 11, 2006" "Build Tools " "Build Tools "
+.SH NAME
+
+omake
+is a flexible build system designed for building a wide variety of projects.
+This document describes the basic built\-in functions. For an overview of omake,
+see the
+.\"omake.html
+omake(1)
+man page.
+.PP
+.SH BUILTIN VARIABLES
+
+.PP
+.SS OSTYPE
+Set to the machine architecture omake
+is running on. Possible values are
+Unix (for all Unix versions, including Linux and Mac OS X), Win32
+(for MS\-Windows, OMake compiled with MSVC++ or Mingw), and Cygwin (for
+MS\-Windows, OMake compiled with Cygwin).
+.SS SYSNAME
+The name of the operating system for the current machine.
+.SS NODENAME
+The hostname of the current machine.
+.SS OS_VERSION
+The operating system release.
+.SS MACHINE
+The machine architecture, e.g.  i386, sparc, etc.
+.SS HOST
+Same as NODENAME\&.
+.SS OMAKE_VERSION
+Version of OMake.
+.SS USER
+The login name of the user executing the process.
+.SS HOME
+The home directory of the user executing the process.
+.SS PID
+The OMake process id.
+.SH BOOLEAN FUNCTIONS AND CONTROL FLOW
+
+.PP
+.SS NOT
+.PP
+.Vb
+   $(not e) : String
+      e : String
+.Ve
+.PP
+Boolean values in omake are represented by case\-insensitive strings. The
+\fIfalse\fP
+value can be represented by the strings false, no,
+nil, undefined or 0, and everything else is true. The
+not function negates a Boolean value.
+.PP
+For example, $(not false) expands to the string true, and $(not hello world) expands to false\&.
+.SS EQUAL
+.PP
+.Vb
+   $(equal e1, e2) : String
+      e1 : String
+      e2 : String
+.Ve
+.PP
+The equal function tests for equality of two values.
+.PP
+For example $(equal a, b) expands to false, and $(equal hello world, hello world) expands to true\&.
+.SS AND
+.PP
+.Vb
+    $(and e1, ..., en) : String
+       e1, ..., en: Sequence
+.Ve
+.PP
+The and function evaluates to the conjunction of its arguments.
+.PP
+For example, in the following code, X is true, and Y is false.
+.PP
+.Vb
+    A = a
+    B = b
+    X = $(and $(equal $(A), a) true $(equal $(B), b))
+    Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
+.Ve
+.SS OR
+.PP
+.Vb
+   $(or e1, ..., en) : String
+      e1, ..., en: String Sequence
+.Ve
+.PP
+The or function evaluates to the disjunction of its arguments.
+.PP
+For example, in the following code, X is true, and Y is false.
+.PP
+.Vb
+    A = a
+    B = b
+    X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
+    Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
+.Ve
+.SS IF
+.PP
+.Vb
+    $(if e1, e2[, e3]) : value
+       e1 : String
+       e2, e3 : value
+.Ve
+.PP
+The if function represents a conditional based on a Boolean value.
+For example $(if $(equal a, b), c, d) evaluates to d\&.
+.PP
+Conditionals may also be declared with an alternate syntax.
+.PP
+.Vb
+   if e1
+      body1
+   elseif e2
+      body2
+   ...
+   else
+      bodyn
+.Ve
+.PP
+If the expression e1 is not false, then the expressions in body1
+are evaluated and the result is returned as the value of the conditional. Otherwise,
+if e1 evaluates to false, the evaluation continues with the e2
+expression. If none of the conditional expressions is true, then the expressions
+in bodyn are evaluated and the result is returned as the value
+of the conditional.
+.PP
+There can be any number of elseif clauses; the else clause is
+optional.
+.PP
+Note that each branch of the conditional defines its own scope, so variables
+defined in the branches are normally not visible outside the conditional.
+The export command may be used to export the variables defined in
+a scope. For example, the following expression represents a common idiom
+for defining the C compiler configuration.
+.PP
+.Vb
+   if $(equal $(OSTYPE), Win32)
+      CC = cl
+      CFLAGS += /DWIN32
+      export
+   else
+      CC = gcc
+      CFLAGS += \-g \-O2
+      export
+.Ve
+.SS SWITCH, MATCH
+.PP
+The switch and match functions perform pattern matching.
+.PP
+$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)
+$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)
+.PP
+The number of <pattern>/<value> pairs is arbitrary. They strictly
+alternate; the total number of arguments to <match> must be odd.
+.PP
+The <arg> is evaluated to a string, and compared with <pattern_1>\&.
+If it matches, the result of the expression is <value_1>\&. Otherwise
+evaluation continues with the remaining patterns until a match is found.
+If no pattern matches, the value is the empty string.
+.PP
+The switch function uses string comparison to compare
+the argument with the patterns. For example, the following
+expression defines the FILE variable to be either
+foo, bar, or the empty string, depending
+on the value of the OSTYPE variable.
+.PP
+.Vb
+    FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
+.Ve
+.PP
+The match function uses regular expression patterns (see the
+grep function). If a match is found, the variables
+$1, $2, ... are bound to the substrings matched between
+\\( and \\) delimiters.
+The $0 variable contains the entire match, and $*
+is an array of the matched substrings.
+to the matched substrings.
+.PP
+.Vb
+    FILE = $(match foo_xyz/bar.a, foo_\\\\\\(.*\\\\\\)/\\\\\\(.*\\\\\\)\\.a, foo_$2/$1.o)
+.Ve
+.PP
+The switch and match functions also have an alternate (more usable)
+form.
+.PP
+.Vb
+   match e
+   case pattern1
+      body1
+   case pattern2
+      body2
+   ...
+   default
+      bodyd
+.Ve
+.PP
+If the value of expression e matches pattern_i and no previous pattern,
+then body_i is evaluated and returned as the result of the match\&.
+The switch function uses string comparison; the match function
+uses regular expression matching.
+.PP
+.Vb
+   match $(FILE)
+   case $".*\\(\\.[^\\/.]*\\)"
+      println(The string $(FILE) has suffix $1)
+   default
+      println(The string $(FILE) has no suffix)
+.Ve
+.SS TRY
+.PP
+.Vb
+   try
+      try\-body
+   catch class1(v1)
+      catch\-body
+   when expr
+      when\-body
+   ...
+   finally
+      finally\-body
+.Ve
+.PP
+The try form is used for exception handling.
+First, the expressions in the try\-body are evaluated.
+.PP
+If evaluation results in a value v without raising an
+exception, then the expressions in the finally\-body
+are evaluated and the value v is returned as the result.
+.PP
+If evaluation of the try\-body results in a exception object obj,
+the catch clauses are examined in order. When examining catch
+clause catch class(v), if the exception object obj
+is an instance of the class name class, the variable v is bound
+to the exception object, and the expressions in the catch\-body
+are evaluated.
+.PP
+If a when clause is encountered while a catch body is being evaluated,
+the predicate expr is evaluated. If the result is true, evaluation continues
+with the expressions in the when\-body\&. Otherwise, the next catch
+clause is considered for evaluation.
+.PP
+If evaluation of a catch\-body or when\-body completes successfully,
+returning a value v, without encountering another when clause,
+then the expressions in the finally\-body
+are evaluated and the value v is returned as the result.
+.PP
+There can be any number of catch clauses; the finally clause
+is optional.
+.SS RAISE
+.PP
+.Vb
+   raise exn
+      exn : Exception
+.Ve
+.PP
+The raise function raises an exception.
+The exn object can be any object. However,
+the normal convention is to raise an Exception
+object.
+.SS EXIT
+.PP
+.Vb
+   exit(code)
+      code : Int
+.Ve
+.PP
+The exit function terminates omake
+abnormally.
+.PP
+$(exit <code>)
+.PP
+The exit function takes one integer argument, which is exit code.
+Non\-zero values indicate abnormal termination.
+.SS DEFINED
+.PP
+.Vb
+   $(defined sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The defined function test whether all the variables in the sequence are
+currently defined. For example, the following code defines the X variable
+if it is not already defined.
+.PP
+.Vb
+    if $(not $(defined X))
+       X = a b c
+       export
+.Ve
+.SS DEFINED\-ENV
+.PP
+.Vb
+   $(defined\-env sequence) : String
+      sequence : String
+.Ve
+.PP
+The defined\-env function tests whether a variable is defined
+as part of the process environment.
+.PP
+For example, the following code adds the \-g compile
+option if the environment variable DEBUG is defined.
+.PP
+.Vb
+if $(defined\-env DEBUG)
+    CFLAGS += \-g
+    export
+.Ve
+.SS GETENV
+.PP
+.Vb
+   $(getenv name) : String
+   $(getenv name, default) : String
+.Ve
+.PP
+The getenv function gets the value of a variable from
+the process environment. The function takes one or two arguments.
+.PP
+In the single argument form, an exception is raised if the variable
+variable is not defined in the environment. In the two\-argument form,
+the second argument is returned as the result if the value is not
+defined.
+.PP
+For example, the following code defines the variable X
+to be a space\-separated list of elements of the PATH
+environment variable if it is defined, and to /bin /usr/bin
+otherwise.
+.PP
+.Vb
+    X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
+.Ve
+.PP
+You may also use the alternate form.
+.Vb
+     getenv(NAME)
+         default
+.Ve
+.SS SETENV
+.PP
+.Vb
+   setenv(name, value)
+      name : String
+      value : String
+.Ve
+.PP
+The setenv function sets the value of a variable in
+the process environment. Environment variables are scoped
+like normal variables.
+.PP
+.SS GET\-REGISTRY
+.PP
+.Vb
+   get\-registry(hkey, key, field) : String
+   get\-registry(hkey, key, field, default) : String
+       hkey : String
+       key : String
+       field : String
+.Ve
+.PP
+The get\-registry function retrieves a string value from the
+system registry on Win32. On other architectures, there is no
+registry.
+.PP
+The hive (I think that is the right word), indicates which part
+of the registry to use. It should be one of the following values.
+.PP
+.TP
+.B *
+HKEY_CLASSES_ROOT
+.TP
+.B *
+HKEY_CURRENT_CONFIG
+.TP
+.B *
+HKEY_CURRENT_USER
+.TP
+.B *
+HKEY_LOCAL_MACHINE
+.TP
+.B *
+HKEY_USERS
+.PP
+Refer to the Microsoft documentation if you want to know what these mean.
+.PP
+The key is the field you want to get from the registry.
+It should have a form like A\\B\\C (if you use forward slashes, they will
+be converted to backslashes). The field is the sub\-field of the key.
+.PP
+In the 4\-argument form, the default is returned on failure.
+You may also use the alternate form.
+.PP
+.Vb
+    get\-registry(hkey, key, field)
+       default
+.Ve
+.PP
+.SS GETVAR
+.PP
+.Vb
+   $(getvar name) : String
+.Ve
+.PP
+The getvar function gets the value of a variable.
+.PP
+An exception is raised if the variable
+variable is not defined.
+.PP
+For example, the following code defines X to be the string abc.
+.PP
+.Vb
+    NAME = foo
+    foo_1 = abc
+    X = $(getvar $(NAME)_1)
+.Ve
+.SS SETVAR
+.PP
+.Vb
+   setvar(name, value)
+      name : String
+      value : String
+.Ve
+.PP
+The setvar function defines a new variable. For example, the
+following code defines the variable X to be the string abc\&.
+.PP
+.Vb
+   NAME = X
+   setvar($(NAME), abc)
+.Ve
+.SH ARRAYS AND SEQUENCES
+
+.PP
+.SS ARRAY
+.PP
+.Vb
+    $(array elements) : Array
+       elements : Sequence
+.Ve
+.PP
+The array function creates an array from a sequence.
+If the <arg> is a string, the elements of the array
+are the whitespace\-separated elements of the string, respecting
+quotes.
+.PP
+In addition, array variables can be declared as follows.
+.PP
+.Vb
+    A[] =
+       <val1>
+       ...
+       <valn>
+.Ve
+.PP
+In this case, the elements of the array are exactly
+<val1>, \&.\&.\&., <valn>, and whitespace is
+preserved literally.
+.SS SPLIT
+.PP
+.Vb
+   $(split sep, elements) : Array
+      sep : String
+      elements : Sequence
+.Ve
+.PP
+The split function takes two arguments, a string of separators, and
+a string argument. The result is an array of elements determined by
+splitting the elements by all occurrence of the separator in the
+elements sequence.
+.PP
+For example, in the following code, the X variable is
+defined to be the array /bin /usr/bin /usr/local/bin\&.
+.PP
+.Vb
+    PATH = /bin:/usr/bin:/usr/local/bin
+    X = $(split :, $(PATH))
+.Ve
+.PP
+The sep argument may be omitted. In this case split breaks its
+arguments along the white space. Quotations are not split.
+.SS CONCAT
+.PP
+.Vb
+   $(concat sep, elements) : String
+      sep : String
+      elements : Sequence
+.Ve
+.PP
+The concat function takes two arguments, a separator string, and
+a sequence of elements. The result is a string formed by concatenating
+the elements, placing the separator between adjacent elements.
+.PP
+For example, in the following code, the X variable is
+defined to be the string foo_x_bar_x_baz\&.
+.PP
+.Vb
+    X = foo  bar     baz
+    Y = $(concat _x_, $(X))
+.Ve
+.SS LENGTH
+.PP
+.Vb
+   $(length sequence) : Int
+      sequence : Sequence
+.Ve
+.PP
+The length function returns the number of elements in its argument.
+.PP
+For example, the expression $(length a b "c d") evaluates to 3.
+.SS NTH
+.PP
+.Vb
+   $(nth i, sequence) : value
+      i : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The nth function returns the nth element of its argument, treated as
+a list. Counting starts at 0. An exception is raised if the index is not in bounds.
+.PP
+For example, the expression $(nth 1, a "b c" d) evaluates to "b c"\&.
+.SS NTH\-HD
+.PP
+.Vb
+   $(nth\-hd i, sequence) : value
+      i : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The nth\-hd function returns the first i elements of
+the sequence. An exception is raised if the sequence is not
+at least i elements long.
+.PP
+For example, the expression $(nth\-hd 2, a "b c" d) evaluates to a "b c"\&.
+.PP
+.SS NTH\-TL
+.PP
+.Vb
+   $(nth\-tl i, sequence) : value
+      i : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The nth\-tl function skips i elements of the sequence
+and returns the rest. An exception is raised if the sequence is not
+at least i elements long.
+.PP
+For example, the expression $(nth\-tl 1, a "b c" d) evaluates to "b c" d\&.
+.PP
+.SS SUB
+.PP
+.Vb
+   $(sub off, len, sequent) : value
+      off : Int
+      len : Int
+      sequence : Sequence
+   raises RuntimeException
+.Ve
+.PP
+The sub function returns a subrange of the sequence.
+Counting starts at 0. An exception is raised if the specified
+range is not in bounds.
+.PP
+For example, the expression $(sub 1, 2, a "b c" d e) evaluates to "b c" d\&.
+.SS REV
+.PP
+.Vb
+    $(rev sequence) : Sequence
+       sequence : Sequence
+.Ve
+.PP
+The rev function returns the elements of a sequence in reverse order.
+For example, the expression $(rev a "b c" d) evaluates to d "b c" a\&.
+.SS STRING
+.PP
+.Vb
+   $(string sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The string function flattens a sequence into a single string.
+This is similar to the concat function, but the elements are
+separated by whitespace. The result is treated as a unit; whitespace
+is significant.
+.SS QUOTE
+.PP
+.Vb
+   $(quote sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The quote function flattens a sequence into a single string
+and adds quotes around the string. Inner quotation symbols are
+escaped.
+.PP
+For example, the expression $(quote a "b c" d) evaluates
+to "a \\"b c\\" d", and $(quote abc) evaluates to
+"abc"\&.
+.SS QUOTE\-ARGV
+.PP
+.Vb
+   $(quote\-argv sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The quote\-argv function flattens a sequence into a single string,
+and adds quotes around the string. The quotation is formed so that
+a command\-line parse can separate the string back into its components.
+.SS HTML\-STRING
+.PP
+.Vb
+   $(html\-string sequence) : String
+      sequence : Sequence
+.Ve
+.PP
+The html\-string function flattens a sequence into a single string,
+and escaped special HTML characters.
+This is similar to the concat function, but the elements are
+separated by whitespace. The result is treated as a unit; whitespace
+is significant.
+.SS ADDSUFFIX
+.PP
+.Vb
+   $(addsuffix suffix, sequence) : Array
+      suffix : String
+      sequence : Sequence
+.Ve
+.PP
+The addsuffix function adds a suffix to each component of sequence.
+The number of elements in the array is exactly the same as the number of
+elements in the sequence.
+.PP
+For example, $(addsuffix .c, a b "c d") evaluates to a.c b.c "c d".c\&.
+.SS MAPSUFFIX
+.PP
+.Vb
+   $(mapsuffix suffix, sequence) : Array
+      suffix : value
+      sequence : Sequence
+.Ve
+.PP
+The mapsuffix function adds a suffix to each component of sequence.
+It is similar to addsuffix, but uses array concatenation instead
+of string concatenation. The number of elements in the array is
+twice the number of elements in the sequence.
+.PP
+For example, $(mapsuffix .c, a b "c d") evaluates to a .c b .c "c d" .c\&.
+.SS ADDSUFFIXES
+.PP
+.Vb
+   $(addsuffixes suffixes, sequence) : Array
+      suffixes : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The addsuffixes function adds all suffixes in its first argument
+to each component of a sequence. If suffixes has n elements,
+and sequence has m elements, the the result has n * m elements.
+.PP
+For example, the $(addsuffixes .c .o, a b c) expressions evaluates to
+a.c a.o b.c b.o c.o c.a\&.
+.SS REMOVEPREFIX
+.PP
+.Vb
+   $(removeprefix prefix, sequence) : Array
+      prefix : String
+      sequence : Array
+.Ve
+.PP
+The removeprefix function removes a prefix from each component
+of a sequence.
+.SS REMOVESUFFIX
+.PP
+.Vb
+   $(removesuffix sequence) : Array
+      sequence : String
+.Ve
+.PP
+The removesuffix function removes the suffixes from each component
+of a sequence.
+.PP
+For example, $(removesuffix a.c b.foo "c d") expands to a b "c d"\&.
+.SS REPLACESUFFIXES
+.PP
+.Vb
+   $(replacesuffixes old\-suffixes, new\-suffixes, sequence) : Array
+      old\-suffixes : Sequence
+      new\-suffixes : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The replacesuffixes function modifies the suffix of each component
+in sequence. The old\-suffixes and new\-suffixes sequences
+should have the same length.
+.PP
+For example, $(replacesuffixes, .h .c, .o .o, a.c b.h c.z) expands to a.o b.o c.z\&.
+.SS ADDPREFIX
+.PP
+.Vb
+   $(addprefix prefix, sequence) : Array
+      prefix : String
+      sequence : Sequence
+.Ve
+.PP
+The addprefix function adds a prefix to each component of a sequence.
+The number of element in the result array is exactly the same as the number
+of elements in the argument sequence.
+.PP
+For example, $(addprefix foo/, a b "c d") evaluates to foo/a foo/b foo/"c d"\&.
+.SS MAPPREFIX
+.PP
+.Vb
+   $(mapprefix prefix, sequence) : Array
+      prefix : String
+      sequence : Sequence
+.Ve
+.PP
+The mapprefix function adds a prefix to each component of a sequence.
+It is similar to addprefix, but array concatenation is used instead of
+string concatenation. The result array contains twice as many elements
+as the argument sequence.
+.PP
+For example, $(mapprefix foo, a b "c d") expands to foo a foo b foo "c d"\&.
+.SS ADD\-WRAPPER
+.PP
+.Vb
+   $(add\-wrapper prefix, suffix, sequence) : Array
+      prefix : String
+      suffix : String
+      sequence : Sequence
+.Ve
+.PP
+The add\-wrapper functions adds both a prefix and a suffix to each component of a sequence.
+For example, the expression $(add\-wrapper dir/, .c, a b) evaluates to
+dir/a.c dir/b.c\&. String concatenation is used. The array result
+has the same number of elements as the argument sequence.
+.SS SET
+.PP
+.Vb
+   $(set sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The set function sorts a set of string components, eliminating duplicates.
+.PP
+For example, $(set z y z "m n" w a) expands to "m n" a w y z\&.
+.SS MEM
+.PP
+.Vb
+   $(mem elem, sequence) : Boolean
+      elem : String
+      sequence : Sequence
+.Ve
+.PP
+The mem function tests for membership in a sequence.
+.PP
+For example, $(mem "m n", y z "m n" w a) evaluates to true,
+while $(mem m n, y z "m n" w a) evaluates to false\&.
+.SS INTERSECTION
+.PP
+.Vb
+   $(intersection sequence1, sequence2) : Array
+      sequence1 : Sequence
+      sequence2 : Sequence
+.Ve
+.PP
+The intersection function takes two arguments, treats them
+as sets of strings, and computes their intersection. The order of the result
+is undefined, and it may contain duplicates. Use the set
+function to sort the result and eliminate duplicates in the result
+if desired.
+.PP
+For example, the expression $(intersection c a b a, b a) evaluates to
+a b a\&.
+.SS INTERSECTS
+.PP
+.Vb
+   $(intersects sequence1, sequence2) : Boolean
+      sequence1 : Sequence
+      sequence2 : Sequence
+.Ve
+.PP
+The intersects function tests whether two sets have a non\-empty intersection.
+This is slightly more efficient than computing the intersection and testing whether
+it is empty.
+.PP
+For example, the expression $(intersects a b c, d c e) evaluates to true,
+and $(intersects a b c a, d e f) evaluates to false\&.
+.SS SET\-DIFF
+.PP
+.Vb
+   $(set\-diff sequence1, sequence2) : Array
+      sequence1 : Sequence
+      sequence2 : Sequence
+.Ve
+.PP
+The set\-diff function takes two arguments, treats them
+as sets of strings, and computes their difference (all the elements of the
+first set that are not present in the second one). The order of the result
+is undefined and it may contain duplicates. Use the set
+function to sort the result and eliminate duplicates in the result
+if desired.
+.PP
+For example, the expression $(set\-diff c a b a e, b a) evaluates to
+c e\&.
+.SS FILTER
+.PP
+.Vb
+   $(filter patterns, sequence) : Array
+      patterns : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The filter function picks elements from a sequence.
+The patterns is a non\-empty sequence of patterns, each may contain one occurrence of the wildcard
+% character.
+.PP
+For example $(filter %.h %.o, a.c x.o b.h y.o "hello world".c) evaluates to x.o b.h y.o\&.
+.SS FILTER\-OUT
+.PP
+.Vb
+   $(filter\-out patterns, sequence) : Array
+      patterns : Sequence
+      sequence : Sequence
+.Ve
+.PP
+The filter\-out function removes elements from a sequence.
+The patterns is a non\-empty sequence of patterns, each may contain one occurrence of the wildcard
+% character.
+.PP
+For example $(filter\-out %.c %.h, a.c x.o b.h y.o "hello world".c) evaluates to x.o y.o\&.
+.SS CAPITALIZE
+.PP
+.Vb
+   $(capitalize sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The capitalize function capitalizes each word in a sequence.
+For example, $(capitalize through the looking Glass) evaluates to
+Through The Looking Glass\&.
+.SS UNCAPITALIZE
+.PP
+.Vb
+   $(uncapitalize sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The uncapitalize function uncapitalizes each word in its argument.
+.PP
+For example, $(uncapitalize through the looking Glass) evaluates to
+through the looking glass\&.
+.SS UPPERCASE
+.PP
+.Vb
+   $(uppercase sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The uppercase function converts each word in a sequence to uppercase.
+For example, $(uppercase through the looking Glass) evaluates to
+THROUGH THE LOOKING GLASS\&.
+.SS LOWERCASE
+.PP
+.Vb
+   $(lowercase sequence) : Array
+      sequence : Sequence
+.Ve
+.PP
+The lowercase function reduces each word in its argument to lowercase.
+.PP
+For example, $(lowercase through tHe looking Glass) evaluates to
+through the looking glass\&.
+.SS SYSTEM
+.PP
+.Vb
+   system(s)
+      s : Sequence
+.Ve
+.PP
+The system function is used to evaluate a shell expression.
+This function is used internally by omake
+to evaluate
+shell commands.
+.PP
+For example, the following program is equivalent to the
+expression system(ls foo)\&.
+.PP
+.Vb
+   ls foo
+.Ve
+.SS SHELL
+.PP
+.Vb
+   $(shell command) : Array
+   $(shella command) : Array
+   $(shell\-code command) : Int
+      command : Sequence
+.Ve
+.PP
+The shell function evaluates a command using the command shell,
+and returns the whitespace\-separated words of the standard output as the result.
+.PP
+The shella function acts similarly, but it returns the lines
+as separate items in the array.
+.PP
+The shell\-code function returns the exit code. The output is not
+diverted.
+.PP
+For example, if the current directory contains the files OMakeroot,
+OMakefile, and hello.c, then $(shell ls) evaluates to
+hello.c OMakefile OMakeroot (on a Unix system).
+.SH ARITHMETIC
+
+.SS INT
+.PP
+The int function can be used to create integers.
+It returns an Int object.
+.PP
+$(int 17)\&.
+.PP
+.SS FLOAT
+The float function can be used to create floating\-point numbers.
+It returns a Float object.
+.PP
+$(float 3.1415926)\&.
+.SS BASIC ARITHMETIC
+.PP
+The following functions can be used to perform basic arithmetic.
+.PP
+.TP
+.B *
+$(neg <numbers>): arithmetic inverse
+.TP
+.B *
+$(add <numbers>): addition.
+.TP
+.B *
+$(sub <numbers>): subtraction.
+.TP
+.B *
+$(mul <numbers>): multiplication.
+.TP
+.B *
+$(div <numbers>): division.
+.TP
+.B *
+$(mod <numbers>): remainder.
+.TP
+.B *
+$(lnot <numbers>): bitwise inverse.
+.TP
+.B *
+$(land <numbers>): bitwise and.
+.TP
+.B *
+$(lor <numbers>): bitwise or.
+.TP
+.B *
+$(lxor <numbers>): bitwise exclusive\-or.
+.TP
+.B *
+$(lsl <numbers>): logical shift left.
+.TP
+.B *
+$(lsr <numbers>): logical shift right.
+.TP
+.B *
+$(asr <numbers>): arithmetic shift right.
+.PP
+.SS COMPARISONS
+.PP
+The following functions can be used to perform numerical comparisons.
+.PP
+.TP
+.B *
+$(lt <numbers>): less then.
+.TP
+.B *
+$(le <numbers>): no more than.
+.TP
+.B *
+$(eq <numbers>): equal.
+.TP
+.B *
+$(ge <numbers>): no less than.
+.TP
+.B *
+$(gt <numbers>): greater than.
+.TP
+.B *
+$(ult <numbers>): unsigned less than.
+.TP
+.B *
+$(ule <numbers>): unsigned greater than.
+.TP
+.B *
+$(uge <numbers>): unsigned greater than or equal.
+.TP
+.B *
+$(ugt <numbers>): unsigned greater than.
+.PP
+.SH FIRST\-CLASS FUNCTIONS
+
+.SS FUN
+.PP
+The fun form introduces anonymous functions.
+.PP
+$(fun <v1>, ..., <vn>, <body>)
+.PP
+The last argument is the body of the function.
+The other arguments are the parameter names.
+.PP
+The three following definitions are equivalent.
+.PP
+.Vb
+    F(X, Y) =
+       return($(addsuffix $(Y), $(X)))
+
+    F = $(fun X, Y, $(addsuffix $(Y), $(X)))
+
+    F =
+       fun(X, Y)
+          value $(addsuffix $(Y), $(X))
+.Ve
+.SS APPLY
+.PP
+The apply operator is used to apply a function.
+.PP
+$(apply <fun>, <args>)
+.PP
+Suppose we have the following function definition.
+.PP
+.Vb
+    F(X, Y) =
+       return($(addsuffix $(Y), $(X)))
+.Ve
+.PP
+The the two expressions below are equivalent.
+.PP
+.Vb
+    X = F(a b c, .c)
+    X = $(apply $(F), a b c, .c)
+.Ve
+.SS APPLYA
+.PP
+The applya operator is used to apply a function to
+an array of arguments.
+.PP
+$(applya <fun>, <args>)
+.PP
+For example, in the following program, the value
+of Z is file.c\&.
+.PP
+.Vb
+    F(X, Y) =
+       return($(addsuffix $(Y), $(X)))
+    args[] =
+       file
+       .c
+    Z = $(applya $(F), $(args))
+.Ve
+.SH ITERATION AND MAPPING
+
+.PP
+.SS FOREACH
+.PP
+The foreach function maps a function over a sequence.
+.PP
+.Vb
+    $(foreach <fun>, <args>)
+
+    foreach(<var>, <args>)
+       <body>
+.Ve
+.PP
+For example, the following program defines the variable X
+as an array a.c b.c c.c\&.
+.PP
+.Vb
+    X =
+       foreach(x, a b c)
+          value $(x).c
+
+    # Equivalent expression
+    X = $(foreach $(fun x, $(x).c), abc)
+.Ve
+.PP
+There is also an abbreviated syntax.
+.PP
+The export form can also be used in a foreach
+body. The final value of X is a.c b.c c.c\&.
+.PP
+.Vb
+    X =
+    foreach(x, a b c)
+       X += $(x).c
+       export
+.Ve
+.SH FILE OPERATIONS
+
+.SS FILE, DIR
+.PP
+.Vb
+   $(file sequence) : File Sequence
+      sequence : Sequence
+   $(dir sequence) : Dir Sequence
+      sequence : Sequence
+.Ve
+.PP
+The file and dir functions define location\-independent references to files and directories.
+In omake,
+the commands to build a target are executed in the target\&'s directory. Since there may be
+many directories in an omake
+project, the build system provides a way to construct a reference to a file
+in one directory, and use it in another without explicitly modifying the file name. The functions have the following
+syntax, where the name should refer to a file or directory.
+.PP
+For example, we can construct a reference to a file foo in the current directory.
+.PP
+.Vb
+   FOO = $(file foo)
+   .SUBDIRS: bar
+.Ve
+.PP
+If the FOO variable is expanded in the bar subdirectory, it will expand to \&../foo\&.
+.PP
+These commands are often used in the top\-level OMakefile to provide location\-independent references to
+top\-level directories, so that build commands may refer to these directories as if they were absolute.
+.PP
+.Vb
+   ROOT = $(dir .)
+   LIB  = $(dir lib)
+   BIN  = $(dir bin)
+.Ve
+.PP
+Once these variables are defined, they can be used in build commands in subdirectories as follows, where
+$(BIN) will expand to the location of the bin directory relative to the command being executed.
+.PP
+.Vb
+   install: hello
+	cp hello $(BIN)
+.Ve
+.SS TMPFILE
+.PP
+.Vb
+    $(tmpfile prefix) : File
+    $(tmpfile prefix, suffix) : File
+        prefix : String
+        suffix : String
+.Ve
+.PP
+The tmpfile function returns the name of a fresh temporary file in
+the temporary directory.
+.SS IN
+.PP
+.Vb
+   $(in dir, exp) : String Array
+      dir : Dir
+      exp : expression
+.Ve
+.PP
+The in function is closely related to the dir and
+file functions. It takes a directory and an expression, and
+evaluates the expression in that effective directory.
+For example, one common way to install a file is to define a symbol link, where the
+value of the link is relative to the directory where the link is created.
+.PP
+The following commands create links in the $(LIB) directory.
+.PP
+.Vb
+    FOO = $(file foo)
+    install:
+       ln \-s $(in $(LIB), $(FOO)) $(LIB)/foo
+.Ve
+.PP
+Note that the in function only affects the expansion of Node
+(File and Dir) values.
+.SS WHICH
+.PP
+.Vb
+   $(which files) : File Sequence
+      files : String Sequence
+.Ve
+.PP
+The which function searches for executables in the
+current command search path, and returns file values
+for each of the commands. It is an error if a command is
+not found.
+.SS WHERE
+.PP
+The where function is similar to which, except it returns the list of
+all the locations of the given executable (in the order in which the
+corresponding directories appear in $PATH). In case a command is handled
+internally by the Shell object, the first string in the output will
+describe the command as a built\-in function.
+.PP
+.Vb
+    % where echo
+    echo is a Shell object method (a built\-in function)
+    /bin/echo
+.Ve
+.SS EXISTS\-IN\-PATH
+.PP
+.Vb
+   $(exists\-in\-path files) : String
+      files : String Sequence
+.Ve
+.PP
+The exists\-in\-path function tests whether all executables
+are present in the current search path.
+.SS BASENAME
+.PP
+.Vb
+   $(basename files) : String Sequence
+      files : String Sequence
+.Ve
+.PP
+The basename function returns the base names for a list of files.
+The basename is the filename with any leading directory components removed.
+.PP
+For example, the expression $(basename dir1/dir2/a.out /etc/modules.conf /foo.ml) evaluates to
+a.out modules.conf foo.ml\&.
+.SS ROOTNAME
+.PP
+.Vb
+   $(rootname files) : String Sequence
+      files : String Sequence
+.Ve
+.PP
+The rootname function returns the root name for a list of files.
+The rootname is the filename with the final suffix removed.
+.PP
+For example, the expression $(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml) evaluates to
+dir1/dir2/a /etc/a.b /foo\&.
+.SS DIROF
+.PP
+.Vb
+   $(dirof files) : Dir Sequence
+      files : File Sequence
+.Ve
+.PP
+The dirof function returns the directory for each of the listed files.
+.PP
+For example, the expression $(dirof dir/dir2/a.out /etc/modules.conf /foo.ml) evaluates
+to the directories dir1/dir2 /etc /\&.
+.SS FULLNAME
+.PP
+.Vb
+   $(fullname files) : String Sequence
+      files : File Sequence
+.Ve
+.PP
+The fullname function returns the pathname relative to the project root
+for each of the files or directories.
+.SS ABSNAME
+.PP
+.Vb
+   $(absname files) : String Sequence
+      files : File Sequence
+.Ve
+.PP
+The absname function returns the absolute pathname for each of the files
+or directories.
+.SS HOMENAME
+.PP
+.Vb
+   $(homename files) : String Sequence
+      files : File Sequence
+.Ve
+.PP
+The homename function returns the name of a file in
+tilde form, if possible. The unexpanded forms are computed
+lazily: the homename function will usually evaluate to an absolute
+pathname until the first tilde\-expansion for the same directory.
+.SS SUFFIX
+.PP
+.Vb
+   $(suffix files) : String Sequence
+      files : StringSequence
+.Ve
+.PP
+The suffix function returns the suffixes for a list of files.
+If a file has no suffix, the function returns the empty string.
+.PP
+For example, the expression $(suffix dir1/dir2/a.out /etc/a /foo.ml) evaluates
+to \&.out .ml\&.
+.SS FILE\-EXISTS, TARGET\-EXISTS, TARGET\-IS\-PROPER
+.PP
+.Vb
+   $(file\-exists files) : String
+   $(target\-exists files) : String
+   $(target\-is\-proper files) : String
+       files : File Sequence
+.Ve
+.PP
+The file\-exists function checks whether the files listed exist.
+The target\-exists function is similar to the file\-exists function.
+However, it returns true if the file exists \fIor\fP
+if it can be built
+by the current project. The target\-is\-proper returns true only
+if the file can be generated in the current project.
+.SS STAT\-RESET
+.PP
+.Vb
+   $(stat\-reset files) : String
+       files : File Sequence
+.Ve
+.PP
+OMake uses a stat\-cache. The stat\-reset function reset the stat
+information for the given files, forcing the stat information to
+be recomputed the next time it is requested.
+.SS FILTER\-EXISTS, FILTER\-TARGETS, FILTER\-PROPER\-TARGETS
+.PP
+.Vb
+   $(filter\-exists files) : File Sequence
+   $(filter\-targets files) : File Sequence
+   $(filter\-proper\-targets) : File Sequence
+      files : File Sequence
+.Ve
+.PP
+The filter\-exists, filter\-targets, and filter\-proper\-targets
+functions remove files from a list of files.
+.TP
+.B *
+filter\-exists: the result is the list of files that exist.
+.TP
+.B *
+filter\-targets: the result is the list of files either exist, or
+can be built by the current project.
+.TP
+.B *
+filter\-proper\-targets: the result is the list of files that can
+be built in the current project.
+.PP
+One way to create a simple ``clean\&'' rule that removes generated files from
+the project is by removing all files that can be built in the current
+project. CAUTION: you should be careful before you do this. The rule
+removes \fIany\fP
+file that can \fIpotentially\fP
+be reconstructed.
+There is no check to make sure that the commands to rebuild the file
+would actually succeed. Also, note that no file outside the
+current project will be deleted.
+.PP
+.Vb
+    .PHONY: clean
+
+    clean:
+        rm $(filter\-proper\-targets $(ls R, .))
+.Ve
+.PP
+See the dependencies\-proper function to see an alternate method
+for removing intermediate files.
+.PP
+If you use CVS, you may wish to use the cvs_realclean program that
+is distributed with omake\&.
+.PP
+.SS FILE\-SORT
+.PP
+.Vb
+   $(file\-sort order, files) : File Sequence
+      order : String
+      files : File Sequence
+.Ve
+.PP
+The file\-sort function sorts a list of filenames by
+build order augmented by a set of sort rules. Sort
+rules are declared using the \&.ORDER target.
+The \&.BUILDORDER defines the default order.
+.PP
+$(file\-sort <order>, <files>)
+.PP
+For example, suppose we have the following set of rules.
+.PP
+.Vb
+   a: b c
+   b: d
+   c: d
+
+   .DEFAULT: a b c d
+      echo $(file\-sort .BUILDORDER, a b c d)
+.Ve
+.PP
+In the case, the sorter produces the result d b c a\&.
+That is, a target is sorted \fIafter\fP
+its dependencies.
+The sorter is frequently used to sort files that are to be linked
+by their dependencies (for languages where this matters).
+.PP
+There are three important restrictions to the sorter:
+.TP
+.B *
+The sorter can be used only within a rule body.
+The reason for this is that \fIall\fP
+dependencies
+must be known before the sort is performed.
+.TP
+.B *
+The sorter can only sort files that are buildable
+in the current project.
+.TP
+.B *
+The sorter will fail if the dependencies are cyclic.
+.PP
+.SS SORT RULE
+.PP
+It is possible to further constrain the sorter through the use of
+sort rules. A sort rule is declared in two steps. The
+target must be listed as an \&.ORDER target; and then
+a set of sort rules must be given. A sort rule defines
+a pattern constraint.
+.PP
+.Vb
+   .ORDER: .MYORDER
+
+   .MYORDER: %.foo: %.bar
+   .MYORDER: %.bar: %.baz
+
+   .DEFAULT: a.foo b.bar c.baz d.baz
+      echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
+.Ve
+.PP
+In this example, the \&.MYORDER sort rule specifies that any
+file with a suffix \&.foo should be placed after any file with
+suffix \&.bar, and any file with suffix \&.bar should be
+placed after a file with suffix \&.baz\&.
+.PP
+In this example, the result of the sort is d.baz c.baz b.bar a.foo\&.
+.SS FILE\-CHECK\-SORT
+.PP
+.Vb
+   file\-check\-sort(files)
+      files : File Sequence
+   raises RuntimeException
+.Ve
+.PP
+The file\-check\-sort function checks whether a list of files
+is in sort order. If so, the list is returned unchanged.
+If not, the function raises an exception.
+.PP
+$(file\-check\-sort <order>, <files>)
+.SS GLOB
+.PP
+.Vb
+   $(glob strings) : Node Array
+      strings : String Sequence
+   $(glob options, strings) : Node Array
+      options : String
+      strings : String Sequence
+.Ve
+.PP
+The glob function performs glob\-expansion.
+.PP
+The \&. and \&.\&. entries are always ignored.
+.PP
+The options are:
+.TP
+b
+Do not perform \fIcsh\fP(1)\-style
+brace expansion.
+.TP
+e
+The \\ character does not escape special characters.
+.TP
+n
+If an expansion fails, return the expansion literally instead of aborting.
+.TP
+i
+If an expansion fails, it expands to nothing.
+.TP
+\&.
+Allow wildcard patterns to match files beginning with a \&.
+.TP
+A
+Return all files, including files that begin with a \&.
+.TP
+D
+Match only directory files.
+.TP
+C
+Ignore files according to \fIcvs\fP(1)
+rules.
+.TP
+P
+Include only proper subdirectories.
+.PP
+In addition, the following variables may be defined that affect the
+behavior of glob\&.
+.PP
+.TP
+GLOB_OPTIONS
+A string containing default options.
+.TP
+GLOB_IGNORE
+A list of shell patterns for filenames that glob should ignore.
+.TP
+GLOB_ALLOW
+A list of shell patterns. If a file does not match a pattern in
+GLOB_ALLOW, it is ignored.
+.PP
+The returned files are sorted by name.
+.SS LS
+.PP
+.Vb
+   $(ls files) : Node Array
+      files : String Sequence
+   $(ls options, files) : Node Array
+      files : String Sequence
+.Ve
+.PP
+The ls function returns the filenames in a directory.
+.PP
+The \&. and \&.\&. entries are always ignored.
+The patterns are shell\-style patterns, and are glob\-expanded.
+.PP
+The options include all of the options to the glob function,
+plus the following.
+.PP
+.TP
+R
+Perform a recursive listing.
+.PP
+The GLOB_ALLOW and GLOB_IGNORE variables can be defined
+to control the globbing behavior.
+The returned files are sorted by name.
+.SS SUBDIRS
+.PP
+.Vb
+   $(subdirs dirs) : Dir Array
+      dirs : String Sequence
+   $(subdirs options, dirs) : Dir Array
+      options : String
+      dirs : String Sequence
+.Ve
+.PP
+The subdirs function returns all the subdirectories
+of a list of directories, recursively.
+.PP
+The possible options are the following:
+.TP
+A
+Return directories that begin with a \&.
+.TP
+C
+Ignore files according to \&.cvsignore
+rules.
+.TP
+P
+Include only proper subdirectories.
+.PP
+.SS MKDIR
+.PP
+.Vb
+   mkdir(mode, node...)
+      mode : Int
+      node : Node
+   raises RuntimeException
+
+   mkdir(node...)
+      node : Node
+   raises RuntimeException
+.Ve
+.PP
+The mkdir function creates a directory, or a set of directories.
+The following options are supported.
+.TP
+\-m mode
+Specify the permissions of the created directory.
+.TP
+\-p
+Create parent directories if they do not exist.
+.TP
+\-\-
+Interpret the remaining names literally.
+.PP
+.SS STAT
+.PP
+The Stat object represents the result returned by the stat
+and lstat functions. It contains the following fields.
+.PP
+A stat object has the following fields. Not all of the fields
+will have meaning on all architectures.
+.PP
+.TP
+dev
+: the device number.
+.TP
+ino
+: the inode number.
+.TP
+kind
+: the kind of the file, one of the following:
+REG (regular file),
+DIR (directory),
+CHR (character device),
+BLK (block device),
+LNK (symbolic link),
+FIFO (named pipe),
+SOCK (socket).
+.TP
+perm
+: access rights, represented as an integer.
+.TP
+nlink
+: number of links.
+.TP
+uid
+: user id of the owner.
+.TP
+gid
+: group id of the file\&'s group.
+.TP
+rdev
+: device minor number.
+.TP
+size
+: size in bytes.
+.TP
+atime
+: last access time, as a floating point number.
+.TP
+mtime
+: last modification time, as a floating point number.
+.TP
+ctime
+: last status change time, as a floating point number.
+.PP
+.SS STAT
+.PP
+.Vb
+    $(stat node...) : Stat
+       node : Node or Channel
+    $(lstat node...) : Stat
+       node : Node or Channel
+    raises RuntimeException
+.Ve
+.PP
+The stat functions return file information.
+If the file is a symbolic link, the stat function refers to the
+destination of the link; the lstat function refers to the link
+itself.
+.SS UNLINK
+.PP
+.Vb
+   $(unlink file...)
+      file : File
+   #(rm file...)
+      file : File
+   $(rmdir dir...)
+      dir : Dir
+   raises RuntimeException
+.Ve
+.PP
+The unlink and rm functions remove a file.
+The rmdir function removes a directory.
+.PP
+The following options are supported for rm and rmdir\&.
+.TP
+\-f
+ignore nonexistent files, never prompt.
+.TP
+\-i
+prompt before removal.
+.TP
+\-r
+remove the contents of directories recursively.
+.TP
+\-v
+explain what is going on.
+.TP
+\-\-
+the rest of the values are interpreted literally.
+.PP
+.SS RENAME
+.PP
+.Vb
+    rename(old, new)
+       old : Node
+       new : Node
+    mv(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    cp(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    raises RuntimeException
+.Ve
+.PP
+The rename function changes the name of a file or directory named old
+to new\&.
+.PP
+The mv function is similar, but if new is a directory, and it exists,
+then the files specified by the sequence are moved into the directory. If not,
+the behavior of mv is identical to rename\&. The cp function
+is similar, but the original file is not removed.
+.PP
+The mv and cp functions take the following options.
+.TP
+\-f
+Do not prompt before overwriting.
+.TP
+\-i
+Prompt before overwriting.
+.TP
+\-v
+Explain what it happening.
+.TP
+\-r
+Copy the contents of directories recursively.
+.TP
+\-\-
+Interpret the remaining arguments literally.
+.PP
+.SS LINK
+.PP
+.Vb
+   link(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+.Ve
+.PP
+The link function creates a hard link named dst to the file
+or directory src\&.
+.PP
+Hard links are not supported in Win32.
+.PP
+Normally, only the superuser can create hard links to directories.
+.SS SYMLINK
+.PP
+.Vb
+   symlink(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+.Ve
+.PP
+The symlink function creates a symbolic link dst that
+points to the src file.
+.PP
+The link name is computed relative to
+the target directory. For example, the expression
+$(symlink a/b, c/d) creates a link named
+c/d \-> ../a/b\&.
+.PP
+Symbolic links are not supported in Win32.
+.SS READLINK
+.PP
+.Vb
+   $(readlink node...) : Node
+      node : Node
+.Ve
+.PP
+The readlink function reads the value of a symbolic link.
+.SS CHMOD
+.PP
+.Vb
+   chmod(mode, dst...)
+      mode : Int
+      dst : Node or Channel
+   chmod(mode dst...)
+      mode : String
+      dst : Node Sequence
+   raises RuntimeException
+.Ve
+.PP
+The chmod function changes the permissions of the targets.
+The chmod function does nothing on Win32 platforms.
+.PP
+Options:
+.TP
+\-v
+Explain what is happening.
+.TP
+\-r
+Change files and directories recursively.
+.TP
+\-f
+Continue on errors.
+.TP
+\-\-
+Interpret the remaining argument literally.
+.PP
+.SS CHOWN
+.PP
+.Vb
+   chown(uid, gid, node...)
+      uid : Int
+      gid : Int
+      node : Node or Channel
+   chown(uid, node...)
+      uid : Int
+      node : Node or Channel
+   raises RuntimeException
+.Ve
+.PP
+The chown function changes the user and group id of the file.
+If the gid is not specified, it is not changed. If either
+id is \-1, that id is not changed.
+.SS UMASK
+.PP
+.Vb
+    $(umask mode) : Int
+       mode : Int
+    raises RuntimeException
+.Ve
+.PP
+Sets the file mode creation mask.
+The previous mask is returned.
+This value is not scoped, changes have global effect.
+.SS DIGEST
+.PP
+.Vb
+     $(digest files) : String Array
+        file : File Array
+     raises RuntimeException
+
+     $(digest\-optional files) : String Array
+        file : File Array
+.Ve
+.PP
+The digest and digest\-optional functions compute MD5 digests
+of files. The digest function raises an exception if a file
+does no exist. The digest\-optional returns false if a
+file does no exist. MD5 digests are cached.
+.SS FIND\-IN\-PATH
+.PP
+.Vb
+    $(find\-in\-path path, files) : File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(find\-in\-path\-optional path, files) : File Array
+.Ve
+.PP
+The find\-in\-path function searches for the files in a search
+path. Only the tail of the filename is significant. The find\-in\-path
+function raises an exception if the file can\&'t be found.
+The find\-in\-path\-optional function silently removes
+files that can\&'t be found.
+.SS DIGEST\-PATH
+.PP
+.Vb
+    $(digest\-in\-path path, files) : String/File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(digest\-in\-path\-optional path, files) : String/File Array
+.Ve
+.PP
+The digest\-in\-path function searches for the files in a search
+path and returns the file and digest for each file. Only the tail of the
+filename is significant. The digest\-in\-path function raises an exception
+if the file can\&'t be found. The digest\-in\-path\-optional
+function silently removes elements that can\&'t be found.
+.SS REHASH
+.PP
+.Vb
+    rehash()
+.Ve
+.PP
+The rehash function resets all search paths.
+.SS VMOUNT
+.PP
+.Vb
+    vmount(src, dst)
+       src, dst : Dir
+    vmount(flags, src, dst)
+       flags : String
+       src, dst : Dir
+.Ve
+.PP
+``Mount\&'' the src directory on the dst directory. This is
+a virtual mount, changing the behavior of the $(file ...) function.
+When the $(file str) function is used, the resulting file is taken
+relative to the src directory if the file exists. Otherwise, the
+file is relative to the current directory.
+.PP
+The main purpose of the vmount function is to support multiple
+builds with separate configurations or architectures.
+.PP
+The options are as follows.
+.TP
+l
+Create symbolic links to files in the src directory.
+.TP
+c
+Copy files from the src directory.
+.PP
+Mount operations are scoped.
+.SS ADD\-PROJECT\-DIRECTORIES
+.PP
+.Vb
+    add\-project\-directories(dirs)
+       dirs : Dir Array
+.Ve
+.PP
+Add the directories to the set of directories that omake considers to be part
+of the project. This is mainly used to avoid omake complaining that the
+current directory is not part of the project.
+.SS REMOVE\-PROJECT\-DIRECTORIES
+.PP
+.Vb
+    remove\-project\-directories(dirs)
+       dirs : Dir Array
+.Ve
+.PP
+Removed the directories from the set of directories that omake considers to be part
+of the project. This is mainly used to cancel a \&.SUBDIRS from including
+a directory if it is determined that the directory does not need to be compiled.
+.SS TEST
+.PP
+.Vb
+   test(exp) : Bool
+      exp : String Sequence
+.Ve
+.PP
+The \fIexpression\fP
+grammar is as follows:
+.PP
+.TP
+.B *
+! \fIexpression\fP : \fIexpression\fP is not true
+.TP
+.B *
+\fIexpression1\fP
+\-a \fIexpression2\fP : both expressions are true
+.TP
+.B *
+\fIexpression1\fP
+\-o \fIexpression2\fP : at least one expression is true
+.TP
+.B *
+( \fIexpression\fP
+) : \fIexpression\fP is true
+.PP
+The base expressions are:
+.PP
+.TP
+.B *
+\-n \fIstring\fP : The \fIstring\fP has nonzero length
+.TP
+.B *
+\-z \fIstring\fP : The \fIstring\fP has zero length
+.TP
+.B *
+\fIstring\fP
+= \fIstring\fP : The strings are equal
+.TP
+.B *
+\fIstring\fP
+!= \fIstring\fP : The strings are not equal
+.PP
+.TP
+.B *
+\fIint1\fP
+\-eq \fIint2\fP : The integers are equal
+.TP
+.B *
+\fIint1\fP
+\-ne \fIint2\fP : The integers are not equal
+.TP
+.B *
+\fIint1\fP
+\-gt \fIint2\fP : \fIint1\fP is larger than \fIint2\fP
+.TP
+.B *
+\fIint1\fP
+\-ge \fIint2\fP : \fIint2\fP is not larger than \fIint1\fP
+.TP
+.B *
+\fIint1\fP
+\-lt \fIint2\fP : \fIint1\fP is smaller than \fIint2\fP
+.TP
+.B *
+\fIint1\fP
+\-le \fIint2\fP : \fIint1\fP is not larger than \fIint2\fP
+.PP
+.TP
+.B *
+\fIfile1\fP
+\-ef \fIfile2\fP : On Unix, \fIfile1\fP and \fIfile2\fP have the
+same device and inode number.
+On Win32, \fIfile1\fP
+and \fIfile2\fP
+have the
+same name.
+.TP
+.B *
+\fIfile1\fP
+\-nt \fIfile2\fP : \fIfile1\fP is newer than \fIfile2\fP
+.TP
+.B *
+\fIfile1\fP
+\-ot \fIfile2\fP : \fIfile1\fP is older than \fIfile2\fP
+.PP
+.TP
+.B *
+\-b \fIfile\fP : The file is a block special file
+.TP
+.B *
+\-c \fIfile\fP : The file is a character special file
+.TP
+.B *
+\-d \fIfile\fP : The file is a directory
+.TP
+.B *
+\-e \fIfile\fP : The file exists
+.TP
+.B *
+\-f \fIfile\fP : The file is a normal file
+.TP
+.B *
+\-g \fIfile\fP : The set
+\-group\-id bit is set on the file
+.TP
+.B *
+\-G \fIfile\fP : The file\&'s group is the current effective group
+.TP
+.B *
+\-h \fIfile\fP : The file is a symbolic link (also
+\-L)
+.TP
+.B *
+\-k \fIfile\fP : The file\&'s sticky bit is set
+.TP
+.B *
+\-L \fIfile\fP : The file is a symbolic link (also
+\-h)
+.TP
+.B *
+\-O \fIfile\fP : The file\&'s owner is the current effective user
+.TP
+.B *
+\-p \fIfile\fP : The file is a named pipe
+.TP
+.B *
+\-r \fIfile\fP : The file is readable
+.TP
+.B *
+\-s \fIfile\fP : The file is empty
+.TP
+.B *
+\-S \fIfile\fP : The file is a socket
+.TP
+.B *
+\-u \fIfile\fP : The set
+\-user\-id bit is set on the file
+.TP
+.B *
+\-w \fIfile\fP : The file is writable
+.TP
+.B *
+\-x \fIfile\fP : The file is executable
+.PP
+A \fIstring\fP
+is any sequence of characters; leading \- characters are allowed.
+.PP
+An \fIint\fP
+is a \fIstring\fP
+that can be interpreted as an integer. Unlike traditional
+versions of the test program, the leading characters may specify an arity. The
+prefix 0b means the numbers is in binary; the prefix 0o means
+the number is in octal; the prefix 0x means the number is in hexadecimal.
+An \fIint\fP
+can also be specified as \-l \fIstring\fP,
+which evaluates to the length of
+the \fIstring\fP\&.
+.PP
+A \fIfile\fP
+is a \fIstring\fP
+that represents the name of a file.
+.SS FIND
+.PP
+.Vb
+   find(exp) : Node Array
+      exp : String Sequence
+.Ve
+.PP
+The find function searches a directory recursively, returning the
+files for which the expression evaluates to true.
+.PP
+The expression argument uses the same syntax as the test function,
+with the following exceptions.
+.PP
+.TP
+1.
+The expression may begin with a directory. If not specified, the current
+directory is searched.
+.TP
+2.
+The {} string expands to the current file being examined.
+.PP
+The syntax of the expression is the same as test, with the following
+additions.
+.PP
+.TP
+.B *
+\-name \fIstring\fP : The current file matches the regular expression.
+.PP
+.SH REFERENCES
+
+.PP
+.SS SEE ALSO
+.PP
+.\"omake.html
+omake(1),
+.\"omake\-quickstart.html
+omake\-quickstart(1),
+.\"omake\-options.html
+omake\-options(1),
+.\"omake\-root.html
+omake\-root(1),
+.\"omake\-language.html
+omake\-language(1),
+.\"omake\-shell.html
+omake\-shell(1),
+.\"omake\-rules.html
+omake\-rules(1),
+.\"omake\-base.html
+omake\-base(1),
+.\"omake\-system.html
+omake\-system(1),
+.\"omake\-pervasives.html
+omake\-pervasives(1),
+.\"osh.html
+osh(1),
+\fImake\fP(1)
+.PP
+.SS VERSION
+.PP
+Version: 0.9.6.9 of April 11, 2006\&.
+.PP
+.SS LICENSE AND COPYRIGHT
+.PP
+(C)2003\-2006, Mojave Group, Caltech
+.PP
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.PP
+.SS AUTHOR
+.PP
+Jason Hickey \fIet. al.\fP.br
+Caltech 256\-80
+.br
+Pasadena, CA 91125, USA
+.br
+Email: \fBomake\-devel@metaprl.org\fP
+.br
+WWW: \fBhttp://www.cs.caltech.edu/~jyh\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.

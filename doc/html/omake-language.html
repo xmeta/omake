@@ -1,0 +1,817 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE-LANGUAGE</title></head>
+<body bgcolor="white">
+<h1 align=center>
+The OMake language
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a flexible build system designed for building a wide variety of projects.
+This document describes the language concepts and syntax.
+For an overview of <tt>omake</tt>,
+see the <a href="omake.html">omake(1)</a>
+man page.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">OMake concepts and syntax </a>
+<ul>
+<li><a href="#section_2">Variables </a></li>
+<li><a href="#section_3">Adding to a variable definition </a></li>
+<li><a href="#section_4">Arrays </a></li>
+<li><a href="#section_5">Special characters and quoting </a></li>
+<li><a href="#section_6">Function definitions </a></li>
+<li><a href="#section_7">Comments </a></li>
+<li><a href="#section_8">File inclusion </a></li>
+<li><a href="#section_9">Scoping, sections </a></li>
+<li><a href="#section_10">Conditionals </a></li>
+<li><a href="#section_11">Matching </a></li>
+</ul>
+<li><a href="#section_12">Objects </a>
+<ul>
+<li><a href="#section_13">Classes </a></li>
+<li><a href="#section_14">Inheritance </a></li>
+</ul>
+<li><a href="#section_15">Special objects/sections </a>
+<ul>
+<li><a href="#section_16">private. </a></li>
+<li><a href="#section_17">protected. </a></li>
+<li><a href="#section_18">public. </a></li>
+<li><a href="#section_19">static. </a></li>
+<li><a href="#section_20">Short syntax for scoping objects </a></li>
+<li><a href="#section_21">Modular programming </a></li>
+</ul>
+<li><a href="#section_22">References </a>
+<ul>
+<li><a href="#section_23">See Also </a></li>
+<li><a href="#section_24">Version </a></li>
+<li><a href="#section_25">License and Copyright </a></li>
+<li><a href="#section_26">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">OMake concepts and syntax</a></h2>
+
+<p>
+Projects are specified to <tt>omake</tt>
+with <tt>OMakefile</tt>s.
+The <tt>OMakefile</tt>
+has a format
+similar to a <tt>Makefile</tt>.
+An <tt>OMakefile</tt>
+has three main kinds of syntactic objects:
+variable definitions, function definitions, and rule definitions.
+<p>
+<h4><a name="section_2">Variables</a></h4>
+
+<p>
+Variables are defined with the following syntax. The name is any sequence of alphanumeric
+characters, underscore <tt>_</tt>, and hyphen <tt>-</tt>.
+<p>
+<pre>
+   &lt;name&gt; = &lt;value&gt;
+</pre>
+<p>
+Values are defined as a sequence of literal characters and variable expansions. A variable
+expansion has the form <tt>$(&lt;name&gt;)</tt>, which represents the value of the <tt>&lt;name&gt;</tt>
+variable in the current environment. Some examples are shown below.
+<p>
+<pre>
+   CC = gcc
+   CFLAGS = -Wall -g
+   COMMAND = $(CC) $(CFLAGS) -O2
+</pre>
+<p>
+In this example, the value of the <tt>COMMAND</tt> variable is the string <tt>gcc -Wall -g -O2</tt>.
+<p>
+Unlike <em>make</em>(1),
+variable expansion is <em>eager</em>
+and <em>functional</em>
+(see also the section
+on Scoping). That is, variable values are expanded immediately and new variable definitions do not
+affect old ones. For example, suppose we extend the previous example with following variable
+definitions.
+<p>
+<pre>
+   X = $(COMMAND)
+   COMMAND = $(COMMAND) -O3
+   Y = $(COMMAND)
+</pre>
+<p>
+In this example, the value of the <tt>X</tt> variable is the string <tt>gcc -Wall -g -O2</tt> as
+before, and the value of the <tt>Y</tt> variable is <tt>gcc -Wall -g -O2 -O3</tt>.
+<p>
+<h4><a name="section_3">Adding to a variable definition</a></h4>
+
+<p>
+Variables definitions may also use the += operator, which adds the new text to an existing
+definition. The following two definitions are equivalent.
+<p>
+<pre>
+   # Add options to the CFLAGS variable
+   CFLAGS = $(CFLAGS) -Wall -g
+
+   # The following definition is equivalent
+   CFLAGS += -Wall -g
+</pre>
+<p>
+<h4><a name="section_4">Arrays</a></h4>
+
+<p>
+Arrays can be defined by appending the <tt>[]</tt> sequence to the variable name and defining initial
+values for the elements as separate lines. Whitespace is significant on each line. The following
+code sequence prints <tt>c d e</tt>.
+<p>
+<pre>
+    X[] =
+        a b
+        c d e
+        f
+
+    println($(nth 2, $(X)))
+</pre>
+<p>
+<h4><a name="section_5">Special characters and quoting</a></h4>
+
+<p>
+The following characters are special to <tt>omake</tt>:
+<tt>$():,=#\</tt>. To treat
+any of these characters as normal text, they should be escaped with the backslash
+character <tt>\</tt>.
+<p>
+<pre>
+    DOLLAR = \$
+</pre>
+<p>
+Newlines may also be escaped with a backslash to concatenate several lines.
+<p>
+<pre>
+    FILES = a.c\
+            b.c\
+            c.c
+</pre>
+<p>
+Note that the backslash is <em>not</em>
+an escape for any other character, so the following
+works as expected (that is, it preserves the backslashes in the string).
+<p>
+<pre>
+    DOSTARGET = C:\WINDOWS\control.ini
+</pre>
+<p>
+An alternative mechanism for quoting special text is the use <tt>$"..."</tt> escapes. The number of
+double-quotations is arbitrary. The outermost quotations are not included in the text.
+<p>
+<pre>
+    A = $""String containing "quoted text" ""
+    B = $"""Multi-line
+        text.
+        The # character is not special"""
+</pre>
+<p>
+<h4><a name="section_6">Function definitions</a></h4>
+
+<p>
+Functions are defined using the following syntax.
+<p>
+<pre>
+   &lt;name&gt;(&lt;params&gt;) =
+      &lt;indented-body&gt;
+</pre>
+<p>
+The parameters are a comma-separated list of identifiers, and the body must be placed on a separate
+set of lines that are indented from the function definition itself. For example, the following text
+defines a function that concatenates its arguments, separating them with a colon.
+<p>
+<pre>
+    ColonFun(a, b) =
+        return($(a):$(b))
+</pre>
+<p>
+The <tt>return</tt> expression can be used to return a value from the function. A <tt>return</tt>
+statement is not required; if it is omitted, the returned value is the value of the last expression
+in the body to be evaluated. NOTE: as of version <tt>0.9.6</tt>, <tt>return</tt> is a control
+operation, causing the function to immediately return. In the following example, when the argument
+<tt>a</tt> is true, the function <tt>f</tt> immediately returns the value 1 without evaluating the print
+statement.
+<p>
+<pre>
+    f(a) =
+       if $(a)
+          return 1
+       println(The argument is false)
+       return 0
+</pre>
+<p>
+In many cases, you may wish to return a value from a section or code block without returning from
+the function. In this case, you would use the <tt>value</tt> operator. In fact, the <tt>value</tt>
+operator is not limited to functions, it can be used any place where a value is required. In the
+following definition, the variable <tt>X</tt> is defined as 1 or 2, depending on the value of a,
+then result is printed, and returned from the function.
+<p>
+<pre>
+    f_value(a) =
+       X =
+          if $(a)
+             value 1
+          else
+             value 2
+       println(The value of X is $(X))
+       value $(X)
+</pre>
+<p>
+Functions are called using the GNU-make syntax, <tt>$(&lt;name&gt; &lt;args))</tt>,
+where <tt>&lt;args&gt;</tt> is a comma-separated list of values. For example,
+in the following program, the variable <tt>X</tt> contains the
+value <tt>foo:bar</tt>.
+<p>
+<pre>
+   X = $(ColonFun foo, bar)
+</pre>
+<p>
+If the value of a function is not needed, the function may also be called
+using standard function call notation. For example, the following program
+prints the string &ldquo;She says: Hello world&rdquo;.
+<p>
+<pre>
+    Printer(name) =
+        println($(name) says: Hello world)
+
+    Printer(She)
+</pre>
+<p>
+<h4><a name="section_7">Comments</a></h4>
+
+<p>
+Comments begin with the <tt>#</tt> character and continue to the end of the line.
+<p>
+<h4><a name="section_8">File inclusion</a></h4>
+
+<p>
+Files may be included with the <tt>include</tt> form. The included file must use
+the same syntax as an <tt>OMakefile</tt>.
+<p>
+<pre>
+    include files.omake
+</pre>
+<p>
+<h4><a name="section_9">Scoping, sections</a></h4>
+
+<p>
+Scopes in <tt>omake</tt>
+are defined by indentation level. When indentation is
+increased, such as in the body of a function, a new scope is introduced.
+<p>
+The <tt>section</tt> form can also be used to define a new scope. For example, the following code
+prints the line <tt>X = 2</tt>, followed by the line <tt>X = 1</tt>.
+<p>
+<pre>
+    X = 1
+    section
+        X = 2
+        println(X = $(X))
+
+    println(X = $(X))
+</pre>
+<p>
+This result may seem surprising--the variable definition within the
+<tt>section</tt> is not visible outside the scope of the <tt>section</tt>.
+<p>
+The <tt>export</tt> form can be used to circumvent this restriction by
+exporting variable values from an inner scope. It must be the final
+expression in a scope. For example, if we modify the previous example
+by adding an <tt>export</tt> expression, the new value for the <tt>X</tt>
+variable is retained, and the code prints the line <tt>X = 2</tt> twice.
+<p>
+<pre>
+    X = 1
+    section
+        X = 2
+        println(X = $(X))
+        export
+
+    println(X = $(X))
+</pre>
+<p>
+There are also cases where separate scoping is quite important. For example,
+each <tt>OMakefile</tt>
+is evaluated in its own scope. Since each part of a project
+may have its own configuration, it is important that variable definitions in one
+<tt>OMakefile</tt>
+do not affect the definitions in another.
+<p>
+To give another example, in some cases it is convenient to specify a
+separate set of variables for different build targets. A frequent
+idiom in this case is to use the <tt>section</tt> command to define a
+separate scope.
+<p>
+<pre>
+   section
+      CFLAGS += -g
+      %.c: %.y
+          $(YACC) $&lt;
+      .SUBDIRS: foo
+
+   .SUBDIRS: bar baz
+</pre>
+<p>
+In this example, the <tt>-g</tt> option is added to the <tt>CFLAGS</tt>
+variable by the <tt>foo</tt> subdirectory, but not by the <tt>bar</tt> and
+<tt>baz</tt> directories. The implicit rules are scoped as well and in this
+example, the newly added yacc rule will be inherited by the <tt>foo</tt>
+subdirectory, but not by the <tt>bar</tt> and <tt>baz</tt> ones; furthermore
+this implicit rule will not be in scope in the current directory.
+<p>
+<h4><a name="section_10">Conditionals</a></h4>
+
+<p>
+Top level conditionals have the following form.
+<p>
+<pre>
+    if &lt;test&gt;
+       &lt;true-clause&gt;
+    elseif &lt;text&gt;
+       &lt;elseif-clause&gt;
+    else
+       &lt;else-clause&gt;
+</pre>
+<p>
+The <tt>&lt;test&gt;</tt> expression is evaluated, and if it evaluates to a
+<em>true</em>
+value (see the Logic section), the code for the
+<tt>&lt;true-clause&gt;</tt> is evaluated; otherwise the remaining clauses
+are evaluated. There may be multiple <tt>elseif</tt> clauses;
+both the <tt>elseif</tt> and <tt>else</tt> clauses are optional.
+Note that the clauses are indented, so they introduce new
+scopes.
+<p>
+The following example illustrates a typical use of a conditional. The
+<tt>OSTYPE</tt> variable is the current machine architecture.
+<p>
+<pre>
+    # Common suffixes for files
+    if $(equal $(OSTYPE), Win32)
+       EXT_LIB = .lib
+       EXT_OBJ = .obj
+       EXT_ASM = .asm
+       EXE = .exe
+       export
+    elseif $(mem $(OSTYPE), Unix Cygwin)
+       EXT_LIB = .a
+       EXT_OBJ = .o
+       EXT_ASM = .s
+       EXE =
+       export
+    else
+       # Abort on other architectures
+       eprintln(OS type $(OSTYPE) is not recognized)
+       exit(1)
+</pre>
+<p>
+<h4><a name="section_11">Matching</a></h4>
+
+<p>
+Pattern matching is performed with the <tt>switch</tt> and <tt>match</tt> forms.
+<p>
+<pre>
+    switch &lt;string&gt;
+    case &lt;pattern1&gt;
+        &lt;clause1&gt;
+    case &lt;pattern2&gt;
+        &lt;clause2&gt;
+    ...
+    default
+       &lt;default-clause&gt;
+</pre>
+<p>
+The number of cases is arbitrary.
+The <tt>default</tt> clause is optional; however, if it is used it should
+be the last clause in the pattern match.
+<p>
+For <tt>switch</tt>, the string is compared with the patterns literally.
+<p>
+<pre>
+    switch $(HOST)
+    case mymachine
+        println(Building on mymachine)
+    default
+        println(Building on some other machine)
+</pre>
+<p>
+Patterns need not be constant strings. The following function tests
+for a literal match against <tt>pattern1</tt>, and a match against
+<tt>pattern2</tt> with <tt>##</tt> delimiters.
+<p>
+<pre>
+   Switch2(s, pattern1, pattern2) =
+      switch $(s)
+      case $(pattern1)
+          println(Pattern1)
+      case $"##$(pattern2)##"
+          println(Pattern2)
+      default
+          println(Neither pattern matched)
+</pre>
+<p>
+For <tt>match</tt> the patterns are <em>egrep</em>(1)-style
+regular expressions.
+The numeric variables <tt>$1, $2, ...</tt> can be used to retrieve values
+that are matched by <tt>\(...\)</tt> expressions.
+<p>
+<pre>
+    match $(NODENAME)@$(SYSNAME)@$(RELEASE)
+    case $"mymachine.*@\(.*\)@\(.*\)"
+        println(Compiling on mymachine; sysname $1 and release $2 are ignored)
+
+    case $".*@Linux@.*2\.4\.\(.*\)"
+        println(Compiling on a Linux 2.4 system; subrelease is $1)
+
+    default
+        eprintln(Machine configuration not implemented)
+        exit(1)
+</pre>
+<p>
+<h2><a name="section_12">Objects</a></h2>
+
+<p>
+OMake is an object-oriented language. Generally speaking, an object is a value that contains fields
+and methods. An object is defined with a <tt>.</tt> suffix for a variable. For example, the
+following object might be used to specify a point $(1, 5)$ on the two-dimensional plane.
+<p>
+<pre>
+    Coord. =
+        x = 1
+        y = 5
+        print(message) =
+           println($"$(message): the point is ($(x), $(y)")
+
+    # Define X to be 5
+    X = $(Coord.x)
+
+    # This prints the string, "Hi: the point is (1, 5)"
+    Coord.print(Hi)
+</pre>
+<p>
+The fields <tt>x</tt> and <tt>y</tt> represent the coordinates of the point. The method <tt>print</tt>
+prints out the position of the point.
+<p>
+<h4><a name="section_13">Classes</a></h4>
+
+<p>
+We can also define <em>classes</em>.
+For example, suppose we wish to define a generic <tt>Point</tt>
+class with some methods to create, move, and print a point. A class is really just an object with
+a name, defined with the <tt>class</tt> directive.
+<p>
+<pre>
+    Point. =
+        class Point
+
+        # Default values for the fields
+        x = 0
+        y = 0
+
+        # Create a new point from the coordinates
+        new(x, y) =
+           this.x = $(x)
+           this.y = $(y)
+           return $(this)
+
+        # Move the point to the right
+        move-right() =
+           x = $(add $(x), 1)
+           return $(this)
+
+        # Print the point
+        print() =
+           println($"The point is ($(x), $(y)")
+
+    p1 = $(Point.new 1, 5)
+    p2 = $(p1.move-right)
+
+    # Prints "The point is (1, 5)"
+    p1.print()
+
+    # Prints "The point is (2, 5)"
+    p2.print()
+</pre>
+<p>
+Note that the variable <tt>$(this)</tt> is used to refer to the current object. Also, classes and
+objects are <em>functional</em>---the
+<tt>new</tt> and <tt>move-right</tt> methods return new objects. In
+this example, the object <tt>p2</tt> is a different object from <tt>p1</tt>, which retains the original
+$(1, 5)$ coordinates.
+<p>
+<h4><a name="section_14">Inheritance</a></h4>
+
+<p>
+Classes and objects support inheritance (including multiple inheritance) with the <tt>extends</tt>
+directive. The following definition of <tt>Point3D</tt> defines a point with <tt>x</tt>, <tt>y</tt>, and
+<tt>z</tt> fields. The new object inherits all of the methods and fields of the parent classes/objects.
+<p>
+<pre>
+    Z. =
+       z = 0
+
+    Point3D. =
+       extends $(Point)
+       extends $(Z)
+       class Point3D
+
+       print() =
+          println($"The 3D point is ($(x), $(y), $(z))")
+
+    # The "new" method was not redefined, so this
+    # defines a new point (1, 5, 0).
+    p = $(Point3D.new 1, 5)
+</pre>
+<p>
+<h2><a name="section_15">Special objects/sections</a></h2>
+
+<p>
+Objects provide one way to manage the OMake namespace. There are also four special objects that are
+further used to control the namespace.
+<p>
+<h4><a name="section_16">private.</a></h4>
+
+<p>
+The <tt>private.</tt> section is used to define variables that are private to the current file/scope.
+The values are not accessible outside the scope. Variables defined in a <tt>private.</tt> object can
+be accessed only from within the section where they are defined.
+<p>
+<pre>
+    Obj. =
+       private. =
+          X = 1
+
+       print() =
+          println(The value of X is: $(X))
+
+    # Prints:
+    #    The private value of X is: 1
+    Obj.print()
+
+    # This is an error--X is private in Obj
+    y = $(Obj.X)
+</pre>
+<p>
+In addition, private definitions do not affect the global value of a variable.
+<p>
+<pre>
+   # The public value of x is 1
+   x = 1
+   f() =
+       println(The public value of x is: $(x))
+
+   # This object uses a private value of x
+   Obj. =
+       private. =
+          x = 2
+
+       print() =
+          x = 3
+          println(The private value of x is: $(x))
+          f()
+
+   # Prints:
+   #    The private value of x is: 3
+   #    The public value of x is: 1
+   Obj.print()
+</pre>
+<p>
+Private variables have two additional properties.
+<p>
+<ol compact>
+<li value =1>Private variables are local to the file in which they are defined.
+</li>
+<li value =2>Private variables are not exported by the <tt>export</tt> directive, unless they are
+mentioned explicitly.
+<p>
+<pre>
+       private. =
+          FLAG = true
+
+       section
+          FLAG = false
+          export
+
+       # FLAG is still true
+       section
+          FLAG = false
+          export FLAG
+
+       # FLAG is now false
+</pre>
+</li>
+</ol>
+<p>
+<h4><a name="section_17">protected.</a></h4>
+
+<p>
+The <tt>protected.</tt> object is used to define fields that are local to an object. They can
+be accessed as fields, but they are not passed dynamically to other functions. The purpose of a
+protected variable is to prevent a variable definition within the object from affecting other parts
+of the project.
+<p>
+<pre>
+    X = 1
+    f() =
+       println(The public value of X is: $(X))
+
+    # Prints:
+    #    The public value of X is: 2
+    section
+       X = 2
+       f()
+
+    # X is a protected field in the object
+    Obj. =
+       protected. =
+          X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The public value of X is: 1
+    Obj.print()
+
+    # This is legal, it defines Y as 3
+    Y = $(Obj.X)
+</pre>
+<p>
+In general, it is a good idea to define object variables as protected. The resulting code is more
+modular because variables in your object will not produce unexpected clashes with variables defined
+in other parts of the project.
+<p>
+<h4><a name="section_18">public.</a></h4>
+
+<p>
+The <tt>public.</tt> object is used to specify public dynamically-scoped variables. In the following
+example, the <tt>public.</tt> object specifies that the value <tt>X = 4</tt> is to be dynamically
+scoped. Public variables <em>are not</em>
+defined as fields of an object.
+<p>
+<pre>
+    X = 1
+    f() =
+       println(The public value of X is: $(X))
+
+    # Prints:
+    #    The public value of X is: 2
+    section
+       X = 2
+       f()
+
+    Obj. =
+       protected. =
+          X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          public. =
+             X = 4
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The public value of X is: 4
+    Obj.print()
+</pre>
+<p>
+<h4><a name="section_19">static.</a></h4>
+
+<p>
+The <tt>static.</tt> object is used to specify values that are persistent across runs of OMake. They
+are frequently used for configuring a project. Configuring a project can be expensive, so the
+<tt>static.</tt> object ensure that the configuration is performed just once. In the following
+(somewhat trivial) example, a <tt>static</tt> section is used to determine if the LaTeX command is
+available. The <tt>$(where latex)</tt> function returns the full pathname for <tt>latex</tt>, or
+<tt>false</tt> if the command is not found.
+<p>
+<pre>
+   static. =
+      LATEX_ENABLED = false
+      print(--- Determining if LaTeX is installed )
+      if $(where latex)
+          LATEX_ENABLED = true
+          export
+
+      if $(LATEX_ENABLED)
+         println($'(enabled)')
+      else
+         println($'(disabled)')
+</pre>
+<p>
+As a matter of style, a <tt>static.</tt> section that is used for configuration should print what it
+is doing, using <tt>---</tt> as a print prefix.
+<p>
+<h4><a name="section_20">Short syntax for scoping objects</a></h4>
+
+<p>
+The usual dot-notation can be used for private, protected, and public variables (but not
+static variables).
+<p>
+<pre>
+    # Public definition of X
+    public.X = 1
+
+    # Private definition of X
+    private.X = 2
+
+    # Prints:
+    #    The public value of X is: 1
+    #    The private value of X is: 2
+    println(The public value of X is: $(public.X))
+    println(The private value of X is: $(private.X))
+</pre>
+<p>
+<h4><a name="section_21">Modular programming</a></h4>
+
+<p>
+The scoping objects help provide a form of modularity. When you write a new file or program,
+explicit scoping declarations can be used to define an explicit interface for your code, and help
+avoid name clashes with other parts of the project. Variable definitions are public by default, but
+you can control this with private definitions.
+<p>
+<pre>
+    # These variables are private to this file
+    private. =
+       FILES = foo1 foo2 foo3
+       SUFFIX = .o
+       OFILES = $(addsuffix $(SUFFIX), $(FILES))
+
+    # These variables are public
+    public. =
+       CFLAGS += -g
+
+    # Build the files with the -g option
+    $(OFILES):
+</pre>
+<p>
+<h2><a name="section_22">References</a></h2>
+
+<p>
+<h4><a name="section_23">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_24">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_25">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_26">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->

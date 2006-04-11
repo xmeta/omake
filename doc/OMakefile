@@ -1,0 +1,278 @@
+BUILTIN = $(dir $(ROOT)/src/builtin)
+
+#
+# Documentation files
+#
+MAN_BASE_FILES[] =
+    $(BUILTIN)/omake_builtin_base.ml
+    $(BUILTIN)/omake_builtin_arith.ml
+    $(BUILTIN)/omake_builtin_fun.ml
+    $(BUILTIN)/omake_builtin_object.ml
+    $(BUILTIN)/omake_builtin_file.ml
+    $(BUILTIN)/omake_builtin_test.ml
+
+MAN_SYSTEM_FILES[] =
+    $(BUILTIN)/omake_builtin_io.ml
+    $(BUILTIN)/omake_builtin_io_fun.ml
+    $(BUILTIN)/omake_builtin_sys.ml
+    $(BUILTIN)/omake_builtin_shell.ml
+
+MAN_PERVASIVES_FILES[] =
+    $(LIB)/Pervasives.om
+
+MAN_ROOT_FILES[] =
+    $(BUILTIN)/omake_builtin_rule.ml
+    $(LIB)/build/Common.om
+    $(LIB)/build/C.om
+    $(LIB)/build/OCaml.om
+    $(LIB)/build/LaTeX.om
+    $(BUILTIN)/omake_builtin_target.ml
+
+MAN_BASE_FILES       = $(file $(MAN_BASE_FILES))
+MAN_SYSTEM_FILES     = $(file $(MAN_SYSTEM_FILES))
+MAN_PERVASIVES_FILES = $(file $(MAN_PERVASIVES_FILES))
+MAN_ROOT_FILES       = $(file $(MAN_ROOT_FILES))
+MAN_ALL_FILES[] =
+    $(MAN_BASE_FILES)
+    $(MAN_SYSTEM_FILES)
+    $(MAN_PERVASIVES_FILES)
+    $(MAN_ROOT_FILES)
+
+########################################################################
+# Documentation
+#
+Shell. +=
+   #
+   # Extract the text between the following delimiters.
+   #
+   # \begin{doc}
+   # ...
+   # \end{doc}
+   #
+   extract-doc-text(argv) =
+      print = false
+
+      awk($(argv))
+      case $'\\end\{doc\}'
+         print = false
+         export
+      default
+         if $(print)
+            println($0)
+      case $'\\begin\{doc\}'
+         print = true
+         export
+
+   remove-leading-comment-text(argv) =
+      fsubst($(argv))
+      case $'^[ \t]*[*#] ?'
+         value
+
+   extract-docs(argv) =
+      extract-doc-text $(argv) | remove-leading-comment-text
+
+   #
+   # Fix up output from latex2man so that it does
+   # not have trailing whitespace.
+   #
+   remove-trailing-whitespace(argv) =
+      fsubst($(argv))
+      case $'[ \t]+$'
+         value
+
+   #
+   # Latex2Man puts a timestamp into every file. This makes CVS think that the file
+   # has changed...
+   #
+   remove-latex2man-date(argv) =
+      fsubst($(argv))
+      case $'\(Manual page created with latex2man\) on .* [2-9][0-9][0-9][0-9]'
+         value $1
+
+   #
+   # In HTML, convert double-quotes to something better
+   #
+   html-convert-quotes(argv) =
+      fsubst($(argv))
+      case $"``" g
+          value $'&ldquo;'
+      case $"''" g
+          value $'&rdquo;'
+
+#
+# Generating the TeX files.
+#
+PROLOGUE_FILES[] =
+    omake-prologue
+
+EPILOGUE_FILES[] =
+    omake-notes
+    omake-epilogue
+
+PROLOGUE_FILES[] = $(add-wrapper src/, .tex, $(PROLOGUE_FILES))
+EPILOGUE_FILES[] = $(add-wrapper src/, .tex, $(EPILOGUE_FILES))
+
+#
+# Standard sections not extracted from the source code
+#
+INDEX_FILES[] =
+    omake-index-prologue
+    omake-index
+
+QUICKSTART_FILES[] =
+    omake-examples-prologue
+    omake-examples
+
+OPTIONS_FILES[] =
+    omake-options-prologue
+    omake-options
+
+LANGUAGE_FILES[] =
+    omake-language-prologue
+    omake-language
+
+RULES_FILES[] =
+    omake-rules-prologue
+    omake-rules
+
+SHELL_FILES[] =
+    omake-shell-prologue
+    omake-shell
+
+OSH_FILES[] =
+    osh-prologue
+    osh
+
+ALL_FILES[] =
+    omake-index-prologue
+    omake-index
+    omake-examples
+    omake-options
+    omake-language
+    omake-rules
+    osh
+
+ALL_FILES = $(add-wrapper src/, .tex, $(ALL_FILES))
+
+#
+# Cat the files in various ways
+#
+ManDocument(dst, files) =
+   FILES = $(add-wrapper src/, .tex, $(files))
+
+   tex/$(dst).tex: $(FILES) $(PROLOGUE_FILES) $(EPILOGUE_FILES)
+      cat $(PROLOGUE_FILES) $(FILES) $(EPILOGUE_FILES) > $@
+
+ManDocument(osh,              $(OSH_FILES))
+ManDocument(omake,            $(INDEX_FILES))
+ManDocument(omake-options,    $(OPTIONS_FILES))
+ManDocument(omake-quickstart, $(QUICKSTART_FILES))
+ManDocument(omake-language,   $(LANGUAGE_FILES))
+ManDocument(omake-shell,      $(SHELL_FILES))
+ManDocument(omake-rules,      $(RULES_FILES))
+
+#
+# Extract the documentation from the src files.
+#
+ExtractManDocument(dst, files) =
+    PROLOGUE_FILES += $(add-wrapper src/, -prologue.tex, $(dst))
+
+    tex/$(dst).tex: $(files) $(PROLOGUE_FILES) $(EPILOGUE_FILES)
+        cat $(PROLOGUE_FILES) > $@
+        extract-docs $(files) >> $@
+        cat $(EPILOGUE_FILES) >> $@
+
+ExtractManDocument(omake-base,       $(MAN_BASE_FILES))
+ExtractManDocument(omake-system,     $(MAN_SYSTEM_FILES))
+ExtractManDocument(omake-pervasives, $(MAN_PERVASIVES_FILES))
+ExtractManDocument(omake-root,       $(MAN_ROOT_FILES))
+
+#
+# Everything on one page
+#
+tex/omake-doc.tex: $(ALL_FILES) $(MAN_ALL_FILES) $(PROLOGUE_FILES) $(EPILOGUE_FILES)
+    cat $(PROLOGUE_FILES) $(ALL_FILES) > $@
+    extract-docs $(MAN_ALL_FILES) >> $@
+    cat $(EPILOGUE_FILES) >> $@
+
+#
+# All the documents we care about
+#
+MAN_FILES[] =
+    osh
+    omake
+    omake-options
+    omake-quickstart
+    omake-language
+    omake-shell
+    omake-rules
+    omake-base
+    omake-system
+    omake-pervasives
+    omake-root
+    omake-doc
+
+TXT_DOCUMENTS  = $(file $(add-wrapper man/,  .txt,     $(MAN_FILES)))
+MAN_DOCUMENTS  = $(file $(add-wrapper man/,  .1,       $(MAN_FILES)))
+HTML_DOCUMENTS = $(file $(add-wrapper html/, .html,    $(MAN_FILES)))
+
+#
+# Macros file
+#
+OMAKE_MACROS = $(file src/omake-macros.pl)
+
+#
+# Normal LaTeX version
+#
+if $(MAN_ENABLED)
+    .SUBDIRS: html
+         $(HTML_DOCUMENTS): %.html: ../tex/%.tex $(OMAKE_MACROS)
+            +LANG=C latex2man -t$(OMAKE_MACROS) -H $< $@.tmp
+            remove-latex2man-date $@.tmp | remove-trailing-whitespace | html-convert-quotes > $@
+            rm $@.tmp
+
+    .SUBDIRS: man
+        $(MAN_DOCUMENTS): %.1: ../tex/%.tex $(OMAKE_MACROS)
+            +LANG=C latex2man -t$(OMAKE_MACROS) -M $< $@.tmp
+            remove-latex2man-date $@.tmp | remove-trailing-whitespace > $@
+            rm $@.tmp
+
+        TROFF_OK = false
+        static. =
+            if $(CheckProg troff)
+                print(--- Checking whether troff version >= 1.19... )
+                VERSION = $(last $(shell troff --version))
+                TROFF_OK = $(ge $(cmp-versions $(VERSION), 1.19), 0)
+                println($'(Version '$(VERSION) $(if $(TROFF_OK), $'OK)', $'TOO OLD)'))
+                export TROFF_OK
+
+        if $(TROFF_OK)
+            $(TXT_DOCUMENTS): %.txt: %.1
+                +LANG=C troff -man -Tascii $< | grotty -c -b -u -o > $@
+
+
+    #
+    # Everything on one page.
+    #
+    ps/omake-doc.tex: tex/omake-doc.tex $(OMAKE_MACROS)
+        +LANG=C latex2man -t$(OMAKE_MACROS) -L $< $@.tmp
+        remove-latex2man-date $@.tmp | remove-trailing-whitespace > $@
+        rm $@.tmp
+
+    .SUBDIRS: ps
+        LaTeXDocument(omake-doc, omake-doc)
+
+#
+# Install man pages too
+#
+txt: $(TXT_DOCUMENTS)
+man: $(MAN_DOCUMENTS)
+html: $(HTML_DOCUMENTS)
+tex: ps/omake-doc.ps ps/omake-doc.pdf
+
+install: $(MAN_DOCUMENTS)
+    mkdir -p "$(INSTALL_MANDIR)/man1"
+    cp -f -m 444 $(MAN_DOCUMENTS) "$(INSTALL_MANDIR)/man1/"
+
+clean:
+    $(CLEAN) ps/*.aux ps/*.fls ps/*.log ps/*.tex tex/*.tex

@@ -1,0 +1,694 @@
+OMAKE-LANGUAGE(1)                Build Tools                 OMAKE-LANGUAGE(1)
+
+
+
+NAME
+       omake  is  a flexible build system designed for building a wide variety
+       of projects.  This document describes the language concepts and syntax.
+       For an overview of omake, see the omake(1) man page.
+
+
+OMAKE CONCEPTS AND SYNTAX
+       Projects  are  specified to omake with OMakefiles.  The OMakefile has a
+       format similar to a Makefile.  An OMakefile has  three  main  kinds  of
+       syntactic objects: variable definitions, function definitions, and rule
+       definitions.
+
+
+   VARIABLES
+       Variables are defined with  the  following  syntax.  The  name  is  any
+       sequence of alphanumeric characters, underscore _, and hyphen -.
+
+          <name> = <value>
+
+
+       Values  are  defined  as  a sequence of literal characters and variable
+       expansions. A variable expansion has the form $(<name>),  which  repre-
+       sents the value of the <name> variable in the current environment. Some
+       examples are shown below.
+
+          CC = gcc
+          CFLAGS = -Wall -g
+          COMMAND = $(CC) $(CFLAGS) -O2
+
+
+       In this example, the value of the COMMAND variable is  the  string  gcc
+       -Wall -g -O2.
+
+       Unlike  make(1),  variable  expansion is eager and functional (see also
+       the section on Scoping). That is, variable values are expanded  immedi-
+       ately and new variable definitions do not affect old ones. For example,
+       suppose we extend the previous example with following variable  defini-
+       tions.
+
+          X = $(COMMAND)
+          COMMAND = $(COMMAND) -O3
+          Y = $(COMMAND)
+
+
+       In this example, the value of the X variable is the string gcc -Wall -g
+       -O2 as before, and the value of the Y variable is gcc -Wall -g -O2 -O3.
+
+
+   ADDING TO A VARIABLE DEFINITION
+       Variables  definitions may also use the += operator, which adds the new
+       text to an existing  definition.  The  following  two  definitions  are
+       equivalent.
+
+          # Add options to the CFLAGS variable
+          CFLAGS = $(CFLAGS) -Wall -g
+
+          # The following definition is equivalent
+          CFLAGS += -Wall -g
+
+
+
+   ARRAYS
+       Arrays can be defined by appending the [] sequence to the variable name
+       and defining initial values for the elements as separate lines.  White-
+       space is significant on each line. The following code sequence prints c
+       d e.
+
+           X[] =
+               a b
+               c d e
+               f
+
+           println($(nth 2, $(X)))
+
+
+
+   SPECIAL CHARACTERS AND QUOTING
+       The following characters are special to omake: $():,=#\. To  treat  any
+       of  these  characters  as  normal text, they should be escaped with the
+       backslash character \.
+
+           DOLLAR = \$
+
+
+       Newlines may also be escaped with a backslash  to  concatenate  several
+       lines.
+
+           FILES = a.c\
+                   b.c\
+                   c.c
+
+
+       Note  that  the  backslash is not an escape for any other character, so
+       the following works as expected (that is, it preserves the  backslashes
+       in the string).
+
+           DOSTARGET = C:\WINDOWS\control.ini
+
+
+       An  alternative  mechanism  for  quoting special text is the use $"..."
+       escapes. The number of double-quotations is  arbitrary.  The  outermost
+       quotations are not included in the text.
+
+           A = $""String containing "quoted text" ""
+           B = $"""Multi-line
+               text.
+               The # character is not special"""
+
+
+
+   FUNCTION DEFINITIONS
+       Functions are defined using the following syntax.
+
+          <name>(<params>) =
+             <indented-body>
+
+
+       The  parameters are a comma-separated list of identifiers, and the body
+       must be placed on a separate set of lines that are  indented  from  the
+       function  definition  itself. For example, the following text defines a
+       function that concatenates its arguments, separating them with a colon.
+
+           ColonFun(a, b) =
+               return($(a):$(b))
+
+
+       The  return expression can be used to return a value from the function.
+       A return statement is not required; if  it  is  omitted,  the  returned
+       value  is the value of the last expression in the body to be evaluated.
+       NOTE: as of version 0.9.6, return is a control operation,  causing  the
+       function  to  immediately  return.  In  the following example, when the
+       argument a is true, the function f  immediately  returns  the  value  1
+       without evaluating the print statement.
+
+           f(a) =
+              if $(a)
+                 return 1
+              println(The argument is false)
+              return 0
+
+
+       In  many  cases,  you may wish to return a value from a section or code
+       block without returning from the function. In this case, you would  use
+       the value operator. In fact, the value operator is not limited to func-
+       tions, it can be used any place where a value is required. In the  fol-
+       lowing  definition,  the  variable X is defined as 1 or 2, depending on
+       the value of a, then result is printed, and returned from the function.
+
+           f_value(a) =
+              X =
+                 if $(a)
+                    value 1
+                 else
+                    value 2
+              println(The value of X is $(X))
+              value $(X)
+
+
+       Functions are called using the GNU-make syntax, $(<name> <args)), where
+       <args> is a comma-separated list of values. For example, in the follow-
+       ing program, the variable X contains the value foo:bar.
+
+          X = $(ColonFun foo, bar)
+
+
+       If  the  value  of  a  function is not needed, the function may also be
+       called using standard function call notation. For example, the  follow-
+       ing program prints the string ``She says: Hello world''.
+
+           Printer(name) =
+               println($(name) says: Hello world)
+
+           Printer(She)
+
+
+
+   COMMENTS
+       Comments  begin  with  the  #  character and continue to the end of the
+       line.
+
+
+   FILE INCLUSION
+       Files may be included with the include form. The included file must use
+       the same syntax as an OMakefile.
+
+           include files.omake
+
+
+
+   SCOPING, SECTIONS
+       Scopes  in  omake are defined by indentation level. When indentation is
+       increased, such as in the body of a function, a  new  scope  is  intro-
+       duced.
+
+       The  section  form can also be used to define a new scope. For example,
+       the following code prints the line X = 2, followed by the line X = 1.
+
+           X = 1
+           section
+               X = 2
+               println(X = $(X))
+
+           println(X = $(X))
+
+
+       This result may seem surprising--the  variable  definition  within  the
+       section is not visible outside the scope of the section.
+
+       The export form can be used to circumvent this restriction by exporting
+       variable values from an inner scope. It must be the final expression in
+       a  scope.  For  example, if we modify the previous example by adding an
+       export expression, the new value for the X variable  is  retained,  and
+       the code prints the line X = 2 twice.
+
+           X = 1
+           section
+               X = 2
+               println(X = $(X))
+               export
+
+           println(X = $(X))
+
+
+       There  are  also  cases  where separate scoping is quite important. For
+       example, each OMakefile is evaluated in its own scope. Since each  part
+       of a project may have its own configuration, it is important that vari-
+       able definitions in one OMakefile do  not  affect  the  definitions  in
+       another.
+
+       To  give  another  example, in some cases it is convenient to specify a
+       separate set of variables for different build targets. A frequent idiom
+       in  this case is to use the section command to define a separate scope.
+
+          section
+             CFLAGS += -g
+             %.c: %.y
+                 $(YACC) $<
+             .SUBDIRS: foo
+
+          .SUBDIRS: bar baz
+
+
+       In this example, the -g option is added to the CFLAGS variable  by  the
+       foo  subdirectory, but not by the bar and baz directories. The implicit
+       rules are scoped as well and in this example, the newly added yacc rule
+       will  be  inherited by the foo subdirectory, but not by the bar and baz
+       ones; furthermore this implicit rule will not be in scope in  the  cur-
+       rent directory.
+
+
+   CONDITIONALS
+       Top level conditionals have the following form.
+
+           if <test>
+              <true-clause>
+           elseif <text>
+              <elseif-clause>
+           else
+              <else-clause>
+
+
+       The <test> expression is evaluated, and if it evaluates to a true value
+       (see the Logic section), the code for the <true-clause>  is  evaluated;
+       otherwise  the  remaining  clauses are evaluated. There may be multiple
+       elseif clauses; both the elseif and else clauses  are  optional.   Note
+       that the clauses are indented, so they introduce new scopes.
+
+       The  following  example illustrates a typical use of a conditional. The
+       OSTYPE variable is the current machine architecture.
+
+           # Common suffixes for files
+           if $(equal $(OSTYPE), Win32)
+              EXT_LIB = .lib
+              EXT_OBJ = .obj
+              EXT_ASM = .asm
+              EXE = .exe
+              export
+           elseif $(mem $(OSTYPE), Unix Cygwin)
+              EXT_LIB = .a
+              EXT_OBJ = .o
+              EXT_ASM = .s
+              EXE =
+              export
+           else
+              # Abort on other architectures
+              eprintln(OS type $(OSTYPE) is not recognized)
+              exit(1)
+
+
+
+   MATCHING
+       Pattern matching is performed with the switch and match forms.
+
+           switch <string>
+           case <pattern1>
+               <clause1>
+           case <pattern2>
+               <clause2>
+           ...
+           default
+              <default-clause>
+
+
+       The number of cases is arbitrary.  The default clause is optional; how-
+       ever,  if it is used it should be the last clause in the pattern match.
+
+       For switch, the string is compared with the patterns literally.
+
+           switch $(HOST)
+           case mymachine
+               println(Building on mymachine)
+           default
+               println(Building on some other machine)
+
+
+       Patterns need not be constant strings. The following function tests for
+       a  literal match against pattern1, and a match against pattern2 with ##
+       delimiters.
+
+          Switch2(s, pattern1, pattern2) =
+             switch $(s)
+             case $(pattern1)
+                 println(Pattern1)
+             case $"##$(pattern2)##"
+                 println(Pattern2)
+             default
+                 println(Neither pattern matched)
+
+
+       For match the patterns are  egrep(1)-style  regular  expressions.   The
+       numeric  variables  $1, $2, ... can be used to retrieve values that are
+       matched by \(...\) expressions.
+
+           match $(NODENAME)@$(SYSNAME)@$(RELEASE)
+           case $"mymachine.*@\(.*\)@\(.*\)"
+               println(Compiling on mymachine; sysname $1 and release $2 are ignored)
+
+           case $".*@Linux@.*2\.4\.\(.*\)"
+               println(Compiling on a Linux 2.4 system; subrelease is $1)
+
+           default
+               eprintln(Machine configuration not implemented)
+               exit(1)
+
+
+
+OBJECTS
+       OMake is an object-oriented language. Generally speaking, an object  is
+       a value that contains fields and methods. An object is defined with a .
+       suffix for a variable. For example, the following object might be  used
+       to specify a point $(1, 5)$ on the two-dimensional plane.
+
+           Coord. =
+               x = 1
+               y = 5
+               print(message) =
+                  println($"$(message): the point is ($(x), $(y)")
+
+           # Define X to be 5
+           X = $(Coord.x)
+
+           # This prints the string, "Hi: the point is (1, 5)"
+           Coord.print(Hi)
+
+
+       The  fields  x and y represent the coordinates of the point. The method
+       print prints out the position of the point.
+
+
+   CLASSES
+       We can also define classes.  For example, suppose we wish to  define  a
+       generic  Point  class  with  some  methods to create, move, and print a
+       point. A class is really just an object with a name, defined  with  the
+       class directive.
+
+           Point. =
+               class Point
+
+               # Default values for the fields
+               x = 0
+               y = 0
+
+               # Create a new point from the coordinates
+               new(x, y) =
+                  this.x = $(x)
+                  this.y = $(y)
+                  return $(this)
+
+               # Move the point to the right
+               move-right() =
+                  x = $(add $(x), 1)
+                  return $(this)
+
+               # Print the point
+               print() =
+                  println($"The point is ($(x), $(y)")
+
+           p1 = $(Point.new 1, 5)
+           p2 = $(p1.move-right)
+
+           # Prints "The point is (1, 5)"
+           p1.print()
+
+           # Prints "The point is (2, 5)"
+           p2.print()
+
+
+       Note  that the variable $(this) is used to refer to the current object.
+       Also, classes and objects are functional---the new and move-right meth-
+       ods  return  new objects. In this example, the object p2 is a different
+       object from p1, which retains the original $(1, 5)$ coordinates.
+
+
+   INHERITANCE
+       Classes and objects support  inheritance  (including  multiple  inheri-
+       tance)  with the extends directive. The following definition of Point3D
+       defines a point with x, y, and z fields. The new object inherits all of
+       the methods and fields of the parent classes/objects.
+
+           Z. =
+              z = 0
+
+           Point3D. =
+              extends $(Point)
+              extends $(Z)
+              class Point3D
+
+              print() =
+                 println($"The 3D point is ($(x), $(y), $(z))")
+
+           # The "new" method was not redefined, so this
+           # defines a new point (1, 5, 0).
+           p = $(Point3D.new 1, 5)
+
+
+
+SPECIAL OBJECTS/SECTIONS
+       Objects  provide  one way to manage the OMake namespace. There are also
+       four special objects that are further used to control the namespace.
+
+
+   PRIVATE.
+       The private. section is used to define variables that  are  private  to
+       the  current  file/scope.   The  values  are not accessible outside the
+       scope. Variables defined in a private. object can be accessed only from
+       within the section where they are defined.
+
+           Obj. =
+              private. =
+                 X = 1
+
+              print() =
+                 println(The value of X is: $(X))
+
+           # Prints:
+           #    The private value of X is: 1
+           Obj.print()
+
+           # This is an error--X is private in Obj
+           y = $(Obj.X)
+
+
+       In  addition,  private  definitions do not affect the global value of a
+       variable.
+
+          # The public value of x is 1
+          x = 1
+          f() =
+              println(The public value of x is: $(x))
+
+          # This object uses a private value of x
+          Obj. =
+              private. =
+                 x = 2
+
+              print() =
+                 x = 3
+                 println(The private value of x is: $(x))
+                 f()
+
+          # Prints:
+          #    The private value of x is: 3
+          #    The public value of x is: 1
+          Obj.print()
+
+
+       Private variables have two additional properties.
+
+
+       1.     Private variables are local  to  the  file  in  which  they  are
+              defined.
+
+       2.     Private  variables  are  not  exported  by the export directive,
+              unless they are mentioned explicitly.
+
+              private. =
+                 FLAG = true
+
+              section
+                 FLAG = false
+                 export
+
+              # FLAG is still true
+              section
+                 FLAG = false
+                 export FLAG
+
+              # FLAG is now false
+
+
+
+   PROTECTED.
+       The protected. object is used to define fields that  are  local  to  an
+       object. They can be accessed as fields, but they are not passed dynami-
+       cally to other functions. The purpose of a  protected  variable  is  to
+       prevent  a  variable  definition within the object from affecting other
+       parts of the project.
+
+           X = 1
+           f() =
+              println(The public value of X is: $(X))
+
+           # Prints:
+           #    The public value of X is: 2
+           section
+              X = 2
+              f()
+
+           # X is a protected field in the object
+           Obj. =
+              protected. =
+                 X = 3
+
+              print() =
+                 println(The protected value of X is: $(X))
+                 f()
+
+           # Prints:
+           #    The protected value of X is: 3
+           #    The public value of X is: 1
+           Obj.print()
+
+           # This is legal, it defines Y as 3
+           Y = $(Obj.X)
+
+
+       In general, it is a good idea to define object variables as  protected.
+       The  resulting  code  is  more modular because variables in your object
+       will not produce unexpected clashes with  variables  defined  in  other
+       parts of the project.
+
+
+   PUBLIC.
+       The  public.  object is used to specify public dynamically-scoped vari-
+       ables. In the following example, the public. object specifies that  the
+       value  X  =  4  is  to  be dynamically scoped. Public variables are not
+       defined as fields of an object.
+
+           X = 1
+           f() =
+              println(The public value of X is: $(X))
+
+           # Prints:
+           #    The public value of X is: 2
+           section
+              X = 2
+              f()
+
+           Obj. =
+              protected. =
+                 X = 3
+
+              print() =
+                 println(The protected value of X is: $(X))
+                 public. =
+                    X = 4
+                 f()
+
+           # Prints:
+           #    The protected value of X is: 3
+           #    The public value of X is: 4
+           Obj.print()
+
+
+
+   STATIC.
+       The static. object is used to specify values that are persistent across
+       runs of OMake. They are frequently used for configuring a project. Con-
+       figuring a project can be expensive, so the static. object ensure  that
+       the  configuration  is  performed just once. In the following (somewhat
+       trivial) example, a static section is used to determine  if  the  LaTeX
+       command  is  available.  The  $(where  latex) function returns the full
+       pathname for latex, or false if the command is not found.
+
+          static. =
+             LATEX_ENABLED = false
+             print(--- Determining if LaTeX is installed )
+             if $(where latex)
+                 LATEX_ENABLED = true
+                 export
+
+             if $(LATEX_ENABLED)
+                println($'(enabled)')
+             else
+                println($'(disabled)')
+
+
+       As a matter of style, a static. section that is used for  configuration
+       should print what it is doing, using --- as a print prefix.
+
+
+   SHORT SYNTAX FOR SCOPING OBJECTS
+       The  usual  dot-notation can be used for private, protected, and public
+       variables (but not static variables).
+
+           # Public definition of X
+           public.X = 1
+
+           # Private definition of X
+           private.X = 2
+
+           # Prints:
+           #    The public value of X is: 1
+           #    The private value of X is: 2
+           println(The public value of X is: $(public.X))
+           println(The private value of X is: $(private.X))
+
+
+
+   MODULAR PROGRAMMING
+       The scoping objects help provide a form of modularity. When you write a
+       new  file  or  program,  explicit  scoping  declarations can be used to
+       define an explicit interface for your code, and help avoid name clashes
+       with  other  parts  of  the project. Variable definitions are public by
+       default, but you can control this with private definitions.
+
+           # These variables are private to this file
+           private. =
+              FILES = foo1 foo2 foo3
+              SUFFIX = .o
+              OFILES = $(addsuffix $(SUFFIX), $(FILES))
+
+           # These variables are public
+           public. =
+              CFLAGS += -g
+
+           # Build the files with the -g option
+           $(OFILES):
+
+
+
+REFERENCES
+   SEE ALSO
+       omake(1),   omake-quickstart(1),    omake-options(1),    omake-root(1),
+       omake-language(1),   omake-shell(1),   omake-rules(1),   omake-base(1),
+       omake-system(1), omake-pervasives(1), osh(1), make(1)
+
+
+   VERSION
+       Version: 0.9.6.9 of April 11, 2006.
+
+
+   LICENSE AND COPYRIGHT
+       (C)2003-2006, Mojave Group, Caltech
+
+       This program is free software; you can redistribute it and/or modify it
+       under  the  terms of the GNU General Public License as published by the
+       Free Software Foundation; either version 2 of the License, or (at  your
+       option) any later version.
+
+       This  program  is  distributed  in the hope that it will be useful, but
+       WITHOUT ANY  WARRANTY;  without  even  the  implied  warranty  of  MER-
+       CHANTABILITY  or  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+       Public License for more details.
+
+       You should have received a copy of the GNU General Public License along
+       with this program; if not, write to the Free Software Foundation, Inc.,
+       675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+   AUTHOR
+       Jason Hickey et. al..br Caltech 256-80
+       Pasadena, CA 91125, USA
+       Email: omake-devel@metaprl.org
+       WWW: http://www.cs.caltech.edu/~jyh
+
+
+
+
+Build Tools                     April 11, 2006               OMAKE-LANGUAGE(1)

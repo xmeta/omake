@@ -1,0 +1,964 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE-ROOT</title></head>
+<body bgcolor="white">
+<h1 align=center>
+The OMakekroot file
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a flexible build system designed for building a wide variety of projects.
+This document describes the standard build configuration defined in the system <tt>OMakeroot</tt>.
+For an overview of <tt>omake</tt>,
+see the <a href="omake.html">omake(1)</a>
+man page.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">Build functions </a>
+<ul>
+<li><a href="#section_2">OMakeFlags </a></li>
+<li><a href="#section_3">OMakeVersion </a></li>
+<li><a href="#section_4">cmp-versions </a></li>
+<li><a href="#section_5">DefineCommandVars </a></li>
+</ul>
+<li><a href="#section_6">The OMakeroot file </a>
+<ul>
+<li><a href="#section_7">Variables </a></li>
+<li><a href="#section_8">System variables </a></li>
+</ul>
+<li><a href="#section_9">Building C programs </a>
+<ul>
+<li><a href="#section_10">C configuration variables </a></li>
+<li><a href="#section_11">CGeneratedFiles, LocalCGeneratedFiles </a></li>
+<li><a href="#section_12">StaticCLibrary </a></li>
+<li><a href="#section_13">StaticCLibraryCopy </a></li>
+<li><a href="#section_14">StaticCLibraryInstall </a></li>
+<li><a href="#section_15">StaticCObject, StaticCObjectCopy, StaticCObjectInstall </a></li>
+<li><a href="#section_16">CProgram </a></li>
+<li><a href="#section_17">CProgramCopy </a></li>
+<li><a href="#section_18">CProgramInstall </a></li>
+<li><a href="#section_19">CXXProgram, CXXProgramInstall </a></li>
+</ul>
+<li><a href="#section_20">Building OCaml programs </a>
+<ul>
+<li><a href="#section_21">Variables for OCaml programs </a></li>
+<li><a href="#section_22">OCaml command flags </a></li>
+<li><a href="#section_23">Library variables </a></li>
+<li><a href="#section_24">OCamlGeneratedFiles, LocalOCamlGeneratedFiles </a></li>
+<li><a href="#section_25">OCamlLibrary </a></li>
+<li><a href="#section_26">OCamlLibraryCopy </a></li>
+<li><a href="#section_27">OCamlLibraryInstall </a></li>
+<li><a href="#section_28">OCamlProgram </a></li>
+<li><a href="#section_29">OCamlProgramCopy </a></li>
+<li><a href="#section_30">OCamlProgramInstall </a></li>
+</ul>
+<li><a href="#section_31">Building LaTeX programs</a>
+<ul>
+<li><a href="#section_32">Configuration variables </a></li>
+<li><a href="#section_33">LaTeXDocument </a></li>
+<li><a href="#section_34">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
+<li><a href="#section_35">LaTeXDocumentCopy </a></li>
+<li><a href="#section_36">LaTeXDocumentInstall </a></li>
+</ul>
+<li><a href="#section_37">Examining the dependency graph </a>
+<ul>
+<li><a href="#section_38">dependencies, dependencies-all </a></li>
+<li><a href="#section_39">target </a></li>
+<li><a href="#section_40">rule </a></li>
+</ul>
+<li><a href="#section_41">References </a>
+<ul>
+<li><a href="#section_42">See Also </a></li>
+<li><a href="#section_43">Version </a></li>
+<li><a href="#section_44">License and Copyright </a></li>
+<li><a href="#section_45">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">Build functions</a></h2>
+
+<p>
+<h4><a name="section_2">OMakeFlags</a></h4>
+
+<p>
+<pre>
+   OMakeFlags(options)
+      options : String
+</pre>
+<p>
+The <tt>OMakeFlags</tt> function is used to set <tt>omake</tt> options from
+within <tt>OMakefile</tt>s.
+The options have exactly the same format as
+options on the command line.
+<p>
+For example, the following code displays the progress bar unless
+the <tt>VERBOSE</tt> environment variable is defined.
+<p>
+<pre>
+    if $(not $(defined-env VERBOSE))
+        OMakeFlags(-S --progress)
+        export
+</pre>
+<h4><a name="section_3">OMakeVersion</a></h4>
+
+<p>
+<pre>
+   OMakeVersion(version1)
+   OMakeVersion(version1, version2)
+      version1, version2 : String
+</pre>
+<p>
+The <tt>OMakeVersion</tt> function is used for version checking
+in <tt>OMakefile</tt>s.
+It takes one or two arguments.
+<p>
+In the one argument form, if the <tt>omake</tt>
+version number
+is less than <tt>&lt;version1&gt;</tt>,
+then an exception is raised. In the two argument form,
+the version must lie between <tt>version1</tt> and <tt>version2</tt>.
+<p>
+<h4><a name="section_4">cmp-versions</a></h4>
+
+<pre>
+   $(cmp-versions version1, version2)
+      version1, version2 : String
+</pre>
+<p>
+The <tt>cmp-versions\</tt> functions can be used to compare arbitrary version strings.
+It returns 0 when the two version strings are equal, a negative number when the first
+string represents an earlier version, and a positive number otherwise.
+<h4><a name="section_5">DefineCommandVars</a></h4>
+
+<p>
+<pre>
+   DefineCommandVars()
+</pre>
+<p>
+The <tt>DefineCommandVars</tt> function redefines the variables passed on
+the commandline. Variables definitions are passed on the command line
+in the form <tt>name=value</tt>. This function is primarily for internal
+use by <tt>omake</tt>
+to define these variables for the first time.
+<h2><a name="section_6">The OMakeroot file</a></h2>
+
+<p>
+The standard <tt>OMakeroot</tt>
+file defines the functions are rules
+for building standard projects.
+<p>
+<h4><a name="section_7">Variables</a></h4>
+
+<dl compact>
+<dt>ROOT</dt>
+<dd> The root directory of the current project.
+</dd>
+<dt>CWD</dt>
+<dd> The current working directory (the directory is set for each <tt>OMakefile</tt>
+in the project).
+</dd>
+<dt>EMPTY</dt>
+<dd> The empty string.
+</dd>
+<dt>STDROOT</dt>
+<dd> The name of the standard installed <tt>OMakeroot</tt>
+file.
+</dd>
+<dt>VERBOSE</dt>
+<dd> Whether certain commands should be verbose (<tt>false</tt> by default).
+</dd>
+</dl>
+<dl compact>
+<dt>ABORT_ON_COMMAND_ERROR</dt>
+<dd> If set to true, the construction of a target should
+be aborted whenever one of the commands to build it fail. This defaults to true,
+and should normally be left that way.
+<p>
+</dd>
+<dt><a name="SCANNERMODE">SCANNER_MODE</a>
+</dt>
+<dd> This variable should be defined as one of four values
+(defaults to <tt>enabled</tt>).
+<dl compact>
+<dt>enabled</dt>
+<dd> Allow the use of default <tt>.SCANNER</tt> rules. Whenever a rule does
+not specify a <tt>:scanner:</tt> dependency explicitly, try to find a
+<tt>.SCANNER</tt> with the same target name.
+</dd>
+<dt>disabled</dt>
+<dd> Never use default <tt>.SCANNER</tt> rules.
+</dd>
+<dt>warning</dt>
+<dd> Allow the use of default <tt>.SCANNER</tt> rules, but print a warning
+whenever one is selected.
+</dd>
+<dt>error</dt>
+<dd> Do not allow the use of default <tt>.SCANNER</tt> rules. If a rule
+does not specify a <tt>:scanner:</tt> dependency, and there is a default
+<tt>.SCANNER</tt> rule, the build will terminate abnormally.
+</dd>
+</dl>
+</dd>
+</dl>
+<h4><a name="section_8">System variables</a></h4>
+
+<p>
+<dl compact>
+<dt>INSTALL</dt>
+<dd> The command to install a program (<tt>install</tt> on <tt>Unix</tt>, <tt>cp</tt> on <tt>Win32</tt>).
+</dd>
+<dt>PATHSEP</dt>
+<dd> The normal path separator (<tt>:</tt> on <tt>Unix</tt>, <tt>;</tt> on <tt>Win32</tt>).
+</dd>
+<dt>DIRSEP</dt>
+<dd> The normal directory separator (<tt>/</tt> on <tt>Unix</tt>, <tt>\</tt> on <tt>Win32</tt>).
+</dd>
+<dt>EXT_LIB</dt>
+<dd> File suffix for a static library (default is <tt>.a</tt> on <tt>Unix</tt>, and <tt>.lib</tt> on <tt>Win32</tt>).
+</dd>
+<dt>EXT_OBJ</dt>
+<dd> File suffix for an object file (default is <tt>.o</tt> on <tt>Unix</tt>, and <tt>.obj</tt> on <tt>Win32</tt>).
+</dd>
+<dt>EXT_ASM</dt>
+<dd> File suffix for an assembly file (default is <tt>.s</tt> on <tt>Unix</tt>, and <tt>.asm</tt> on <tt>Win32</tt>).
+</dd>
+<dt>EXE</dt>
+<dd> File suffix for executables (default is empty for <tt>Unix</tt>, and <tt>.exe</tt> on <tt>Win32</tt> and <tt>Cygwin</tt>).
+</dd>
+</dl>
+<h2><a name="section_9">Building C programs</a></h2>
+
+<p>
+<tt>omake</tt>
+provides extensive support for building C programs.
+<p>
+<h4><a name="section_10">C configuration variables</a></h4>
+
+<p>
+The following variables can be redefined in your project.
+<p>
+<dl compact>
+<dt>CC</dt>
+<dd> The name of the C compiler (on <tt>Unix</tt> it defaults to <tt>gcc</tt> when <tt>gcc</tt> is present and
+to <tt>cc</tt> otherwise; on <tt>Win32</tt> defaults to <tt>cl /nologo</tt>).
+</dd>
+<dt>CXX</dt>
+<dd> The name of the C++ compiler (on <tt>Unix</tt> it defaults to <tt>gcc</tt> when <tt>gcc</tt> is present
+and to <tt>c</tt>++ otherwise; on <tt>Win32</tt> defaults to <tt>cl /nologo</tt>).
+</dd>
+<dt>CPP</dt>
+<dd> The name of the C preprocessor (defaults to <tt>cpp</tt> on <tt>Unix</tt>, and <tt>cl /E</tt> on <tt>Win32</tt>).
+</dd>
+<dt>CFLAGS</dt>
+<dd> Compilation flags to pass to the C compiler (default empty on <tt>Unix</tt>, and <tt>/DWIN32</tt>
+on <tt>Win32</tt>).
+</dd>
+<dt>CXXFLAGS</dt>
+<dd> Compilation flags to pass to the C++ compiler (default empty on <tt>Unix</tt>, and <tt>/DWIN32</tt>
+on <tt>Win32</tt>).
+</dd>
+<dt>INCLUDES</dt>
+<dd> Additional directories that specify the search path to the C and C++ compilers (default is <tt>.</tt>).
+The directories are passed to the C and C++ compilers with the <tt>-I</tt> option.
+The include path with <tt>-I</tt> prefixes is defined in the <tt>PREFIXED_INCLUDES</tt> variable.
+</dd>
+<dt>LIBS</dt>
+<dd> Additional libraries needed when building a program (default is empty).
+</dd>
+<dt>AS</dt>
+<dd> The name of the assembler (defaults to <tt>as</tt> on <tt>Unix</tt>, and <tt>ml</tt> on <tt>Win32</tt>).
+</dd>
+<dt>ASFLAGS</dt>
+<dd> Flags to pass to the assembler (default is empty on <tt>Unix</tt>, and <tt>/c /coff</tt> on <tt>Win32</tt>).
+</dd>
+<dt>AR</dt>
+<dd> The name of the program to create static libraries (defaults to <tt>ar cq</tt> on <tt>Unix</tt>,
+and <tt>lib</tt> on <tt>Win32</tt>).
+</dd>
+<dt>AROUT</dt>
+<dd> The option string that specifies the output file for <tt>AR</tt>.
+</dd>
+<dt>LD</dt>
+<dd> The name of the linker (defaults to <tt>ld</tt> on <tt>Unix</tt>, and <tt>cl</tt> on <tt>Win32</tt>).
+</dd>
+<dt>LDFLAGS</dt>
+<dd> Options to pass to the linker (default is empty).
+</dd>
+<dt>YACC</dt>
+<dd> The name of the <tt>yacc</tt> parser generator (default is <tt>yacc</tt> on <tt>Unix</tt>, empty on <tt>Win32</tt>).
+</dd>
+<dt>LEX</dt>
+<dd> The name of the <tt>lex</tt> lexer generator (default is <tt>lex</tt> on <tt>Unix</tt>, empty on <tt>Win32</tt>).
+</dd>
+</dl>
+<h4><a name="section_11">CGeneratedFiles, LocalCGeneratedFiles</a></h4>
+
+<pre>
+CGeneratedFiles(files)
+LocalCGeneratedFiles(files)
+</pre>
+<p>
+The <tt>CGeneratedFiles</tt> and <tt>LocalCGeneratedFiles</tt> functions specify files
+that need to be generated before any C files are scanned for dependencies. For example,
+if <tt>config.h</tt> and <tt>inputs.h</tt> are both generated files, specify:
+<pre>
+CGeneratedFiles(config.h inputs.h)
+</pre>
+<p>
+The <tt>CGeneratedFiles</tt> function is <em>global</em>
+--- its arguments will be generated
+before any C files anywhere in the project are scanned for dependencies. The
+<tt>LocalCGeneratedFiles</tt> function follows the normal scoping rules of OMake.
+<p>
+<h4><a name="section_12">StaticCLibrary</a></h4>
+
+<p>
+The <tt>StaticCLibrary</tt> builds a static library.
+<p>
+<tt>StaticCLibrary(&lt;target&gt;, &lt;files&gt;)</tt>
+<p>
+The <tt>&lt;target&gt;</tt> does <em>not</em>
+include the library suffix, and
+The <tt>&lt;files&gt;</tt> list does not include the object suffix. These
+are obtained from the <tt>EXT_LIB</tt> and <tt>EXT_OBJ</tt> variables.
+<p>
+This function returns the library filename.
+<p>
+The following command builds the library <tt>libfoo.a</tt> from the
+files <tt>a.o b.o c.o</tt> on <tt>Unix</tt>, or the library
+<tt>libfoo.lib</tt> from the files <tt>a.obj b.obj c.obj</tt>
+on <tt>Win32</tt>.
+<p>
+<pre>
+StaticCLibrary(libfoo, a b c)
+.DEFAULT: $(StaticCLibrary libbar, a b c d)
+</pre>
+<h4><a name="section_13">StaticCLibraryCopy</a></h4>
+
+<p>
+The <tt>StaticCLibraryCopy</tt> function copies the static library
+to an install location.
+<p>
+<tt>StaticCLibraryCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;lib&gt;)</tt>
+<p>
+The <tt>&lt;tag&gt;</tt> is the name of a target (typically a <tt>.PHONY</tt> target);
+the <tt>&lt;dir&gt;</tt> is the installation directory, and <tt>&lt;lib&gt;</tt> is
+the library to be copied (without the library suffix).
+<p>
+This function returns the filename of the library in the target directory.
+<p>
+For example, the following code copies the library
+<tt>libfoo.a</tt> to the <tt>/usr/lib</tt> directory.
+<p>
+<pre>
+.PHONY: install
+
+StaticCLibraryCopy(install, /usr/lib, libfoo)
+</pre>
+<h4><a name="section_14">StaticCLibraryInstall</a></h4>
+
+<p>
+The <tt>StaticCLibraryInstall</tt> function builds a library, and
+sets the install location in one step. It returns the filename of the library
+in the target directory.
+<p>
+<tt>StaticCLibraryInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;libname&gt;, &lt;files&gt;)</tt>
+<p>
+<pre>
+StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
+</pre>
+<h4><a name="section_15">StaticCObject, StaticCObjectCopy, StaticCObjectInstall</a></h4>
+
+<p>
+These functions mirror the <tt>StaticCLibrary</tt>, <tt>StaticCLibraryCopy</tt>,
+and <tt>StaticCLibraryInstall</tt> functions, but they build an <em>object</em>
+file (a <tt>.o</tt> file on <tt>Unix</tt>, and a <tt>.obj</tt> file on <tt>Win32</tt>).
+<h4><a name="section_16">CProgram</a></h4>
+
+<p>
+The <tt>CProgram</tt> function builds a C program from a set
+of object files and libraries.
+<p>
+<tt>CProgram(&lt;name&gt;, &lt;files&gt;)</tt>
+<p>
+The <tt>&lt;name&gt;</tt> argument specifies the name of the program to be built;
+the <tt>&lt;files&gt;</tt> argument specifies the files to be linked. The function
+returns the filename of the executable.
+<p>
+Additional options can be passed through the following variables.
+<dl compact>
+<dt>CFLAGS</dt>
+<dd> Flags used by the C compiler during the link step.
+</dd>
+<dt>LDFLAGS</dt>
+<dd> Flags to pass to the loader.
+</dd>
+<dt>LIBS</dt>
+<dd> Additional libraries to be linked.
+</dd>
+</dl>
+<p>
+For example, the following code specifies that the program
+<tt>foo</tt> is to be produced by linking the files <tt>bar.o</tt>
+and <tt>baz.o</tt> and libraries <tt>libfoo.a</tt>.
+<p>
+<pre>
+section
+   LIBS = libfoo$(EXT_LIB)
+   CProgram(foo, bar baz)
+</pre>
+<h4><a name="section_17">CProgramCopy</a></h4>
+
+<p>
+The <tt>CProgramCopy</tt> function copies a file to an install location.
+<p>
+<tt>CProgramCopy(&lt;tag&gt;, &lt;dir&gt;, &lt;program&gt;)</tt>
+<p>
+<pre>
+CProgramCopy(install, /usr/bin, foo)
+</pre>
+<h4><a name="section_18">CProgramInstall</a></h4>
+
+<p>
+The <tt>CProgramInstall</tt> function specifies a program to build,
+and a location to install, simultaneously.
+<p>
+<tt>CProgramInstall(&lt;tag&gt;, &lt;dir&gt;, &lt;name&gt;, &lt;files&gt;)</tt>
+<p>
+<pre>
+section
+   LIBS = libfoo$(EXT_LIB)
+   CProgramInstall(install, /usr/bin, foo, bar baz)
+</pre>
+<h4><a name="section_19">CXXProgram, CXXProgramInstall</a></h4>
+
+<p>
+The <tt>CXXProgram</tt> and <tt>CXXProgramInstall</tt> functions are
+equivalent to their C counterparts, except that would use <tt>$(CXX)</tt> and <tt>$(CXXFLAGS)</tt>
+for linking instead of <tt>$(CC)</tt> and <tt>$(CFLAGS)</tt>.
+<h2><a name="section_20">Building OCaml programs</a></h2>
+
+<p>
+<h4><a name="section_21">Variables for OCaml programs</a></h4>
+
+<p>
+The following variables can be redefined in your project.
+<dl compact>
+<dt>USE_OCAMLFIND</dt>
+<dd> Whether to use the <tt>ocamlfind</tt> utility (default <tt>false\</tt>)
+</dd>
+<dt>OCAMLC</dt>
+<dd> The OCaml bytecode compiler (default <tt>ocamlc.opt</tt> if it exists
+and <tt>USE_OCAMLFIND</tt> is not set, otherwise <tt>ocamlc</tt>).
+</dd>
+<dt>OCAMLOPT</dt>
+<dd> The OCaml native-code compiler (default <tt>ocamlopt.opt</tt> if it
+exists and <tt>USE_OCAMLFIND</tt> is not set, otherwise <tt>ocamlopt</tt>).
+</dd>
+<dt>CAMLP4</dt>
+<dd> The <tt>camlp4</tt> preprocessor (default <tt>camlp4</tt>).
+</dd>
+<dt>OCAMLLEX</dt>
+<dd> The OCaml lexer generator (default <tt>ocamllex</tt>).
+</dd>
+<dt>OCAMLLEXFLAGS</dt>
+<dd> The flags to pass to <tt>ocamllex</tt> (default <tt>-q</tt>).
+</dd>
+<dt>OCAMLYACC</dt>
+<dd> The OCaml parser generator (default <tt>ocamlyacc</tt>).
+</dd>
+<dt>OCAMLDEP</dt>
+<dd> The OCaml dependency analyzer (default <tt>ocamldep</tt>).
+</dd>
+<dt>OCAMLMKTOP</dt>
+<dd> The OCaml toploop compiler (default <tt>ocamlmktop</tt>).
+</dd>
+<dt>OCAMLLINK</dt>
+<dd> The OCaml bytecode linker (default <tt>$(OCAMLC)</tt>).
+</dd>
+<dt>OCAMLOPTLINK</dt>
+<dd> The OCaml native-code linker (default <tt>$(OCAMLOPT)</tt>).
+</dd>
+<dt>OCAMLINCLUDES</dt>
+<dd> Search path to pass to the OCaml compilers (default <tt>.</tt>).
+The search path with the <tt>-I</tt> prefix is defined by the <tt>PREFIXED_OCAMLINCLUDES</tt>
+variable.
+</dd>
+<dt>OCAMLFIND</dt>
+<dd> The <tt>ocamlfind</tt> utility (default <tt>ocamlfind</tt> if
+<tt>USE_OCAMLFIND</tt> is set, otherwise empty).
+</dd>
+<dt>OCAMLFINDFLAGS</dt>
+<dd> The flags to pass to <tt>ocamlfind</tt> (default empty, <tt>USE_OCAMLFIND</tt> must be set).
+</dd>
+<dt>OCAMLPACKS</dt>
+<dd> Package names to pass to <tt>ocamlfind</tt> (<tt>USE_OCAMLFIND</tt> must be set).
+</dd>
+<dt>BYTE_ENABLED</dt>
+<dd> Flag indicating whether to use the bytecode compiler (default <tt>true</tt>, when no <tt>ocamlopt</tt> found, <tt>false</tt> otherwise).
+</dd>
+<dt>NATIVE_ENABLED</dt>
+<dd> Flag indicating whether to use the native-code compiler (default <tt>true</tt>, when ocamlopt is found, <tt>false</tt> otherwise).
+Both <tt>BYTE_ENABLED</tt> and <tt>NATIVE_ENABLED</tt> can be set to true;
+at least one should be set to true.
+</dd>
+</dl>
+<h4><a name="section_22">OCaml command flags</a></h4>
+
+<p>
+The following variables specify additional options to be passed to
+the OCaml tools.
+<dl compact>
+<dt>OCAMLDEPFLAGS</dt>
+<dd> Flags to pass to <tt>OCAMLDEP</tt>.
+</dd>
+<dt>OCAMLPPFLAGS</dt>
+<dd> Flags to pass to <tt>CAMLP4</tt>.
+</dd>
+<dt>OCAMLCFLAGS</dt>
+<dd> Flags to pass to the byte-code compiler (default <tt>-g</tt>).
+</dd>
+<dt>OCAMLOPTFLAGS</dt>
+<dd> Flags to pass to the native-code compiler (default empty).
+</dd>
+<dt>OCAMLFLAGS</dt>
+<dd> Flags to pass to either compiler (default <tt>-warn-error A</tt>).
+</dd>
+<dt>OCAMLINCLUDES</dt>
+<dd> Include path (default <tt>.</tt>).
+</dd>
+<dt>OCAML_BYTE_LINK_FLAGS</dt>
+<dd> Flags to pass to the byte-code linker (default empty).
+</dd>
+<dt>OCAML_NATIVE_LINK_FLAGS</dt>
+<dd> Flags to pass to the native-code linker (default empty).
+</dd>
+<dt>OCAML_LINK_FLAGS</dt>
+<dd> Flags to pass to either linker.
+</dd>
+</dl>
+<h4><a name="section_23">Library variables</a></h4>
+
+<p>
+The following variables are used during linking.
+<p>
+<dl compact>
+<dt>OCAML_LIBS</dt>
+<dd> Libraries to pass to the linker. These libraries become dependencies
+of the link step.
+</dd>
+<dt>OCAML_OTHER_LIBS</dt>
+<dd> Additional libraries to pass to the linker. These libraries are
+<em>not</em>
+included as dependencies to the link step. Typical use is for the OCaml
+standard libraries like <tt>unix</tt> or <tt>str</tt>.
+</dd>
+<dt>OCAML_CLIBS</dt>
+<dd> C libraries to pass to the linker.
+</dd>
+<dt>OCAML_LIB_FLAGS</dt>
+<dd> Extra flags for the library.
+</dd>
+</dl>
+<h4><a name="section_24">OCamlGeneratedFiles, LocalOCamlGeneratedFiles</a></h4>
+
+<pre>
+OCamlGeneratedFiles(files)
+LocalOCamlGeneratedFiles(files)
+</pre>
+<p>
+The <tt>OCamlGeneratedFiles</tt> and <tt>LocalOCamlGeneratedFiles</tt> functions specify files
+that need to be generated before any OCaml files are scanned for dependencies. For example,
+if <tt>parser.ml</tt> and <tt>lexer.ml</tt> are both generated files, specify:
+<pre>
+OCamlGeneratedFiles(parser.ml lexer.ml)
+</pre>
+<p>
+The <tt>OCamlGeneratedFiles</tt> function is <em>global</em>
+--- its arguments will be generated
+before any OCaml files anywhere in the project are scanned for dependencies. The
+<tt>LocalOCamlGeneratedFiles</tt> function follows the normal scoping rules of OMake.
+<p>
+<h4><a name="section_25">OCamlLibrary</a></h4>
+
+<p>
+The <tt>OCamlLibrary</tt> function builds an OCaml library.
+<p>
+<tt>OCamlLibrary(&lt;libname&gt;, &lt;files&gt;)</tt>
+<p>
+The <tt>&lt;libname&gt;</tt> and <tt>&lt;files&gt;</tt> are listed <em>without</em>
+suffixes.
+<p>
+Additional variables used by the function:
+<dl compact>
+<dt>ABORT_ON_DEPENDENCY_ERRORS</dt>
+<dd> The linker requires that the files to be
+listed in dependency order. If this variable is true, the order of
+the files is determined by the command line, but <tt>omake</tt>
+will
+abort with an error message if the order is illegal. Otherwise,
+the files are sorted automatically.
+</dd>
+</dl>
+<p>
+This function returns the list of all the targets that it defines the rules
+for (including the <tt>$(name)$(EXT_LIB)</tt> file when <tt>NATIVE_ENABLED</tt> is set).
+<p>
+The following code builds the <tt>libfoo.cmxa</tt> library from the files <tt>foo.cmx</tt>
+and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>libfoo.cma</tt> from
+<tt>foo.cmo</tt> and <tt>bar.cmo</tt> (if <tt>BYTE_ENABLED</tt> is set).
+<p>
+<pre>
+OCamlLibrary(libfoo, foo bar)
+</pre>
+<h4><a name="section_26">OCamlLibraryCopy</a></h4>
+
+<p>
+The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
+<p>
+<tt>OCamlLibraryCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;interface-files&gt;)</tt>
+<p>
+The <tt>&lt;interface-files&gt;</tt> specify additional interface files
+to be copied if the <tt>INSTALL_INTERFACES</tt> variable is true.
+<h4><a name="section_27">OCamlLibraryInstall</a></h4>
+
+<p>
+The <tt>OCamlLibraryInstall</tt> function builds a library
+and copies it to an install location in one step.
+<p>
+<tt>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</tt>
+<h4><a name="section_28">OCamlProgram</a></h4>
+
+<p>
+The <tt>OCamlProgram</tt> function builds an OCaml program. It returns the array with all
+the targets for which it have defined the rules (<tt>$(name)$(EXE)</tt> and <tt>$(name).run</tt>
+and/or <tt>$(name).opt</tt>, depending on the <tt>NATIVE_ENABLED</tt> and <tt>BYTE_ENABLED</tt>
+variables).
+<p>
+<tt>OCamlProgram(&lt;name&gt;, &lt;files&gt;)</tt>
+<p>
+Additional variables used:
+<dl compact>
+<dt>OCAML_LIBS</dt>
+<dd> Additional libraries passed to the linker, without suffix. These files
+become dependencies of the target program.
+</dd>
+<dt>OCAML_OTHER_LIBS</dt>
+<dd> Additional libraries passed to the linker, without suffix. These
+files do <em>not</em>
+become dependencies of the target program.
+</dd>
+<dt>OCAML_CLIBS</dt>
+<dd> C libraries to pass to the linker.
+</dd>
+<dt>OCAML_BYTE_LINK_FLAGS</dt>
+<dd> Flags to pass to the bytecode linker.
+</dd>
+<dt>OCAML_NATIVE_LINK_FLAGS</dt>
+<dd> Flags to pass to the native code linker.
+</dd>
+<dt>OCAML_LINK_FLAGS</dt>
+<dd> Flags to pass to both linkers.
+</dd>
+</dl>
+<h4><a name="section_29">OCamlProgramCopy</a></h4>
+
+<p>
+The <tt>OCamlProgramCopy</tt> function copies an OCaml program to an install location.
+<p>
+<tt>OCamlProgramCopy(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;)</tt>
+<p>
+Additional variables used:
+<dl compact>
+<dt>NATIVE_ENABLED</dt>
+<dd> If <tt>NATIVE_ENABLED</tt> is set, the native-code executable
+is copied; otherwise the byte-code executable is copied.
+</dd>
+</dl>
+<h4><a name="section_30">OCamlProgramInstall</a></h4>
+
+<p>
+The <tt>OCamlProgramInstall</tt> function builds a programs and copies it to
+an install location in one step.
+<p>
+<tt>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</tt>
+<h2><a name="section_31">Building LaTeX programs</a></h2>
+
+<p>
+<h4><a name="section_32">Configuration variables</a></h4>
+
+<p>
+The following variables can be modified in your project.
+<dl compact>
+<dt>LATEX</dt>
+<dd> The LaTeX command (default <tt>latex</tt>).
+</dd>
+<dt>TETEX2_ENABLED</dt>
+<dd> Flag indicating whether to use advanced LaTeX options
+present in TeTeX v.2 (default value is determined the first time omake reads <tt>LaTeX.src</tt>
+and depends on the version of LaTeX you have installed).
+</dd>
+<dt>LATEXFLAGS</dt>
+<dd> The LaTeX flags (defaults depend on the <tt>TETEX2_ENABLED</tt> variable)
+</dd>
+<dt>BIBTEX</dt>
+<dd> The BibTeX command (default <tt>bibtex</tt>).
+</dd>
+<dt>MAKEINDEX</dt>
+<dd> The command to build an index (default <tt>makeindex</tt>).
+</dd>
+<dt>DVIPS</dt>
+<dd> The <tt>.dvi</tt> to PostScript converter (default <tt>dvips</tt>).
+</dd>
+<dt>DVIPSFLAGS</dt>
+<dd> Flags to pass to <tt>dvips</tt> (default <tt>-t letter</tt>).
+</dd>
+<dt>DVIPDFM</dt>
+<dd> The <tt>.dvi</tt> to <tt>.pdf</tt> converter (default <tt>dvipdfm</tt>).
+</dd>
+<dt>DVIPDFMFLAGS</dt>
+<dd> Flags to pass to <tt>dvipdfm</tt> (default <tt>-p letter</tt>).
+</dd>
+<dt>PDFLATEX</dt>
+<dd> The <tt>.latex</tt> to <tt>.pdf</tt> converter (default <tt>pdflatex</tt>).
+</dd>
+<dt>PDFLATEXFLAGS</dt>
+<dd> Flags to pass to pdflatex (default is empty).
+</dd>
+<dt>USEPDFLATEX</dt>
+<dd> Flag indicating whether to use pdflatex instead of dvipdfm
+to generate the <tt>.pdf</tt> document (default <tt>false</tt>).
+</dd>
+</dl>
+<h4><a name="section_33">LaTeXDocument</a></h4>
+
+<p>
+The <tt>LaTeXDocument</tt> produces a LaTeX document.
+<p>
+<tt>LaTeXDocument(&lt;name&gt;, &lt;texfiles&gt;)</tt>
+<p>
+The document <tt>&lt;name&gt;</tt> and <tt>&lt;texfiles&gt;</tt> are listed without suffixes. This function
+returns the filenames for the generated <tt>.ps</tt> and <tt>.pdf</tt> files.
+<p>
+Additional variables used:
+<dl compact>
+<dt>TEXINPUTS</dt>
+<dd> The LaTeX search path (an array of directories, default is
+taken from the <tt>TEXINPUTS</tt> environment variable).
+</dd>
+<dt>TEXDEPS</dt>
+<dd> Additional files this document depends on.
+</dd>
+</dl>
+<h4><a name="section_34">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
+
+<pre>
+TeXGeneratedFiles(files)
+LocalTeXGeneratedFiles(files)
+</pre>
+<p>
+The <tt>TeXGeneratedFiles</tt> and <tt>LocalTeXGeneratedFiles</tt> functions specify files
+that need to be generated before any LaTeXfiles are scanned for dependencies. For example,
+if <tt>config.tex</tt> and <tt>inputs.tex</tt> are both generated files, specify:
+<pre>
+TeXGeneratedFiles(config.tex inputs.tex)
+</pre>
+<p>
+The <tt>TeXGeneratedFiles</tt> function is <em>global</em>
+--- its arguments will be generated
+before any TeX files anywhere in the project are scanned for dependencies. The
+<tt>LocalTeXGeneratedFiles</tt> function follows the normal scoping rules of OMake.
+<p>
+<h4><a name="section_35">LaTeXDocumentCopy</a></h4>
+
+<p>
+The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
+<p>
+<tt>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</tt>
+<p>
+This function copies just the <tt>.pdf</tt> and <tt>.ps</tt> files.
+<h4><a name="section_36">LaTeXDocumentInstall</a></h4>
+
+<p>
+The <tt>LaTeXDocumentInstall</tt> builds a document and copies it to an
+install location in one step.
+<p>
+<tt>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</tt>
+<h2><a name="section_37">Examining the dependency graph</a></h2>
+
+<h4><a name="section_38">dependencies, dependencies-all</a></h4>
+
+<p>
+<pre>
+   $(dependencies targets) : File Array
+   $(dependencies-all targets) : File Array
+   $(dependencies-proper targets) : File Array
+      targets : File Array
+   raises RuntimeException
+</pre>
+<p>
+The <tt>dependencies</tt> function returns the set of immediate dependencies of
+the given targets. This function can only be used within a rule body and
+all the arguments to the <tt>dependency</tt> function must also be dependencies of
+this rule. This restriction ensures that all the dependencies are known when
+this function is executed.
+<p>
+The <tt>dependencies-all</tt> function is similar, but it expands the dependencies
+recursively, returning all of the dependencies of a target, not just the immediate
+ones.
+<p>
+The <tt>dependencies-proper</tt> function returns all recursive dependencies, except
+the dependencies that are leaf targets. A leaf target is a target that has no
+dependencies and no build commands; a leaf target corresponds to a source file
+in the current project.
+<p>
+In all three functions, files that are not part of the current project are silently
+discarded.
+<p>
+One purpose of the <tt>dependencies-proper</tt> function is for &ldquo;clean&rdquo; targets.
+For example, one way to delete all intermediate files in a build is with a rule
+that uses the <tt>dependencies-proper</tt>. Note however, that the rule requires
+building the project before it can be deleted. For a shorter form, see the
+<tt>filter-proper-targets</tt> function.
+<p>
+<pre>
+    .PHONY: clean
+
+    APP = ...     # the name of the target application
+    clean: $(APP)
+       rm $(dependencies-proper $(APP))
+</pre>
+<p>
+<h4><a name="section_39">target</a></h4>
+
+<pre>
+   $(target targets) : Rule Array
+      targets : File Sequence
+   raises RuntimeException
+</pre>
+<p>
+The <tt>target</tt> function returns the Target object associated with each
+of the targets. See the <tt>Target</tt> object for more information.
+<h4><a name="section_40">rule</a></h4>
+
+<p>
+The <tt>rule</tt> function is called whenever a build rule is defined.
+It is unlikely that you will need to redefine this function, except in
+very exceptional cases.
+<p>
+<pre>
+   rule(multiple, target, pattern, sources, options, body) : Rule
+      multiple : String
+      target   : Sequence
+      pattern  : Sequence
+      sources  : Sequence
+      options  : Array
+      body     : Body
+</pre>
+<p>
+The <tt>rule</tt> function is called when a rule is evaluated.
+<p>
+<dl compact>
+<dt>multiple</dt>
+<dd> A Boolean value indicating whether the rule was defined
+with a double colon <tt>::</tt>.
+</dd>
+<dt>target</dt>
+<dd> The sequence of target names.
+</dd>
+<dt>pattern</dt>
+<dd> The sequence of patterns. This sequence will be empty
+for two-part rules.
+</dd>
+<dt>sources</dt>
+<dd> The sequence of dependencies.
+</dd>
+<dt>options</dt>
+<dd> An array of options. Each option is represented
+as a two-element array with an option name, and the option value.
+</dd>
+<dt>body</dt>
+<dd> The body expression of the rule.
+</dd>
+</dl>
+<p>
+Consider the following rule.
+<p>
+<pre>
+   target: pattern: sources :name1: option1 :name2: option2
+      expr1
+      expr2
+</pre>
+<p>
+This expression represents the following function call, where
+square brackets are used to indicate arrays.
+<p>
+<pre>
+   rule(false, target, pattern, sources,
+        [[:name1:, option1], [:name2:, option2]]
+        [expr1; expr2])
+</pre>
+<h2><a name="section_41">References</a></h2>
+
+<p>
+<h4><a name="section_42">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_43">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_44">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_45">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->

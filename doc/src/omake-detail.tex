@@ -1,0 +1,465 @@
+%
+% Extra detail.
+%
+\section{Expressions and values}
+
+\Prog{omake} provides a full programming-language including many
+system and IO functions.  The language is object-oriented -- everything is
+an object, including the base values like numbers and strings.  However,
+the \Prog{omake} language differs from other scripting languages in
+three main respects.
+
+\begin{itemize}
+\item Scoping is dynamic.
+\item Apart from IO, the language is entirely functional -- there is no
+  assignment operator in the language.
+\item Evaluation is normally eager -- that is, expressions are evaluated as soon
+  as they are encountered.
+\end{itemize}
+
+To illustrate these features, we will use the \Cmd{osh}{1} omake program shell.
+The \Cmd{osh}{1} program provides a toploop, where expressions can be entered
+and the result printed.  \Cmd{osh}{1} normally interprets input as command text
+to be executed by the shell, so in many cases we will use the \verb+return+
+form to evaluate an expression directly.
+
+\begin{verbatim}
+    osh> 1
+    *** omake error: File -: line 1, characters 0-1 command not found: 1
+    osh> return 1
+    - : "1" : Sequence
+    osh> ls -l omake
+    -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
+\end{verbatim}
+
+\subsection{Dynamic scoping}
+
+Dynamic scoping means that the value of a variable is determined by the most
+recent binding of the variable in scope at runtime.  Consider the following
+program.
+
+\begin{verbatim}
+    OPTIONS = a b c
+    f() =
+       println(OPTIONS = $(OPTIONS))
+    g() =
+       OPTIONS = d e f
+       f()
+\end{verbatim}
+
+If \verb+f()+ is called without redefining the \verb+OPTIONS+ variable,
+the function should print the string \verb+OPTIONS = a b c+.
+
+In contrast, the function \verb+g()+ redefines the \verb+OPTIONS+
+variable and evaluates \verb+f()+ in that scope, which now prints the
+string \verb+OPTIONS = d e f+.
+
+The body of \verb+g+ defines a local scope -- the redefinition of the
+\verb+OPTIONS+ variable is local to \verb+g+ and does not persist
+after the function terminates.
+
+\begin{verbatim}
+    osh> g()
+    OPTIONS = d e f
+    osh> f()
+    OPTIONS = a b c
+\end{verbatim}
+
+Dynamic scoping can be tremendously helpful for simplifying the code
+in a project.  For example, the \File{OMakeroot} file defines a set of
+functions and rules for building projects using such variables as
+\verb+CC+, \verb+CFLAGS+, etc.  However, different parts of a project
+may need different values for these variables.  For example, we may
+have a subdirectory called \verb+opt+ where we want to use the
+\verb+-03+ option, and a subdirectory called \verb+debug+ where we
+want to use the \verb+-g+ option.  Dynamic scoping allows us to redefine
+these variables in the parts of the project without having to
+redefine the functions that use them.
+
+\begin{verbatim}
+    section
+       CFLAGS = -O3
+       .SUBDIRS: opt
+    section
+       CFLAGS = -g
+       .SUBDIRS: debug
+\end{verbatim}
+
+However, dynamic scoping also has drawbacks.  First, it can become
+confusing: you might have a variable that is intended to be private,
+but it is accidentally redefined elsewhere.  For example, you might
+have the following code to construct search paths.
+
+\begin{verbatim}
+   PATHSEP = :
+   make-path(dirs) =
+      return $(concat $(PATHSEP), $(dirs))
+
+   make-path(/bin /usr/bin /usr/X11R6/bin)
+   - : "/bin:/usr/bin:/usr/X11R6/bin" : String
+\end{verbatim}
+
+However, elsewhere in the project, the \verb+PATHSEP+ variable is
+redefined as a directory separator \verb+/+, and your function
+suddenly returns the string \verb+/bin//usr/bin//usr/X11R6/bin+,
+obviously not what you want.
+
+The \verb+private+ block is used to solve this problem.  Variables
+that are defined in a \verb+private+ block use static scoping -- that
+is, the value of the variable is determined by the most recent
+definition in scope in the source text.
+
+\begin{verbatim}
+   private
+      PATHSEP = :
+   make-path(dirs) =
+      return $(concat $(PATHSEP), $(dirs))
+
+   PATHSEP = /
+   make-path(/bin /usr/bin /usr/X11R6/bin)
+   - : "/bin:/usr/bin:/usr/X11R6/bin" : String
+\end{verbatim}
+
+\subsection{Functional evaluation}
+
+Apart from I/O, \Prog{omake} programs are entirely functional.  This has two parts:
+
+\begin{itemize}
+\item There is no assignment operator.
+\item Functions are values, and may be passed as arguments, and returned from
+      functions just like any other value.
+\end{itemize}
+
+The second item is straightforward.  For example, the following program defines
+an increment function by returning a function value.
+
+\begin{verbatim}
+   incby(n) =
+      g(i) =
+         return $(add $(i), $(n))
+      return $(g)
+
+   f = $(incby 5)
+
+   return $(f 3)
+   - : 8 : Int
+\end{verbatim}
+
+The first item may be the most confusing initially.  Without assignment, how is
+it possible for a subproject to modify the global behavior of the project?  In fact,
+the omission is intentional.  Build scripts are much easier to write when there
+is a guarantee that subprojects do not interfere with one another.
+
+However, there are times when a subproject needs to propagate
+information back to its parent object, or when an inner scope needs to
+propagate information back to the outer scope.
+
+The \verb+export+ directive can be used to propagate all or part of an
+inner scope back to its parent.  The \verb+export+ directive should be
+the last statement in a block.  If used without arguments, the entire
+scope is propagated back to the parent; otherwise the arguments should
+be the names of variables to propagate.  The most common usage is
+to export the definitions in a conditional block.  In the following
+example, the variable \verb+B+ is bound to 2 after the conditional.
+The \verb+A+ variable is not redefined.
+
+\begin{verbatim}
+    if $(test)
+       A = 1
+       B = $(add $(A), 1)
+       export B
+    else
+       B = 2
+       export
+\end{verbatim}
+
+\subsection{Eager evaluation}
+
+Evaluation in \Prog{omake} is normally eager.  That is, expressions
+are evaluated as soon as they are encountered by the evaluator.  One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.
+
+There are two ways to control this behavior.  The \verb+$`(v)+ form
+introduces lazy behavior, and the \verb+$,(v)+ form restores
+eager behavior.  Consider the following sequence.
+
+\begin{verbatim}
+    osh> A = 1
+    - : "1" : Sequence
+    osh> B = 2
+    - : "2" : Sequence
+    osh> C = $`(add $(A), $,(B))
+    - : $(apply add $(apply A) "2" : Sequence)
+    osh> println(C = $(C))
+    C = 3
+    osh> A = 5
+    - : "5" : Sequence
+    osh> B = 6
+    - : "6" : Sequence
+    osh> println(C = $(C))
+    C = 7
+\end{verbatim}
+
+The definition \verb+C = $`(add $(A), $,(B))+ defines a lazy application.
+The \verb+add+ function is not applied in this case until its value is needed.
+Within this expression, the value \verb+$,(B)+ specifies that \verb+B+ is
+to be evaluated immediately, even though it is defined in a lazy expression.
+
+The first time that we print the value of \verb+C+, it evaluates to 3
+since \verb+A+ is 1 and \verb+B+ is 2.  The second time we evaluate \verb+C+,
+it evaluates to 7 because \verb+A+ has been redefined to \verb+5+.  The second
+definition of \verb+B+ has no effect, since it was evaluated at definition time.
+
+\subsection{Strings, Sequences, and Arrays}
+
+\Prog{omake} represents most input values as sequences, where a sequence is a list
+of values separated by whitespace.  Sequences are often nested, and may contain
+arbitrary values.  The elements of a sequence are the values separated by whitespace.
+
+\begin{verbatim}
+   osh> A = 1 2
+   - : "1 2" : Sequence
+   osh> B = 3 $(A) 5
+   - : <sequence "3 " : Sequence "1 2" : Sequence " 5" : Sequence> : Sequence
+   osh> return $(length $(B))
+   - : 4 : Int
+   osh> return $(nth 3, $(B))
+   - : "5" : String
+   osh> f(x) =
+           return $(x)
+   osh> C = x $(f) y
+   - : <sequence "x " : Sequence <fun 1> " y" : Sequence> : Sequence
+   osh> println($(C))
+   x  y
+\end{verbatim}
+
+A \verb+String+ is a single value; whitespace is significant in a
+string.  Strings are introduced with quotes.  There are four kinds of
+quoted elements; the kind is determined by the opening quote.  The
+symbols \verb+'+ (single-quote) and \verb+"+ (double-quote) introduce
+the normal shell-style quoted elements.  The quotation symbols are
+\emph{included} in the result string.  Variables are always expanded
+within a quote of this kind.  Note that the \Cmd{osh}{1} printer
+escapes double-quotes within the string; these are only for printing, they
+are not part of the string itself.
+
+\begin{verbatim}
+    osh> A = 'Hello "world"'
+    - : "'Hello \"world\"'" : String
+    osh> B = "$(A)"
+    - : "\"'Hello \"world\"'\"" : String
+    osh> C = 'Hello \'world\''
+    - : "'Hello 'world''" : String
+\end{verbatim}
+
+A second kind of quote is introduced with the \verb+$'+ and \verb+$"+
+quotes.  The number of opening and closing quote symbols is arbitrary.
+These quotations have several properties:
+\begin{itemize}
+\item The quote delimiters are not part of the string.
+\item Backslash \verb+\+ symbols within the string are treated as normal characters.
+\item The strings may span several lines.
+\item Variables are expanded within \verb+$"+ sequences, but not within \verb+$'+
+  sequences.
+\end{itemize}
+
+\begin{verbatim}
+    osh> A = $'''Here $(IS) an '''' \(example\) string['''
+    - : "Here $(IS) an '''' \\(example\\) string[" : String
+    osh> B = $""""A is "$(A)" """"
+    - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
+    osh> return $(A.length)
+    - : 38 : Int
+    osh> return $(A.nth 5)
+    - : "$" : String
+    osh> return $(A.rev)
+    - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
+\end{verbatim}
+
+Strings and sequences both have the property that they can be merged
+with adjacent non-whitespace text.
+
+\begin{verbatim}
+    osh> A = a b c
+    - : "a b c" : Sequence
+    osh> B = $(A).c
+    - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
+    osh> return $(nth 2, $(B))
+    - : "c.c" : String
+    osh> return $(length $(B))
+    - : 3 : Int
+\end{verbatim}
+
+Arrays are different.  The elements of an array are never merged with
+adjacent text of any kind.  Arrays are defined by adding square
+brackets \verb+[]+ after a variable name and defining the elements
+with an indented body.  The elements may include whitespace.
+
+\begin{verbatim}
+    osh> A[] =
+            a b
+            foo bar
+    - : <array
+           "a b" : Sequence
+           "foo bar" : Sequence>
+           : Array
+    osh> echo $(A).c
+    a b foo bar .c
+    osh> return $(A.length)
+    - : 2 : Int
+    osh> return $(A.nth 1)
+    - : "foo bar" : Sequence
+\end{verbatim}
+
+Arrays are quite helpful on systems where filenames often contain whitespace.
+
+\begin{verbatim}
+    osh> FILES[] =
+             c:\Documents and Settings\jyh\one file
+             c:\Program Files\omake\second file
+
+    osh> CFILES = $(addsuffix .c, $(FILES))
+    osh> echo $(CFILES)
+    c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
+\end{verbatim}
+
+\subsection{Objects}
+
+\Prog{omake} is an object-oriented language.  Everything is an object, including
+base values like numbers and strings.  In many projects, this may not be so apparent
+because most evaluation occurs in the default toplevel object, the \verb+Pervasives+
+object, and few other objects are ever defined.
+
+However, objects provide additional means for data structuring, and in some cases
+judicious use of objects may simplify your project.
+
+Objects are defined with the following syntax.  This defines \verb+name+
+to be an object with several methods an values.
+
+\begin{verbatim}
+    name. =                     # += may be used as well
+       extends parent-object    # optional
+       class class-name         # optional
+
+       # Fields
+       X = value
+       Y = value
+
+       # Methods
+       f(args) =
+          body
+       g(arg) =
+          body
+\end{verbatim}
+
+An \verb+extends+ directive specifies that this object inherits from
+the specified \verb+parent-object+.  The object may have any number of
+\verb+extends+ directives.  If there is more than on \verb+extends+
+directive, then fields and methods are inherited from all parent
+objects.  If there are name conflicts, the later definitions override
+the earlier definitions.
+
+The \verb+class+ directive is optional.  If specified, it defines a name
+for the object that can be used in \verb+instanceof+ operations, as well
+as \verb+::+ scoping directives discussed below.
+
+The body of the object is actually an arbitrary program.  The
+variables defined in the body of the object become its fields, and the
+functions defined in the body become its methods.
+
+\subsection{Field and method calls}
+
+The fields and methods of an object are named using \verb+object.name+ notation.
+For example, let's define a one-dimensional point value.
+
+\begin{verbatim}
+   Point. =
+      class Point
+
+      # Default value
+      x = $(int 0)
+
+      # Create a new point
+      new(x) =
+         x = $(int $(x))
+         return $(this)
+
+      # Move by one
+      move() =
+         x = $(add $(x), 1)
+         return $(this)
+
+   osh> p1 = $(Point.new 15)
+   osh> return $(p1.x)
+   - : 15 : Int
+
+   osh> p2 = $(p1.move)
+   osh> return $(p2.x)
+   - : 16 : Int
+\end{verbatim}
+
+The \verb+$(this)+ variable always represents the current object.
+The expression \verb+$(p1.x)+ fetches the value of the \verb+x+ field
+in the \verb+p1+ object.  The expression \verb+$(Point.new 15)+
+represents a method call to the \verb+new+ method of the \verb+Point+
+object, which returns a new object with 15 as its initial value.  The
+expression \verb+$(p1.move)+ is also a method call, which returns a
+new object at position 16.
+
+Note that objects are functional --- it is not possible to modify the fields
+or methods of an existing object in place.  Thus, the \verb+new+ and \verb+move+
+methods return new objects.
+
+\subsection{Method override}
+
+Suppose we wish to create a new object that moves by 2 units, instead of
+just 1.  We can do it by overriding the \verb+move+ method.
+
+\begin{verbatim}
+   Point2. =
+      extends $(Point)
+
+      # Override the move method
+      move() =
+         x = $(add $(x), 2)
+         return $(this)
+
+   osh> p2 = $(Point2.new 15)
+   osh> p3 = $(p2.move)
+   osh> return $(p3.x)
+   - : 17 : Int
+\end{verbatim}
+
+However, by doing this, we have completely replaced the old \verb+move+ method.
+
+\subsection{Super calls}
+
+Suppose we wish to define a new \verb+move+ method that just calls the old one twice.
+We can refer to the old definition of move using a super call, which uses the notation
+\verb+$(classname::name <args>)+.  The \verb+classname+ should be the name of the
+superclass, and \verb+name+ the field or method to be referenced.  An alternative
+way of defining the \verb+Point2+ object is then as follows.
+
+\begin{verbatim}
+   Point2. =
+      extends $(Point)
+
+      # Call the old method twice
+      move() =
+         this = $(Point::move)
+         return $(Point::move)
+\end{verbatim}
+
+Note that the first call to \verb+$(Point::move)+ redefines the
+current object (the \verb+this+ variable).  This is because the method
+returns a new object, which is re-used for the second call.
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-

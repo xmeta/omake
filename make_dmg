@@ -1,0 +1,53 @@
+#!/bin/sh -x
+#
+# NOTE: This is just a script to help me build the OS X packages for OMake.
+#   It should not be relied upon by anybody else.  If you would like this to
+#   change, let me know and maybe we can arrange something.
+#   -Nathan  <n8gray@caltech.edu>
+
+OSX_DIR="`pwd`/osx_resources"
+OSX_TMP_INSTALL="$OSX_DIR/install"
+VERSION=0.9.6.6-2
+
+OMAKE_BASE=OMake-$VERSION
+
+if [ "x$1" = "xpkg" ]; then
+    #
+    # Check out a fresh copy of omake
+    #
+    # . make_checkout
+ 
+    # cd omake-$VERSION
+    # omake all || exit 1
+
+    rm -rf $OSX_TMP_INSTALL
+    INSTALL_ROOT=$OSX_TMP_INSTALL omake install || exit 1
+    
+    # Install the html docs -- there's no omake target for it yet
+    mkdir -p $OSX_TMP_INSTALL/usr/local/share/doc/omake
+    cp -r doc/html/ $OSX_TMP_INSTALL/usr/local/share/doc/omake
+    rm -rf `find $OSX_TMP_INSTALL/usr/local/share/doc/omake -name .svn`
+
+    open $OSX_DIR/OMake.pmproj
+    echo "
+
+!!! You must now build the pkg using the PackageMaker UI, saving it as:
+!!! $OSX_DIR/$OMAKE_BASE.pkg.  
+!!! Be sure to update the version info! When that is finished, run 
+!!!     make_dmg dmg
+
+"
+    
+elif [ "x$1" = "xdmg" ]; then
+    cd $OSX_DIR
+    rm -f $OMAKE_BASE.dmg
+    hdiutil create -srcfolder ./$OMAKE_BASE.pkg $OMAKE_BASE.dmg
+
+elif [ "x$1" = "xclean" ]; then
+    cd $OSX_DIR
+    rm -rf $OMAKE_BASE.pkg $OMAKE_BASE.dmg install
+    
+else
+    echo "No such target: $1"
+    exit 1
+fi

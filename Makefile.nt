@@ -1,0 +1,24 @@
+#
+# Bootstrap program is omake.boot
+#
+all:
+	@echo "If you have already built omake, you should use it instead of nmake."
+	@echo "If you need to bootstrap, use 'nmake -f Makefile.nt boot',"
+	@echo "then run 'omake.boot'"
+	@echo "You may need to run 'nmake -f Makefile.nt depend' first."
+	@exit 1
+
+NMAKE = $(MAKE) /nologo -f Makefile.nt
+
+boot: boot\Makefile.nt boot\Makefile.dep
+	cd boot
+	$(NMAKE) Makefile.dep
+	$(NMAKE) omake.exe
+	copy omake.exe ..\omake-boot.exe
+
+boot\Makefile.nt: src\Makefile.nt
+	-mkdir boot
+	copy src\Makefile.nt boot\Makefile.nt
+
+boot\Makefile.dep:
+	echo # Dependencies > $@

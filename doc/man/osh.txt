@@ -1,0 +1,126 @@
+OSH(1)                           Build Tools                            OSH(1)
+
+
+
+NAME
+       osh is command interpreter based on the omake(1) build system.
+
+
+THE OSH SHELL
+       OMake  also includes a standalone command-line interpreter osh that can
+       be used as an interactive shell. The shell uses the  same  syntax,  and
+       provides  the  same features on all platforms omake supports, including
+       Win32.
+
+
+   STARTUP
+       On startup, osh reads the file ~/.oshrc if it  exists.  The  syntax  of
+       this  file is the same as an OMakefile.  The following additional vari-
+       ables are significant.
+
+
+       prompt The prompt variable specifies the command-line prompt.   It  can
+              be a simple string.
+
+           prompt = osh>
+
+
+       Or you may choose to define it as a function of no arguments.
+
+           prompt() =
+               return $"<$(USER):$(HOST) $(homename $(CWD))>"
+
+
+       An example of the latter prompt is as follows.
+
+           <jyh:kenai.yapper.org ~>cd links/omake
+           <jyh:kenai.yapper.org ~/links/omake>
+
+
+
+       ignoreeof
+              If  the  ignoreeof is true, then osh will not exit on a terminal
+              end-of-file (usually ^D on Unix systems).
+
+
+   ALIASES
+       Command aliases are defined by adding functions to the  Shell.  object.
+       The following alias adds the -AF option to the ls command.
+
+           Shell. +=
+              ls(argv) =
+                 "ls" -AF $(argv)
+
+
+       Quoted commands do not undergo alias expansion. The quotation "ls" pre-
+       vents the alias from being recursive.
+
+
+   INTERACTIVE SYNTAX
+       The interactive syntax in osh is the same as the syntax  of  an  OMake-
+       file,  with  one exception in regard to indentation. The line before an
+       indented block must have a colon at the end of the  line.  A  block  is
+       terminated  with a . on a line by itself, or ^D. In the following exam-
+       ple, the first line if true has no body, because there is no colon.
+
+          # The following if has no body
+          osh>if true
+          # The following if has a body
+          osh>if true:
+          if>       if true:
+          if>          println(Hello world)
+          if>          .
+          Hello world
+
+
+       Note that osh makes some effort  to  modify  the  prompt  while  in  an
+       indented body, and it auto-indents the text.
+
+       The  colon  signifier  is  also  allowed  in  files, although it is not
+       required.
+
+
+   SEE ALSO
+       See Section omake-shell for more information on the shell language, and
+       Section omake-system for more information on job control.
+
+
+REFERENCES
+   SEE ALSO
+       omake(1),    omake-quickstart(1),    omake-options(1),   omake-root(1),
+       omake-language(1),   omake-shell(1),   omake-rules(1),   omake-base(1),
+       omake-system(1), omake-pervasives(1), osh(1), make(1)
+
+
+   VERSION
+       Version: 0.9.6.9 of April 11, 2006.
+
+
+   LICENSE AND COPYRIGHT
+       (C)2003-2006, Mojave Group, Caltech
+
+       This program is free software; you can redistribute it and/or modify it
+       under the terms of the GNU General Public License as published  by  the
+       Free  Software Foundation; either version 2 of the License, or (at your
+       option) any later version.
+
+       This program is distributed in the hope that it  will  be  useful,  but
+       WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty  of MER-
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the  GNU  General
+       Public License for more details.
+
+       You should have received a copy of the GNU General Public License along
+       with this program; if not, write to the Free Software Foundation, Inc.,
+       675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+   AUTHOR
+       Jason Hickey et. al..br Caltech 256-80
+       Pasadena, CA 91125, USA
+       Email: omake-devel@metaprl.org
+       WWW: http://www.cs.caltech.edu/~jyh
+
+
+
+
+Build Tools                     April 11, 2006                          OSH(1)

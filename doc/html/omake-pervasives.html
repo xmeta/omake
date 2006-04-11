@@ -1,0 +1,759 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE-PERVASIVES</title></head>
+<body bgcolor="white">
+<h1 align=center>
+The OMake builtin objects
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a flexible build system designed for building a wide variety of projects.
+This document describes the built-in objects available to all programs.
+For an overview of <tt>omake</tt>,
+see the <a href="omake.html">omake(1)</a>
+man page.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">Pervasives </a>
+<ul>
+<li><a href="#section_2">Object </a></li>
+<li><a href="#section_3">Map </a></li>
+<li><a href="#section_4">Number </a></li>
+<li><a href="#section_5">Int </a></li>
+<li><a href="#section_6">Float </a></li>
+<li><a href="#section_7">Sequence </a></li>
+<li><a href="#section_8">Array </a></li>
+<li><a href="#section_9">String </a></li>
+<li><a href="#section_10">Fun </a></li>
+<li><a href="#section_11">Rule </a></li>
+<li><a href="#section_12">Target </a></li>
+<li><a href="#section_13">Node </a></li>
+<li><a href="#section_14">File </a></li>
+<li><a href="#section_15">Dir </a></li>
+<li><a href="#section_16">Channel </a></li>
+<li><a href="#section_17">InChannel </a></li>
+<li><a href="#section_18">OutChannel </a></li>
+<li><a href="#section_19">Location </a></li>
+<li><a href="#section_20">Position </a></li>
+<li><a href="#section_21">Exception </a></li>
+<li><a href="#section_22">RuntimeException </a></li>
+<li><a href="#section_23">Shell </a></li>
+</ul>
+<li><a href="#section_24">References </a>
+<ul>
+<li><a href="#section_25">See Also </a></li>
+<li><a href="#section_26">Version </a></li>
+<li><a href="#section_27">License and Copyright </a></li>
+<li><a href="#section_28">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">Pervasives</a></h2>
+
+<p>
+<tt>Pervasives</tt> defines the objects that are defined in all
+programs. The following objects are defined.
+<p>
+<h4><a name="section_2">Object</a></h4>
+
+<p>
+Parent objects: none.
+<p>
+The <tt>Object</tt> object is the root object.
+Every class is a subclass of <tt>Object</tt>.
+<p>
+It provides the following fields:
+<p>
+<ul compact>
+<li><tt>$(o.object-length)</tt>: the number of fields and methods in the object.
+</li>
+<li><tt>$(o.object-mem &lt;var&gt;)</tt>: returns <tt>true</tt> iff the <tt>&lt;var&gt;</tt> is a field
+or method of the object.
+</li>
+<li><tt>$(o.object-add &lt;var&gt;, &lt;value&gt;)</tt>: adds the field to the object,
+returning a new object.
+</li>
+<li><tt>$(o.object-find &lt;var&gt;)</tt>: fetches the field or method from the object;
+it is equivalent to <tt>$(o.&lt;var&gt;)</tt>, but the variable can be non-constant.
+</li>
+<li><tt>$(o.object-map &lt;fun&gt;)</tt>: maps a function over the object. The function
+should take two arguments; the first is a field name, the second is the
+value of that field. The result is a new object constructed from the
+values returned by the function.
+</li>
+<li><tt>o.object-foreach</tt>: the <tt>foreach</tt> form is equivalent to <tt>map</tt>,
+but with altered syntax.
+<p>
+<pre>
+   o.foreach(&lt;var1&gt;, &lt;var2&gt;)
+      &lt;body&gt;
+</pre>
+<p>
+For example, the following function prints all the fields of an
+object <tt>o</tt>.
+<p>
+<pre>
+   PrintObject(o) =
+      o.foreach(v, x)
+         println($(v) = $(x))
+</pre>
+<p>
+The <tt>export</tt> form is valid in a <tt>foreach</tt> body. The following
+function collects just the field names of an object.
+<p>
+<pre>
+   FieldNames(o) =
+      names =
+      o.foreach(v, x)
+         names += $(v)
+         export
+      return $(names)
+</pre>
+</li>
+</ul>
+<p>
+<h4><a name="section_3">Map</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+A <tt>Map</tt> object is a dictionary from values to values. The <tt>&lt;key&gt;</tt>
+values are restricted to simple values: integers, floating-point numbers,
+strings, files, directories, and arrays of simple values.
+<p>
+The Map object provides the following methods.
+<p>
+<ul compact>
+<li><tt>$(o.mem &lt;key&gt;)</tt>: returns <tt>true</tt> iff the <tt>&lt;key&gt;</tt> is defined
+in the map.
+</li>
+<li><tt>$(o.add &lt;key&gt;, &lt;value&gt;)</tt>: adds the field to the map,
+returning a new map.
+</li>
+<li><tt>$(o.find &lt;key&gt;)</tt>: fetches the field from the map.
+</li>
+<li><tt>$(o.map &lt;fun&gt;)</tt>: maps a function over the map. The function
+should take two arguments; the first is a field name, the second is the
+value of that field. The result is a new object constructed from the
+values returned by the function.
+</li>
+<li><tt>o.foreach</tt>: the <tt>foreach</tt> form is equivalent to <tt>map</tt>,
+but with altered syntax.
+<p>
+<pre>
+   o.foreach(&lt;var1&gt;, &lt;var2&gt;)
+      &lt;body&gt;
+</pre>
+<p>
+For example, the following function prints all the fields of an
+object <tt>o</tt>.
+<p>
+<pre>
+   PrintObject(o) =
+      o.foreach(v, x)
+         println($(v) = $(x))
+</pre>
+<p>
+The <tt>export</tt> form is valid in a <tt>foreach</tt> body. The following
+function collects just the field names of the map.
+<p>
+<pre>
+   FieldNames(o) =
+      names =
+      o.foreach(v, x)
+         names += $(v)
+         export
+      return $(names)
+</pre>
+</li>
+</ul>
+<p>
+There is also simpler syntax when the key is a string. The table can be
+defined using definitions with the form <tt>$|key|</tt>
+(the number of pipe symbols <tt>|</tt> is allowed to vary).
+<p>
+<pre>
+    $|key 1| = value1
+    $||key1|key2|| = value2    # The key is key1|key2
+    X = $|key 1|               # Define X to be the value of field $|key 1|
+</pre>
+<p>
+The usual modifiers are also allowed. The expression <tt>$`|key|</tt> represents
+lazy evaluation of the key, and <tt>$,|key|</tt> is normal evaluation.
+<p>
+<h4><a name="section_4">Number</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Number</tt> object is the parent object for integers
+and floating-point numbers.
+<h4><a name="section_5">Int</a></h4>
+
+<p>
+Parent objects: <tt>Number</tt>.
+<p>
+The <tt>Int</tt> object represents integer values.
+<h4><a name="section_6">Float</a></h4>
+
+<p>
+Parent objects: <tt>Number</tt>.
+<p>
+The <tt>Float</tt> object represents floating-point numbers.
+<h4><a name="section_7">Sequence</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Sequence</tt> object represents a generic object containing
+sequential elements. It provides the following methods.
+<p>
+<ul compact>
+<li><tt>$(s.length)</tt>: the number of elements in the sequence.
+</li>
+<li><tt>$(s.map &lt;fun&gt;)</tt>: maps a function over the fields in the sequence.
+The function should take one argument. The result is a new sequence
+constructed from the values returned by the function.
+</li>
+<li><tt>s.foreach</tt>: the <tt>foreach</tt> form is equivalent to <tt>map</tt>,
+but with altered syntax.
+<p>
+<pre>
+   s.foreach(&lt;var&gt;)
+      &lt;body&gt;
+</pre>
+<p>
+For example, the following function prints all the elements of the sequence.
+<p>
+<pre>
+   PrintSequence(s) =
+      s.foreach(x)
+         println(Elem = $(x))
+</pre>
+<p>
+The <tt>export</tt> form is valid in a <tt>foreach</tt> body. The following
+function counts the number of zeros in the sequence.
+<p>
+<pre>
+   Zeros(s) =
+      count = $(int 0)
+      s.foreach(v)
+         if $(equal $(v), 0)
+            count = $(add $(count), 1)
+            export
+         export
+      return $(count)
+</pre>
+</li>
+</ul>
+<h4><a name="section_8">Array</a></h4>
+
+<p>
+Parent objects: <tt>Sequence</tt>.
+<p>
+The <tt>Array</tt> is a random-access sequence.
+It provides the following additional methods.
+<p>
+<ul compact>
+<li><tt>$(s.nth &lt;i&gt;)</tt>: returns element <tt>i</tt> of the sequence.
+</li>
+<li><tt>$(s.rev &lt;i&gt;)</tt>: returns the reversed sequence.
+</li>
+</ul>
+<p>
+<h4><a name="section_9">String</a></h4>
+
+<p>
+Parent objects: <tt>Array</tt>.
+<h4><a name="section_10">Fun</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Fun</tt> object provides the following methods.
+<ul compact>
+<li><tt>$(f.arity)</tt>: the arity if the function.
+</li>
+</ul>
+<h4><a name="section_11">Rule</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Rule</tt> object represents a build rule.
+It does not currently have any methods.
+<h4><a name="section_12">Target</a></h4>
+
+<p>
+Parent object: <tt>Object</tt>.
+<p>
+The <tt>Target</tt> object contains information collected for
+a specific target file.
+<p>
+<ul compact>
+<li><tt>target</tt>: the target file.
+</li>
+<li><tt>effects</tt>: the files that may be modified by a
+side-effect when this target is built.
+</li>
+<li><tt>scanner_deps</tt>: static dependencies that must be built
+before this target can be scanned.
+</li>
+<li><tt>static-deps</tt>: statically-defined build dependencies
+of this target.
+</li>
+<li><tt>build-deps</tt>: all the build dependencies for the target,
+including static and scanned dependencies.
+</li>
+<li><tt>build-values</tt>: all the value dependencies associated
+with the build.
+</li>
+<li><tt>build-commands</tt>: the commands to build the target.
+</li>
+</ul>
+<p>
+The object supports the following methods.
+<p>
+<ul compact>
+<li><tt>find(file)</tt>: returns a Target object for the given file.
+Raises a <tt>RuntimeException</tt> if the specified target is
+not part of the project.
+</li>
+<li><tt>find-optional(file)</tt>: returns a <tt>Target</tt> object
+for the given file, or <tt>false</tt> if the file is not
+part of the project.
+</li>
+</ul>
+<p>
+NOTE: the information for a target is constructed dynamically,
+so it is possible that the <tt>Target</tt> object for a node will
+contain different values in different contexts. The easiest way
+to make sure that the <tt>Target</tt> information is complete is
+to compute it within a rule body, where the rule depends on
+the target file, or the dependencies of the target file.
+<h4><a name="section_13">Node</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Node</tt> object is the parent object for files and directories.
+It supports the following operations.
+<ul compact>
+<li><tt>$(node.stat)</tt>: returns a <tt>stat</tt> object for the file. If the
+file is a symbolic link, the <tt>stat</tt> information is for the destination of
+the link, not the link itself.
+<p>
+</li>
+<li><tt>$(node.lstat)</tt>: returns a <tt>stat</tt> object for the file or symbolic link.
+</li>
+<li><tt>$(node.unlink)</tt>: removes the file.
+</li>
+<li><tt>$(node.rename &lt;file&gt;)</tt>: renames the file.
+</li>
+<li><tt>$(node.link &lt;file&gt;)</tt>: creates a hard link <tt>&lt;dst&gt;</tt> to this file.
+</li>
+<li><tt>$(node.symlink &lt;file&gt;)</tt>: create a symbolic link <tt>&lt;dst&gt;</tt> to this file.
+</li>
+<li><tt>$(node.chmod &lt;perm&gt;)</tt>: change the permission of this file.
+</li>
+<li><tt>$(node.chown &lt;uid&gt;, &lt;gid&gt;)</tt>: change the owner and group id of this file.
+</li>
+</ul>
+<h4><a name="section_14">File</a></h4>
+
+<p>
+Parent objects: <tt>Node</tt>.
+<p>
+The file object represents the name of a file.
+<h4><a name="section_15">Dir</a></h4>
+
+<p>
+Parent objects: <tt>Node</tt>.
+<p>
+The <tt>Dir</tt> object represents the name of a directory.
+<h4><a name="section_16">Channel</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+A <tt>Channel</tt> is a generic IO channel.
+It provides the following methods.
+<ul compact>
+<li><tt>$(o.close)</tt>: close the channel.
+</li>
+</ul>
+<h4><a name="section_17">InChannel</a></h4>
+
+<p>
+Parent objects: <tt>Channel</tt>.
+<p>
+A <tt>InChannel</tt> is an input channel. The variable <tt>stdin</tt> is the
+standard input channel.
+<p>
+It provides the following methods.
+<ul compact>
+<li><tt>$(InChannel.fopen &lt;file&gt;)</tt>: open a new input channel.
+</li>
+</ul>
+<h4><a name="section_18">OutChannel</a></h4>
+
+<p>
+Parent object: <tt>Channel</tt>.
+<p>
+A <tt>OutChannel</tt> is an output channel. The variables <tt>stdout</tt>
+and <tt>stderr</tt> are the standard output and error channels.
+<p>
+It provides the following methods.
+<ul compact>
+<li><tt>$(OutChannel.fopen &lt;file&gt;)</tt>: open a new output channel.
+</li>
+<li><tt>$(OutChannel.append &lt;file&gt;)</tt>: opens a new output channel,
+appending to the file.
+</li>
+<li><tt>$(c.flush)</tt>: flush the output channel.
+</li>
+<li><tt>$(c.print &lt;string&gt;)</tt>: print a string to the channel.
+</li>
+<li><tt>$(c.println &lt;string&gt;)</tt>: print a string to the channel,
+followed by a line terminator.
+</li>
+</ul>
+<h4><a name="section_19">Location</a></h4>
+
+<p>
+Parent objects: <tt>Location</tt>.
+<p>
+The <tt>Location</tt> object represents a location in a file.
+<h4><a name="section_20">Position</a></h4>
+
+<p>
+Parent objects: <tt>Position</tt>.
+<p>
+The <tt>Position</tt> object represents a stack trace.
+<h4><a name="section_21">Exception</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Exception</tt> object is used as the base object for exceptions.
+It has no fields.
+<h4><a name="section_22">RuntimeException</a></h4>
+
+<p>
+Parent objects: <tt>Exception</tt>.
+<p>
+The <tt>RuntimeException</tt> object represents an exception from the
+runtime system. It has the following fields.
+<p>
+<ul compact>
+<li><tt>position</tt>: a string representing the location where the
+exception was raised.
+</li>
+<li><tt>message</tt>: a string containing the exception message.
+</li>
+</ul>
+<h4><a name="section_23">Shell</a></h4>
+
+<p>
+Parent objects: <tt>Object</tt>.
+<p>
+The <tt>Shell</tt> object contains the collection of builtin functions
+available as shell commands.
+<p>
+You can define aliases by extending this object with additional methods.
+All methods in this class are called with one argument: a single array
+containing an argument list.
+<p>
+<ul compact>
+<li><tt>echo</tt>
+<p>
+The <tt>echo</tt> function prints its arguments to the standard output channel.
+</li>
+<li><tt>jobs</tt>
+<p>
+The <tt>jobs</tt> method prints the status of currently running commands.
+</li>
+<li><tt>cd</tt>
+<p>
+The <tt>cd</tt> function changes the current directory.
+Note that the current directory follows the usual scoping
+rules. For example, the following program lists the
+files in the <tt>foo</tt> directory, but the current
+directory is not changed.
+<p>
+<pre>
+   section
+      echo Listing files in the foo directory...
+      cd foo
+      ls
+
+   echo Listing files in the current directory...
+   ls
+</pre>
+</li>
+<li><tt>bg</tt>
+<p>
+The <tt>bg</tt> method places a job in the background.
+The job is resumed if it has been suspended.
+</li>
+<li><tt>fg</tt>
+<p>
+The <tt>fg</tt> method brings a job to the foreground.
+The job is resumed if it has been suspended.
+</li>
+<li><tt>stop</tt>
+<p>
+The <tt>stop</tt> method suspends a running job.
+</li>
+<li><tt>wait</tt>
+<p>
+The <tt>wait</tt> function waits for a running job to terminate.
+It is not possible to wait for a suspended job.
+<p>
+The job is not brought to the foreground. If the <tt>wait</tt>
+is interrupted, the job continues to run in the background.
+</li>
+<li><tt>kill</tt>
+<p>
+The <tt>kill</tt> function signal a job.
+<p>
+<tt>kill [signal] &lt;pid...&gt;</tt>.
+<p>
+The signals are either numeric, or symbolic.
+The symbolic signals are named as follows.
+<p>
+ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
+USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
+</li>
+<li><tt>exit</tt>
+<p>
+The <tt>exit</tt> function terminates the current session.
+</li>
+<li><tt>which</tt>, <tt>where</tt>
+<p>
+See the documentation for the corresponding functions.
+</li>
+<li><tt>rehash</tt>
+<p>
+Reset the search path.
+</li>
+<li><tt>history</tt>
+<p>
+Print the current command-line history.
+</li>
+<li>Win32 functions.
+<p>
+Win32 doesn't provide very many programs for scripting, except
+for the functions that are builtin to the DOS <tt>cmd.exe</tt>.
+The following functions are defined on Win32 and only on Win32.
+On other systems, it is expected that these programs already
+exist.
+<p>
+<ul compact>
+<li><tt>grep</tt>
+<p>
+<pre>
+   grep [-q] [-n] pattern files...
+</pre>
+<p>
+The <tt>grep</tt> function calls the <tt>omake</tt>
+<tt>grep</tt> function.
+</li>
+</ul>
+By default, <tt>omake</tt>
+uses internal versions of the following commands:
+<tt>cp</tt>, <tt>mv</tt>, <tt>cat</tt>, <tt>rm</tt>, <tt>mkdir</tt>, <tt>chmod</tt>,
+<tt>test</tt>, <tt>find</tt>.
+If you really want to use the standard system versions of these
+commands, set the <tt>USE_SYSTEM_COMMANDS</tt> as one of the first
+definitions in your <tt>OMakeroot</tt> file.
+<p>
+<ul compact>
+<li><tt>mkdir</tt>
+<p>
+<pre>
+    mkdir [-m &lt;mode&gt;] [-p] files
+</pre>
+<p>
+The <tt>mkdir</tt> function is used to create directories.
+The -verb+-m+ option can be used to specify the permission
+mode of the created directory. If the <tt>-p</tt> option
+is specified, the full path is created.
+</li>
+<li><tt>cp</tt>
+</li>
+<li><tt>mv</tt>
+<p>
+<pre>
+    cp [-f] [-i] [-v] src dst
+    cp [-f] [-i] [-v] files dst
+    mv [-f] [-i] [-v] src dst
+    mv [-f] [-i] [-v] files dst
+</pre>
+<p>
+The <tt>cp</tt> function copies a <tt>src</tt> file to
+a <tt>dst</tt> file, overwriting it if it already exists.
+If more than one source file is specified, the final file
+must be a directory, and the source files are copied
+into the directory.
+<p>
+<ul compact>
+<dt>-f</dt>
+<dd> Copy files forcibly, do not prompt.
+</dd>
+<dt>-i</dt>
+<dd> Prompt before removing destination files.
+</dd>
+<dt>-v</dt>
+<dd> Explain what is happening.
+</li>
+</ul>
+</li>
+<li><tt>rm</tt>
+<p>
+<pre>
+   rm [-f] [-i] [-v] [-r] files
+   rmdir [-f] [-i] [-v] [-r] dirs
+</pre>
+<p>
+The <tt>rm</tt> function removes a set of files.
+No warnings are issued if the files do not exist, or if
+they cannot be removed.
+<p>
+Options:
+<ul compact>
+<dt>-f</dt>
+<dd> Forcibly remove files, do not prompt.
+</dd>
+<dt>-i</dt>
+<dd> Prompt before removal.
+</dd>
+<dt>-v</dt>
+<dd> Explain what is happening.
+</dd>
+<dt>-r</dt>
+<dd> Remove contents of directories recursively.
+</li>
+</ul>
+</li>
+<li><tt>chmod</tt>
+<p>
+<pre>
+    chmod [-r] [-v] [-f] mode files
+</pre>
+<p>
+The <tt>chmod</tt> function changes the permissions on a set of
+files or directories. This function does nothing on Win32.
+The <tt>mode</tt> may be specified as an octal number,
+or in symbolic form <tt>[ugoa]*[</tt>-=][rwxXstugo]+.
+See the man page for <tt>chmod</tt> for details.
+<p>
+Options:
+<ul compact>
+<dt>-r</dt>
+<dd> Change permissions of all files in a directory recursively.
+</dd>
+<dt>-v</dt>
+<dd> Explain what is happening.
+</dd>
+<dt>-f</dt>
+<dd> Continue on errors.
+</li>
+</ul>
+</li>
+<li><tt>cat</tt>
+<p>
+<pre>
+   cat files...
+</pre>
+<p>
+The <tt>cat</tt> function prints the contents of the files to stdout
+</li>
+<li><tt>test</tt>
+<p>
+<pre>
+   test \emph{expression}
+   \verb+[+ \emph{expression} +]+
+   \verb+[ --help+
+   \verb+[ --version+
+</pre>
+<p>
+See the documentation for the <tt>test</tt> function.
+<p>
+</li>
+<li><tt>find</tt>
+<p>
+<pre>
+   find \emph{expression}
+</pre>
+<p>
+See the documentation for the <tt>find</tt> function.
+<p>
+</li>
+</ul>
+</li>
+</ul>
+<h2><a name="section_24">References</a></h2>
+
+<p>
+<h4><a name="section_25">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_26">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_27">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_28">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->

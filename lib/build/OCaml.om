@@ -1,0 +1,670 @@
+########################################################################
+# Building OCaml programs.
+#
+# Copyright (C) 2003-2005 Jason Hickey and Mojave Group
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this file, to deal in the File without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the File, and to permit persons to whom the File
+# is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the File.
+#
+# THE FILE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
+
+open build/Common
+open configure/Configure
+
+########################################################################
+# OCaml section
+#
+# \begin{doc}
+# \section{Building OCaml programs}
+#
+# \subsection{Variables for OCaml programs}
+#
+# The following variables can be redefined in your project.
+# \begin{description}
+# \item[USE\_OCAMLFIND] Whether to use the \verb+ocamlfind+ utility (default \verb+false\+)
+# \item[OCAMLC] The OCaml bytecode compiler (default \verb+ocamlc.opt+ if it exists
+#    and \verb+USE_OCAMLFIND+ is not set, otherwise \verb+ocamlc+).
+# \item[OCAMLOPT] The OCaml native-code compiler (default \verb+ocamlopt.opt+ if it
+#    exists and \verb+USE_OCAMLFIND+ is not set, otherwise \verb+ocamlopt+).
+# \item[CAMLP4] The \verb+camlp4+ preprocessor (default \verb+camlp4+).
+# \item[OCAMLLEX] The OCaml lexer generator (default \verb+ocamllex+).
+# \item[OCAMLLEXFLAGS] The flags to pass to \verb+ocamllex+ (default \verb+-q+).
+# \item[OCAMLYACC] The OCaml parser generator (default \verb+ocamlyacc+).
+# \item[OCAMLDEP] The OCaml dependency analyzer (default \verb+ocamldep+).
+# \item[OCAMLMKTOP] The OCaml toploop compiler (default \verb+ocamlmktop+).
+# \item[OCAMLLINK] The OCaml bytecode linker (default \verb+$(OCAMLC)+).
+# \item[OCAMLOPTLINK] The OCaml native-code linker (default \verb+$(OCAMLOPT)+).
+# \item[OCAMLINCLUDES] Search path to pass to the OCaml compilers (default \verb+.+).
+#    The search path with the \verb+-I+ prefix is defined by the \verb+PREFIXED_OCAMLINCLUDES+
+#    variable.
+# \item[OCAMLFIND] The \verb+ocamlfind+ utility (default \verb+ocamlfind+ if
+#     \verb+USE_OCAMLFIND+ is set, otherwise empty).
+# \item[OCAMLFINDFLAGS] The flags to pass to \verb+ocamlfind+ (default empty, \verb+USE_OCAMLFIND+ must be set).
+# \item[OCAMLPACKS] Package names to pass to \verb+ocamlfind+ (\verb+USE_OCAMLFIND+ must be set).
+# \item[BYTE\_ENABLED] Flag indicating whether to use the bytecode compiler (default \verb+true+, when no \verb+ocamlopt+ found, \verb+false+ otherwise).
+# \item[NATIVE\_ENABLED] Flag indicating whether to use the native-code compiler (default \verb+true+, when ocamlopt is found, \verb+false+ otherwise).
+#    Both \verb+BYTE_ENABLED+ and \verb+NATIVE_ENABLED+ can be set to true;
+#    at least one should be set to true.
+# \end{description}
+# \end{doc}
+#
+static. =
+    OCAMLFIND_EXISTS = $(CheckProg ocamlfind)
+    OCAMLC_OPT_EXISTS = $(CheckProg ocamlc.opt)
+    OCAMLC_EXISTS = $(or $(OCAMLC_OPT_EXISTS), $(CheckProg ocamlc))
+    OCAMLOPT_OPT_EXISTS = $(CheckProg ocamlopt.opt)
+    OCAMLOPT_EXISTS = $(or $(OCAMLOPT_OPT_EXISTS), $(CheckProg ocamlopt))
+    print(--- Testing whether ocamlc understands the "z" warnings... )
+    OCAML_ACCEPTS_Z_WARNING = 
+        if $(OCAMLC_EXISTS)
+            private.res = $(shell-success-null ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt)) -w Az)
+            println($"($(if $(res), yes, no))")
+            value $(res)
+        else
+            println($"(FAILED - ocamlc not found)")
+            value $(not true)
+
+USE_OCAMLFIND = false
+OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
+OCAMLFINDFLAGS =
+LAZY_OCAMLFINDFLAGS = $`(if $(USE_OCAMLFIND), $(OCAMLFINDFLAGS))
+OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
+OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
+
+OCAMLDEP = ocamldep
+CAMLP4 = camlp4
+OCAMLLEX = ocamllex
+OCAMLLEXFLAGS = -q
+OCAMLYACC = ocamlyacc
+OCAMLMKTOP = ocamlmktop
+OCAMLLINK = $`(OCAMLC)
+OCAMLOPTLINK = $`(OCAMLOPT)
+
+#
+# Include path
+#
+OCAMLINCLUDES[] = .
+PREFIXED_OCAMLINCLUDES = $`(mapprefix -I, $(OCAMLINCLUDES))
+
+#
+# Packages
+#
+OCAMLPACKS[] =
+PREFIXED_OCAMLPACKS =\
+   $`(if $(and $(USE_OCAMLFIND) $(gt $(length $(OCAMLPACKS)), 0)),\
+         -package \"$(concat \,, $(OCAMLPACKS))\",\
+         $(EMPTY))
+
+#
+# Compile native or byte code?
+#
+NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
+BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
+
+#
+# Various options
+#
+# BUG JYH: The OCAMLDEPFLAGS is a hack: use the -native flag if
+# we are producing native code.  The OCaml distribution does
+# not provide a working ocamldep.
+#
+# \begin{doc}
+# \subsection{OCaml command flags}
+#
+# The following variables specify additional options to be passed to
+# the OCaml tools.
+# \begin{description}
+# \item[OCAMLDEPFLAGS] Flags to pass to \verb+OCAMLDEP+.
+# \item[OCAMLPPFLAGS] Flags to pass to \verb+CAMLP4+.
+# \item[OCAMLCFLAGS] Flags to pass to the byte-code compiler (default \verb+-g+).
+# \item[OCAMLOPTFLAGS] Flags to pass to the native-code compiler (default empty).
+# \item[OCAMLFLAGS] Flags to pass to either compiler (default \verb+-warn-error A+).
+# \item[OCAMLINCLUDES] Include path (default \verb+.+).
+# \item[OCAML\_BYTE\_LINK\_FLAGS] Flags to pass to the byte-code linker (default empty).
+# \item[OCAML\_NATIVE\_LINK\_FLAGS] Flags to pass to the native-code linker (default empty).
+# \item[OCAML\_LINK\_FLAGS] Flags to pass to either linker.
+# \end{description}
+# \end{doc}
+#
+OCAMLDEPFLAGS = $`(if $(NATIVE_ENABLED), -native, $(EMPTY))
+OCAMLPPFLAGS  =
+OCAMLFLAGS    = -warn-error A
+OCAMLCFLAGS   = -g
+OCAMLOPTFLAGS =
+OCAMLCPPFLAGS =
+OCAML_LINK_FLAGS = $`(if $(and $(USE_OCAMLFIND) $(gt $(length $(OCAMLPACKS)), 0)), -linkpkg, $(EMPTY))
+OCAML_BYTE_LINK_FLAGS = -custom
+OCAML_NATIVE_LINK_FLAGS =
+
+#
+# OCAML_LIBS contains libraries that are used as dependencies
+# OCAML_OTHER_LIBS contains other libraries (like unix.cma)
+# The lists do not include suffixes.
+#
+# OCAML_LINK_FLAGS contains extra linking information
+#
+# \begin{doc}
+# \subsection{Library variables}
+#
+# The following variables are used during linking.
+#
+# \begin{description}
+# \item[OCAML\_LIBS] Libraries to pass to the linker.  These libraries become dependencies
+#    of the link step.
+# \item[OCAML\_OTHER\_LIBS] Additional libraries to pass to the linker.  These libraries are
+#    \emph{not} included as dependencies to the link step.  Typical use is for the OCaml
+#    standard libraries like \verb+unix+ or \verb+str+.
+# \item[OCAML\_CLIBS] C libraries to pass to the linker.
+# \item[OCAML\_LIB\_FLAGS] Extra flags for the library.
+# \end{description}
+# \end{doc}
+#
+OCAML_LIBS =
+OCAML_CLIBS =
+OCAML_OTHER_LIBS =
+OCAML_LIB_FLAGS =
+
+#
+# Generic build rules.
+#
+# The order of the %.cmi rules is important.
+# The most recent definition is used first, if it applies.
+#    1. The .cmi is generated from the .mli, if it exists
+#    2. Otherwise it is generated from the .ml
+#
+# In case 2, make sure to use the same command text that is used for
+# generating the .cmo or .cmx file.  This will prevent the compiler
+# from being called twice: once to generate the .cmi file, and again
+# for the .cmo or .cmx file.
+#
+%.cmx: %.ml
+    section rule
+        if $(not $(NATIVE_ENABLED))
+            eprintln(!!! You are trying to build OCaml native code file: %.cmx)
+            eprintln(!!! However\, the NATIVE_ENABLED flag is not set.)
+            eprintln(!!! Include the following definition in your OMakefile)
+            eprintln(!!! if you really want to build this file.)
+            eprintln(NATIVE_ENABLED = true)
+            exit(1)
+        if $(target-exists %.mli)
+            %.cmx %$(EXT_OBJ): %.ml %.cmi :scanner: scan-ocaml-%.ml
+                $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                        $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+        else
+            if $(BYTE_ENABLED)
+                %.cmx %.cmi %$(EXT_OBJ) %.cmo: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            else
+                %.cmx %.cmi %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+
+%$(EXT_OBJ): %.ml
+    section rule
+        if $(not $(NATIVE_ENABLED))
+            eprintln(!!! You are trying to build OCaml native code file: %$(EXT_OBJ))
+            eprintln(!!! However\, the NATIVE_ENABLED flag is not set.)
+            eprintln(!!! Include the following definition in your OMakefile)
+            eprintln(!!! if you really want to build this file.)
+            eprintln(NATIVE_ENABLED = true)
+            exit(1)
+        if $(target-exists %.mli)
+            %$(EXT_OBJ) %.cmx: %.ml %.cmi :scanner: scan-ocaml-%.ml
+                $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                        $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+        else
+            if $(BYTE_ENABLED)
+                %$(EXT_OBJ) %.cmi %.cmx %.cmo: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            else
+                %$(EXT_OBJ) %.cmi %.cmx: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+
+%.cmo: %.ml
+    section rule
+        if $(not $(BYTE_ENABLED))
+            eprintln(!!! You are trying to build bytecode file: %.cmo)
+            eprintln(!!! However\, the BYTE_ENABLED flag is not set.)
+            eprintln(!!! Include the following definition in your OMakefile)
+            eprintln(!!! if you really want to build this file.)
+            eprintln(BYTE_ENABLED = true)
+            exit(1)
+        if $(target-exists %.mli)
+            %.cmo: %.ml %.cmi :scanner: scan-ocaml-%.ml
+                $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                        $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+        else
+            if $(NATIVE_ENABLED)
+                %.cmo %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            else
+                %.cmo %.cmi: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+
+%.cmi: %.ml
+    section rule
+        if $(BYTE_ENABLED)
+            if $(NATIVE_ENABLED)
+                %.cmi %.cmo %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            else
+                %.cmi %.cmo: %.ml :scanner: scan-ocaml-%.ml
+                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+        else
+            %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
+                $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                        $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+
+%.cmi: %.mli :scanner: scan-ocaml-%.mli
+    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+        $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+
+%.ml: %.mll
+    $(OCAMLLEX) $(OCAMLLEXFLAGS) $<
+
+%.ml %.mli: %.mly
+    $(OCAMLYACC) $<
+
+%.ml %.mli: %.mlz
+    $(symlink $<, $*.ml)
+    $(symlink $<, $*.mli)
+
+%.ml: %.mlp %.h
+    @rm -f $@
+    @echo "(* CAUTION: this is a generated file.  If you edit it, all changes will be lost! *)" > $@
+    $(CPP) $(OCAMLCPPFLAGS) -imacros $*.h $*.mlp >> $@
+    @chmod 444 $@
+
+#
+# Make sure generated files are built before scanning
+#
+# \begin{doc}
+# \subsection{OCamlGeneratedFiles, LocalOCamlGeneratedFiles}
+# \begin{verbatim}
+# OCamlGeneratedFiles(files)
+# LocalOCamlGeneratedFiles(files)
+# \end{verbatim}
+#
+# The \verb+OCamlGeneratedFiles+ and \verb+LocalOCamlGeneratedFiles+ functions specify files
+# that need to be generated before any OCaml files are scanned for dependencies. For example,
+# if \verb+parser.ml+ and \verb+lexer.ml+ are both generated files, specify:
+# \begin{verbatim}
+# OCamlGeneratedFiles(parser.ml lexer.ml)
+# \end{verbatim}
+#
+# The \verb+OCamlGeneratedFiles+ function is \emph{global} --- its arguments will be generated
+# before any OCaml files anywhere in the project are scanned for dependencies. The
+# \verb+LocalOCamlGeneratedFiles+ function follows the normal scoping rules of OMake.
+#
+# \end{doc}
+#
+.PHONY: OCamlGeneratedFilesTarget
+
+OCamlGeneratedFiles(files) =
+    OCamlGeneratedFilesTarget: $(files)
+
+LocalOCamlGeneratedFiles(files) =
+    .SCANNER: scan-ocaml-%: $(files)
+    .SCANNER: %.cmi: $(files)
+    .SCANNER: %.cmx %.cmo: $(files)
+    export
+
+#
+# Generic scanners
+#
+OCamlScannerDeps(files) =
+    files = $(set $(replacesuffixes .cmi .ppi .cmo .cmx .ppo, .mli .mli .ml .ml .ml, $(files)))
+    files = $(filter %.ml %.mli, $(files))
+    return $(find-in-path-optional $(OCAMLINCLUDES), $(files))
+
+.SCANNER: scan-ocaml-%.mli: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerDeps $&)
+    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+
+.SCANNER: scan-ocaml-%.ml: %.ml /.PHONY/OCamlGeneratedFilesTarget :exists: %.mli :value: $(OCamlScannerDeps $&)
+    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+
+#
+# Default .SCANNER rules for backwards-compatibility.
+#
+.SCANNER: %.cmi: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerDeps $&)
+    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+
+.SCANNER: %.cmx %.cmo %$(EXT_OBJ): %.ml /.PHONY/OCamlGeneratedFilesTarget :exists: %.mli :value: $(OCamlScannerDeps $&)
+    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+
+#
+# Define a link order for OCaml files.
+# If a file depends on a %.cmi, it also depends on %.cmo
+#
+.ORDER: .OCAMLLINK
+
+.OCAMLLINK: %.cmi: %.cmo
+.OCAMLLINK: %.cmx: %.cmo
+
+ABORT_ON_DEPENDENCY_ERRORS = false
+
+OCamlLinkSort(nodes) =
+   if $(ABORT_ON_DEPENDENCY_ERRORS)
+      nodes = $(file-check-sort .OCAMLLINK, $(nodes))
+      return($(nodes))
+   else
+      nodes = $(file-sort .OCAMLLINK, $(nodes))
+      return($(nodes))
+
+#
+# Generic rule to build an ML library
+#
+# \begin{doc}
+# \subsection{OCamlLibrary}
+#
+# The \verb+OCamlLibrary+ function builds an OCaml library.
+#
+# \verb+OCamlLibrary(<libname>, <files>)+
+#
+# The \verb+<libname>+ and \verb+<files>+ are listed \emph{without} suffixes.
+#
+# Additional variables used by the function:
+# \begin{description}
+# \item[ABORT\_ON\_DEPENDENCY\_ERRORS] The linker requires that the files to be
+#   listed in dependency order.  If this variable is true, the order of
+#   the files is determined by the command line, but \Prog{omake} will
+#   abort with an error message if the order is illegal.  Otherwise,
+#   the files are sorted automatically.
+# \end{description}
+#
+# This function returns the list of all the targets that it defines the rules
+# for (including the \verb+$(name)$(EXT_LIB)+ file when \verb+NATIVE_ENABLED+ is set).
+#
+# The following code builds the \verb+libfoo.cmxa+ library from the files \verb+foo.cmx+
+# and \verb+bar.cmx+ (if \verb+NATIVE_ENABLED+ is set), and \verb+libfoo.cma+ from
+# \verb+foo.cmo+ and \verb+bar.cmo+ (if \verb+BYTE_ENABLED+ is set).
+#
+# \begin{verbatim}
+# OCamlLibrary(libfoo, foo bar)
+# \end{verbatim}
+# \end{doc}
+#
+OCamlLibrary(name, files) =
+   name = $(file $(name))
+
+   OFILES   = $(addsuffix $(EXT_OBJ), $(files))
+   CMOFILES = $(addsuffix .cmo, $(files))
+   CMXFILES = $(addsuffix .cmx, $(files))
+
+   CLIB      = $(file $(name)$(EXT_LIB))
+   BYTELIB   = $(file $(name).cma)
+   NATIVELIB = $(file $(name).cmxa)
+
+   #
+   # Link commands
+   #
+   $(BYTELIB): $(CMOFILES)
+        $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS) \
+                $(OCAML_LIB_FLAGS) -a -o $@ $(OCamlLinkSort $(CMOFILES))
+
+   $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
+        $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) \
+                $(OCAML_LIB_FLAGS) -a -o $(NATIVELIB) $(OCamlLinkSort $(CMXFILES))
+
+   return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+
+#
+# If the interfaces are to be installed,
+# define this variable to be true.
+#
+INSTALL_INTERFACES = false
+
+#
+# Install the library
+#
+# \begin{doc}
+# \subsection{OCamlLibraryCopy}
+#
+# The \verb+OCamlLibraryCopy+ function copies a library to an install location.
+#
+# \verb+OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)+
+#
+# The \verb+<interface-files>+ specify additional interface files
+# to be copied if the \verb+INSTALL_INTERFACES+ variable is true.
+# \end{doc}
+#
+OCamlLibraryCopy(tag, lib, name, ifiles) =
+   #
+   # Copy interfaces
+   #
+   if $(INSTALL_INTERFACES)
+      MLIFILES  = $(filter-targets $(addsuffix .mli, $(ifiles)))
+      CMIFILES  = $(addsuffix .cmi, $(ifiles))
+
+      foreach(src, $(MLIFILES) $(CMIFILES))
+          $(lib)/$(basename $(src)): $(src) $(lib) :scanner: $(NOSCANNER)
+              $(symlink $<, $@)
+
+      # Add to the install tag
+      $(tag): $(file $(addprefix $(lib)/, $(basename $(MLIFILES) $(CMIFILES))))
+
+   #
+   # Also install libraries
+   #
+   CLIB      = $(file $(name)$(EXT_LIB))
+   BYTELIB   = $(file $(name).cma)
+   NATIVELIB = $(file $(name).cmxa)
+
+   LIBCLIB   = $(file $(lib)/$(name)$(EXT_LIB))
+   LIBBYTE   = $(file $(lib)/$(name).cma)
+   LIBNATIVE = $(file $(lib)/$(name).cmxa)
+
+   #
+   # Link libraries into lib directory
+   #
+   $(LIBBYTE): $(BYTELIB)
+        $(symlink $<, $@)
+
+   $(LIBNATIVE): $(NATIVELIB)
+        $(symlink $<, $@)
+
+   $(LIBCLIB): $(CLIB)
+        $(symlink $<, $@)
+
+   #
+   # Add dependencies to the target tag
+   #
+   FILES[] =
+
+   if $(BYTE_ENABLED)
+      $(tag): $(LIBBYTE)
+      FILES[] += $(LIBBYTE)
+      export
+
+   if $(NATIVE_ENABLED)
+      $(tag): $(LIBNATIVE) $(LIBCLIB)
+
+      FILES[] += 
+         $(LIBNATIVE)
+         $(LIBCLIB)
+
+      export
+
+#
+# We often use them together
+#
+# \begin{doc}
+# \subsection{OCamlLibraryInstall}
+#
+# The \verb+OCamlLibraryInstall+ function builds a library
+# and copies it to an install location in one step.
+#
+# \verb+OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)+
+# \end{doc}
+#
+OCamlLibraryInstall(tag, lib, name, files) =
+    OCamlLibrary($(name), $(files))
+    return $(OCamlLibraryCopy $(tag), $(lib), $(name), $(files))
+
+#
+# Generic rule to build an OCaml program
+#    name: the name of the target, without a suffix
+#    files: names of the object files, without suffixes
+#
+# Other variables:
+#    OCAML_LIBS: OCaml libraries target depends on, without suffix
+#    OCAML_CLIBS: C libraries we depend on, without suffix
+#    OCAML_OTHER_LIBS: OCaml libraries, without dependencies, without suffix
+#    OCAML_BYTE_LINK_FLAGS: additional flags for byte compiler
+#    OCAML_NATIVE_LINK_FLAGS: additional flags for native-code compiler
+#    OCAML_LINK_FLAGS: general additional options (usually the -cclib options)
+#
+# \begin{doc}
+# \subsection{OCamlProgram}
+#
+# The \verb+OCamlProgram+ function builds an OCaml program. It returns the array with all
+# the targets for which it have defined the rules (\verb+$(name)$(EXE)+ and \verb+$(name).run+
+# and/or \verb+$(name).opt+, depending on the \verb+NATIVE_ENABLED+ and \verb+BYTE_ENABLED+
+# variables).
+#
+# \verb+OCamlProgram(<name>, <files>)+
+#
+# Additional variables used:
+# \begin{description}
+# \item[OCAML\_LIBS] Additional libraries passed to the linker, without suffix.  These files
+#    become dependencies of the target program.
+# \item[OCAML\_OTHER\_LIBS] Additional libraries passed to the linker, without suffix.  These
+#    files do \emph{not} become dependencies of the target program.
+# \item[OCAML\_CLIBS] C libraries to pass to the linker.
+# \item[OCAML\_BYTE\_LINK\_FLAGS] Flags to pass to the bytecode linker.
+# \item[OCAML\_NATIVE\_LINK\_FLAGS] Flags to pass to the native code linker.
+# \item[OCAML\_LINK\_FLAGS] Flags to pass to both linkers.
+# \end{description}
+# \end{doc}
+#
+OCamlProgram(name, files) =
+   CMOFILES  = $(addsuffix .cmo, $(files))
+   CMXFILES  = $(addsuffix .cmx, $(files))
+   OFILES    = $(addsuffix $(EXT_OBJ), $(files))
+
+   CMAFILES  = $(addsuffix .cma,  $(OCAML_LIBS))
+   CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
+   ARFILES   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+   CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+   CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
+
+   BYTE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+   NATIVE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+   CLIBS = $(addsuffix $(EXT_LIB), $(LIBS))
+
+   name = $(file $(name))
+
+   PROG     = $(file $(name)$(EXE))
+   BYTEPROG = $(file $(name).run)
+   OPTPROG  = $(file $(name).opt)
+
+   #
+   # Rules to build byte-code and native targets
+   #
+   $(BYTEPROG): $(CMAFILES) $(CMOFILES) $(BYTE_CLIBS) $(CLIBS)
+        $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS)\
+                $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS)\
+                -o $@ $(CMA_OTHER_FILES) $(CMAFILES) $(OCamlLinkSort $(CMOFILES))\
+                $(BYTE_CLIBS) $(CLIBS) $(OCAML_LINK_FLAGS)
+
+   $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILES) $(OFILES) $(NATIVE_CLIBS) $(CLIBS)
+        $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS)\
+                $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)\
+                -o $@ $(CMXA_OTHER_FILES) $(CMXAFILES) $(OCamlLinkSort $(CMXFILES))\
+                $(NATIVE_CLIBS) $(CLIBS) $(OCAML_LINK_FLAGS)
+
+   #
+   # Link the actual executables.
+   # Always prefer native executables.
+   #
+   if $(NATIVE_ENABLED)
+        $(PROG): $(OPTPROG)
+            $(symlink $<, $@)
+   else
+        $(PROG): $(BYTEPROG)
+            $(symlink $<, $@)
+
+   return $(array $(PROG), $(if $(NATIVE_ENABLED), $(OPTPROG)), $(if $(BYTE_ENABLED), $(BYTEPROG)))
+
+#
+# Copy to $(BIN) directory
+#
+# \begin{doc}
+# \subsection{OCamlProgramCopy}
+#
+# The \verb+OCamlProgramCopy+ function copies an OCaml program to an install location.
+#
+# \verb+OCamlProgramCopy(<tag>, <bindir>, <name>)+
+#
+# Additional variables used:
+# \begin{description}
+# \item[NATIVE\_ENABLED]  If \verb+NATIVE_ENABLED+ is set, the native-code executable
+#    is copied; otherwise the byte-code executable is copied.
+# \end{description}
+# \end{doc}
+#
+OCamlProgramCopy(tag, bin, name) =
+   name = $(file $(name))
+
+   BYTEPROG = $(file $(name).run)
+   OPTPROG  = $(file $(name).opt)
+
+   SRCNAME  = $(if $(NATIVE_ENABLED), $(OPTPROG), $(BYTEPROG))
+   BINNAME  = $(file $(bin)/$(basename $(name))$(EXE))
+
+   #
+   # Link the actual executables.
+   # Always prefer native executables.
+   #
+   $(BINNAME): $(SRCNAME) $(bin)
+      $(symlink $<, $@)
+
+   # Add to phony tag.
+   $(tag): $(BINNAME)
+
+   return $(BINNAME)
+
+#
+# We often use them together
+#
+# \begin{doc}
+# \subsection{OCamlProgramInstall}
+#
+# The \verb+OCamlProgramInstall+ function builds a programs and copies it to
+# an install location in one step.
+#
+# \verb+OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)+
+# \end{doc}
+#
+OCamlProgramInstall(tag, bin, name, files) =
+    OCamlProgram($(name), $(files))
+    return $(OCamlProgramCopy $(tag), $(bin), $(name))
+

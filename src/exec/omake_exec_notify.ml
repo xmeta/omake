@@ -1,0 +1,163 @@
+(*
+ * File notification server.
+ *
+ * ----------------------------------------------------------------
+ *
+ * @begin[license]
+ * Copyright (C) 2004 Mojave Group, Caltech
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * Author: Jason Hickey
+ * @email{jyh@cs.caltech.edu}
+ * @end[license]
+ *)
+open Lm_printf
+
+open Omake_node
+open Omake_exec_type
+
+module Notify =
+struct
+   (*
+    * Notification services are performed by Omake_notify.
+    *)
+   type ('exp, 'pid, 'value) t =
+      { mutable notify_server : Omake_notify.t option;
+        mutable notify_event  : Omake_notify.event option
+      }
+
+   (*
+    * Create the server.
+    * Initially disconnected.
+    *)
+   let create _ =
+      { notify_server = None;
+        notify_event = None
+      }
+
+   (*
+    * Close it.
+    *)
+   let close notify =
+      match notify.notify_server with
+         Some server ->
+            Omake_notify.close server;
+            notify.notify_server <- None;
+            notify.notify_event <- None
+       | None ->
+            ()
+
+   (*
+    * Monitor a directory.
+    *)
+   let start notify =
+      match notify.notify_server with
+         Some server ->
+            server
+       | None ->
+            let server = Omake_notify.create () in
+               notify.notify_server <- Some server;
+               server
+
+   let monitor notify node =
+      let dir = Dir.absname (Node.dir node) in
+      let server = start notify in
+         Omake_notify.monitor server dir false
+
+   let monitor_tree notify dir =
+      let dir = Dir.absname dir in
+      let server = start notify in
+         Omake_notify.monitor server dir true
+
+   (*
+    * Get the next event.
+    * This assumes a notification thread is not currently running.
+    *)
+   let pending notify =
+      match notify with
+         { notify_event = Some _ } ->
+            true
+       | { notify_server = Some server } ->
+            Omake_notify.pending server
+       | { notify_server = None } ->
+            false
+
+   let next_event notify =
+      match notify with
+         { notify_event = Some event } ->
+            notify.notify_event <- None;
+            event
+       | { notify_server = Some server } ->
+            Omake_notify.next_event server
+       | { notify_server = None } ->
+            raise (Failure "Omake_exec_notify.next_event: no monitors")
+
+   (*
+    * Notify server does not implement processes.
+    *)
+   let spawn _ _ _ _ _ _ _ =
+      raise (Invalid_argument "Omake_exec_notify.spawn: processes are not supported")
+
+   (*
+    * File descriptors.
+    *)
+   let descriptors notify =
+      match Omake_notify.enabled, notify with
+         true, { notify_event = None;
+                 notify_server = Some server
+         } ->
+            [Omake_notify.file_descr server]
+       | _ ->
+            []
+
+   (*
+    * Handle input from the descriptor.
+    *)
+   let handle notify _ _ =
+      match notify with
+         { notify_event = None;
+           notify_server = Some server
+         } when Omake_notify.pending server ->
+            let event =
+               Lm_thread_pool.blocking_section (fun () ->
+                     Omake_notify.next_event server) ()
+            in
+               notify.notify_event <- Some event
+       | _ ->
+            ()
+
+   (*
+    * Wait for a command to finish.
+    *)
+   let wait notify _ =
+      handle notify () (); (* XXX HACK: nogin *)
+      match notify.notify_event with
+         Some event ->
+            notify.notify_event <- None;
+            WaitInternalNotify event
+       | None ->
+            WaitInternalNone
+end
+
+(*!
+ * @docoff
+ *
+ * -*-
+ * Local Variables:
+ * Caml-master: "compile"
+ * End:
+ * -*-
+ *)

@@ -1,0 +1,85 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Short description
+%
+\section{Description}
+
+\Prog{omake} is designed for building projects that might have source files in several directories.
+Projects are normally specified using an \File{OMakefile} in each of the project directories, and an
+\File{OMakeroot} file in the root directory of the project.  The \File{OMakeroot} file specifies
+general build rules, and the \File{OMakefile}s specify the build parameters specific to each of the
+subdirectories.  When \Prog{omake} runs, it walks the configuration tree, evaluating rules from all
+of the \File{OMakefile}s.  The project is then built from the entire collection of build rules.
+
+\subsection{Automatic dependency analysis}
+
+Dependency analysis has always been problematic with the \Cmd{make}{1} program.  \Prog{omake}
+addresses this by adding the \verb+.SCANNER+ target, which specifies a command to produce
+dependencies.  For example, the following rule
+
+\begin{verbatim}
+    .SCANNER: %.o: %.c
+        $(CC) $(INCLUDE) -MM $<
+\end{verbatim}
+
+is the standard way to generate dependencies for \verb+.c+ files.  \Prog{omake} will automatically
+run the scanner when it needs to determine dependencies for a file.
+
+\subsection{Content-based dependency analysis}
+
+Dependency analysis in omake uses MD5 digests to determine whether files have changed.  After each
+run, \Prog{omake} stores the dependency information in a file called \File{.omakedb} in the project
+root directory.  When a rule is considered for execution, the command is not executed if the target,
+dependencies, and command sequence are unchanged since the last run of \Prog{omake}.  As an
+optimization, \Prog{omake} does not recompute the digest for a file that has an unchanged
+modification time, size, and inode number.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% References
+%
+See the following manual pages for more information.
+
+\begin{description}
+\item[\href{omake-quickstart.html}{omake-quickstart}]
+%
+   A quickstart guide to using \Prog{omake}.
+\item[\href{omake-options.html}{omake-options}]
+%
+   Command-line options for \Prog{omake}.
+\item[\href{omake-root.html}{omake-root}]
+%
+   The system \File{OMakeroot} contains the default specification of how to build C, OCaml, and
+   \LaTeX\ programs.
+\item[\href{omake-language.html}{omake-language}]
+%
+   The \Prog{omake} language, including a description of objects, expressions, and values.
+\item[\href{omake-shell.html}{omake-shell}]
+%
+   Using the \Prog{omake} shell for command-line interpretation.
+\item[\href{omake-rules.html}{omake-rules}]
+%
+   Using \Prog{omake} rules to build program.
+\item[\href{omake-base.html}{omake-base}]
+%
+   Functions and variables in the core standard library.
+\item[\href{omake-system.html}{omake-system}]
+%
+   Functions on files, input/output, and system commands.
+\item[\href{omake-pervasives.html}{omake-pervasives}]
+%
+   Pervasives defines the built-in objects.
+\item[\href{osh.html}{osh}]
+%
+   The \Prog{osh} command-line interpreter.
+\item[\href{omake-doc.html}{omake-doc}]
+%
+   All the OMake documentation in a single page.
+\end{description}
+
+% -*-
+% Local Variables:
+% Mode: LaTeX
+% fill-column: 100
+% TeX-master: "paper"
+% TeX-command-default: "LaTeX/dvips Interactive"
+% End:
+% -*-
