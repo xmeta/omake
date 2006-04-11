@@ -666,12 +666,15 @@ omake_shell_parse.mly: ..$(slash)src$(slash)shell$(slash)omake_shell_parse.mly
 omake_shell_sys.ml: ..$(slash)src$(slash)shell$(slash)omake_shell_sys_$(win32).ml
 	$(LN) ..$(slash)src$(slash)shell$(slash)omake_shell_sys_$(win32).ml omake_shell_sys.ml
 
-Makefile.dep: omake_shell_lex.ml omake_shell_parse.mli omake_shell_parse.ml omake_shell_sys.ml
+Makefile.dep: omake_shell_parse.mli omake_shell_parse.ml omake_shell_sys.ml
 
 SRC_shell = ..$(slash)src$(slash)shell
 
 omake_shell_job.ml: $(SRC_shell)$(slash)omake_shell_job.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_job.ml omake_shell_job.ml
+
+omake_shell_lex.ml: $(SRC_shell)$(slash)omake_shell_lex.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_lex.ml omake_shell_lex.ml
 
 omake_shell_job.mli: $(SRC_shell)$(slash)omake_shell_job.mli
 	$(LN) $(SRC_shell)$(slash)omake_shell_job.mli omake_shell_job.mli
@@ -685,7 +688,7 @@ omake_shell_sys.mli: $(SRC_shell)$(slash)omake_shell_sys.mli
 omake_shell_sys_type.ml: $(SRC_shell)$(slash)omake_shell_sys_type.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_sys_type.ml omake_shell_sys_type.ml
 
-ALLFILES_shell = omake_shell_job.ml omake_shell_job.mli omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_lex.mll omake_shell_parse.mly omake_shell_sys.ml
+ALLFILES_shell = omake_shell_job.ml omake_shell_lex.ml omake_shell_job.mli omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_lex.mll omake_shell_parse.mly omake_shell_sys.ml
 
 
 CMOFILES_eval = omake_eval.cmo omake_value.cmo
