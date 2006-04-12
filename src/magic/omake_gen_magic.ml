@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Printf
@@ -261,6 +261,12 @@ let omake_magic buf =
  *)
 let omake_root buf name =
    let version = read_version () in
+   let version =
+      if Lm_string_util.contains_any version "()$\" " then
+         sprintf "$'''%s'''" version
+      else
+         version
+   in
    let inx = open_in name in
       fprintf buf "#\n# Required version of omake\n#\nOMakeVersion(%s, %s)\n\n" version version;
       copy_file buf inx;
@@ -293,12 +299,9 @@ let main () =
 let _ =
    Printexc.catch main ()
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
