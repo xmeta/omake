@@ -39,14 +39,12 @@ clean:
 win32 = $'$(win32)'
 
 MAKEFILE_TEXT += $"""
-omake_shell_lex.ml: omake_shell_lex.mll
-omake_shell_lex.cmo: omake_shell_lex.cmi omake_shell_parse.cmi
 omake_shell_parse.ml: omake_shell_parse.mly
 omake_shell_parse.mli: omake_shell_parse.mly
 omake_shell_parse.cmo: omake_shell_parse.cmi
 """
 
-MakeLinkFiles(omake_shell_lex.mll omake_shell_parse.mly)
+MakeLinkFiles(omake_shell_parse.mly)
 MakeLinkFile(omake_shell_sys.ml, omake_shell_sys_$(win32).ml)
 MakeDontLink($(GENERATED_FILES))
 MakeMakefile()

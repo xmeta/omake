@@ -653,14 +653,9 @@ OCAML_LIB_FLAGS_shell =
 shell.cma: $(CMOFILES_shell)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_shell) -a -o $@ $(CMOFILES_shell)
 
-omake_shell_lex.ml: omake_shell_lex.mll
-omake_shell_lex.cmo: omake_shell_lex.cmi omake_shell_parse.cmi
 omake_shell_parse.ml: omake_shell_parse.mly
 omake_shell_parse.mli: omake_shell_parse.mly
 omake_shell_parse.cmo: omake_shell_parse.cmi
-
-omake_shell_lex.mll: ..$(slash)src$(slash)shell$(slash)omake_shell_lex.mll
-	$(LN) ..$(slash)src$(slash)shell$(slash)omake_shell_lex.mll omake_shell_lex.mll
 
 omake_shell_parse.mly: ..$(slash)src$(slash)shell$(slash)omake_shell_parse.mly
 	$(LN) ..$(slash)src$(slash)shell$(slash)omake_shell_parse.mly omake_shell_parse.mly
@@ -690,7 +685,7 @@ omake_shell_sys.mli: $(SRC_shell)$(slash)omake_shell_sys.mli
 omake_shell_sys_type.ml: $(SRC_shell)$(slash)omake_shell_sys_type.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_sys_type.ml omake_shell_sys_type.ml
 
-ALLFILES_shell = omake_shell_job.ml omake_shell_lex.ml omake_shell_job.mli omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_lex.mll omake_shell_parse.mly omake_shell_sys.ml
+ALLFILES_shell = omake_shell_job.ml omake_shell_lex.ml omake_shell_job.mli omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
 
 
 CMOFILES_eval = omake_eval.cmo omake_value.cmo
