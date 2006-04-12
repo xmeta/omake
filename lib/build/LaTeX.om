@@ -159,7 +159,7 @@ Shell. +=
         DEPS = $(string $(set-diff $(DEPS), $(WRITES)))
         println($(dep): $(DEPS))
 
-    stdout-to-err(argv) =
+    stdout-to-stderr(argv) =
         stdout = $(stderr)
         $(argv)
 
@@ -168,7 +168,7 @@ Shell. +=
             if $(not $(shell-success $(argv)))
                 private.f = $(replacesuffixes .tex, $(string $(EMPTY)), $(last $(argv)))
                 eprintln(*** Errors detected while running LaTeX on $(private.f).tex:)
-                stdout-to-err grep ':[1-9][0-9]*: ' $(private.f).log
+                stdout-to-stderr grep ':[1-9][0-9]*: ' $(private.f).log
                 exit 1
         else
             $(argv)
