@@ -32,7 +32,19 @@ open Omake_shell_parse
 open Omake_command_type
 
 module Pos = MakePos (struct let name = "Omake_shell_lex" end);;
-open Pos
+open Pos;;
+
+(************************************************************************
+ * String parsing.
+ *)
+let parse_command_string s =
+   let len = String.length s in
+      if len >= 1 && s.[0] = '\\' then
+         ExeQuote (String.sub s 1 (pred len))
+      else if len >= 2 && (s.[0] = '\'' && s.[pred len] = '\'' || s.[0] = '"' && s.[pred len] = '"') then
+         ExeQuote (String.sub s 1 (len - 2))
+      else
+         ExeString s
 
 (************************************************************************
  * Lexing.

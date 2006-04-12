@@ -87,28 +87,6 @@ let collect_env argv =
       collect [] argv
 
 (*
- * Detect escaped commands.
- *)
-let rec collect_escape arg =
-   match arg with
-      ValString s :: arg' ->
-         let len = String.length s in
-            if len = 0 then
-               collect_escape arg'
-            else if s.[0] = '\\' then
-               let arg =
-                  if len = 1 then
-                     arg'
-                  else
-                     ValString (String.sub s 1 (len - 1)) :: arg'
-               in
-                  true, arg
-            else
-               false, arg
-    | _ ->
-        true, arg
-
-(*
  * If the command is a node, detect it here.
  *)
 let collect_exe exe =
@@ -136,25 +114,22 @@ let null_command loc =
    cmd_stdin   = RedirectNone;
    cmd_stdout  = RedirectNone;
    cmd_stderr  = false;
-   cmd_append  = false;
-   cmd_escaped = false
+   cmd_append  = false
  }
 
 let command_of_values argv loc =
    let env, argv = collect_env argv in
       match argv with
          exe :: argv ->
-            let escaped, exe = collect_escape exe in
-               { cmd_loc     = loc;
-                 cmd_env     = env;
-                 cmd_exe     = collect_exe exe;
-                 cmd_argv    = exe :: argv;
-                 cmd_stdin   = RedirectNone;
-                 cmd_stdout  = RedirectNone;
-                 cmd_stderr  = false;
-                 cmd_append  = false;
-                 cmd_escaped = escaped
-               }
+             { cmd_loc     = loc;
+               cmd_env     = env;
+               cmd_exe     = collect_exe exe;
+               cmd_argv    = exe :: argv;
+               cmd_stdin   = RedirectNone;
+               cmd_stdout  = RedirectNone;
+               cmd_stderr  = false;
+               cmd_append  = false
+             }
        | [] ->
            raise (OmakeException (loc_exp_pos loc, SyntaxError "invalid null command"))
 

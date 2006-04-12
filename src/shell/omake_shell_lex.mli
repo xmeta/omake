@@ -36,6 +36,11 @@ open Omake_command_type
 val collect_flags : tok list -> command_flag list * tok list
 
 (*
+ * Detect quoting on a command string.
+ *)
+val parse_command_string : string -> exe
+
+(*
  * Parse the command line, producing a pipe.
  *)
 val parse : loc -> tok list -> value_pipe

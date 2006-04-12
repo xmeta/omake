@@ -173,10 +173,6 @@ Shell. +=
         else
             $(argv)
 
-    run-latex-stderr(argv) =
-        stdout = $(stderr)
-        run-latex($(argv))
-
 #
 # Rules for building TeX documents.
 #
@@ -280,7 +276,7 @@ LaTeXDocument(name, texfiles) =
             .SCANNER: $(SCANNER): $(name).tex $(TEXDEPS) $(TEXFILES) /.PHONY/TeXGeneratedFilesTarget\
               :value: $(USEPDFLATEX) $(find-in-path-optional $(INPUTS), $&)\
               :effects: $(name).aux $(name).log $(name).ind $(name).out $(name).dvi $(name).fls
-                echo | run-latex-stderr $(prog) $(LATEXFLAGS) -recorder $<
+                echo | run-latex $(prog) stdout-to-stderr $(LATEXFLAGS) -recorder $<
                 builtin-tex-deps $(name)$(ext) $(name)
 
             $(name)$(ext): :scanner: $(SCANNER)

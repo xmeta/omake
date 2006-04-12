@@ -1306,10 +1306,11 @@ and normalize_command venv pos loc options command =
    let exe =
       match exe, argv with
          ExeDelayed, arg :: _ ->
-            ExeString arg
+            Omake_shell_lex.parse_command_string arg
        | ExeDelayed, [] ->
             raise (OmakeException (pos, StringError "invalid null command"))
        | ExeNode _, _
+       | ExeQuote _, _
        | ExeString _, _ ->
             exe
    in
@@ -1329,13 +1330,13 @@ and normalize_command venv pos loc options command =
  *)
 and normalize_apply_command venv pos loc command =
    let pos = string_pos "normalize_apply_command" pos in
-      match command.cmd_escaped, command.cmd_exe with
-         true, _
-       | false, ExeNode _ ->
+      match command.cmd_exe with
+         ExeNode _
+       | ExeQuote _ ->
             PipeCommand (loc, command)
-       | false, ExeDelayed ->
+       | ExeDelayed ->
             raise (Invalid_argument "Omake_rule.normalize_apply_command")
-       | false, ExeString exe ->
+       | ExeString exe ->
             try normalize_apply venv pos loc exe command with
                Not_found
              | OmakeException _ ->

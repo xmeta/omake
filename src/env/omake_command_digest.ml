@@ -942,6 +942,7 @@ type code =
  | CodeExeDelayed
  | CodeExeNode
  | CodeExeString
+ | CodeExeQuote
  | CodePipe
  | CodeRedirectNode
  | CodeRedirectArg
@@ -1572,6 +1573,9 @@ let squash_exe buf exe =
     | ExeString s ->
          Hash.add_code buf CodeExeString;
          Hash.add_string buf s
+    | ExeQuote s ->
+         Hash.add_code buf CodeExeQuote;
+         Hash.add_string buf s
 
 let squash_pipe_op buf op =
    let code =
@@ -1589,8 +1593,7 @@ let squash_pipe_command pos buf info =
          cmd_stdin = stdin;
          cmd_stdout = stdout;
          cmd_stderr = stderr;
-         cmd_append = append;
-         cmd_escaped = escaped
+         cmd_append = append
        } = info
    in
       Hash.add_code buf CodePipeCommand;
@@ -1607,8 +1610,6 @@ let squash_pipe_command pos buf info =
       Hash.add_bool buf stderr;
       Hash.add_code buf CodeSpace;
       Hash.add_bool buf append;
-      Hash.add_code buf CodeSpace;
-      Hash.add_bool buf escaped;
       Hash.add_code buf CodeEnd
 
 let squash_pipe_apply pos buf info =

@@ -523,6 +523,8 @@ let find_executable venv pos loc exe =
    match exe with
       ExeDelayed ->
          raise (Invalid_argument "Omake_shell_job.find_executable: received ExeDelayed")
+    | ExeQuote s ->
+         raise (Invalid_argument ("Omake_shell_job.find_executable: received ExeQuote " ^ s))
     | ExeNode node ->
          Node.absname node
     | ExeString exe ->

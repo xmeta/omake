@@ -38,6 +38,7 @@ type exe =
    ExeDelayed
  | ExeNode of Node.t
  | ExeString of string
+ | ExeQuote of string
 
 type 'arg redirect =
    RedirectNode of Node.t
@@ -52,8 +53,7 @@ type 'arg poly_cmd =
      cmd_stdin   : 'arg redirect;
      cmd_stdout  : 'arg redirect;
      cmd_stderr  : bool;
-     cmd_append  : bool;
-     cmd_escaped : bool
+     cmd_append  : bool
    }
 
 (*
@@ -227,6 +227,8 @@ struct
             fprintf buf "<node %a>" pp_print_node node
        | ExeString s ->
             pp_print_string buf s
+       | ExeQuote s ->
+            fprintf buf "\"%s\"" s
 
    (*
     * An internal function/alias.
