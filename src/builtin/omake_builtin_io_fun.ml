@@ -410,7 +410,7 @@ let builtin_grep venv pos loc args =
  * \begin{enumerate}
  * \item[A] Parse each line as an argument list, where arguments
  *    may be quoted.  For example, the following line has three words,
- *    ``\verb{ls}'', ``\verb{-l}'', ``Program Files''.
+ *    ``\verb+ls+'', ``\verb+-l+'', ``\verb+Program Files+''.
  *
  *    \begin{verbatim}
  *        ls -l "Program Files"

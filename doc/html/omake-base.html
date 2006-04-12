@@ -121,40 +121,41 @@ man page.
 <li><a href="#section_88">homename </a></li>
 <li><a href="#section_89">suffix </a></li>
 <li><a href="#section_90">file-exists, target-exists, target-is-proper </a></li>
-<li><a href="#section_91">filter-exists, filter-targets, filter-proper-targets </a></li>
-<li><a href="#section_92">file-sort </a></li>
-<li><a href="#section_93">sort rule </a></li>
-<li><a href="#section_94">file-check-sort </a></li>
-<li><a href="#section_95">glob </a></li>
-<li><a href="#section_96">ls </a></li>
-<li><a href="#section_97">subdirs </a></li>
-<li><a href="#section_98">mkdir </a></li>
-<li><a href="#section_99">Stat </a></li>
-<li><a href="#section_100">stat </a></li>
-<li><a href="#section_101">unlink </a></li>
-<li><a href="#section_102">rename </a></li>
-<li><a href="#section_103">link </a></li>
-<li><a href="#section_104">symlink </a></li>
-<li><a href="#section_105">readlink </a></li>
-<li><a href="#section_106">chmod </a></li>
-<li><a href="#section_107">chown </a></li>
-<li><a href="#section_108">umask </a></li>
-<li><a href="#section_109">digest </a></li>
-<li><a href="#section_110">find-in-path </a></li>
-<li><a href="#section_111">digest-path </a></li>
-<li><a href="#section_112">rehash </a></li>
-<li><a href="#section_113">vmount </a></li>
-<li><a href="#section_114">add-project-directories </a></li>
-<li><a href="#section_115">remove-project-directories </a></li>
-<li><a href="#section_116">test </a></li>
-<li><a href="#section_117">find </a></li>
+<li><a href="#section_91">stat-reset </a></li>
+<li><a href="#section_92">filter-exists, filter-targets, filter-proper-targets </a></li>
+<li><a href="#section_93">file-sort </a></li>
+<li><a href="#section_94">sort rule </a></li>
+<li><a href="#section_95">file-check-sort </a></li>
+<li><a href="#section_96">glob </a></li>
+<li><a href="#section_97">ls </a></li>
+<li><a href="#section_98">subdirs </a></li>
+<li><a href="#section_99">mkdir </a></li>
+<li><a href="#section_100">Stat </a></li>
+<li><a href="#section_101">stat </a></li>
+<li><a href="#section_102">unlink </a></li>
+<li><a href="#section_103">rename </a></li>
+<li><a href="#section_104">link </a></li>
+<li><a href="#section_105">symlink </a></li>
+<li><a href="#section_106">readlink </a></li>
+<li><a href="#section_107">chmod </a></li>
+<li><a href="#section_108">chown </a></li>
+<li><a href="#section_109">umask </a></li>
+<li><a href="#section_110">digest </a></li>
+<li><a href="#section_111">find-in-path </a></li>
+<li><a href="#section_112">digest-path </a></li>
+<li><a href="#section_113">rehash </a></li>
+<li><a href="#section_114">vmount </a></li>
+<li><a href="#section_115">add-project-directories </a></li>
+<li><a href="#section_116">remove-project-directories </a></li>
+<li><a href="#section_117">test </a></li>
+<li><a href="#section_118">find </a></li>
 </ul>
-<li><a href="#section_118">References </a>
+<li><a href="#section_119">References </a>
 <ul>
-<li><a href="#section_119">See Also </a></li>
-<li><a href="#section_120">Version </a></li>
-<li><a href="#section_121">License and Copyright </a></li>
-<li><a href="#section_122">Author </a></li>
+<li><a href="#section_120">See Also </a></li>
+<li><a href="#section_121">Version </a></li>
+<li><a href="#section_122">License and Copyright </a></li>
+<li><a href="#section_123">Author </a></li>
 </ul>
 </li>
 </ul>
@@ -1514,7 +1515,18 @@ However, it returns true if the file exists <em>or</em>
 if it can be built
 by the current project. The <tt>target-is-proper</tt> returns true only
 if the file can be generated in the current project.
-<h4><a name="section_91">filter-exists, filter-targets, filter-proper-targets</a></h4>
+<h4><a name="section_91">stat-reset</a></h4>
+
+<p>
+<pre>
+   $(stat-reset files) : String
+       files : File Sequence
+</pre>
+<p>
+OMake uses a stat-cache. The <tt>stat-reset</tt> function reset the <tt>stat</tt>
+information for the given files, forcing the <tt>stat</tt> information to
+be recomputed the next time it is requested.
+<h4><a name="section_92">filter-exists, filter-targets, filter-proper-targets</a></h4>
 
 <p>
 <pre>
@@ -1560,7 +1572,7 @@ for removing intermediate files.
 If you use CVS, you may wish to use the <tt>cvs_realclean</tt> program that
 is distributed with <tt>omake</tt>.
 <p>
-<h4><a name="section_92">file-sort</a></h4>
+<h4><a name="section_93">file-sort</a></h4>
 
 <p>
 <pre>
@@ -1607,7 +1619,7 @@ in the current project.
 </li>
 </ul>
 <p>
-<h4><a name="section_93">sort rule</a></h4>
+<h4><a name="section_94">sort rule</a></h4>
 
 <p>
 It is possible to further constrain the sorter through the use of
@@ -1632,7 +1644,7 @@ suffix <tt>.bar</tt>, and any file with suffix <tt>.bar</tt> should be
 placed after a file with suffix <tt>.baz</tt>.
 <p>
 In this example, the result of the sort is <tt>d.baz c.baz b.bar a.foo</tt>.
-<h4><a name="section_94">file-check-sort</a></h4>
+<h4><a name="section_95">file-check-sort</a></h4>
 
 <p>
 <pre>
@@ -1646,7 +1658,7 @@ is in sort order. If so, the list is returned unchanged.
 If not, the function raises an exception.
 <p>
 <tt>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</tt>
-<h4><a name="section_95">glob</a></h4>
+<h4><a name="section_96">glob</a></h4>
 
 <p>
 <pre>
@@ -1711,7 +1723,7 @@ behavior of <tt>glob</tt>.
 </dl>
 <p>
 The returned files are sorted by name.
-<h4><a name="section_96">ls</a></h4>
+<h4><a name="section_97">ls</a></h4>
 
 <p>
 <pre>
@@ -1738,7 +1750,7 @@ plus the following.
 The <tt>GLOB_ALLOW</tt> and <tt>GLOB_IGNORE</tt> variables can be defined
 to control the globbing behavior.
 The returned files are sorted by name.
-<h4><a name="section_97">subdirs</a></h4>
+<h4><a name="section_98">subdirs</a></h4>
 
 <p>
 <pre>
@@ -1765,7 +1777,7 @@ rules.
 <dd> Include only proper subdirectories.
 </dd>
 </dl>
-<h4><a name="section_98">mkdir</a></h4>
+<h4><a name="section_99">mkdir</a></h4>
 
 <p>
 <pre>
@@ -1792,7 +1804,7 @@ The following options are supported.
 <dd> Interpret the remaining names literally.
 </li>
 </ul>
-<h4><a name="section_99">Stat</a></h4>
+<h4><a name="section_100">Stat</a></h4>
 
 <p>
 The <tt>Stat</tt> object represents the result returned by the <tt>stat</tt>
@@ -1847,7 +1859,7 @@ will have meaning on all architectures.
 </dd>
 </dl>
 <p>
-<h4><a name="section_100">stat</a></h4>
+<h4><a name="section_101">stat</a></h4>
 
 <p>
 <pre>
@@ -1862,7 +1874,7 @@ The <tt>stat</tt> functions return file information.
 If the file is a symbolic link, the <tt>stat</tt> function refers to the
 destination of the link; the <tt>lstat</tt> function refers to the link
 itself.
-<h4><a name="section_101">unlink</a></h4>
+<h4><a name="section_102">unlink</a></h4>
 
 <p>
 <pre>
@@ -1896,7 +1908,7 @@ The following options are supported for <tt>rm</tt> and <tt>rmdir</tt>.
 <dd> the rest of the values are interpreted literally.
 </li>
 </ul>
-<h4><a name="section_102">rename</a></h4>
+<h4><a name="section_103">rename</a></h4>
 
 <p>
 <pre>
@@ -1938,7 +1950,7 @@ The <tt>mv</tt> and <tt>cp</tt> functions take the following options.
 <dd> Interpret the remaining arguments literally.
 </li>
 </ul>
-<h4><a name="section_103">link</a></h4>
+<h4><a name="section_104">link</a></h4>
 
 <p>
 <pre>
@@ -1954,7 +1966,7 @@ or directory <tt>src</tt>.
 Hard links are not supported in Win32.
 <p>
 Normally, only the superuser can create hard links to directories.
-<h4><a name="section_104">symlink</a></h4>
+<h4><a name="section_105">symlink</a></h4>
 
 <p>
 <pre>
@@ -1973,7 +1985,7 @@ the target directory. For example, the expression
 <tt>c/d -&gt; ../a/b</tt>.
 <p>
 Symbolic links are not supported in Win32.
-<h4><a name="section_105">readlink</a></h4>
+<h4><a name="section_106">readlink</a></h4>
 
 <p>
 <pre>
@@ -1982,7 +1994,7 @@ Symbolic links are not supported in Win32.
 </pre>
 <p>
 The <tt>readlink</tt> function reads the value of a symbolic link.
-<h4><a name="section_106">chmod</a></h4>
+<h4><a name="section_107">chmod</a></h4>
 
 <p>
 <pre>
@@ -2013,7 +2025,7 @@ Options:
 <dd> Interpret the remaining argument literally.
 </li>
 </ul>
-<h4><a name="section_107">chown</a></h4>
+<h4><a name="section_108">chown</a></h4>
 
 <p>
 <pre>
@@ -2030,7 +2042,7 @@ Options:
 The <tt>chown</tt> function changes the user and group id of the file.
 If the <tt>gid</tt> is not specified, it is not changed. If either
 id is -1, that id is not changed.
-<h4><a name="section_108">umask</a></h4>
+<h4><a name="section_109">umask</a></h4>
 
 <p>
 <pre>
@@ -2042,7 +2054,7 @@ id is -1, that id is not changed.
 Sets the file mode creation mask.
 The previous mask is returned.
 This value is not scoped, changes have global effect.
-<h4><a name="section_109">digest</a></h4>
+<h4><a name="section_110">digest</a></h4>
 
 <p>
 <pre>
@@ -2058,7 +2070,7 @@ The <tt>digest</tt> and <tt>digest-optional</tt> functions compute MD5 digests
 of files. The <tt>digest</tt> function raises an exception if a file
 does no exist. The <tt>digest-optional</tt> returns <tt>false</tt> if a
 file does no exist. MD5 digests are cached.
-<h4><a name="section_110">find-in-path</a></h4>
+<h4><a name="section_111">find-in-path</a></h4>
 
 <p>
 <pre>
@@ -2075,7 +2087,7 @@ path. Only the tail of the filename is significant. The <tt>find-in-path</tt>
 function raises an exception if the file can't be found.
 The <tt>find-in-path-optional</tt> function silently removes
 files that can't be found.
-<h4><a name="section_111">digest-path</a></h4>
+<h4><a name="section_112">digest-path</a></h4>
 
 <p>
 <pre>
@@ -2092,7 +2104,7 @@ path and returns the file and digest for each file. Only the tail of the
 filename is significant. The <tt>digest-in-path</tt> function raises an exception
 if the file can't be found. The <tt>digest-in-path-optional</tt>
 function silently removes elements that can't be found.
-<h4><a name="section_112">rehash</a></h4>
+<h4><a name="section_113">rehash</a></h4>
 
 <p>
 <pre>
@@ -2100,7 +2112,7 @@ function silently removes elements that can't be found.
 </pre>
 <p>
 The <tt>rehash</tt> function resets all search paths.
-<h4><a name="section_113">vmount</a></h4>
+<h4><a name="section_114">vmount</a></h4>
 
 <p>
 <pre>
@@ -2131,7 +2143,7 @@ The options are as follows.
 </dl>
 <p>
 Mount operations are scoped.
-<h4><a name="section_114">add-project-directories</a></h4>
+<h4><a name="section_115">add-project-directories</a></h4>
 
 <p>
 <pre>
@@ -2142,7 +2154,7 @@ Mount operations are scoped.
 Add the directories to the set of directories that omake considers to be part
 of the project. This is mainly used to avoid omake complaining that the
 current directory is not part of the project.
-<h4><a name="section_115">remove-project-directories</a></h4>
+<h4><a name="section_116">remove-project-directories</a></h4>
 
 <p>
 <pre>
@@ -2153,7 +2165,7 @@ current directory is not part of the project.
 Removed the directories from the set of directories that omake considers to be part
 of the project. This is mainly used to cancel a <tt>.SUBDIRS</tt> from including
 a directory if it is determined that the directory does not need to be compiled.
-<h4><a name="section_116">test</a></h4>
+<h4><a name="section_117">test</a></h4>
 
 <p>
 <pre>
@@ -2285,7 +2297,7 @@ the <em>string</em>.
 A <em>file</em>
 is a <em>string</em>
 that represents the name of a file.
-<h4><a name="section_117">find</a></h4>
+<h4><a name="section_118">find</a></h4>
 
 <p>
 <pre>
@@ -2314,10 +2326,10 @@ additions.
 <li><tt>-name</tt> <em>string</em> : The current file matches the regular expression.
 </li>
 </ul>
-<h2><a name="section_118">References</a></h2>
+<h2><a name="section_119">References</a></h2>
 
 <p>
-<h4><a name="section_119">See Also</a></h4>
+<h4><a name="section_120">See Also</a></h4>
 
 <p>
 <a href="omake.html">omake(1)</a>,
@@ -2333,12 +2345,12 @@ additions.
 <a href="osh.html">osh(1)</a>,
 <em>make</em>(1)
 <p>
-<h4><a name="section_120">Version</a></h4>
+<h4><a name="section_121">Version</a></h4>
 
 <p>
 Version: 0.9.6.9 of April 11, 2006.
 <p>
-<h4><a name="section_121">License and Copyright</a></h4>
+<h4><a name="section_122">License and Copyright</a></h4>
 
 <p>
 &copy;2003-2006, Mojave Group, Caltech
@@ -2357,7 +2369,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <p>
-<h4><a name="section_122">Author</a></h4>
+<h4><a name="section_123">Author</a></h4>
 
 <p>
 Jason Hickey <em>et. al.</em><br>
