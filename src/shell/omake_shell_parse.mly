@@ -35,67 +35,8 @@ module Pos = MakePos (struct let name = "Omake_shell_parse" end)
 open Pos
 
 (*
- * A definition starts with a string argument,
- *   [-_A-Za-z0-9]*=
- *)
-let index_define_string s =
-   let len = String.length s in
-   let rec check i =
-      if i = len then
-         0
-      else
-         match String.unsafe_get s i with
-            'a'..'z'
-          | 'A'..'Z'
-          | '0'..'9'
-          | '_'
-          | '-' ->
-              check (succ i)
-          | '=' ->
-              i
-          | _ ->
-              0
-   in
-      check 0
-
-let parse_define_arg arg =
-   match arg with
-      ValString s :: arg' ->
-         let i = index_define_string s in
-            if i <> 0 then
-               let len = String.length s in
-               let v = String.sub s 0 i in
-               let s = String.sub s (i + 1) (len - i - 1) in
-                  Some (Lm_symbol.add v, ValString s :: arg')
-            else
-               None
-    | _ ->
-         None
-
-let collect_env argv =
-   let rec collect env argv =
-      match argv with
-         arg :: argv' ->
-            (match parse_define_arg arg with
-                Some (v, arg) ->
-                   collect ((v, arg) :: env) argv'
-              | None ->
-                   List.rev env, argv)
-       | [] ->
-            List.rev env, []
-   in
-      collect [] argv
-
-(*
  * If the command is a node, detect it here.
  *)
-let collect_exe exe =
-   match exe with
-      [ValNode node] ->
-         ExeNode node
-    | _ ->
-         ExeDelayed
-
 let collect_redirect chan =
    match chan with
       [ValNode node] ->
@@ -107,31 +48,26 @@ let collect_redirect chan =
  * Build a command from a sequence of words.
  *)
 let null_command loc =
- { cmd_loc     = loc;
-   cmd_env     = [];
-   cmd_exe     = ExeDelayed;
-   cmd_argv    = [];
-   cmd_stdin   = RedirectNone;
-   cmd_stdout  = RedirectNone;
-   cmd_stderr  = false;
-   cmd_append  = false
- }
+   { cmd_loc     = loc;
+     cmd_env     = [];
+     cmd_exe     = ExeDelayed;
+     cmd_argv    = [];
+     cmd_stdin   = RedirectNone;
+     cmd_stdout  = RedirectNone;
+     cmd_stderr  = false;
+     cmd_append  = false
+   }
 
 let command_of_values argv loc =
-   let env, argv = collect_env argv in
-      match argv with
-         exe :: argv ->
-             { cmd_loc     = loc;
-               cmd_env     = env;
-               cmd_exe     = collect_exe exe;
-               cmd_argv    = exe :: argv;
-               cmd_stdin   = RedirectNone;
-               cmd_stdout  = RedirectNone;
-               cmd_stderr  = false;
-               cmd_append  = false
-             }
-       | [] ->
-           raise (OmakeException (loc_exp_pos loc, SyntaxError "invalid null command"))
+   { cmd_loc     = loc;
+     cmd_env     = [];
+     cmd_exe     = ExeDelayed;
+     cmd_argv    = argv;
+     cmd_stdin   = RedirectNone;
+     cmd_stdout  = RedirectNone;
+     cmd_stderr  = false;
+     cmd_append  = false
+   }
 
 (*
  * Diversions.

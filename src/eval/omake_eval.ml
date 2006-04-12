@@ -609,8 +609,12 @@ and values_of_value venv pos v =
    (*
     * Convert a catenable value to a string
     *)
-   let group tokens = ValQuote tokens in
-   let tokens = Lm_string_util.tokens_create (fun s -> ValData s) group in
+   let group tokens  = ValSequence tokens in
+   let wrap_string s = ValString s in
+   let wrap_data s   = ValData s in
+   let wrap_token s  = ValData s in
+   let lexer _ _ _   = None in
+   let tokens = Lm_string_util.tokens_create_lexer ~lexer ~wrap_string ~wrap_data ~wrap_token ~group in
 
    (*
     * Array elements are always separate values.
@@ -728,7 +732,7 @@ and tokens_of_value venv pos lexer v =
               | ValSequence [v] ->
                    collect_array tokens (v :: vl) vll
               | v ->
-                   collect_array (Lm_string_util.tokens_atomic tokens (TokString (ValQuote [v]))) vl vll)
+                   collect_array (Lm_string_util.tokens_atomic tokens (TokString v)) vl vll)
        | [], vl :: vll ->
             collect_array tokens vl vll
        | [], [] ->
@@ -797,7 +801,8 @@ and tokens_of_value venv pos lexer v =
 (*
  * Flatten the value list into a arg_string list.
  * Basically just concatenate all the values, being
- * careful to preserve quoting.
+ * careful to preserve quoting.  In addition, we want to
+ * concatenate adjacent strings of the same type.
  *)
 and arg_of_values venv pos vl =
    let pos = string_pos "arg_of_values" pos in
@@ -815,15 +820,15 @@ and arg_of_values venv pos vl =
 
                    (* Strings *)
                  | ValString s ->
-                      let arg =
+                      let tokens =
                          if is_quoted then
-                            ArgData s
+                            arg_buffer_add_data tokens s
                          else
-                            ArgString s
+                            arg_buffer_add_string tokens s
                       in
-                         collect is_quoted (arg :: tokens) vl vll
+                         collect is_quoted tokens vl vll
                  | ValData s ->
-                      collect is_quoted (ArgData s :: tokens) vl vll
+                      collect is_quoted (arg_buffer_add_data tokens s) vl vll
                  | ValSequence el ->
                       collect is_quoted tokens el (vl :: vll)
                  | ValArray el ->
@@ -849,8 +854,8 @@ and arg_of_values venv pos vl =
                  | ValOther _
                  | ValFunValue _
                  | ValKey _ ->
-                      let arg = ArgData (string_of_value venv pos v) in
-                         collect is_quoted (arg :: tokens) vl vll
+                      let tokens = arg_buffer_add_data tokens (string_of_value venv pos v) in
+                         collect is_quoted tokens vl vll
 
                    (* Illegal values *)
                  | ValApply _
@@ -861,9 +866,9 @@ and arg_of_values venv pos vl =
        | [], vl :: vll ->
             collect is_quoted tokens vl vll
        | [], [] ->
-            List.rev tokens
+            arg_buffer_contents tokens
    in
-      collect false [] vl []
+      collect false arg_buffer_empty vl []
 
 and argv_of_values venv pos vll =
    List.map (arg_of_values venv pos) vll
@@ -942,15 +947,14 @@ and eval_value_core venv pos v =
     | ValApply (loc, scope, v, args) ->
          eval_value_core venv pos (eval_apply venv pos loc (venv_find_var venv scope pos loc v) args)
     | ValImplicit (loc, scope, v) ->
-         begin match
-            try
-               Some (venv_find_var_exn venv scope v)
-            with Not_found ->
-               None
-         with
-            Some v -> ValArray [eval_value_core venv pos (eval_var venv pos loc v)]
-          | None -> ValNone
-         end
+         let v =
+            try Some (venv_find_var_exn venv scope v) with
+               Not_found ->
+                  None
+         in
+            (match v with
+                Some v -> ValArray [eval_value_core venv pos (eval_var venv pos loc v)]
+              | None -> ValNone)
     | ValSuperApply (loc, scope, super, v, args) ->
          let obj = venv_find_super venv pos loc super in
          let v = venv_find_field obj pos v in

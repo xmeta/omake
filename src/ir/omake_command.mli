@@ -35,6 +35,16 @@ open Omake_shell_type
 open Omake_command_type
 
 (*
+ * Argument parser.
+ *)
+type arg_buffer
+
+val arg_buffer_empty      : arg_buffer
+val arg_buffer_add_string : arg_buffer -> string -> arg_buffer
+val arg_buffer_add_data   : arg_buffer -> string -> arg_buffer
+val arg_buffer_contents   : arg_buffer -> arg_string list
+
+(*
  * Parse commands.
  *)
 val parse_commands : 'venv -> Dir.t -> Node.t -> loc ->

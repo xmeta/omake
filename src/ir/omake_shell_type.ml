@@ -36,13 +36,13 @@ open Omake_node
  *)
 type exe =
    ExeDelayed
- | ExeNode of Node.t
+ | ExeNode   of Node.t
  | ExeString of string
- | ExeQuote of string
+ | ExeQuote  of string
 
 type 'arg redirect =
-   RedirectNode of Node.t
- | RedirectArg of 'arg
+ | RedirectNode of Node.t
+ | RedirectArg  of 'arg
  | RedirectNone
 
 type 'arg poly_cmd =

@@ -31,24 +31,14 @@ open Omake_shell_type
 open Omake_command_type
 
 (*
- * Strip the leading flags from the command line.
- *)
-val collect_flags : tok list -> command_flag list * tok list
-
-(*
- * Detect quoting on a command string.
+ * Commands with a leading \ are quoted.
  *)
 val parse_command_string : string -> exe
 
 (*
- * Parse the command line, producing a pipe.
+ * Construct the pipe from the value.
  *)
-val parse : loc -> tok list -> value_pipe
-
-(*
- * Lexer for the command line.
- *)
-val lexer : lexer
+val pipe_of_value : venv -> pos -> loc -> value -> command_flag list * (arg, apply) poly_pipe
 
 (*!
  * @docoff

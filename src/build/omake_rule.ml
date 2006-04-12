@@ -47,6 +47,7 @@ open Omake_ir_print
 open Omake_node_sig
 open Omake_exec_type
 open Omake_exec_util
+open Omake_shell_lex
 open Omake_cache_type
 open Omake_shell_type
 open Omake_ir_free_vars
@@ -440,84 +441,6 @@ let eval_shell_wait venv pos pid =
    let pos = string_pos "eval_shell_wait" pos in
    let _, status, value = Omake_shell_job.waitpid venv pos pid in
       status, value
-
-(************************************************************************
- * Command-line parsing.
- *)
-let arg_of_redirect venv pos v =
-   match v with
-      RedirectArg v ->
-         RedirectArg (arg_of_values venv pos v)
-    | RedirectNode _
-    | RedirectNone as v ->
-         v
-
-let arg_command_env_item_of_value_command_env_item venv pos (v, info) =
-   v, arg_of_values venv pos info
-
-let arg_command_env_of_value_command_env venv pos env =
-   List.map (arg_command_env_item_of_value_command_env_item venv pos) env
-
-let arg_pipe_command_of_value_pipe_command venv pos info =
-   let { cmd_env     = env;
-         cmd_argv    = argv;
-         cmd_stdin   = stdin;
-         cmd_stdout  = stdout
-       } = info
-   in
-      { info with cmd_env = arg_command_env_of_value_command_env venv pos env;
-                  cmd_argv = argv_of_values venv pos argv;
-                  cmd_stdin = arg_of_redirect venv pos stdin;
-                  cmd_stdout = arg_of_redirect venv pos stdout
-      }
-
-let arg_pipe_apply_of_value_pipe_apply venv pos info =
-   let { apply_args  = args;
-         apply_stdin = stdin;
-         apply_stdout = stdout
-       } = info
-   in
-      { info with apply_args = argv_of_values venv pos args;
-                  apply_stdin = arg_of_redirect venv pos stdin;
-                  apply_stdout = arg_of_redirect venv pos stdout
-      }
-
-let rec arg_pipe_of_value_pipe venv pos pipe =
-   match pipe with
-      PipeApply (loc, info) ->
-         PipeApply (loc, arg_pipe_apply_of_value_pipe_apply venv pos info)
-    | PipeCommand (loc, info) ->
-         PipeCommand (loc, arg_pipe_command_of_value_pipe_command venv pos info)
-    | PipeCond (loc, op, pipe1, pipe2) ->
-         PipeCond (loc, op, arg_pipe_of_value_pipe venv pos pipe1, arg_pipe_of_value_pipe venv pos pipe2)
-    | PipeCompose (loc, b, pipe1, pipe2) ->
-         PipeCompose (loc, b, arg_pipe_of_value_pipe venv pos pipe1, arg_pipe_of_value_pipe venv pos pipe2)
-    | PipeGroup (loc, info) ->
-         PipeGroup (loc, arg_pipe_group_of_value_pipe_group venv pos info)
-    | PipeBackground (loc, pipe) ->
-         PipeBackground (loc, arg_pipe_of_value_pipe venv pos pipe)
-
-and arg_pipe_group_of_value_pipe_group venv pos info =
-   let { group_stdin   = stdin;
-         group_stdout  = stdout;
-         group_pipe    = pipe
-       } = info
-   in
-      { info with group_stdin  = arg_of_redirect venv pos stdin;
-                  group_stdout = arg_of_redirect venv pos stdout;
-                  group_pipe   = arg_pipe_of_value_pipe venv pos pipe
-      }
-
-(*
- * Do the whole command-line parsing process.
- *)
-let pipe_of_value venv pos loc v =
-   let pos = string_pos "pipe_of_value" pos in
-   let argv = tokens_of_value venv pos Omake_shell_lex.lexer v in
-   let flags, argv = Omake_shell_lex.collect_flags argv in
-   let pipe = Omake_shell_lex.parse loc argv in
-   let pipe = arg_pipe_of_value_pipe venv pos pipe in
-      flags, pipe
 
 (************************************************************************
  * Globbing.
@@ -1306,7 +1229,7 @@ and normalize_command venv pos loc options command =
    let exe =
       match exe, argv with
          ExeDelayed, arg :: _ ->
-            Omake_shell_lex.parse_command_string arg
+            parse_command_string arg
        | ExeDelayed, [] ->
             raise (OmakeException (pos, StringError "invalid null command"))
        | ExeNode _, _

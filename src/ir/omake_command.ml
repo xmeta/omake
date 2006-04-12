@@ -35,6 +35,59 @@ open Omake_shell_type
 open Omake_command_type
 
 (************************************************************************
+ * Argument collapsing.
+ *)
+type arg_buffer = arg_string list
+
+let arg_buffer_empty =
+   []
+
+let arg_buffer_add_string buf s =
+   ArgString s :: buf
+
+let arg_buffer_add_data buf s =
+   ArgData s :: buf
+
+let rec collect_string buf args =
+   match args with
+      ArgString s :: args ->
+         Buffer.add_string buf s;
+         collect_string buf args
+    | _ ->
+         args
+
+let rec collect_data buf args =
+   match args with
+      ArgData s :: args ->
+         Buffer.add_string buf s;
+         collect_data buf args
+    | _ ->
+         args
+
+let arg_buffer_contents args =
+   let buf = Buffer.create 32 in
+   let rec collect args' args =
+      match args with
+         ArgString s :: ((ArgString _ :: _) as tl) ->
+            Buffer.add_string buf s;
+            let args = collect_string buf tl in
+            let s = Buffer.contents buf in
+               Buffer.clear buf;
+               collect (ArgString s :: args') args
+       | ArgData s :: ((ArgData _ :: _) as tl) ->
+            Buffer.add_string buf s;
+            let args = collect_data buf tl in
+            let s = Buffer.contents buf in
+               Buffer.clear buf;
+               collect (ArgData s :: args') args
+       | h :: args ->
+            collect (h :: args') args
+       | [] ->
+            List.rev args'
+   in
+      collect [] (List.rev args)
+
+(************************************************************************
  * Command utilities
  *)
 

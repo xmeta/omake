@@ -27,24 +27,13 @@
 open Lm_printf
 
 open Omake_env
+open Omake_eval
 open Omake_shell_type
 open Omake_shell_parse
 open Omake_command_type
 
 module Pos = MakePos (struct let name = "Omake_shell_lex" end);;
 open Pos;;
-
-(************************************************************************
- * String parsing.
- *)
-let parse_command_string s =
-   let len = String.length s in
-      if len >= 1 && s.[0] = '\\' then
-         ExeQuote (String.sub s 1 (pred len))
-      else if len >= 2 && (s.[0] = '\'' && s.[pred len] = '\'' || s.[0] = '"' && s.[pred len] = '"') then
-         ExeQuote (String.sub s 1 (len - 2))
-      else
-         ExeString s
 
 (************************************************************************
  * Lexing.
@@ -200,6 +189,158 @@ let collect_flags toks =
             flags, toks
    in
       collect_flags [] toks
+
+(************************************************************************
+ * Command-line parsing.
+ *)
+let rec flatten_value v =
+   match v with
+      ValArray [v]
+    | ValSequence [v] ->
+         flatten_value v
+    | v ->
+         v
+
+let flatten_values vl =
+   match vl with
+      [v] ->
+         [flatten_value v]
+    | _ ->
+         vl
+
+let arg_of_redirect venv pos v =
+   match v with
+      RedirectArg v ->
+         (match flatten_values v with
+             [ValNode node] ->
+                RedirectNode node
+           | v ->
+                RedirectArg (arg_of_values venv pos v))
+    | RedirectNode _
+    | RedirectNone as v ->
+         v
+
+(*
+ * When parsing the command line, collect all environment definitions.
+ *)
+let scan_define arg =
+   match arg with
+      ArgString s :: args ->
+         (try
+             let i = String.index s '=' in
+             let v = Lm_symbol.add (String.sub s 0 i) in
+             let i = succ i in
+             let len = String.length s in
+             let args =
+                if i = len then
+                   args
+                else
+                   ArgString (String.sub s i (len - i)) :: args
+             in
+                Some (v, args)
+          with
+             Not_found ->
+                None)
+    | _ ->
+         None
+
+(*
+ * For a command, scan forward, collecting the env.
+ *)
+let rec scan_argv_aux venv pos env argv =
+   match argv with
+      arg :: argv' ->
+         (match flatten_values arg with
+             [ValNode node] ->
+               env, ExeNode node, argv
+           | v ->
+                let arg = arg_of_values venv pos v in
+                   (match scan_define arg with
+                       Some (v, s) ->
+                          scan_argv_aux venv pos ((v, s) :: env) argv'
+                     | None ->
+                          (* exe selection happens after globbing *)
+                          env, ExeDelayed, argv))
+    | [] ->
+         raise (OmakeException (pos, StringError "invalid null command"))
+
+let scan_argv venv pos argv =
+   let env, exe, argv = scan_argv_aux venv pos [] argv in
+   let env = List.rev env in
+   let argv = argv_of_values venv pos argv in
+      env, exe, argv
+
+let arg_pipe_command_of_value_pipe_command venv pos info =
+   let { cmd_argv    = argv;
+         cmd_stdin   = stdin;
+         cmd_stdout  = stdout
+       } = info
+   in
+   let env, exe, argv = scan_argv venv pos argv in
+      { info with cmd_env = env;
+                  cmd_exe = exe;
+                  cmd_argv = argv;
+                  cmd_stdin = arg_of_redirect venv pos stdin;
+                  cmd_stdout = arg_of_redirect venv pos stdout
+      }
+
+let arg_pipe_apply_of_value_pipe_apply venv pos info =
+   let { apply_args  = args;
+         apply_stdin = stdin;
+         apply_stdout = stdout
+       } = info
+   in
+      { info with apply_args = argv_of_values venv pos args;
+                  apply_stdin = arg_of_redirect venv pos stdin;
+                  apply_stdout = arg_of_redirect venv pos stdout
+      }
+
+let rec arg_pipe_of_value_pipe venv pos pipe =
+   match pipe with
+      PipeApply (loc, info) ->
+         PipeApply (loc, arg_pipe_apply_of_value_pipe_apply venv pos info)
+    | PipeCommand (loc, info) ->
+         PipeCommand (loc, arg_pipe_command_of_value_pipe_command venv pos info)
+    | PipeCond (loc, op, pipe1, pipe2) ->
+         PipeCond (loc, op, arg_pipe_of_value_pipe venv pos pipe1, arg_pipe_of_value_pipe venv pos pipe2)
+    | PipeCompose (loc, b, pipe1, pipe2) ->
+         PipeCompose (loc, b, arg_pipe_of_value_pipe venv pos pipe1, arg_pipe_of_value_pipe venv pos pipe2)
+    | PipeGroup (loc, info) ->
+         PipeGroup (loc, arg_pipe_group_of_value_pipe_group venv pos info)
+    | PipeBackground (loc, pipe) ->
+         PipeBackground (loc, arg_pipe_of_value_pipe venv pos pipe)
+
+and arg_pipe_group_of_value_pipe_group venv pos info =
+   let { group_stdin   = stdin;
+         group_stdout  = stdout;
+         group_pipe    = pipe
+       } = info
+   in
+      { info with group_stdin  = arg_of_redirect venv pos stdin;
+                  group_stdout = arg_of_redirect venv pos stdout;
+                  group_pipe   = arg_pipe_of_value_pipe venv pos pipe
+      }
+
+(*
+ * Do the whole command-line parsing process.
+ *)
+let pipe_of_value venv pos loc v =
+   let pos = string_pos "pipe_of_value" pos in
+   let argv = tokens_of_value venv pos lexer v in
+   let flags, argv = collect_flags argv in
+   let pipe = parse loc argv in
+   let pipe = arg_pipe_of_value_pipe venv pos pipe in
+      flags, pipe
+
+(*
+ * Commands with a leading \ are quoted.
+ *)
+let parse_command_string s =
+   let len = String.length s in
+      if len <> 0 && s.[0] = '\\' then
+         ExeQuote (String.sub s 1 (pred len))
+      else
+         ExeString s
 
 (*
  * -*-
