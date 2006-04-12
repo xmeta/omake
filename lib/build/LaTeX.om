@@ -66,7 +66,7 @@ PDFLATEXFLAGS =
 USEPDFLATEX = false
 LATEX = latex
 LATEXFLAGS =
-    BASE = -output-comment="LaTeX Output (built with OMake)"
+    BASE = -output-comment=$"LaTeX Output (built with OMake)"
     value $`(if $(TETEX2_ENABLED), $(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
 #
@@ -76,7 +76,14 @@ TETEX2_ENABLED = false
 FILE_LINE_ERROR =
 static. =
     open configure/Configure
-    if $(CheckProg $(LATEX))
+
+    #
+    # XXX: JYH: added this additional test for Win32
+    # Apparently Cygwin LaTeX abort with a segfault
+    # When run from native Win32.
+    #
+    if $(not $(equal $(OSTYPE), Win32))
+      if $(CheckProg $(LATEX))
         print(--- Configuring LaTeX defaults... )
 
         # Look through the -help info for tetex2 options
