@@ -1742,7 +1742,7 @@ let save_aux env =
    (*
     * BUG: On Win32, when polling is enabled,
     * rename will fail if the dst file exists.
-    * This is bogus, but lets hope that we don't
+    * This is bogus, but let's hope that we don't
     * get interrupted while writing the .omakedb
     *)
    let db_win32_bug = Sys.os_type = "Win32" && options.opt_poll in
