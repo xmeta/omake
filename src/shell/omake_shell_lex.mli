@@ -33,7 +33,7 @@ open Omake_command_type
 (*
  * Commands with a leading \ are quoted.
  *)
-val parse_command_string : string -> exe
+val parse_command_string : bool -> string -> exe
 
 (*
  * Construct the pipe from the value.

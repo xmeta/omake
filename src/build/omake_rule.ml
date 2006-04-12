@@ -1225,11 +1225,12 @@ and normalize_command venv pos loc options command =
          cmd_stdout = stdout
        } = command
    in
+   let is_quoted = exe_is_quoted argv in
    let argv = glob_command_line venv pos loc options argv in
    let exe =
       match exe, argv with
          ExeDelayed, arg :: _ ->
-            parse_command_string arg
+            parse_command_string is_quoted arg
        | ExeDelayed, [] ->
             raise (OmakeException (pos, StringError "invalid null command"))
        | ExeNode _, _

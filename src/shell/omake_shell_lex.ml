@@ -332,13 +332,16 @@ let pipe_of_value venv pos loc v =
    let pipe = arg_pipe_of_value_pipe venv pos pipe in
       flags, pipe
 
+
 (*
  * Commands with a leading \ are quoted.
  *)
-let parse_command_string s =
+let parse_command_string is_quoted s =
    let len = String.length s in
       if len <> 0 && s.[0] = '\\' then
          ExeQuote (String.sub s 1 (pred len))
+      else if is_quoted then
+         ExeQuote s
       else
          ExeString s
 

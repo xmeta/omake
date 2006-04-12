@@ -100,6 +100,16 @@ let string_of_arg arg =
                   Lm_glob.glob_add_escaped Lm_glob.default_glob_options buf s) arg;
       Buffer.contents buf
 
+let exe_is_quoted argv =
+   match argv with
+      arg :: _ ->
+         List.exists (fun arg ->
+               match arg with
+                  ArgString _ -> false
+                | ArgData _ -> true) arg
+    | [] ->
+         false
+
 let pp_print_arg buf arg =
    pp_print_string buf (string_of_arg arg)
 
