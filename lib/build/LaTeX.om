@@ -76,52 +76,71 @@ TETEX2_ENABLED = false
 FILE_LINE_ERROR =
 static. =
     open configure/Configure
-    LATEX_USABLE = false
 
-    if $(CheckProg $(LATEX))
-        print(--- Checking whether $(LATEX) is usable... )
+    #
+    # XXX: JYH: when Cygwin latex is called from Win32,
+    # it often segfaults, and pops up an annoying
+    # ignore/abort window.  Try to detect this case
+    # and disable LaTeX.
+    #
+    # XXX: We should move the uname test into configure/uname.
+    #
+    if $(not $(defined FORCE_WIN32_LATEX))
+        FORCE_WIN32_LATEX = false
+        export
+
+    LATEX_USABLE = true
+    if $(and $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
+       match($(shell uname))
+       case $'CYGWIN*'
+          println($"---   You are trying to use Cygwin LaTeX on a Win32 machine.")
+          println($"---   This usually doesn't work, but if you really want to")
+          println($"---   use it, add the following definition to your OMakeroot.")
+          println($"---       FORCE_WIN32_LATEX = true")
+          LATEX_USABLE = false
+          export
+       export
+
+    print(--- Configuring LaTeX defaults... )
+    if $(LATEX_USABLE)
+        #
+        # Various versions of LaTeX use different options
+        # Look through the -help info for tetex2 options
+        #
+        RECORDER_ENABLED = false
+        ERROR_ENABLED = false
+        FILE_LINE_ERROR =
+
         TETEX_CONFIG_TMP = $(tmpfile tetex)
-        LATEX_USABLE =
-            try
-                $(LATEX) -help > $(TETEX_CONFIG_TMP)
-                value true
-            default
-                value false
-        println ($(if $(LATEX_USABLE), $"(yes)", $"(no)"))
-        
-        if $(LATEX_USABLE)
-            print(--- Configuring LaTeX defaults... )
-            #
-            # Various versions of LaTeX use different options
-            # Look through the -help info for tetex2 options
-            #
-            RECORDER_ENABLED = false
-            ERROR_ENABLED = false
-            FILE_LINE_ERROR =
-            awk($(TETEX_CONFIG_TMP))
-            case ^-recorder
-                RECORDER_ENABLED = true
-                export
-            case ^-file-line-error-style
-                FILE_LINE_ERROR = -file-line-error-style
-                ERROR_ENABLED = true
-                export
-            case $'^\[-no\]-file-line-error'
-                FILE_LINE_ERROR = -file-line-error
-                ERROR_ENABLED = true
-                export
+        latex -help > $(TETEX_CONFIG_TMP)
 
-            #
-            # TeTeX2 if both the -recorder and -file-line-error options exist
-            #
-            TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
-            if $(TETEX2_ENABLED)
-                println($'(tetex2 enabled)')
-            else
-                println($'(tetex2 disabled)')
+        awk($(TETEX_CONFIG_TMP))
+        case ^-recorder
+            RECORDER_ENABLED = true
             export
+        case ^-file-line-error-style
+            FILE_LINE_ERROR = -file-line-error-style
+            ERROR_ENABLED = true
+            export
+        case $'^\[-no\]-file-line-error'
+            FILE_LINE_ERROR = -file-line-error
+            ERROR_ENABLED = true
+            export
+
+        #
+        # TeTeX2 if both the -recorder and -file-line-error options exist
+        #
+        TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
+
         rm $(TETEX_CONFIG_TMP)
-        export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE
+        export
+
+    if $(TETEX2_ENABLED)
+        println($'(tetex2 enabled)')
+    else
+        println($'(tetex2 disabled)')
+
+    export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE
 
 #
 # Dynamically defined list of files that the TeX source depends on.
