@@ -176,11 +176,25 @@ static int string_escape_length(const char *strp)
     extra = 0;
     escaped = 0;
     while(c = *strp++) {
-        if(c <= ' ' || c == '\'')
-            escaped++;
-        else if(c == '"') {
+        switch(c) {
+        case '"':
             escaped++;
             extra++;
+            break;
+        case '*':
+        case '?':
+        case '[':
+        case ']':
+        case '{':
+        case '}':
+        case '~':
+        case '\'':
+            escaped++;
+            break;
+        default:
+            if(c <= ' ')
+                escaped++;
+            break;
         }
     }
     return escaped ? extra + 2 : 0;
@@ -923,6 +937,10 @@ value omake_shell_sys_create_process(value v_info)
         index += length + white;
     }
     argv[index++] = 0;
+#if 0
+    fprintf(stderr, "Command: %s\n", argv);
+    fflush(stderr);
+#endif
 
     /* Get the directory */
     dir = String_val(Field(v_info, CREATE_PROCESS_DIR));
