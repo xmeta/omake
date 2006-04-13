@@ -288,7 +288,7 @@ let pre_pipe_command venv find_alias options pos info =
          CmdNode _ ->
             None
        | CmdArg arg ->
-            if is_glob_arg options arg then
+            if is_quoted_arg arg || is_glob_arg options arg then
                None
             else
                let s = simple_string_of_arg arg in

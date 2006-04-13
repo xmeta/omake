@@ -470,21 +470,6 @@ let glob_options_of_string options s =
       search options 0
 
 (*
- * Check if the arg is a glob arg.
- *)
-let is_glob_arg options arg =
-   List.exists (fun v ->
-         match v with
-            ArgString s -> Lm_glob.is_glob_string options s
-          | ArgData _ -> false) arg
-
-let is_quoted_arg arg =
-   List.exists (fun v ->
-         match v with
-            ArgString _ -> false
-          | ArgData _ -> true) arg
-
-(*
  * Glob an argument into directories and files.
  *)
 let glob_arg venv pos loc options arg =
@@ -1360,9 +1345,9 @@ and normalize_pipe venv pos pipe =
 and normalize_pipe_options venv pos squash options (pipe : arg_pipe) : string_pipe =
    match pipe with
       PipeApply (loc, apply) ->
-         normalize_apply venv pos loc options apply
+         PipeApply (loc, normalize_apply venv pos loc options apply)
     | PipeCommand (loc, command) ->
-         normalize_command venv pos loc options command
+         PipeCommand (loc, normalize_command venv pos loc options command)
     | PipeCond (loc, op, pipe1, pipe2) ->
          PipeCond (loc, op, (**)
                       normalize_pipe_options venv pos true options pipe1,
@@ -1390,14 +1375,11 @@ and normalize_apply venv pos loc options apply =
          apply_stdout = stdout
        } = apply
    in
-   let apply =
       { apply with apply_env = string_of_env env;
                    apply_args = glob_value_argv venv pos loc options argv;
                    apply_stdin = glob_channel venv pos loc options stdin;
                    apply_stdout = glob_channel venv pos loc options stdout
       }
-   in
-      PipeApply (loc, apply)
 
 (*
  * Normalize a command.
@@ -1423,15 +1405,12 @@ and normalize_command venv pos loc options command =
                List.fold_left (fun argv node ->
                      Node.name dir node :: argv) argv (List.rev args)
    in
-   let command =
       { command with cmd_env = string_of_env env;
                      cmd_exe = exe;
                      cmd_argv = argv;
                      cmd_stdin = glob_channel venv pos loc options stdin;
                      cmd_stdout = glob_channel venv pos loc options stdout
       }
-   in
-      PipeCommand (loc, command)
 
 (*
  * Normalize a group.

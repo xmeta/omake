@@ -113,8 +113,22 @@ let is_glob_arg options arg =
           | ArgData _ ->
                false) arg
 
+let is_quoted_arg arg =
+   List.exists (fun v ->
+         match v with
+            ArgString _ -> false
+          | ArgData _ -> true) arg
+
 let pp_print_arg buf arg =
    pp_print_string buf (glob_string_of_arg Lm_glob.default_glob_options arg)
+
+let pp_print_verbose_arg buf arg =
+   List.iter (fun arg ->
+         match arg with
+            ArgString s ->
+               pp_print_string buf s
+          | ArgData s ->
+               fprintf buf "'%s'" s) arg
 
 let pp_print_command_flag buf flag =
    let c =
