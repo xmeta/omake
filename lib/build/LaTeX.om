@@ -89,27 +89,29 @@ static. =
         FORCE_WIN32_LATEX = false
         export
 
-    LATEX_USABLE = true
-    if $(and $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
+    LATEX_USABLE = $(CheckProg latex)
+    if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
        case $'CYGWIN*'
-          println($"---   You are trying to use Cygwin LaTeX on a Win32 machine.")
-          println($"---   This usually doesn't work, but if you really want to")
-          println($"---   use it, add the following definition to your OMakeroot.")
-          println($"---       FORCE_WIN32_LATEX = true")
+          println($"---    You are trying to use Cygwin LaTeX on a Win32 machine.")
+          println($"---    This usually doesn't work, but if you really want to")
+          println($"---    use it, add the following definition to your OMakeroot.")
+          println($"---        FORCE_WIN32_LATEX = true")
+          println($"--- (latex disabled)")
           LATEX_USABLE = false
           export
        export
 
-    print(--- Configuring LaTeX defaults... )
+    FILE_LINE_ERROR =
     if $(LATEX_USABLE)
+        print(--- Configuring LaTeX defaults... )
+
         #
         # Various versions of LaTeX use different options
         # Look through the -help info for tetex2 options
         #
         RECORDER_ENABLED = false
         ERROR_ENABLED = false
-        FILE_LINE_ERROR =
 
         TETEX_CONFIG_TMP = $(tmpfile tetex)
         latex -help > $(TETEX_CONFIG_TMP)
@@ -131,14 +133,13 @@ static. =
         # TeTeX2 if both the -recorder and -file-line-error options exist
         #
         TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
+        if $(TETEX2_ENABLED)
+            println($'(tetex2 enabled)')
+        else
+            println($'(tetex2 disabled)')
 
         rm $(TETEX_CONFIG_TMP)
         export
-
-    if $(TETEX2_ENABLED)
-        println($'(tetex2 enabled)')
-    else
-        println($'(tetex2 disabled)')
 
     export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE
 
