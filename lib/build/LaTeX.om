@@ -92,7 +92,7 @@ static. =
     LATEX_USABLE = $(CheckProg latex)
     if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
-       case $'CYGWIN*'
+       case CYGWIN
           println($"---    You are trying to use Cygwin LaTeX on a Win32 machine.")
           println($"---    This usually doesn't work, but if you really want to")
           println($"---    use it, add the following definition to your OMakeroot.")
