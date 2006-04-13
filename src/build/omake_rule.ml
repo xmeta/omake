@@ -470,15 +470,115 @@ let glob_options_of_string options s =
       search options 0
 
 (*
- * Glob the argument list.
+ * Check if the arg is a glob arg.
+ *)
+let is_glob_arg options arg =
+   List.exists (fun v ->
+         match v with
+            ArgString s -> Lm_glob.is_glob_string options s
+          | ArgData _ -> false) arg
+
+let is_quoted_arg arg =
+   List.exists (fun v ->
+         match v with
+            ArgString _ -> false
+          | ArgData _ -> true) arg
+
+(*
+ * Glob an argument into directories and files.
+ *)
+let glob_arg venv pos loc options arg =
+   let cwd = venv_dir venv in
+   let dirs, files = Lm_glob.glob options (Dir.fullname cwd) [glob_string_of_arg options arg] in
+   let dirs = List.sort String.compare dirs in
+   let files = List.sort String.compare files in
+   let dirs = List.map (fun dir -> Dir.chdir cwd dir) dirs in
+   let files = List.map (fun file -> venv_intern_cd venv PhonyProhibited cwd file) files in
+      dirs, files
+
+(*
+ * This is similar to the above, but we interleave the directories
+ * with the files when sorting.
+ *)
+type glob_result =
+   GDir of string
+ | GFile of string
+
+let glob_result_compare r1 r2 =
+   let s1 =
+      match r1 with
+         GDir s
+       | GFile s ->
+            s
+   in
+   let s2 =
+      match r2 with
+         GDir s
+       | GFile s ->
+            s
+   in
+      -(String.compare s1 s2)
+
+let glob_rev_arg venv pos loc options arg argv =
+   let cwd = venv_dir venv in
+   let dirs, files = Lm_glob.glob options (Dir.fullname cwd) [glob_string_of_arg options arg] in
+   let args = List.fold_left (fun args s -> GFile s :: args) [] files in
+   let args = List.fold_left (fun args s -> GDir s :: args) args dirs in
+   let args = List.sort glob_result_compare args in
+      List.fold_left (fun argv arg ->
+            let v =
+               match arg with
+                  GDir s -> ValDir (Dir.chdir cwd s)
+                | GFile s -> ValNode (venv_intern_cd venv PhonyProhibited cwd s)
+            in
+               v :: argv) argv args
+
+(*
+ * Glob the executable.
+ * We do the standard thing, and allow glob expansions to multiple filenames.
+ * In this case, the actual command is a bit ambiguous, so users should be
+ * careful when they do it.
+ *)
+let glob_arg_exe venv pos loc options (arg : arg) : (simple_exe * Node.t list) =
+   if is_glob_arg options arg then
+      match glob_arg venv pos loc options arg with
+         [], exe :: args ->
+            ExeNode exe, args
+       | [], [] ->
+            raise (OmakeException (pos, StringError "null glob expansion"))
+       | dir :: _, _ ->
+            raise (OmakeException (pos, StringValueError ("is a directory", ValDir dir)))
+   else if is_quoted_arg arg then
+      ExeQuote (simple_string_of_arg arg), []
+   else
+      parse_command_string (simple_string_of_arg arg), []
+
+let glob_exe venv pos loc options (exe : arg cmd_exe) : (simple_exe * Node.t list) =
+   match exe with
+      CmdNode node ->
+         ExeNode node, []
+    | CmdArg arg ->
+         glob_arg_exe venv pos loc options arg
+
+(*
+ * Glob expand the glob arguments.
+ *)
+let glob_value_argv venv pos loc options argv =
+   List.fold_left (fun argv v ->
+         if is_glob_value options v then
+            let arg = arg_of_values venv pos [v] in
+               glob_rev_arg venv pos loc options arg argv
+         else
+            v :: argv) [] (List.rev argv)
+
+(*
+ * Glob the command line.
  *)
 let glob_command_line venv pos loc options argv =
-   (* Do globbing now *)
-   let dir  = venv_dir venv in
-   let argv = List.map string_of_arg argv in
-      try glob_argv options (Dir.fullname dir) argv with
-         Failure _ as exn ->
-            raise (UncaughtException (pos, exn))
+   let cwd = venv_dir venv in
+   let dir = Dir.fullname cwd in
+   let argv = List.map (glob_string_of_arg options) argv in
+      Lm_glob.glob_argv options dir argv
 
 (*
  * Glob an input or output file.
@@ -489,17 +589,15 @@ let glob_channel venv pos loc options name =
     | RedirectNode _ as file ->
          file
     | RedirectArg name ->
-         let cwd  = Dir.fullname (venv_dir venv) in
-         let name = string_of_arg name in
-            match Lm_glob.glob options cwd [name] with
-               [], [name] ->
-                  RedirectNode (venv_intern venv PhonyProhibited name)
-             | _ :: _, _ ->
-                  raise (OmakeException (pos, StringStringError ("is a directory", name)))
-             | [], _ :: _ :: _ ->
-                  raise (OmakeException (pos, StringStringError ("ambiguous redirect", name)))
-             | [], [] ->
-                  raise (OmakeException (pos, StringStringError ("null redirect", name)))
+         match glob_arg venv pos loc options name with
+            [], [node] ->
+               RedirectNode node
+          | dir :: _, _ ->
+               raise (OmakeException (pos, StringValueError ("is a directory", ValDir dir)))
+          | [], _ :: _ :: _ ->
+               raise (OmakeException (pos, StringStringError ("ambiguous redirect", simple_string_of_arg name)))
+          | [], [] ->
+               raise (OmakeException (pos, StringStringError ("null redirect", simple_string_of_arg name)))
 
 (*
  * Convert the environment strings.
@@ -507,6 +605,87 @@ let glob_channel venv pos loc options name =
 let string_of_env env =
    List.map (fun (v, arg) ->
          v, simple_string_of_arg arg) env
+
+(************************************************************************
+ * Alias expansion.
+ *)
+let find_alias_exn shell_obj venv pos loc exe =
+   (* If this is an internal command, create the PipeApply *)
+   let name = Lm_symbol.add exe in
+   let v = venv_find_field_exn shell_obj name in
+   let _, _, f = eval_fun venv pos v in
+
+   (* Found the function, no exceptions now *)
+   let f venv stdin stdout stderr env argv =
+      let venv   = venv_fork venv in
+      let venv   = List.fold_left (fun venv (v, s) -> venv_setenv venv v s) venv env in
+      let stdin  = venv_add_channel venv "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false stdin in
+      let stdout = venv_add_channel venv "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false stdout in
+      let stderr = venv_add_channel venv "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false stderr in
+      let venv   = venv_add_var venv ScopeGlobal pos stdin_sym  (ValChannel (InChannel,  stdin)) in
+      let venv   = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, stdout)) in
+      let venv   = venv_add_var venv ScopeGlobal pos stderr_sym (ValChannel (OutChannel, stderr)) in
+      let v      = ValArray argv in
+      let () =
+         if !debug_eval then
+            eprintf "normalize_apply: evaluating internal function@."
+      in
+      let code, value, reraise =
+         try
+            let v = f venv pos loc [v] in
+            let code =
+               match v with
+                  ValOther (ValExitCode code) ->
+                     code
+                | _ ->
+                     0
+            in
+               code, v, None
+         with
+            ExitException (_, code) as exn ->
+               code, ValNone, Some exn
+          | OmakeException _
+          | UncaughtException _ as exn ->
+               eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+               1, ValNone, None
+          | Unix.Unix_error _
+          | Sys_error _
+          | Not_found
+          | Failure _ as exn ->
+               eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
+               1, ValNone, None
+      in
+         if !debug_eval then
+            eprintf "normalize_apply: internal function is done: %d, %a@." code pp_print_value value;
+         venv_close_channel venv pos stdin;
+         venv_close_channel venv pos stdout;
+         venv_close_channel venv pos stderr;
+         if !debug_eval then
+            eprintf "normalize_apply: returning value: %d, %a@." code pp_print_value value;
+         match reraise with
+            Some exn ->
+               raise exn
+          | None ->
+               code, value
+   in
+      name, f
+
+let find_alias obj venv pos loc exe =
+   try Some (find_alias_exn obj venv pos loc exe) with
+      Not_found ->
+         None
+
+let find_alias_of_env venv pos =
+   try
+      let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+         match eval_single_value venv pos obj with
+            ValObject obj ->
+               find_alias obj
+          | _ ->
+               raise Not_found
+   with
+      Not_found ->
+         (fun _venv _pos _loc _exe -> None)
 
 (************************************************************************
  * Rule evaluation.
@@ -824,7 +1003,7 @@ and eval_include_rule venv pos loc sources deps values commands =
    let () =
       (* Run the commands if there are deps, or if the file does not exist *)
       if commands <> [] && (not up_to_date || Omake_cache.stat cache target = None) then
-         exec_commands venv pos target deps commands;
+         exec_commands venv pos loc commands;
 
       (* Check that it exists *)
       if Omake_cache.force_stat cache target = None then
@@ -838,33 +1017,28 @@ and eval_include_rule venv pos loc sources deps values commands =
 (*
  * Evaluate the commands NOW.
  *)
-and waitpid pos exec options pid =
-   match Exec.wait exec options with
-      WaitExited (id, code, _) ->
-         if id <> pid then
-            waitpid pos exec options pid
-         else if code <> 0 then
-            raise (OmakeException (pos, StringIntError ("execution terminated with an error", code)))
-    | WaitServer _
-    | WaitNotify _
-    | WaitNone ->
-         waitpid pos exec options pid
-
-and exec_commands venv pos target deps commands =
-   let exec = venv_exec venv in
-   let options = venv_options venv in
-      match Exec.spawn exec (eval_shell venv pos) options copy_stdout copy_stderr "include" target commands with
-         ProcessFailed ->
-            (* The fork failed: we can't continue *)
-            raise (OmakeException (pos, StringNodeError ("execution failed", target)))
-       | ProcessStarted pid ->
-            (* Wait for this job to finish *)
-            waitpid pos exec options pid
+and exec_commands venv pos loc commands =
+   let stdin  = channel_of_var venv pos loc stdin_sym in
+   let stdout = channel_of_var venv pos loc stdout_sym in
+   let stdin  = Lm_channel.descr stdin in
+   let stdout = Lm_channel.descr stdout in
+      List.iter (fun command ->
+            let pid = eval_shell_internal stdin stdout command in
+            let status, _ = eval_shell_wait venv pos pid in
+            let code =
+               match status with
+                  Unix.WEXITED i
+                | Unix.WSIGNALED i
+                | Unix.WSTOPPED i ->
+                     i
+            in
+               if code <> 0 then
+                  raise (OmakeException (pos, StringIntError ("command exited with code", code)))) commands
 
 (*
  * Evaluate the command lines.
  *)
-and eval_commands venv loc target sloppy_deps commands =
+and eval_commands venv loc target sloppy_deps commands : arg_command_line list =
    let rec collect commands' commands =
       match commands with
          command :: commands ->
@@ -917,6 +1091,8 @@ and eval_rule venv loc target sources sloppy_deps values commands =
    let venv = venv_add_var venv ScopeGlobal pos lt_sym   (ValString source) in
    let sloppy_deps = List.map (fun v -> ValNode v) (NodeSet.to_list sloppy_deps) in
    let venv = venv_add_var venv ScopeGlobal pos amp_sym  (ValArray sloppy_deps) in
+   let options = Lm_glob.create_options (glob_options_of_env venv pos) in
+   let find_alias = find_alias_of_env venv pos in
    let command_line (commands, fv) command =
       match command with
          CommandSection (_, fv', e) ->
@@ -924,7 +1100,7 @@ and eval_rule venv loc target sources sloppy_deps values commands =
             let fv = free_vars_union fv fv' in
                commands, fv
        | CommandValue (loc, v) ->
-            let flags, pipe = pipe_of_value venv pos loc v in
+            let flags, pipe = pipe_of_value venv find_alias options pos loc v in
                (flags, CommandPipe pipe) :: commands, fv
    in
    let commands, fv = List.fold_left command_line ([], free_vars_empty) commands in
@@ -990,6 +1166,9 @@ and glob_options_of_env venv pos =
    in
       options
 
+and compile_glob_options venv pos =
+   Lm_glob.create_options (glob_options_of_env venv pos)
+
 (*
  * Set the path environment variable.
  *)
@@ -1010,7 +1189,9 @@ and eval_path venv pos =
 and eval_shell_exp venv pos loc e =
    let pos    = string_pos "eval_shell_exp" pos in
    let venv   = eval_path venv pos in
-   let _, pipe = pipe_of_value venv pos loc e in
+   let find_alias = find_alias_of_env venv pos in
+   let options = compile_glob_options venv pos in
+   let _, pipe = pipe_of_value venv find_alias options pos loc e in
    let pipe   = normalize_pipe venv pos pipe in
    let stdin  = channel_of_var venv pos loc stdin_sym in
    let stdout = channel_of_var venv pos loc stdout_sym in
@@ -1075,7 +1256,7 @@ and eval_shell_output venv pos loc e =
             raise exn
 
 (*
- * Construct a shell.  If the SHELL variable is set, then use that shell.
+ * Construct a shell.
  *)
 and eval_shell venv pos =
    let pos = string_pos "eval_shell" pos in
@@ -1094,8 +1275,8 @@ and eval_shell venv pos =
  * Evaluate a shell command using the internal shell.
  *)
 and eval_shell_internal stdout stderr command =
-   let { command_loc = loc;
-         command_dir = dir;
+   let { command_loc  = loc;
+         command_dir  = dir;
          command_venv = venv;
          command_inst = inst
        } = command
@@ -1179,13 +1360,17 @@ and normalize_pipe venv pos pipe =
 and normalize_pipe_options venv pos squash options (pipe : arg_pipe) : string_pipe =
    match pipe with
       PipeApply (loc, apply) ->
-         normalize_pipe_apply venv pos loc options apply
+         normalize_apply venv pos loc options apply
     | PipeCommand (loc, command) ->
          normalize_command venv pos loc options command
     | PipeCond (loc, op, pipe1, pipe2) ->
-         PipeCond (loc, op, normalize_pipe_options venv pos true options pipe1, normalize_pipe_options venv pos true options pipe2)
+         PipeCond (loc, op, (**)
+                      normalize_pipe_options venv pos true options pipe1,
+                      normalize_pipe_options venv pos true options pipe2)
     | PipeCompose (loc, divert_stderr, pipe1, pipe2) ->
-         PipeCompose (loc, divert_stderr, normalize_pipe_options venv pos true options pipe1, normalize_pipe_options venv pos true options pipe2)
+         PipeCompose (loc, divert_stderr, (**)
+                         normalize_pipe_options venv pos true options pipe1,
+                         normalize_pipe_options venv pos true options pipe2)
     | PipeGroup (loc, group) ->
          normalize_group venv pos loc options group
     | PipeBackground (loc, pipe) ->
@@ -1198,14 +1383,16 @@ and normalize_pipe_options venv pos squash options (pipe : arg_pipe) : string_pi
 (*
  * Normalize an alias.
  *)
-and normalize_pipe_apply venv pos loc options apply =
-   let { apply_args   = argv;
+and normalize_apply venv pos loc options apply =
+   let { apply_env    = env;
+         apply_args   = argv;
          apply_stdin  = stdin;
          apply_stdout = stdout
        } = apply
    in
    let apply =
-      { apply with apply_args = glob_command_line venv pos loc options argv;
+      { apply with apply_env = string_of_env env;
+                   apply_args = glob_value_argv venv pos loc options argv;
                    apply_stdin = glob_channel venv pos loc options stdin;
                    apply_stdout = glob_channel venv pos loc options stdout
       }
@@ -1225,18 +1412,16 @@ and normalize_command venv pos loc options command =
          cmd_stdout = stdout
        } = command
    in
-   let is_quoted = exe_is_quoted argv in
+   let exe, args = glob_exe venv pos loc options exe in
    let argv = glob_command_line venv pos loc options argv in
-   let exe =
-      match exe, argv with
-         ExeDelayed, arg :: _ ->
-            parse_command_string is_quoted arg
-       | ExeDelayed, [] ->
-            raise (OmakeException (pos, StringError "invalid null command"))
-       | ExeNode _, _
-       | ExeQuote _, _
-       | ExeString _, _ ->
-            exe
+   let argv =
+      match args with
+         [] ->
+            argv
+       | _ ->
+            let dir = venv_dir venv in
+               List.fold_left (fun argv node ->
+                     Node.name dir node :: argv) argv (List.rev args)
    in
    let command =
       { command with cmd_env = string_of_env env;
@@ -1246,119 +1431,7 @@ and normalize_command venv pos loc options command =
                      cmd_stdout = glob_channel venv pos loc options stdout
       }
    in
-      normalize_apply_command venv pos loc command
-
-(*
- * Normalize a command.
- * Check if it is an internal function first.
- *)
-and normalize_apply_command venv pos loc command =
-   let pos = string_pos "normalize_apply_command" pos in
-      match command.cmd_exe with
-         ExeNode _
-       | ExeQuote _ ->
-            PipeCommand (loc, command)
-       | ExeDelayed ->
-            raise (Invalid_argument "Omake_rule.normalize_apply_command")
-       | ExeString exe ->
-            try normalize_apply venv pos loc exe command with
-               Not_found
-             | OmakeException _ ->
-                  PipeCommand (loc, command)
-
-(*
- * Try to make an internal function.
- * Raises Not_found or OmakeException if not builtin.
- *)
-and normalize_apply venv pos loc exe command =
-   let pos = string_pos "normalize_apply" pos in
-   let { cmd_env    = env;
-         cmd_argv   = argv;
-         cmd_stdin  = stdin;
-         cmd_stdout = stdout;
-         cmd_stderr = stderr;
-         cmd_append = append
-       } = command
-   in
-
-   (* If this is an internal command, create the PipeApply *)
-   let name = Lm_symbol.add exe in
-   let f =
-      let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
-         match eval_single_value venv pos obj with
-            ValObject obj ->
-               let v = venv_find_field_exn obj name in
-               let _, _, f = eval_fun venv pos v in
-                  f
-          | _ ->
-               raise Not_found
-   in
-
-   (* Found the function, no exceptions now *)
-   let f venv stdin stdout stderr argv =
-      let venv   = venv_fork venv in
-      let venv   = List.fold_left (fun venv (v, s) -> venv_setenv venv v s) venv env in
-      let stdin  = venv_add_channel venv "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false stdin in
-      let stdout = venv_add_channel venv "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false stdout in
-      let stderr = venv_add_channel venv "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false stderr in
-      let venv   = venv_add_var venv ScopeGlobal pos stdin_sym  (ValChannel (InChannel,  stdin)) in
-      let venv   = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, stdout)) in
-      let venv   = venv_add_var venv ScopeGlobal pos stderr_sym (ValChannel (OutChannel, stderr)) in
-      let v      = ValArray (List.map (fun s -> ValString s) argv) in
-      let () =
-         if !debug_eval then
-            eprintf "normalize_apply: evaluating internal function@."
-      in
-      let code, value, reraise =
-         try
-            let v = f venv pos loc [v] in
-            let code =
-               match v with
-                  ValOther (ValExitCode code) ->
-                     code
-                | _ ->
-                     0
-            in
-               code, v, None
-         with
-            ExitException (_, code) as exn ->
-               code, ValNone, Some exn
-          | OmakeException _
-          | UncaughtException _ as exn ->
-               eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-               1, ValNone, None
-          | Unix.Unix_error _
-          | Sys_error _
-          | Not_found
-          | Failure _ as exn ->
-               eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
-               1, ValNone, None
-      in
-         if !debug_eval then
-            eprintf "normalize_apply: internal function is done: %d, %a@." code pp_print_value value;
-         venv_close_channel venv pos stdin;
-         venv_close_channel venv pos stdout;
-         venv_close_channel venv pos stderr;
-         if !debug_eval then
-            eprintf "normalize_apply: returning value: %d, %a@." code pp_print_value value;
-         match reraise with
-            Some exn ->
-               raise exn
-          | None ->
-               code, value
-   in
-   let apply =
-      { apply_loc     = loc;
-        apply_fun     = f;
-        apply_name    = name;
-        apply_args    = List.tl argv;
-        apply_stdin   = stdin;
-        apply_stdout  = stdout;
-        apply_stderr  = stderr;
-        apply_append  = append
-      }
-   in
-      PipeApply (loc, apply)
+      PipeCommand (loc, command)
 
 (*
  * Normalize a group.

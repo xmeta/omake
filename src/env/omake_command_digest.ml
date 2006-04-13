@@ -939,10 +939,8 @@ type code =
  | CodeAllowFailureFlag
  | CodeAllowOutputFlag
  | CodeCommandFlags
- | CodeExeDelayed
- | CodeExeNode
- | CodeExeString
- | CodeExeQuote
+ | CodeCmdArg
+ | CodeCmdNode
  | CodePipe
  | CodeRedirectNode
  | CodeRedirectArg
@@ -1565,17 +1563,12 @@ let squash_command_env buf env =
 
 let squash_exe buf exe =
    match exe with
-      ExeDelayed ->
-         Hash.add_code buf CodeExeDelayed
-    | ExeNode node ->
-         Hash.add_code buf CodeExeNode;
+      CmdArg arg ->
+         Hash.add_code buf CodeCmdArg;
+         squash_arg buf arg
+    | CmdNode node ->
+         Hash.add_code buf CodeCmdNode;
          squash_node buf node
-    | ExeString s ->
-         Hash.add_code buf CodeExeString;
-         Hash.add_string buf s
-    | ExeQuote s ->
-         Hash.add_code buf CodeExeQuote;
-         Hash.add_string buf s
 
 let squash_pipe_op buf op =
    let code =
@@ -1586,7 +1579,7 @@ let squash_pipe_op buf op =
    in
       Hash.add_code buf code
 
-let squash_pipe_command pos buf info =
+let squash_pipe_command pos buf (info : arg_cmd) =
    let { cmd_env   = env;
          cmd_exe   = exe;
          cmd_argv  = argv;
@@ -1612,7 +1605,7 @@ let squash_pipe_command pos buf info =
       Hash.add_bool buf append;
       Hash.add_code buf CodeEnd
 
-let squash_pipe_apply pos buf info =
+let squash_pipe_apply pos buf (info : arg_apply) =
    let { apply_name = name;
          apply_args = args;
          apply_stdin = stdin;
@@ -1624,7 +1617,7 @@ let squash_pipe_apply pos buf info =
       Hash.add_code buf CodePipeApply;
       squash_var buf name;
       Hash.add_code buf CodeSpace;
-      squash_argv buf args;
+      squash_values pos buf args;
       Hash.add_code buf CodeSpace;
       squash_redirect buf stdin;
       Hash.add_code buf CodeSpace;
@@ -1635,7 +1628,7 @@ let squash_pipe_apply pos buf info =
       Hash.add_bool buf append;
       Hash.add_code buf CodeEnd
 
-let rec squash_pipe pos buf pipe =
+let rec squash_pipe pos buf (pipe : arg_pipe) =
    (match pipe with
        PipeApply (_, info) ->
           squash_pipe_apply pos buf info
@@ -1678,7 +1671,7 @@ and squash_pipe_group pos buf info =
       squash_pipe pos buf pipe;
       Hash.add_code buf CodeEnd
 
-let squash_command_line pos buf command =
+let squash_command_line pos buf (command : arg_command_inst) =
    match command with
       CommandPipe argv ->
          Hash.add_code buf CodePipe;
@@ -1689,7 +1682,7 @@ let squash_command_line pos buf command =
     | CommandValues values ->
          squash_values pos buf values
 
-let squash_command pos buf command =
+let squash_command pos buf (command : arg_command_line) =
    let { command_dir = dir;
          command_inst = inst
        } = command

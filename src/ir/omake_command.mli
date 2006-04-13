@@ -48,8 +48,8 @@ val arg_buffer_contents   : arg_buffer -> arg_string list
  * Parse commands.
  *)
 val parse_commands : 'venv -> Dir.t -> Node.t -> loc ->
-   (command_flag list * ('exp, ('argv, 'apply) poly_pipe, 'value) poly_command_inst) list ->
-   ('venv, 'exp, ('argv, 'apply) poly_pipe, 'value) poly_command_line list
+   (command_flag list * ('exp, ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe, 'value) poly_command_inst) list ->
+   ('venv, 'exp, ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe, 'value) poly_command_line list
 
 (*
  * Add the output flag.

@@ -400,6 +400,7 @@ let restore_vars = [stdin_sym; stdout_sym; stderr_sym]
 
 let create_apply_top venv stdin stdout stderr apply =
    let { apply_loc = loc;
+         apply_env = env;
          apply_fun = f;
          apply_args = args;
          apply_stdin = stdin_file;
@@ -424,7 +425,7 @@ let create_apply_top venv stdin stdout stderr apply =
          let stdin  = Unix.dup stdin in
          let stdout = Unix.dup stdout in
          let stderr = Unix.dup stderr in
-         let code, v = f venv stdin stdout stderr args in
+         let code, v = f venv stdin stdout stderr env args in
          let v = unexport venv v restore_vars in
             if !debug_shell then
                eprintf "create_apply_top: done@.";
@@ -444,6 +445,7 @@ let create_apply venv pgrp bg stdin stdout stderr apply =
    if !debug_shell then
       eprintf "create_apply@.";
    let { apply_loc = loc;
+         apply_env = env;
          apply_fun = f;
          apply_args = args;
          apply_stdin = stdin_file;
@@ -458,7 +460,7 @@ let create_apply venv pgrp bg stdin stdout stderr apply =
 
    (* The actual function call *)
    let apply_fun stdin stdout stderr pgrp =
-      fst (f venv stdin stdout stderr args)
+      fst (f venv stdin stdout stderr env args)
    in
    let thread_info =
       { create_thread_stdin = stdin;
@@ -490,7 +492,6 @@ let create_apply venv pgrp bg stdin stdout stderr apply =
 let find_executable_string venv pos loc exe =
    let pos = string_pos "find_executable" pos in
    let cache = venv_cache venv in
-   let node =
       if not (Filename.is_relative exe) || Lm_string_util.contains_any exe Lm_filename_util.separators then
          let node = venv_intern venv PhonyProhibited exe in
             if Omake_cache.exists cache node then
@@ -516,18 +517,17 @@ let find_executable_string venv pos loc exe =
             try Omake_cache.exe_find cache path exe with
                Not_found ->
                   raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", exe)))
-   in
-      Node.absname node
 
 let find_executable venv pos loc exe =
-   match exe with
-      ExeDelayed ->
-         raise (Invalid_argument "Omake_shell_job.find_executable: received ExeDelayed")
-    | ExeNode node ->
-         Node.absname node
-    | ExeQuote exe
-    | ExeString exe ->
-         find_executable_string venv pos loc exe
+   let node =
+      match exe with
+         ExeQuote exe
+       | ExeString exe ->
+            find_executable_string venv pos loc exe
+       | ExeNode node ->
+            node
+   in
+      Node.absname node
 
 (*
  * Start a command.
@@ -560,7 +560,7 @@ let create_command venv pgrp bg stdin stdout stderr command =
         create_process_env    = array_of_env current_env env;
         create_process_dir    = dir;
         create_process_exe    = exe;
-        create_process_argv   = Array.of_list argv;
+        create_process_argv   = Array.of_list (exe :: argv);
         create_process_background = bg
       }
    in

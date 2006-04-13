@@ -24,6 +24,8 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
+open Lm_glob
+open Lm_symbol
 open Lm_location
 
 open Omake_env
@@ -33,12 +35,14 @@ open Omake_command_type
 (*
  * Commands with a leading \ are quoted.
  *)
-val parse_command_string : bool -> string -> exe
+val parse_command_string : string -> simple_exe
 
 (*
  * Construct the pipe from the value.
  *)
-val pipe_of_value : venv -> pos -> loc -> value -> command_flag list * (arg, apply) poly_pipe
+val pipe_of_value : venv ->
+   (venv -> pos -> loc -> string -> (symbol * apply) option) -> glob_options ->
+   pos -> loc -> value -> command_flag list * arg_pipe
 
 (*!
  * @docoff

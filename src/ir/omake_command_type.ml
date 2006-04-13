@@ -63,8 +63,8 @@ type command_flag =
  * or passed to the shell.
  *)
 type ('exp, 'argv, 'value) poly_command_inst =
-   CommandEval of 'exp
- | CommandPipe of 'argv
+   CommandEval   of 'exp
+ | CommandPipe   of 'argv
  | CommandValues of 'value list
 
 type ('venv, 'exp, 'argv, 'value) poly_command_line =
@@ -80,38 +80,41 @@ type ('venv, 'exp, 'argv, 'value) poly_command_line =
  * Printing.
  *)
 let simple_string_of_arg arg =
-   let buf = Buffer.create 32 in
-      List.iter (fun arg ->
-            let s =
-               match arg with
-                  ArgString s -> s
-                | ArgData s -> s
-            in
-               Buffer.add_string buf s) arg;
-      Buffer.contents buf
+   match arg with
+      [ArgString s]
+    | [ArgData s] ->
+         s
+    | _ ->
+         let buf = Buffer.create 32 in
+            List.iter (fun arg ->
+                  let s =
+                     match arg with
+                        ArgString s -> s
+                      | ArgData s -> s
+                  in
+                     Buffer.add_string buf s) arg;
+            Buffer.contents buf
 
-let string_of_arg arg =
+let glob_string_of_arg options arg =
    let buf = Buffer.create 32 in
       List.iter (fun arg ->
             match arg with
                ArgString s ->
                   Buffer.add_string buf s
              | ArgData s ->
-                  Lm_glob.glob_add_escaped Lm_glob.default_glob_options buf s) arg;
+                  Lm_glob.glob_add_escaped options buf s) arg;
       Buffer.contents buf
 
-let exe_is_quoted argv =
-   match argv with
-      arg :: _ ->
-         List.exists (fun arg ->
-               match arg with
-                  ArgString _ -> false
-                | ArgData _ -> true) arg
-    | [] ->
-         false
+let is_glob_arg options arg =
+   List.exists (fun arg ->
+         match arg with
+            ArgString s ->
+               Lm_glob.is_glob_string options s
+          | ArgData _ ->
+               false) arg
 
 let pp_print_arg buf arg =
-   pp_print_string buf (string_of_arg arg)
+   pp_print_string buf (glob_string_of_arg Lm_glob.default_glob_options arg)
 
 let pp_print_command_flag buf flag =
    let c =

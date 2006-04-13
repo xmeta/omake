@@ -225,22 +225,22 @@ and arg_command_line = (venv, exp, arg_pipe, value) poly_command_line
 and string_command_inst = (exp, string_pipe, value) poly_command_inst
 and string_command_line = (venv, exp, string_pipe, value) poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> string list -> int * value
+and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (symbol * string) list -> value list -> int * value
 
-and value_cmd    = value list poly_cmd
-and value_apply  = (value list, apply) poly_apply
-and value_group  = (value list, apply) poly_group
-and value_pipe   = (value list, apply) poly_pipe
+and value_cmd    = (unit, value list, value list) poly_cmd
+and value_apply  = (value list, value list, apply) poly_apply
+and value_group  = (unit, value list, value list, value list, apply) poly_group
+and value_pipe   = (unit, value list, value list, value list, apply) poly_pipe
 
-and arg_cmd      = arg poly_cmd
-and arg_apply    = (arg, apply) poly_apply
-and arg_group    = (arg, apply) poly_group
-and arg_pipe     = (arg, apply) poly_pipe
+and arg_cmd      = (arg cmd_exe, arg, arg) poly_cmd
+and arg_apply    = (value, arg, apply) poly_apply
+and arg_group    = (arg cmd_exe, arg, value, arg, apply) poly_group
+and arg_pipe     = (arg cmd_exe, arg, value, arg, apply) poly_pipe
 
-and string_cmd   = string poly_cmd
-and string_apply = (string, apply) poly_apply
-and string_group = (string, apply) poly_group
-and string_pipe  = (string, apply) poly_pipe
+and string_cmd   = (simple_exe, string, string) poly_cmd
+and string_apply = (value, string, apply) poly_apply
+and string_group = (simple_exe, string, value, string, apply) poly_group
+and string_pipe  = (simple_exe, string, value, string, apply) poly_pipe
 
 (*
  * Command line parsing.

@@ -34,9 +34,12 @@ open Omake_node
 (*
  * A shell command.
  *)
-type exe =
-   ExeDelayed
- | ExeNode   of Node.t
+type 'arg cmd_exe =
+   CmdArg    of 'arg
+ | CmdNode   of Node.t
+
+type simple_exe =
+   ExeNode   of Node.t
  | ExeString of string
  | ExeQuote  of string
 
@@ -45,13 +48,13 @@ type 'arg redirect =
  | RedirectArg  of 'arg
  | RedirectNone
 
-type 'arg poly_cmd =
+type ('exe, 'arg_command, 'arg_other) poly_cmd =
    { cmd_loc     : loc;
-     cmd_env     : (symbol * 'arg) list;
-     cmd_exe     : exe;
-     cmd_argv    : 'arg list;
-     cmd_stdin   : 'arg redirect;
-     cmd_stdout  : 'arg redirect;
+     cmd_env     : (symbol * 'arg_other) list;
+     cmd_exe     : 'exe;
+     cmd_argv    : 'arg_command list;
+     cmd_stdin   : 'arg_other redirect;
+     cmd_stdout  : 'arg_other redirect;
      cmd_stderr  : bool;
      cmd_append  : bool
    }
@@ -61,13 +64,14 @@ type 'arg poly_cmd =
  *
  * 'apply with be: venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> string list -> int * value
  *)
-type ('arg, 'apply) poly_apply =
+type ('arg_apply, 'arg_other, 'apply) poly_apply =
    { apply_loc      : loc;
+     apply_env      : (symbol * 'arg_other) list;
      apply_name     : symbol;
      apply_fun      : 'apply;
-     apply_args     : 'arg list;
-     apply_stdin    : 'arg redirect;
-     apply_stdout   : 'arg redirect;
+     apply_args     : 'arg_apply list;
+     apply_stdin    : 'arg_other redirect;
+     apply_stdout   : 'arg_other redirect;
      apply_stderr   : bool;
      apply_append   : bool
    }
@@ -83,21 +87,25 @@ type pipe_op =
 (*
  * A pipe with redirection.
  *)
-type ('arg, 'apply) poly_group =
-   { group_stdin    : 'arg redirect;
-     group_stdout   : 'arg redirect;
+type ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_group =
+   { group_stdin    : 'arg_other redirect;
+     group_stdout   : 'arg_other redirect;
      group_stderr   : bool;
      group_append   : bool;
-     group_pipe     : ('arg, 'apply) poly_pipe
+     group_pipe     : ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
    }
 
-and ('arg, 'apply) poly_pipe =
-   PipeApply      of loc * ('arg, 'apply) poly_apply
- | PipeCommand    of loc * 'arg poly_cmd
- | PipeCond       of loc * pipe_op * ('arg, 'apply) poly_pipe * ('arg, 'apply) poly_pipe
- | PipeCompose    of loc * bool * ('arg, 'apply) poly_pipe * ('arg, 'apply) poly_pipe
- | PipeGroup      of loc * ('arg, 'apply) poly_group
- | PipeBackground of loc * ('arg, 'apply) poly_pipe
+and ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe =
+   PipeApply      of loc * ('arg_apply, 'arg_other, 'apply) poly_apply
+ | PipeCommand    of loc * ('exe, 'arg_command, 'arg_other) poly_cmd
+ | PipeCond       of loc * pipe_op (**)
+      * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
+      * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
+ | PipeCompose    of loc * bool (**)
+      * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
+      * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
+ | PipeGroup      of loc * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_group
+ | PipeBackground of loc * ('exe, 'arg_command, 'arg_apply, 'arg_other, 'apply) poly_pipe
 
 (*
  * Signals.
@@ -153,8 +161,15 @@ let pp_print_pipe_op buf op =
  *)
 module type PrintArgSig =
 sig
-   type arg
-   val pp_print_arg : formatter -> arg -> unit
+   type arg_command
+   type arg_apply
+   type arg_other
+   type exe
+
+   val pp_print_exe         : formatter -> exe -> unit
+   val pp_print_arg_command : formatter -> arg_command -> unit
+   val pp_print_arg_apply   : formatter -> arg_apply -> unit
+   val pp_print_arg_other   : formatter -> arg_other -> unit
 end;;
 
 module MakePrintPipe (PrintArg : PrintArgSig) =
@@ -169,7 +184,7 @@ struct
          RedirectNode node ->
             fprintf buf " < %a" pp_print_node node
        | RedirectArg name ->
-            fprintf buf " < %a" pp_print_arg name
+            fprintf buf " < %a" pp_print_arg_other name
        | RedirectNone ->
             ()
 
@@ -187,7 +202,7 @@ struct
                fprintf buf " %s %a" dir pp_print_node name
        | RedirectArg name ->
             let dir = token_of_stdout stderr append in
-               fprintf buf " %s %a" dir pp_print_arg name
+               fprintf buf " %s %a" dir pp_print_arg_other name
        | RedirectNone ->
             ()
 
@@ -196,45 +211,25 @@ struct
     *)
    let pp_print_args buf args =
       List.iter (fun arg ->
-            fprintf buf " %a" pp_print_arg arg) args
+            fprintf buf " %a" pp_print_arg_apply arg) args
 
-   let rec pp_print_argv buf argv =
-      match argv with
-         [arg] ->
-            pp_print_arg buf arg
-       | arg :: argv ->
-            pp_print_arg buf arg;
-            pp_print_char buf ' ';
-            pp_print_argv buf argv
-       | [] ->
-            ()
+   let pp_print_argv buf argv =
+      List.iter (fun arg ->
+            fprintf buf " %a" pp_print_arg_command arg) argv
 
    (*
     * Print the environment.
     *)
    let pp_print_env buf env =
       List.iter (fun (v, arg) ->
-            fprintf buf "%a=%a " pp_print_symbol v pp_print_arg arg) env
-
-   (*
-    * Executable.
-    *)
-   let pp_print_exe buf exe =
-      match exe with
-         ExeDelayed ->
-            pp_print_string buf "<delayed>"
-       | ExeNode node ->
-            fprintf buf "<node %a>" pp_print_node node
-       | ExeString s ->
-            pp_print_string buf s
-       | ExeQuote s ->
-            fprintf buf "\"%s\"" s
+            fprintf buf "%a=%a " pp_print_symbol v pp_print_arg_other arg) env
 
    (*
     * An internal function/alias.
     *)
    let pp_print_apply buf apply =
-      let { apply_name = f;
+      let { apply_env = env;
+            apply_name = f;
             apply_args = args;
             apply_stdin = stdin;
             apply_stdout = stdout;
@@ -242,7 +237,8 @@ struct
             apply_append = append
           } = apply
       in
-         fprintf buf "@[<hv 3>%a%a%a%a@]" (**)
+         fprintf buf "@[<hv 3>%a%a%a%a%a@]" (**)
+            pp_print_env env
             pp_print_symbol f
             pp_print_args args
             pp_print_stdin stdin
@@ -261,8 +257,9 @@ struct
             cmd_append = append
           } = command
       in
-         fprintf buf "@[<hv 3>%a%a%a%a@]" (**)
+         fprintf buf "@[<hv 3>%a%a%a%a%a@]" (**)
             pp_print_env env
+            pp_print_exe exe
             pp_print_argv argv
             pp_print_stdin stdin
             pp_print_stdout (stdout, stderr, append)

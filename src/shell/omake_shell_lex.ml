@@ -247,70 +247,117 @@ let scan_define arg =
 (*
  * For a command, scan forward, collecting the env.
  *)
-let rec scan_argv_aux venv pos env argv =
+let rec scan_argv venv pos env argv =
    match argv with
-      arg :: argv' ->
+      arg :: argv ->
          (match flatten_values arg with
              [ValNode node] ->
-               env, ExeNode node, argv
+               env, CmdNode node, argv
            | v ->
                 let arg = arg_of_values venv pos v in
                    (match scan_define arg with
                        Some (v, s) ->
-                          scan_argv_aux venv pos ((v, s) :: env) argv'
+                          scan_argv venv pos ((v, s) :: env) argv
                      | None ->
-                          (* exe selection happens after globbing *)
-                          env, ExeDelayed, argv))
+                          env, CmdArg arg, argv))
     | [] ->
          raise (OmakeException (pos, StringError "invalid null command"))
 
-let scan_argv venv pos argv =
-   let env, exe, argv = scan_argv_aux venv pos [] argv in
-   let env = List.rev env in
-   let argv = argv_of_values venv pos argv in
-      env, exe, argv
-
-let arg_pipe_command_of_value_pipe_command venv pos info =
-   let { cmd_argv    = argv;
+(*
+ * A pipe might actually refer to an alias.
+ *)
+let pre_pipe_command venv find_alias options pos info =
+   let { cmd_loc     = loc;
+         cmd_argv    = argv;
          cmd_stdin   = stdin;
-         cmd_stdout  = stdout
+         cmd_stdout  = stdout;
+         cmd_stderr  = stderr;
+         cmd_append  = append
        } = info
    in
-   let env, exe, argv = scan_argv venv pos argv in
-      { info with cmd_env = env;
-                  cmd_exe = exe;
-                  cmd_argv = argv;
-                  cmd_stdin = arg_of_redirect venv pos stdin;
-                  cmd_stdout = arg_of_redirect venv pos stdout
-      }
+   let stdin = arg_of_redirect venv pos stdin in
+   let stdout = arg_of_redirect venv pos stdout in
 
-let arg_pipe_apply_of_value_pipe_apply venv pos info =
-   let { apply_args  = args;
-         apply_stdin = stdin;
+   (* Scan the argument list *)
+   let env, exe, argv = scan_argv venv pos [] argv in
+   let env = List.rev env in
+
+   (* Detect whether this is an alias *)
+   let f =
+      match exe with
+         CmdNode _ ->
+            None
+       | CmdArg arg ->
+            if is_glob_arg options arg then
+               None
+            else
+               let s = simple_string_of_arg arg in
+                  find_alias venv pos loc s
+   in
+      match f with
+         Some (name, f) ->
+            (* This is an alias *)
+            let apply =
+               { apply_loc = loc;
+                 apply_env = env;
+                 apply_name = name;
+                 apply_fun = f;
+                 apply_args = List.map (fun vl -> ValSequence vl) argv;
+                 apply_stdin = stdin;
+                 apply_stdout = stdout;
+                 apply_stderr = stderr;
+                 apply_append = append
+               }
+            in
+               PipeApply (loc, apply)
+       | None ->
+            (* This is a normal command *)
+            let command =
+               { info with cmd_env = env;
+                           cmd_exe = exe;
+                           cmd_argv = argv_of_values venv pos argv;
+                           cmd_stdin = stdin;
+                           cmd_stdout = stdout
+               }
+            in
+               PipeCommand (loc, command)
+
+(*
+ * The parser never produces aliases,
+ * so this code is dead.
+ *)
+let pre_pipe_apply venv pos info =
+   let { apply_env    = env;
+         apply_args   = args;
+         apply_stdin  = stdin;
          apply_stdout = stdout
        } = info
    in
-      { info with apply_args = argv_of_values venv pos args;
+      { info with apply_env = List.map (fun (x, v) -> x, arg_of_values venv pos v) env;
+                  apply_args = List.map (fun vl -> ValSequence vl) args;
                   apply_stdin = arg_of_redirect venv pos stdin;
                   apply_stdout = arg_of_redirect venv pos stdout
       }
 
-let rec arg_pipe_of_value_pipe venv pos pipe =
+(*
+ * Parse all the components of the pipe.
+ *)
+let rec pre_pipe venv find_alias options pos pipe =
    match pipe with
       PipeApply (loc, info) ->
-         PipeApply (loc, arg_pipe_apply_of_value_pipe_apply venv pos info)
-    | PipeCommand (loc, info) ->
-         PipeCommand (loc, arg_pipe_command_of_value_pipe_command venv pos info)
+         PipeApply (loc, pre_pipe_apply venv pos info)
+    | PipeCommand (_, info) ->
+         pre_pipe_command venv find_alias options pos info
     | PipeCond (loc, op, pipe1, pipe2) ->
-         PipeCond (loc, op, arg_pipe_of_value_pipe venv pos pipe1, arg_pipe_of_value_pipe venv pos pipe2)
+         PipeCond (loc, op, pre_pipe venv find_alias options pos pipe1, pre_pipe venv find_alias options pos pipe2)
     | PipeCompose (loc, b, pipe1, pipe2) ->
-         PipeCompose (loc, b, arg_pipe_of_value_pipe venv pos pipe1, arg_pipe_of_value_pipe venv pos pipe2)
+         PipeCompose (loc, b, pre_pipe venv find_alias options pos pipe1, pre_pipe venv find_alias options pos pipe2)
     | PipeGroup (loc, info) ->
-         PipeGroup (loc, arg_pipe_group_of_value_pipe_group venv pos info)
+         PipeGroup (loc, pre_pipe_group venv find_alias options pos info)
     | PipeBackground (loc, pipe) ->
-         PipeBackground (loc, arg_pipe_of_value_pipe venv pos pipe)
+         PipeBackground (loc, pre_pipe venv find_alias options pos pipe)
 
-and arg_pipe_group_of_value_pipe_group venv pos info =
+and pre_pipe_group venv find_alias options pos info =
    let { group_stdin   = stdin;
          group_stdout  = stdout;
          group_pipe    = pipe
@@ -318,30 +365,27 @@ and arg_pipe_group_of_value_pipe_group venv pos info =
    in
       { info with group_stdin  = arg_of_redirect venv pos stdin;
                   group_stdout = arg_of_redirect venv pos stdout;
-                  group_pipe   = arg_pipe_of_value_pipe venv pos pipe
+                  group_pipe   = pre_pipe venv find_alias options pos pipe
       }
 
 (*
  * Do the whole command-line parsing process.
  *)
-let pipe_of_value venv pos loc v =
+let pipe_of_value venv find_alias options pos loc v =
    let pos = string_pos "pipe_of_value" pos in
    let argv = tokens_of_value venv pos lexer v in
    let flags, argv = collect_flags argv in
    let pipe = parse loc argv in
-   let pipe = arg_pipe_of_value_pipe venv pos pipe in
+   let pipe = pre_pipe venv find_alias options pos pipe in
       flags, pipe
-
 
 (*
  * Commands with a leading \ are quoted.
  *)
-let parse_command_string is_quoted s =
+let parse_command_string s =
    let len = String.length s in
       if len <> 0 && s.[0] = '\\' then
          ExeQuote (String.sub s 1 (pred len))
-      else if is_quoted then
-         ExeQuote s
       else
          ExeString s
 

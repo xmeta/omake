@@ -413,22 +413,22 @@ and arg_command_line = (venv, exp, arg_pipe, value) poly_command_line
 and string_command_inst = (exp, string_pipe, value) poly_command_inst
 and string_command_line = (venv, exp, string_pipe, value) poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> string list -> int * value
+and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (symbol * string) list -> value list -> int * value
 
-and value_cmd    = value list poly_cmd
-and value_apply  = (value list, apply) poly_apply
-and value_group  = (value list, apply) poly_group
-and value_pipe   = (value list, apply) poly_pipe
+and value_cmd    = (unit, value list, value list) poly_cmd
+and value_apply  = (value list, value list, apply) poly_apply
+and value_group  = (unit, value list, value list, value list, apply) poly_group
+and value_pipe   = (unit, value list, value list, value list, apply) poly_pipe
 
-and arg_cmd      = arg poly_cmd
-and arg_apply    = (arg, apply) poly_apply
-and arg_group    = (arg, apply) poly_group
-and arg_pipe     = (arg, apply) poly_pipe
+and arg_cmd      = (arg cmd_exe, arg, arg) poly_cmd
+and arg_apply    = (value, arg, apply) poly_apply
+and arg_group    = (arg cmd_exe, arg, value, arg, apply) poly_group
+and arg_pipe     = (arg cmd_exe, arg, value, arg, apply) poly_pipe
 
-and string_cmd   = string poly_cmd
-and string_apply = (string, apply) poly_apply
-and string_group = (string, apply) poly_group
-and string_pipe  = (string, apply) poly_pipe
+and string_cmd   = (simple_exe, string, string) poly_cmd
+and string_apply = (value, string, apply) poly_apply
+and string_group = (simple_exe, string, value, string, apply) poly_group
+and string_pipe  = (simple_exe, string, value, string, apply) poly_pipe
 
 (*
  * Exceptions.
@@ -868,6 +868,105 @@ let pp_print_explicit_rules buf venv =
    List.iter (fun erule -> fprintf buf "@ %a" pp_print_rule erule) venv.venv_inner.venv_globals.venv_explicit_rules;
    fprintf buf "@]"
 
+(************************************************************************
+ * Simplified printing.
+ *)
+let rec pp_print_simple_value buf v =
+   match v with
+      ValNone ->
+         pp_print_string buf "<none>"
+    | ValInt i ->
+         pp_print_int buf i
+    | ValFloat x ->
+         pp_print_float buf x
+    | ValData s ->
+         Omake_command_type.pp_print_arg buf [ArgData s]
+    | ValString s ->
+         Omake_command_type.pp_print_arg buf [ArgString s]
+    | ValQuote vl ->
+         fprintf buf "\"%a\"" pp_print_simple_value_list vl
+    | ValQuoteString (c, vl) ->
+         fprintf buf "%c%a%c" c pp_print_simple_value_list vl c
+    | ValSequence vl ->
+         pp_print_simple_value_list buf vl
+    | ValArray vl ->
+         pp_print_simple_arg_list buf vl
+    | ValApply (_, scope, f, args) ->
+         fprintf buf "$(%a%a%a)" (**)
+            pp_print_scope_kind scope
+            pp_print_symbol f
+            pp_print_simple_arg_list args
+    | ValSuperApply (_, scope, super, f, args) ->
+         fprintf buf "$(%a%a::%a%a)" (**)
+            pp_print_scope_kind scope
+            pp_print_symbol super
+            pp_print_symbol f
+            pp_print_simple_arg_list args
+    | ValMethodApply (_, scope, vl, args) ->
+         fprintf buf "$(%a%a%a)" (**)
+            pp_print_scope_kind scope
+            pp_print_method_name vl
+            pp_print_value_list args
+    | ValImplicit (_, scope, v) ->
+         fprintf buf "$?(%a%a)" (**)
+            pp_print_scope_kind scope
+            pp_print_symbol v
+    | ValFun _
+    | ValFunValue _ ->
+         pp_print_string buf "<fun>"
+    | ValPrim _ ->
+         pp_print_string buf "<prim>"
+    | ValRules _ ->
+         pp_print_string buf "<rules>"
+    | ValDir dir ->
+         pp_print_dir buf dir
+    | ValNode node ->
+         pp_print_node buf node
+    | ValEnv _ ->
+         pp_print_string buf "<export>"
+    | ValBody _ ->
+         pp_print_string buf "<body>"
+    | ValObject _ ->
+         pp_print_string buf "<object>"
+    | ValMap _ ->
+         pp_print_string buf "<map>"
+    | ValChannel _ ->
+         pp_print_string buf "<channel>"
+    | ValClass _ ->
+         pp_print_string buf "<class>"
+    | ValCases _ ->
+         pp_print_string buf "<cases>"
+    | ValKey (_, v) ->
+         fprintf buf "$|%s|" v
+    | ValOther (ValLexer _) ->
+         pp_print_string buf "<lexer>"
+    | ValOther (ValParser _) ->
+         pp_print_string buf "<parser>"
+    | ValOther (ValLocation _) ->
+         pp_print_string buf "<location>"
+    | ValOther (ValPosition pos) ->
+         pp_print_string buf "<position>"
+    | ValOther (ValExitCode i) ->
+         pp_print_int buf i
+
+and pp_print_simple_value_list buf vl =
+   List.iter (pp_print_simple_value buf) vl
+
+and pp_print_simple_arg_list buf vl =
+   match vl with
+      [] ->
+         ()
+    | [v] ->
+         pp_print_simple_value buf v
+    | v :: vl ->
+         pp_print_simple_value buf v;
+         pp_print_char buf ' ';
+         pp_print_simple_arg_list buf vl
+
+(************************************************************************
+ * Pipeline printing.
+ *)
+
 (*
  * Token printing.
  *)
@@ -891,13 +990,29 @@ and pp_print_tok_list buf toks =
     | [] ->
          ()
 
+let pp_print_simple_exe buf exe =
+   match exe with
+      ExeString s ->
+         pp_print_string buf s
+    | ExeQuote s ->
+         fprintf buf "\\%s" s
+    | ExeNode node ->
+         pp_print_node buf node
+
 (*
  * Pipes based on strings.
  *)
 module PrintString =
 struct
-   type arg = string
-   let pp_print_arg = pp_print_string
+   type arg_command = string
+   type arg_apply   = value
+   type arg_other   = string
+   type exe         = simple_exe
+
+   let pp_print_arg_command = pp_print_string
+   let pp_print_arg_apply   = pp_print_value
+   let pp_print_arg_other   = pp_print_string
+   let pp_print_exe         = pp_print_simple_exe
 end;;
 
 module PrintStringPipe = MakePrintPipe (PrintString);;
@@ -905,6 +1020,7 @@ module PrintStringPipe = MakePrintPipe (PrintString);;
 module PrintStringv =
 struct
    type argv = string_pipe
+
    let pp_print_argv = PrintStringPipe.pp_print_pipe
 end;;
 
@@ -920,8 +1036,20 @@ let pp_print_string_command_lines = PrintStringCommand.pp_print_command_lines
  *)
 module PrintArg =
 struct
-   type arg = Omake_command_type.arg
-   let pp_print_arg = Omake_command_type.pp_print_arg
+   type arg_command = Omake_command_type.arg
+   type arg_apply   = value
+   type arg_other   = arg_command
+   type exe         = arg_command cmd_exe
+
+   let pp_print_arg_command = Omake_command_type.pp_print_arg
+   let pp_print_arg_apply   = pp_print_simple_value
+   let pp_print_arg_other   = pp_print_arg_command
+   let pp_print_exe buf exe =
+      match exe with
+         CmdArg arg ->
+            pp_print_arg_command buf arg
+       | CmdNode node ->
+            pp_print_node buf node
 end;;
 
 module PrintArgPipe = MakePrintPipe (PrintArg);;
@@ -929,6 +1057,7 @@ module PrintArgPipe = MakePrintPipe (PrintArg);;
 module PrintArgv =
 struct
    type argv = arg_pipe
+
    let pp_print_argv = PrintArgPipe.pp_print_pipe
 end;;
 
@@ -1198,7 +1327,7 @@ struct
       in
       let name = name ^ ".omc" in
       let target_fd =
-         try 
+         try
             let target_name, target_fd =
                Omake_state.lock_cache_file dir name
             in

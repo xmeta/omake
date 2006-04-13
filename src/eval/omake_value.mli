@@ -24,6 +24,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
+open Lm_glob
 open Lm_location
 
 open Omake_ir
@@ -83,6 +84,9 @@ val channel_of_var           : venv -> pos -> loc -> var -> Lm_channel.t
 val channel_of_value         : venv -> pos -> value -> Lm_channel.t
 val in_channel_of_any_value  : venv -> pos -> value -> prim_channel * bool
 val out_channel_of_any_value : venv -> pos -> value -> prim_channel * bool
+
+val is_glob_value            : glob_options -> value -> bool
+val is_glob_value_list       : glob_options -> value list -> bool
 
 val current_lexer            : venv -> pos -> Lexer.t
 val current_parser           : venv -> pos -> Parser.t

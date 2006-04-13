@@ -216,9 +216,9 @@ name =
 all: $(DEFAULTFILES)  $(INSTALLFILES)
 
 install: $(DEFAULTFILES)  $(INSTALLFILES)
-	mkdir -p "$(INSTALL_LIBDIR)/omake"
-	cp -f -m 444 $(DEFAULTFILES) "$(INSTALL_LIBDIR)/omake/"
-        foreach(name, $(STDLIBNAMES))
-            node = $(file $(INSTALL_LIBDIR)/omake/$(name).om)
-            mkdir -p $(dirof $(node))
-	    cp -f -m 444 lib/$(name).install $(node)
+    mkdir -p $(INSTALL_LIBDIR)/omake
+    cp -f -m 444 $(DEFAULTFILES) $(INSTALL_LIBDIR)/omake/
+    foreach(name, $(STDLIBNAMES))
+        node = $(file $(INSTALL_LIBDIR)/omake/$(name).om)
+        mkdir -p $(dirof $(node))
+	cp -f -m 444 lib/$(name).install $(node)

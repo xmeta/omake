@@ -489,6 +489,46 @@ let out_channel_of_any_value venv pos v =
             raise (OmakeException (pos, StringError "not an output channel"))
 
 (*
+ * Check whether the value has any glob characters in it.
+ *)
+let rec is_glob_value options v =
+   match v with
+      ValString s ->
+         Lm_glob.is_glob_string options s
+    | ValSequence vl
+    | ValArray vl ->
+         is_glob_value_list options vl
+    | ValQuoteString _
+    | ValChannel _
+    | ValNode _
+    | ValDir _
+    | ValData _
+    | ValQuote _
+    | ValKey _
+    | ValApply _
+    | ValImplicit _
+    | ValSuperApply _
+    | ValMethodApply _
+    | ValBody _
+    | ValInt _
+    | ValFloat _
+    | ValNone
+    | ValEnv _
+    | ValFun _
+    | ValFunValue _
+    | ValPrim _
+    | ValRules _
+    | ValMap _
+    | ValObject _
+    | ValClass _
+    | ValCases _
+    | ValOther _ ->
+         false
+
+and is_glob_value_list options vl =
+   List.exists (is_glob_value options) vl
+
+(*
  * Lexing and parsing.
  *)
 let current_lexer venv pos =
