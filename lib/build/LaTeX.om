@@ -76,49 +76,52 @@ TETEX2_ENABLED = false
 FILE_LINE_ERROR =
 static. =
     open configure/Configure
+    LATEX_USABLE = false
 
-    #
-    # XXX: JYH: added this additional test for Win32
-    # Apparently Cygwin LaTeX abort with a segfault
-    # When run from native Win32.
-    #
-    if $(not $(equal $(OSTYPE), Win32))
-      if $(CheckProg $(LATEX))
-        print(--- Configuring LaTeX defaults... )
-
-        # Look through the -help info for tetex2 options
+    if $(CheckProg $(LATEX))
+        print(--- Checking whether $(LATEX) is usable... )
         TETEX_CONFIG_TMP = $(tmpfile tetex)
-        $(LATEX) -help > $(TETEX_CONFIG_TMP)
+        LATEX_USABLE =
+            try
+                $(LATEX) -help > $(TETEX_CONFIG_TMP)
+                value true
+            default
+                value false
+        println ($(if $(LATEX_USABLE), $"(yes)", $"(no)"))
+        
+        if $(LATEX_USABLE)
+            print(--- Configuring LaTeX defaults... )
+            #
+            # Various versions of LaTeX use different options
+            # Look through the -help info for tetex2 options
+            #
+            RECORDER_ENABLED = false
+            ERROR_ENABLED = false
+            FILE_LINE_ERROR =
+            awk($(TETEX_CONFIG_TMP))
+            case ^-recorder
+                RECORDER_ENABLED = true
+                export
+            case ^-file-line-error-style
+                FILE_LINE_ERROR = -file-line-error-style
+                ERROR_ENABLED = true
+                export
+            case $'^\[-no\]-file-line-error'
+                FILE_LINE_ERROR = -file-line-error
+                ERROR_ENABLED = true
+                export
 
-        #
-        # Various versions of LaTeX use different options
-        #
-        RECORDER_ENABLED = false
-        ERROR_ENABLED = false
-        FILE_LINE_ERROR =
-        awk($(TETEX_CONFIG_TMP))
-        case ^-recorder
-            RECORDER_ENABLED = true
-            export
-        case ^-file-line-error-style
-            FILE_LINE_ERROR = -file-line-error-style
-            ERROR_ENABLED = true
-            export
-        case $'^\[-no\]-file-line-error'
-            FILE_LINE_ERROR = -file-line-error
-            ERROR_ENABLED = true
+            #
+            # TeTeX2 if both the -recorder and -file-line-error options exist
+            #
+            TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
+            if $(TETEX2_ENABLED)
+                println($'(tetex2 enabled)')
+            else
+                println($'(tetex2 disabled)')
             export
         rm $(TETEX_CONFIG_TMP)
-
-        #
-        # TeTeX2 if both the -recorder and -file-line-error options exist
-        #
-        TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
-        if $(TETEX2_ENABLED)
-            println($'(tetex2 enabled)')
-        else
-            println($'(tetex2 disabled)')
-        export TETEX2_ENABLED FILE_LINE_ERROR
+        export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE
 
 #
 # Dynamically defined list of files that the TeX source depends on.
@@ -283,7 +286,7 @@ LaTeXDocument(name, texfiles) =
             .SCANNER: $(SCANNER): $(name).tex $(TEXDEPS) $(TEXFILES) /.PHONY/TeXGeneratedFilesTarget\
               :value: $(USEPDFLATEX) $(find-in-path-optional $(INPUTS), $&)\
               :effects: $(name).aux $(name).log $(name).ind $(name).out $(name).dvi $(name).fls
-                echo | run-latex $(prog) stdout-to-stderr $(LATEXFLAGS) -recorder $<
+                echo | run-latex stdout-to-stderr $(prog) $(LATEXFLAGS) -recorder $<
                 builtin-tex-deps $(name)$(ext) $(name)
 
             $(name)$(ext): :scanner: $(SCANNER)
