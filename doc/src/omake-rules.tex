@@ -387,6 +387,38 @@ the file if it does not exist.
     echo CONFIG_READ is $(CONFIG_READ)
 \end{verbatim}
 
+You amy also specify dependencies to an \verb+.INCLUDE+ rule.
+
+\begin{verbatim}
+   .INCLUDE: config: config.defaults
+      cp config.defaults config
+\end{verbatim}
+
+A word of caution is in order here.  The usual policy is used for determining when the rule is
+out-of-date.  The rule is executed if any of the following hold.
+
+\begin{itemize}
+\item the target does not exist,
+\item the rule has never been executed before,
+\item any of the following have changed since the last time the rule was executed,
+\begin{itemize}
+\item the target,
+\item the dependencies,
+\item the commands-text.
+\end{itemize}
+\end{itemize}
+
+In some of the cases, this will mean that the rule is executed even if the target file already
+exists.  If the target is a file that you expect to edit by hand (and therefore you don't want to
+overwrite it), you should make the rule evaluation conditional on whether the target already exists.
+
+\begin{verbatim}
+   .INCLUDE: config: config.defaults
+       # Don't overwrite my carefully hand-edited file
+       if $(not $(file-exists config))
+          cp config.defaults config
+\end{verbatim}
+
 \subsection{.PHONY}
 
 A ``phony'' target is a target that is not a real file, but exists to collect a set of dependencies.
