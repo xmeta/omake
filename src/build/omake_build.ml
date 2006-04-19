@@ -714,7 +714,7 @@ let build_null_command env pos loc venv target =
          eprintf "build_null_command: %a@." pp_print_node target;
       if target_is_phony target || target_exists env target then begin
          build_any_command env pos loc venv target NodeSet.empty NodeSet.empty NodeSet.empty NodeSet.empty [];
-         if (env_options env).opt_poll then
+         if (env_options env).opt_poll && not (target_is_phony target) then
             Exec.monitor env.env_exec target
       end
       else
