@@ -437,6 +437,54 @@ OCamlLibrary(name, files) =
    return $(array $(if $(NATIVE_ENABLED), $(NATIVELIB)), $(if $(NATIVE_ENABLED), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)))
 
 #
+# Generic rule to build an ML library
+#
+# \begin{doc}
+# \subsection{OCamlPackage}
+#
+# The \verb+OCamlPackage+ function builds an OCaml package.
+#
+# \verb+OCamlPackage(<name>, <files>)+
+#
+# The \verb+<name>+ and \verb+<files>+ are listed \emph{without} suffixes.
+# The \verb+<files>+ must have been compiled with the \verb+-for-pack <ident>+
+# flag to the OCaml compiler.
+#
+# This function returns the list of all the targets that it defines the rules
+# for (including the \verb+$(name)$(EXT_LIB)+ file when \verb+NATIVE_ENABLED+ is set).
+#
+# The following code builds the \verb+libfoo.cmx+ package from the files \verb+package.cmx+
+# and \verb+bar.cmx+ (if \verb+NATIVE_ENABLED+ is set), and \verb+package.cmo+ from
+# \verb+foo.cmo+ and \verb+bar.cmo+ (if \verb+BYTE_ENABLED+ is set).
+#
+# \begin{verbatim}
+# OCamlPackage(package, foo bar)
+# \end{verbatim}
+# \end{doc}
+#
+OCamlPackage(name, files) =
+   OFILES   = $(addsuffix $(EXT_OBJ), $(files))
+   CMOFILES = $(addsuffix .cmo, $(files))
+   CMXFILES = $(addsuffix .cmx, $(files))
+
+   CLIB      = $(file $(name)$(EXT_LIB))
+   BYTELIB   = $(file $(name).cmo)
+   NATIVELIB = $(file $(name).cmx)
+
+   #
+   # Link commands
+   #
+   $(BYTELIB): $(CMOFILES)
+        $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS) \
+                $(OCAML_LIB_FLAGS) -pack -o $@ $(OCamlLinkSort $(CMOFILES))
+
+   $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
+        $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) \
+                $(OCAML_LIB_FLAGS) -pack -o $(NATIVELIB) $(OCamlLinkSort $(CMXFILES))
+
+   return $(if $(NATIVE_ENABLED), $(array $(NATIVELIB), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+
+#
 # If the interfaces are to be installed,
 # define this variable to be true.
 #
