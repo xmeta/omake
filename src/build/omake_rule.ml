@@ -1085,8 +1085,15 @@ and eval_rule venv loc target sources sloppy_deps values commands =
             let fv = free_vars_union fv fv' in
                commands, fv
        | CommandValue (loc, v) ->
-            let flags, pipe = pipe_of_value venv find_alias options pos loc v in
-               (flags, CommandPipe pipe) :: commands, fv
+            let commands =
+               try
+                  let flags, pipe = pipe_of_value venv find_alias options pos loc v in
+                     (flags, CommandPipe pipe) :: commands
+               with
+                  OmakeException (_, NullCommand) ->
+                     commands
+            in
+               commands, fv
    in
    let commands, fv = List.fold_left command_line ([], free_vars_empty) commands in
    let commands = List.rev commands in

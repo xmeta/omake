@@ -562,6 +562,7 @@ type omake_error =
  | NotImplemented    of string
  | UnboundKey        of string
  | UnboundValue      of value
+ | NullCommand
 
 (*
  * General exception includes debugging info.

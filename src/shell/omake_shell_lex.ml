@@ -261,7 +261,7 @@ let rec scan_argv venv pos env argv =
                      | None ->
                           env, CmdArg arg, argv))
     | [] ->
-         raise (OmakeException (pos, StringError "invalid null command"))
+         raise (OmakeException (pos, NullCommand))
 
 (*
  * A pipe might actually refer to an alias.

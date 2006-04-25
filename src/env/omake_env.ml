@@ -463,6 +463,7 @@ and omake_error =
  | NotImplemented    of string
  | UnboundKey        of string
  | UnboundValue      of value
+ | NullCommand
 
 (*
  * Error during translation.
@@ -1157,6 +1158,8 @@ and pp_print_exn buf = function
       fprintf buf "arity mismatch: expected %a args, got %d" pp_print_arity len1 len2
  | NotImplemented s ->
       fprintf buf "not implemented: %s" s
+ | NullCommand ->
+      pp_print_string buf "invalid null command"
 
 (************************************************************************
  * Positions.
