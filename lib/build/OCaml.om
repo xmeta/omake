@@ -467,22 +467,38 @@ OCamlPackage(name, files) =
    CMOFILES = $(addsuffix .cmo, $(files))
    CMXFILES = $(addsuffix .cmx, $(files))
 
-   CLIB      = $(file $(name)$(EXT_OBJ))
-   BYTELIB   = $(file $(name).cmo)
-   NATIVELIB = $(file $(name).cmx)
+   OBJ       = $(file $(name)$(EXT_OBJ))
+   CMO       = $(file $(name).cmo)
+   CMX       = $(file $(name).cmx)
+   CMI       = $(file $(name).cmi)
+
+   BYTE_TARGETS   = $(CMO)
+   NATIVE_TARGETS = $(CMX) $(OBJ)
+
+   #
+   # Choose how to generate the .cmi
+   #
+   if $(NATIVE_ENABLED)
+       NATIVE_TARGETS += $(CMI)
+       TARGETS = $(NATIVE_TARGETS)
+       export
+   else
+       BYTE_TARGETS += $(CMI)
+       TARGETS = $(BYTE_TARGETS)
+       export
 
    #
    # Link commands
    #
-   $(BYTELIB): $(CMOFILES)
+   $(BYTE_TARGETS): $(CMOFILES)
         $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS) \
-                $(OCAML_LIB_FLAGS) -pack -o $@ $(OCamlLinkSort $(CMOFILES))
+                $(OCAML_LIB_FLAGS) -pack -o $(CMO) $(OCamlLinkSort $(CMOFILES))
 
-   $(NATIVELIB) $(CLIB): $(CMXFILES) $(OFILES)
+   $(NATIVE_TARGETS): $(CMXFILES) $(OFILES)
         $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS) \
-                $(OCAML_LIB_FLAGS) -pack -o $(NATIVELIB) $(OCamlLinkSort $(CMXFILES))
+                $(OCAML_LIB_FLAGS) -pack -o $(CMX) $(OCamlLinkSort $(CMXFILES))
 
-   return $(if $(NATIVE_ENABLED), $(array $(NATIVELIB), $(CLIB)), $(if $(BYTE_ENABLED), $(BYTELIB)))
+   return $(TARGETS)
 
 #
 # If the interfaces are to be installed,
