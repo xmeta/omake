@@ -530,6 +530,27 @@ foo.cmo and bar.cmo (if BYTE_ENABLED is set).
 .Vb
 OCamlLibrary(libfoo, foo bar)
 .Ve
+.SS OCAMLPACKAGE
+.PP
+The OCamlPackage function builds an OCaml package.
+.PP
+OCamlPackage(<name>, <files>)
+.PP
+The <name> and <files> are listed \fIwithout\fP
+suffixes.
+The <files> must have been compiled with the \-for\-pack <ident>
+flag to the OCaml compiler.
+.PP
+This function returns the list of all the targets that it defines the rules
+for (including the $(name)$(EXT_LIB) file when NATIVE_ENABLED is set).
+.PP
+The following code builds the libfoo.cmx package from the files package.cmx
+and bar.cmx (if NATIVE_ENABLED is set), and package.cmo from
+foo.cmo and bar.cmo (if BYTE_ENABLED is set).
+.PP
+.Vb
+OCamlPackage(package, foo bar)
+.Ve
 .SS OCAMLLIBRARYCOPY
 .PP
 The OCamlLibraryCopy function copies a library to an install location.

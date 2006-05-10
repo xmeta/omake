@@ -364,32 +364,33 @@ additional features, including accurate automated dependency analysis based on M
 <li><a href="#section_288">Library variables </a></li>
 <li><a href="#section_289">OCamlGeneratedFiles, LocalOCamlGeneratedFiles </a></li>
 <li><a href="#section_290">OCamlLibrary </a></li>
-<li><a href="#section_291">OCamlLibraryCopy </a></li>
-<li><a href="#section_292">OCamlLibraryInstall </a></li>
-<li><a href="#section_293">OCamlProgram </a></li>
-<li><a href="#section_294">OCamlProgramCopy </a></li>
-<li><a href="#section_295">OCamlProgramInstall </a></li>
+<li><a href="#section_291">OCamlPackage </a></li>
+<li><a href="#section_292">OCamlLibraryCopy </a></li>
+<li><a href="#section_293">OCamlLibraryInstall </a></li>
+<li><a href="#section_294">OCamlProgram </a></li>
+<li><a href="#section_295">OCamlProgramCopy </a></li>
+<li><a href="#section_296">OCamlProgramInstall </a></li>
 </ul>
-<li><a href="#section_296">Building LaTeX programs</a>
+<li><a href="#section_297">Building LaTeX programs</a>
 <ul>
-<li><a href="#section_297">Configuration variables </a></li>
-<li><a href="#section_298">LaTeXDocument </a></li>
-<li><a href="#section_299">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
-<li><a href="#section_300">LaTeXDocumentCopy </a></li>
-<li><a href="#section_301">LaTeXDocumentInstall </a></li>
+<li><a href="#section_298">Configuration variables </a></li>
+<li><a href="#section_299">LaTeXDocument </a></li>
+<li><a href="#section_300">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
+<li><a href="#section_301">LaTeXDocumentCopy </a></li>
+<li><a href="#section_302">LaTeXDocumentInstall </a></li>
 </ul>
-<li><a href="#section_302">Examining the dependency graph </a>
+<li><a href="#section_303">Examining the dependency graph </a>
 <ul>
-<li><a href="#section_303">dependencies, dependencies-all </a></li>
-<li><a href="#section_304">target </a></li>
-<li><a href="#section_305">rule </a></li>
+<li><a href="#section_304">dependencies, dependencies-all </a></li>
+<li><a href="#section_305">target </a></li>
+<li><a href="#section_306">rule </a></li>
 </ul>
-<li><a href="#section_306">References </a>
+<li><a href="#section_307">References </a>
 <ul>
-<li><a href="#section_307">See Also </a></li>
-<li><a href="#section_308">Version </a></li>
-<li><a href="#section_309">License and Copyright </a></li>
-<li><a href="#section_310">Author </a></li>
+<li><a href="#section_308">See Also </a></li>
+<li><a href="#section_309">Version </a></li>
+<li><a href="#section_310">License and Copyright </a></li>
+<li><a href="#section_311">Author </a></li>
 </ul>
 </li>
 </ul>
@@ -2417,6 +2418,44 @@ the file if it does not exist.
        echo "CONFIG_READ = true" &gt; config
 
     echo CONFIG_READ is $(CONFIG_READ)
+</pre>
+<p>
+You may also specify dependencies to an <tt>.INCLUDE</tt> rule.
+<p>
+<pre>
+   .INCLUDE: config: config.defaults
+      cp config.defaults config
+</pre>
+<p>
+A word of caution is in order here. The usual policy is used for determining when the rule is
+out-of-date. The rule is executed if any of the following hold.
+<p>
+<ul compact>
+<li>the target does not exist,
+</li>
+<li>the rule has never been executed before,
+</li>
+<li>any of the following have changed since the last time the rule was executed,
+<ul compact>
+<li>the target,
+</li>
+<li>the dependencies,
+</li>
+<li>the commands-text.
+</li>
+</ul>
+</li>
+</ul>
+<p>
+In some of the cases, this will mean that the rule is executed even if the target file already
+exists. If the target is a file that you expect to edit by hand (and therefore you don't want to
+overwrite it), you should make the rule evaluation conditional on whether the target already exists.
+<p>
+<pre>
+   .INCLUDE: config: config.defaults
+       # Don't overwrite my carefully hand-edited file
+       if $(not $(file-exists config))
+          cp config.defaults config
 </pre>
 <p>
 <h4><a name="section_54">.PHONY</a></h4>
@@ -7518,7 +7557,29 @@ and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>libfoo.cma</tt
 <pre>
 OCamlLibrary(libfoo, foo bar)
 </pre>
-<h4><a name="section_291">OCamlLibraryCopy</a></h4>
+<h4><a name="section_291">OCamlPackage</a></h4>
+
+<p>
+The <tt>OCamlPackage</tt> function builds an OCaml package.
+<p>
+<tt>OCamlPackage(&lt;name&gt;, &lt;files&gt;)</tt>
+<p>
+The <tt>&lt;name&gt;</tt> and <tt>&lt;files&gt;</tt> are listed <em>without</em>
+suffixes.
+The <tt>&lt;files&gt;</tt> must have been compiled with the <tt>-for-pack &lt;ident&gt;</tt>
+flag to the OCaml compiler.
+<p>
+This function returns the list of all the targets that it defines the rules
+for (including the <tt>$(name)$(EXT_LIB)</tt> file when <tt>NATIVE_ENABLED</tt> is set).
+<p>
+The following code builds the <tt>libfoo.cmx</tt> package from the files <tt>package.cmx</tt>
+and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>package.cmo</tt> from
+<tt>foo.cmo</tt> and <tt>bar.cmo</tt> (if <tt>BYTE_ENABLED</tt> is set).
+<p>
+<pre>
+OCamlPackage(package, foo bar)
+</pre>
+<h4><a name="section_292">OCamlLibraryCopy</a></h4>
 
 <p>
 The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
@@ -7527,14 +7588,14 @@ The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
 <p>
 The <tt>&lt;interface-files&gt;</tt> specify additional interface files
 to be copied if the <tt>INSTALL_INTERFACES</tt> variable is true.
-<h4><a name="section_292">OCamlLibraryInstall</a></h4>
+<h4><a name="section_293">OCamlLibraryInstall</a></h4>
 
 <p>
 The <tt>OCamlLibraryInstall</tt> function builds a library
 and copies it to an install location in one step.
 <p>
 <tt>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</tt>
-<h4><a name="section_293">OCamlProgram</a></h4>
+<h4><a name="section_294">OCamlProgram</a></h4>
 
 <p>
 The <tt>OCamlProgram</tt> function builds an OCaml program. It returns the array with all
@@ -7568,7 +7629,7 @@ become dependencies of the target program.
 <dd> Flags to pass to both linkers.
 </dd>
 </dl>
-<h4><a name="section_294">OCamlProgramCopy</a></h4>
+<h4><a name="section_295">OCamlProgramCopy</a></h4>
 
 <p>
 The <tt>OCamlProgramCopy</tt> function copies an OCaml program to an install location.
@@ -7582,17 +7643,17 @@ Additional variables used:
 is copied; otherwise the byte-code executable is copied.
 </dd>
 </dl>
-<h4><a name="section_295">OCamlProgramInstall</a></h4>
+<h4><a name="section_296">OCamlProgramInstall</a></h4>
 
 <p>
 The <tt>OCamlProgramInstall</tt> function builds a programs and copies it to
 an install location in one step.
 <p>
 <tt>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</tt>
-<h2><a name="section_296">Building LaTeX programs</a></h2>
+<h2><a name="section_297">Building LaTeX programs</a></h2>
 
 <p>
-<h4><a name="section_297">Configuration variables</a></h4>
+<h4><a name="section_298">Configuration variables</a></h4>
 
 <p>
 The following variables can be modified in your project.
@@ -7637,7 +7698,7 @@ and depends on the version of LaTeX you have installed).
 to generate the <tt>.pdf</tt> document (default <tt>false</tt>).
 </dd>
 </dl>
-<h4><a name="section_298">LaTeXDocument</a></h4>
+<h4><a name="section_299">LaTeXDocument</a></h4>
 
 <p>
 The <tt>LaTeXDocument</tt> produces a LaTeX document.
@@ -7657,7 +7718,7 @@ taken from the <tt>TEXINPUTS</tt> environment variable).
 <dd> Additional files this document depends on.
 </dd>
 </dl>
-<h4><a name="section_299">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
+<h4><a name="section_300">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
 
 <pre>
 TeXGeneratedFiles(files)
@@ -7676,7 +7737,7 @@ The <tt>TeXGeneratedFiles</tt> function is <em>global</em>
 before any TeX files anywhere in the project are scanned for dependencies. The
 <tt>LocalTeXGeneratedFiles</tt> function follows the normal scoping rules of OMake.
 <p>
-<h4><a name="section_300">LaTeXDocumentCopy</a></h4>
+<h4><a name="section_301">LaTeXDocumentCopy</a></h4>
 
 <p>
 The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
@@ -7684,16 +7745,16 @@ The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
 <tt>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</tt>
 <p>
 This function copies just the <tt>.pdf</tt> and <tt>.ps</tt> files.
-<h4><a name="section_301">LaTeXDocumentInstall</a></h4>
+<h4><a name="section_302">LaTeXDocumentInstall</a></h4>
 
 <p>
 The <tt>LaTeXDocumentInstall</tt> builds a document and copies it to an
 install location in one step.
 <p>
 <tt>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</tt>
-<h2><a name="section_302">Examining the dependency graph</a></h2>
+<h2><a name="section_303">Examining the dependency graph</a></h2>
 
-<h4><a name="section_303">dependencies, dependencies-all</a></h4>
+<h4><a name="section_304">dependencies, dependencies-all</a></h4>
 
 <p>
 <pre>
@@ -7736,7 +7797,7 @@ building the project before it can be deleted. For a shorter form, see the
        rm $(dependencies-proper $(APP))
 </pre>
 <p>
-<h4><a name="section_304">target</a></h4>
+<h4><a name="section_305">target</a></h4>
 
 <pre>
    $(target targets) : Rule Array
@@ -7746,7 +7807,7 @@ building the project before it can be deleted. For a shorter form, see the
 <p>
 The <tt>target</tt> function returns the Target object associated with each
 of the targets. See the <tt>Target</tt> object for more information.
-<h4><a name="section_305">rule</a></h4>
+<h4><a name="section_306">rule</a></h4>
 
 <p>
 The <tt>rule</tt> function is called whenever a build rule is defined.
@@ -7805,10 +7866,10 @@ square brackets are used to indicate arrays.
         [[:name1:, option1], [:name2:, option2]]
         [expr1; expr2])
 </pre>
-<h2><a name="section_306">References</a></h2>
+<h2><a name="section_307">References</a></h2>
 
 <p>
-<h4><a name="section_307">See Also</a></h4>
+<h4><a name="section_308">See Also</a></h4>
 
 <p>
 <a href="omake.html">omake(1)</a>,
@@ -7824,12 +7885,12 @@ square brackets are used to indicate arrays.
 <a href="osh.html">osh(1)</a>,
 <em>make</em>(1)
 <p>
-<h4><a name="section_308">Version</a></h4>
+<h4><a name="section_309">Version</a></h4>
 
 <p>
 Version: 0.9.6.9 of April 11, 2006.
 <p>
-<h4><a name="section_309">License and Copyright</a></h4>
+<h4><a name="section_310">License and Copyright</a></h4>
 
 <p>
 &copy;2003-2006, Mojave Group, Caltech
@@ -7848,7 +7909,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <p>
-<h4><a name="section_310">Author</a></h4>
+<h4><a name="section_311">Author</a></h4>
 
 <p>
 Jason Hickey <em>et. al.</em><br>

@@ -440,6 +440,51 @@ the file if it does not exist.
     echo CONFIG_READ is $(CONFIG_READ)
 .Ve
 .PP
+You may also specify dependencies to an \&.INCLUDE rule.
+.PP
+.Vb
+   .INCLUDE: config: config.defaults
+      cp config.defaults config
+.Ve
+.PP
+A word of caution is in order here. The usual policy is used for determining when the rule is
+out\-of\-date. The rule is executed if any of the following hold.
+.PP
+.TP
+.B *
+the target does not exist,
+.TP
+.B *
+the rule has never been executed before,
+.TP
+.B *
+any of the following have changed since the last time the rule was executed,
+.RS
+.TP
+.B *
+the target,
+.TP
+.B *
+the dependencies,
+.TP
+.B *
+the commands\-text.
+.RE
+.RS
+.PP
+.RE
+.PP
+In some of the cases, this will mean that the rule is executed even if the target file already
+exists. If the target is a file that you expect to edit by hand (and therefore you don\&'t want to
+overwrite it), you should make the rule evaluation conditional on whether the target already exists.
+.PP
+.Vb
+   .INCLUDE: config: config.defaults
+       # Don't overwrite my carefully hand\-edited file
+       if $(not $(file\-exists config))
+          cp config.defaults config
+.Ve
+.PP
 .SS \&.PHONY
 .PP
 A ``phony\&'' target is a target that is not a real file, but exists to collect a set of dependencies.
@@ -468,6 +513,7 @@ But how is the scope for a target file selected? Suppose we are building a file 
 omake
 uses the following rules to determine the scope.
 .PP
+.RE
 .TP
 .B *
 First, if there is an \fIexplicit\fP rule for building

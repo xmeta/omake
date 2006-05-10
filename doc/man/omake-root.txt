@@ -477,6 +477,26 @@ BUILDING OCAML PROGRAMS
        OCamlLibrary(libfoo, foo bar)
 
 
+   OCAMLPACKAGE
+       The OCamlPackage function builds an OCaml package.
+
+       OCamlPackage(<name>, <files>)
+
+       The <name> and <files> are listed without suffixes.  The  <files>  must
+       have  been  compiled  with the -for-pack <ident> flag to the OCaml com-
+       piler.
+
+       This function returns the list of all the targets that it  defines  the
+       rules  for (including the $(name)$(EXT_LIB) file when NATIVE_ENABLED is
+       set).
+
+       The following code builds the libfoo.cmx package from the  files  pack-
+       age.cmx  and  bar.cmx  (if NATIVE_ENABLED is set), and package.cmo from
+       foo.cmo and bar.cmo (if BYTE_ENABLED is set).
+
+       OCamlPackage(package, foo bar)
+
+
    OCAMLLIBRARYCOPY
        The OCamlLibraryCopy function copies a library to an install  location.
 

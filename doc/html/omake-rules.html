@@ -486,6 +486,44 @@ the file if it does not exist.
     echo CONFIG_READ is $(CONFIG_READ)
 </pre>
 <p>
+You may also specify dependencies to an <tt>.INCLUDE</tt> rule.
+<p>
+<pre>
+   .INCLUDE: config: config.defaults
+      cp config.defaults config
+</pre>
+<p>
+A word of caution is in order here. The usual policy is used for determining when the rule is
+out-of-date. The rule is executed if any of the following hold.
+<p>
+<ul compact>
+<li>the target does not exist,
+</li>
+<li>the rule has never been executed before,
+</li>
+<li>any of the following have changed since the last time the rule was executed,
+<ul compact>
+<li>the target,
+</li>
+<li>the dependencies,
+</li>
+<li>the commands-text.
+</li>
+</ul>
+</li>
+</ul>
+<p>
+In some of the cases, this will mean that the rule is executed even if the target file already
+exists. If the target is a file that you expect to edit by hand (and therefore you don't want to
+overwrite it), you should make the rule evaluation conditional on whether the target already exists.
+<p>
+<pre>
+   .INCLUDE: config: config.defaults
+       # Don't overwrite my carefully hand-edited file
+       if $(not $(file-exists config))
+          cp config.defaults config
+</pre>
+<p>
 <h4><a name="section_17">.PHONY</a></h4>
 
 <p>

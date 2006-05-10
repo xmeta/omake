@@ -1781,12 +1781,49 @@ OTHER SPECIAL TARGETS
            echo CONFIG_READ is $(CONFIG_READ)
 
 
+       You may also specify dependencies to an .INCLUDE rule.
+
+          .INCLUDE: config: config.defaults
+             cp config.defaults config
+
+
+       A word of caution is in order here. The usual policy is used for deter-
+       mining when the rule is out-of-date. The rule is executed if any of the
+       following hold.
+
+
+       *      the target does not exist,
+
+       *      the rule has never been executed before,
+
+       *      any of the following have changed since the last time  the  rule
+              was executed,
+
+              *      the target,
+
+              *      the dependencies,
+
+              *      the commands-text.
+
+
+       In  some of the cases, this will mean that the rule is executed even if
+       the target file already exists. If the target is a file that you expect
+       to  edit  by  hand  (and therefore you don't want to overwrite it), you
+       should make the rule  evaluation  conditional  on  whether  the  target
+       already exists.
+
+          .INCLUDE: config: config.defaults
+              # Don't overwrite my carefully hand-edited file
+              if $(not $(file-exists config))
+                 cp config.defaults config
+
+
 
    .PHONY
-       A ``phony'' target is a target that is not a real file, but  exists  to
-       collect  a  set  of dependencies.  Phony targets are specified with the
+       A  ``phony''  target is a target that is not a real file, but exists to
+       collect a set of dependencies.  Phony targets are  specified  with  the
        .PHONY rule. In the following example, the install target does not cor-
-       respond  to  a file, but it corresponds to some commands that should be
+       respond to a file, but it corresponds to some commands that  should  be
        run whenever the install target is built (for example, by running omake
        install).
 
@@ -1798,29 +1835,29 @@ OTHER SPECIAL TARGETS
 
 
 RULE SCOPING
-       As  we have mentioned before, omake is a scoped language. This provides
+       As we have mentioned before, omake is a scoped language. This  provides
        great flexibility---different parts of the project can define different
-       configurations  without  interfering with one another (for example, one
-       part of the project might be compiled with CFLAGS=-O3 and another  with
+       configurations without interfering with one another (for  example,  one
+       part  of the project might be compiled with CFLAGS=-O3 and another with
        CFLAGS=-g).
 
-       But  how is the scope for a target file selected? Suppose we are build-
-       ing a file dir/foo.o.  omake uses the following rules to determine  the
+       But how is the scope for a target file selected? Suppose we are  build-
+       ing  a file dir/foo.o.  omake uses the following rules to determine the
        scope.
 
 
-       *      First,  if  there  is an explicit rule for building dir/foo.o (a
-              rule with no wildcards), the context for  that  rule  determines
+       *      First, if there is an explicit rule for  building  dir/foo.o  (a
+              rule  with  no  wildcards), the context for that rule determines
               the scope for building the target.
 
-       *      Otherwise,  the directory dir/ must be part of the project. This
-              normally means that a configuration  file  dir/OMakefile  exists
-              (although,  see  the .SUBDIRS section for another way to specify
-              the OMakefile). In this case, the scope of  the  target  is  the
+       *      Otherwise, the directory dir/ must be part of the project.  This
+              normally  means  that  a configuration file dir/OMakefile exists
+              (although, see the .SUBDIRS section for another way  to  specify
+              the  OMakefile).  In  this  case, the scope of the target is the
               scope at the end of the dir/OMakefile.
 
-       To  illustrate  rule scoping, let's go back to the example of a ``Hello
-       world'' program with two files. Here is an example OMakefile  (the  two
+       To illustrate rule scoping, let's go back to the example of  a  ``Hello
+       world''  program  with two files. Here is an example OMakefile (the two
        definitions of CFLAGS are for illustration).
 
            # The executable is compiled with debugging
@@ -1832,16 +1869,16 @@ RULE SCOPING
            CFLAGS += -O3
 
 
-       In  this project, the target hello is explicit.  The scope of the hello
-       target is the line beginning with hello:, where the value of CFLAGS  is
-       -g.  The  other two targets, hello_code.o and hello_lib.o do not appear
-       as explicit targets, so their scope is at the  end  of  the  OMakefile,
-       where  the CFLAGS variable is defined to be -g -O3. That is, hello will
-       be linked with CFLAGS=-g  and  the  .o  files  will  be  compiled  with
+       In this project, the target hello is explicit.  The scope of the  hello
+       target  is the line beginning with hello:, where the value of CFLAGS is
+       -g. The other two targets, hello_code.o and hello_lib.o do  not  appear
+       as  explicit  targets,  so  their scope is at the end of the OMakefile,
+       where the CFLAGS variable is defined to be -g -O3. That is, hello  will
+       be  linked  with  CFLAGS=-g  and  the  .o  files  will be compiled with
        CFLAGS=-g -O3.
 
-       We  can  change this behavior for any of the targets by specifying them
-       as  explicit  targets.  For  example,  suppose  we  wish   to   compile
+       We can change this behavior for any of the targets by  specifying  them
+       as   explicit   targets.  For  example,  suppose  we  wish  to  compile
        hello_lib.o with a preprocessor variable LIBRARY.
 
            # The executable is compiled with debugging
@@ -1865,10 +1902,10 @@ RULE SCOPING
 
 
    SCOPING OF IMPLICIT RULES
-       Implicit rules (rules containing wildcard  patterns)  are  not  global,
-       they  follow the normal scoping convention. This allows different parts
-       of a project to have different sets of implicit rules. If we  like,  we
-       can  modify the example above to provide a new implicit rule for build-
+       Implicit  rules  (rules  containing  wildcard patterns) are not global,
+       they follow the normal scoping convention. This allows different  parts
+       of  a  project to have different sets of implicit rules. If we like, we
+       can modify the example above to provide a new implicit rule for  build-
        ing hello_lib.o.
 
            # The executable is compiled with debugging
@@ -1886,17 +1923,17 @@ RULE SCOPING
            CFLAGS += -O3
 
 
-       In this case, the target hello_lib.o is built in a  scope  with  a  new
-       implicit  rule for building %.o files. The implicit rule adds the -DLI-
-       BRARY option. This  implicit  rule  is  defined  only  for  the  target
+       In  this  case,  the  target hello_lib.o is built in a scope with a new
+       implicit rule for building %.o files. The implicit rule adds the  -DLI-
+       BRARY  option.  This  implicit  rule  is  defined  only  for the target
        hello_lib.o; the target hello_code.o is built as normal.
 
 
    SCOPING OF .SCANNER RULES
-       Scanner  rules are scoped the same way as normal rules. If the .SCANNER
-       rule is explicit (containing no wildcard patterns), then the  scope  of
-       the  scan  target is the same as the the rule.  If the .SCANNER rule is
-       implicit, then the environment is taken from the :scanner:  dependency.
+       Scanner rules are scoped the same way as normal rules. If the  .SCANNER
+       rule  is  explicit (containing no wildcard patterns), then the scope of
+       the scan target is the same as the the rule.  If the .SCANNER  rule  is
+       implicit,  then the environment is taken from the :scanner: dependency.
 
            # The executable is compiled with debugging
            CFLAGS = -g
@@ -1920,17 +1957,17 @@ RULE SCOPING
                   $(CC) $(CFLAGS) -c $<
 
 
-       Again,  this  is  for  illustration---it  is unlikely you would need to
+       Again, this is for illustration---it is  unlikely  you  would  need  to
        write a complicated configuration like this! In this case, the .SCANNER
-       rule  specifies  that the C-compiler should be called with the -MM flag
-       to compute dependencies. For the target  hello_lib.o,  the  scanner  is
+       rule specifies that the C-compiler should be called with the  -MM  flag
+       to  compute  dependencies.  For  the target hello_lib.o, the scanner is
        called with CFLAGS=-g -DLIBRARY, and for hello_code.o it is called with
        CFLAGS=-g -O3.
 
 
    SCOPING FOR .PHONY TARGETS
-       Phony targets (targets that do not correspond  to  files)  are  defined
-       with  a .PHONY: rule.  Phony targets are scoped as usual. The following
+       Phony  targets  (targets  that  do not correspond to files) are defined
+       with a .PHONY: rule.  Phony targets are scoped as usual. The  following
        illustrates a common mistake, where the .PHONY target is declared after
        it is used.
 
@@ -1944,7 +1981,7 @@ RULE SCOPING
 
 
        This doesn't work as expected because the .PHONY declaration occurs too
-       late. The proper way to write this example is to place the .PHONY  dec-
+       late.  The proper way to write this example is to place the .PHONY dec-
        laration first.
 
            # Phony targets must be declared before being used
@@ -1956,10 +1993,10 @@ RULE SCOPING
                $(CC) $(CFLAGS) -o $@ $+
 
 
-       Phony  targets  are passed to subdirectories. As a practical matter, it
-       is wise to declare all .PHONY targets in your  root  OMakefile,  before
-       any  .SUBDIRS.  This  will  ensure that 1) they are considered as phony
-       targets in each of the sbdirectories, and 2) you can  build  them  from
+       Phony targets are passed to subdirectories. As a practical  matter,  it
+       is  wise  to  declare all .PHONY targets in your root OMakefile, before
+       any .SUBDIRS. This will ensure that 1) they  are  considered  as  phony
+       targets  in  each  of the sbdirectories, and 2) you can build them from
        the project root.
 
            .PHONY: all install clean
@@ -1969,19 +2006,19 @@ RULE SCOPING
 
 
 THE OSH SHELL
-       OMake  also includes a standalone command-line interpreter osh that can
-       be used as an interactive shell. The shell uses the  same  syntax,  and
-       provides  the  same features on all platforms omake supports, including
+       OMake also includes a standalone command-line interpreter osh that  can
+       be  used  as  an interactive shell. The shell uses the same syntax, and
+       provides the same features on all platforms omake  supports,  including
        Win32.
 
 
    STARTUP
-       On startup, osh reads the file ~/.oshrc if it  exists.  The  syntax  of
-       this  file is the same as an OMakefile.  The following additional vari-
+       On  startup,  osh  reads  the file ~/.oshrc if it exists. The syntax of
+       this file is the same as an OMakefile.  The following additional  vari-
        ables are significant.
 
 
-       prompt The prompt variable specifies the command-line prompt.   It  can
+       prompt The  prompt  variable specifies the command-line prompt.  It can
               be a simple string.
 
            prompt = osh>
@@ -2001,12 +2038,12 @@ THE OSH SHELL
 
 
        ignoreeof
-              If  the  ignoreeof is true, then osh will not exit on a terminal
+              If the ignoreeof is true, then osh will not exit on  a  terminal
               end-of-file (usually ^D on Unix systems).
 
 
    ALIASES
-       Command aliases are defined by adding functions to the  Shell.  object.
+       Command  aliases  are defined by adding functions to the Shell. object.
        The following alias adds the -AF option to the ls command.
 
            Shell. +=
@@ -2019,10 +2056,10 @@ THE OSH SHELL
 
 
    INTERACTIVE SYNTAX
-       The interactive syntax in osh is the same as the syntax  of  an  OMake-
-       file,  with  one exception in regard to indentation. The line before an
-       indented block must have a colon at the end of the  line.  A  block  is
-       terminated  with a . on a line by itself, or ^D. In the following exam-
+       The  interactive  syntax  in osh is the same as the syntax of an OMake-
+       file, with one exception in regard to indentation. The line  before  an
+       indented  block  must  have  a colon at the end of the line. A block is
+       terminated with a . on a line by itself, or ^D. In the following  exam-
        ple, the first line if true has no body, because there is no colon.
 
           # The following if has no body
@@ -2035,10 +2072,10 @@ THE OSH SHELL
           Hello world
 
 
-       Note that osh makes some effort  to  modify  the  prompt  while  in  an
+       Note  that  osh  makes  some  effort  to  modify the prompt while in an
        indented body, and it auto-indents the text.
 
-       The  colon  signifier  is  also  allowed  in  files, although it is not
+       The colon signifier is also  allowed  in  files,  although  it  is  not
        required.
 
 
@@ -2049,9 +2086,9 @@ THE OSH SHELL
 
 BUILTIN VARIABLES
    OSTYPE
-       Set  to  the  machine architecture omake is running on. Possible values
-       are Unix (for all Unix versions, including Linux and Mac OS  X),  Win32
-       (for  MS-Windows, OMake compiled with MSVC++ or Mingw), and Cygwin (for
+       Set to the machine architecture omake is running  on.  Possible  values
+       are  Unix  (for all Unix versions, including Linux and Mac OS X), Win32
+       (for MS-Windows, OMake compiled with MSVC++ or Mingw), and Cygwin  (for
        MS-Windows, OMake compiled with Cygwin).
 
    SYSNAME
@@ -2087,12 +2124,12 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
              e : String
 
 
-       Boolean values in omake are represented  by  case-insensitive  strings.
+       Boolean  values  in  omake are represented by case-insensitive strings.
        The false value can be represented by the strings false, no, nil, unde-
-       fined or 0, and everything else is true. The  not  function  negates  a
+       fined  or  0,  and  everything else is true. The not function negates a
        Boolean value.
 
-       For  example,  $(not false) expands to the string true, and $(not hello
+       For example, $(not false) expands to the string true, and  $(not  hello
        world) expands to false.
 
    EQUAL
@@ -2103,7 +2140,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
 
        The equal function tests for equality of two values.
 
-       For example $(equal a, b) expands to false, and  $(equal  hello  world,
+       For  example  $(equal  a, b) expands to false, and $(equal hello world,
        hello world) expands to true.
 
    AND
@@ -2156,19 +2193,19 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
              bodyn
 
 
-       If the expression e1 is not false, then the expressions  in  body1  are
-       evaluated  and  the result is returned as the value of the conditional.
-       Otherwise, if e1 evaluates to false, the evaluation continues with  the
+       If  the  expression  e1 is not false, then the expressions in body1 are
+       evaluated and the result is returned as the value of  the  conditional.
+       Otherwise,  if e1 evaluates to false, the evaluation continues with the
        e2 expression. If none of the conditional expressions is true, then the
-       expressions in bodyn are evaluated and the result is  returned  as  the
+       expressions  in  bodyn  are evaluated and the result is returned as the
        value of the conditional.
 
        There can be any number of elseif clauses; the else clause is optional.
 
-       Note that each branch of the conditional  defines  its  own  scope,  so
-       variables  defined in the branches are normally not visible outside the
-       conditional.  The export command may be used to  export  the  variables
-       defined  in a scope. For example, the following expression represents a
+       Note  that  each  branch  of  the conditional defines its own scope, so
+       variables defined in the branches are normally not visible outside  the
+       conditional.   The  export  command may be used to export the variables
+       defined in a scope. For example, the following expression represents  a
        common idiom for defining the C compiler configuration.
 
           if $(equal $(OSTYPE), Win32)
@@ -2184,35 +2221,35 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
    SWITCH, MATCH
        The switch and match functions perform pattern matching.
 
-       $(switch <arg>, <pattern_1>, <value_1>,  ...,  <pattern_n>,  <value_n>)
+       $(switch  <arg>,  <pattern_1>,  <value_1>, ..., <pattern_n>, <value_n>)
        $(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)
 
-       The  number  of  <pattern>/<value>  pairs  is  arbitrary. They strictly
+       The number of  <pattern>/<value>  pairs  is  arbitrary.  They  strictly
        alternate; the total number of arguments to <match> must be odd.
 
-       The <arg> is evaluated to a string, and compared with <pattern_1>.   If
+       The  <arg> is evaluated to a string, and compared with <pattern_1>.  If
        it matches, the result of the expression is <value_1>. Otherwise evalu-
        ation continues with the remaining patterns until a match is found.  If
        no pattern matches, the value is the empty string.
 
        The switch function uses string comparison to compare the argument with
-       the patterns. For example, the following expression  defines  the  FILE
-       variable  to  be either foo, bar, or the empty string, depending on the
+       the  patterns.  For  example, the following expression defines the FILE
+       variable to be either foo, bar, or the empty string, depending  on  the
        value of the OSTYPE variable.
 
            FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
 
 
        The match function uses regular expression patterns (see the grep func-
-       tion).  If a match is found, the variables $1, $2, ... are bound to the
-       substrings matched between \( and \) delimiters.  The $0 variable  con-
-       tains  the  entire match, and $* is an array of the matched substrings.
+       tion). If a match is found, the variables $1, $2, ... are bound to  the
+       substrings  matched between \( and \) delimiters.  The $0 variable con-
+       tains the entire match, and $* is an array of the  matched  substrings.
        to the matched substrings.
 
            FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a, foo_$2/$1.o)
 
 
-       The switch and match functions also have  an  alternate  (more  usable)
+       The  switch  and  match  functions also have an alternate (more usable)
        form.
 
           match e
@@ -2226,7 +2263,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
 
 
        If the value of expression e matches pattern_i and no previous pattern,
-       then body_i is evaluated and returned as the result of the match.   The
+       then  body_i is evaluated and returned as the result of the match.  The
        switch function uses string comparison; the match function uses regular
        expression matching.
 
@@ -2252,27 +2289,27 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
        The try form is used for exception handling.  First, the expressions in
        the try-body are evaluated.
 
-       If  evaluation  results in a value v without raising an exception, then
-       the expressions in the finally-body are evaluated and the  value  v  is
+       If evaluation results in a value v without raising an  exception,  then
+       the  expressions  in  the finally-body are evaluated and the value v is
        returned as the result.
 
-       If  evaluation  of  the try-body results in a exception object obj, the
-       catch clauses are examined in order. When examining catch clause  catch
-       class(v),  if the exception object obj is an instance of the class name
+       If evaluation of the try-body results in a exception  object  obj,  the
+       catch  clauses are examined in order. When examining catch clause catch
+       class(v), if the exception object obj is an instance of the class  name
        class, the variable v is bound to the exception object, and the expres-
        sions in the catch-body are evaluated.
 
-       If  a when clause is encountered while a catch body is being evaluated,
+       If a when clause is encountered while a catch body is being  evaluated,
        the predicate expr is evaluated. If the result is true, evaluation con-
        tinues with the expressions in the when-body. Otherwise, the next catch
        clause is considered for evaluation.
 
-       If evaluation of a  catch-body  or  when-body  completes  successfully,
+       If  evaluation  of  a  catch-body  or when-body completes successfully,
        returning a value v, without encountering another when clause, then the
-       expressions in the finally-body  are  evaluated  and  the  value  v  is
+       expressions  in  the  finally-body  are  evaluated  and  the value v is
        returned as the result.
 
-       There  can  be  any  number  of  catch  clauses;  the finally clause is
+       There can be any  number  of  catch  clauses;  the  finally  clause  is
        optional.
 
    RAISE
@@ -2280,7 +2317,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
              exn : Exception
 
 
-       The raise function raises an exception.  The  exn  object  can  be  any
+       The  raise  function  raises  an  exception.  The exn object can be any
        object. However, the normal convention is to raise an Exception object.
 
    EXIT
@@ -2292,7 +2329,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
 
        $(exit <code>)
 
-       The exit function takes one  integer  argument,  which  is  exit  code.
+       The  exit  function  takes  one  integer  argument, which is exit code.
        Non-zero values indicate abnormal termination.
 
    DEFINED
@@ -2301,7 +2338,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
 
 
        The defined function test whether all the variables in the sequence are
-       currently defined. For example, the following code defines the X  vari-
+       currently  defined. For example, the following code defines the X vari-
        able if it is not already defined.
 
            if $(not $(defined X))
@@ -2333,12 +2370,12 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
        The getenv function gets the value of a variable from the process envi-
        ronment. The function takes one or two arguments.
 
-       In the single argument form, an exception is  raised  if  the  variable
-       variable  is  not defined in the environment. In the two-argument form,
-       the second argument is returned as the  result  if  the  value  is  not
+       In  the  single  argument  form, an exception is raised if the variable
+       variable is not defined in the environment. In the  two-argument  form,
+       the  second  argument  is  returned  as  the result if the value is not
        defined.
 
-       For  example,  the  following  code  defines  the  variable  X  to be a
+       For example, the  following  code  defines  the  variable  X  to  be  a
        space-separated list of elements of the PATH environment variable if it
        is defined, and to /bin /usr/bin otherwise.
 
@@ -2356,7 +2393,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
              value : String
 
 
-       The  setenv  function sets the value of a variable in the process envi-
+       The setenv function sets the value of a variable in the  process  envi-
        ronment. Environment variables are scoped like normal variables.
 
 
@@ -2371,7 +2408,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
        The get-registry function retrieves a string value from the system reg-
        istry on Win32. On other architectures, there is no registry.
 
-       The  hive (I think that is the right word), indicates which part of the
+       The hive (I think that is the right word), indicates which part of  the
        registry to use. It should be one of the following values.
 
 
@@ -2385,14 +2422,14 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
 
        *      HKEY_USERS
 
-       Refer to the Microsoft documentation if you want  to  know  what  these
+       Refer  to  the  Microsoft  documentation if you want to know what these
        mean.
 
        The key is the field you want to get from the registry.  It should have
-       a form like A\B\C (if you use forward slashes, they will  be  converted
+       a  form  like A\B\C (if you use forward slashes, they will be converted
        to backslashes). The field is the sub-field of the key.
 
-       In  the  4-argument  form, the default is returned on failure.  You may
+       In the 4-argument form, the default is returned on  failure.   You  may
        also use the alternate form.
 
            get-registry(hkey, key, field)
@@ -2421,7 +2458,7 @@ BOOLEAN FUNCTIONS AND CONTROL FLOW
              value : String
 
 
-       The setvar function defines a new variable. For example, the  following
+       The  setvar function defines a new variable. For example, the following
        code defines the variable X to be the string abc.
 
           NAME = X
@@ -2446,7 +2483,7 @@ ARRAYS AND SEQUENCES
               <valn>
 
 
-       In  this  case,  the  elements  of  the  array are exactly <val1>, ...,
+       In this case, the elements  of  the  array  are  exactly  <val1>,  ...,
        <valn>, and whitespace is preserved literally.
 
    SPLIT
@@ -2455,9 +2492,9 @@ ARRAYS AND SEQUENCES
              elements : Sequence
 
 
-       The split function takes two arguments, a string of separators,  and  a
-       string  argument.  The  result  is  an  array of elements determined by
-       splitting the elements by all occurrence of the separator in  the  ele-
+       The  split  function takes two arguments, a string of separators, and a
+       string argument. The result is  an  array  of  elements  determined  by
+       splitting  the  elements by all occurrence of the separator in the ele-
        ments sequence.
 
        For example, in the following code, the X variable is defined to be the
@@ -2467,7 +2504,7 @@ ARRAYS AND SEQUENCES
            X = $(split :, $(PATH))
 
 
-       The sep argument may be omitted. In this case split  breaks  its  argu-
+       The  sep  argument  may be omitted. In this case split breaks its argu-
        ments along the white space. Quotations are not split.
 
    CONCAT
@@ -2476,8 +2513,8 @@ ARRAYS AND SEQUENCES
              elements : Sequence
 
 
-       The  concat  function  takes  two  arguments, a separator string, and a
-       sequence of elements. The result is a string  formed  by  concatenating
+       The concat function takes two arguments,  a  separator  string,  and  a
+       sequence  of  elements.  The result is a string formed by concatenating
        the elements, placing the separator between adjacent elements.
 
        For example, in the following code, the X variable is defined to be the
@@ -2503,8 +2540,8 @@ ARRAYS AND SEQUENCES
           raises RuntimeException
 
 
-       The nth function returns the nth element of its argument, treated as  a
-       list.  Counting starts at 0. An exception is raised if the index is not
+       The  nth function returns the nth element of its argument, treated as a
+       list. Counting starts at 0. An exception is raised if the index is  not
        in bounds.
 
        For example, the expression $(nth 1, a "b c" d) evaluates to "b c".
@@ -2516,10 +2553,10 @@ ARRAYS AND SEQUENCES
           raises RuntimeException
 
 
-       The nth-hd function returns the first i elements of  the  sequence.  An
+       The  nth-hd  function  returns the first i elements of the sequence. An
        exception is raised if the sequence is not at least i elements long.
 
-       For  example,  the  expression $(nth-hd 2, a "b c" d) evaluates to a "b
+       For example, the expression $(nth-hd 2, a "b c" d) evaluates  to  a  "b
        c".
 
 
@@ -2530,11 +2567,11 @@ ARRAYS AND SEQUENCES
           raises RuntimeException
 
 
-       The nth-tl function skips i elements of the sequence  and  returns  the
+       The  nth-tl  function  skips i elements of the sequence and returns the
        rest. An exception is raised if the sequence is not at least i elements
        long.
 
-       For example, the expression $(nth-tl 1, a "b c" d) evaluates to  "b  c"
+       For  example,  the expression $(nth-tl 1, a "b c" d) evaluates to "b c"
        d.
 
 
@@ -2546,7 +2583,7 @@ ARRAYS AND SEQUENCES
           raises RuntimeException
 
 
-       The  sub  function returns a subrange of the sequence.  Counting starts
+       The sub function returns a subrange of the sequence.   Counting  starts
        at 0. An exception is raised if the specified range is not in bounds.
 
        For example, the expression $(sub 1, 2, a "b c" d e) evaluates to "b c"
@@ -2557,7 +2594,7 @@ ARRAYS AND SEQUENCES
               sequence : Sequence
 
 
-       The  rev  function returns the elements of a sequence in reverse order.
+       The rev function returns the elements of a sequence in  reverse  order.
        For example, the expression $(rev a "b c" d) evaluates to d "b c" a.
 
    STRING
@@ -2565,8 +2602,8 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The string function flattens a sequence into a single string.  This  is
-       similar  to  the  concat  function,  but  the elements are separated by
+       The  string function flattens a sequence into a single string.  This is
+       similar to the concat function,  but  the  elements  are  separated  by
        whitespace. The result is treated as a unit; whitespace is significant.
 
    QUOTE
@@ -2574,10 +2611,10 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  quote  function  flattens a sequence into a single string and adds
+       The quote function flattens a sequence into a single  string  and  adds
        quotes around the string. Inner quotation symbols are escaped.
 
-       For example, the expression $(quote a "b c" d) evaluates to "a \"b  c\"
+       For  example, the expression $(quote a "b c" d) evaluates to "a \"b c\"
        d", and $(quote abc) evaluates to "abc".
 
    QUOTE-ARGV
@@ -2585,8 +2622,8 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  quote-argv  function flattens a sequence into a single string, and
-       adds quotes around the string. The quotation is formed so that  a  com-
+       The quote-argv function flattens a sequence into a single  string,  and
+       adds  quotes  around the string. The quotation is formed so that a com-
        mand-line parse can separate the string back into its components.
 
    HTML-STRING
@@ -2594,9 +2631,9 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  html-string function flattens a sequence into a single string, and
-       escaped special HTML characters.  This is similar to the  concat  func-
-       tion,  but  the  elements  are  separated  by whitespace. The result is
+       The html-string function flattens a sequence into a single string,  and
+       escaped  special  HTML characters.  This is similar to the concat func-
+       tion, but the elements are  separated  by  whitespace.  The  result  is
        treated as a unit; whitespace is significant.
 
    ADDSUFFIX
@@ -2605,8 +2642,8 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The addsuffix function adds a suffix to  each  component  of  sequence.
-       The  number  of elements in the array is exactly the same as the number
+       The  addsuffix  function  adds  a suffix to each component of sequence.
+       The number of elements in the array is exactly the same as  the  number
        of elements in the sequence.
 
        For example, $(addsuffix .c, a b "c d") evaluates to a.c b.c "c d".c.
@@ -2619,10 +2656,10 @@ ARRAYS AND SEQUENCES
 
        The mapsuffix function adds a suffix to each component of sequence.  It
        is similar to addsuffix, but uses array concatenation instead of string
-       concatenation. The number of elements in the array is twice the  number
+       concatenation.  The number of elements in the array is twice the number
        of elements in the sequence.
 
-       For  example,  $(mapsuffix  .c, a b "c d") evaluates to a .c b .c "c d"
+       For example, $(mapsuffix .c, a b "c d") evaluates to a .c b  .c  "c  d"
        .c.
 
    ADDSUFFIXES
@@ -2631,11 +2668,11 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The addsuffixes function adds all suffixes in  its  first  argument  to
-       each  component of a sequence. If suffixes has n elements, and sequence
+       The  addsuffixes  function  adds  all suffixes in its first argument to
+       each component of a sequence. If suffixes has n elements, and  sequence
        has m elements, the the result has n * m elements.
 
-       For example, the $(addsuffixes .c .o, a b c) expressions  evaluates  to
+       For  example,  the $(addsuffixes .c .o, a b c) expressions evaluates to
        a.c a.o b.c b.o c.o c.a.
 
    REMOVEPREFIX
@@ -2644,7 +2681,7 @@ ARRAYS AND SEQUENCES
              sequence : Array
 
 
-       The  removeprefix  function  removes  a prefix from each component of a
+       The removeprefix function removes a prefix from  each  component  of  a
        sequence.
 
    REMOVESUFFIX
@@ -2664,11 +2701,11 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  replacesuffixes  function modifies the suffix of each component in
-       sequence. The old-suffixes and new-suffixes sequences should  have  the
+       The replacesuffixes function modifies the suffix of each  component  in
+       sequence.  The  old-suffixes and new-suffixes sequences should have the
        same length.
 
-       For  example,  $(replacesuffixes, .h .c, .o .o, a.c b.h c.z) expands to
+       For example, $(replacesuffixes, .h .c, .o .o, a.c b.h c.z)  expands  to
        a.o b.o c.z.
 
    ADDPREFIX
@@ -2677,11 +2714,11 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The addprefix function adds a prefix to each component of  a  sequence.
-       The  number  of  element in the result array is exactly the same as the
+       The  addprefix  function adds a prefix to each component of a sequence.
+       The number of element in the result array is exactly the  same  as  the
        number of elements in the argument sequence.
 
-       For example, $(addprefix foo/, a b "c  d")  evaluates  to  foo/a  foo/b
+       For  example,  $(addprefix  foo/,  a  b "c d") evaluates to foo/a foo/b
        foo/"c d".
 
    MAPPREFIX
@@ -2690,12 +2727,12 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  mapprefix  function adds a prefix to each component of a sequence.
-       It is similar to addprefix, but array concatenation is used instead  of
-       string  concatenation. The result array contains twice as many elements
+       The mapprefix function adds a prefix to each component of  a  sequence.
+       It  is similar to addprefix, but array concatenation is used instead of
+       string concatenation. The result array contains twice as many  elements
        as the argument sequence.
 
-       For example, $(mapprefix foo, a b "c d") expands to foo a foo b foo  "c
+       For  example, $(mapprefix foo, a b "c d") expands to foo a foo b foo "c
        d".
 
    ADD-WRAPPER
@@ -2705,10 +2742,10 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  add-wrapper functions adds both a prefix and a suffix to each com-
-       ponent of a sequence.  For example, the expression $(add-wrapper  dir/,
-       .c,  a  b)  evaluates to dir/a.c dir/b.c. String concatenation is used.
-       The array result has the  same  number  of  elements  as  the  argument
+       The add-wrapper functions adds both a prefix and a suffix to each  com-
+       ponent  of a sequence.  For example, the expression $(add-wrapper dir/,
+       .c, a b) evaluates to dir/a.c dir/b.c. String  concatenation  is  used.
+       The  array  result  has  the  same  number  of elements as the argument
        sequence.
 
    SET
@@ -2716,7 +2753,7 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  set  function sorts a set of string components, eliminating dupli-
+       The set function sorts a set of string components,  eliminating  dupli-
        cates.
 
        For example, $(set z y z "m n" w a) expands to "m n" a w y z.
@@ -2738,9 +2775,9 @@ ARRAYS AND SEQUENCES
              sequence2 : Sequence
 
 
-       The  intersection  function takes two arguments, treats them as sets of
-       strings, and computes their intersection. The order of  the  result  is
-       undefined,  and it may contain duplicates. Use the set function to sort
+       The intersection function takes two arguments, treats them as  sets  of
+       strings,  and  computes  their intersection. The order of the result is
+       undefined, and it may contain duplicates. Use the set function to  sort
        the result and eliminate duplicates in the result if desired.
 
        For example, the expression $(intersection c a b a, b a) evaluates to a
@@ -2752,11 +2789,11 @@ ARRAYS AND SEQUENCES
              sequence2 : Sequence
 
 
-       The  intersects function tests whether two sets have a non-empty inter-
-       section.  This is slightly more efficient than computing the  intersec-
+       The intersects function tests whether two sets have a non-empty  inter-
+       section.   This is slightly more efficient than computing the intersec-
        tion and testing whether it is empty.
 
-       For  example,  the  expression  $(intersects a b c, d c e) evaluates to
+       For example, the expression $(intersects a b c, d  c  e)  evaluates  to
        true, and $(intersects a b c a, d e f) evaluates to false.
 
    SET-DIFF
@@ -2765,13 +2802,13 @@ ARRAYS AND SEQUENCES
              sequence2 : Sequence
 
 
-       The set-diff function takes two  arguments,  treats  them  as  sets  of
-       strings,  and  computes their difference (all the elements of the first
+       The  set-diff  function  takes  two  arguments,  treats them as sets of
+       strings, and computes their difference (all the elements of  the  first
        set that are not present in the second one). The order of the result is
-       undefined  and  it may contain duplicates. Use the set function to sort
+       undefined and it may contain duplicates. Use the set function  to  sort
        the result and eliminate duplicates in the result if desired.
 
-       For example, the expression $(set-diff c a b a e, b a) evaluates  to  c
+       For  example,  the expression $(set-diff c a b a e, b a) evaluates to c
        e.
 
    FILTER
@@ -2780,11 +2817,11 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The  filter function picks elements from a sequence.  The patterns is a
-       non-empty sequence of patterns, each may contain one occurrence of  the
+       The filter function picks elements from a sequence.  The patterns is  a
+       non-empty  sequence of patterns, each may contain one occurrence of the
        wildcard % character.
 
-       For  example  $(filter %.h %.o, a.c x.o b.h y.o "hello world".c) evalu-
+       For example $(filter %.h %.o, a.c x.o b.h y.o "hello  world".c)  evalu-
        ates to x.o b.h y.o.
 
    FILTER-OUT
@@ -2797,7 +2834,7 @@ ARRAYS AND SEQUENCES
        is a non-empty sequence of patterns, each may contain one occurrence of
        the wildcard % character.
 
-       For example $(filter-out %.c %.h, a.c  x.o  b.h  y.o  "hello  world".c)
+       For  example  $(filter-out  %.c  %.h,  a.c x.o b.h y.o "hello world".c)
        evaluates to x.o y.o.
 
    CAPITALIZE
@@ -2806,7 +2843,7 @@ ARRAYS AND SEQUENCES
 
 
        The capitalize function capitalizes each word in a sequence.  For exam-
-       ple, $(capitalize through the looking Glass) evaluates to  Through  The
+       ple,  $(capitalize  through the looking Glass) evaluates to Through The
        Looking Glass.
 
    UNCAPITALIZE
@@ -2816,7 +2853,7 @@ ARRAYS AND SEQUENCES
 
        The uncapitalize function uncapitalizes each word in its argument.
 
-       For  example,  $(uncapitalize  through  the looking Glass) evaluates to
+       For example, $(uncapitalize through the  looking  Glass)  evaluates  to
        through the looking glass.
 
    UPPERCASE
@@ -2824,8 +2861,8 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The uppercase function converts each word in a sequence  to  uppercase.
-       For  example,  $(uppercase  through  the  looking  Glass)  evaluates to
+       The  uppercase  function converts each word in a sequence to uppercase.
+       For example,  $(uppercase  through  the  looking  Glass)  evaluates  to
        THROUGH THE LOOKING GLASS.
 
    LOWERCASE
@@ -2833,9 +2870,9 @@ ARRAYS AND SEQUENCES
              sequence : Sequence
 
 
-       The lowercase function reduces each word in its argument to  lowercase.
+       The  lowercase function reduces each word in its argument to lowercase.
 
-       For  example,  $(lowercase  through  tHe  looking  Glass)  evaluates to
+       For example,  $(lowercase  through  tHe  looking  Glass)  evaluates  to
        through the looking glass.
 
    SYSTEM
@@ -2859,30 +2896,30 @@ ARRAYS AND SEQUENCES
              command : Sequence
 
 
-       The shell function evaluates a command using  the  command  shell,  and
-       returns  the  whitespace-separated  words of the standard output as the
+       The  shell  function  evaluates  a command using the command shell, and
+       returns the whitespace-separated words of the standard  output  as  the
        result.
 
-       The shella function acts similarly, but it returns the lines  as  sepa-
+       The  shella  function acts similarly, but it returns the lines as sepa-
        rate items in the array.
 
-       The  shell-code  function  returns  the  exit  code.  The output is not
+       The shell-code function returns  the  exit  code.  The  output  is  not
        diverted.
 
-       For example, if the current directory  contains  the  files  OMakeroot,
+       For  example,  if  the  current directory contains the files OMakeroot,
        OMakefile, and hello.c, then $(shell ls) evaluates to hello.c OMakefile
        OMakeroot (on a Unix system).
 
 ARITHMETIC
    INT
-       The int function can be used to create integers.   It  returns  an  Int
+       The  int  function  can  be used to create integers.  It returns an Int
        object.
 
        $(int 17).
 
 
    FLOAT
-       The  float  function  can be used to create floating-point numbers.  It
+       The float function can be used to create  floating-point  numbers.   It
        returns a Float object.
 
        $(float 3.1415926).
@@ -2980,7 +3017,7 @@ FIRST-CLASS FUNCTIONS
 
 
    APPLYA
-       The  applya  operator  is used to apply a function to an array of argu-
+       The applya operator is used to apply a function to an  array  of  argu-
        ments.
 
        $(applya <fun>, <args>)
@@ -3005,7 +3042,7 @@ ITERATION AND MAPPING
               <body>
 
 
-       For example, the following program defines the variable X as  an  array
+       For  example,  the following program defines the variable X as an array
        a.c b.c c.c.
 
            X =
@@ -3018,7 +3055,7 @@ ITERATION AND MAPPING
 
        There is also an abbreviated syntax.
 
-       The  export form can also be used in a foreach body. The final value of
+       The export form can also be used in a foreach body. The final value  of
        X is a.c b.c c.c.
 
            X =
@@ -3035,15 +3072,15 @@ FILE OPERATIONS
              sequence : Sequence
 
 
-       The file and dir functions define  location-independent  references  to
-       files  and  directories.   In omake, the commands to build a target are
+       The  file  and  dir functions define location-independent references to
+       files and directories.  In omake, the commands to build  a  target  are
        executed in the target's directory. Since there may be many directories
-       in  an  omake  project,  the build system provides a way to construct a
-       reference to a file in one directory, and use  it  in  another  without
-       explicitly  modifying  the  file name. The functions have the following
+       in an omake project, the build system provides a  way  to  construct  a
+       reference  to  a  file  in one directory, and use it in another without
+       explicitly modifying the file name. The functions  have  the  following
        syntax, where the name should refer to a file or directory.
 
-       For example, we can construct a reference to a file foo in the  current
+       For  example, we can construct a reference to a file foo in the current
        directory.
 
           FOO = $(file foo)
@@ -3053,7 +3090,7 @@ FILE OPERATIONS
        If the FOO variable is expanded in the bar subdirectory, it will expand
        to ../foo.
 
-       These commands are often used in the  top-level  OMakefile  to  provide
+       These  commands  are  often  used in the top-level OMakefile to provide
        location-independent references to top-level directories, so that build
        commands may refer to these directories as if they were absolute.
 
@@ -3063,7 +3100,7 @@ FILE OPERATIONS
 
 
        Once these variables are defined, they can be used in build commands in
-       subdirectories  as follows, where $(BIN) will expand to the location of
+       subdirectories as follows, where $(BIN) will expand to the location  of
        the bin directory relative to the command being executed.
 
           install: hello
@@ -3077,7 +3114,7 @@ FILE OPERATIONS
                suffix : String
 
 
-       The tmpfile function returns the name of a fresh temporary file in  the
+       The  tmpfile function returns the name of a fresh temporary file in the
        temporary directory.
 
    IN
@@ -3086,10 +3123,10 @@ FILE OPERATIONS
              exp : expression
 
 
-       The  in  function  is closely related to the dir and file functions. It
-       takes a directory and an expression, and evaluates  the  expression  in
-       that  effective  directory.   For  example, one common way to install a
-       file is to define a symbol link, where the value of the link  is  rela-
+       The in function is closely related to the dir and  file  functions.  It
+       takes  a  directory  and an expression, and evaluates the expression in
+       that effective directory.  For example, one common  way  to  install  a
+       file  is  to define a symbol link, where the value of the link is rela-
        tive to the directory where the link is created.
 
        The following commands create links in the $(LIB) directory.
@@ -3099,7 +3136,7 @@ FILE OPERATIONS
               ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
 
 
-       Note  that the in function only affects the expansion of Node (File and
+       Note that the in function only affects the expansion of Node (File  and
        Dir) values.
 
    WHICH
@@ -3107,15 +3144,15 @@ FILE OPERATIONS
              files : String Sequence
 
 
-       The which function searches for  executables  in  the  current  command
+       The  which  function  searches  for  executables in the current command
        search path, and returns file values for each of the commands. It is an
        error if a command is not found.
 
    WHERE
-       The where function is similar to which, except it returns the  list  of
-       all  the  locations  of the given executable (in the order in which the
-       corresponding directories appear in $PATH). In case a command  is  han-
-       dled  internally  by  the  Shell object, the first string in the output
+       The  where  function is similar to which, except it returns the list of
+       all the locations of the given executable (in the order  in  which  the
+       corresponding  directories  appear in $PATH). In case a command is han-
+       dled internally by the Shell object, the first  string  in  the  output
        will describe the command as a built-in function.
 
            % where echo
@@ -3128,7 +3165,7 @@ FILE OPERATIONS
              files : String Sequence
 
 
-       The exists-in-path function tests whether all executables  are  present
+       The  exists-in-path  function tests whether all executables are present
        in the current search path.
 
    BASENAME
@@ -3136,10 +3173,10 @@ FILE OPERATIONS
              files : String Sequence
 
 
-       The  basename function returns the base names for a list of files.  The
+       The basename function returns the base names for a list of files.   The
        basename is the filename with any leading directory components removed.
 
-       For   example,  the  expression  $(basename  dir1/dir2/a.out  /etc/mod-
+       For  example,  the  expression  $(basename  dir1/dir2/a.out   /etc/mod-
        ules.conf /foo.ml) evaluates to a.out modules.conf foo.ml.
 
    ROOTNAME
@@ -3147,7 +3184,7 @@ FILE OPERATIONS
              files : String Sequence
 
 
-       The rootname function returns the root name for a list of  files.   The
+       The  rootname  function returns the root name for a list of files.  The
        rootname is the filename with the final suffix removed.
 
        For  example,  the  expression  $(rootname  dir1/dir2/a.out  /etc/a.b.c
@@ -3158,9 +3195,9 @@ FILE OPERATIONS
              files : File Sequence
 
 
-       The dirof function returns the directory for each of the listed  files.
+       The  dirof function returns the directory for each of the listed files.
 
-       For  example,  the  expression $(dirof dir/dir2/a.out /etc/modules.conf
+       For example, the expression  $(dirof  dir/dir2/a.out  /etc/modules.conf
        /foo.ml) evaluates to the directories dir1/dir2 /etc /.
 
    FULLNAME
@@ -3176,7 +3213,7 @@ FILE OPERATIONS
              files : File Sequence
 
 
-       The  absname  function  returns  the  absolute pathname for each of the
+       The absname function returns the absolute  pathname  for  each  of  the
        files or directories.
 
    HOMENAME
@@ -3185,8 +3222,8 @@ FILE OPERATIONS
 
 
        The homename function returns the name of a file in tilde form, if pos-
-       sible.  The unexpanded forms are computed lazily: the homename function
-       will  usually  evaluate  to  an  absolute  pathname  until  the   first
+       sible. The unexpanded forms are computed lazily: the homename  function
+       will   usually  evaluate  to  an  absolute  pathname  until  the  first
        tilde-expansion for the same directory.
 
    SUFFIX
@@ -3194,10 +3231,10 @@ FILE OPERATIONS
              files : StringSequence
 
 
-       The  suffix  function  returns  the suffixes for a list of files.  If a
+       The suffix function returns the suffixes for a list  of  files.   If  a
        file has no suffix, the function returns the empty string.
 
-       For example, the expression $(suffix  dir1/dir2/a.out  /etc/a  /foo.ml)
+       For  example,  the  expression $(suffix dir1/dir2/a.out /etc/a /foo.ml)
        evaluates to .out .ml.
 
    FILE-EXISTS, TARGET-EXISTS, TARGET-IS-PROPER
@@ -3207,9 +3244,9 @@ FILE OPERATIONS
               files : File Sequence
 
 
-       The  file-exists  function  checks whether the files listed exist.  The
-       target-exists function is similar to the  file-exists  function.   How-
-       ever,  it  returns true if the file exists or if it can be built by the
+       The file-exists function checks whether the files  listed  exist.   The
+       target-exists  function  is  similar to the file-exists function.  How-
+       ever, it returns true if the file exists or if it can be built  by  the
        current project. The target-is-proper returns true only if the file can
        be generated in the current project.
 
@@ -3218,8 +3255,8 @@ FILE OPERATIONS
               files : File Sequence
 
 
-       OMake  uses a stat-cache. The stat-reset function reset the stat infor-
-       mation for the given files, forcing the stat information to  be  recom-
+       OMake uses a stat-cache. The stat-reset function reset the stat  infor-
+       mation  for  the given files, forcing the stat information to be recom-
        puted the next time it is requested.
 
    FILTER-EXISTS, FILTER-TARGETS, FILTER-PROPER-TARGETS
@@ -3229,7 +3266,7 @@ FILE OPERATIONS
              files : File Sequence
 
 
-       The  filter-exists, filter-targets, and filter-proper-targets functions
+       The filter-exists, filter-targets, and filter-proper-targets  functions
        remove files from a list of files.
 
        *      filter-exists: the result is the list of files that exist.
@@ -3237,15 +3274,15 @@ FILE OPERATIONS
        *      filter-targets: the result is the list of files either exist, or
               can be built by the current project.
 
-       *      filter-proper-targets:  the result is the list of files that can
+       *      filter-proper-targets: the result is the list of files that  can
               be built in the current project.
 
-       One way to create a simple ``clean'' rule that removes generated  files
+       One  way to create a simple ``clean'' rule that removes generated files
        from the project is by removing all files that can be built in the cur-
-       rent project. CAUTION: you should be careful before you  do  this.  The
-       rule  removes any file that can potentially be reconstructed.  There is
+       rent  project.  CAUTION:  you should be careful before you do this. The
+       rule removes any file that can potentially be reconstructed.  There  is
        no check to make sure that the commands to rebuild the file would actu-
-       ally  succeed. Also, note that no file outside the current project will
+       ally succeed. Also, note that no file outside the current project  will
        be deleted.
 
            .PHONY: clean
@@ -3254,10 +3291,10 @@ FILE OPERATIONS
                rm $(filter-proper-targets $(ls R, .))
 
 
-       See the dependencies-proper function to see  an  alternate  method  for
+       See  the  dependencies-proper  function  to see an alternate method for
        removing intermediate files.
 
-       If  you  use CVS, you may wish to use the cvs_realclean program that is
+       If you use CVS, you may wish to use the cvs_realclean program  that  is
        distributed with omake.
 
 
@@ -3267,7 +3304,7 @@ FILE OPERATIONS
              files : File Sequence
 
 
-       The file-sort function sorts a list of filenames by  build  order  aug-
+       The  file-sort  function  sorts a list of filenames by build order aug-
        mented by a set of sort rules. Sort rules are declared using the .ORDER
        target.  The .BUILDORDER defines the default order.
 
@@ -3284,14 +3321,14 @@ FILE OPERATIONS
 
 
        In the case, the sorter produces the result d b c a.  That is, a target
-       is  sorted  after  its  dependencies.  The sorter is frequently used to
-       sort files that are to be linked by their dependencies  (for  languages
+       is sorted after its dependencies.  The sorter  is  frequently  used  to
+       sort  files  that are to be linked by their dependencies (for languages
        where this matters).
 
        There are three important restrictions to the sorter:
 
-       *      The  sorter can be used only within a rule body.  The reason for
-              this is that all dependencies must be known before the  sort  is
+       *      The sorter can be used only within a rule body.  The reason  for
+              this  is  that all dependencies must be known before the sort is
               performed.
 
        *      The sorter can only sort files that are buildable in the current
@@ -3301,8 +3338,8 @@ FILE OPERATIONS
 
 
    SORT RULE
-       It is possible to further constrain the sorter through the use of  sort
-       rules.  A sort rule is declared in two steps. The target must be listed
+       It  is possible to further constrain the sorter through the use of sort
+       rules. A sort rule is declared in two steps. The target must be  listed
        as an .ORDER target; and then a set of sort rules must be given. A sort
        rule defines a pattern constraint.
 
@@ -3315,8 +3352,8 @@ FILE OPERATIONS
              echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
 
 
-       In  this example, the .MYORDER sort rule specifies that any file with a
-       suffix .foo should be placed after any file with suffix .bar,  and  any
+       In this example, the .MYORDER sort rule specifies that any file with  a
+       suffix  .foo  should be placed after any file with suffix .bar, and any
        file with suffix .bar should be placed after a file with suffix .baz.
 
        In this example, the result of the sort is d.baz c.baz b.bar a.foo.
@@ -3327,8 +3364,8 @@ FILE OPERATIONS
           raises RuntimeException
 
 
-       The  file-check-sort function checks whether a list of files is in sort
-       order. If so, the list is returned unchanged.   If  not,  the  function
+       The file-check-sort function checks whether a list of files is in  sort
+       order.  If  so,  the  list is returned unchanged.  If not, the function
        raises an exception.
 
        $(file-check-sort <order>, <files>)
@@ -3366,7 +3403,7 @@ FILE OPERATIONS
 
        P      Include only proper subdirectories.
 
-       In addition, the following variables may be  defined  that  affect  the
+       In  addition,  the  following  variables may be defined that affect the
        behavior of glob.
 
 
@@ -3374,10 +3411,10 @@ FILE OPERATIONS
               A string containing default options.
 
        GLOB_IGNORE
-              A  list of shell patterns for filenames that glob should ignore.
+              A list of shell patterns for filenames that glob should  ignore.
 
        GLOB_ALLOW
-              A list of shell patterns. If a file does not match a pattern  in
+              A  list of shell patterns. If a file does not match a pattern in
               GLOB_ALLOW, it is ignored.
 
        The returned files are sorted by name.
@@ -3391,16 +3428,16 @@ FILE OPERATIONS
 
        The ls function returns the filenames in a directory.
 
-       The  . and .. entries are always ignored.  The patterns are shell-style
+       The . and .. entries are always ignored.  The patterns are  shell-style
        patterns, and are glob-expanded.
 
-       The options include all of the options to the glob function,  plus  the
+       The  options  include all of the options to the glob function, plus the
        following.
 
 
        R      Perform a recursive listing.
 
-       The  GLOB_ALLOW and GLOB_IGNORE variables can be defined to control the
+       The GLOB_ALLOW and GLOB_IGNORE variables can be defined to control  the
        globbing behavior.  The returned files are sorted by name.
 
    SUBDIRS
@@ -3434,7 +3471,7 @@ FILE OPERATIONS
           raises RuntimeException
 
 
-       The  mkdir  function creates a directory, or a set of directories.  The
+       The mkdir function creates a directory, or a set of  directories.   The
        following options are supported.
 
        -m mode
@@ -3446,7 +3483,7 @@ FILE OPERATIONS
 
 
    STAT
-       The Stat object represents the result returned by the  stat  and  lstat
+       The  Stat  object  represents the result returned by the stat and lstat
        functions. It contains the following fields.
 
        A stat object has the following fields. Not all of the fields will have
@@ -3457,9 +3494,9 @@ FILE OPERATIONS
 
        ino    : the inode number.
 
-       kind   : the kind of the file,  one  of  the  following:  REG  (regular
-              file),  DIR  (directory),  CHR  (character  device),  BLK (block
-              device), LNK (symbolic link), FIFO (named pipe), SOCK  (socket).
+       kind   :  the  kind  of  the  file,  one of the following: REG (regular
+              file), DIR  (directory),  CHR  (character  device),  BLK  (block
+              device),  LNK (symbolic link), FIFO (named pipe), SOCK (socket).
 
        perm   : access rights, represented as an integer.
 
@@ -3488,8 +3525,8 @@ FILE OPERATIONS
            raises RuntimeException
 
 
-       The  stat functions return file information.  If the file is a symbolic
-       link, the stat function refers to the  destination  of  the  link;  the
+       The stat functions return file information.  If the file is a  symbolic
+       link,  the  stat  function  refers  to the destination of the link; the
        lstat function refers to the link itself.
 
    UNLINK
@@ -3502,7 +3539,7 @@ FILE OPERATIONS
           raises RuntimeException
 
 
-       The  unlink and rm functions remove a file.  The rmdir function removes
+       The unlink and rm functions remove a file.  The rmdir function  removes
        a directory.
 
        The following options are supported for rm and rmdir.
@@ -3531,12 +3568,12 @@ FILE OPERATIONS
            raises RuntimeException
 
 
-       The rename function changes the name of a file or directory  named  old
+       The  rename  function changes the name of a file or directory named old
        to new.
 
-       The  mv  function is similar, but if new is a directory, and it exists,
-       then the files specified by the sequence are moved into the  directory.
-       If  not,  the behavior of mv is identical to rename. The cp function is
+       The mv function is similar, but if new is a directory, and  it  exists,
+       then  the files specified by the sequence are moved into the directory.
+       If not, the behavior of mv is identical to rename. The cp  function  is
        similar, but the original file is not removed.
 
        The mv and cp functions take the following options.
@@ -3559,7 +3596,7 @@ FILE OPERATIONS
           raises RuntimeException
 
 
-       The link function creates a hard link named dst to the file  or  direc-
+       The  link  function creates a hard link named dst to the file or direc-
        tory src.
 
        Hard links are not supported in Win32.
@@ -3576,8 +3613,8 @@ FILE OPERATIONS
        The symlink function creates a symbolic link dst that points to the src
        file.
 
-       The link name is computed relative to the target directory.  For  exam-
-       ple,  the  expression  $(symlink  a/b, c/d) creates a link named c/d ->
+       The  link  name is computed relative to the target directory. For exam-
+       ple, the expression $(symlink a/b, c/d) creates a  link  named  c/d  ->
        ../a/b.
 
        Symbolic links are not supported in Win32.
@@ -3599,7 +3636,7 @@ FILE OPERATIONS
           raises RuntimeException
 
 
-       The chmod function changes the permissions of the targets.   The  chmod
+       The  chmod  function changes the permissions of the targets.  The chmod
        function does nothing on Win32 platforms.
 
        Options:
@@ -3624,7 +3661,7 @@ FILE OPERATIONS
           raises RuntimeException
 
 
-       The  chown  function changes the user and group id of the file.  If the
+       The chown function changes the user and group id of the file.   If  the
        gid is not specified, it is not changed. If either id is -1, that id is
        not changed.
 
@@ -3646,9 +3683,9 @@ FILE OPERATIONS
                file : File Array
 
 
-       The digest and digest-optional functions compute MD5 digests of  files.
-       The  digest  function  raises an exception if a file does no exist. The
-       digest-optional returns false if a file does no exist. MD5 digests  are
+       The  digest and digest-optional functions compute MD5 digests of files.
+       The digest function raises an exception if a file does  no  exist.  The
+       digest-optional  returns false if a file does no exist. MD5 digests are
        cached.
 
    FIND-IN-PATH
@@ -3661,9 +3698,9 @@ FILE OPERATIONS
 
 
        The find-in-path function searches for the files in a search path. Only
-       the tail of the filename  is  significant.  The  find-in-path  function
-       raises    an   exception   if   the   file   can't   be   found.    The
-       find-in-path-optional function silently removes  files  that  can't  be
+       the  tail  of  the  filename  is significant. The find-in-path function
+       raises   an   exception   if   the   file   can't   be   found.     The
+       find-in-path-optional  function  silently  removes  files that can't be
        found.
 
    DIGEST-PATH
@@ -3676,9 +3713,9 @@ FILE OPERATIONS
 
 
        The digest-in-path function searches for the files in a search path and
-       returns the file and digest for each file. Only the tail of  the  file-
+       returns  the  file and digest for each file. Only the tail of the file-
        name is significant. The digest-in-path function raises an exception if
-       the file can't be found. The digest-in-path-optional function  silently
+       the  file can't be found. The digest-in-path-optional function silently
        removes elements that can't be found.
 
    REHASH
@@ -3695,13 +3732,13 @@ FILE OPERATIONS
               src, dst : Dir
 
 
-       ``Mount''  the  src  directory  on the dst directory. This is a virtual
-       mount, changing the behavior of the $(file  ...)  function.   When  the
-       $(file  str)  function is used, the resulting file is taken relative to
-       the src directory if the file exists. Otherwise, the file  is  relative
+       ``Mount'' the src directory on the dst directory.  This  is  a  virtual
+       mount,  changing  the  behavior  of the $(file ...) function.  When the
+       $(file str) function is used, the resulting file is taken  relative  to
+       the  src  directory if the file exists. Otherwise, the file is relative
        to the current directory.
 
-       The  main  purpose of the vmount function is to support multiple builds
+       The main purpose of the vmount function is to support  multiple  builds
        with separate configurations or architectures.
 
        The options are as follows.
@@ -3717,8 +3754,8 @@ FILE OPERATIONS
               dirs : Dir Array
 
 
-       Add the directories to the set of directories that omake  considers  to
-       be  part of the project. This is mainly used to avoid omake complaining
+       Add  the  directories to the set of directories that omake considers to
+       be part of the project. This is mainly used to avoid omake  complaining
        that the current directory is not part of the project.
 
    REMOVE-PROJECT-DIRECTORIES
@@ -3726,9 +3763,9 @@ FILE OPERATIONS
               dirs : Dir Array
 
 
-       Removed the directories from the set of directories that omake  consid-
+       Removed  the directories from the set of directories that omake consid-
        ers to be part of the project. This is mainly used to cancel a .SUBDIRS
-       from including a directory if it is determined that the directory  does
+       from  including a directory if it is determined that the directory does
        not need to be compiled.
 
    TEST
@@ -3772,7 +3809,7 @@ FILE OPERATIONS
        *      int1 -le int2 : int1 is not larger than int2
 
 
-       *      file1  -ef file2 : On Unix, file1 and file2 have the same device
+       *      file1 -ef file2 : On Unix, file1 and file2 have the same  device
               and inode number.  On Win32, file1 and file2 have the same name.
 
        *      file1 -nt file2 : file1 is newer than file2
@@ -3816,14 +3853,14 @@ FILE OPERATIONS
 
        *      -x file : The file is executable
 
-       A  string  is  any  sequence  of  characters;  leading - characters are
+       A string is any  sequence  of  characters;  leading  -  characters  are
        allowed.
 
        An int is a string that can be interpreted as an integer. Unlike tradi-
        tional versions of the test program, the leading characters may specify
-       an arity. The prefix 0b means the numbers is in binary; the  prefix  0o
-       means  the  number  is  in  octal; the prefix 0x means the number is in
-       hexadecimal.  An int can also be specified as -l string,  which  evalu-
+       an  arity.  The prefix 0b means the numbers is in binary; the prefix 0o
+       means the number is in octal; the prefix 0x  means  the  number  is  in
+       hexadecimal.   An  int can also be specified as -l string, which evalu-
        ates to the length of the string.
 
        A file is a string that represents the name of a file.
@@ -3845,11 +3882,11 @@ FILE OPERATIONS
 
        2.     The {} string expands to the current file being examined.
 
-       The syntax of the expression is the same as test,  with  the  following
+       The  syntax  of  the expression is the same as test, with the following
        additions.
 
 
-       *      -name  string : The current file matches the regular expression.
+       *      -name string : The current file matches the regular  expression.
 
 
 IO FUNCTIONS
@@ -3887,13 +3924,13 @@ IO FUNCTIONS
              mode : String
 
 
-       The file is the name of the file to be opened.  The mode is a  combina-
+       The  file is the name of the file to be opened.  The mode is a combina-
        tion of the following characters.
 
-       r      Open  the  file for reading; it is an error if the file does not
+       r      Open the file for reading; it is an error if the file  does  not
               exist.
 
-       w      Open the file for writing; the file is created if  it  does  not
+       w      Open  the  file  for writing; the file is created if it does not
               exist.
 
        a      Open the file in append mode; the file is created if it does not
@@ -3909,7 +3946,7 @@ IO FUNCTIONS
 
        x      Fail if the file already exists.
 
-       Binary mode is not significant on Unix systems, where text  and  binary
+       Binary  mode  is not significant on Unix systems, where text and binary
        modes are equivalent.
 
    CLOSE
@@ -3926,7 +3963,7 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The read function reads up to amount bytes from an input  channel,  and
+       The  read  function reads up to amount bytes from an input channel, and
        returns the data that was read. If an end-of-file condition is reached,
        the function raises a RuntimeException exception.
 
@@ -3942,17 +3979,17 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       In the 4-argument form, the write function writes bytes to  the  output
-       channel  channel  from  the  buffer, starting at position offset. Up to
+       In  the  4-argument form, the write function writes bytes to the output
+       channel channel from the buffer, starting at  position  offset.  Up  to
        amount bytes are written. The function returns the number of bytes that
        were written.
 
        The 3-argument form is similar, but the offset is 0.
 
-       In  the  2-argument form, the offset is 0, and the amount if the length
+       In the 2-argument form, the offset is 0, and the amount if  the  length
        of the buffer.
 
-       If an end-of-file condition is reached, the function raises a  Runtime-
+       If  an end-of-file condition is reached, the function raises a Runtime-
        Exception exception.
 
    LSEEK
@@ -3963,7 +4000,7 @@ IO FUNCTIONS
            raises RuntimeException
 
 
-       The  lseek  function  repositions  the  offset  of  the channel channel
+       The lseek function  repositions  the  offset  of  the  channel  channel
        according to the whence directive, as follows:
 
 
@@ -3983,7 +4020,7 @@ IO FUNCTIONS
              channel : Channel
 
 
-       The rewind function set the current file position to the  beginning  of
+       The  rewind  function set the current file position to the beginning of
        the file.
 
    TELL
@@ -4018,7 +4055,7 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The  dup2  function  causes channel2 to refer to the same file as chan-
+       The dup2 function causes channel2 to refer to the same  file  as  chan-
        nel1.
 
    SET-NONBLOCK
@@ -4027,8 +4064,8 @@ IO FUNCTIONS
              mode : String
 
 
-       The set-nonblock-mode function sets the nonblocking flag on  the  given
-       channel.  When IO is performed on the channel, and the operation cannot
+       The  set-nonblock-mode  function sets the nonblocking flag on the given
+       channel. When IO is performed on the channel, and the operation  cannot
        be completed immediately, the operations raises a RuntimeException.
 
    SET-CLOSE-ON-EXEC-MODE
@@ -4038,8 +4075,8 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The set-close-on-exec-mode function sets the  close-on-exec  flags  for
-       the  given  channels.  If the close-on-exec flag is set, the channel is
+       The  set-close-on-exec-mode  function  sets the close-on-exec flags for
+       the given channels. If the close-on-exec flag is set,  the  channel  is
        not inherited by child processes. Otherwise it is.
 
    PIPE
@@ -4068,13 +4105,13 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The select function polls for possible IO on a set  of  channels.   The
+       The  select  function  polls for possible IO on a set of channels.  The
        rfd are a sequence of channels for reading, wfd are a sequence of chan-
-       nels for writing, and efd are a sequence of channels to poll for  error
-       conditions.  The  timeout  specifies the maximum amount of time to wait
+       nels  for writing, and efd are a sequence of channels to poll for error
+       conditions. The timeout specifies the maximum amount of  time  to  wait
        for events.
 
-       On successful return, select returns a Select  object,  which  has  the
+       On  successful  return,  select  returns a Select object, which has the
        following fields:
 
        read   An array of channels available for reading.
@@ -4092,7 +4129,7 @@ IO FUNCTIONS
            raises RuntimeException
 
 
-       The  lockf  function  places  a  lock  on a region of the channel.  The
+       The lockf function places a lock on  a  region  of  the  channel.   The
        region starts at the current position and extends for len bytes.
 
        The possible values for command are the following.
@@ -4115,7 +4152,7 @@ IO FUNCTIONS
 
 
    INETADDR
-       The InetAddr object describes an Internet  address.   It  contains  the
+       The  InetAddr  object  describes  an Internet address.  It contains the
        following fields.
 
 
@@ -4136,7 +4173,7 @@ IO FUNCTIONS
        addrtype
               String: the preferred socket domain.
 
-       addrs  InetAddr  Array: an array of Internet addresses belonging to the
+       addrs  InetAddr Array: an array of Internet addresses belonging to  the
               host.
 
 
@@ -4146,12 +4183,12 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The gethostbyname function returns a  Host  object  for  the  specified
+       The  gethostbyname  function  returns  a  Host object for the specified
        host. The host may specify a domain name or an Internet address.
 
 
    PROTOCOL
-       The  Protocol object represents a protocol entry.  It has the following
+       The Protocol object represents a protocol entry.  It has the  following
        fields.
 
 
@@ -4173,7 +4210,7 @@ IO FUNCTIONS
        protocol. The name may be a protocol name, or a protocol number.
 
    SERVICE
-       The  Service object represents a network service.  It has the following
+       The Service object represents a network service.  It has the  following
        fields.
 
 
@@ -4193,7 +4230,7 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The getservbyname function gets the information for a network  service.
+       The  getservbyname function gets the information for a network service.
        The service may be specified as a service name or number.
 
    SOCKET
@@ -4233,7 +4270,7 @@ IO FUNCTIONS
        SOCK_SEQPACKET or seqpacket
               Sequenced packets socket
 
-       The  protocol is an Int or String that specifies a protocol in the pro-
+       The protocol is an Int or String that specifies a protocol in the  pro-
        tocols database.
 
    BIND
@@ -4249,10 +4286,10 @@ IO FUNCTIONS
 
        The bind function binds a socket to an address.
 
-       The 3-argument form specifies an Internet connection, the  host  speci-
+       The  3-argument  form specifies an Internet connection, the host speci-
        fies a host name or IP address, and the port is a port number.
 
-       The  2-argument  form is for Unix sockets. The file specifies the file-
+       The 2-argument form is for Unix sockets. The file specifies  the  file-
        name for the address.
 
    LISTEN
@@ -4262,7 +4299,7 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The listen function sets up the socket for  receiving  up  to  requests
+       The  listen  function  sets  up the socket for receiving up to requests
        number of pending connection requests.
 
    ACCEPT
@@ -4286,8 +4323,8 @@ IO FUNCTIONS
 
        The connect function connects a socket to a remote address.
 
-       The  3-argument  form specifies an Internet connection.  The addr argu-
-       ment is the Internet address of the remote host, specified as a  domain
+       The 3-argument form specifies an Internet connection.  The  addr  argu-
+       ment  is the Internet address of the remote host, specified as a domain
        name or IP address. The port argument is the port number.
 
        The 2-argument form is for Unix sockets. The name argument is the file-
@@ -4300,8 +4337,8 @@ IO FUNCTIONS
            raises RuntimeException
 
 
-       The getc function returns the next character of a file.  If  the  argu-
-       ment  is not specified, stdin is used as input.  If the end of file has
+       The  getc  function returns the next character of a file.  If the argu-
+       ment is not specified, stdin is used as input.  If the end of file  has
        been reached, the function returns false.
 
    GETS
@@ -4311,7 +4348,7 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The gets function returns the next line  from  a  file.   The  function
+       The  gets  function  returns  the  next line from a file.  The function
        returns the empty string if the end of file has been reached.  The line
        terminator is removed.
 
@@ -4322,14 +4359,14 @@ IO FUNCTIONS
           raises RuntimeException
 
 
-       The fgets function returns the next line from  a  file  that  has  been
+       The  fgets  function  returns  the  next line from a file that has been
        opened for reading with fopen. The function returns the empty string if
-       the end of file has been reached. The returned string  is  returned  as
+       the  end  of  file has been reached. The returned string is returned as
        literal data. The line terminator is not removed.
 
    PRINTING FUNCTIONS
-       Output  is  printed  with the print and println functions.  The println
-       function adds a terminating newline to the  value  being  printed,  the
+       Output is printed with the print and println  functions.   The  println
+       function  adds  a  terminating  newline to the value being printed, the
        print function does not.
 
            fprint(<file>, <string>)
@@ -4340,13 +4377,13 @@ IO FUNCTIONS
            eprintln(<string>)
 
 
-       The  fprint  functions  print to a file that has been previously opened
-       with fopen. The print functions print to the standard  output  channel,
+       The fprint functions print to a file that has  been  previously  opened
+       with  fopen.  The print functions print to the standard output channel,
        and the eprint functions print to the standard error channel.
 
    VALUE PRINTING FUNCTIONS
-       Values  can  be  printed  with  the printv and printvln functions.  The
-       printvln function  adds  a  terminating  newline  to  the  value  being
+       Values can be printed with the  printv  and  printvln  functions.   The
+       printvln  function  adds  a  terminating  newline  to  the  value being
        printed, the printv function does not.
 
            fprintv(<file>, <string>)
@@ -4357,14 +4394,14 @@ IO FUNCTIONS
            eprintvln(<string>)
 
 
-       The  fprintv  functions print to a file that has been previously opened
-       with fopen. The printv functions print to the standard output  channel,
+       The fprintv functions print to a file that has been  previously  opened
+       with  fopen. The printv functions print to the standard output channel,
        and the eprintv functions print to the standard error channel.
 
 HIGHER-LEVEL IO FUNCTIONS
    REGULAR EXPRESSIONS
-       Many  of  the  higher-level functions use regular expressions.  Regular
-       expressions are defined by strings  with  syntax  nearly  identical  to
+       Many of the higher-level functions use  regular  expressions.   Regular
+       expressions  are  defined  by  strings  with syntax nearly identical to
        awk(1).
 
        Strings may contain the following character constants.
@@ -4387,19 +4424,19 @@ HIGHER-LEVEL IO FUNCTIONS
        *      \v : the vertical tab character.
 
        *      \xhh... : the character represented by the string of hexadecimal
-              digits h. All valid hexadecimal digits  following  the  sequence
+              digits  h.  All  valid hexadecimal digits following the sequence
               are considered to be part of the sequence.
 
        *      \ddd : the character represented by 1, 2, or 3 octal digits.
 
-       Regular   expressions   are   defined   using  the  special  characters
+       Regular  expressions  are  defined   using   the   special   characters
        .\^$[(){}*?+.
 
 
-       *      c : matches the literal character c if c is not a special  char-
+       *      c  : matches the literal character c if c is not a special char-
               acter.
 
-       *      \c  :  matches  the  literal character c, even if c is a special
+       *      \c : matches the literal character c, even if  c  is  a  special
               character.
 
        *      . : matches any character, including newline.
@@ -4452,8 +4489,8 @@ HIGHER-LEVEL IO FUNCTIONS
 
        *      \': matches the empty string at the end of a file.
 
-       Character  classes  can  be  used  to   specify   character   sequences
-       abstractly.  Some  of  these  sequences  can  change  depending on your
+       Character   classes   can   be  used  to  specify  character  sequences
+       abstractly. Some of  these  sequences  can  change  depending  on  your
        LOCALE.
 
 
@@ -4473,7 +4510,7 @@ HIGHER-LEVEL IO FUNCTIONS
 
        *      [:graph:] Characters that are printable and visible.
 
-       *      [:print:] Characters that are printable, whether they are  visi-
+       *      [:print:]  Characters that are printable, whether they are visi-
               ble or not.
 
        *      [:punct:] Punctuation characters.
@@ -4488,7 +4525,7 @@ HIGHER-LEVEL IO FUNCTIONS
               files : File or InChannel Sequence
 
 
-       The  cat  function  concatenates  the  output  from  multiple files and
+       The cat function  concatenates  the  output  from  multiple  files  and
        returns it as a string.
 
    GREP
@@ -4504,7 +4541,7 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
        The grep function searches for occurrences of a regular expression pat-
-       tern  in  a  set of files, and prints lines that match.  This is like a
+       tern in a set of files, and prints lines that match.  This  is  like  a
        highly-simplified version of grep(1).
 
        The options are:
@@ -4515,7 +4552,7 @@ HIGHER-LEVEL IO FUNCTIONS
 
        The pattern is a regular expression.
 
-       If successful (grep found a match), the function returns true.   Other-
+       If  successful (grep found a match), the function returns true.  Other-
        wise, it returns false.
 
    SCAN
@@ -4529,25 +4566,25 @@ HIGHER-LEVEL IO FUNCTIONS
              bodyd
 
 
-       The  scan function provides input processing in command-line form.  The
-       function takes file/filename arguments. If called  with  no  arguments,
-       the  input  is taken from stdin. If arguments are provided, each speci-
-       fies an InChannel, or the name of a file for input.  Output  is  always
+       The scan function provides input processing in command-line form.   The
+       function  takes  file/filename  arguments. If called with no arguments,
+       the input is taken from stdin. If arguments are provided,  each  speci-
+       fies  an  InChannel, or the name of a file for input.  Output is always
        to stdout.
 
        The scan function operates by reading the input one line at a time, and
        processing it according to the following algorithm.
 
-       For each line, the record is first split into fields,  and  the  fields
-       are  bound  to the variables $1, $2, .... The variable $0 is defined to
-       be the entire line, and $* is an array of all  the  field  values.  The
+       For  each  line,  the record is first split into fields, and the fields
+       are bound to the variables $1, $2, .... The variable $0 is  defined  to
+       be  the  entire  line,  and $* is an array of all the field values. The
        $(NF) variable is defined to be the number of fields.
 
-       Next,  a case expression is selected. If string_i matches the token $1,
-       then body_i is evaluated. If the body ends in an export, the  state  is
+       Next, a case expression is selected. If string_i matches the token  $1,
+       then  body_i  is evaluated. If the body ends in an export, the state is
        passed to the next clause. Otherwise the value is discarded.
 
-       For  example,  here  is  an scan function that acts as a simple command
+       For example, here is an scan function that acts  as  a  simple  command
        processor.
 
            calc() =
@@ -4575,24 +4612,24 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
 
-       A      Parse each line as an argument  list,  where  arguments  may  be
+       A      Parse  each  line  as  an  argument list, where arguments may be
               quoted. For example, the following line has three words, ``ls'',
               ``-l'', ``Program Files''.
 
               ls -l "Program Files"
 
 
-       O      Parse each line using white space as the  separator,  using  the
+       O      Parse  each  line  using white space as the separator, using the
               usual OMake algorithm for string parsing. This is the default.
 
-       x      Once  each  line is split, reduce each word using the hex repre-
-              sentation. This is the usual  hex  representation  used  in  URL
-              specifiers,  so  the string ``Program Files'' may be alternately
+       x      Once each line is split, reduce each word using the  hex  repre-
+              sentation.  This  is  the  usual  hex representation used in URL
+              specifiers, so the string ``Program Files'' may  be  alternately
               represented in the form Program%20Files or Program+Files.
 
-       Note, if you want to redirect the output to a file, the easiest way  is
+       Note,  if you want to redirect the output to a file, the easiest way is
        to redefine the stdout variable. The stdout variable is scoped the same
-       way as other variables, so this definition does not affect the  meaning
+       way  as other variables, so this definition does not affect the meaning
        of stdout outside the calc function.
 
            calc() =
@@ -4613,33 +4650,33 @@ HIGHER-LEVEL IO FUNCTIONS
              bodyd
 
 
-       The  awk function provides input processing similar to awk(1), but more
+       The awk function provides input processing similar to awk(1), but  more
        limited. The function takes filename arguments. If called with no argu-
-       ments,  the  input is taken from stdin. If arguments are provided, each
-       specifies an InChannel, or the name of a file  for  input.   Output  is
+       ments, the input is taken from stdin. If arguments are  provided,  each
+       specifies  an  InChannel,  or  the name of a file for input.  Output is
        always to stdout.
 
-       The  variables  RS and FS define record and field separators as regular
+       The variables RS and FS define record and field separators  as  regular
        expressions.  The default value of RS is the regular expression \r| |\r
        .  The default value of FS is the regular expression [ \t]+.
 
-       The  awk  function  operates by reading the input one record at a time,
+       The awk function operates by reading the input one record  at  a  time,
        and processing it according to the following algorithm.
 
-       For each line, the record is first split into fields  using  the  field
-       separator  FS,  and  the fields are bound to the variables $1, $2, ....
+       For  each  line,  the record is first split into fields using the field
+       separator FS, and the fields are bound to the variables  $1,  $2,  ....
        The variable $0 is defined to be the entire line, and $* is an array of
        all the field values. The $(NF) variable is defined to be the number of
        fields.
 
-       Next, the cases are evaluated in order.  For each case, if the  regular
-       expression  pattern_i  matches the record $0, then body_i is evaluated.
-       If the body ends in an export, the state is passed to the next  clause.
-       Otherwise  the  value  is discarded. If the regular expression contains
+       Next,  the cases are evaluated in order.  For each case, if the regular
+       expression pattern_i matches the record $0, then body_i  is  evaluated.
+       If  the body ends in an export, the state is passed to the next clause.
+       Otherwise the value is discarded. If the  regular  expression  contains
        \(r\) expression, those expression override the fields $1, $2, ....
 
-       For example, here is an awk function to  print  the  text  between  two
-       delimiters  \begin{<name>}  and  \end{<name>},  where  the  <name> must
+       For  example,  here  is  an  awk function to print the text between two
+       delimiters \begin{<name>}  and  \end{<name>},  where  the  <name>  must
        belong to a set passed as an argument to the filter function.
 
            filter(names) =
@@ -4659,9 +4696,9 @@ HIGHER-LEVEL IO FUNCTIONS
                  export
 
 
-       Note, if you want to redirect the output to a file, the easiest way  is
+       Note,  if you want to redirect the output to a file, the easiest way is
        to redefine the stdout variable. The stdout variable is scoped the same
-       way as other variables, so this definition does not affect the  meaning
+       way  as other variables, so this definition does not affect the meaning
        of stdout outside the filter function.
 
            filter(names) =
@@ -4683,26 +4720,26 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
        The fsubst function provides a sed(1)-like substitution function. Simi-
-       lar to awk, if fsubst is called with no arguments, the input  is  taken
-       from  stdin. If arguments are provided, each specifies an InChannel, or
+       lar  to  awk, if fsubst is called with no arguments, the input is taken
+       from stdin. If arguments are provided, each specifies an InChannel,  or
        the name of a file for input.
 
-       The RS variable defines a regular expression that determines  a  record
-       separator,  The default value of RS is the regular expression \r| |\r .
+       The  RS  variable defines a regular expression that determines a record
+       separator, The default value of RS is the regular expression \r| |\r  .
 
        The fsubst function reads the file one record at a time.
 
-       For each record, the cases are evaluated in order. Each case defines  a
-       substitution  from a substring matching the pattern to replacement text
+       For  each record, the cases are evaluated in order. Each case defines a
+       substitution from a substring matching the pattern to replacement  text
        defined by the body.
 
-       Currently, there is only one option:  g.   If  specified,  each  clause
+       Currently,  there  is  only  one  option: g.  If specified, each clause
        specifies a global replacement, and all instances of the pattern define
        a substitution.  Otherwise, the substitution is applied only once.
 
        Output can be redirected by redefining the stdout variable.
 
-       For example, the following  program  replaces  all  occurrences  of  an
+       For  example,  the  following  program  replaces  all occurrences of an
        expression word. with its capitalized form.
 
            section
@@ -4714,15 +4751,15 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
    LEXER
-       The  Lexer  object  defines a facility for lexical analysis, similar to
+       The Lexer object defines a facility for lexical  analysis,  similar  to
        the lex(1) and flex(1) programs.
 
        In omake, lexical analyzers can be constructed dynamically by extending
-       the  Lexer  class.  A  lexer definition consists of a set of directives
+       the Lexer class. A lexer definition consists of  a  set  of  directives
        specified with method calls, and set of clauses specified as rules.
 
        For example, consider the following lexer definition, which is intended
-       for  lexical  analysis  of  simple arithmetic expressions for a desktop
+       for lexical analysis of simple arithmetic  expressions  for  a  desktop
        calculator.
 
           lexer1. =
@@ -4757,41 +4794,41 @@ HIGHER-LEVEL IO FUNCTIONS
                 Token.unit($(loc), eof)
 
 
-       This program defines an object lexer1 the  extends  the  Lexer  object,
+       This  program  defines  an  object lexer1 the extends the Lexer object,
        which defines lexing environment.
 
        The remainder of the definition consists of a set of clauses, each with
-       a method name before the colon; a regular expression after  the  colon;
+       a  method  name before the colon; a regular expression after the colon;
        and in this case, a body. The body is optional, if it is not specified,
-       the method with the given name should already exist in the lexer  defi-
+       the  method with the given name should already exist in the lexer defi-
        nition.
 
        NB The clause that matches the longest prefix of the input is selected.
-       If two clauses match the same  input  prefix,  then  the  last  one  is
+       If  two  clauses  match  the  same  input  prefix, then the last one is
        selected. This is unlike most standard lexers, but makes more sense for
        extensible grammars.
 
-       The first clause matches any input that is not  matched  by  the  other
-       clauses.   In  this  case,  an error message is printed for any unknown
-       character, and the input is skipped. Note that this clause is  selected
+       The  first  clause  matches  any input that is not matched by the other
+       clauses.  In this case, an error message is  printed  for  any  unknown
+       character,  and the input is skipped. Note that this clause is selected
        only if no other clause matches.
 
-       The  second  clause is responsible for ignoring white space.  If white-
+       The second clause is responsible for ignoring white space.   If  white-
        space is found, it is ignored, and the lexer is called recursively.
 
        The third clause is responsible for the arithmetic operators.  It makes
-       use  of  the Token object, which defines three fields: a loc field that
+       use of the Token object, which defines three fields: a loc  field  that
        represents the source location; a name; and a value.
 
-       The lexer defines the loc variable to be the location  of  the  current
+       The  lexer  defines  the loc variable to be the location of the current
        lexeme in each of the method bodies, so we can use that value to create
        the tokens.
 
-       The Token.unit($(loc), name) method constructs a new Token object  with
+       The  Token.unit($(loc), name) method constructs a new Token object with
        the given name, and a default value.
 
-       The   number   clause   matches  nonnegative  integer  constants.   The
-       Token.pair($(loc), name, value) constructs a token with the given  name
+       The  number  clause  matches  nonnegative   integer   constants.    The
+       Token.pair($(loc),  name, value) constructs a token with the given name
        and value.
 
        Lexer object operate on InChannel objects.  The method lexer1.lex-chan-
@@ -4799,19 +4836,19 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
    LEXER MATCHING
-       During lexical analysis, clauses are selected by longest  match.   That
+       During  lexical  analysis, clauses are selected by longest match.  That
        is, the clause that matches the longest sequence of input characters is
-       chosen for evaluation. If no clause matches, the lexer  raises  a  Run-
-       timeException.  If  more  than  one  clause  matches the same amount of
+       chosen  for  evaluation.  If no clause matches, the lexer raises a Run-
+       timeException. If more than one  clause  matches  the  same  amount  of
        input, the first one is chosen for evaluation.
 
 
    EXTENDING LEXER DEFINITIONS
-       Suppose we wish to augment the lexer example so that  it  ignores  com-
-       ments.  We will define comments as any text that begins with the string
+       Suppose  we  wish  to augment the lexer example so that it ignores com-
+       ments. We will define comments as any text that begins with the  string
        (*, ends with *), and comments may be nested.
 
-       One convenient way to do this is to define a  separate  lexer  just  to
+       One  convenient  way  to  do this is to define a separate lexer just to
        skip comments.
 
           lex-comment. =
@@ -4835,8 +4872,8 @@ HIGHER-LEVEL IO FUNCTIONS
                 eprintln(Unterminated comment)
 
 
-       This  lexer  contains  a  field  level  that keeps track of the nesting
-       level. On encountering a (* string, it increments the  level,  and  for
+       This lexer contains a field level  that  keeps  track  of  the  nesting
+       level.  On  encountering  a (* string, it increments the level, and for
        *), it decrements the level if nonzero, and continues.
 
        Next, we need to modify our previous lexer to skip comments.  We can do
@@ -4853,20 +4890,20 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
    THREADING THE LEXER OBJECT
-       Clause  bodies  may also end with an export directive. In this case the
-       lexer object itself is used as the returned token.  If  used  with  the
-       Parser  object  below,  the lexer should define the loc, name and value
-       fields in each export clause. Each time the Parser calls the lexer,  it
+       Clause bodies may also end with an export directive. In this  case  the
+       lexer  object  itself  is  used as the returned token. If used with the
+       Parser object below, the lexer should define the loc,  name  and  value
+       fields  in each export clause. Each time the Parser calls the lexer, it
        calls it with the lexer returned from the previous lex invocation.
 
    PARSER
-       The  Parser  object provides a facility for syntactic analysis based on
+       The Parser object provides a facility for syntactic analysis  based  on
        context-free grammars.
 
-       Parser objects are specified as a  sequence  of  directives,  specified
+       Parser  objects  are  specified  as a sequence of directives, specified
        with method calls; and productions, specified as rules.
 
-       For  example,  let's  finish building the desktop calculator started in
+       For example, let's finish building the desktop  calculator  started  in
        the Lexer example.
 
           parser1. =
@@ -4915,60 +4952,60 @@ HIGHER-LEVEL IO FUNCTIONS
 
 
        Parsers are defined as extensions of the Parser class.  A Parser object
-       must  have  a  lexer  field.  The  lexer  is not required to be a Lexer
-       object, but it must provide a lexer.lex() method that returns  a  token
-       object  with name and value fields. For this example, we use the lexer1
+       must have a lexer field. The lexer  is  not  required  to  be  a  Lexer
+       object,  but  it must provide a lexer.lex() method that returns a token
+       object with name and value fields. For this example, we use the  lexer1
        object that we defined previously.
 
-       The next step is to define precedences for the terminal  symbols.   The
-       precedences  are  defined with the left, right, and nonassoc methods in
+       The  next  step is to define precedences for the terminal symbols.  The
+       precedences are defined with the left, right, and nonassoc  methods  in
        order of increasing precedence.
 
-       The grammar must have at least one  start  symbol,  declared  with  the
+       The  grammar  must  have  at  least one start symbol, declared with the
        start method.
 
-       Next,  the productions in the grammar are listed as rules.  The name of
-       the production is listed before the colon, and a sequence of  variables
-       is  listed to the right of the colon.  The body is a semantic action to
+       Next, the productions in the grammar are listed as rules.  The name  of
+       the  production is listed before the colon, and a sequence of variables
+       is listed to the right of the colon.  The body is a semantic action  to
        be evaluated when the production is recognized as part of the input.
 
-       In this example, these are the productions for the  arithmetic  expres-
-       sions  recognized  by  the desktop calculator. The semantic action per-
-       forms the calculation. The variables $1, $2,  ...   correspond  to  the
-       values  associated with each of the variables on the right-hand-side of
+       In  this  example, these are the productions for the arithmetic expres-
+       sions recognized by the desktop calculator. The  semantic  action  per-
+       forms  the  calculation.  The  variables $1, $2, ...  correspond to the
+       values associated with each of the variables on the right-hand-side  of
        the production.
 
 
    CALLING THE PARSER
-       The parser is called with the $(parser1.parse-channel  start,  channel)
-       or  $(parser1.parse-file  start, file) functions. The start argument is
+       The  parser  is called with the $(parser1.parse-channel start, channel)
+       or $(parser1.parse-file start, file) functions. The start  argument  is
        the start symbol, and the channel or file is the input to the parser.
 
 
    PARSING CONTROL
-       The parser generator generates a pushdown automation based  on  LALR(1)
-       tables.  As  usual,  if  the  grammar  is  ambiguous, this may generate
+       The  parser  generator generates a pushdown automation based on LALR(1)
+       tables. As usual, if  the  grammar  is  ambiguous,  this  may  generate
        shift/reduce or reduce/reduce conflicts. These conflicts are printed to
        standard output when the automaton is generated.
 
-       By  default, the automaton is not constructed until the parser is first
+       By default, the automaton is not constructed until the parser is  first
        used.
 
-       The build(debug) method  forces  the  construction  of  the  automaton.
-       While  not  required,  it is wise to finish each complete parser with a
-       call to the build(debug) method. If the debug  variable  is  set,  this
+       The  build(debug)  method  forces  the  construction  of the automaton.
+       While not required, it is wise to finish each complete  parser  with  a
+       call  to  the  build(debug)  method. If the debug variable is set, this
        also prints with parser table together with any conflicts.
 
-       The  loc  variable  is defined within action bodies, and represents the
+       The loc variable is defined within action bodies,  and  represents  the
        input range for all tokens on the right-hand-side of the production.
 
 
    EXTENDING PARSERS
        Parsers may also be extended by inheritance.  For example, let's extend
-       the  grammar so that it also recognizes the << and >> shift operations.
+       the grammar so that it also recognizes the << and >> shift  operations.
 
-       First, we extend the lexer so that it recognizes  these  tokens.   This
-       time,  we choose to leave lexer1 intact, instead of using the += opera-
+       First,  we  extend  the lexer so that it recognizes these tokens.  This
+       time, we choose to leave lexer1 intact, instead of using the +=  opera-
        tor.
 
           lexer2. =
@@ -4981,9 +5018,9 @@ HIGHER-LEVEL IO FUNCTIONS
                 Token.unit($(loc), asr)
 
 
-       Next, we extend the parser to handle these new  operators.   We  intend
-       that  the bitwise operators have lower precedence than the other arith-
-       metic operators. The two-argument form of the left method  accomplishes
+       Next,  we  extend  the parser to handle these new operators.  We intend
+       that the bitwise operators have lower precedence than the other  arith-
+       metic  operators. The two-argument form of the left method accomplishes
        this.
 
           parser2. =
@@ -5000,7 +5037,7 @@ HIGHER-LEVEL IO FUNCTIONS
                 asr($1, $3)
 
 
-       In  this  case, we use the new lexer lexer2, and we add productions for
+       In this case, we use the new lexer lexer2, and we add  productions  for
        the new shift operations.
 
    GETTIMEOFDAY
@@ -5035,11 +5072,11 @@ SHELL FUNCTIONS
               e : expression
 
 
-       In  the  two-argument  form, expression e is evaluated in the directory
+       In the two-argument form, expression e is evaluated  in  the  directory
        dir. The current directory is not changed otherwise.
 
-       The behavior of the cd function can be changed with  the  CDPATH  vari-
-       able,  which  specifies a search path for directories. This is normally
+       The  behavior  of  the cd function can be changed with the CDPATH vari-
+       able, which specifies a search path for directories. This  is  normally
        useful only in the osh command interpreter.
 
            CDPATH : Dir Sequence
@@ -5089,60 +5126,60 @@ SHELL FUNCTIONS
            history-length : Int
 
 
-       The history variables manage the command-line  history  in  osh.   They
+       The  history  variables  manage  the command-line history in osh.  They
        have no effect in omake.
 
-       The  history-index  variable is the current index into the command-line
+       The history-index variable is the current index into  the  command-line
        history.  The history variable is the current command-line history.
 
        The history-file variable can be redefined if you want the command-line
        history to be saved. The default value is ~/.omake/osh_history.
 
-       The  history-length  variable  can  be redefined to specify the maximum
-       number of lines in the history that you want saved. The  default  value
+       The history-length variable can be redefined  to  specify  the  maximum
+       number  of  lines in the history that you want saved. The default value
        is 100.
 
 
 PERVASIVES
-       Pervasives  defines  the  objects that are defined in all programs. The
+       Pervasives defines the objects that are defined in  all  programs.  The
        following objects are defined.
 
 
    OBJECT
        Parent objects: none.
 
-       The Object object is the root object.  Every class  is  a  subclass  of
+       The  Object  object  is  the root object.  Every class is a subclass of
        Object.
 
        It provides the following fields:
 
 
-       *      $(o.object-length):  the  number  of  fields  and methods in the
+       *      $(o.object-length): the number of  fields  and  methods  in  the
               object.
 
-       *      $(o.object-mem <var>): returns true iff the <var> is a field  or
+       *      $(o.object-mem  <var>): returns true iff the <var> is a field or
               method of the object.
 
-       *      $(o.object-add  <var>,  <value>):  adds the field to the object,
+       *      $(o.object-add <var>, <value>): adds the field  to  the  object,
               returning a new object.
 
-       *      $(o.object-find <var>): fetches the field  or  method  from  the
-              object;  it is equivalent to $(o.<var>), but the variable can be
+       *      $(o.object-find  <var>):  fetches  the  field or method from the
+              object; it is equivalent to $(o.<var>), but the variable can  be
               non-constant.
 
-       *      $(o.object-map <fun>): maps a  function  over  the  object.  The
-              function  should  take two arguments; the first is a field name,
-              the second is the value of that  field.  The  result  is  a  new
+       *      $(o.object-map  <fun>):  maps  a  function  over the object. The
+              function should take two arguments; the first is a  field  name,
+              the  second  is  the  value  of  that field. The result is a new
               object constructed from the values returned by the function.
 
-       *      o.object-foreach:  the  foreach  form  is equivalent to map, but
+       *      o.object-foreach: the foreach form is  equivalent  to  map,  but
               with altered syntax.
 
           o.foreach(<var1>, <var2>)
              <body>
 
 
-       For example, the following function prints all the fields of an  object
+       For  example, the following function prints all the fields of an object
        o.
 
           PrintObject(o) =
@@ -5165,34 +5202,34 @@ PERVASIVES
    MAP
        Parent objects: Object.
 
-       A Map object is a dictionary from values to values.  The  <key>  values
-       are  restricted  to  simple  values:  integers, floating-point numbers,
+       A  Map  object  is a dictionary from values to values. The <key> values
+       are restricted to  simple  values:  integers,  floating-point  numbers,
        strings, files, directories, and arrays of simple values.
 
        The Map object provides the following methods.
 
 
-       *      $(o.mem <key>): returns true iff the <key>  is  defined  in  the
+       *      $(o.mem  <key>):  returns  true  iff the <key> is defined in the
               map.
 
-       *      $(o.add  <key>, <value>): adds the field to the map, returning a
+       *      $(o.add <key>, <value>): adds the field to the map, returning  a
               new map.
 
        *      $(o.find <key>): fetches the field from the map.
 
-       *      $(o.map <fun>): maps a  function  over  the  map.  The  function
+       *      $(o.map  <fun>):  maps  a  function  over  the map. The function
               should take two arguments; the first is a field name, the second
-              is the value of that field. The result  is  a  new  object  con-
+              is  the  value  of  that  field. The result is a new object con-
               structed from the values returned by the function.
 
-       *      o.foreach:  the  foreach  form  is  equivalent  to map, but with
+       *      o.foreach: the foreach form  is  equivalent  to  map,  but  with
               altered syntax.
 
           o.foreach(<var1>, <var2>)
              <body>
 
 
-       For example, the following function prints all the fields of an  object
+       For  example, the following function prints all the fields of an object
        o.
 
           PrintObject(o) =
@@ -5227,7 +5264,7 @@ PERVASIVES
    NUMBER
        Parent objects: Object.
 
-       The  Number object is the parent object for integers and floating-point
+       The Number object is the parent object for integers and  floating-point
        numbers.
 
    INT
@@ -5243,24 +5280,24 @@ PERVASIVES
    SEQUENCE
        Parent objects: Object.
 
-       The Sequence object represents a generic object  containing  sequential
+       The  Sequence  object represents a generic object containing sequential
        elements. It provides the following methods.
 
 
        *      $(s.length): the number of elements in the sequence.
 
        *      $(s.map <fun>): maps a function over the fields in the sequence.
-              The function should take one  argument.  The  result  is  a  new
+              The  function  should  take  one  argument.  The result is a new
               sequence constructed from the values returned by the function.
 
-       *      s.foreach:  the  foreach  form  is  equivalent  to map, but with
+       *      s.foreach: the foreach form  is  equivalent  to  map,  but  with
               altered syntax.
 
           s.foreach(<var>)
              <body>
 
 
-       For example, the following function prints  all  the  elements  of  the
+       For  example,  the  following  function  prints all the elements of the
        sequence.
 
           PrintSequence(s) =
@@ -5268,7 +5305,7 @@ PERVASIVES
                 println(Elem = $(x))
 
 
-       The  export  form  is  valid  in a foreach body. The following function
+       The export form is valid in a  foreach  body.  The  following  function
        counts the number of zeros in the sequence.
 
           Zeros(s) =
@@ -5308,31 +5345,31 @@ PERVASIVES
    RULE
        Parent objects: Object.
 
-       The  Rule  object  represents a build rule.  It does not currently have
+       The Rule object represents a build rule.  It does  not  currently  have
        any methods.
 
    TARGET
        Parent object: Object.
 
-       The Target object contains information collected for a specific  target
+       The  Target object contains information collected for a specific target
        file.
 
 
        *      target: the target file.
 
-       *      effects:  the  files  that may be modified by a side-effect when
+       *      effects: the files that may be modified by  a  side-effect  when
               this target is built.
 
        *      scanner_deps: static dependencies that must be built before this
               target can be scanned.
 
-       *      static-deps:  statically-defined build dependencies of this tar-
+       *      static-deps: statically-defined build dependencies of this  tar-
               get.
 
        *      build-deps: all the build dependencies for the target, including
               static and scanned dependencies.
 
-       *      build-values:  all  the  value  dependencies associated with the
+       *      build-values: all the value  dependencies  associated  with  the
               build.
 
        *      build-commands: the commands to build the target.
@@ -5340,32 +5377,32 @@ PERVASIVES
        The object supports the following methods.
 
 
-       *      find(file): returns a Target object for the given file.   Raises
-              a  RuntimeException  if  the specified target is not part of the
+       *      find(file):  returns a Target object for the given file.  Raises
+              a RuntimeException if the specified target is not  part  of  the
               project.
 
        *      find-optional(file): returns a Target object for the given file,
               or false if the file is not part of the project.
 
        NOTE: the information for a target is constructed dynamically, so it is
-       possible that the Target object for a node will contain different  val-
+       possible  that the Target object for a node will contain different val-
        ues in different contexts. The easiest way to make sure that the Target
-       information is complete is to compute it within a rule body, where  the
-       rule  depends  on  the  target  file, or the dependencies of the target
+       information  is complete is to compute it within a rule body, where the
+       rule depends on the target file, or  the  dependencies  of  the  target
        file.
 
    NODE
        Parent objects: Object.
 
-       The Node object is the parent object for  files  and  directories.   It
+       The  Node  object  is  the parent object for files and directories.  It
        supports the following operations.
 
        *      $(node.stat): returns a stat object for the file. If the file is
-              a symbolic link, the stat information is for the destination  of
+              a  symbolic link, the stat information is for the destination of
               the link, not the link itself.
 
 
-       *      $(node.lstat):  returns  a  stat object for the file or symbolic
+       *      $(node.lstat): returns a stat object for the  file  or  symbolic
               link.
 
        *      $(node.unlink): removes the file.
@@ -5374,12 +5411,12 @@ PERVASIVES
 
        *      $(node.link <file>): creates a hard link <dst> to this file.
 
-       *      $(node.symlink <file>): create a symbolic  link  <dst>  to  this
+       *      $(node.symlink  <file>):  create  a  symbolic link <dst> to this
               file.
 
        *      $(node.chmod <perm>): change the permission of this file.
 
-       *      $(node.chown  <uid>,  <gid>):  change  the owner and group id of
+       *      $(node.chown <uid>, <gid>): change the owner  and  group  id  of
               this file.
 
 
@@ -5396,7 +5433,7 @@ PERVASIVES
    CHANNEL
        Parent objects: Object.
 
-       A Channel is a generic IO channel.  It provides the following  methods.
+       A  Channel is a generic IO channel.  It provides the following methods.
 
        *      $(o.close): close the channel.
 
@@ -5404,7 +5441,7 @@ PERVASIVES
    INCHANNEL
        Parent objects: Channel.
 
-       A  InChannel  is  an  input channel. The variable stdin is the standard
+       A InChannel is an input channel. The variable  stdin  is  the  standard
        input channel.
 
        It provides the following methods.
@@ -5415,7 +5452,7 @@ PERVASIVES
    OUTCHANNEL
        Parent object: Channel.
 
-       A OutChannel is an output channel. The variables stdout and stderr  are
+       A  OutChannel is an output channel. The variables stdout and stderr are
        the standard output and error channels.
 
        It provides the following methods.
@@ -5429,7 +5466,7 @@ PERVASIVES
 
        *      $(c.print <string>): print a string to the channel.
 
-       *      $(c.println <string>): print a string to the  channel,  followed
+       *      $(c.println  <string>):  print a string to the channel, followed
               by a line terminator.
 
 
@@ -5452,7 +5489,7 @@ PERVASIVES
    RUNTIMEEXCEPTION
        Parent objects: Exception.
 
-       The RuntimeException object represents an exception  from  the  runtime
+       The  RuntimeException  object  represents an exception from the runtime
        system. It has the following fields.
 
 
@@ -5468,14 +5505,14 @@ PERVASIVES
        The Shell object contains the collection of builtin functions available
        as shell commands.
 
-       You  can  define aliases by extending this object with additional meth-
-       ods.  All methods in this class are called with one argument: a  single
+       You can define aliases by extending this object with  additional  meth-
+       ods.   All methods in this class are called with one argument: a single
        array containing an argument list.
 
 
        *      echo
 
-       The  echo function prints its arguments to the standard output channel.
+       The echo function prints its arguments to the standard output  channel.
 
        *      jobs
 
@@ -5483,8 +5520,8 @@ PERVASIVES
 
        *      cd
 
-       The cd function changes the current directory.  Note that  the  current
-       directory  follows  the usual scoping rules. For example, the following
+       The  cd  function changes the current directory.  Note that the current
+       directory follows the usual scoping rules. For example,  the  following
        program lists the files in the foo directory, but the current directory
        is not changed.
 
@@ -5516,7 +5553,7 @@ PERVASIVES
        The wait function waits for a running job to terminate.  It is not pos-
        sible to wait for a suspended job.
 
-       The job is not brought to the foreground. If the wait  is  interrupted,
+       The  job  is not brought to the foreground. If the wait is interrupted,
        the job continues to run in the background.
 
        *      kill
@@ -5525,10 +5562,10 @@ PERVASIVES
 
        kill [signal] <pid...>.
 
-       The  signals are either numeric, or symbolic.  The symbolic signals are
+       The signals are either numeric, or symbolic.  The symbolic signals  are
        named as follows.
 
-       ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2,  CHLD,  STOP,
+       ABRT,  ALRM,  HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2, CHLD, STOP,
        TSTP, TTIN, TTOU, VTALRM, PROF.
 
        *      exit
@@ -5549,9 +5586,9 @@ PERVASIVES
 
        *      Win32 functions.
 
-       Win32  doesn't provide very many programs for scripting, except for the
+       Win32 doesn't provide very many programs for scripting, except for  the
        functions that are builtin to the DOS cmd.exe.  The following functions
-       are  defined  on  Win32  and  only  on  Win32.  On other systems, it is
+       are defined on Win32 and only  on  Win32.   On  other  systems,  it  is
        expected that these programs already exist.
 
 
@@ -5563,7 +5600,7 @@ PERVASIVES
                      The grep function calls the omake grep function.
 
        By default, omake uses internal versions of the following commands: cp,
-       mv,  cat,  rm, mkdir, chmod, test, find.  If you really want to use the
+       mv, cat, rm, mkdir, chmod, test, find.  If you really want to  use  the
        standard system versions of these commands, set the USE_SYSTEM_COMMANDS
        as one of the first definitions in your OMakeroot file.
 
@@ -5575,7 +5612,7 @@ PERVASIVES
 
               The mkdir function is used to create directories.  The -verb+-m+
               option can be used to specify the permission mode of the created
-              directory.  If the -p option is specified, the full path is cre-
+              directory. If the -p option is specified, the full path is  cre-
               ated.
 
        *      cp
@@ -5588,9 +5625,9 @@ PERVASIVES
                   mv [-f] [-i] [-v] files dst
 
 
-              The cp function copies a src file to a dst file, overwriting  it
-              if  it  already  exists.  If more than one source file is speci-
-              fied, the final file must be a directory, and the  source  files
+              The  cp function copies a src file to a dst file, overwriting it
+              if it already exists.  If more than one source  file  is  speci-
+              fied,  the  final file must be a directory, and the source files
               are copied into the directory.
 
 
@@ -5607,7 +5644,7 @@ PERVASIVES
                  rmdir [-f] [-i] [-v] [-r] dirs
 
 
-              The  rm function removes a set of files.  No warnings are issued
+              The rm function removes a set of files.  No warnings are  issued
               if the files do not exist, or if they cannot be removed.
 
               Options:
@@ -5626,15 +5663,15 @@ PERVASIVES
                   chmod [-r] [-v] [-f] mode files
 
 
-              The chmod function changes the permissions on a set of files  or
-              directories.  This function does nothing on Win32.  The mode may
-              be  specified  as  an  octal  number,  or   in   symbolic   form
-              [ugoa]*[-=][rwxXstugo]+.    See  the  man  page  for  chmod  for
+              The  chmod function changes the permissions on a set of files or
+              directories. This function does nothing on Win32.  The mode  may
+              be   specified   as   an  octal  number,  or  in  symbolic  form
+              [ugoa]*[-=][rwxXstugo]+.   See  the  man  page  for  chmod   for
               details.
 
               Options:
 
-              -r     Change permissions of all files  in  a  directory  recur-
+              -r     Change  permissions  of  all  files in a directory recur-
                      sively.
 
               -v     Explain what is happening.
@@ -5680,7 +5717,7 @@ BUILD FUNCTIONS
        files.  The options have exactly the same format as options on the com-
        mand line.
 
-       For  example,  the  following code displays the progress bar unless the
+       For example, the following code displays the progress  bar  unless  the
        VERBOSE environment variable is defined.
 
            if $(not $(defined-env VERBOSE))
@@ -5694,11 +5731,11 @@ BUILD FUNCTIONS
              version1, version2 : String
 
 
-       The OMakeVersion function is used for version checking  in  OMakefiles.
+       The  OMakeVersion  function is used for version checking in OMakefiles.
        It takes one or two arguments.
 
-       In  the  one  argument  form,  if the omake version number is less than
-       <version1>, then an exception is raised. In the two argument form,  the
+       In the one argument form, if the omake  version  number  is  less  than
+       <version1>,  then an exception is raised. In the two argument form, the
        version must lie between version1 and version2.
 
 
@@ -5707,29 +5744,29 @@ BUILD FUNCTIONS
              version1, version2 : String
 
 
-       The  cmp-versions\  functions  can be used to compare arbitrary version
-       strings.  It returns 0 when the two version strings are equal, a  nega-
-       tive  number when the first string represents an earlier version, and a
+       The cmp-versions\ functions can be used to  compare  arbitrary  version
+       strings.   It returns 0 when the two version strings are equal, a nega-
+       tive number when the first string represents an earlier version, and  a
        positive number otherwise.
 
    DEFINECOMMANDVARS
           DefineCommandVars()
 
 
-       The DefineCommandVars function redefines the variables  passed  on  the
-       commandline.  Variables  definitions  are passed on the command line in
-       the form name=value. This function is primarily  for  internal  use  by
+       The  DefineCommandVars  function  redefines the variables passed on the
+       commandline. Variables definitions are passed on the  command  line  in
+       the  form  name=value.  This  function is primarily for internal use by
        omake to define these variables for the first time.
 
 THE OMAKEROOT FILE
-       The  standard OMakeroot file defines the functions are rules for build-
+       The standard OMakeroot file defines the functions are rules for  build-
        ing standard projects.
 
 
    VARIABLES
        ROOT   The root directory of the current project.
 
-       CWD    The current working directory (the directory  is  set  for  each
+       CWD    The  current  working  directory  (the directory is set for each
               OMakefile in the project).
 
        EMPTY  The empty string.
@@ -5742,8 +5779,8 @@ THE OMAKEROOT FILE
 
 
        ABORT_ON_COMMAND_ERROR
-              If  set  to true, the construction of a target should be aborted
-              whenever one of the commands to build it fail. This defaults  to
+              If set to true, the construction of a target should  be  aborted
+              whenever  one of the commands to build it fail. This defaults to
               true, and should normally be left that way.
 
 
@@ -5752,20 +5789,20 @@ THE OMAKEROOT FILE
               to enabled).
 
               enabled
-                     Allow the use of default .SCANNER rules. Whenever a  rule
-                     does  not  specify a :scanner: dependency explicitly, try
+                     Allow  the use of default .SCANNER rules. Whenever a rule
+                     does not specify a :scanner: dependency  explicitly,  try
                      to find a .SCANNER with the same target name.
 
               disabled
                      Never use default .SCANNER rules.
 
               warning
-                     Allow the use of default  .SCANNER  rules,  but  print  a
+                     Allow  the  use  of  default  .SCANNER rules, but print a
                      warning whenever one is selected.
 
               error  Do not allow the use of default .SCANNER rules. If a rule
-                     does not specify a :scanner: dependency, and there  is  a
-                     default  .SCANNER  rule,  the build will terminate abnor-
+                     does  not  specify a :scanner: dependency, and there is a
+                     default .SCANNER rule, the build  will  terminate  abnor-
                      mally.
 
 
@@ -5780,15 +5817,15 @@ THE OMAKEROOT FILE
        DIRSEP The normal directory separator (/ on Unix, \ on Win32).
 
        EXT_LIB
-              File  suffix  for  a  static library (default is .a on Unix, and
+              File suffix for a static library (default is  .a  on  Unix,  and
               .lib on Win32).
 
        EXT_OBJ
-              File suffix for an object file (default is .o on Unix, and  .obj
+              File  suffix for an object file (default is .o on Unix, and .obj
               on Win32).
 
        EXT_ASM
-              File  suffix  for  an  assembly file (default is .s on Unix, and
+              File suffix for an assembly file (default is  .s  on  Unix,  and
               .asm on Win32).
 
        EXE    File suffix for executables (default is empty for Unix, and .exe
@@ -5803,55 +5840,55 @@ BUILDING C PROGRAMS
        The following variables can be redefined in your project.
 
 
-       CC     The  name of the C compiler (on Unix it defaults to gcc when gcc
-              is present and to cc otherwise; on Win32 defaults  to  cl  /nol-
+       CC     The name of the C compiler (on Unix it defaults to gcc when  gcc
+              is  present  and  to cc otherwise; on Win32 defaults to cl /nol-
               ogo).
 
-       CXX    The  name  of  the C++ compiler (on Unix it defaults to gcc when
-              gcc is present and to c++ otherwise; on  Win32  defaults  to  cl
+       CXX    The name of the C++ compiler (on Unix it defaults  to  gcc  when
+              gcc  is  present  and  to c++ otherwise; on Win32 defaults to cl
               /nologo).
 
-       CPP    The  name of the C preprocessor (defaults to cpp on Unix, and cl
+       CPP    The name of the C preprocessor (defaults to cpp on Unix, and  cl
               /E on Win32).
 
-       CFLAGS Compilation flags to pass to the C compiler  (default  empty  on
+       CFLAGS Compilation  flags  to  pass to the C compiler (default empty on
               Unix, and /DWIN32 on Win32).
 
        CXXFLAGS
-              Compilation  flags to pass to the C++ compiler (default empty on
+              Compilation flags to pass to the C++ compiler (default empty  on
               Unix, and /DWIN32 on Win32).
 
        INCLUDES
               Additional directories that specify the search path to the C and
               C++ compilers (default is .).  The directories are passed to the
-              C and C++ compilers with the -I option.  The include  path  with
+              C  and  C++ compilers with the -I option.  The include path with
               -I prefixes is defined in the PREFIXED_INCLUDES variable.
 
-       LIBS   Additional  libraries needed when building a program (default is
+       LIBS   Additional libraries needed when building a program (default  is
               empty).
 
-       AS     The name of the assembler (defaults to as on  Unix,  and  ml  on
+       AS     The  name  of  the  assembler (defaults to as on Unix, and ml on
               Win32).
 
        ASFLAGS
               Flags to pass to the assembler (default is empty on Unix, and /c
               /coff on Win32).
 
-       AR     The name of the program to create static libraries (defaults  to
+       AR     The  name of the program to create static libraries (defaults to
               ar cq on Unix, and lib on Win32).
 
        AROUT  The option string that specifies the output file for AR.
 
-       LD     The  name  of  the  linker  (defaults  to  ld on Unix, and cl on
+       LD     The name of the linker (defaults  to  ld  on  Unix,  and  cl  on
               Win32).
 
        LDFLAGS
               Options to pass to the linker (default is empty).
 
-       YACC   The name of the yacc parser generator (default is yacc on  Unix,
+       YACC   The  name of the yacc parser generator (default is yacc on Unix,
               empty on Win32).
 
-       LEX    The  name  of  the  lex lexer generator (default is lex on Unix,
+       LEX    The name of the lex lexer generator (default  is  lex  on  Unix,
               empty on Win32).
 
 
@@ -5860,16 +5897,16 @@ BUILDING C PROGRAMS
        LocalCGeneratedFiles(files)
 
 
-       The CGeneratedFiles and LocalCGeneratedFiles  functions  specify  files
-       that  need to be generated before any C files are scanned for dependen-
-       cies. For example, if config.h and inputs.h are both  generated  files,
+       The  CGeneratedFiles  and  LocalCGeneratedFiles functions specify files
+       that need to be generated before any C files are scanned for  dependen-
+       cies.  For  example, if config.h and inputs.h are both generated files,
        specify:
        CGeneratedFiles(config.h inputs.h)
 
 
        The CGeneratedFiles function is global --- its arguments will be gener-
-       ated before any C files anywhere in the project are scanned for  depen-
-       dencies.  The  LocalCGeneratedFiles function follows the normal scoping
+       ated  before any C files anywhere in the project are scanned for depen-
+       dencies. The LocalCGeneratedFiles function follows the  normal  scoping
        rules of OMake.
 
 
@@ -5878,14 +5915,14 @@ BUILDING C PROGRAMS
 
        StaticCLibrary(<target>, <files>)
 
-       The <target> does not include the library suffix, and The <files>  list
+       The  <target> does not include the library suffix, and The <files> list
        does not include the object suffix. These are obtained from the EXT_LIB
        and EXT_OBJ variables.
 
        This function returns the library filename.
 
-       The following command builds the library libfoo.a from  the  files  a.o
-       b.o  c.o  on Unix, or the library libfoo.lib from the files a.obj b.obj
+       The  following  command  builds the library libfoo.a from the files a.o
+       b.o c.o on Unix, or the library libfoo.lib from the files  a.obj  b.obj
        c.obj on Win32.
 
        StaticCLibrary(libfoo, a b c)
@@ -5897,14 +5934,14 @@ BUILDING C PROGRAMS
 
        StaticCLibraryCopy(<tag>, <dir>, <lib>)
 
-       The  <tag>  is  the  name  of a target (typically a .PHONY target); the
-       <dir> is the installation directory, and <lib> is  the  library  to  be
+       The <tag> is the name of a target  (typically  a  .PHONY  target);  the
+       <dir>  is  the  installation  directory, and <lib> is the library to be
        copied (without the library suffix).
 
-       This  function returns the filename of the library in the target direc-
+       This function returns the filename of the library in the target  direc-
        tory.
 
-       For example, the following code copies  the  library  libfoo.a  to  the
+       For  example,  the  following  code  copies the library libfoo.a to the
        /usr/lib directory.
 
 
@@ -5912,7 +5949,7 @@ BUILDING C PROGRAMS
 
 
    STATICCLIBRARYINSTALL
-       The  StaticCLibraryInstall  function  builds  a  library,  and sets the
+       The StaticCLibraryInstall function  builds  a  library,  and  sets  the
        install location in one step. It returns the filename of the library in
        the target directory.
 
@@ -5922,8 +5959,8 @@ BUILDING C PROGRAMS
 
 
    STATICCOBJECT, STATICCOBJECTCOPY, STATICCOBJECTINSTALL
-       These  functions  mirror  the  StaticCLibrary,  StaticCLibraryCopy, and
-       StaticCLibraryInstall functions, but they build an object  file  (a  .o
+       These functions  mirror  the  StaticCLibrary,  StaticCLibraryCopy,  and
+       StaticCLibraryInstall  functions,  but  they build an object file (a .o
        file on Unix, and a .obj file on Win32).
 
    CPROGRAM
@@ -5932,7 +5969,7 @@ BUILDING C PROGRAMS
 
        CProgram(<name>, <files>)
 
-       The <name> argument specifies the name of the program to be built;  the
+       The  <name> argument specifies the name of the program to be built; the
        <files> argument specifies the files to be linked. The function returns
        the filename of the executable.
 
@@ -5962,7 +5999,7 @@ BUILDING C PROGRAMS
 
 
    CPROGRAMINSTALL
-       The  CProgramInstall function specifies a program to build, and a loca-
+       The CProgramInstall function specifies a program to build, and a  loca-
        tion to install, simultaneously.
 
        CProgramInstall(<tag>, <dir>, <name>, <files>)
@@ -5973,8 +6010,8 @@ BUILDING C PROGRAMS
 
 
    CXXPROGRAM, CXXPROGRAMINSTALL
-       The CXXProgram and CXXProgramInstall functions are equivalent to  their
-       C  counterparts, except that would use $(CXX) and $(CXXFLAGS) for link-
+       The  CXXProgram and CXXProgramInstall functions are equivalent to their
+       C counterparts, except that would use $(CXX) and $(CXXFLAGS) for  link-
        ing instead of $(CC) and $(CFLAGS).
 
 BUILDING OCAML PROGRAMS
@@ -5988,7 +6025,7 @@ BUILDING OCAML PROGRAMS
               USE_OCAMLFIND is not set, otherwise ocamlc).
 
        OCAMLOPT
-              The  OCaml  native-code  compiler  (default  ocamlopt.opt  if it
+              The OCaml  native-code  compiler  (default  ocamlopt.opt  if  it
               exists and USE_OCAMLFIND is not set, otherwise ocamlopt).
 
        CAMLP4 The camlp4 preprocessor (default camlp4).
@@ -6015,34 +6052,34 @@ BUILDING OCAML PROGRAMS
               The OCaml native-code linker (default $(OCAMLOPT)).
 
        OCAMLINCLUDES
-              Search path to pass to the OCaml  compilers  (default  .).   The
-              search  path with the -I prefix is defined by the PREFIXED_OCAM-
+              Search  path  to  pass  to the OCaml compilers (default .).  The
+              search path with the -I prefix is defined by the  PREFIXED_OCAM-
               LINCLUDES variable.
 
        OCAMLFIND
-              The ocamlfind utility (default  ocamlfind  if  USE_OCAMLFIND  is
+              The  ocamlfind  utility  (default  ocamlfind if USE_OCAMLFIND is
               set, otherwise empty).
 
        OCAMLFINDFLAGS
-              The  flags  to  pass  to ocamlfind (default empty, USE_OCAMLFIND
+              The flags to pass to  ocamlfind  (default  empty,  USE_OCAMLFIND
               must be set).
 
        OCAMLPACKS
-              Package names to pass to ocamlfind (USE_OCAMLFIND must be  set).
+              Package  names to pass to ocamlfind (USE_OCAMLFIND must be set).
 
        BYTE_ENABLED
-              Flag  indicating  whether  to use the bytecode compiler (default
+              Flag indicating whether to use the  bytecode  compiler  (default
               true, when no ocamlopt found, false otherwise).
 
        NATIVE_ENABLED
               Flag indicating whether to use the native-code compiler (default
-              true,   when   ocamlopt   is   found,  false  otherwise).   Both
+              true,  when  ocamlopt  is   found,   false   otherwise).    Both
               BYTE_ENABLED and NATIVE_ENABLED can be set to true; at least one
               should be set to true.
 
 
    OCAML COMMAND FLAGS
-       The  following variables specify additional options to be passed to the
+       The following variables specify additional options to be passed to  the
        OCaml tools.
 
        OCAMLDEPFLAGS
@@ -6078,12 +6115,12 @@ BUILDING OCAML PROGRAMS
 
 
        OCAML_LIBS
-              Libraries to pass to the linker. These libraries  become  depen-
+              Libraries  to  pass to the linker. These libraries become depen-
               dencies of the link step.
 
        OCAML_OTHER_LIBS
-              Additional  libraries to pass to the linker. These libraries are
-              not included as dependencies to the link step.  Typical  use  is
+              Additional libraries to pass to the linker. These libraries  are
+              not  included  as  dependencies to the link step. Typical use is
               for the OCaml standard libraries like unix or str.
 
        OCAML_CLIBS
@@ -6098,16 +6135,16 @@ BUILDING OCAML PROGRAMS
        LocalOCamlGeneratedFiles(files)
 
 
-       The  OCamlGeneratedFiles and LocalOCamlGeneratedFiles functions specify
-       files that need to be generated before any OCaml files are scanned  for
+       The OCamlGeneratedFiles and LocalOCamlGeneratedFiles functions  specify
+       files  that need to be generated before any OCaml files are scanned for
        dependencies. For example, if parser.ml and lexer.ml are both generated
        files, specify:
        OCamlGeneratedFiles(parser.ml lexer.ml)
 
 
-       The OCamlGeneratedFiles function is global --- its  arguments  will  be
-       generated  before  any  OCaml files anywhere in the project are scanned
-       for dependencies. The  LocalOCamlGeneratedFiles  function  follows  the
+       The  OCamlGeneratedFiles  function  is global --- its arguments will be
+       generated before any OCaml files anywhere in the  project  are  scanned
+       for  dependencies.  The  LocalOCamlGeneratedFiles  function follows the
        normal scoping rules of OMake.
 
 
@@ -6121,33 +6158,53 @@ BUILDING OCAML PROGRAMS
        Additional variables used by the function:
 
        ABORT_ON_DEPENDENCY_ERRORS
-              The  linker  requires  that the files to be listed in dependency
-              order. If this variable is true,  the  order  of  the  files  is
-              determined  by  the  command  line, but omake will abort with an
-              error message if the order is illegal. Otherwise, the files  are
+              The linker requires that the files to be  listed  in  dependency
+              order.  If  this  variable  is  true,  the order of the files is
+              determined by the command line, but omake  will  abort  with  an
+              error  message if the order is illegal. Otherwise, the files are
               sorted automatically.
 
-       This  function  returns the list of all the targets that it defines the
-       rules for (including the $(name)$(EXT_LIB) file when NATIVE_ENABLED  is
+       This function returns the list of all the targets that it  defines  the
+       rules  for (including the $(name)$(EXT_LIB) file when NATIVE_ENABLED is
        set).
 
-       The  following  code  builds  the  libfoo.cmxa  library  from the files
-       foo.cmx and bar.cmx (if NATIVE_ENABLED is  set),  and  libfoo.cma  from
+       The following code  builds  the  libfoo.cmxa  library  from  the  files
+       foo.cmx  and  bar.cmx  (if  NATIVE_ENABLED is set), and libfoo.cma from
        foo.cmo and bar.cmo (if BYTE_ENABLED is set).
 
        OCamlLibrary(libfoo, foo bar)
 
 
+   OCAMLPACKAGE
+       The OCamlPackage function builds an OCaml package.
+
+       OCamlPackage(<name>, <files>)
+
+       The <name> and <files> are listed without suffixes.  The  <files>  must
+       have  been  compiled  with the -for-pack <ident> flag to the OCaml com-
+       piler.
+
+       This function returns the list of all the targets that it  defines  the
+       rules  for (including the $(name)$(EXT_LIB) file when NATIVE_ENABLED is
+       set).
+
+       The following code builds the libfoo.cmx package from the  files  pack-
+       age.cmx  and  bar.cmx  (if NATIVE_ENABLED is set), and package.cmo from
+       foo.cmo and bar.cmo (if BYTE_ENABLED is set).
+
+       OCamlPackage(package, foo bar)
+
+
    OCAMLLIBRARYCOPY
-       The  OCamlLibraryCopy function copies a library to an install location.
+       The OCamlLibraryCopy function copies a library to an install  location.
 
        OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)
 
-       The <interface-files> specify additional interface files to  be  copied
+       The  <interface-files>  specify additional interface files to be copied
        if the INSTALL_INTERFACES variable is true.
 
    OCAMLLIBRARYINSTALL
-       The  OCamlLibraryInstall  function builds a library and copies it to an
+       The OCamlLibraryInstall function builds a library and copies it  to  an
        install location in one step.
 
        OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)
@@ -6184,7 +6241,7 @@ BUILDING OCAML PROGRAMS
 
 
    OCAMLPROGRAMCOPY
-       The  OCamlProgramCopy  function  copies  an OCaml program to an install
+       The OCamlProgramCopy function copies an OCaml  program  to  an  install
        location.
 
        OCamlProgramCopy(<tag>, <bindir>, <name>)
@@ -6192,12 +6249,12 @@ BUILDING OCAML PROGRAMS
        Additional variables used:
 
        NATIVE_ENABLED
-              If NATIVE_ENABLED is set, the native-code executable is  copied;
+              If  NATIVE_ENABLED is set, the native-code executable is copied;
               otherwise the byte-code executable is copied.
 
 
    OCAMLPROGRAMINSTALL
-       The  OCamlProgramInstall function builds a programs and copies it to an
+       The OCamlProgramInstall function builds a programs and copies it to  an
        install location in one step.
 
        OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)
@@ -6210,8 +6267,8 @@ BUILDING LaTeX PROGRAMS
 
        TETEX2_ENABLED
               Flag indicating whether to use advanced LaTeX options present in
-              TeTeX  v.2  (default  value  is  determined the first time omake
-              reads LaTeX.src and depends on the version  of  LaTeX  you  have
+              TeTeX v.2 (default value is  determined  the  first  time  omake
+              reads  LaTeX.src  and  depends  on the version of LaTeX you have
               installed).
 
        LATEXFLAGS
@@ -6240,7 +6297,7 @@ BUILDING LaTeX PROGRAMS
               Flags to pass to pdflatex (default is empty).
 
        USEPDFLATEX
-              Flag indicating whether to use pdflatex instead  of  dvipdfm  to
+              Flag  indicating  whether  to use pdflatex instead of dvipdfm to
               generate the .pdf document (default false).
 
 
@@ -6249,7 +6306,7 @@ BUILDING LaTeX PROGRAMS
 
        LaTeXDocument(<name>, <texfiles>)
 
-       The  document  <name>  and <texfiles> are listed without suffixes. This
+       The document <name> and <texfiles> are listed  without  suffixes.  This
        function returns the filenames for the generated .ps and .pdf files.
 
        Additional variables used:
@@ -6268,15 +6325,15 @@ BUILDING LaTeX PROGRAMS
 
 
        The  TeXGeneratedFiles  and  LocalTeXGeneratedFiles  functions  specify
-       files that need to be generated before any LaTeXfiles are  scanned  for
+       files  that  need to be generated before any LaTeXfiles are scanned for
        dependencies. For example, if config.tex and inputs.tex are both gener-
        ated files, specify:
        TeXGeneratedFiles(config.tex inputs.tex)
 
 
        The TeXGeneratedFiles function is global --- its arguments will be gen-
-       erated  before  any  TeX  files anywhere in the project are scanned for
-       dependencies. The LocalTeXGeneratedFiles function  follows  the  normal
+       erated before any TeX files anywhere in the  project  are  scanned  for
+       dependencies.  The  LocalTeXGeneratedFiles  function follows the normal
        scoping rules of OMake.
 
 
@@ -6288,10 +6345,10 @@ BUILDING LaTeX PROGRAMS
        This function copies just the .pdf and .ps files.
 
    LATEXDOCUMENTINSTALL
-       The  LaTeXDocumentInstall builds a document and copies it to an install
+       The LaTeXDocumentInstall builds a document and copies it to an  install
        location in one step.
 
-       LaTeXDocumentInstall(<tag>,   <libdir>,    <installname>,    <docname>,
+       LaTeXDocumentInstall(<tag>,    <libdir>,    <installname>,   <docname>,
        <files>)
 
 EXAMINING THE DEPENDENCY GRAPH
@@ -6303,28 +6360,28 @@ EXAMINING THE DEPENDENCY GRAPH
           raises RuntimeException
 
 
-       The  dependencies function returns the set of immediate dependencies of
-       the given targets. This function can only be used within  a  rule  body
+       The dependencies function returns the set of immediate dependencies  of
+       the  given  targets.  This function can only be used within a rule body
        and all the arguments to the dependency function must also be dependen-
-       cies of this rule. This restriction ensures that all  the  dependencies
+       cies  of  this rule. This restriction ensures that all the dependencies
        are known when this function is executed.
 
-       The  dependencies-all function is similar, but it expands the dependen-
-       cies recursively, returning all of the dependencies of  a  target,  not
+       The dependencies-all function is similar, but it expands the  dependen-
+       cies  recursively,  returning  all of the dependencies of a target, not
        just the immediate ones.
 
-       The  dependencies-proper  function  returns all recursive dependencies,
-       except the dependencies that are leaf targets. A leaf target is a  tar-
-       get  that has no dependencies and no build commands; a leaf target cor-
+       The dependencies-proper function returns  all  recursive  dependencies,
+       except  the dependencies that are leaf targets. A leaf target is a tar-
+       get that has no dependencies and no build commands; a leaf target  cor-
        responds to a source file in the current project.
 
-       In all three functions, files that are not part of the current  project
+       In  all three functions, files that are not part of the current project
        are silently discarded.
 
-       One  purpose  of the dependencies-proper function is for ``clean'' tar-
+       One purpose of the dependencies-proper function is for  ``clean''  tar-
        gets.  For example, one way to delete all intermediate files in a build
-       is  with  a  rule that uses the dependencies-proper. Note however, that
-       the rule requires building the project before it can be deleted. For  a
+       is with a rule that uses the dependencies-proper.  Note  however,  that
+       the  rule requires building the project before it can be deleted. For a
        shorter form, see the filter-proper-targets function.
 
            .PHONY: clean
@@ -6341,12 +6398,12 @@ EXAMINING THE DEPENDENCY GRAPH
           raises RuntimeException
 
 
-       The  target  function returns the Target object associated with each of
+       The target function returns the Target object associated with  each  of
        the targets. See the Target object for more information.
 
    RULE
-       The rule function is called whenever a build rule is  defined.   It  is
-       unlikely  that  you will need to redefine this function, except in very
+       The  rule  function  is called whenever a build rule is defined.  It is
+       unlikely that you will need to redefine this function, except  in  very
        exceptional cases.
 
           rule(multiple, target, pattern, sources, options, body) : Rule
@@ -6362,13 +6419,13 @@ EXAMINING THE DEPENDENCY GRAPH
 
 
        multiple
-              A Boolean value indicating whether the rule was defined  with  a
+              A  Boolean  value indicating whether the rule was defined with a
               double colon ::.
 
        target The sequence of target names.
 
        pattern
-              The  sequence  of  patterns.  This  sequence  will  be empty for
+              The sequence of  patterns.  This  sequence  will  be  empty  for
               two-part rules.
 
        sources
@@ -6387,7 +6444,7 @@ EXAMINING THE DEPENDENCY GRAPH
              expr2
 
 
-       This  expression  represents  the following function call, where square
+       This expression represents the following function  call,  where  square
        brackets are used to indicate arrays.
 
           rule(false, target, pattern, sources,
@@ -6397,7 +6454,7 @@ EXAMINING THE DEPENDENCY GRAPH
 
 REFERENCES
    SEE ALSO
-       omake(1),   omake-quickstart(1),    omake-options(1),    omake-root(1),
+       omake(1),    omake-quickstart(1),    omake-options(1),   omake-root(1),
        omake-language(1),   omake-shell(1),   omake-rules(1),   omake-base(1),
        omake-system(1), omake-pervasives(1), osh(1), make(1)
 
@@ -6410,13 +6467,13 @@ REFERENCES
        (C)2003-2006, Mojave Group, Caltech
 
        This program is free software; you can redistribute it and/or modify it
-       under  the  terms of the GNU General Public License as published by the
-       Free Software Foundation; either version 2 of the License, or (at  your
+       under the terms of the GNU General Public License as published  by  the
+       Free  Software Foundation; either version 2 of the License, or (at your
        option) any later version.
 
-       This  program  is  distributed  in the hope that it will be useful, but
-       WITHOUT ANY  WARRANTY;  without  even  the  implied  warranty  of  MER-
-       CHANTABILITY  or  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+       This program is distributed in the hope that it  will  be  useful,  but
+       WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty  of MER-
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the  GNU  General
        Public License for more details.
 
        You should have received a copy of the GNU General Public License along

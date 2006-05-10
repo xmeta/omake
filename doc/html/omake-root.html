@@ -51,32 +51,33 @@ man page.
 <li><a href="#section_23">Library variables </a></li>
 <li><a href="#section_24">OCamlGeneratedFiles, LocalOCamlGeneratedFiles </a></li>
 <li><a href="#section_25">OCamlLibrary </a></li>
-<li><a href="#section_26">OCamlLibraryCopy </a></li>
-<li><a href="#section_27">OCamlLibraryInstall </a></li>
-<li><a href="#section_28">OCamlProgram </a></li>
-<li><a href="#section_29">OCamlProgramCopy </a></li>
-<li><a href="#section_30">OCamlProgramInstall </a></li>
+<li><a href="#section_26">OCamlPackage </a></li>
+<li><a href="#section_27">OCamlLibraryCopy </a></li>
+<li><a href="#section_28">OCamlLibraryInstall </a></li>
+<li><a href="#section_29">OCamlProgram </a></li>
+<li><a href="#section_30">OCamlProgramCopy </a></li>
+<li><a href="#section_31">OCamlProgramInstall </a></li>
 </ul>
-<li><a href="#section_31">Building LaTeX programs</a>
+<li><a href="#section_32">Building LaTeX programs</a>
 <ul>
-<li><a href="#section_32">Configuration variables </a></li>
-<li><a href="#section_33">LaTeXDocument </a></li>
-<li><a href="#section_34">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
-<li><a href="#section_35">LaTeXDocumentCopy </a></li>
-<li><a href="#section_36">LaTeXDocumentInstall </a></li>
+<li><a href="#section_33">Configuration variables </a></li>
+<li><a href="#section_34">LaTeXDocument </a></li>
+<li><a href="#section_35">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
+<li><a href="#section_36">LaTeXDocumentCopy </a></li>
+<li><a href="#section_37">LaTeXDocumentInstall </a></li>
 </ul>
-<li><a href="#section_37">Examining the dependency graph </a>
+<li><a href="#section_38">Examining the dependency graph </a>
 <ul>
-<li><a href="#section_38">dependencies, dependencies-all </a></li>
-<li><a href="#section_39">target </a></li>
-<li><a href="#section_40">rule </a></li>
+<li><a href="#section_39">dependencies, dependencies-all </a></li>
+<li><a href="#section_40">target </a></li>
+<li><a href="#section_41">rule </a></li>
 </ul>
-<li><a href="#section_41">References </a>
+<li><a href="#section_42">References </a>
 <ul>
-<li><a href="#section_42">See Also </a></li>
-<li><a href="#section_43">Version </a></li>
-<li><a href="#section_44">License and Copyright </a></li>
-<li><a href="#section_45">Author </a></li>
+<li><a href="#section_43">See Also </a></li>
+<li><a href="#section_44">Version </a></li>
+<li><a href="#section_45">License and Copyright </a></li>
+<li><a href="#section_46">Author </a></li>
 </ul>
 </li>
 </ul>
@@ -617,7 +618,29 @@ and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>libfoo.cma</tt
 <pre>
 OCamlLibrary(libfoo, foo bar)
 </pre>
-<h4><a name="section_26">OCamlLibraryCopy</a></h4>
+<h4><a name="section_26">OCamlPackage</a></h4>
+
+<p>
+The <tt>OCamlPackage</tt> function builds an OCaml package.
+<p>
+<tt>OCamlPackage(&lt;name&gt;, &lt;files&gt;)</tt>
+<p>
+The <tt>&lt;name&gt;</tt> and <tt>&lt;files&gt;</tt> are listed <em>without</em>
+suffixes.
+The <tt>&lt;files&gt;</tt> must have been compiled with the <tt>-for-pack &lt;ident&gt;</tt>
+flag to the OCaml compiler.
+<p>
+This function returns the list of all the targets that it defines the rules
+for (including the <tt>$(name)$(EXT_LIB)</tt> file when <tt>NATIVE_ENABLED</tt> is set).
+<p>
+The following code builds the <tt>libfoo.cmx</tt> package from the files <tt>package.cmx</tt>
+and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>package.cmo</tt> from
+<tt>foo.cmo</tt> and <tt>bar.cmo</tt> (if <tt>BYTE_ENABLED</tt> is set).
+<p>
+<pre>
+OCamlPackage(package, foo bar)
+</pre>
+<h4><a name="section_27">OCamlLibraryCopy</a></h4>
 
 <p>
 The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
@@ -626,14 +649,14 @@ The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
 <p>
 The <tt>&lt;interface-files&gt;</tt> specify additional interface files
 to be copied if the <tt>INSTALL_INTERFACES</tt> variable is true.
-<h4><a name="section_27">OCamlLibraryInstall</a></h4>
+<h4><a name="section_28">OCamlLibraryInstall</a></h4>
 
 <p>
 The <tt>OCamlLibraryInstall</tt> function builds a library
 and copies it to an install location in one step.
 <p>
 <tt>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</tt>
-<h4><a name="section_28">OCamlProgram</a></h4>
+<h4><a name="section_29">OCamlProgram</a></h4>
 
 <p>
 The <tt>OCamlProgram</tt> function builds an OCaml program. It returns the array with all
@@ -667,7 +690,7 @@ become dependencies of the target program.
 <dd> Flags to pass to both linkers.
 </dd>
 </dl>
-<h4><a name="section_29">OCamlProgramCopy</a></h4>
+<h4><a name="section_30">OCamlProgramCopy</a></h4>
 
 <p>
 The <tt>OCamlProgramCopy</tt> function copies an OCaml program to an install location.
@@ -681,17 +704,17 @@ Additional variables used:
 is copied; otherwise the byte-code executable is copied.
 </dd>
 </dl>
-<h4><a name="section_30">OCamlProgramInstall</a></h4>
+<h4><a name="section_31">OCamlProgramInstall</a></h4>
 
 <p>
 The <tt>OCamlProgramInstall</tt> function builds a programs and copies it to
 an install location in one step.
 <p>
 <tt>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</tt>
-<h2><a name="section_31">Building LaTeX programs</a></h2>
+<h2><a name="section_32">Building LaTeX programs</a></h2>
 
 <p>
-<h4><a name="section_32">Configuration variables</a></h4>
+<h4><a name="section_33">Configuration variables</a></h4>
 
 <p>
 The following variables can be modified in your project.
@@ -736,7 +759,7 @@ and depends on the version of LaTeX you have installed).
 to generate the <tt>.pdf</tt> document (default <tt>false</tt>).
 </dd>
 </dl>
-<h4><a name="section_33">LaTeXDocument</a></h4>
+<h4><a name="section_34">LaTeXDocument</a></h4>
 
 <p>
 The <tt>LaTeXDocument</tt> produces a LaTeX document.
@@ -756,7 +779,7 @@ taken from the <tt>TEXINPUTS</tt> environment variable).
 <dd> Additional files this document depends on.
 </dd>
 </dl>
-<h4><a name="section_34">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
+<h4><a name="section_35">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
 
 <pre>
 TeXGeneratedFiles(files)
@@ -775,7 +798,7 @@ The <tt>TeXGeneratedFiles</tt> function is <em>global</em>
 before any TeX files anywhere in the project are scanned for dependencies. The
 <tt>LocalTeXGeneratedFiles</tt> function follows the normal scoping rules of OMake.
 <p>
-<h4><a name="section_35">LaTeXDocumentCopy</a></h4>
+<h4><a name="section_36">LaTeXDocumentCopy</a></h4>
 
 <p>
 The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
@@ -783,16 +806,16 @@ The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
 <tt>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</tt>
 <p>
 This function copies just the <tt>.pdf</tt> and <tt>.ps</tt> files.
-<h4><a name="section_36">LaTeXDocumentInstall</a></h4>
+<h4><a name="section_37">LaTeXDocumentInstall</a></h4>
 
 <p>
 The <tt>LaTeXDocumentInstall</tt> builds a document and copies it to an
 install location in one step.
 <p>
 <tt>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</tt>
-<h2><a name="section_37">Examining the dependency graph</a></h2>
+<h2><a name="section_38">Examining the dependency graph</a></h2>
 
-<h4><a name="section_38">dependencies, dependencies-all</a></h4>
+<h4><a name="section_39">dependencies, dependencies-all</a></h4>
 
 <p>
 <pre>
@@ -835,7 +858,7 @@ building the project before it can be deleted. For a shorter form, see the
        rm $(dependencies-proper $(APP))
 </pre>
 <p>
-<h4><a name="section_39">target</a></h4>
+<h4><a name="section_40">target</a></h4>
 
 <pre>
    $(target targets) : Rule Array
@@ -845,7 +868,7 @@ building the project before it can be deleted. For a shorter form, see the
 <p>
 The <tt>target</tt> function returns the Target object associated with each
 of the targets. See the <tt>Target</tt> object for more information.
-<h4><a name="section_40">rule</a></h4>
+<h4><a name="section_41">rule</a></h4>
 
 <p>
 The <tt>rule</tt> function is called whenever a build rule is defined.
@@ -904,10 +927,10 @@ square brackets are used to indicate arrays.
         [[:name1:, option1], [:name2:, option2]]
         [expr1; expr2])
 </pre>
-<h2><a name="section_41">References</a></h2>
+<h2><a name="section_42">References</a></h2>
 
 <p>
-<h4><a name="section_42">See Also</a></h4>
+<h4><a name="section_43">See Also</a></h4>
 
 <p>
 <a href="omake.html">omake(1)</a>,
@@ -923,12 +946,12 @@ square brackets are used to indicate arrays.
 <a href="osh.html">osh(1)</a>,
 <em>make</em>(1)
 <p>
-<h4><a name="section_43">Version</a></h4>
+<h4><a name="section_44">Version</a></h4>
 
 <p>
 Version: 0.9.6.9 of April 11, 2006.
 <p>
-<h4><a name="section_44">License and Copyright</a></h4>
+<h4><a name="section_45">License and Copyright</a></h4>
 
 <p>
 &copy;2003-2006, Mojave Group, Caltech
@@ -947,7 +970,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <p>
-<h4><a name="section_45">Author</a></h4>
+<h4><a name="section_46">Author</a></h4>
 
 <p>
 Jason Hickey <em>et. al.</em><br>

@@ -393,12 +393,49 @@ OTHER SPECIAL TARGETS
            echo CONFIG_READ is $(CONFIG_READ)
 
 
+       You may also specify dependencies to an .INCLUDE rule.
+
+          .INCLUDE: config: config.defaults
+             cp config.defaults config
+
+
+       A word of caution is in order here. The usual policy is used for deter-
+       mining when the rule is out-of-date. The rule is executed if any of the
+       following hold.
+
+
+       *      the target does not exist,
+
+       *      the rule has never been executed before,
+
+       *      any  of  the following have changed since the last time the rule
+              was executed,
+
+              *      the target,
+
+              *      the dependencies,
+
+              *      the commands-text.
+
+
+       In some of the cases, this will mean that the rule is executed even  if
+       the target file already exists. If the target is a file that you expect
+       to edit by hand (and therefore you don't want  to  overwrite  it),  you
+       should  make  the  rule  evaluation  conditional  on whether the target
+       already exists.
+
+          .INCLUDE: config: config.defaults
+              # Don't overwrite my carefully hand-edited file
+              if $(not $(file-exists config))
+                 cp config.defaults config
+
+
 
    .PHONY
-       A  ``phony''  target is a target that is not a real file, but exists to
-       collect a set of dependencies.  Phony targets are  specified  with  the
+       A ``phony'' target is a target that is not a real file, but  exists  to
+       collect  a  set  of dependencies.  Phony targets are specified with the
        .PHONY rule. In the following example, the install target does not cor-
-       respond to a file, but it corresponds to some commands that  should  be
+       respond  to  a file, but it corresponds to some commands that should be
        run whenever the install target is built (for example, by running omake
        install).
 
@@ -410,29 +447,29 @@ OTHER SPECIAL TARGETS
 
 
 RULE SCOPING
-       As we have mentioned before, omake is a scoped language. This  provides
+       As  we have mentioned before, omake is a scoped language. This provides
        great flexibility---different parts of the project can define different
-       configurations without interfering with one another (for  example,  one
-       part  of the project might be compiled with CFLAGS=-O3 and another with
+       configurations  without  interfering with one another (for example, one
+       part of the project might be compiled with CFLAGS=-O3 and another  with
        CFLAGS=-g).
 
-       But how is the scope for a target file selected? Suppose we are  build-
-       ing  a file dir/foo.o.  omake uses the following rules to determine the
+       But  how is the scope for a target file selected? Suppose we are build-
+       ing a file dir/foo.o.  omake uses the following rules to determine  the
        scope.
 
 
-       *      First, if there is an explicit rule for  building  dir/foo.o  (a
-              rule  with  no  wildcards), the context for that rule determines
+       *      First,  if  there  is an explicit rule for building dir/foo.o (a
+              rule with no wildcards), the context for  that  rule  determines
               the scope for building the target.
 
-       *      Otherwise, the directory dir/ must be part of the project.  This
-              normally  means  that  a configuration file dir/OMakefile exists
-              (although, see the .SUBDIRS section for another way  to  specify
-              the  OMakefile).  In  this  case, the scope of the target is the
+       *      Otherwise,  the directory dir/ must be part of the project. This
+              normally means that a configuration  file  dir/OMakefile  exists
+              (although,  see  the .SUBDIRS section for another way to specify
+              the OMakefile). In this case, the scope of  the  target  is  the
               scope at the end of the dir/OMakefile.
 
-       To illustrate rule scoping, let's go back to the example of  a  ``Hello
-       world''  program  with two files. Here is an example OMakefile (the two
+       To  illustrate  rule scoping, let's go back to the example of a ``Hello
+       world'' program with two files. Here is an example OMakefile  (the  two
        definitions of CFLAGS are for illustration).
 
            # The executable is compiled with debugging
@@ -444,16 +481,16 @@ RULE SCOPING
            CFLAGS += -O3
 
 
-       In this project, the target hello is explicit.  The scope of the  hello
-       target  is the line beginning with hello:, where the value of CFLAGS is
-       -g. The other two targets, hello_code.o and hello_lib.o do  not  appear
-       as  explicit  targets,  so  their scope is at the end of the OMakefile,
-       where the CFLAGS variable is defined to be -g -O3. That is, hello  will
-       be  linked  with  CFLAGS=-g  and  the  .o  files  will be compiled with
+       In  this project, the target hello is explicit.  The scope of the hello
+       target is the line beginning with hello:, where the value of CFLAGS  is
+       -g.  The  other two targets, hello_code.o and hello_lib.o do not appear
+       as explicit targets, so their scope is at the  end  of  the  OMakefile,
+       where  the CFLAGS variable is defined to be -g -O3. That is, hello will
+       be linked with CFLAGS=-g  and  the  .o  files  will  be  compiled  with
        CFLAGS=-g -O3.
 
-       We can change this behavior for any of the targets by  specifying  them
-       as   explicit   targets.  For  example,  suppose  we  wish  to  compile
+       We  can  change this behavior for any of the targets by specifying them
+       as  explicit  targets.  For  example,  suppose  we  wish   to   compile
        hello_lib.o with a preprocessor variable LIBRARY.
 
            # The executable is compiled with debugging
@@ -477,10 +514,10 @@ RULE SCOPING
 
 
    SCOPING OF IMPLICIT RULES
-       Implicit  rules  (rules  containing  wildcard patterns) are not global,
-       they follow the normal scoping convention. This allows different  parts
-       of  a  project to have different sets of implicit rules. If we like, we
-       can modify the example above to provide a new implicit rule for  build-
+       Implicit rules (rules containing wildcard  patterns)  are  not  global,
+       they  follow the normal scoping convention. This allows different parts
+       of a project to have different sets of implicit rules. If we  like,  we
+       can  modify the example above to provide a new implicit rule for build-
        ing hello_lib.o.
 
            # The executable is compiled with debugging
@@ -498,17 +535,17 @@ RULE SCOPING
            CFLAGS += -O3
 
 
-       In  this  case,  the  target hello_lib.o is built in a scope with a new
-       implicit rule for building %.o files. The implicit rule adds the  -DLI-
-       BRARY  option.  This  implicit  rule  is  defined  only  for the target
+       In this case, the target hello_lib.o is built in a  scope  with  a  new
+       implicit  rule for building %.o files. The implicit rule adds the -DLI-
+       BRARY option. This  implicit  rule  is  defined  only  for  the  target
        hello_lib.o; the target hello_code.o is built as normal.
 
 
    SCOPING OF .SCANNER RULES
-       Scanner rules are scoped the same way as normal rules. If the  .SCANNER
-       rule  is  explicit (containing no wildcard patterns), then the scope of
-       the scan target is the same as the the rule.  If the .SCANNER  rule  is
-       implicit,  then the environment is taken from the :scanner: dependency.
+       Scanner  rules are scoped the same way as normal rules. If the .SCANNER
+       rule is explicit (containing no wildcard patterns), then the  scope  of
+       the  scan  target is the same as the the rule.  If the .SCANNER rule is
+       implicit, then the environment is taken from the :scanner:  dependency.
 
            # The executable is compiled with debugging
            CFLAGS = -g
@@ -532,17 +569,17 @@ RULE SCOPING
                   $(CC) $(CFLAGS) -c $<
 
 
-       Again, this is for illustration---it is  unlikely  you  would  need  to
+       Again,  this  is  for  illustration---it  is unlikely you would need to
        write a complicated configuration like this! In this case, the .SCANNER
-       rule specifies that the C-compiler should be called with the  -MM  flag
-       to  compute  dependencies.  For  the target hello_lib.o, the scanner is
+       rule  specifies  that the C-compiler should be called with the -MM flag
+       to compute dependencies. For the target  hello_lib.o,  the  scanner  is
        called with CFLAGS=-g -DLIBRARY, and for hello_code.o it is called with
        CFLAGS=-g -O3.
 
 
    SCOPING FOR .PHONY TARGETS
-       Phony  targets  (targets  that  do not correspond to files) are defined
-       with a .PHONY: rule.  Phony targets are scoped as usual. The  following
+       Phony targets (targets that do not correspond  to  files)  are  defined
+       with  a .PHONY: rule.  Phony targets are scoped as usual. The following
        illustrates a common mistake, where the .PHONY target is declared after
        it is used.
 
@@ -556,7 +593,7 @@ RULE SCOPING
 
 
        This doesn't work as expected because the .PHONY declaration occurs too
-       late.  The proper way to write this example is to place the .PHONY dec-
+       late. The proper way to write this example is to place the .PHONY  dec-
        laration first.
 
            # Phony targets must be declared before being used
@@ -568,10 +605,10 @@ RULE SCOPING
                $(CC) $(CFLAGS) -o $@ $+
 
 
-       Phony targets are passed to subdirectories. As a practical  matter,  it
-       is  wise  to  declare all .PHONY targets in your root OMakefile, before
-       any .SUBDIRS. This will ensure that 1) they  are  considered  as  phony
-       targets  in  each  of the sbdirectories, and 2) you can build them from
+       Phony  targets  are passed to subdirectories. As a practical matter, it
+       is wise to declare all .PHONY targets in your  root  OMakefile,  before
+       any  .SUBDIRS.  This  will  ensure that 1) they are considered as phony
+       targets in each of the sbdirectories, and 2) you can  build  them  from
        the project root.
 
            .PHONY: all install clean
@@ -582,7 +619,7 @@ RULE SCOPING
 
 REFERENCES
    SEE ALSO
-       omake(1),   omake-quickstart(1),    omake-options(1),    omake-root(1),
+       omake(1),    omake-quickstart(1),    omake-options(1),   omake-root(1),
        omake-language(1),   omake-shell(1),   omake-rules(1),   omake-base(1),
        omake-system(1), omake-pervasives(1), osh(1), make(1)
 
@@ -595,13 +632,13 @@ REFERENCES
        (C)2003-2006, Mojave Group, Caltech
 
        This program is free software; you can redistribute it and/or modify it
-       under  the  terms of the GNU General Public License as published by the
-       Free Software Foundation; either version 2 of the License, or (at  your
+       under the terms of the GNU General Public License as published  by  the
+       Free  Software Foundation; either version 2 of the License, or (at your
        option) any later version.
 
-       This  program  is  distributed  in the hope that it will be useful, but
-       WITHOUT ANY  WARRANTY;  without  even  the  implied  warranty  of  MER-
-       CHANTABILITY  or  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+       This program is distributed in the hope that it  will  be  useful,  but
+       WITHOUT  ANY  WARRANTY;  without  even  the  implied  warranty  of MER-
+       CHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the  GNU  General
        Public License for more details.
 
        You should have received a copy of the GNU General Public License along
