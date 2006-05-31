@@ -36,6 +36,7 @@ open Lm_printf
 open Lm_heap
 open Lm_debug
 open Lm_symbol
+open Lm_notify
 open Lm_location
 open Lm_string_util
 
@@ -48,7 +49,6 @@ open Omake_rule
 open Omake_eval
 open Omake_state
 open Omake_symbol
-open Omake_notify
 open Omake_command
 open Omake_node_sig
 open Omake_exec_type
@@ -2005,7 +2005,7 @@ and invalidate_event_core env event =
          eprintf "Omake_build.invalidate_event_core: received event for node: %a@." pp_print_node node
    in
    let changed_flag =
-      (code = Omake_notify.Changed || code = Omake_notify.Created)
+      (code = Lm_notify.Changed || code = Lm_notify.Created)
       && is_leaf_node env node
       && Omake_cache.stat_changed cache node
    in
@@ -2643,7 +2643,7 @@ and build_core env dir_name dir start_time options targets =
 
       (* Polling loop *)
       if options.opt_poll_on_done then
-         if not Omake_notify.enabled then
+         if not Lm_notify.enabled then
             eprintf "*** omake: Polling is not enabled@."
          else
             notify_loop env options targets

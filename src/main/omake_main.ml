@@ -172,7 +172,7 @@ let spec =
               "Debug the parser generator";
            "-debug-parsing", Lm_arg.Set Omake_builtin_io_fun.debug_parsing, (**)
               "Debug OMake parsing operations";
-           "-debug-notify", Lm_arg.Set Omake_notify.debug_notify, (**)
+           "-debug-notify", Lm_arg.Set Lm_notify.debug_notify, (**)
               "Debug the FAM (-p filesystem watch) operations";
            "-debug-db", Lm_arg.Set Omake_env.debug_db, (**)
               "Debug the file database";

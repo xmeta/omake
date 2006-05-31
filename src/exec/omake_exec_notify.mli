@@ -44,7 +44,7 @@ sig
     * Get the next notification event.
     *)
    val pending    : ('exp, 'pid, 'value) t -> bool
-   val next_event : ('exp, 'pid, 'value) t -> Omake_notify.event
+   val next_event : ('exp, 'pid, 'value) t -> Lm_notify.event
 end
 
 (*!

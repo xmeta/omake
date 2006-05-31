@@ -53,7 +53,7 @@ type ('exp, 'pid, 'value) print_flag =
  *)
 type ('exp, 'pid, 'value) wait_internal_code =
    WaitInternalExited of id * int * 'value
- | WaitInternalNotify of Omake_notify.event
+ | WaitInternalNotify of Lm_notify.event
  | WaitInternalStarted of bool
  | WaitInternalNone
 
@@ -64,7 +64,7 @@ type ('exp, 'pid, 'value) wait_internal_code =
 type ('exp, 'pid, 'value) wait_code =
    WaitExited of id * int * 'value
  | WaitServer of int
- | WaitNotify of Omake_notify.event
+ | WaitNotify of Lm_notify.event
  | WaitNone
 
 (*
@@ -187,7 +187,7 @@ sig
     * nonblocking behavior.
     *)
    val pending : ('exp, 'pid, 'value) t -> bool
-   val next_event : ('exp, 'pid, 'value) t -> Omake_notify.event
+   val next_event : ('exp, 'pid, 'value) t -> Lm_notify.event
 end
 
 (*!

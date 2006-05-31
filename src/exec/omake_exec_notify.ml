@@ -32,11 +32,11 @@ open Omake_exec_type
 module Notify =
 struct
    (*
-    * Notification services are performed by Omake_notify.
+    * Notification services are performed by Lm_notify.
     *)
    type ('exp, 'pid, 'value) t =
-      { mutable notify_server : Omake_notify.t option;
-        mutable notify_event  : Omake_notify.event option
+      { mutable notify_server : Lm_notify.t option;
+        mutable notify_event  : Lm_notify.event option
       }
 
    (*
@@ -54,7 +54,7 @@ struct
    let close notify =
       match notify.notify_server with
          Some server ->
-            Omake_notify.close server;
+            Lm_notify.close server;
             notify.notify_server <- None;
             notify.notify_event <- None
        | None ->
@@ -68,19 +68,19 @@ struct
          Some server ->
             server
        | None ->
-            let server = Omake_notify.create () in
+            let server = Lm_notify.create () in
                notify.notify_server <- Some server;
                server
 
    let monitor notify node =
       let dir = Dir.absname (Node.dir node) in
       let server = start notify in
-         Omake_notify.monitor server dir false
+         Lm_notify.monitor server dir false
 
    let monitor_tree notify dir =
       let dir = Dir.absname dir in
       let server = start notify in
-         Omake_notify.monitor server dir true
+         Lm_notify.monitor server dir true
 
    (*
     * Get the next event.
@@ -91,7 +91,7 @@ struct
          { notify_event = Some _ } ->
             true
        | { notify_server = Some server } ->
-            Omake_notify.pending server
+            Lm_notify.pending server
        | { notify_server = None } ->
             false
 
@@ -101,7 +101,7 @@ struct
             notify.notify_event <- None;
             event
        | { notify_server = Some server } ->
-            Omake_notify.next_event server
+            Lm_notify.next_event server
        | { notify_server = None } ->
             raise (Failure "Omake_exec_notify.next_event: no monitors")
 
@@ -115,11 +115,11 @@ struct
     * File descriptors.
     *)
    let descriptors notify =
-      match Omake_notify.enabled, notify with
+      match Lm_notify.enabled, notify with
          true, { notify_event = None;
                  notify_server = Some server
          } ->
-            [Omake_notify.file_descr server]
+            [Lm_notify.file_descr server]
        | _ ->
             []
 
@@ -130,10 +130,10 @@ struct
       match notify with
          { notify_event = None;
            notify_server = Some server
-         } when Omake_notify.pending server ->
+         } when Lm_notify.pending server ->
             let event =
                Lm_thread_pool.blocking_section (fun () ->
-                     Omake_notify.next_event server) ()
+                     Lm_notify.next_event server) ()
             in
                notify.notify_event <- Some event
        | _ ->

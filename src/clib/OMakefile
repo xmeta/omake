@@ -14,6 +14,15 @@ CUTIL_FILES[] =
     lm_uname_ext.c
     lm_unix_cutil.c
     unixsupport.h
+    fam_win32.c
+    fam_kqueue.c
+    fam_inotify.c
+    fam_pseudo.h
+    lm_notify.c
+    inotify.h
+    inotify-syscalls.h
+    inotify-test.c
+    inotify.om
 
 MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
 
@@ -27,11 +36,12 @@ FILES[] =
     lm_uname_ext
     lm_unix_cutil
     lm_compat_win32
+    readline
+    omake_shell_sys
     fam_win32
     fam_kqueue
-    readline
-    omake_notify
-    omake_shell_sys
+    fam_inotify
+    lm_notify
 
 MakeStaticCLibrary(clib, $(FILES))
 
@@ -41,5 +51,4 @@ clean:
 #
 # Generate the Makefile
 #
-MakeLinkFiles(fam_pseudo.h)
 MakeMakefile()
