@@ -1728,10 +1728,18 @@ let to_channel outx env =
  * Saving state to .omakedb
  *)
 
+let pid = Unix.getpid () (* this is the PID of the main thread *)
+
 (*
  * Save the cache and environment to a file.
  *)
 let save_aux env =
+   (* Only the "master" thread should be saving the DB *)
+   if (pid <> Unix.getpid ()) then begin
+      eprintf "@[<hv3>*** OMake Internal ERROR:@ Slave thread %i trying to save db opened by the master thread %i@]@." (Unix.getpid ()) pid;
+      raise (Invalid_argument "Internal error: Slave thread trying to save the OMake DB")
+   end;
+
    (* Save the static values *)
    let () = venv_save_static_values env.env_venv in
 
@@ -1751,7 +1759,7 @@ let save_aux env =
          db_name
       else
          (* We want the name to be fairly unique in case locking had failed us. *)
-         sprintf ".#%s.%s.%i" db_name (Unix.gethostname ()) (Unix.getpid ())
+         sprintf ".#%s.%s.%i" db_name (Unix.gethostname ()) pid
    in
 
    (* Marshal the state to the output file *)
@@ -2080,7 +2088,7 @@ let rec main_loop env timeout_prompt timeout_save =
       eprintf "@[<hv 3>Failed:";
       command_iter env CommandFailedTag (fun command ->
             eprintf "@ %a" pp_print_command command);
-      eprintf "@]@."
+      eprintf "@]@.";
    end;
 
    if not (command_list_is_empty env CommandInitialTag) then begin
@@ -2091,7 +2099,7 @@ let rec main_loop env timeout_prompt timeout_save =
       process_scanned env;
       main_loop env timeout_prompt timeout_save
    end
-   else if (env.env_idle_count <> 0)
+   else if (env.env_idle_count > 0)
            && (env.env_error_code = 0)
            && (not (command_list_is_empty env CommandReadyTag))
    then begin
@@ -2101,8 +2109,10 @@ let rec main_loop env timeout_prompt timeout_save =
    else if env.env_idle_count == 0 || not (command_list_is_empty env CommandRunningTag) then
       let timeout_prompt, timeout_save = process_running env true timeout_prompt timeout_save in
          main_loop env timeout_prompt timeout_save
-   else
+   else begin
+      assert (env.env_idle_count >= 0);
       print_flush ()
+   end
 
 (************************************************************************
  * Printing.
@@ -2653,12 +2663,9 @@ let build options dir_name targets =
    wait_for_lock ();
    build_time (Unix.gettimeofday ()) options dir_name targets
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

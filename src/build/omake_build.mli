@@ -38,12 +38,9 @@ val debug_deps     : bool ref
  *)
 val build : omake_options -> string -> string list -> unit
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
