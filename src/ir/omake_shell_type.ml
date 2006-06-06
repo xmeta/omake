@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_location
@@ -237,7 +236,7 @@ struct
             apply_append = append
           } = apply
       in
-         fprintf buf "@[<hv 3>%a%a%a%a%a@]" (**)
+         fprintf buf "@[<hv 3>%a%a(%a )%a%a@]" (**)
             pp_print_env env
             pp_print_symbol f
             pp_print_args args
@@ -302,12 +301,9 @@ struct
             pp_print_stdout (stdout, stderr, append)
 end
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
