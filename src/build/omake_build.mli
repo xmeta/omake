@@ -34,6 +34,11 @@ val debug_build    : bool ref
 val debug_deps     : bool ref
 
 (*
+ * .omakedb save interval (0 - disable)
+ *)
+val save_interval  : float ref
+
+(*
  * Build the system.
  *)
 val build : omake_options -> string -> string list -> unit

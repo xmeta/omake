@@ -64,12 +64,13 @@ open Omake_command_digest
 module Pos = MakePos (struct let name = "Omake_build" end);;
 open Pos
 
+let save_interval = ref Omake_magic.default_save_interval
+
 (*
- * These should probably be options.
+ * XXX: Should these be options as well?
  *)
 let prompt_interval = 1.0
 let prompt_long_interval = 3.0
-let save_interval   = 15.0
 
 (*
  * Build debugging.
@@ -1909,10 +1910,10 @@ let rec process_running env notify timeout_prompt timeout_save =
                let options = venv_options command.command_venv in
                let now = Unix.gettimeofday () in
                let timeout_prompt, timeout_save =
-                  if now > timeout_save then begin
+                  if ! save_interval > 0.0 && now > timeout_save then begin
                      print_saving options;
                      save env;
-                     now +. prompt_long_interval, now +. save_interval
+                     now +. prompt_long_interval, now +. ! save_interval
                   end
                   else if now > timeout_prompt then
                      let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
@@ -2480,7 +2481,7 @@ let build_target env print target =
  *)
 let make env =
    let now = Unix.gettimeofday () in
-      main_loop env (now +. prompt_interval) (now +. save_interval)
+      main_loop env (now +. prompt_interval) (now +. !save_interval)
 
 (*
  * Wait for notifications.

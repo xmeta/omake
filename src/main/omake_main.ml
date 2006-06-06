@@ -94,7 +94,10 @@ let spec =
       ["Make flags", (**)
           options_spec;
        "Cache management", (**)
-          ["--force-dotomake", Lm_arg.Set Omake_state.always_use_dotomake, (**)
+          ["--save-interval", Lm_arg.Float (fun f -> Omake_build.save_interval := f), (**)
+              (sprintf "Save the build DB (\".omakedb\") every x seconds (0 disables, default: %F)" (**)
+                  Omake_magic.default_save_interval);
+           "--force-dotomake", Lm_arg.Set Omake_state.always_use_dotomake, (**)
               "Always use $HOME/.omake for .omc cache files";
            "--dotomake", Lm_arg.String (fun s -> Omake_state.set_omake_dir s), (**)
               "Use the specified directory in place of $HOME/.omake"];
@@ -333,12 +336,9 @@ let _ =
             else
                Omake_exn_print.catch main options
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

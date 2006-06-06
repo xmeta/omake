@@ -44,6 +44,7 @@ let omc_files   = ref []
 let omo_files   = ref []
 let libdir      = ref "/unknown"
 let version_txt = ref "version.txt"
+let default_save_interval = ref 15.0
 
 let anon s =
    let p =
@@ -68,6 +69,8 @@ let spec =
     "--omc-files",   Arg.Unit (fun () -> mode := OmcFiles), "specify the files to scan for the IR magic number";
     "--omo-files",   Arg.Unit (fun () -> mode := OmoFiles), "specify the files to scan for the object magic number";
     "--version",     Arg.String (fun s -> version_txt := s), "specify the version.txt file";
+    "--default_save_interval", 
+         Arg.Float (fun f -> default_save_interval := f), "specify the default .omakedb save interval";
     "-o",            Arg.String (fun s -> output_file := Some s), "set the output file"]
 
 let usage = "Generate special files"
@@ -237,6 +240,7 @@ let omake_magic buf =
          Unix.tm_sec = sec
        } = Unix.localtime now
    in
+      fprintf buf "let default_save_interval = %F\n" !default_save_interval;
       fprintf buf "let input_magic inx = let s = String.make %d ' ' in really_input inx s 0 %d; s\n" digest_len digest_len;
       fprintf buf "let output_magic = output_string\n";
       fprintf buf "let cache_magic = \"%s\"\n" (digest_files ".cache.magic" ".odb" !cache_files);
