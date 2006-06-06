@@ -104,15 +104,7 @@ let parse_command venv dir target loc flags line =
    }
 
 let parse_commands venv dir target loc lines =
-   let lines =
-      List.fold_left (fun lines (flags, line) ->
-            match line with
-               CommandPipe (PipeCommand (_, { cmd_argv = [] })) ->
-                  lines
-             | _ ->
-                  parse_command venv dir target loc flags line :: lines) [] lines
-   in
-      List.rev lines
+   List.map (fun (flags, line) -> parse_command venv dir target loc flags line) lines
 
 (*
  * Allow output in the command.
@@ -120,12 +112,9 @@ let parse_commands venv dir target loc lines =
 let command_allow_output command =
    { command with command_flags = AllowOutputFlag :: command.command_flags }
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
