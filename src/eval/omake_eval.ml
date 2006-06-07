@@ -336,11 +336,11 @@ and find_include_file venv pos loc filename =
                         raise (OmakeException (loc_pos loc pos, LazyError print_error))
       else
          let dirname = Filename.dirname filename in
-         let filename = Filename.basename filename in
-         let fullname = filename ^ omake_file_suffix in
+         let basename = Filename.basename filename in
+         let fullname = basename ^ omake_file_suffix in
          let path = venv_find_var venv ScopeGlobal pos loc omakepath_sym in
-         let path = values_of_value venv pos path in
-         let path = path_of_values venv pos path dirname in
+         let full_path = values_of_value venv pos path in
+         let path = path_of_values venv pos full_path dirname in
          let cache = venv_cache venv in
          let listing = Omake_cache.ls_path cache path in
             try
@@ -352,14 +352,19 @@ and find_include_file venv pos loc filename =
             with
                Not_found ->
                   try
-                     match Omake_cache.listing_find cache listing filename with
+                     match Omake_cache.listing_find cache listing basename with
                         DirEntry dir ->
                            raise (OmakeException (loc_pos loc pos, StringDirError ("is a directory", dir)))
                       | NodeEntry node ->
                            node
                   with
                      Not_found ->
-                        raise (OmakeException (loc_pos loc pos, StringStringError ("include file not found", filename)))
+                        let print_error buf =
+                           fprintf buf "@[<hv 3>include file %s not found in OMAKEPATH@ (@[<hv3>OMAKEPATH[] =%a@])@]" (**)
+                              filename
+                              pp_print_value_list full_path
+                        in
+                           raise (OmakeException (loc_pos loc pos, LazyError print_error))
 
 and open_ir venv filename pos loc =
    let pos = string_pos "open_ir" pos in
