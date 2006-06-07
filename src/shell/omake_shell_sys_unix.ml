@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -179,26 +179,29 @@ let create_thread info =
    in
    let pid = Unix.fork () in
       if pid = 0 then
-         let pgrp =
-            if pgrp = 0 then
-               let pid = Unix.getpid () in
-                  setpgid pid pid;
-                  if not bg then
-                     set_tty_pgrp pgrp;
-                  pid
-            else
-               pgrp
-         in
          let code =
-            dup stdin stdout stderr;
-            do_close_on_fork ();
-            ignore (Sys.signal Sys.sigint  Sys.Signal_default);
-            ignore (Sys.signal Sys.sigquit Sys.Signal_default);
-            ignore (Sys.signal Sys.sigtstp Sys.Signal_default);
-            try f Unix.stdin Unix.stdout Unix.stderr pgrp with
-               exn ->
-                  eprintf "%a@." pp_print_exn exn;
-                  1
+            try
+               let pgrp =
+                  if pgrp = 0 then
+                     let pid = Unix.getpid () in
+                        setpgid pid pid;
+                        if not bg then
+                           set_tty_pgrp pgrp;
+                        pid
+                  else
+                     pgrp
+               in
+               dup stdin stdout stderr;
+               do_close_on_fork ();
+               ignore (Sys.signal Sys.sigint  Sys.Signal_default);
+               ignore (Sys.signal Sys.sigquit Sys.Signal_default);
+               ignore (Sys.signal Sys.sigtstp Sys.Signal_default);
+               f Unix.stdin Unix.stdout Unix.stderr pgrp
+            with exn ->
+               let () =
+                  try eprintf "%a@." pp_print_exn exn with _ -> ()
+               in
+                  Omake_state.exn_error_code
          in
             exit code
       else
@@ -227,25 +230,25 @@ let create_process info =
  *)
    let pid = Unix.fork () in
       if pid = 0 then
-         let () =
-            if pgrp = 0 then
-               let pid = Unix.getpid () in
-                  setpgid pid pid;
-                  if not bg then
-                     set_tty_pgrp pgrp;
-         in
-            dup stdin stdout stderr;
-            Unix.handle_unix_error Unix.chdir dir;
-            Unix.handle_unix_error (fun () -> Unix.execve exe argv env) ()
+         try
+            let () =
+               if pgrp = 0 then
+                  let pid = Unix.getpid () in
+                     setpgid pid pid;
+                     if not bg then
+                        set_tty_pgrp pgrp;
+            in
+               dup stdin stdout stderr;
+               Unix.handle_unix_error Unix.chdir dir;
+               Unix.handle_unix_error (fun () -> Unix.execve exe argv env) ()
+         with _ ->
+            exit Omake_state.exn_error_code
       else
          pid
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
