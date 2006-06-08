@@ -1905,7 +1905,13 @@ let eval_open_file = open_ir
  * Project compiler.
  *)
 let compile venv =
-   let node = venv_intern venv PhonyProhibited makeroot_name in
+   let rootname =
+      if Sys.file_exists makeroot_name then
+         makeroot_name
+      else
+         makeroot_short_name
+   in
+   let node = venv_intern venv PhonyProhibited rootname in
    let venv = venv_add_file venv node in
    let loc = bogus_loc (Node.fullname node) in
    let pos = string_pos "compile" (loc_exp_pos loc) in

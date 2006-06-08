@@ -212,20 +212,22 @@ let chroot () =
    let cwd =
       try
          Unix.getcwd ()
-      with Unix.Unix_error _ ->
-         eprintf "*** omake: fatal error: current directory does not exist@.";
-         exit 1
+      with
+         Unix.Unix_error _ ->
+            eprintf "*** omake: fatal error: current directory does not exist@.";
+            exit 1
    in
    let len = String.length cwd in
    let start = Lm_filename_util.drive_skip cwd in
    let rec search i =
       if i < start then
-         raise (OmakeFatal ("can not find " ^ makeroot_name))
+         raise (OmakeFatal ("can not find " ^ makeroot_name ^ " or " ^ makeroot_short_name))
       else if cwd.[i] = '/' || cwd.[i] = '\\' then
          (* Maybe file is in this directory *)
          let dir = String.sub cwd 0 i in
-         let filename = Filename.concat dir makeroot_name in
-            if Sys.file_exists filename then
+            if Sys.file_exists (Filename.concat dir makeroot_name)
+               || Sys.file_exists (Filename.concat dir makeroot_short_name)
+            then
                let rest = String.sub cwd (succ i) (len - i - 1) in
                   dir, rest
             else
@@ -234,11 +236,11 @@ let chroot () =
          search (pred i)
    in
    let dir, rest =
-      let filename = Filename.concat cwd makeroot_name in
-         if Sys.file_exists filename then
-            cwd, "."
-         else
-            search (pred len)
+      if Sys.file_exists (Filename.concat cwd makeroot_name)
+         || Sys.file_exists (Filename.concat cwd makeroot_short_name) then
+         cwd, "."
+      else
+         search (pred len)
    in
       if rest <> "." then
          eprintf "*** omake: changing directory to %s@." dir;

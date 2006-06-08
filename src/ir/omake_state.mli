@@ -46,6 +46,7 @@ val db_name : string
  *)
 val makefile_name : string
 val makeroot_name : string
+val makeroot_short_name : string
 val omake_file_suffix : string
 
 (*

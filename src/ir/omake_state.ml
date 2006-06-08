@@ -116,6 +116,7 @@ let db_name = ".omakedb"
 let makefile_name = "OMakefile"
 let makeroot_name = "OMakeroot"
 let omake_file_suffix = ".om"
+let makeroot_short_name = "Root" ^ omake_file_suffix
 
 let omake_dir_ref = ref None
 let cache_dir_ref = ref None
@@ -213,7 +214,7 @@ let lib_dir, lib_dir_reason =
             Lm_unix_util.registry_find Lm_unix_util.HKEY_CURRENT_USER key_name field_name,
                "HKEY_CURRENT_USER\\" ^ key_name ^ "\\" ^ field_name ^ " registry key"
          with Not_found ->
-            try 
+            try
                Lm_unix_util.registry_find Lm_unix_util.HKEY_LOCAL_MACHINE key_name field_name,
                   "HKEY_LOCAL_MACHINE\\" ^ key_name ^ "\\" ^ field_name ^ " registry key"
             with Not_found ->
