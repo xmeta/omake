@@ -309,16 +309,6 @@ and pp_print_exp_list buf el =
 and pp_print_prog buf el =
    fprintf buf "@[<v 0>%a@]" pp_print_exp_list el
 
-and pp_print_rule_commands buf commands =
-   List.iter (fun command -> fprintf buf "@ %a" pp_print_rule_command command) commands
-
-and pp_print_rule_command buf command =
-   match command with
-      RuleSection (arg, e) ->
-         fprintf buf "@[<hv 3>section %a@ %a@]" pp_print_string_exp arg pp_print_exp e
-    | RuleString e ->
-         pp_print_string_exp buf e
-
 and pp_print_commands buf el =
    List.iter (fun e -> fprintf buf "@ %a" pp_print_string_exp e) el
 
