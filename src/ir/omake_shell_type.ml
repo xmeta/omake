@@ -21,6 +21,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_location
@@ -208,13 +209,15 @@ struct
    (*
     * Print the argument lists.
     *)
-   let pp_print_args buf args =
-      List.iter (fun arg ->
-            fprintf buf " %a" pp_print_arg_apply arg) args
+   let pp_print_args buf = function
+      [] ->
+         ()
+    | arg :: args ->
+          pp_print_arg_apply buf arg;
+          List.iter (fun arg -> fprintf buf " %a" pp_print_arg_apply arg) args
 
    let pp_print_argv buf argv =
-      List.iter (fun arg ->
-            fprintf buf " %a" pp_print_arg_command arg) argv
+      List.iter (fun arg -> fprintf buf " %a" pp_print_arg_command arg) argv
 
    (*
     * Print the environment.
@@ -236,7 +239,7 @@ struct
             apply_append = append
           } = apply
       in
-         fprintf buf "@[<hv 3>%a%a(%a )%a%a@]" (**)
+         fprintf buf "@[<hv 3>%aShell.%a(%a)%a%a@]" (**)
             pp_print_env env
             pp_print_symbol f
             pp_print_args args
