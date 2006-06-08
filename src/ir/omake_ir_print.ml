@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 MetaPRL Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -200,13 +200,6 @@ and pp_print_string_exp_list buf sl =
     | s :: sl ->
          fprintf buf "%a,@ %a" pp_print_string_exp s pp_print_string_exp_list sl
 
-and pp_print_string_exp_opt buf s_opt =
-   match s_opt with
-      Some s ->
-         pp_print_string_exp buf s
-    | None ->
-         pp_print_string buf "<none>"
-
 (*
  * Print an expression.
  *)
@@ -335,12 +328,9 @@ and pp_print_rule_command buf command =
 and pp_print_commands buf el =
    List.iter (fun e -> fprintf buf "@ %a" pp_print_string_exp e) el
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
