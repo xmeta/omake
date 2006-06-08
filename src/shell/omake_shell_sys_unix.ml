@@ -197,11 +197,14 @@ let create_thread info =
                ignore (Sys.signal Sys.sigquit Sys.Signal_default);
                ignore (Sys.signal Sys.sigtstp Sys.Signal_default);
                f Unix.stdin Unix.stdout Unix.stderr pgrp
-            with exn ->
-               let () =
-                  try eprintf "%a@." pp_print_exn exn with _ -> ()
-               in
-                  Omake_state.exn_error_code
+            with 
+               Omake_env.ExitException (_, code) ->
+                  code
+             | exn ->
+                  let () = 
+                     try eprintf "%a@." pp_print_exn exn with _ -> ()
+                  in
+                     Omake_state.exn_error_code
          in
             exit code
       else

@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -634,13 +634,13 @@ let find_alias_exn shell_obj venv pos loc exe =
           | OmakeException _
           | UncaughtException _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-               1, ValNone, None
+               Omake_state.exn_error_code, ValNone, None
           | Unix.Unix_error _
           | Sys_error _
           | Not_found
           | Failure _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
-               1, ValNone, None
+               Omake_state.exn_error_code, ValNone, None
       in
          if !debug_eval then
             eprintf "normalize_apply: internal function is done: %d, %a@." code pp_print_value value;
@@ -1321,13 +1321,13 @@ and eval_command venv stdout stderr pos loc e =
           | OmakeException _
           | UncaughtException _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-               1
+               Omake_state.exn_error_code
           | Unix.Unix_error _
           | Sys_error _
           | Not_found
           | Failure _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
-               1
+               Omake_state.exn_error_code
       in
          if !debug_eval then
             eprintf "eval_command: internal function is done: %d@." code;
@@ -1440,12 +1440,9 @@ and normalize_group venv pos loc options group =
    in
       PipeGroup (loc, group)
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

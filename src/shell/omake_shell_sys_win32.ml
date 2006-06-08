@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -112,17 +112,25 @@ let create_thread info =
    let stdin  = Unix.dup stdin  in
    let stdout = Unix.dup stdout in
    let stderr = Unix.dup stderr in
+   let cleanup () =
+      try_close stdin;
+      try_close stdout;
+      try_close stderr
+   in
    let _ =
       Lm_thread_pool.create false (fun () ->
             init_thread_pid pid;
             let code =
-               try f stdin stdout stderr pid with
-                  exn ->
+               try
+                  f stdin stdout stderr pid
+               with
+                  Omake_env.ExitException (_, code) ->
+                     cleanup ();
+                     code
+                | exn ->
                      eprintf "@[<v 3>%a@ Thread failed with an exception, cleaning up@]@." Omake_exn_print.pp_print_exn exn;
-                     try_close stdin;
-                     try_close stdout;
-                     try_close stderr;
-                     1
+                     cleanup ();
+                     Omake_state.exn_error_code
             in
                release_thread_pid pid code)
    in
@@ -133,12 +141,9 @@ let create_thread info =
  *)
 let create_process_group = create_thread
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
