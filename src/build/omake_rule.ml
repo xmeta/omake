@@ -602,6 +602,8 @@ let find_alias_exn shell_obj venv pos loc exe =
 
    (* Found the function, no exceptions now *)
    let f venv stdin stdout stderr env argv =
+      if !debug_eval || !debug_shell then
+         eprintf "Running %s, stdin=%i, stdout=%i, stderr=%i@." exe (Obj.magic stdin) (Obj.magic stdout) (Obj.magic stderr);
       let venv   = venv_fork venv in
       let venv   = List.fold_left (fun venv (v, s) -> venv_setenv venv v s) venv env in
       let stdin  = venv_add_channel venv "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false stdin in
@@ -1295,7 +1297,7 @@ and eval_shell_internal stdout stderr command =
  *)
 and eval_command venv stdout stderr pos loc e =
    let f stdin stdout stderr =
-      if !debug_eval then
+      if !debug_eval || !debug_shell then
          eprintf "eval_command: evaluating internal function: stderr = %d@." (Lm_unix_util.int_of_fd stderr);
       let venv   = venv_fork venv in
       let stdin  = venv_add_channel venv "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false stdin in

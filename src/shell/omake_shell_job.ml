@@ -434,7 +434,7 @@ let create_apply_top venv stdin stdout stderr apply =
       with
          exn ->
             if !debug_shell then
-               eprintf "create_apply_top: error@.";
+               eprintf "create_apply_top: error: %a@." Omake_exn_print.pp_print_exn exn;
             cleanup ();
             raise exn
 
@@ -697,6 +697,8 @@ and create_group venv pgrp stdin stdout stderr group =
  * Create the pipe.
  *)
 and create_pipe_aux venv pgrp fork stdin stdout stderr pipe =
+   if !debug_shell then
+      eprintf "create_pipe_aux: %a@." pp_print_string_pipe pipe;
    match pipe with
       PipeApply (loc, apply) ->
          if fork then
@@ -948,7 +950,7 @@ let create_job venv pipe stdin stdout stderr =
  *)
 let create_process venv pipe stdin stdout stderr =
    if !debug_shell then
-      eprintf "Creating pipe: %a@." pp_print_string_pipe pipe;
+      eprintf "Creating process: %a@." pp_print_string_pipe pipe;
    match pipe with
       (*
        * The restriction to stdout and stderr is necessary to
@@ -1115,12 +1117,9 @@ let waitpid venv pos pid =
        | ResultPid (code, value) ->
             0, Unix.WEXITED code, value
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
