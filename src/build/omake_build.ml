@@ -2437,6 +2437,7 @@ let wait_for_lock () =
        | Failure err ->
             raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ err))
    in
+      Omake_shell_sys.set_close_on_exec fd;
       (* Print the message to the lock file  *)
       try
          ignore (Unix.lseek fd 0 Unix.SEEK_SET);
