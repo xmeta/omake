@@ -927,6 +927,67 @@ diverted.
 For example, if the current directory contains the files OMakeroot,
 OMakefile, and hello.c, then $(shell ls) evaluates to
 hello.c OMakefile OMakeroot (on a Unix system).
+.SS WHILE
+.PP
+.Vb
+   while <test>
+      <body>
+.Ve
+.PP
+\-\-or\-\-
+.PP
+.Vb
+    while <test>
+    case <test1>
+       <body1>
+    ...
+    case <testn>
+       <bodyn>
+    default
+       <bodyd>
+.Ve
+.PP
+The loop is executed while the test is true.
+In the first form, the <body> is executed on every loop iteration.
+In the second form, the body <bodyI> is selected, as the first
+case where the test <testI> is true. If none apply, the optional
+default case is evaluated. If no cases are true, the loop exits.
+The environment is automatically exported.
+.PP
+Examples.
+.PP
+Iterate for i from 0 to 9\&.
+.PP
+.Vb
+    i = 0
+    while $(lt $i, 10)
+       echo $i
+       i = $(add $i, 1)
+.Ve
+.PP
+The following example is equivalent.
+.PP
+.Vb
+   i = 0
+   while true
+   case $(lt $i, 10)
+      echo $i
+      i = $(add $i, 1)
+.Ve
+.PP
+The following example is similar, but some special cases are printed.
+value is printed.
+.PP
+.Vb
+    i = 0
+    while $(lt $i, 10)
+    case $(equal $i, 0)
+       echo zero
+    case $(equal $i, 1)
+       echo one
+    default
+       echo $i
+.Ve
 .SH ARITHMETIC
 
 .SS INT

@@ -142,6 +142,8 @@ let else_sym      = Lm_symbol.add "else"
 let elseif_sym    = Lm_symbol.add "elseif"
 let switch_sym    = Lm_symbol.add "switch"
 let case_sym      = Lm_symbol.add "case"
+let do_sym        = Lm_symbol.add "do"
+let while_sym     = Lm_symbol.add "while"
 let default_sym   = Lm_symbol.add "default"
 let include_sym   = Lm_symbol.add "include"
 let section_sym   = Lm_symbol.add "section"
@@ -177,7 +179,7 @@ let fsubst_sym    = Lm_symbol.add "fsubst"
 let cases_syms    = [awk_sym; fsubst_sym]
 let cases_set     = List.fold_left SymbolSet.add SymbolSet.empty cases_syms
 
-let clauses_syms  = [case_sym; default_sym; when_sym; catch_sym; finally_sym]
+let clauses_syms  = [case_sym; default_sym; when_sym; catch_sym; finally_sym; do_sym]
 let clauses_set   = List.fold_left SymbolSet.add SymbolSet.empty clauses_syms
 
 (*

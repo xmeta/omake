@@ -368,7 +368,9 @@ let lexeme_name state lexbuf =
        | "export"
        | "open"
        | "declare"
-       | "value" ->
+       | "value"
+       | "while"
+       | "do" ->
              TokKeyword (id, loc)
        | "catch" ->
              TokCatch (id, loc)

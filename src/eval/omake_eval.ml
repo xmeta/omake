@@ -1069,6 +1069,44 @@ and eval_body_value venv pos v =
     | ValMethodApply _ ->
          raise (Invalid_argument "eval_body_value")
 
+(* XXX: JYH: this is temporary, there is no need for it in 0.9.9 *)
+and eval_body_value_env venv pos v =
+   match eval_value venv pos v with
+      ValSequence sl ->
+         venv, ValSequence (List.map (eval_body_value venv pos) sl)
+    | ValArray sl ->
+         venv, ValArray (List.map (eval_body_value venv pos) sl)
+    | ValBody (env, body) ->
+         let venv = venv_with_env venv env in
+            eval_exp venv ValNone body
+    | ValNone
+    | ValInt _
+    | ValFloat _
+    | ValData _
+    | ValString _
+    | ValQuote _
+    | ValQuoteString _
+    | ValDir _
+    | ValNode _
+    | ValFun _
+    | ValFunValue _
+    | ValPrim _
+    | ValRules _
+    | ValMap _
+    | ValObject _
+    | ValEnv _
+    | ValChannel _
+    | ValClass _
+    | ValCases _
+    | ValOther _ as result ->
+         venv, result
+    | ValKey _
+    | ValApply _
+    | ValImplicit _
+    | ValSuperApply _
+    | ValMethodApply _ ->
+         raise (Invalid_argument "eval_body_value_env")
+
 and eval_body_exp venv pos x v =
    match eval_value venv pos v with
       ValSequence sl ->

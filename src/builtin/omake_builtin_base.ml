@@ -2225,6 +2225,100 @@ let export venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 
+(*
+ * Loop.
+ * \begin{doc}
+ * \subsection{while}
+ *
+ * \begin{verbatim}
+ *    while <test>
+ *       <body>
+ * \end{verbatim}
+ *
+ * --or--
+ *
+ * \begin{verbatim}
+ *     while <test>
+ *     case <test1>
+ *        <body1>
+ *     ...
+ *     case <testn>
+ *        <bodyn>
+ *     default
+ *        <bodyd>
+ * \end{verbatim}
+ *
+ * The loop is executed while the test is true.
+ * In the first form, the \verb+<body>+ is executed on every loop iteration.
+ * In the second form, the body \verb+<bodyI>+ is selected, as the first
+ * case where the test \verb+<testI>+ is true.  If none apply, the optional
+ * default case is evaluated.  If no cases are true, the loop exits.
+ * The environment is automatically exported.
+ *
+ * Examples.
+ *
+ * Iterate for \verb+i+ from \verb+0+ to \verb+9+.
+ *
+ * \begin{verbatim}
+ *     i = 0
+ *     while $(lt $i, 10)
+ *        echo $i
+ *        i = $(add $i, 1)
+ * \end{verbatim}
+ *
+ * The following example is equivalent.
+ *
+ * \begin{verbatim}
+ *    i = 0
+ *    while true
+ *    case $(lt $i, 10)
+ *       echo $i
+ *       i = $(add $i, 1)
+ * \end{verbatim}
+ *
+ * The following example is similar, but some special cases are printed.
+ * value is printed.
+ *
+ * \begin{verbatim}
+ *     i = 0
+ *     while $(lt $i, 10)
+ *     case $(equal $i, 0)
+ *        echo zero
+ *     case $(equal $i, 1)
+ *        echo one
+ *     default
+ *        echo $i
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let rec eval_while_cases venv pos loc orig_cases arg cases =
+   match cases with
+      (v, pattern, e) :: cases ->
+         if Lm_symbol.eq v case_sym && bool_of_value venv pos pattern || Lm_symbol.eq v default_sym then
+            let venv, _ = eval_body_value_env venv pos e in
+               while_loop venv pos loc orig_cases arg
+         else
+            eval_while_cases venv pos loc orig_cases arg cases
+    | [] ->
+         venv
+
+and while_loop venv pos loc cases arg =
+   if bool_of_value venv pos arg then
+      eval_while_cases venv pos loc cases arg cases
+   else
+      venv
+
+let while_fun venv pos loc args =
+   let pos = string_pos "while" pos in
+   let cases, arg =
+      match args with
+         [ValCases cases; arg] ->
+            cases, arg
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+   let venv = while_loop venv pos loc cases arg in
+      ValEnv (venv, ExportAll)
 
 (************************************************************************
  * Register.
@@ -2321,7 +2415,9 @@ let () =
        true,  "shella",                shella,              ArityExact 1;
        true,  "shell-code",            shell_code,          ArityExact 1;
 
-       true,  "export",                export,              ArityRange (0, 1)]
+       true,  "export",                export,              ArityRange (0, 1);
+
+       false, "while",                 while_fun,           ArityExact 2]
    in
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;

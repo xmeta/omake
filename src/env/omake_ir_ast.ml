@@ -568,6 +568,14 @@ and build_sequence senv pos rval el =
          let senv, el = build_sequence senv pos rval el in
             senv, e :: el
 
+    | Omake_ast.CommandExp (v, e, body, loc)
+      :: el when Lm_symbol.eq v while_sym ->
+         let cases, el = collect_cases [] el in
+         let pos = loc_pos loc pos in
+         let senv, e = build_opt_cases_command_exp senv v e cases body pos loc in
+         let senv, el = build_sequence senv pos rval el in
+            senv, e :: el
+
     | Omake_ast.CommandExp (v, arg, body, loc) :: el ->
          let cases, el = collect_cases [] el in
          let pos = loc_pos loc pos in
@@ -700,6 +708,17 @@ and build_cases_command_exp senv v arg cases commands pos loc =
                      Omake_ast.BodyExp (commands, loc)
             in
                build_cases_apply_exp senv v [arg] cases pos loc
+
+and build_opt_cases_command_exp senv v arg cases commands pos loc =
+   let pos = string_pos "build_opt_cases_command_exp" pos in
+   let cases =
+      if commands = [] then
+         cases
+      else
+         let default = default_sym, Omake_ast.NullExp loc, commands in
+            cases @ [default]
+   in
+      build_cases_apply_exp senv v [arg] cases pos loc
 
 (*
  * Commands.
