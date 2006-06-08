@@ -309,12 +309,6 @@ and pp_print_exp_list buf el =
 and pp_print_prog buf el =
    fprintf buf "@[<v 0>%a@]" pp_print_exp_list el
 
-and pp_print_source_exp_list buf sources =
-   List.iter (fun source -> fprintf buf "@ %a" pp_print_source_exp source) sources
-
-and pp_print_source_exp buf (kind, e) =
-   fprintf buf "%a %a" pp_print_node_kind kind pp_print_string_exp e
-
 and pp_print_rule_commands buf commands =
    List.iter (fun command -> fprintf buf "@ %a" pp_print_rule_command command) commands
 
