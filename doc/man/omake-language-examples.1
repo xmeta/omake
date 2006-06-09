@@ -1,0 +1,436 @@
+'\" t
+.\" Manual page created with latex2man
+.\" NOTE: This file is generated, DO NOT EDIT.
+.de Vb
+.ft CW
+.nf
+..
+.de Ve
+.ft R
+
+.fi
+..
+.TH "OMAKE\-LANGUAGE\-EXAMPLES" "1" "April 11, 2006" "Build Tools " "Build Tools "
+.SH NAME
+
+omake
+is a flexible build system designed for building a wide variety of projects.
+This document describes the language concepts and syntax.
+For an overview of omake,
+see the
+.\"omake.html
+omake(1)
+man page.
+.PP
+.SH LANGUAGE EXAMPLES
+
+.PP
+In this section, we\&'ll explore the core language through a series of examples (examples of the build
+system are the topic of Section
+.\"omake\-build\-examples#examples
+Build).
+.PP
+For most of these examples, we\&'ll use the osh command interpreter. For simplicity, the
+values printed by osh have been abbreviated.
+.PP
+.SS STRINGS AND ARRAYS
+.PP
+The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
+values separated by whitespace; the sequences are split on demand by functions that expect arrays.
+.PP
+.Vb
+   osh> X = 1 2
+   \- : "1 2" : Sequence
+   osh> addsuffix(.c, $X)
+   \- : <array 1.c 2.c> : Array
+.Ve
+.PP
+Sometimes you want to define an array explicitly. For this, use the [] brackets after the
+variable name, and list each array entry on a single indented line.
+.PP
+.Vb
+   osh> A[] =
+           Hello world
+           $(getenv HOME)
+   \- : <array "Hello world" "/home/jyh"> : Array
+.Ve
+.PP
+One central property of arrays is that whitespace in the elements is significant. This can be
+useful, especially for filenames that contain whitespace.
+.PP
+.Vb
+   # List the current files in the directory
+    osh> ls \-Q
+    "fee"  "fi"  "foo"  "fum"
+    osh> NAME[] =
+            Hello world
+    \- : <array "Hello world"> : Array
+    osh> touch $(NAME)
+    osh> ls \-Q
+    "fee"  "fi"  "foo"  "fum"  "Hello world"
+.Ve
+.PP
+.SS FILES AND DIRECTORIES
+.PP
+OMake projects usually span multiple directories, and different parts of the project execute
+commands in different directories. There is a need to define a location\-independent name for a file
+or directory.
+.PP
+This is done with the $(file <names>) and $(dir <names>) functions.
+.PP
+.Vb
+   osh> mkdir tmp
+   osh> F = $(file fee)
+   osh> section:
+            cd tmp
+            echo $F
+   ../fee
+   osh> echo $F
+   fee
+.Ve
+.PP
+Note the use of a section: to limit the scope of the cd command. The section
+temporarily changes to the tmp directory where the name of the file is \&../fee\&. Once
+the section completes, we are still in the current directory, where the name of the file is
+fee\&.
+.PP
+One common way to use the file functions is to define proper file names in your project
+OMakefile, so that references within the various parts of the project will refer to the same
+file.
+.PP
+.Vb
+    osh> cat OMakefile
+    ROOT = $(dir .)
+    TMP  = $(dir tmp)
+    BIN  = $(dir bin)
+    ...
+.Ve
+.PP
+.SS ITERATION, MAPPING, AND FOREACH
+.PP
+Most builtin functions operate transparently on arrays.
+.PP
+.Vb
+    osh> addprefix(\-D, DEBUG WIN32)
+    \- : \-DDEBUG \-DWIN32 : Array
+    osh> mapprefix(\-I, /etc /tmp)
+    \- : \-I /etc \-I /tmp : Array
+    osh> uppercase(fee fi foo fum)
+    \- : FEE FI FOO FUM : Array
+.Ve
+.PP
+The mapprefix and addprefix functions are slightly different (the addsuffix and
+mapsuffix functions are similar). The addprefix adds the prefex to each array
+element. The mapprefix doubles the length of the array, adding the prefix as a new array
+element before each of the original elements.
+.PP
+Even though most functions work on arrays, there are times when you will want to do it yourself.
+The foreach function is the way to go. The foreach function has two forms, but the
+form with a body is most useful. The function takes two arguments and a body. The second argument
+is an array, and the first is a variable. The body is evaluated once for each element of the array,
+where the variable is bound to the element. Let\&'s define a function to add 1 to each element of an
+array of numbers.
+.PP
+.Vb
+   osh> add1(l) =
+            foreach(i, $l):
+                add($i, 1)
+   osh> add1(7 21 75)
+   \- : 8 22 76 : Array
+.Ve
+.PP
+Sometimes you have an array of filenames, and you want to define a special rule for each of them.
+Rules are not special, you can define them anywhere a statement is expected. Say we want to write a
+function to process each file, and place the result in the TMP directory.
+.PP
+.Vb
+   TMP = $(dir tmp)
+   ...
+   my\-special\-rule(files) =
+      foreach(name, $(files))
+         tmp/$(name): $(name)
+            process $< > $@
+.Ve
+.PP
+.SS LAZY EXPRESSIONS
+.PP
+Lazy expressions are expressions that are not evaluated until their result is needed. Some people,
+including this author, frown on overuse of lazy expressions, mainly because it is difficult to know
+when evaluation actually happens. However, there are cases where they pay off.
+.PP
+One example comes from option processing. Consider the specification of ``include\&'' directories on
+the command line for a C compiler. If we want to include files from /home/jyh/include and \&.\&./foo,
+we specify it on the command line with the options \-I/home/jyh/include \-I../foo\&.
+.PP
+Suppose we want to define a generic rule for building C files. We could define a INCLUDES
+array to specify the directories to be included, and then define a generic implicit rule in our root
+OMakefile.
+.PP
+.Vb
+    # Generic way to compile C files.
+    CFLAGS = \-g
+    INCLUDES[] =
+    %.o: %.c
+       $(CC) $(CFLAGS) $(INCLUDES) \-c $<
+
+    # The src directory builds my_widget+ from 4 source files.
+    # It reads include files from the include directory.
+    .SUBDIRS: src
+        FILES = fee fi foo fum
+        OFILES = $(addsuffix .o, $(FILES))
+        INCLUDES[] += \-I../include
+        my_widget: $(OFILES)
+           $(CC) $(CFLAGS) \-o $@ $(OFILES)
+.Ve
+.PP
+But this is not quite right. The problem is that INCLUDES is an array of options, not directories.
+If we later wanted to recover the directories, we would have to strip the leading \-I prefix,
+which is a hassle. Furthermore, we aren\&'t using proper names for the directories. The solution
+here is to use a lazy expression. We\&'ll define INCLUDES as a directory array, and a new variable
+PREFIXED_INCLUDES that adds the \-I prefix. The PREFIXED_INCLUDES is computed lazily,
+ensuring that the value uses the most recent value of the INCLUDES variable.
+.PP
+.Vb
+    # Generic way to compile C files.
+    CFLAGS = \-g
+    INCLUDES[] =
+    PREFIXED_INCLUDES[] = $`(addprefix \-I, $(INCLUDES))
+    %.o: %.c
+       $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) \-c $<
+
+    # For this example, we define a proper name for the include directory
+    STDINCLUDE = $(dir include)
+
+    # The src directory builds my_widget+ from 4 source files.
+    # It reads include files from the include directory.
+    .SUBDIRS: src
+        FILES = fee fi foo fum
+        OFILES = $(addsuffix .o, $(FILES))
+        INCLUDES[] += $(STDINCLUDE)
+        my_widget: $(OFILES)
+           $(CC) $(CFLAGS) \-o $@ $(OFILES)
+.Ve
+.PP
+Note that there is a close connection between lazy values and functions. In the example above, we
+could equivalently define PREFIXED_INCLUDES as a function with zero arguments.
+.PP
+.Vb
+    PREFIXED_INCLUDES() =
+        addprefix(\-I, $(INCLUDES))
+.Ve
+.PP
+.SS SCOPING AND EXPORTS
+.PP
+The OMake language is functional (apart from IO and shell commands). This comes in two parts:
+functions are first\-class, and variables are immutable (there is no assignment operator). The
+latter property may seem strange to users used to GNU make, but it is actually a central point of
+OMake. Since variables can\&'t be modified, it is impossible (or at least hard) for one part of the
+project to interfere with another.
+.PP
+To be sure, pure functional programming can be awkward. In OMake, each new indentation level
+introduces a new scope, and new definitions in that scope are lost when the scope ends. If OMake
+were overly strict about scoping, we would wind up with a lot of convoluted code.
+.PP
+.Vb
+   osh> X = 1
+   osh> setenv(BOO, 12)
+   osh> if $(equal $(OSTYPE), Win32)
+            setenv(BOO, 17)
+            X = 2
+   osh> println($X $(getenv BOO))
+   1 12
+.Ve
+.PP
+The export command presents a way out. It takes care of ``exporting\&'' a value (or the entire
+variable environment) from an inner scope to an outer one.
+.PP
+.Vb
+   osh> X = 1
+   osh> setenv(BOO, 12)
+   osh> if $(equal $(OSTYPE), Win32)
+            setenv(BOO, 17)
+            X = 2
+            export
+   osh> println($X $(getenv BOO))
+   2 17
+.Ve
+.PP
+Exports are especially useful in loop to export values from one iteration of a loop to the next.
+.PP
+.Vb
+   # Ok, let's try to add up the elements of the array
+   osh>sum(l) =
+           total = 0
+           foreach(i, $l)
+               total = $(add $(total), $i)
+           value $(total)
+   osh>sum(1 2 3)
+   \- : 0 : Int
+
+   # Oops!
+   osh>sum(l) =
+           total = 0
+           foreach(i, $l)
+               total = $(add $(total), $i)
+               export
+           value $(total)
+   osh>sum(1 2 3)
+   \- : 6 : Int
+.Ve
+.PP
+A while loop is another form of loop, with an auto\-export.
+.PP
+.Vb
+    osh>i = 0
+    osh>total = 0
+    osh>while $(lt $i, 10)
+            total = $(add $(total), $i)
+            i = $(add $i, 1)
+            export
+    osh>println($(total))
+    45
+.Ve
+.PP
+.SS SHELL ALIASES
+.PP
+Sometimes you may want to define an \fIalias\fP,
+an OMake command that masquerades as a real shell
+command. You can do this by adding your function as a method to the Shell object.
+.PP
+For an example, suppose we define builtin awk function to print out all the comments in a file.
+.PP
+.Vb
+    osh>cat comment.om
+    # Comment function
+    comments(filename) =
+        awk($(filename))
+        case $'^#'
+            println($0)
+    # File finished
+    osh>include comment
+    osh>comments(comment.om)
+    # Comment function
+    # File finished
+.Ve
+.PP
+To add it as an alias, add the method (using += to preserve the existing entries in the Shell).
+.PP
+.Vb
+   osh>Shell. +=
+           printcom(argv) =
+               comments($(nth 0, $(argv)))
+   osh>printcom comment.om > output.txt
+   osh>cat output.txt
+   # Comment function
+   # File finished
+.Ve
+.PP
+A shell command is passed an array of argument argv\&. This does \fInot\fP
+include the name
+of the alias.
+.PP
+.SS INPUT/OUTPUT REDIRECTION ON THE CHEAP
+.PP
+As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
+have already written a lot of code that prints to the standard output channel, but now you decide
+you want to redirect it. One way to do it is using the alias method of the previous example: define
+your function as an alias, and then use shell redirection to place the output where you want.
+.PP
+There is an alternate method that is easier in some cases. The variables stdin,
+stdout, and stderr define the standard I/O channels. To redirect output, redefine
+these variables as you see fit. Of course, you would normally do this in a nested scope, so that
+the outer channels are not affected.
+.PP
+.Vb
+    osh>f() =
+            println(Hello world)
+    osh>f()
+    Hello world
+    osh>section:
+            stdout = $(fopen output.txt, w)
+            f()
+            close($(stdout))
+    osh>cat output.txt
+    Hello world
+.Ve
+.PP
+This also works for shell commands. If you like to gamble, you can try the following example.
+.PP
+.Vb
+    osh>f() =
+            println(Hello world)
+    osh>f()
+    Hello world
+    osh>section:
+            stdout = $(fopen output.txt, w)
+            f()
+            cat output.txt
+            close($(stdout))
+    osh>cat output.txt
+    Hello world
+    Hello world
+.Ve
+.PP
+.SH REFERENCES
+
+.PP
+.SS SEE ALSO
+.PP
+.\"omake.html
+omake(1),
+.\"omake\-quickstart.html
+omake\-quickstart(1),
+.\"omake\-options.html
+omake\-options(1),
+.\"omake\-root.html
+omake\-root(1),
+.\"omake\-language.html
+omake\-language(1),
+.\"omake\-shell.html
+omake\-shell(1),
+.\"omake\-rules.html
+omake\-rules(1),
+.\"omake\-base.html
+omake\-base(1),
+.\"omake\-system.html
+omake\-system(1),
+.\"omake\-pervasives.html
+omake\-pervasives(1),
+.\"osh.html
+osh(1),
+\fImake\fP(1)
+.PP
+.SS VERSION
+.PP
+Version: 0.9.6.9 of April 11, 2006\&.
+.PP
+.SS LICENSE AND COPYRIGHT
+.PP
+(C)2003\-2006, Mojave Group, Caltech
+.PP
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+.PP
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+.PP
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+.PP
+.SS AUTHOR
+.PP
+Jason Hickey \fIet. al.\fP.br
+Caltech 256\-80
+.br
+Pasadena, CA 91125, USA
+.br
+Email: \fBomake\-devel@metaprl.org\fP
+.br
+WWW: \fBhttp://www.cs.caltech.edu/~jyh\fP
+.PP
+.\" NOTE: This file is generated, DO NOT EDIT.

@@ -1,0 +1,427 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE-BUILD-EXAMPLES</title></head>
+<body bgcolor="white">
+<h1 align=center>
+OMake build examples
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a flexible build system designed for building a wide variety of projects.
+This document describes the language concepts and syntax.
+For an overview of <tt>omake</tt>,
+see the <a href="omake.html">omake(1)</a>
+man page.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">Build examples </a>
+<ul>
+<li><a href="#section_2">OMakeroot vs. OMakefile </a></li>
+<li><a href="#section_3">An example C project </a></li>
+<li><a href="#section_4">An example OCaml project </a></li>
+</ul>
+<li><a href="#section_5">References </a>
+<ul>
+<li><a href="#section_6">See Also </a></li>
+<li><a href="#section_7">Version </a></li>
+<li><a href="#section_8">License and Copyright </a></li>
+<li><a href="#section_9">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">Build examples</a></h2>
+
+<p>
+Let's explain the OMake build model a bit, especially since it differs significantly from GNU make.
+One issue that dominates this discussion is that OMake is based on global project analysis. That
+means you define a configuration for the <em>entire</em>
+project, and you run <em>one</em>
+instance of omake.
+<p>
+For single-directory projects this doesn't mean much. For multi-directory projects it means a lot.
+With GNU make, you would usually invoke the <tt>make</tt> program recursivelt for each directory in
+the project. For example, suppose you had a project with some project root directory, containing a
+directory of sources <tt>src</tt>, which in turn contains subdirectories <tt>lib</tt> and <tt>main</tt>.
+So your project looks like this nice piece of ASCII art.
+<p>
+<pre>
+    my_project/
+    |--&gt; Makefile
+    `--&gt; src/
+         |---&gt; Makefile
+         |---&gt; lib/
+         |     |---&gt; Makefile
+         |     `---&gt; source files...
+         `---&gt; main/
+               |---&gt; Makefile
+               `---&gt; source files...
+</pre>
+<p>
+Typically, with GNU make, you would start an instance of <tt>make</tt> in <tt>my_project/</tt>; this
+would in term start an instance of <tt>make</tt> in the <tt>src/</tt> directory; and this would start
+new instances in <tt>lib/</tt> and <tt>main/</tt>. Basically, you count up the number of
+<tt>Makefile</tt>s in the project, and that is the number of instances of <tt>make</tt> processes that
+will be created.
+<p>
+The number of processes is no big deal with today's machines (sometimes contrary the the author's opinion, we
+no longer live in the 1970s). The problem with the scheme was that each <tt>make</tt> process had a
+separate configuration, and it took a lot of work to make sure that everything was consistent.
+Furthermore, suppose the programmer runs <tt>make</tt> in the <tt>main/</tt> directory, but the
+<tt>lib/</tt> is out-of-date. In this case, <tt>make</tt> would happily crank away, perhaps trying to
+rebuild files in <tt>lib/</tt>, perhaps just giving up.
+<p>
+With OMake this changes entirely. Well, not entirely. The source structure is quite similar, we
+merely add some Os to the ASCII art.
+<p>
+<pre>
+    my_project/
+    |--&gt; OMakeroot   (or Root.om)
+    |--&gt; OMakefile
+    `--&gt; src/
+         |---&gt; OMakefile
+         |---&gt; lib/
+         |     |---&gt; OMakefile
+         |     `---&gt; source files...
+         `---&gt; main/
+               |---&gt; OMakefile
+               `---&gt; source files...
+</pre>
+<p>
+The role of each <tt>&lt;dir&gt;/OMakefile</tt> plays the same role as each <tt>&lt;dir&gt;/Makefile</tt>: it
+describes how to build the source files in <tt>&lt;dir&gt;</tt>. The OMakefile retains much of syntax and
+structure of the Makefile, but in most cases it is much simpler.
+<p>
+One minor difference is the presence of the OMakeroot in the project root. The main purpose of this
+file is to indicate where the project root <em>is</em>
+in the first place (in case <tt>omake</tt> is
+invoked from a subdirectory). The <tt>OMakeroot</tt> serves as the bootstrap file; omake starts by
+reading this file first. Otherwise, the syntax and evaluation of <tt>OMakeroot</tt> is no different
+from any other <tt>OMakefile</tt>.
+<p>
+The <em>big</em>
+difference is that OMake performs a <em>global</em>
+analysis. Here is what happens when <tt>omake</tt> starts.
+<ol compact>
+<li value =1>omake locates that OMakeroot file, and reads it.
+</li>
+<li value =2>Each OMakefile points to its subdirectory OMakefiles using the .SUBDIRS target.
+For example, <tt>my_project/OMakefile</tt> has a rule,
+<p>
+<pre>
+    .SUBDIRS: src
+</pre>
+<p>
+and the <tt>my_project/src/OMakefile</tt> has a rule,
+<p>
+<pre>
+    .SUBDIRS: lib main
+</pre>
+<p>
+<tt>omake</tt> uses these rules to read and evaluate every <tt>OMakefile</tt> in the project.
+Reading and evaluation is fast. This part of the process is cheap.
+<p>
+</li>
+<li value =3>Now that the entire configuration is read, <tt>omake</tt> determines which files are out-of-date
+(using a global analysis), and starts the build process. This may take a while, depending on what
+exactly needs to be done.
+</li>
+</ol>
+<p>
+There are several advantages to this model. First, since analysis is global, it is much easier to
+ensure that the build configuration is consistent--after all, there is only one configuration.
+Another benefit is that the build configuration is inherited, and can be re-used, down the
+hierarchy. Typically, the root <tt>OMakefile</tt> defines some standard boilerplate and
+configuration, and this is inherited by subdirectories that tweak and modify it (but do not need to
+restate it entirely). The disadvantage of course is space, since this is global analysis after all.
+In practice rarely seems to be a concern; omake takes up much less space than your web browser even
+on large projects.
+<p>
+Some notes to the power-GNU-make user.
+<ul compact>
+<li>OMakefiles are a lot like Makefiles. The syntax is similar, and there many of the builtin
+functions are similar. However, the two build systems are not the same. Some evil features (in the authors'
+opinions) have been dropped in OMake, and some new features have been added.
+<p>
+</li>
+<li>OMake works the same way on all platforms, including Win32. The standard configuration does
+the right thing, but if you care about porting your code to multiple platforms, and you use some
+tricky features, you may need to condition parts of your build config on the <tt>$(OSTYPE)</tt>
+variable.
+<p>
+</li>
+<li>A minor issue is that OMake dependency analysis is based on MD5 file digests. That is,
+dependencies are based on file <em>contents</em>,
+not file <em>modification times</em>.
+Say goodbye to
+false rebuilds based on spurius timestamp changes and mismatches between local time and fileserver
+time.
+</li>
+</ul>
+<p>
+<h4><a name="section_2">OMakeroot vs. OMakefile</a></h4>
+
+<p>
+Before we begin with examples, let's ask the first question, &ldquo;What is the difference between the
+project root OMakeroot and OMakefile?&rdquo; A short answer is, there is no difference, but you must
+have an OMakeroot file (or Root.om file).
+<p>
+However, the normal style is that OMakeroot is boilerplate and is more-or-less the same for all
+projects. The OMakefile is where you put all your project-specific stuff.
+<p>
+To get started, you don't have to do this yourself. In most cases you just perform the following
+step in your project root directory.
+<p>
+<ul compact>
+<li>Run <tt>omake --install</tt> in your project root.
+</li>
+</ul>
+<p>
+This will create the initial OMakeroot and OMakefile files that you can edit to get started.
+<p>
+<h4><a name="section_3">An example C project</a></h4>
+
+<p>
+To begin, let's start with a simple example. Let's say that we have a full directory tree,
+containing the following files.
+<p>
+<pre>
+    my_project/
+    |--&gt; OMakeroot
+    |--&gt; OMakefile
+    `--&gt; src/
+         |---&gt; OMakefile
+         |---&gt; lib/
+         |     |---&gt; OMakefile
+         |     |---&gt; ouch.c
+         |     |---&gt; ouch.h
+         |     `---&gt; bandaid.c
+         `---&gt; main/
+               |---&gt; OMakefile
+               |---&gt; horsefly.c
+               |---&gt; horsefly.h
+               `---&gt; main.c
+</pre>
+<p>
+Here is an example listing.
+<p>
+<pre>
+my_project/OMakeroot:
+    # Include the standard configuration for C applications
+    open build/C
+
+    # Process the command-line vars
+    DefineCommandVars()
+
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+    # Set up the standard configuration
+    CFLAGS += -g
+
+    # Include the src subdirectory
+    .SUBDIRS: src
+
+my_project/src/OMakefile:
+    # Add any extra options you like
+    CFLAGS += -O2
+
+    # Include the subdirectories
+    .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+    # Build the library as a static library.
+    # This builds libbug.a on Unix/OSX, or libbug.lib on Win32.
+    # Note that the source files are listed _without_ suffix.
+    StaticCLibrary(libbug, ouch bandaid)
+
+my_project/src/main/OMakefile:
+    # Some files include the .h files in ../lib
+    INCLUDES += ../lib
+
+    # Indicate which libraries we want to link against.
+    # The suffix depends on the platform.  The canonical
+    # suffix is defined in $(EXT_LIB).
+    LIBS[] +=
+        ../lib/libbug$(EXT_LIB)
+
+    # Build the program.
+    # Builds horsefly.exe on Win32, and horsefly on Unix.
+    # The first argument is the name of the executable.
+    # The second argument is an array of object files (without suffix)
+    # that are part of the program.
+    CProgram(horsefly, horsefly)
+
+    # Build the program by default (in case omake is called
+    # without any arguments).  EXE is defined as .exe on Win32,
+    # otherwise it is empty.
+    .DEFAULT: horsefly$(EXE)
+</pre>
+<p>
+Most of the configuration here is defined in the file <tt>build/C.om</tt> (which is part of the OMake
+distribution). This file takes care of a lot of work, including:
+<ul compact>
+<li>Defining the <tt>StaticCLibrary</tt> and <tt>CProgram</tt> functions, which describe the canonical
+way to build C libraries and programs.
+</li>
+<li>Defining a mechanism for <em>scanning</em> each of the source programs to discover dependencies.
+That is, it defines .SCANNER rules for C source files.
+</li>
+</ul>
+<p>
+Variables are inherited down the hierarchy, so for example, the value of CFLAGS in
+src/main/OMakefile is &ldquo;<tt>-g -O2</tt>&rdquo;.
+<p>
+<h4><a name="section_4">An example OCaml project</a></h4>
+
+<p>
+Let's repeat the example, assuming we are using OCaml instead of C.
+This time, the directory tree looks like this.
+<p>
+<pre>
+    my_project/
+    |--&gt; OMakeroot
+    |--&gt; OMakefile
+    `--&gt; src/
+         |---&gt; OMakefile
+         |---&gt; lib/
+         |     |---&gt; OMakefile
+         |     |---&gt; ouch.ml
+         |     |---&gt; ouch.mli
+         |     `---&gt; bandaid.ml
+         `---&gt; main/
+               |---&gt; OMakefile
+               |---&gt; horsefly.ml
+               |---&gt; horsefly.mli
+               `---&gt; main.c
+</pre>
+<p>
+The listing is only a bit different.
+<p>
+<pre>
+my_project/OMakeroot:
+    # Include the standard configuration for OCaml applications
+    open build/OCaml
+
+    # Process the command-line vars
+    DefineCommandVars()
+
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+    # Set up the standard configuration
+    OCAMLFLAGS += -Wa
+
+    # Do we want to use the bytecode compiler,
+    # or the native-code one?  Let's use both for
+    # this example.
+    NATIVE_ENABLED = true
+    BYTE_ENABLED = true
+
+    # Include the src subdirectory
+    .SUBDIRS: src
+
+my_project/src/OMakefile:
+    # Include the subdirectories
+    .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+    # Let's do aggressive inlining on native code
+    OCAMLOPTFLAGS += -inline 10
+
+    # Build the library as a static library.
+    # This builds libbug.a on Unix/OSX, or libbug.lib on Win32.
+    # Note that the source files are listed _without_ suffix.
+    OCamlLibrary(libbug, ouch bandaid)
+
+my_project/src/main/OMakefile:
+    # These files depend on the interfaces in ../lib
+    OCAMLINCLUDES += ../lib
+
+    # Indicate which libraries we want to link against.
+    # The suffix does not depend on the platform.
+    OCAML_LIBS[] +=
+        ../lib/libbug
+
+    # Build the program.
+    # Builds horsefly.exe on Win32, and horsefly on Unix.
+    # The first argument is the name of the executable.
+    # The second argument is an array of object files (without suffix)
+    # that are part of the program.
+    OCamlProgram(horsefly, horsefly)
+
+    # Build the program by default (in case omake is called
+    # without any arguments).  EXE is defined as .exe on Win32,
+    # otherwise it is empty.
+    .DEFAULT: horsefly$(EXE)
+</pre>
+<p>
+In this case, most of the configuration here is defined in the file <tt>build/OCaml.om</tt>. In this
+particular configuration, files in <tt>my_project/src/lib</tt> are compiled aggressively with the
+option <tt>-inline 10</tt>, but files in <tt>my_project/src/lib</tt> are compiled normally.
+<p>
+<h2><a name="section_5">References</a></h2>
+
+<p>
+<h4><a name="section_6">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_7">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_8">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_9">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->

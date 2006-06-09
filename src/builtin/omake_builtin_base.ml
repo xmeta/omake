@@ -2228,6 +2228,7 @@ let export venv pos loc args =
 (*
  * Loop.
  * \begin{doc}
+ * \hypertarget{while}{}
  * \subsection{while}
  *
  * \begin{verbatim}

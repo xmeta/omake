@@ -131,6 +131,18 @@ LANGUAGE_FILES[] =
     omake-language-prologue
     omake-language
 
+LANGUAGE_EXAMPLES_FILES[] =
+    omake-language-examples-prologue
+    omake-language-examples
+
+BUILD_EXAMPLES_FILES[] =
+    omake-build-examples-prologue
+    omake-build-examples
+
+GRAMMAR_FILES[] =
+    omake-grammar-prologue
+    omake-grammar
+
 RULES_FILES[] =
     omake-rules-prologue
     omake-rules
@@ -147,10 +159,13 @@ ALL_FILES[] =
     omake-index-prologue
     omake-index
     omake-examples
+    omake-build-examples
+    omake-language-examples
     omake-options
     omake-language
     omake-rules
     osh
+    omake-grammar
 
 ALL_FILES = $(add-wrapper src/, .tex, $(ALL_FILES))
 
@@ -168,6 +183,9 @@ ManDocument(omake,            $(INDEX_FILES))
 ManDocument(omake-options,    $(OPTIONS_FILES))
 ManDocument(omake-quickstart, $(QUICKSTART_FILES))
 ManDocument(omake-language,   $(LANGUAGE_FILES))
+ManDocument(omake-language-examples,   $(LANGUAGE_EXAMPLES_FILES))
+ManDocument(omake-build-examples,      $(BUILD_EXAMPLES_FILES))
+ManDocument(omake-grammar,    $(GRAMMAR_FILES))
 ManDocument(omake-shell,      $(SHELL_FILES))
 ManDocument(omake-rules,      $(RULES_FILES))
 
@@ -203,7 +221,10 @@ MAN_FILES[] =
     omake
     omake-options
     omake-quickstart
+    omake-build-examples
+    omake-language-examples
     omake-language
+    omake-grammar
     omake-shell
     omake-rules
     omake-base
@@ -212,7 +233,18 @@ MAN_FILES[] =
     omake-root
     omake-doc
 
-TXT_DOCUMENTS  = $(file $(add-wrapper man/,  .txt,     $(MAN_FILES)))
+TROFF_OK = false
+static. =
+    if $(CheckProg troff)
+        print(--- Checking whether troff version >= 1.19... )
+        VERSION = $(last $(shell troff --version))
+        TROFF_OK = $(ge $(cmp-versions $(VERSION), 1.19), 0)
+        println($'(Version '$(VERSION) $(if $(TROFF_OK), $'OK)', $'TOO OLD)'))
+        export TROFF_OK
+
+TXT_DOCUMENTS  =
+   if $(TROFF_OK)
+      value $(file $(add-wrapper man/,  .txt,     $(MAN_FILES)))
 MAN_DOCUMENTS  = $(file $(add-wrapper man/,  .1,       $(MAN_FILES)))
 HTML_DOCUMENTS = $(file $(add-wrapper html/, .html,    $(MAN_FILES)))
 
@@ -236,15 +268,6 @@ if $(MAN_ENABLED)
             +LANG=C latex2man -t$(OMAKE_MACROS) -M $< $@.tmp
             remove-latex2man-date $@.tmp | remove-trailing-whitespace > $@
             rm $@.tmp
-
-        TROFF_OK = false
-        static. =
-            if $(CheckProg troff)
-                print(--- Checking whether troff version >= 1.19... )
-                VERSION = $(last $(shell troff --version))
-                TROFF_OK = $(ge $(cmp-versions $(VERSION), 1.19), 0)
-                println($'(Version '$(VERSION) $(if $(TROFF_OK), $'OK)', $'TOO OLD)'))
-                export TROFF_OK
 
         if $(TROFF_OK)
             $(TXT_DOCUMENTS): %.txt: %.1

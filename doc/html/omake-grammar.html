@@ -1,0 +1,1325 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Manual page created with latex2man --
+-- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
+-- NOTE: This file is generated, DO NOT EDIT. -->
+<html>
+<head><title>OMAKE-GRAMMAR</title></head>
+<body bgcolor="white">
+<h1 align=center>
+The OMake language
+</h1>
+<h4 align=center>Jason Hickey <em>et. al.</em></h4>
+<h4 align=center>April 11, 2006</h4>
+<h4 align=center>Version 0.9.6.9</h4>
+<tt>omake</tt>
+is a flexible build system designed for building a wide variety of projects.
+This document describes the language concepts and syntax.
+For an overview of <tt>omake</tt>,
+see the <a href="omake.html">omake(1)</a>
+man page.
+<h3>Table of Contents</h3>
+<ul>
+<li><a href="#section_1">OMake lexical conventions </a>
+<ul>
+<li><a href="#section_2">Comments </a></li>
+<li><a href="#section_3">Special characters </a></li>
+<li><a href="#section_4">Identifiers </a></li>
+<li><a href="#section_5">Command identifiers </a></li>
+<li><a href="#section_6">Variable references </a></li>
+<li><a href="#section_7">String constants </a></li>
+</ul>
+<li><a href="#section_8">The OMake grammar </a>
+<ul>
+<li><a href="#section_9">Expressions </a>
+<ul>
+<li><a href="#section_10">Inline applications </a></li>
+</ul>
+<li><a href="#section_11">Statements and programs </a>
+<ul>
+<li><a href="#section_12">Special forms </a></li>
+<li><a href="#section_13">Variable definitions </a></li>
+<li><a href="#section_14">Applications and function definitions </a></li>
+<li><a href="#section_15">Objects </a></li>
+<li><a href="#section_16">Rules </a></li>
+<li><a href="#section_17">Shell commands </a></li>
+</ul>
+</li>
+</ul>
+<li><a href="#section_18">Dollar modifiers </a></li>
+<li><a href="#section_19">References </a>
+<ul>
+<li><a href="#section_20">See Also </a></li>
+<li><a href="#section_21">Version </a></li>
+<li><a href="#section_22">License and Copyright </a></li>
+<li><a href="#section_23">Author </a></li>
+</ul>
+</li>
+</ul>
+<p>
+<h2><a name="section_1">OMake lexical conventions</a></h2>
+
+<p>
+The OMake language is based on the language for GNU/BSD make, where there are few lexical
+conventions. Strictly speaking, there are no keywords, and few special symbols.
+<p>
+<h4><a name="section_2">Comments</a></h4>
+
+<p>
+Comments begin with the <tt>#</tt> character and continue to the end-of-line.
+Text within a comment is unrestricted.
+<p>
+Examples.
+<p>
+<pre>
+   # This is a comment
+   # This $comment contains a quote " character
+</pre>
+<p>
+<h4><a name="section_3">Special characters</a></h4>
+
+<p>
+The following characters are special in some contexts.
+<p>
+<pre>
+   $    (    )    ,    .   =    :    "    '    `    \    #
+</pre>
+<p>
+<ul compact>
+<li><tt>$</tt> is used to denote a variable reference, or function application.
+</li>
+<li>Parentheses <tt>)</tt>, <tt>(</tt> are argument deliminters.
+</li>
+<li>The command <tt>,</tt> is an argument separator.
+</li>
+<li>The period symbol <tt>.</tt> is a name separator.
+</li>
+<li>The equality symbol <tt>=</tt> denotes a definition.
+</li>
+<li>The colon symbol <tt>:</tt> is used to denote rules, and (optionally) to indicate
+that an expression is followed by an indented body.
+</li>
+<li>The quotation symbols <tt>"</tt> and <tt>'</tt> delimit character strings.
+</li>
+<li>The symbol <tt>#</tt> is the first character of a constant.
+</li>
+<li>The escape symbol <tt>\</tt> is special <em>only when</em> followed by another special
+character. In this case, the special status of the second character is removed,
+and the sequence denotes the second character. Otherwise, the <tt>\</tt> is not special.
+<p>
+Examples:
+<p>
+<ul compact>
+<li><tt>\$</tt>: the <tt>$</tt> character (as a normal character).
+</li>
+<li><tt>\#</tt>: the <tt>#</tt> character (as a normal character).
+</li>
+<li><tt>\\</tt>: the <tt>\</tt> character (as a normal character).
+</li>
+<li><tt>c\:\Windows\moo\#boo</tt>: the string <tt>c:\Windows\moo#boo</tt>.
+</li>
+</ul>
+</li>
+</ul>
+<p>
+<h4><a name="section_4">Identifiers</a></h4>
+
+<p>
+Identifiers (variable names) are drawn from the ASCII alphanumeric characters as well as <tt>_</tt>,
+<tt>-</tt>, <tt>~</tt>, <tt>@</tt>. Case is significant; the following identifiers are distinct:
+<tt>FOO</tt>, <tt>Foo</tt>, <tt>foo</tt>. The identifier may begin with any of the valid characters,
+including digits.
+<p>
+Using <tt>egrep</tt> notation, the regular expression for identifiers is defined as follows.
+<p>
+<pre>
+    identifier ::= [-@~_A-Za-z0-9]+
+</pre>
+<p>
+The following are legal identifiers.
+<p>
+<pre>
+    Xyz    hello_world    seventy@nine
+    79-32  Gnus~Gnats     CFLAGS
+</pre>
+<p>
+The following are not legal identifiers.
+<p>
+<pre>
+    x+y    hello&amp;world
+</pre>
+<p>
+<h4><a name="section_5">Command identifiers</a></h4>
+
+<p>
+The following words have special significance when they occur as the <em>first</em>
+word
+of a program line. They are not otherwise special.
+<p>
+<pre>
+    case     catch  class    declare    default
+    do       else   elseif   export     extends
+    finally  if     import   include    match
+    open     raise  return   section    switch
+    try      value  when     while
+</pre>
+<p>
+<h4><a name="section_6">Variable references</a></h4>
+
+<p>
+A variable reference is denoted with the <tt>$</tt> special character followed by an identifier. If
+the identifier name has more than one character, it must be enclosed in parentheses. The
+parenthesized version is most common. The following are legal variable references.
+<p>
+<pre>
+    $(Xyz)    $(hello_world)   $(seventy@nine)
+    $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
+</pre>
+<p>
+Single-character references also include several additional identifiers, including <tt>&amp;*&lt;^?][</tt>.
+The following are legal single-character references.
+<p>
+<pre>
+   $@   $&amp;   $*   $&lt;   $^   $+   $?   $[   $]
+   $A   $_   $a   $b   $x   $1   $2   $3
+</pre>
+<p>
+Note that a non-parenthesized variable reference is limited to a single character, even if it is
+followed by additional legal identifier charqcters. Suppose the value of the <tt>$x</tt> variable is
+17. The following examples illustrate evaluation.
+<p>
+<pre>
+    $x           evaluates to    17
+    foo$xbar     evaluates to    foo17bar
+    foo$(x)bar   evaluates to    foo17bar
+</pre>
+<p>
+The special sequence <tt>$$</tt> represents the character literal <tt>$</tt>. That is, the
+two-character sequences <tt>\$</tt> and <tt>$$</tt> are normally equalivalent.
+<p>
+<h4><a name="section_7">String constants</a></h4>
+
+<p>
+Literal strings are defined with matching string delimiters. A left string delimiter begins with
+the dollar-sign <tt>$</tt>, and a non-zero number of single-quote or double-quote characters. The
+string is terminated with a matching sequence of quotation symbols. The delimiter quotation may not
+be mixed; it must contain only single-quote characters, or double-quote characters. The following
+are legal strings.
+<p>
+[jyh: there is a bug in the formatter where single-quote pairs are being converted to double-quotes.
+I've added <tt>\</tt> symbols in these cases to prevent that. This should be considered to be an artifact of
+typesetting--the <tt>\</tt> characters <em>must not</em>
+be included in code.]
+<p>
+<pre>
+    $'Hello world'
+    $"""printf("Hello world\n")"""
+    $'\'\'\'
+Large "block" of
+text # spanning &rdquo;multiple&rdquo; lines'\'\'\'
+</pre>
+<p>
+The string delimiters are <em>not</em>
+included in the string constant. In the single-quote form,
+the contents of the string are interpreted verbatim--there are no special characters.
+<p>
+The double-quote form permits expression evaluation within the string, denoted with the <tt>$</tt> symbol.
+The following are some examples.
+<p>
+<pre>
+    X = Hello
+    Y = $""$X world""             # Hello world
+    Z = $'\'\'$X world'\'\'       # $X world
+    I = 3
+    W = $"6 &gt; $(add $I, 2)"       # 6 &gt; 5
+</pre>
+<p>
+Note that quotation symbols without a leading <tt>$</tt> are not treated specially by OMake. The
+quotation symbols is included in the sequence.
+<p>
+<pre>
+    osh&gt;println('Hello world')
+    'Hello world'
+    osh&gt;println($'Hello world')
+    Hello world
+    osh&gt;X = Hello
+    - : "Hello" : Sequence
+    osh&gt;println('$X world')
+    Hello world
+</pre>
+<p>
+<h2><a name="section_8">The OMake grammar</a></h2>
+
+<p>
+OMake programs are constructed from expressions and statements. Generally, an input program
+consists of a sequence of statements, each of which consists of one or more lines. Indentation is
+significant--if a statement consists of more than one line, the second and remaining lines (called
+the <em>body</em>)
+are usually indented relative to the first line.
+<p>
+<h4><a name="section_9">Expressions</a></h4>
+
+<p>
+The following table lists the syntax for expressions.
+<p>
+<table>
+<tr>
+<td><em>expr</em>
+</td>
+<td> ::= </td>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> <em>(empty)</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Text (see note)</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>text</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>string-literal</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Applications</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>dollar</em>
+<tt>&lt;char&gt;</tt></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>dollar</em>
+<tt>(</tt> <em>pathid</em>
+<em>args</em>
+<tt>)</tt></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Concatenation</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>expr</em>
+<em>expr</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>dollar</em>
+</td>
+<td> ::= </td>
+<td> <tt>$</tt> | <tt>$`</tt> | <tt>$,</tt>
+</td></tr>
+
+<tr>
+<td><em>pathid</em>
+</td>
+<td> ::= </td>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> <em>id</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>
+<tt>.</tt> <em>id</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>arg</em>
+</td>
+<td> ::= </td>
+<td> <em>expr</em>
+-- excluding special characters <tt>)(,</tt>)</td>
+</tr>
+
+<tr>
+<td><em>args</em>
+</td>
+<td> ::= </td>
+<td> <em>(empty)</em>
+| <em>arg</em>,
+..., <em>arg</em>
+</table>
+<p>
+An <em>expression</em>
+is a sequence composed of text, string-literals, variables references and
+function applications. Text is any sequence of non-special characters.
+<p>
+<h5><a name="section_10">Inline applications</a></h5>
+
+<p>
+An <em>application</em>
+is the application of a function to zero-or-more arguments. Inline
+applications begin with one of the &ldquo;dollar&rdquo; sequences <tt>$</tt>, <tt>$`</tt>, or <tt>$,</tt>. The
+application itself is specified as a single character (in which case it is a variable reference), or
+it is a parenthesized list including a function identifier <em>pathid</em>,
+and zero-or-more
+comma-separated arguments <em>args</em>.
+The arguments are themselves a variant of the expressions
+where the special character <tt>)(,</tt> are not allowed (though any of these may be made non-special
+with the <tt>\</tt> escape character). The following are some examples of valid expressions.
+<p>
+<ul compact>
+<li><tt>xyz abc</tt>
+<p>
+The text sequence &ldquo;<tt>xyz abc</tt>&rdquo;
+<p>
+</li>
+<li><tt>xyz$wabc</tt>
+<p>
+A text sequence containing a reference to the variable <tt>w</tt>.
+<p>
+</li>
+<li><tt>$(addsuffix .c, $(FILES))</tt>
+<p>
+An application of the function <tt>addsuffix</tt>, with first argument <tt>.c</tt>, and second argument <tt>$(FILES)</tt>.
+<p>
+</li>
+<li><tt>$(a.b.c 12)</tt>
+<p>
+This is a method call. The variable <tt>a</tt> must evaluate to an object with a field <tt>b</tt>,
+which must be an object with a method <tt>c</tt>. This method is called with argument <tt>12</tt>.
+</li>
+</ul>
+<p>
+The additional dollar sequences specify evaluation order, <tt>$`</tt> (lazy) and <tt>$,</tt> (eager), as
+discussed in <a href="#dollar">the section on dollar modifiers</a>.
+<p>
+<h4><a name="section_11">Statements and programs</a></h4>
+
+<p>
+The following table lists the syntax of statements and programs.
+<p>
+<table>
+<tr>
+<td><em>params</em>
+</td>
+<td> ::= </td>
+<td> <em>(empty)</em>
+| <em>id</em>,
+..., <em>id</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>target</em>
+</td>
+<td> ::= </td>
+<td> <em>expr</em>
+-- excluding special character <tt>:</tt></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>program</em>
+</td>
+<td> ::= </td>
+<td> <em>stmt</em>
+<tt>&lt;eol&gt;</tt> ... <tt>&lt;eol&gt;</tt> <em>stmt</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>stmt</em>
+</td>
+<td> ::= </td>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Special forms</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <tt>command</tt>
+<em>expr</em>
+<em>optcolon-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <tt>command</tt>
+( <em>args</em>
+) <em>optcolon-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <tt>catch</tt>
+<em>id</em>
+( <em>id</em>
+) <em>optcolon-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <tt>class</tt>
+<em>id</em>
+... <em>id</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Variable definitions</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>
+{+}= <em>expr</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>
+{+}= <tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>
+<tt>[]</tt> {+}= <em>expr</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>
+<tt>[]</tt> {+}= <tt>&lt;eol&gt;</tt> <em>indented-exprs</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Functions</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>(<em>args</em>)
+<em>optcolon-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>(<em>params</em>)
+= <tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Objects</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>pathid</em>
+<tt>.</tt> {+}= <tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Rules</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>target</em>
+<tt>:</tt>
+<em>target</em>
+<em>rule-options</em>
+<tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>target</em>
+<tt>::</tt>
+<em>target</em>
+<em>rule-options</em>
+<tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>target</em>
+<tt>:</tt>
+<em>target</em>
+<tt>:</tt>
+<em>target</em>
+<em>rule-options</em>
+<tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>target</em>
+<tt>::</tt>
+<em>target</em>
+<tt>:</tt>
+<em>target</em>
+<em>rule-options</em>
+<tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td></td>
+<td> </td>
+<td> -- Shell commands</td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>expr</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>indented-body</em>
+</td>
+<td> ::= </td>
+<td> <em>(empty)</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>indented-stmt</em>
+<tt>&lt;eol&gt;</tt> ... <tt>&lt;eol&gt;</tt> <em>indented-stmt</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>indented-exprs</em>
+</td>
+<td> ::= </td>
+<td> <em>(empty)</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>indented-expr</em>
+<tt>&lt;eol&gt;</tt> ... <tt>&lt;eol&gt;</tt> <em>indented-expr</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>optcolon-body</em>
+</td>
+<td> ::= </td>
+<td> <em>(empty)</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <tt>:</tt>
+<tt>&lt;eol&gt;</tt> <em>indented-body</em></td>
+</tr>
+
+<tr>
+<td></td>
+</tr>
+
+<tr>
+<td><em>rule-option</em>
+</td>
+<td> ::= </td>
+<td> <em>:id:</em>
+<em>target</em></td>
+</tr>
+
+<tr>
+<td><em>rule-options</em>
+</td>
+<td> ::= </td>
+<td> <em>(empty)</em></td>
+</tr>
+
+<tr>
+<td></td>
+<td> | </td>
+<td> <em>rule-options</em>
+<em>rule-option</em>
+</table>
+<p>
+<h5><a name="section_12">Special forms</a></h5>
+
+<p>
+The special forms include the following.
+<p>
+<strong>Conditionals</strong>
+(see <a href="omake-language.html#conditionals">Conditionals</a>).
+The <tt>if</tt> command
+should be followed by an expression that represents the condition, and an indented body. The
+conditional may be followed by <tt>elseif</tt> and <tt>else</tt> blocks.
+<p>
+<pre>
+    if expr
+        indented-body
+    elseif expr
+        indented-body
+    ...
+    else
+        indented-body
+</pre>
+<p>
+<strong>matching</strong>
+(see <a href="omake-language.html#matching">Matching</a>).
+The <tt>switch</tt> and
+<tt>match</tt> commands perform pattern-matching. All cases are optional. Each case may include
+<tt>when</tt> clauses that specify additional matching conditions.
+<p>
+<pre>
+    match(expr)
+    case expr
+       indented-body
+    when expr
+       indented-body
+    ...
+    case expr
+       indented-body
+    default
+       indented-body
+</pre>
+<p>
+<strong>Exceptions</strong>
+(see <a href="omake-language.html#exceptions">Exceptions</a>).
+The <tt>try</tt> command
+introduces an exception handler. Each <tt>name</tt> is the name of a class. All cases, including
+<tt>catch</tt>, <tt>default</tt>, and <tt>finally</tt> are optional. The <tt>catch</tt> and <tt>default</tt>
+clauses contain optional <tt>when</tt> clauses.
+<p>
+<pre>
+    try
+        indented-body
+    catch name1(id1)
+        indented-body
+    when expr
+        indented-body
+    ...
+    catch nameN(idN)
+        indented-body
+    default
+        indented-body
+    finally
+        indented-body
+</pre>
+<p>
+The <tt>raise</tt> command is used to raise an exception.
+<p>
+<pre>
+    raise expr
+</pre>
+<p>
+<strong>section</strong>
+(see <a href="omake-language.html#section">Sections</a>).
+The <tt>section</tt> command
+introduces a new scope.
+<p>
+<pre>
+    section
+        indented-body
+</pre>
+<p>
+<strong>include, open</strong>
+(see <a href="omake-language.html#include">Include</a>).
+The <tt>include</tt> command
+performs file inclusion. The expression should evaluate to a file name.
+<p>
+The <tt>open</tt> form is like include, but it performs the inclusion only if the inclusion has not
+already been performed. The <tt>open</tt> form is usually used to include library files. [jyh-- this
+behavior will change in subsequent revisions.]
+<p>
+<pre>
+    include expr
+    open expr
+</pre>
+<p>
+<strong>return</strong>
+(see <a href="omake-language.html#functions">Return</a>).
+The <tt>return</tt> command
+terminates execution and returns a value from a function.
+<p>
+<pre>
+    return expr
+</pre>
+<p>
+<strong>value</strong>
+(see <a href="omake-language#functions">Value</a>).
+The <tt>value</tt> command is an identity.
+Syntactically, it is used to coerce a n expression to a statement.
+<p>
+<pre>
+    value expr
+</pre>
+<p>
+<strong>export</strong>
+(See <a href="omake-language.html#export">Export</a>).
+The <tt>export</tt> command exports
+a environment from a nested block. If no identifiers are specified, the entire environment is exported.
+Otherwise, the export is limited to the specified identifiers.
+<p>
+<pre>
+    export id ... id
+</pre>
+<p>
+<strong>while</strong>
+(See <a href="omake-base.html#while">While</a>).
+The <tt>while</tt> command introduces a <tt>while</tt> loop.
+<p>
+<pre>
+    while expr
+        indented-body
+</pre>
+<p>
+<strong>class, extends</strong>
+(See <a href="omake-language.html#objects">Objects</a>).
+The <tt>class</tt> command
+specifies an identifier for an object. The <tt>extends</tt> command specifies a parent object.
+<p>
+<pre>
+    class id
+    extends expr
+</pre>
+<p>
+<h5><a name="section_13">Variable definitions</a></h5>
+
+<p>
+See <a href="omake-language.html#variables">Variables</a>.
+The simplest variable definition has the
+following syntax. The <tt>=</tt> form is a new definition. The += form appends the value to
+an existing definition.
+<p>
+<pre>
+    id = expr
+    id += expr
+
+    osh&gt; X = 1
+    - : "1" : Sequence
+    osh&gt; X += 7
+    - : "1" " " "7" : Sequence
+</pre>
+<p>
+A multi-line form is allowed, where the value is computed by an indented body.
+<p>
+<pre>
+    id {+}=
+        indented-body
+
+    osh&gt; X =
+             Y = HOME
+             println(Y is $Y)
+             getenv($Y)
+    Y is HOME
+    - : "/home/jyh" : Sequence
+</pre>
+<p>
+The name may be qualified qith one of the <tt>public</tt>, <tt>prtected</tt>, or <tt>private</tt>
+modifiers. Public variables are dynamically scoped. Protected variables are fields in the current
+object. Private variables are statically scoped.
+<p>
+[jyh: revision 0.9.9 introduces modular namespaces; the meaning of these qualifiers is slightly changed.]
+<p>
+<pre>
+    public.X = $(addsuffix .c, 1 2 3)
+    protected.Y = $(getenv HOME)
+    private.Z = $"Hello world"
+</pre>
+<p>
+<h5><a name="section_14">Applications and function definitions</a></h5>
+
+<p>
+See <a href="omake-language.html#functions">Functions</a>.
+A function-application statement is specified as a
+function name, followed a parenthesized list of comma-separated arguments.
+<p>
+<pre>
+    osh&gt; println($"Hello world")
+
+    osh&gt; FILES = 1 2 3
+    - : 1 2 3
+    osh&gt; addsuffix(.c, $(FILES))
+    - : 1.c 2.c 3.c
+
+    # The following forms are equivalent
+    osh&gt; value $(println $"Hello world")
+    osh&gt; value $(addsuffix .c, $(FILES))
+    - : 1.c 2.c 3.c
+</pre>
+<p>
+If the function application has a body, the body is passed (lazily) to the function as its first
+argument. [jyh: in revision 0.9.8 support is incomplete.] When using <tt>osh</tt>, the application
+must be followed by a colon <tt>:</tt> to indicate that the application has a body.
+<p>
+<pre>
+    # In its 3-argument form, the foreach function takes
+    # a body, a variable, and an array.  The body is evaluated
+    # for each element of the array, with the variable bound to
+    # the element value.
+    #
+    # The colon is required only for interactive sessions.
+    osh&gt; foreach(x, 1 2 3):
+            add($x, 1)
+    - : 2 3 4
+</pre>
+<p>
+Functions are defined in a similar form, where the parameter list is specified as a comma-separated
+list of identifiers, and the body of the function is indented.
+<p>
+<pre>
+    osh&gt; f(i, j) =
+            add($i, $j)
+    - : &lt;fun 2&gt;
+    osh&gt; f(3, 7)
+    - : 10 : Int
+</pre>
+<p>
+<h5><a name="section_15">Objects</a></h5>
+
+<p>
+See <a href="omake-language.html#objects">Objects</a>.
+Objects are defined as an identifier with a
+terminal period. The body of the object is indented.
+<p>
+<pre>
+    Obj. =
+        class Obj
+
+        X = 1
+        Y = $(sub $X, 12)
+        new(i, j) =
+           X = $i
+           Y = $j
+           value $(this)
+        F() =
+           add($X, $Y)
+        println($Y)
+</pre>
+<p>
+The body of the object has the usual form of an indented body, but new variable definitions are
+added to the object, not the global environment. The object definition above defines an object with
+(at least) the fields <tt>X</tt> and <tt>Y</tt>, and methods <tt>new</tt> and <tt>F</tt>. The name of the
+object is defined with the <tt>class</tt> command as <tt>Obj</tt>.
+<p>
+The <tt>Obj</tt> itself has fields <tt>X = 1</tt> and <tt>Y = -11</tt>. The <tt>new</tt> method has the
+typical form of a constructor-style method, where the fields of the object are initialized to new
+values, and the new object returned (<tt>$(this)</tt> refers to the current object).
+<p>
+The <tt>F</tt> method returns the sum of the two fields <tt>X</tt> and <tt>Y</tt>.
+<p>
+When used in an object definition, the += form adds the new definitions to an existing object.
+<p>
+<pre>
+   pair. =
+      x = 1
+      y = 2
+
+   pair. +=
+      y = $(add $y, 3)
+   # pair now has fields (x = 1, and y = 5)
+</pre>
+<p>
+The <tt>extends</tt> form specifies inheritance. Multiple inheritance is allowed. At evaluation
+time, the <tt>extends</tt> directive performs inclusion of the entire parent object.
+<p>
+<pre>
+   pair. =
+      x = 1
+      y = 2
+
+   depth. =
+      z = 3
+      zoom(dz) =
+         z = $(add $z, $(dz))
+         return $(this)
+
+   triple. =
+      extends $(pair)
+      extends $(depth)
+
+      crazy() =
+         zoom($(mul $x, $y))
+</pre>
+<p>
+In this example, the <tt>triple</tt> object has three fields x, y, and z; and two methods <tt>zoom</tt>
+and <tt>crazy</tt>.
+<p>
+<h5><a name="section_16">Rules</a></h5>
+
+<p>
+See <a href="omake-rules.html#rules">Rules</a>.
+A rule has the following parts.
+<ol compact>
+<li value =1>A sequence of targets;
+</li>
+<li value =2>one or two colons;
+</li>
+<li value =3>a sequence of <em>dependencies</em> and <em>rule options</em>;
+</li>
+<li value =4>and an indented body.
+</li>
+</ol>
+<p>
+The targets are the files to be built, and the dependencies are the files it depends on. If two
+colons are specified, it indicates that there may be multiple rules to build the given targets;
+otherwise only one rule is allowed.
+<p>
+If the target contains a <tt>%</tt> character, the rule is called <em>implicit</em>,
+and is considered
+whenever a file matching that pattern is to be built. For example, the following rule specifies a
+default rule for compiling OCaml files.
+<p>
+<pre>
+    %.cmo: %.ml %.mli
+       $(OCAMLC) -c $&lt;
+</pre>
+<p>
+This rule would be consulted as a default way of building any file with a <tt>.cmo</tt> suffix. The
+dependencies list is also constructed based on the pattern match. For example, if this rule were
+used to build a file <tt>foo.cmo</tt>, then the dependency list would be <tt>foo.ml foo.mli</tt>.
+<p>
+There is also a three-part version of a rule, where the rule specification has three parts.
+<p>
+<pre>
+    targets : pattern : dependencies rule-options
+       indented-body
+</pre>
+<p>
+In this case, the pattern <em>must</em>
+contain a single <tt>%</tt> character. However this is
+considered to be a sequence of <em>explicit</em>
+rules, where each target is matched against the
+pattern, and a new rule is computed based on the pattern match. For example, the following rule
+specifies how to build the explicit targets <tt>a.cmo</tt> and <tt>b.cmo</tt>.
+<p>
+<pre>
+    a.cmo b.cmo: %.cmo: %.ml %.mli
+       $(OCAMLC) -c $&lt;
+</pre>
+<p>
+This example is equivalent to the following two-rule sequence.
+<p>
+<pre>
+    a.cmo: a.ml a.mli
+       $(OCAMLC) -c $&lt;
+    b.cmo: b.ml b.mli
+       $(OCAMLC) -c $&lt;
+</pre>
+<p>
+There are several special targets, including the following.
+<p>
+<ul compact>
+<li><tt>.PHONY</tt> : declare a &ldquo;phony&rdquo; target. That is, the target does not correspond to a file.
+</li>
+<li><tt>.ORDER</tt> : declare a rule for dependency ordering.
+</li>
+<li><tt>.INCLUDE</tt> : define a rule to generate a file for textual inclusion.
+</li>
+<li><tt>.SUBDIRS</tt> : specify subdirectories that are part of the project.
+</li>
+<li><tt>.SCANNER</tt> : define a rule for dependency scanning.
+</li>
+</ul>
+<p>
+There are several rule options.
+<p>
+<ul compact>
+<li><tt>:optional: dependencies</tt> the subsequent dependencies are optional, it is acceptable if they do not exist.
+</li>
+<li><tt>:exists: dependencies</tt> the subsequent dependencies must exist, but changes to not affect
+whether this rule is considered out-of-date.
+</li>
+<li><tt>:effects: targets</tt> the subsequent files are side-effects of the rule. That is, they may be
+created and/or modified while the rule is executing. Rules with overlapping side-effects are never
+executed in parallel.
+</li>
+<li><tt>:scanner: name</tt> the subsequent name is the name of the <tt>.SCANNER</tt> rule for the target to be built.
+</li>
+<li><tt>:value: expr</tt> the <tt>expr</tt> is a &ldquo;value&rdquo; dependency. The rule is considered
+out-of-date whenever the value of the <tt>expr</tt> changes.
+</li>
+</ul>
+<p>
+Several variables are defined during rule evaluation.
+<p>
+<ul compact>
+<li><tt>$*</tt> : the name of the target with the outermost suffix removed.
+</li>
+<li><tt>$&gt;</tt> : the name of the target with all suffixes removed.
+</li>
+<li><tt>$@</tt> : the name of the target.
+</li>
+<li><tt>$^</tt> : the explicit file dependencies, sorted alphabetically, with duplicates removed.
+</li>
+<li><tt>$</tt>+ : all explicit file dependencies, with order preserved.
+</li>
+<li><tt>$&lt;</tt> : the first explicit file dependency.
+</li>
+<li><tt>$&amp;</tt> : the free values of the rule (often used in <tt>:value:</tt> dependencies).
+</li>
+</ul>
+<p>
+<h5><a name="section_17">Shell commands</a></h5>
+
+<p>
+See <a href="omake-shell.html#shell">Shell</a>.
+<p>
+While it is possible to give a precise specification of shell commands, the informal description is
+simpler. Any non-empty statement where each prefix is <em>not</em>
+one of the other statements, is
+considered to be a shell command. Here are some examples.
+<p>
+<pre>
+    ls                                 -- shell command
+    echo Hello world &gt; /dev/null       -- shell command
+    echo(Hello world)                  -- function application
+    echo(Hello world) &gt; /dev/null      -- syntax error
+    echo Hello: world                  -- rule
+    X=1 getenv X                       -- variable definition
+    env X=1 getenv X                   -- shell command
+    if true                            -- special form
+    \if true                           -- shell command
+    "if" true                          -- shell command
+</pre>
+<p>
+<a name="dollar"></a>
+<h2><a name="section_18">Dollar modifiers</a></h2>
+
+<p>
+Inline applications have a function and zero-or-more arguments. Evaluation is normally strict: when
+an application is evaluated, the function identifier is evaluated to a function, the arguments are
+then evaluated and the function is called with the evaluated arguments.
+<p>
+The additional &ldquo;dollar&rdquo; sequences specify additional control over evaluation. The token <tt>$`</tt>
+defines a &ldquo;lazy&rdquo; application, where evaluation is delayed until a value is required. The
+<tt>$,</tt> sequence performs an &ldquo;eager&rdquo; application within a lazy context.
+<p>
+To illustrate, consider the expression <tt>$(addsuffix .c, $(FILES))</tt>. The <tt>addsuffix</tt>
+function appends its first argument to each value in its second argument. The following <tt>osh</tt>
+interaction demonstrates the normal bahavior.
+<p>
+<pre>
+osh&gt; FILES[] = a b c
+- : &lt;array a b c&gt;
+osh&gt; X = $(addsuffix .c, $(FILES))
+- : &lt;array ...&gt;
+osh&gt; FILES[] = 1 2 3 # redefine FILES
+- : &lt;array 1 2 3&gt;
+osh&gt; println($"$X")  # force the evaluation and print
+a.c b.c c.c
+</pre>
+<p>
+When the lazy operator <tt>$`</tt> is used instead, evaluation is delayed until it is printed. In the
+following sample, the value for <tt>X</tt> has changed to the <tt>$(apply ..)</tt> form, but otherwise
+the result is unchanged because it it printed immediately.
+<p>
+<pre>
+osh&gt; FILES[] = a b c
+- : &lt;array a b c&gt;
+osh&gt; SUF = .c
+- : ".c"
+osh&gt; X = $`(addsuffix $(SUF), $(FILES))
+- : $(apply global.addsuffix ...)
+osh&gt; println($"$X")  # force the evaluation and print
+a.c b.c c.c
+</pre>
+<p>
+However, consider what happens if we redefine the <tt>FILES</tt> variable after the definition for
+<tt>X</tt>. In the following sample, the result changes because evaluation occurs <em>after</em>
+the
+values for <tt>FILES</tt> has been redefined.
+<p>
+<pre>
+osh&gt; FILES[] = a b c
+- : &lt;array a b c&gt;
+osh&gt; SUF = .c
+- : ".c"
+osh&gt; X = $`(addsuffix $(SUF), $(FILES))
+- : $(apply global.addsuffix ...)
+osh&gt; SUF = .x
+osh&gt; FILES[] = 1 2 3
+osh&gt; println($"$X")  # force the evaluation and print
+1.x 2.x 3.x
+</pre>
+<p>
+In some cases, more explicit control is desired over evaluation. For example, we may wish to
+evaluate <tt>SUF</tt> early, but allow for changes to the <tt>FILES</tt> variable. The <tt>$,(SUF)</tt>
+expression forces early evaluation.
+<p>
+<pre>
+osh&gt; FILES[] = a b c
+- : &lt;array a b c&gt;
+osh&gt; SUF = .c
+- : ".c"
+osh&gt; X = $`(addsuffix $,(SUF), $(FILES))
+- : $(apply global.addsuffix ...)
+osh&gt; SUF = .x
+osh&gt; FILES[] = 1 2 3
+osh&gt; println($"$X")  # force the evaluation and print
+1.c 2.c 3.c
+</pre>
+<p>
+<h2><a name="section_19">References</a></h2>
+
+<p>
+<h4><a name="section_20">See Also</a></h4>
+
+<p>
+<a href="omake.html">omake(1)</a>,
+<a href="omake-quickstart.html">omake-quickstart(1)</a>,
+<a href="omake-options.html">omake-options(1)</a>,
+<a href="omake-root.html">omake-root(1)</a>,
+<a href="omake-language.html">omake-language(1)</a>,
+<a href="omake-shell.html">omake-shell(1)</a>,
+<a href="omake-rules.html">omake-rules(1)</a>,
+<a href="omake-base.html">omake-base(1)</a>,
+<a href="omake-system.html">omake-system(1)</a>,
+<a href="omake-pervasives.html">omake-pervasives(1)</a>,
+<a href="osh.html">osh(1)</a>,
+<em>make</em>(1)
+<p>
+<h4><a name="section_21">Version</a></h4>
+
+<p>
+Version: 0.9.6.9 of April 11, 2006.
+<p>
+<h4><a name="section_22">License and Copyright</a></h4>
+
+<p>
+&copy;2003-2006, Mojave Group, Caltech
+<p>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+<p>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+<p>
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<p>
+<h4><a name="section_23">Author</a></h4>
+
+<p>
+Jason Hickey <em>et. al.</em><br>
+Caltech 256-80 <br>
+
+Pasadena, CA 91125, USA <br>
+
+Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
+<br>
+WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
+<p>
+</body>
+</html>
+<!-- NOTE: This file is generated, DO NOT EDIT. -->
