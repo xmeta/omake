@@ -1,0 +1,790 @@
+OMAKE-GRAMMAR(1)                 Build Tools                  OMAKE-GRAMMAR(1)
+
+
+
+NAME
+       omake  is  a flexible build system designed for building a wide variety
+       of projects.  This document describes the language concepts and syntax.
+       For an overview of omake, see the omake(1) man page.
+
+
+OMAKE LEXICAL CONVENTIONS
+       The  OMake  language  is  based on the language for GNU/BSD make, where
+       there are few lexical conventions. Strictly speaking, there are no key-
+       words, and few special symbols.
+
+
+   COMMENTS
+       Comments  begin  with  the # character and continue to the end-of-line.
+       Text within a comment is unrestricted.
+
+       Examples.
+
+          # This is a comment
+          # This $comment contains a quote " character
+
+
+
+   SPECIAL CHARACTERS
+       The following characters are special in some contexts.
+
+          $    (    )    ,    .   =    :    "    '    `    \    #
+
+
+
+       *      $ is used to denote a variable reference, or  function  applica-
+              tion.
+
+       *      Parentheses ), ( are argument deliminters.
+
+       *      The command , is an argument separator.
+
+       *      The period symbol . is a name separator.
+
+       *      The equality symbol = denotes a definition.
+
+       *      The  colon symbol : is used to denote rules, and (optionally) to
+              indicate that an expression is followed by an indented body.
+
+       *      The quotation symbols " and ' delimit character strings.
+
+       *      The symbol # is the first character of a constant.
+
+       *      The escape symbol \ is special only  when  followed  by  another
+              special  character. In this case, the special status of the sec-
+              ond character is removed, and the sequence  denotes  the  second
+              character. Otherwise, the \ is not special.
+
+       Examples:
+
+
+              *      \$: the $ character (as a normal character).
+
+              *      \#: the # character (as a normal character).
+
+              *      \\: the \ character (as a normal character).
+
+              *      c\:\Windows\moo\#boo: the string c:\Windows\moo#boo.
+
+
+
+   IDENTIFIERS
+       Identifiers  (variable  names)  are  drawn  from the ASCII alphanumeric
+       characters as well as _, -, ~, @. Case is  significant;  the  following
+       identifiers  are distinct: FOO, Foo, foo. The identifier may begin with
+       any of the valid characters, including digits.
+
+       Using egrep notation, the regular expression for identifiers is defined
+       as follows.
+
+           identifier ::= [-@~_A-Za-z0-9]+
+
+
+       The following are legal identifiers.
+
+           Xyz    hello_world    seventy@nine
+           79-32  Gnus~Gnats     CFLAGS
+
+
+       The following are not legal identifiers.
+
+           x+y    hello&world
+
+
+
+   COMMAND IDENTIFIERS
+       The  following  words  have special significance when they occur as the
+       first word of a program line. They are not otherwise special.
+
+           case     catch  class    declare    default
+           do       else   elseif   export     extends
+           finally  if     import   include    match
+           open     raise  return   section    switch
+           try      value  when     while
+
+
+
+   VARIABLE REFERENCES
+       A variable reference is denoted with the $ special  character  followed
+       by  an  identifier. If the identifier name has more than one character,
+       it must be enclosed in parentheses. The parenthesized version  is  most
+       common. The following are legal variable references.
+
+           $(Xyz)    $(hello_world)   $(seventy@nine)
+           $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
+
+
+       Single-character  references  also  include  several additional identi-
+       fiers, including &*<^?][.  The  following  are  legal  single-character
+       references.
+
+          $@   $&   $*   $<   $^   $+   $?   $[   $]
+          $A   $_   $a   $b   $x   $1   $2   $3
+
+
+       Note that a non-parenthesized variable reference is limited to a single
+       character, even if it is followed by additional legal identifier  char-
+       qcters. Suppose the value of the $x variable is 17. The following exam-
+       ples illustrate evaluation.
+
+           $x           evaluates to    17
+           foo$xbar     evaluates to    foo17bar
+           foo$(x)bar   evaluates to    foo17bar
+
+
+       The special sequence $$ represents the character literal  $.  That  is,
+       the two-character sequences \$ and $$ are normally equalivalent.
+
+
+   STRING CONSTANTS
+       Literal  strings  are  defined  with matching string delimiters. A left
+       string delimiter begins with the dollar-sign $, and a  non-zero  number
+       of  single-quote  or  double-quote characters. The string is terminated
+       with a matching sequence of quotation symbols. The delimiter  quotation
+       may not be mixed; it must contain only single-quote characters, or dou-
+       ble-quote characters. The following are legal strings.
+
+       [jyh: there is a bug in the  formatter  where  single-quote  pairs  are
+       being  converted to double-quotes.  I've added \ symbols in these cases
+       to prevent that. This should be considered to be an artifact  of  type-
+       setting--the \ characters must not be included in code.]
+
+           $'Hello world'
+           $"""printf("Hello world\n")"""
+           $'\'\'\'
+       Large "block" of
+       text # spanning ''multiple'' lines'\'\'\'
+
+
+       The  string  delimiters are not included in the string constant. In the
+       single-quote form, the contents of the string  are  interpreted  verba-
+       tim--there are no special characters.
+
+       The  double-quote form permits expression evaluation within the string,
+       denoted with the $ symbol.  The following are some examples.
+
+           X = Hello
+           Y = $""$X world""             # Hello world
+           Z = $'\'\'$X world'\'\'       # $X world
+           I = 3
+           W = $"6 > $(add $I, 2)"       # 6 > 5
+
+
+       Note that quotation symbols without a leading $ are  not  treated  spe-
+       cially by OMake. The quotation symbols is included in the sequence.
+
+           osh>println('Hello world')
+           'Hello world'
+           osh>println($'Hello world')
+           Hello world
+           osh>X = Hello
+           - : "Hello" : Sequence
+           osh>println('$X world')
+           Hello world
+
+
+
+THE OMAKE GRAMMAR
+       OMake  programs are constructed from expressions and statements. Gener-
+       ally, an input program consists of a sequence of  statements,  each  of
+       which  consists  of one or more lines. Indentation is significant--if a
+       statement consists of more than one  line,  the  second  and  remaining
+       lines  (called  the  body)  are  usually indented relative to the first
+       line.
+
+
+   EXPRESSIONS
+       The following table lists the syntax for expressions.
+
+
+       l l l .  expr       ::=            (empty)               --  Text  (see
+       note)        |    text       |    string-literal            -- Applica-
+       tions       |    dollar <char>       |    dollar ( pathid args )
+             --  Concatenation       |    expr expr dollar       ::=       $ |
+       $` | $, pathid       ::=            id       |    pathid . id arg
+       ::=     expr  -- excluding special characters )(,) args       ::=
+       (empty) | arg, ..., arg
+
+       An expression is a sequence composed of  text,  string-literals,  vari-
+       ables  references  and  function  applications. Text is any sequence of
+       non-special characters.
+
+
+   Inline applications
+       An application is the application of a function to  zero-or-more  argu-
+       ments.  Inline  applications begin with one of the ``dollar'' sequences
+       $, $`, or $,. The application itself is specified as a single character
+       (in  which  case  it is a variable reference), or it is a parenthesized
+       list  including  a  function  identifier   pathid,   and   zero-or-more
+       comma-separated arguments args.  The arguments are themselves a variant
+       of the expressions where the special  character  )(,  are  not  allowed
+       (though  any of these may be made non-special with the \ escape charac-
+       ter). The following are some examples of valid expressions.
+
+
+       *      xyz abc
+
+       The text sequence ``xyz abc''
+
+
+       *      xyz$wabc
+
+       A text sequence containing a reference to the variable w.
+
+
+       *      $(addsuffix .c, $(FILES))
+
+       An application of the function addsuffix, with first argument  .c,  and
+       second argument $(FILES).
+
+
+       *      $(a.b.c 12)
+
+       This is a method call. The variable a must evaluate to an object with a
+       field b, which must be an object with a method c. This method is called
+       with argument 12.
+
+       The additional dollar sequences specify evaluation order, $` (lazy) and
+       $, (eager), as discussed in the section on dollar modifiers.
+
+
+   STATEMENTS AND PROGRAMS
+       The following table lists the syntax of statements and programs.
+
+
+       l l l .  params       ::=       (empty) | id, ..., id target        ::=
+              expr  --  excluding  special character : program       ::=
+       stmt <eol> ... <eol> stmt stmt       ::=             --  Special  forms
+              |         command expr optcolon-body       |    command ( args )
+       optcolon-body       |    catch id ( id ) optcolon-body       |    class
+       id  ...  id              -- Variable definitions       |    pathid {+}=
+       expr       |    pathid {+}= <eol> indented-body       |      pathid  []
+       {+}=  expr       |    pathid [] {+}= <eol> indented-exprs            --
+       Functions         |       pathid(args)   optcolon-body           |
+       pathid(params)  =  <eol> indented-body            -- Objects       |
+       pathid . {+}= <eol> indented-body            -- Rules       |    target
+       :  target  rule-options <eol> indented-body       |    target :: target
+       rule-options <eol> indented-body       |    target :  target  :  target
+       rule-options  <eol>  indented-body       |    target :: target : target
+       rule-options <eol> indented-body            -- Shell commands         |
+           expr indented-body       ::=       (empty)       |    indented-stmt
+       <eol> ... <eol> indented-stmt indented-exprs        ::=         (empty)
+             |       indented-expr <eol> ... <eol> indented-expr optcolon-body
+             ::=   (empty)       |    <eol> indented-body       |     :  <eol>
+       indented-body  rule-option         ::=         :id: target rule-options
+             ::=   (empty)       |    rule-options rule-option
+
+
+   Special forms
+       The special forms include the following.
+
+       Conditionals (see Conditionals).  The if command should be followed  by
+       an  expression that represents the condition, and an indented body. The
+       conditional may be followed by elseif and else blocks.
+
+           if expr
+               indented-body
+           elseif expr
+               indented-body
+           ...
+           else
+               indented-body
+
+
+       matching (see Matching).  The switch and match  commands  perform  pat-
+       tern-matching.  All  cases  are  optional.  Each  case may include when
+       clauses that specify additional matching conditions.
+
+           match(expr)
+           case expr
+              indented-body
+           when expr
+              indented-body
+           ...
+           case expr
+              indented-body
+           default
+              indented-body
+
+
+       Exceptions (see Exceptions).  The try command introduces  an  exception
+       handler.  Each name is the name of a class. All cases, including catch,
+       default, and finally are optional. The catch and default  clauses  con-
+       tain optional when clauses.
+
+           try
+               indented-body
+           catch name1(id1)
+               indented-body
+           when expr
+               indented-body
+           ...
+           catch nameN(idN)
+               indented-body
+           default
+               indented-body
+           finally
+               indented-body
+
+
+       The raise command is used to raise an exception.
+
+           raise expr
+
+
+       section (see Sections).  The section command introduces a new scope.
+
+           section
+               indented-body
+
+
+       include,  open (see Include).  The include command performs file inclu-
+       sion. The expression should evaluate to a file name.
+
+       The open form is like include, but it performs the  inclusion  only  if
+       the  inclusion has not already been performed. The open form is usually
+       used to include library files. [jyh-- this behavior will change in sub-
+       sequent revisions.]
+
+           include expr
+           open expr
+
+
+       return  (see  Return).   The  return  command  terminates execution and
+       returns a value from a function.
+
+           return expr
+
+
+       value (see Value).  The value command is an  identity.   Syntactically,
+       it is used to coerce a n expression to a statement.
+
+           value expr
+
+
+       export  (See  Export).  The export command exports a environment from a
+       nested block. If no identifiers are specified, the  entire  environment
+       is exported.  Otherwise, the export is limited to the specified identi-
+       fiers.
+
+           export id ... id
+
+
+       while (See While).  The while command introduces a while loop.
+
+           while expr
+               indented-body
+
+
+       class, extends (See Objects).  The class command specifies  an  identi-
+       fier for an object. The extends command specifies a parent object.
+
+           class id
+           extends expr
+
+
+
+   Variable definitions
+       See Variables.  The simplest variable definition has the following syn-
+       tax. The = form is a new definition. The += form appends the  value  to
+       an existing definition.
+
+           id = expr
+           id += expr
+
+           osh> X = 1
+           - : "1" : Sequence
+           osh> X += 7
+           - : "1" " " "7" : Sequence
+
+
+       A  multi-line  form  is  allowed,  where  the  value  is computed by an
+       indented body.
+
+           id {+}=
+               indented-body
+
+           osh> X =
+                    Y = HOME
+                    println(Y is $Y)
+                    getenv($Y)
+           Y is HOME
+           - : "/home/jyh" : Sequence
+
+
+       The name may be qualified qith one of the public, prtected, or  private
+       modifiers. Public variables are dynamically scoped. Protected variables
+       are fields in the current  object.  Private  variables  are  statically
+       scoped.
+
+       [jyh:  revision  0.9.9  introduces  modular  namespaces; the meaning of
+       these qualifiers is slightly changed.]
+
+           public.X = $(addsuffix .c, 1 2 3)
+           protected.Y = $(getenv HOME)
+           private.Z = $"Hello world"
+
+
+
+   Applications and function definitions
+       See Functions.  A function-application  statement  is  specified  as  a
+       function  name,  followed a parenthesized list of comma-separated argu-
+       ments.
+
+           osh> println($"Hello world")
+
+           osh> FILES = 1 2 3
+           - : 1 2 3
+           osh> addsuffix(.c, $(FILES))
+           - : 1.c 2.c 3.c
+
+           # The following forms are equivalent
+           osh> value $(println $"Hello world")
+           osh> value $(addsuffix .c, $(FILES))
+           - : 1.c 2.c 3.c
+
+
+       If the function application has a body, the body is passed (lazily)  to
+       the  function as its first argument. [jyh: in revision 0.9.8 support is
+       incomplete.] When using osh, the application  must  be  followed  by  a
+       colon : to indicate that the application has a body.
+
+           # In its 3-argument form, the foreach function takes
+           # a body, a variable, and an array.  The body is evaluated
+           # for each element of the array, with the variable bound to
+           # the element value.
+           #
+           # The colon is required only for interactive sessions.
+           osh> foreach(x, 1 2 3):
+                   add($x, 1)
+           - : 2 3 4
+
+
+       Functions  are  defined  in a similar form, where the parameter list is
+       specified as a comma-separated list of identifiers, and the body of the
+       function is indented.
+
+           osh> f(i, j) =
+                   add($i, $j)
+           - : <fun 2>
+           osh> f(3, 7)
+           - : 10 : Int
+
+
+
+   Objects
+       See  Objects.   Objects  are  defined  as an identifier with a terminal
+       period. The body of the object is indented.
+
+           Obj. =
+               class Obj
+
+               X = 1
+               Y = $(sub $X, 12)
+               new(i, j) =
+                  X = $i
+                  Y = $j
+                  value $(this)
+               F() =
+                  add($X, $Y)
+               println($Y)
+
+
+       The body of the object has the usual form of an indented body, but  new
+       variable  definitions  are added to the object, not the global environ-
+       ment. The object definition above defines an object with (at least) the
+       fields  X  and  Y,  and  methods  new  and F. The name of the object is
+       defined with the class command as Obj.
+
+       The Obj itself has fields X = 1 and Y = -11. The  new  method  has  the
+       typical  form  of  a  constructor-style method, where the fields of the
+       object are initialized to new  values,  and  the  new  object  returned
+       ($(this) refers to the current object).
+
+       The F method returns the sum of the two fields X and Y.
+
+       When used in an object definition, the += form adds the new definitions
+       to an existing object.
+
+          pair. =
+             x = 1
+             y = 2
+
+          pair. +=
+             y = $(add $y, 3)
+          # pair now has fields (x = 1, and y = 5)
+
+
+       The  extends  form  specifies  inheritance.  Multiple  inheritance   is
+       allowed.  At  evaluation time, the extends directive performs inclusion
+       of the entire parent object.
+
+          pair. =
+             x = 1
+             y = 2
+
+          depth. =
+             z = 3
+             zoom(dz) =
+                z = $(add $z, $(dz))
+                return $(this)
+
+          triple. =
+             extends $(pair)
+             extends $(depth)
+
+             crazy() =
+                zoom($(mul $x, $y))
+
+
+       In this example, the triple object has three fields x, y,  and  z;  and
+       two methods zoom and crazy.
+
+
+   Rules
+       See Rules.  A rule has the following parts.
+
+       1.     A sequence of targets;
+
+       2.     one or two colons;
+
+       3.     a sequence of dependencies and rule options;
+
+       4.     and an indented body.
+
+       The  targets  are  the  files to be built, and the dependencies are the
+       files it depends on. If two colons are  specified,  it  indicates  that
+       there  may be multiple rules to build the given targets; otherwise only
+       one rule is allowed.
+
+       If the target contains a % character, the rule is called implicit,  and
+       is considered whenever a file matching that pattern is to be built. For
+       example, the following rule specifies  a  default  rule  for  compiling
+       OCaml files.
+
+           %.cmo: %.ml %.mli
+              $(OCAMLC) -c $<
+
+
+       This rule would be consulted as a default way of building any file with
+       a .cmo suffix. The dependencies list is also constructed based  on  the
+       pattern  match.  For  example,  if  this rule were used to build a file
+       foo.cmo, then the dependency list would be foo.ml foo.mli.
+
+       There is also a three-part version of a rule, where the rule specifica-
+       tion has three parts.
+
+           targets : pattern : dependencies rule-options
+              indented-body
+
+
+       In  this  case,  the pattern must contain a single % character. However
+       this is considered to be a sequence of explicit rules, where each  tar-
+       get is matched against the pattern, and a new rule is computed based on
+       the pattern match. For example, the following  rule  specifies  how  to
+       build the explicit targets a.cmo and b.cmo.
+
+           a.cmo b.cmo: %.cmo: %.ml %.mli
+              $(OCAMLC) -c $<
+
+
+       This example is equivalent to the following two-rule sequence.
+
+           a.cmo: a.ml a.mli
+              $(OCAMLC) -c $<
+           b.cmo: b.ml b.mli
+              $(OCAMLC) -c $<
+
+
+       There are several special targets, including the following.
+
+
+       *      .PHONY  :  declare  a ``phony'' target. That is, the target does
+              not correspond to a file.
+
+       *      .ORDER : declare a rule for dependency ordering.
+
+       *      .INCLUDE : define a rule to generate a file for  textual  inclu-
+              sion.
+
+       *      .SUBDIRS  : specify subdirectories that are part of the project.
+
+       *      .SCANNER : define a rule for dependency scanning.
+
+       There are several rule options.
+
+
+       *      :optional:  dependencies   the   subsequent   dependencies   are
+              optional, it is acceptable if they do not exist.
+
+       *      :exists:  dependencies  the  subsequent dependencies must exist,
+              but changes to  not  affect  whether  this  rule  is  considered
+              out-of-date.
+
+       *      :effects:  targets  the subsequent files are side-effects of the
+              rule. That is, they may be created  and/or  modified  while  the
+              rule is executing. Rules with overlapping side-effects are never
+              executed in parallel.
+
+       *      :scanner: name the subsequent name is the name of  the  .SCANNER
+              rule for the target to be built.
+
+       *      :value:  expr  the  expr  is a ``value'' dependency. The rule is
+              considered out-of-date whenever the value of the expr changes.
+
+       Several variables are defined during rule evaluation.
+
+
+       *      $* : the name of the target with the outermost suffix removed.
+
+       *      $> : the name of the target with all suffixes removed.
+
+       *      $@ : the name of the target.
+
+       *      $^ : the explicit file dependencies, sorted alphabetically, with
+              duplicates removed.
+
+       *      $+ : all explicit file dependencies, with order preserved.
+
+       *      $< : the first explicit file dependency.
+
+       *      $&  :  the free values of the rule (often used in :value: depen-
+              dencies).
+
+
+   Shell commands
+       See Shell.
+
+       While it is possible to give a precise specification of shell commands,
+       the informal description is simpler. Any non-empty statement where each
+       prefix is not one of the other statements, is considered to be a  shell
+       command. Here are some examples.
+
+           ls                                 -- shell command
+           echo Hello world > /dev/null       -- shell command
+           echo(Hello world)                  -- function application
+           echo(Hello world) > /dev/null      -- syntax error
+           echo Hello: world                  -- rule
+           X=1 getenv X                       -- variable definition
+           env X=1 getenv X                   -- shell command
+           if true                            -- special form
+           \if true                           -- shell command
+           "if" true                          -- shell command
+
+
+
+
+DOLLAR MODIFIERS
+       Inline applications have a function and zero-or-more arguments. Evalua-
+       tion is normally strict: when an application is evaluated, the function
+       identifier is evaluated to a function, the arguments are then evaluated
+       and the function is called with the evaluated arguments.
+
+       The additional ``dollar'' sequences  specify  additional  control  over
+       evaluation.  The token $` defines a ``lazy'' application, where evalua-
+       tion is delayed until a value is required. The $, sequence performs  an
+       ``eager'' application within a lazy context.
+
+       To  illustrate,  consider the expression $(addsuffix .c, $(FILES)). The
+       addsuffix function appends its first argument to each value in its sec-
+       ond  argument.  The  following  osh interaction demonstrates the normal
+       bahavior.
+
+       osh> FILES[] = a b c
+       - : <array a b c>
+       osh> X = $(addsuffix .c, $(FILES))
+       - : <array ...>
+       osh> FILES[] = 1 2 3 # redefine FILES
+       - : <array 1 2 3>
+       osh> println($"$X")  # force the evaluation and print
+       a.c b.c c.c
+
+
+       When the lazy operator $` is used instead, evaluation is delayed  until
+       it  is printed. In the following sample, the value for X has changed to
+       the $(apply ..) form, but otherwise the result is unchanged because  it
+       it printed immediately.
+
+       osh> FILES[] = a b c
+       - : <array a b c>
+       osh> SUF = .c
+       - : ".c"
+       osh> X = $`(addsuffix $(SUF), $(FILES))
+       - : $(apply global.addsuffix ...)
+       osh> println($"$X")  # force the evaluation and print
+       a.c b.c c.c
+
+
+       However,  consider what happens if we redefine the FILES variable after
+       the definition for X. In  the  following  sample,  the  result  changes
+       because  evaluation  occurs  after  the values for FILES has been rede-
+       fined.
+
+       osh> FILES[] = a b c
+       - : <array a b c>
+       osh> SUF = .c
+       - : ".c"
+       osh> X = $`(addsuffix $(SUF), $(FILES))
+       - : $(apply global.addsuffix ...)
+       osh> SUF = .x
+       osh> FILES[] = 1 2 3
+       osh> println($"$X")  # force the evaluation and print
+       1.x 2.x 3.x
+
+
+       In some cases, more explicit control is desired  over  evaluation.  For
+       example,  we  may  wish to evaluate SUF early, but allow for changes to
+       the FILES variable. The $,(SUF) expression forces early evaluation.
+
+       osh> FILES[] = a b c
+       - : <array a b c>
+       osh> SUF = .c
+       - : ".c"
+       osh> X = $`(addsuffix $,(SUF), $(FILES))
+       - : $(apply global.addsuffix ...)
+       osh> SUF = .x
+       osh> FILES[] = 1 2 3
+       osh> println($"$X")  # force the evaluation and print
+       1.c 2.c 3.c
+
+
+
+REFERENCES
+   SEE ALSO
+       omake(1),   omake-quickstart(1),    omake-options(1),    omake-root(1),
+       omake-language(1),   omake-shell(1),   omake-rules(1),   omake-base(1),
+       omake-system(1), omake-pervasives(1), osh(1), make(1)
+
+
+   VERSION
+       Version: 0.9.6.9 of April 11, 2006.
+
+
+   LICENSE AND COPYRIGHT
+       (C)2003-2006, Mojave Group, Caltech
+
+       This program is free software; you can redistribute it and/or modify it
+       under  the  terms of the GNU General Public License as published by the
+       Free Software Foundation; either version 2 of the License, or (at  your
+       option) any later version.
+
+       This  program  is  distributed  in the hope that it will be useful, but
+       WITHOUT ANY  WARRANTY;  without  even  the  implied  warranty  of  MER-
+       CHANTABILITY  or  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+       Public License for more details.
+
+       You should have received a copy of the GNU General Public License along
+       with this program; if not, write to the Free Software Foundation, Inc.,
+       675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+   AUTHOR
+       Jason Hickey et. al..br Caltech 256-80
+       Pasadena, CA 91125, USA
+       Email: omake-devel@metaprl.org
+       WWW: http://www.cs.caltech.edu/~jyh
+
+
+
+
+Build Tools                     April 11, 2006                OMAKE-GRAMMAR(1)
