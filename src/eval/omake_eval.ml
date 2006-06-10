@@ -463,7 +463,6 @@ and compile_object compile venv pos loc source =
 and string_of_value venv pos v =
    let pos = string_pos "string_of_value" pos in
    let scratch_buf = Buffer.create 32 in
-   let dir1 = venv_dir venv in
    let rec collect v =
       match eval_prim_value venv pos v with
          (* Values that expand to nothing *)
@@ -511,9 +510,9 @@ and string_of_value venv pos v =
        | ValString s ->
             Buffer.add_string scratch_buf s
        | ValDir dir2 ->
-            Buffer.add_string scratch_buf (Dir.name dir1 dir2)
+            Buffer.add_string scratch_buf (venv_dirname venv dir2)
        | ValNode node ->
-            Buffer.add_string scratch_buf (Node.name dir1 node)
+            Buffer.add_string scratch_buf (venv_nodename venv node)
        | ValKey _
        | ValApply _
        | ValImplicit _
@@ -538,7 +537,6 @@ and string_of_quote venv pos c vl =
 
 and string_of_quote_buf scratch_buf venv pos vl =
    let pos = string_pos "string_of_quote_buf" pos in
-   let dir1 = venv_dir venv in
    let rec collect v =
       match eval_value venv pos v with
          (* Values that expand to nothing *)
@@ -576,9 +574,9 @@ and string_of_quote_buf scratch_buf venv pos vl =
        | ValString s ->
             Buffer.add_string scratch_buf s
        | ValDir dir2 ->
-            Buffer.add_string scratch_buf (Dir.name dir1 dir2)
+            Buffer.add_string scratch_buf (venv_dirname venv dir2)
        | ValNode node ->
-            Buffer.add_string scratch_buf (Node.name dir1 node)
+            Buffer.add_string scratch_buf (venv_nodename venv node)
        | ValKey _
        | ValApply _
        | ValSuperApply _

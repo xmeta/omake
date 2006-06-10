@@ -380,7 +380,7 @@ let expand_rule erule =
                Some s ->
                   s
              | None ->
-                  Node.name (venv_dir venv) target
+                  venv_nodename venv target
          in
          let pos = string_pos "expand_rule" (loc_exp_pos loc) in
          let buf = Command.create venv target core locks effects deps scanners in
@@ -948,8 +948,8 @@ and eval_subdir venv loc (kind, dir) commands =
    let result =
       match result with
          ValEnv (venv, syms) ->
-             venv_add_dir venv;
-             ValEnv (venv_chdir_tmp venv cwd, syms)
+            venv_add_dir venv;
+            ValEnv (venv_chdir_tmp venv cwd, syms)
        | _ ->
             result
    in
@@ -1035,9 +1035,8 @@ and eval_commands venv loc target sloppy_deps commands : arg_command_line list =
                   Omake_env.command_body    = body
                 } = command
             in
-            let dir = venv_dir venv in
-            let target_arg = Node.name dir target in
-            let source_args = List.map (Node.name dir) sources in
+            let target_arg = venv_nodename venv target in
+            let source_args = List.map (venv_nodename venv) sources in
             let lines = eval_rule venv loc target_arg source_args sloppy_deps values body in
             let commands' = List.rev_append lines commands' in
                collect commands' commands
@@ -1410,9 +1409,8 @@ and normalize_command venv pos loc options command =
          [] ->
             argv
        | _ ->
-            let dir = venv_dir venv in
-               List.fold_left (fun argv node ->
-                     Node.name dir node :: argv) argv (List.rev args)
+            List.fold_left (fun argv node ->
+                  venv_nodename venv node :: argv) argv (List.rev args)
    in
       { command with cmd_env = string_of_env env;
                      cmd_exe = exe;

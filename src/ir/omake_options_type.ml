@@ -60,6 +60,7 @@ type omake_options =
      opt_flush_include       : bool;
      opt_flush_static        : bool;
      opt_allow_exceptions    : bool;
+     opt_absname             : bool;
    }
 
 (*!

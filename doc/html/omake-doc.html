@@ -46,395 +46,411 @@ additional features, including accurate automated dependency analysis based on M
 <li><a href="#section_16">OMakeroot vs. OMakefile </a></li>
 <li><a href="#section_17">An example C project </a></li>
 <li><a href="#section_18">An example OCaml project </a></li>
+<li><a href="#section_19">Handling new languages </a>
+<ul>
+<li><a href="#section_20">Defining a default compilation rule </a></li>
+<li><a href="#section_21">Defining a rule for linking </a></li>
+<li><a href="#section_22">Dependency scanning </a></li>
+<li><a href="#section_23">Pulling it all together </a></li>
+<li><a href="#section_24">Finishing up </a></li>
 </ul>
-<li><a href="#section_19">Language examples </a>
+<li><a href="#section_25">Collapsing the hierarchy, .SUBDIRS bodies </a>
 <ul>
-<li><a href="#section_20">Strings and arrays </a></li>
-<li><a href="#section_21">Files and directories </a></li>
-<li><a href="#section_22">Iteration, mapping, and foreach </a></li>
-<li><a href="#section_23">Lazy expressions </a></li>
-<li><a href="#section_24">Scoping and exports </a></li>
-<li><a href="#section_25">Shell aliases </a></li>
-<li><a href="#section_26">Input/output redirection on the cheap </a></li>
-</ul>
-<li><a href="#section_27">Synopsis </a></li>
-<li><a href="#section_28">Command-line options </a></li>
-<li><a href="#section_29">OMake concepts and syntax </a>
-<ul>
-<li><a href="#section_30">Variables </a></li>
-<li><a href="#section_31">Adding to a variable definition </a></li>
-<li><a href="#section_32">Arrays </a></li>
-<li><a href="#section_33">Special characters and quoting </a></li>
-<li><a href="#section_34">Function definitions </a></li>
-<li><a href="#section_35">Comments </a></li>
-<li><a href="#section_36">File inclusion </a></li>
-<li><a href="#section_37">Scoping, sections </a></li>
-<li><a href="#section_38">Conditionals </a></li>
-<li><a href="#section_39">Matching </a></li>
-</ul>
-<li><a href="#section_40">Objects </a>
-<ul>
-<li><a href="#section_41">Classes </a></li>
-<li><a href="#section_42">Inheritance </a></li>
-</ul>
-<li><a href="#section_43">Special objects/sections </a>
-<ul>
-<li><a href="#section_44">private. </a></li>
-<li><a href="#section_45">protected. </a></li>
-<li><a href="#section_46">public. </a></li>
-<li><a href="#section_47">static. </a></li>
-<li><a href="#section_48">Short syntax for scoping objects </a></li>
-<li><a href="#section_49">Modular programming </a></li>
-</ul>
-<li><a href="#section_50">Rules </a>
-<ul>
-<li><a href="#section_51">Implicit rules </a></li>
-<li><a href="#section_52">Bounded implicit rules </a></li>
-<li><a href="#section_53">section </a></li>
-<li><a href="#section_54">section rule </a></li>
-</ul>
-<li><a href="#section_55">Special dependencies </a>
-<ul>
-<li><a href="#section_56">:exists: </a></li>
-<li><a href="#section_57">:effects: </a></li>
-<li><a href="#section_58">:value: </a></li>
-</ul>
-<li><a href="#section_59">.SCANNER rules </a>
-<ul>
-<li><a href="#section_60">Named scanners, and the :scanner: target </a></li>
-<li><a href="#section_61">Notes </a></li>
-</ul>
-<li><a href="#section_62">Other special targets </a>
-<ul>
-<li><a href="#section_63">.DEFAULT </a></li>
-<li><a href="#section_64">.SUBDIRS </a></li>
-<li><a href="#section_65">.INCLUDE </a></li>
-<li><a href="#section_66">.PHONY </a></li>
-</ul>
-<li><a href="#section_67">Rule scoping </a>
-<ul>
-<li><a href="#section_68">Scoping of implicit rules </a></li>
-<li><a href="#section_69">Scoping of .SCANNER rules </a></li>
-<li><a href="#section_70">Scoping for .PHONY targets </a></li>
-</ul>
-<li><a href="#section_71">The OSH shell </a>
-<ul>
-<li><a href="#section_72">Startup </a></li>
-<li><a href="#section_73">Aliases </a></li>
-<li><a href="#section_74">Interactive syntax </a></li>
-<li><a href="#section_75">See also </a></li>
-</ul>
-<li><a href="#section_76">OMake lexical conventions </a>
-<ul>
-<li><a href="#section_77">Comments </a></li>
-<li><a href="#section_78">Special characters </a></li>
-<li><a href="#section_79">Identifiers </a></li>
-<li><a href="#section_80">Command identifiers </a></li>
-<li><a href="#section_81">Variable references </a></li>
-<li><a href="#section_82">String constants </a></li>
-</ul>
-<li><a href="#section_83">The OMake grammar </a>
-<ul>
-<li><a href="#section_84">Expressions </a>
-<ul>
-<li><a href="#section_85">Inline applications </a></li>
-</ul>
-<li><a href="#section_86">Statements and programs </a>
-<ul>
-<li><a href="#section_87">Special forms </a></li>
-<li><a href="#section_88">Variable definitions </a></li>
-<li><a href="#section_89">Applications and function definitions </a></li>
-<li><a href="#section_90">Objects </a></li>
-<li><a href="#section_91">Rules </a></li>
-<li><a href="#section_92">Shell commands </a></li>
+<li><a href="#section_26">Using glob patterns </a></li>
+<li><a href="#section_27">Simplified sub-configurations </a></li>
+<li><a href="#section_28">Computing the subdirectory list </a></li>
+<li><a href="#section_29">Temporary directories </a></li>
 </ul>
 </li>
 </ul>
-<li><a href="#section_93">Dollar modifiers </a></li>
-<li><a href="#section_94">Builtin variables </a>
+<li><a href="#section_30">Language examples </a>
 <ul>
-<li><a href="#section_95">OSTYPE </a></li>
-<li><a href="#section_96">SYSNAME </a></li>
-<li><a href="#section_97">NODENAME </a></li>
-<li><a href="#section_98">OS_VERSION </a></li>
-<li><a href="#section_99">MACHINE </a></li>
-<li><a href="#section_100">HOST </a></li>
-<li><a href="#section_101">OMAKE_VERSION </a></li>
-<li><a href="#section_102">USER </a></li>
-<li><a href="#section_103">HOME </a></li>
-<li><a href="#section_104">PID </a></li>
+<li><a href="#section_31">Strings and arrays </a></li>
+<li><a href="#section_32">Files and directories </a></li>
+<li><a href="#section_33">Iteration, mapping, and foreach </a></li>
+<li><a href="#section_34">Lazy expressions </a></li>
+<li><a href="#section_35">Scoping and exports </a></li>
+<li><a href="#section_36">Shell aliases </a></li>
+<li><a href="#section_37">Input/output redirection on the cheap </a></li>
 </ul>
-<li><a href="#section_105">Boolean functions and control flow </a>
+<li><a href="#section_38">Synopsis </a></li>
+<li><a href="#section_39">Command-line options </a></li>
+<li><a href="#section_40">OMake concepts and syntax </a>
 <ul>
-<li><a href="#section_106">not </a></li>
-<li><a href="#section_107">equal </a></li>
-<li><a href="#section_108">and </a></li>
-<li><a href="#section_109">or </a></li>
-<li><a href="#section_110">if </a></li>
-<li><a href="#section_111">switch, match </a></li>
-<li><a href="#section_112">try </a></li>
-<li><a href="#section_113">raise </a></li>
-<li><a href="#section_114">exit </a></li>
-<li><a href="#section_115">defined </a></li>
-<li><a href="#section_116">defined-env </a></li>
-<li><a href="#section_117">getenv </a></li>
-<li><a href="#section_118">setenv </a></li>
-<li><a href="#section_119">get-registry </a></li>
-<li><a href="#section_120">getvar </a></li>
-<li><a href="#section_121">setvar </a></li>
+<li><a href="#section_41">Variables </a></li>
+<li><a href="#section_42">Adding to a variable definition </a></li>
+<li><a href="#section_43">Arrays </a></li>
+<li><a href="#section_44">Special characters and quoting </a></li>
+<li><a href="#section_45">Function definitions </a></li>
+<li><a href="#section_46">Comments </a></li>
+<li><a href="#section_47">File inclusion </a></li>
+<li><a href="#section_48">Scoping, sections </a></li>
+<li><a href="#section_49">Conditionals </a></li>
+<li><a href="#section_50">Matching </a></li>
 </ul>
-<li><a href="#section_122">Arrays and sequences </a>
+<li><a href="#section_51">Objects </a>
 <ul>
-<li><a href="#section_123">array </a></li>
-<li><a href="#section_124">split </a></li>
-<li><a href="#section_125">concat </a></li>
-<li><a href="#section_126">length </a></li>
-<li><a href="#section_127">nth </a></li>
-<li><a href="#section_128">nth-hd </a></li>
-<li><a href="#section_129">nth-tl </a></li>
-<li><a href="#section_130">sub </a></li>
-<li><a href="#section_131">rev </a></li>
-<li><a href="#section_132">string </a></li>
-<li><a href="#section_133">quote </a></li>
-<li><a href="#section_134">quote-argv </a></li>
-<li><a href="#section_135">html-string </a></li>
-<li><a href="#section_136">addsuffix </a></li>
-<li><a href="#section_137">mapsuffix </a></li>
-<li><a href="#section_138">addsuffixes </a></li>
-<li><a href="#section_139">removeprefix </a></li>
-<li><a href="#section_140">removesuffix </a></li>
-<li><a href="#section_141">replacesuffixes </a></li>
-<li><a href="#section_142">addprefix </a></li>
-<li><a href="#section_143">mapprefix </a></li>
-<li><a href="#section_144">add-wrapper </a></li>
-<li><a href="#section_145">set </a></li>
-<li><a href="#section_146">mem </a></li>
-<li><a href="#section_147">intersection </a></li>
-<li><a href="#section_148">intersects </a></li>
-<li><a href="#section_149">set-diff </a></li>
-<li><a href="#section_150">filter </a></li>
-<li><a href="#section_151">filter-out </a></li>
-<li><a href="#section_152">capitalize </a></li>
-<li><a href="#section_153">uncapitalize </a></li>
-<li><a href="#section_154">uppercase </a></li>
-<li><a href="#section_155">lowercase </a></li>
-<li><a href="#section_156">system </a></li>
-<li><a href="#section_157">shell </a></li>
-<li><a href="#section_158">while </a></li>
+<li><a href="#section_52">Classes </a></li>
+<li><a href="#section_53">Inheritance </a></li>
 </ul>
-<li><a href="#section_159">Arithmetic </a>
+<li><a href="#section_54">Special objects/sections </a>
 <ul>
-<li><a href="#section_160">int </a></li>
-<li><a href="#section_161">float </a></li>
-<li><a href="#section_162">Basic arithmetic </a></li>
-<li><a href="#section_163">Comparisons </a></li>
+<li><a href="#section_55">private. </a></li>
+<li><a href="#section_56">protected. </a></li>
+<li><a href="#section_57">public. </a></li>
+<li><a href="#section_58">static. </a></li>
+<li><a href="#section_59">Short syntax for scoping objects </a></li>
+<li><a href="#section_60">Modular programming </a></li>
 </ul>
-<li><a href="#section_164">First-class functions </a>
+<li><a href="#section_61">Rules </a>
 <ul>
-<li><a href="#section_165">fun </a></li>
-<li><a href="#section_166">apply </a></li>
-<li><a href="#section_167">applya </a></li>
+<li><a href="#section_62">Implicit rules </a></li>
+<li><a href="#section_63">Bounded implicit rules </a></li>
+<li><a href="#section_64">section </a></li>
+<li><a href="#section_65">section rule </a></li>
 </ul>
-<li><a href="#section_168">Iteration and mapping </a>
+<li><a href="#section_66">Special dependencies </a>
 <ul>
-<li><a href="#section_169">foreach </a></li>
+<li><a href="#section_67">:exists: </a></li>
+<li><a href="#section_68">:effects: </a></li>
+<li><a href="#section_69">:value: </a></li>
 </ul>
-<li><a href="#section_170">File operations </a>
+<li><a href="#section_70">.SCANNER rules </a>
 <ul>
-<li><a href="#section_171">file, dir </a></li>
-<li><a href="#section_172">tmpfile </a></li>
-<li><a href="#section_173">in </a></li>
-<li><a href="#section_174">which </a></li>
-<li><a href="#section_175">where </a></li>
-<li><a href="#section_176">exists-in-path </a></li>
-<li><a href="#section_177">basename </a></li>
-<li><a href="#section_178">rootname </a></li>
-<li><a href="#section_179">dirof </a></li>
-<li><a href="#section_180">fullname </a></li>
-<li><a href="#section_181">absname </a></li>
-<li><a href="#section_182">homename </a></li>
-<li><a href="#section_183">suffix </a></li>
-<li><a href="#section_184">file-exists, target-exists, target-is-proper </a></li>
-<li><a href="#section_185">stat-reset </a></li>
-<li><a href="#section_186">filter-exists, filter-targets, filter-proper-targets </a></li>
-<li><a href="#section_187">file-sort </a></li>
-<li><a href="#section_188">sort rule </a></li>
-<li><a href="#section_189">file-check-sort </a></li>
-<li><a href="#section_190">glob </a></li>
-<li><a href="#section_191">ls </a></li>
-<li><a href="#section_192">subdirs </a></li>
-<li><a href="#section_193">mkdir </a></li>
-<li><a href="#section_194">Stat </a></li>
-<li><a href="#section_195">stat </a></li>
-<li><a href="#section_196">unlink </a></li>
-<li><a href="#section_197">rename </a></li>
-<li><a href="#section_198">link </a></li>
-<li><a href="#section_199">symlink </a></li>
-<li><a href="#section_200">readlink </a></li>
-<li><a href="#section_201">chmod </a></li>
-<li><a href="#section_202">chown </a></li>
-<li><a href="#section_203">umask </a></li>
-<li><a href="#section_204">digest </a></li>
-<li><a href="#section_205">find-in-path </a></li>
-<li><a href="#section_206">digest-path </a></li>
-<li><a href="#section_207">rehash </a></li>
-<li><a href="#section_208">vmount </a></li>
-<li><a href="#section_209">add-project-directories </a></li>
-<li><a href="#section_210">remove-project-directories </a></li>
-<li><a href="#section_211">test </a></li>
-<li><a href="#section_212">find </a></li>
+<li><a href="#section_71">Named scanners, and the :scanner: target </a></li>
+<li><a href="#section_72">Notes </a></li>
 </ul>
-<li><a href="#section_213">IO functions </a>
+<li><a href="#section_73">Other special targets </a>
 <ul>
-<li><a href="#section_214">Standard channels </a></li>
-<li><a href="#section_215">fopen </a></li>
-<li><a href="#section_216">close </a></li>
-<li><a href="#section_217">read </a></li>
-<li><a href="#section_218">write </a></li>
-<li><a href="#section_219">lseek </a></li>
-<li><a href="#section_220">rewind </a></li>
-<li><a href="#section_221">tell </a></li>
-<li><a href="#section_222">flush </a></li>
-<li><a href="#section_223">dup </a></li>
-<li><a href="#section_224">dup2 </a></li>
-<li><a href="#section_225">set-nonblock </a></li>
-<li><a href="#section_226">set-close-on-exec-mode </a></li>
-<li><a href="#section_227">pipe </a></li>
-<li><a href="#section_228">mkfifo </a></li>
-<li><a href="#section_229">select </a></li>
-<li><a href="#section_230">lockf </a></li>
-<li><a href="#section_231">InetAddr </a></li>
-<li><a href="#section_232">Host </a></li>
-<li><a href="#section_233">gethostbyname </a></li>
-<li><a href="#section_234">Protocol </a></li>
-<li><a href="#section_235">getprotobyname </a></li>
-<li><a href="#section_236">Service </a></li>
-<li><a href="#section_237">getservbyname </a></li>
-<li><a href="#section_238">socket </a></li>
-<li><a href="#section_239">bind </a></li>
-<li><a href="#section_240">listen </a></li>
-<li><a href="#section_241">accept </a></li>
-<li><a href="#section_242">connect </a></li>
-<li><a href="#section_243">getchar </a></li>
-<li><a href="#section_244">gets </a></li>
-<li><a href="#section_245">fgets </a></li>
-<li><a href="#section_246">Printing functions </a></li>
-<li><a href="#section_247">Value printing functions </a></li>
+<li><a href="#section_74">.DEFAULT </a></li>
+<li><a href="#section_75">.SUBDIRS </a></li>
+<li><a href="#section_76">.INCLUDE </a></li>
+<li><a href="#section_77">.PHONY </a></li>
 </ul>
-<li><a href="#section_248">Higher-level IO functions </a>
+<li><a href="#section_78">Rule scoping </a>
 <ul>
-<li><a href="#section_249">Regular expressions </a></li>
-<li><a href="#section_250">cat </a></li>
-<li><a href="#section_251">grep </a></li>
-<li><a href="#section_252">scan </a></li>
-<li><a href="#section_253">awk </a></li>
-<li><a href="#section_254">fsubst </a></li>
-<li><a href="#section_255">Lexer </a></li>
-<li><a href="#section_256">Lexer matching </a></li>
-<li><a href="#section_257">Extending lexer definitions </a></li>
-<li><a href="#section_258">Threading the lexer object </a></li>
-<li><a href="#section_259">Parser </a></li>
-<li><a href="#section_260">Calling the parser </a></li>
-<li><a href="#section_261">Parsing control </a></li>
-<li><a href="#section_262">Extending parsers </a></li>
-<li><a href="#section_263">gettimeofday </a></li>
+<li><a href="#section_79">Scoping of implicit rules </a></li>
+<li><a href="#section_80">Scoping of .SCANNER rules </a></li>
+<li><a href="#section_81">Scoping for .PHONY targets </a></li>
 </ul>
-<li><a href="#section_264">Shell functions </a>
+<li><a href="#section_82">The OSH shell </a>
 <ul>
-<li><a href="#section_265">echo </a></li>
-<li><a href="#section_266">jobs </a></li>
-<li><a href="#section_267">cd </a></li>
-<li><a href="#section_268">bg </a></li>
-<li><a href="#section_269">fg </a></li>
-<li><a href="#section_270">stop </a></li>
-<li><a href="#section_271">wait </a></li>
-<li><a href="#section_272">kill </a></li>
-<li><a href="#section_273">history </a></li>
+<li><a href="#section_83">Startup </a></li>
+<li><a href="#section_84">Aliases </a></li>
+<li><a href="#section_85">Interactive syntax </a></li>
+<li><a href="#section_86">See also </a></li>
 </ul>
-<li><a href="#section_274">Pervasives </a>
+<li><a href="#section_87">OMake lexical conventions </a>
 <ul>
-<li><a href="#section_275">Object </a></li>
-<li><a href="#section_276">Map </a></li>
-<li><a href="#section_277">Number </a></li>
-<li><a href="#section_278">Int </a></li>
-<li><a href="#section_279">Float </a></li>
-<li><a href="#section_280">Sequence </a></li>
-<li><a href="#section_281">Array </a></li>
-<li><a href="#section_282">String </a></li>
-<li><a href="#section_283">Fun </a></li>
-<li><a href="#section_284">Rule </a></li>
-<li><a href="#section_285">Target </a></li>
-<li><a href="#section_286">Node </a></li>
-<li><a href="#section_287">File </a></li>
-<li><a href="#section_288">Dir </a></li>
-<li><a href="#section_289">Channel </a></li>
-<li><a href="#section_290">InChannel </a></li>
-<li><a href="#section_291">OutChannel </a></li>
-<li><a href="#section_292">Location </a></li>
-<li><a href="#section_293">Position </a></li>
-<li><a href="#section_294">Exception </a></li>
-<li><a href="#section_295">RuntimeException </a></li>
-<li><a href="#section_296">Shell </a></li>
+<li><a href="#section_88">Comments </a></li>
+<li><a href="#section_89">Special characters </a></li>
+<li><a href="#section_90">Identifiers </a></li>
+<li><a href="#section_91">Command identifiers </a></li>
+<li><a href="#section_92">Variable references </a></li>
+<li><a href="#section_93">String constants </a></li>
 </ul>
-<li><a href="#section_297">Build functions </a>
+<li><a href="#section_94">The OMake grammar </a>
 <ul>
-<li><a href="#section_298">OMakeFlags </a></li>
-<li><a href="#section_299">OMakeVersion </a></li>
-<li><a href="#section_300">cmp-versions </a></li>
-<li><a href="#section_301">DefineCommandVars </a></li>
+<li><a href="#section_95">Expressions </a>
+<ul>
+<li><a href="#section_96">Inline applications </a></li>
 </ul>
-<li><a href="#section_302">The OMakeroot file </a>
+<li><a href="#section_97">Statements and programs </a>
 <ul>
-<li><a href="#section_303">Variables </a></li>
-<li><a href="#section_304">System variables </a></li>
+<li><a href="#section_98">Special forms </a></li>
+<li><a href="#section_99">Variable definitions </a></li>
+<li><a href="#section_100">Applications and function definitions </a></li>
+<li><a href="#section_101">Objects </a></li>
+<li><a href="#section_102">Rules </a></li>
+<li><a href="#section_103">Shell commands </a></li>
 </ul>
-<li><a href="#section_305">Building C programs </a>
-<ul>
-<li><a href="#section_306">C configuration variables </a></li>
-<li><a href="#section_307">CGeneratedFiles, LocalCGeneratedFiles </a></li>
-<li><a href="#section_308">StaticCLibrary </a></li>
-<li><a href="#section_309">StaticCLibraryCopy </a></li>
-<li><a href="#section_310">StaticCLibraryInstall </a></li>
-<li><a href="#section_311">StaticCObject, StaticCObjectCopy, StaticCObjectInstall </a></li>
-<li><a href="#section_312">CProgram </a></li>
-<li><a href="#section_313">CProgramCopy </a></li>
-<li><a href="#section_314">CProgramInstall </a></li>
-<li><a href="#section_315">CXXProgram, CXXProgramInstall </a></li>
+</li>
 </ul>
-<li><a href="#section_316">Building OCaml programs </a>
+<li><a href="#section_104">Dollar modifiers </a></li>
+<li><a href="#section_105">Builtin variables </a>
 <ul>
-<li><a href="#section_317">Variables for OCaml programs </a></li>
-<li><a href="#section_318">OCaml command flags </a></li>
-<li><a href="#section_319">Library variables </a></li>
-<li><a href="#section_320">OCamlGeneratedFiles, LocalOCamlGeneratedFiles </a></li>
-<li><a href="#section_321">OCamlLibrary </a></li>
-<li><a href="#section_322">OCamlPackage </a></li>
-<li><a href="#section_323">OCamlLibraryCopy </a></li>
-<li><a href="#section_324">OCamlLibraryInstall </a></li>
-<li><a href="#section_325">OCamlProgram </a></li>
-<li><a href="#section_326">OCamlProgramCopy </a></li>
-<li><a href="#section_327">OCamlProgramInstall </a></li>
+<li><a href="#section_106">OSTYPE </a></li>
+<li><a href="#section_107">SYSNAME </a></li>
+<li><a href="#section_108">NODENAME </a></li>
+<li><a href="#section_109">OS_VERSION </a></li>
+<li><a href="#section_110">MACHINE </a></li>
+<li><a href="#section_111">HOST </a></li>
+<li><a href="#section_112">OMAKE_VERSION </a></li>
+<li><a href="#section_113">USER </a></li>
+<li><a href="#section_114">HOME </a></li>
+<li><a href="#section_115">PID </a></li>
 </ul>
-<li><a href="#section_328">Building LaTeX programs</a>
+<li><a href="#section_116">Boolean functions and control flow </a>
 <ul>
-<li><a href="#section_329">Configuration variables </a></li>
-<li><a href="#section_330">LaTeXDocument </a></li>
-<li><a href="#section_331">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
-<li><a href="#section_332">LaTeXDocumentCopy </a></li>
-<li><a href="#section_333">LaTeXDocumentInstall </a></li>
+<li><a href="#section_117">not </a></li>
+<li><a href="#section_118">equal </a></li>
+<li><a href="#section_119">and </a></li>
+<li><a href="#section_120">or </a></li>
+<li><a href="#section_121">if </a></li>
+<li><a href="#section_122">switch, match </a></li>
+<li><a href="#section_123">try </a></li>
+<li><a href="#section_124">raise </a></li>
+<li><a href="#section_125">exit </a></li>
+<li><a href="#section_126">defined </a></li>
+<li><a href="#section_127">defined-env </a></li>
+<li><a href="#section_128">getenv </a></li>
+<li><a href="#section_129">setenv </a></li>
+<li><a href="#section_130">get-registry </a></li>
+<li><a href="#section_131">getvar </a></li>
+<li><a href="#section_132">setvar </a></li>
 </ul>
-<li><a href="#section_334">Examining the dependency graph </a>
+<li><a href="#section_133">Arrays and sequences </a>
 <ul>
-<li><a href="#section_335">dependencies, dependencies-all </a></li>
-<li><a href="#section_336">target </a></li>
-<li><a href="#section_337">rule </a></li>
+<li><a href="#section_134">array </a></li>
+<li><a href="#section_135">split </a></li>
+<li><a href="#section_136">concat </a></li>
+<li><a href="#section_137">length </a></li>
+<li><a href="#section_138">nth </a></li>
+<li><a href="#section_139">nth-hd </a></li>
+<li><a href="#section_140">nth-tl </a></li>
+<li><a href="#section_141">sub </a></li>
+<li><a href="#section_142">rev </a></li>
+<li><a href="#section_143">string </a></li>
+<li><a href="#section_144">quote </a></li>
+<li><a href="#section_145">quote-argv </a></li>
+<li><a href="#section_146">html-string </a></li>
+<li><a href="#section_147">addsuffix </a></li>
+<li><a href="#section_148">mapsuffix </a></li>
+<li><a href="#section_149">addsuffixes </a></li>
+<li><a href="#section_150">removeprefix </a></li>
+<li><a href="#section_151">removesuffix </a></li>
+<li><a href="#section_152">replacesuffixes </a></li>
+<li><a href="#section_153">addprefix </a></li>
+<li><a href="#section_154">mapprefix </a></li>
+<li><a href="#section_155">add-wrapper </a></li>
+<li><a href="#section_156">set </a></li>
+<li><a href="#section_157">mem </a></li>
+<li><a href="#section_158">intersection </a></li>
+<li><a href="#section_159">intersects </a></li>
+<li><a href="#section_160">set-diff </a></li>
+<li><a href="#section_161">filter </a></li>
+<li><a href="#section_162">filter-out </a></li>
+<li><a href="#section_163">capitalize </a></li>
+<li><a href="#section_164">uncapitalize </a></li>
+<li><a href="#section_165">uppercase </a></li>
+<li><a href="#section_166">lowercase </a></li>
+<li><a href="#section_167">system </a></li>
+<li><a href="#section_168">shell </a></li>
+<li><a href="#section_169">while </a></li>
 </ul>
-<li><a href="#section_338">References </a>
+<li><a href="#section_170">Arithmetic </a>
 <ul>
-<li><a href="#section_339">See Also </a></li>
-<li><a href="#section_340">Version </a></li>
-<li><a href="#section_341">License and Copyright </a></li>
-<li><a href="#section_342">Author </a></li>
+<li><a href="#section_171">int </a></li>
+<li><a href="#section_172">float </a></li>
+<li><a href="#section_173">Basic arithmetic </a></li>
+<li><a href="#section_174">Comparisons </a></li>
+</ul>
+<li><a href="#section_175">First-class functions </a>
+<ul>
+<li><a href="#section_176">fun </a></li>
+<li><a href="#section_177">apply </a></li>
+<li><a href="#section_178">applya </a></li>
+</ul>
+<li><a href="#section_179">Iteration and mapping </a>
+<ul>
+<li><a href="#section_180">foreach </a></li>
+</ul>
+<li><a href="#section_181">File operations </a>
+<ul>
+<li><a href="#section_182">file, dir </a></li>
+<li><a href="#section_183">tmpfile </a></li>
+<li><a href="#section_184">in </a></li>
+<li><a href="#section_185">which </a></li>
+<li><a href="#section_186">where </a></li>
+<li><a href="#section_187">exists-in-path </a></li>
+<li><a href="#section_188">basename </a></li>
+<li><a href="#section_189">rootname </a></li>
+<li><a href="#section_190">dirof </a></li>
+<li><a href="#section_191">fullname </a></li>
+<li><a href="#section_192">absname </a></li>
+<li><a href="#section_193">homename </a></li>
+<li><a href="#section_194">suffix </a></li>
+<li><a href="#section_195">file-exists, target-exists, target-is-proper </a></li>
+<li><a href="#section_196">stat-reset </a></li>
+<li><a href="#section_197">filter-exists, filter-targets, filter-proper-targets </a></li>
+<li><a href="#section_198">file-sort </a></li>
+<li><a href="#section_199">sort rule </a></li>
+<li><a href="#section_200">file-check-sort </a></li>
+<li><a href="#section_201">glob </a></li>
+<li><a href="#section_202">ls </a></li>
+<li><a href="#section_203">subdirs </a></li>
+<li><a href="#section_204">mkdir </a></li>
+<li><a href="#section_205">Stat </a></li>
+<li><a href="#section_206">stat </a></li>
+<li><a href="#section_207">unlink </a></li>
+<li><a href="#section_208">rename </a></li>
+<li><a href="#section_209">link </a></li>
+<li><a href="#section_210">symlink </a></li>
+<li><a href="#section_211">readlink </a></li>
+<li><a href="#section_212">chmod </a></li>
+<li><a href="#section_213">chown </a></li>
+<li><a href="#section_214">umask </a></li>
+<li><a href="#section_215">digest </a></li>
+<li><a href="#section_216">find-in-path </a></li>
+<li><a href="#section_217">digest-path </a></li>
+<li><a href="#section_218">rehash </a></li>
+<li><a href="#section_219">vmount </a></li>
+<li><a href="#section_220">add-project-directories </a></li>
+<li><a href="#section_221">remove-project-directories </a></li>
+<li><a href="#section_222">test </a></li>
+<li><a href="#section_223">find </a></li>
+</ul>
+<li><a href="#section_224">IO functions </a>
+<ul>
+<li><a href="#section_225">Standard channels </a></li>
+<li><a href="#section_226">fopen </a></li>
+<li><a href="#section_227">close </a></li>
+<li><a href="#section_228">read </a></li>
+<li><a href="#section_229">write </a></li>
+<li><a href="#section_230">lseek </a></li>
+<li><a href="#section_231">rewind </a></li>
+<li><a href="#section_232">tell </a></li>
+<li><a href="#section_233">flush </a></li>
+<li><a href="#section_234">dup </a></li>
+<li><a href="#section_235">dup2 </a></li>
+<li><a href="#section_236">set-nonblock </a></li>
+<li><a href="#section_237">set-close-on-exec-mode </a></li>
+<li><a href="#section_238">pipe </a></li>
+<li><a href="#section_239">mkfifo </a></li>
+<li><a href="#section_240">select </a></li>
+<li><a href="#section_241">lockf </a></li>
+<li><a href="#section_242">InetAddr </a></li>
+<li><a href="#section_243">Host </a></li>
+<li><a href="#section_244">gethostbyname </a></li>
+<li><a href="#section_245">Protocol </a></li>
+<li><a href="#section_246">getprotobyname </a></li>
+<li><a href="#section_247">Service </a></li>
+<li><a href="#section_248">getservbyname </a></li>
+<li><a href="#section_249">socket </a></li>
+<li><a href="#section_250">bind </a></li>
+<li><a href="#section_251">listen </a></li>
+<li><a href="#section_252">accept </a></li>
+<li><a href="#section_253">connect </a></li>
+<li><a href="#section_254">getchar </a></li>
+<li><a href="#section_255">gets </a></li>
+<li><a href="#section_256">fgets </a></li>
+<li><a href="#section_257">Printing functions </a></li>
+<li><a href="#section_258">Value printing functions </a></li>
+</ul>
+<li><a href="#section_259">Higher-level IO functions </a>
+<ul>
+<li><a href="#section_260">Regular expressions </a></li>
+<li><a href="#section_261">cat </a></li>
+<li><a href="#section_262">grep </a></li>
+<li><a href="#section_263">scan </a></li>
+<li><a href="#section_264">awk </a></li>
+<li><a href="#section_265">fsubst </a></li>
+<li><a href="#section_266">Lexer </a></li>
+<li><a href="#section_267">Lexer matching </a></li>
+<li><a href="#section_268">Extending lexer definitions </a></li>
+<li><a href="#section_269">Threading the lexer object </a></li>
+<li><a href="#section_270">Parser </a></li>
+<li><a href="#section_271">Calling the parser </a></li>
+<li><a href="#section_272">Parsing control </a></li>
+<li><a href="#section_273">Extending parsers </a></li>
+<li><a href="#section_274">gettimeofday </a></li>
+</ul>
+<li><a href="#section_275">Shell functions </a>
+<ul>
+<li><a href="#section_276">echo </a></li>
+<li><a href="#section_277">jobs </a></li>
+<li><a href="#section_278">cd </a></li>
+<li><a href="#section_279">bg </a></li>
+<li><a href="#section_280">fg </a></li>
+<li><a href="#section_281">stop </a></li>
+<li><a href="#section_282">wait </a></li>
+<li><a href="#section_283">kill </a></li>
+<li><a href="#section_284">history </a></li>
+</ul>
+<li><a href="#section_285">Pervasives </a>
+<ul>
+<li><a href="#section_286">Object </a></li>
+<li><a href="#section_287">Map </a></li>
+<li><a href="#section_288">Number </a></li>
+<li><a href="#section_289">Int </a></li>
+<li><a href="#section_290">Float </a></li>
+<li><a href="#section_291">Sequence </a></li>
+<li><a href="#section_292">Array </a></li>
+<li><a href="#section_293">String </a></li>
+<li><a href="#section_294">Fun </a></li>
+<li><a href="#section_295">Rule </a></li>
+<li><a href="#section_296">Target </a></li>
+<li><a href="#section_297">Node </a></li>
+<li><a href="#section_298">File </a></li>
+<li><a href="#section_299">Dir </a></li>
+<li><a href="#section_300">Channel </a></li>
+<li><a href="#section_301">InChannel </a></li>
+<li><a href="#section_302">OutChannel </a></li>
+<li><a href="#section_303">Location </a></li>
+<li><a href="#section_304">Position </a></li>
+<li><a href="#section_305">Exception </a></li>
+<li><a href="#section_306">RuntimeException </a></li>
+<li><a href="#section_307">Shell </a></li>
+</ul>
+<li><a href="#section_308">Build functions </a>
+<ul>
+<li><a href="#section_309">OMakeFlags </a></li>
+<li><a href="#section_310">OMakeVersion </a></li>
+<li><a href="#section_311">cmp-versions </a></li>
+<li><a href="#section_312">DefineCommandVars </a></li>
+</ul>
+<li><a href="#section_313">The OMakeroot file </a>
+<ul>
+<li><a href="#section_314">Variables </a></li>
+<li><a href="#section_315">System variables </a></li>
+</ul>
+<li><a href="#section_316">Building C programs </a>
+<ul>
+<li><a href="#section_317">C configuration variables </a></li>
+<li><a href="#section_318">CGeneratedFiles, LocalCGeneratedFiles </a></li>
+<li><a href="#section_319">StaticCLibrary </a></li>
+<li><a href="#section_320">StaticCLibraryCopy </a></li>
+<li><a href="#section_321">StaticCLibraryInstall </a></li>
+<li><a href="#section_322">StaticCObject, StaticCObjectCopy, StaticCObjectInstall </a></li>
+<li><a href="#section_323">CProgram </a></li>
+<li><a href="#section_324">CProgramCopy </a></li>
+<li><a href="#section_325">CProgramInstall </a></li>
+<li><a href="#section_326">CXXProgram, CXXProgramInstall </a></li>
+</ul>
+<li><a href="#section_327">Building OCaml programs </a>
+<ul>
+<li><a href="#section_328">Variables for OCaml programs </a></li>
+<li><a href="#section_329">OCaml command flags </a></li>
+<li><a href="#section_330">Library variables </a></li>
+<li><a href="#section_331">OCamlGeneratedFiles, LocalOCamlGeneratedFiles </a></li>
+<li><a href="#section_332">OCamlLibrary </a></li>
+<li><a href="#section_333">OCamlPackage </a></li>
+<li><a href="#section_334">OCamlLibraryCopy </a></li>
+<li><a href="#section_335">OCamlLibraryInstall </a></li>
+<li><a href="#section_336">OCamlProgram </a></li>
+<li><a href="#section_337">OCamlProgramCopy </a></li>
+<li><a href="#section_338">OCamlProgramInstall </a></li>
+</ul>
+<li><a href="#section_339">Building LaTeX programs</a>
+<ul>
+<li><a href="#section_340">Configuration variables </a></li>
+<li><a href="#section_341">LaTeXDocument </a></li>
+<li><a href="#section_342">TeXGeneratedFiles, LocalTeXGeneratedFiles </a></li>
+<li><a href="#section_343">LaTeXDocumentCopy </a></li>
+<li><a href="#section_344">LaTeXDocumentInstall </a></li>
+</ul>
+<li><a href="#section_345">Examining the dependency graph </a>
+<ul>
+<li><a href="#section_346">dependencies, dependencies-all </a></li>
+<li><a href="#section_347">target </a></li>
+<li><a href="#section_348">rule </a></li>
+</ul>
+<li><a href="#section_349">References </a>
+<ul>
+<li><a href="#section_350">See Also </a></li>
+<li><a href="#section_351">Version </a></li>
+<li><a href="#section_352">License and Copyright </a></li>
+<li><a href="#section_353">Author </a></li>
 </ul>
 </li>
 </ul>
@@ -490,12 +506,12 @@ modification time, size, and inode number.
 See the following manual pages for more information.
 <p>
 <strong>Guide</strong>
-For the user who is already familiar with GNU/BSD <tt>make</tt>, you may wish to skip
-to the more advanced examples, especially <a href="omake-build-examples.html">omake-build-examples</a>,
-and later with <a href="omake-language-examples.html">omake-language-examples</a>.
-If you are less
-familiar with the <tt>make</tt> model, you may wish to start with the quickstart
-<a href="omake-quickstart.html">omake-quickstart</a>.
+If you are new to OMake, you the <a href="omake-quickstart.html">omake-quickstart</a>
+presents a short introduction that describes how to set up a project. The
+<a href="omake-build-examples.html">omake-build-examples</a>
+gives larger examples of build projects, and
+<a href="omake-language-examples.html">omake-language-examples</a>
+presents programming examples.
 <p>
 <dl compact>
 <dt><a href="omake-quickstart.html">omake-quickstart</a>
@@ -1376,7 +1392,7 @@ my_project/src/main/OMakefile:
     # The first argument is the name of the executable.
     # The second argument is an array of object files (without suffix)
     # that are part of the program.
-    CProgram(horsefly, horsefly)
+    CProgram(horsefly, horsefly main)
 
     # Build the program by default (in case omake is called
     # without any arguments).  EXE is defined as .exe on Win32,
@@ -1419,7 +1435,7 @@ This time, the directory tree looks like this.
                |---&gt; OMakefile
                |---&gt; horsefly.ml
                |---&gt; horsefly.mli
-               `---&gt; main.c
+               `---&gt; main.ml
 </pre>
 <p>
 The listing is only a bit different.
@@ -1475,7 +1491,7 @@ my_project/src/main/OMakefile:
     # The first argument is the name of the executable.
     # The second argument is an array of object files (without suffix)
     # that are part of the program.
-    OCamlProgram(horsefly, horsefly)
+    OCamlProgram(horsefly, horsefly main)
 
     # Build the program by default (in case omake is called
     # without any arguments).  EXE is defined as .exe on Win32,
@@ -1487,7 +1503,536 @@ In this case, most of the configuration here is defined in the file <tt>build/OC
 particular configuration, files in <tt>my_project/src/lib</tt> are compiled aggressively with the
 option <tt>-inline 10</tt>, but files in <tt>my_project/src/lib</tt> are compiled normally.
 <p>
-<h2><a name="section_19">Language examples</a></h2>
+<h4><a name="section_19">Handling new languages</a></h4>
+
+<p>
+The previous two examples seem to be easy enough, but they rely on the OMake standard library (the
+files <tt>build/C</tt> and <tt>build/OCaml</tt>) to do all the work. What happens if we want to write a
+build configuration for a language that is not already supported in the OMake standard library?
+<p>
+For this example, let's suppose we are adopting a new language. The language uses the standard
+compile/link model, but is not in the OMake standard library. Specifically, let's say we have the
+following setup.
+<p>
+<ul compact>
+<li>Source files are defined in files with a <tt>.cat</tt> suffix (for Categorical Abstract Terminology).
+</li>
+<li><tt>.cat</tt> files are compiled with the <tt>catc</tt> compiler to produce <tt>.woof</tt> files
+(Wicked Object-Oriented Format).
+</li>
+<li><tt>.woof</tt> files are linked by the <tt>catc</tt> compiler with the <tt>-c</tt> option to produce
+a <tt>.dog</tt> executable (Digital Object Group). The <tt>catc</tt> also defines a <tt>-a</tt> option to
+combine several <tt>.woof</tt> files into a library.
+</li>
+<li>Each <tt>.cat</tt> can refer to other source files. If a source file <tt>a.cat</tt> contains a
+line <tt>open b</tt>, then <tt>a.cat</tt> depends on the file <tt>b.woof</tt>, and <tt>a.cat</tt> must be
+recompiled if <tt>b.woof</tt> changes. The <tt>catc</tt> function takes a <tt>-I</tt> option to define a
+search path for dependencies.
+</li>
+</ul>
+<p>
+To define a build configuration, we have to do three things.
+<ol compact>
+<li value =1>Define a <tt>.SCANNER</tt> rule for discovering dependency information for the source files.
+</li>
+<li value =2>Define a generic rule for compiling a <tt>.cat</tt> file to a <tt>.woof</tt> file.
+</li>
+<li value =3>Define a rule (as a function) for linking <tt>.woof</tt> files to produce a <tt>.dog</tt> executable.
+</li>
+</ol>
+<p>
+Initially, these definitions will be placed in the project root <tt>OMakefile</tt>.
+<p>
+<h5><a name="section_20">Defining a default compilation rule</a></h5>
+
+<p>
+Let's start with part 2, defining a generic compilation rule. We'll define the build rule as an
+<em>implicit</em>
+rule. To handle the include path, we'll define a variable <tt>CAT_INCLUDES</tt> that
+specifies the include path. This will be an array of directories. To define the options, we'll use
+a lazy variable (see <a href="omake-language-examples.html#lazy">Lazy Applications</a>).
+In case there
+are any other standard flags, we'll define a <tt>CAT_FLAGS</tt> variable.
+<p>
+<pre>
+   # Define the catc command, in case we ever want to override it
+   CATC = catc
+
+   # The default flags are empty
+   CAT_FLAGS =
+
+   # The directories in the include path (empty by default)
+   INCLUDES[] =
+
+   # Compute the include options from the include path
+   PREFIXED_INCLUDES[] = $`(mapprefix -I, $(INCLUDES))
+
+   # The default way to build a .woof file
+   %.woof: %.cat
+       $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $&lt;
+</pre>
+<p>
+The final part is the build rule itself, where we call the <tt>catc</tt> compiler with the include
+path, and the <tt>CAT_FLAGS</tt> that have been defined. The <tt>$&lt;</tt> variable represents the source
+file.
+<p>
+<h5><a name="section_21">Defining a rule for linking</a></h5>
+
+<p>
+For linking, we'll define another rule describing how to perform linking. Instead of defining an
+implicit rule, we'll define a function that describes the linking step. The function will take two
+arguments; the first is the name of the executable (without suffix), and the second is the files to
+link (also without suffixes). Here is the code fragment.
+<p>
+<pre>
+    # Optional link options
+    CAT_LINK_FLAGS =
+
+    # The function that defines how to build a .dog program
+    CatProgram(program, files) =
+        # Add the suffixes
+        file_names = $(addsuffix .woof, $(files))
+        prog_name = $(addsuffix .dog, $(files))
+
+        # The build rule
+        $(prog_name): $(file_names)
+            $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -o $@ $+
+
+        # Return the program name
+        value $(prog_name)
+</pre>
+<p>
+The <tt>CAT_LINK_FLAGS</tt> variable is defined just in case we want to pass additional flags specific
+to the link step. Now that this function is defined, whenever we want to define a rule for building
+a program, we simply call the rule. The previous implicit rule specifies how to compile each source file,
+and the <tt>CatProgram</tt> function specifies how to build the executable.
+<p>
+<pre>
+    # Build a rover.dog program from the source
+    # files neko.cat and chat.cat.
+    # Compile it by default.
+    .DEFAULT: $(CatProgram rover, neko chat)
+</pre>
+<p>
+<h5><a name="section_22">Dependency scanning</a></h5>
+
+<p>
+That's it, almost. The part we left out was automated dependency scanning. This is one of the
+nicer features of OMake, and one that makes build specifications easier to write and more robust.
+Strictly speaking, it isn't required, but you definitely want to do it.
+<p>
+The mechanism is to define a <tt>.SCANNER</tt> rule, which is like a normal rule, but it specifies how
+to compute dependencies, not the target itself. In this case, we want to define a <tt>.SCANNER</tt>
+rule of the following form.
+<p>
+<pre>
+    .SCANNER: %.woof: %.cat
+        &lt;commands&gt;
+</pre>
+<p>
+This rule specifies that a <tt>.woof</tt> file may have additional dependencies that can be extracted
+from the corresponding <tt>.cat</tt> file by executing the <tt>&lt;commands&gt;</tt>. The <em>result</em>
+of
+executing the <tt>&lt;commands&gt;</tt> should be a sequence of dependencies in OMake format, printed to the
+standard output.
+<p>
+As we mentioned, each <tt>.cat</tt> file specifies dependencies on <tt>.woof</tt> files with an
+<tt>open</tt> directive. For example, if the <tt>neko.cat</tt> file contains a line <tt>open chat</tt>,
+then <tt>neko.woof</tt> depends on <tt>chat.woof</tt>. In this case, the <tt>&lt;commands&gt;</tt> should print
+the following line.
+<p>
+<pre>
+    neko.woof: chat.woof
+</pre>
+<p>
+For an analogy that might make this clearer, consider the C programming language, where a <tt>.o</tt>
+file is produced by compiling a <tt>.c</tt> file. If a file <tt>foo.c</tt> contains a line like
+<tt>#include "fum.h"</tt>, then <tt>foo.c</tt> should be recompiled whenever <tt>fum.h</tt> changes. That
+is, the file <tt>foo.o</tt> <em>depends</em>
+on the file <tt>fum.h</tt>. In the OMake parlance, this is
+called an <em>implicit</em>
+dependency, and the <tt>.SCANNER</tt> <tt>&lt;commands&gt;</tt> would print a line
+like the following.
+<p>
+<pre>
+    foo.o: fum.h
+</pre>
+<p>
+Now, returning to the animal world, to compute the dependencies of <tt>neko.woof</tt>, we should scan
+<tt>neko.cat</tt>, line-by-line, looking for lines of the form <tt>open &lt;name&gt;</tt>. We could do this
+by writing a program, but it is easy enough to do it in <tt>omake</tt> itself. We can use the builtin
+<tt>awk</tt> function to scan the source file. One slight complication is that the dependencies
+depend on the <tt>INCLUDE</tt> path. We'll use the <tt>find-in-path</tt> function to find them. Here
+we go.
+<p>
+<pre>
+    .SCANNER: %.woof: %.cat
+        section
+            # Scan the file
+            deps[] =
+            awk($&lt;)
+            case $'^open'
+                deps[] += $2
+                export
+
+            # Remove duplicates, and find the files in the include path
+            deps = $(find-in-path $(INCLUDES), $(set $(deps)))
+
+            # Print the dependencies
+            println($"$@: $(deps)")
+</pre>
+<p>
+Let's look at the parts. First, the entire body is defined in a <tt>section</tt> because we are
+computing it internally, not as a sequence of shell commands.
+<p>
+We use the <tt>deps</tt> variable to collect all the dependencies. The <tt>awk</tt> function scans the
+source file (<tt>$&lt;</tt>) line-by-line. For lines that match the regular expression <tt>^open</tt>
+(meaning that the line begins with the word <tt>open</tt>), we add the second word on the line to the
+<tt>deps</tt> variable. For example, if the input line is <tt>open chat</tt>, then we would add the
+<tt>chat</tt> string to the <tt>deps</tt> array. All other lines in the source file are ignored.
+<p>
+Next, the <tt>$(set $(deps))</tt> expression removes any duplicate values in the <tt>deps</tt> array
+(sorting the array alphabetically in the process). The <tt>find-in-path</tt> function then finds the
+actual location of each file in the include path.
+<p>
+The final step is print the result as the string <tt>$"$@: $(deps)"</tt> The quotations are added to
+flatten the <tt>deps</tt> array to a simple string.
+<p>
+<h5><a name="section_23">Pulling it all together</a></h5>
+
+<p>
+To complete the example, let's pull it all together into a single project, much like our previous
+example.
+<p>
+<pre>
+    my_project/
+    |--&gt; OMakeroot
+    |--&gt; OMakefile
+    `--&gt; src/
+         |---&gt; OMakefile
+         |---&gt; lib/
+         |     |---&gt; OMakefile
+         |     |---&gt; neko.cat
+         |     `---&gt; chat.cat
+         `---&gt; main/
+               |---&gt; OMakefile
+               `---&gt; main.cat
+</pre>
+<p>
+The listing for the entire project is as follows. Here, we also include a function
+<tt>CatLibrary</tt> to link several <tt>.woof</tt> files into a library.
+<p>
+<pre>
+my_project/OMakeroot:
+    # Process the command-line vars
+    DefineCommandVars()
+
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+   ########################################################################
+   # Standard config for compiling .cat files
+   #
+
+   # Define the catc command, in case we ever want to override it
+   CATC = catc
+
+   # The default flags are empty
+   CAT_FLAGS =
+
+   # The directories in the include path (empty by default)
+   INCLUDES[] =
+
+   # Compute the include options from the include path
+   PREFIXED_INCLUDES[] = $`(mapprefix -I, $(INCLUDES))
+
+   # Dependency scanner for .cat files
+   .SCANNER: %.woof: %.cat
+        section
+            # Scan the file
+            deps[] =
+            awk($&lt;)
+            case $'^open'
+                deps[] += $2
+                export
+
+            # Remove duplicates, and find the files in the include path
+            deps = $(find-in-path $(INCLUDES), $(set $(deps)))
+
+            # Print the dependencies
+            println($"$@: $(deps)")
+
+   # The default way to compile a .cat file
+   %.woof: %.cat
+       $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $&lt;
+
+   # Optional link options
+   CAT_LINK_FLAGS =
+
+   # Build a library for several .woof files
+   CatLibrary(lib, files) =
+       # Add the suffixes
+       file_names = $(addsuffix .woof, $(files))
+       lib_name = $(addsuffix .woof, $(lib))
+
+       # The build rule
+       $(lib_name): $(file_names)
+           $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -a $@ $+
+
+       # Return the program name
+       value $(lib_name)
+
+   # The function that defines how to build a .dog program
+   CatProgram(program, files) =
+       # Add the suffixes
+       file_names = $(addsuffix .woof, $(files))
+       prog_name = $(addsuffix .dog, $(program))
+
+       # The build rule
+       $(prog_name): $(file_names)
+           $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -o $@ $+
+
+       # Return the program name
+       value $(prog_name)
+
+   ########################################################################
+   # Now the program proper
+   #
+
+   # Include the src subdirectory
+   .SUBDIRS: src
+
+my_project/src/OMakefile:
+   .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+   CatLibrary(cats, neko chat)
+
+my_project/src/main/OMakefile:
+   # Allow includes from the ../lib directory
+   INCLUDES[] += ../lib
+
+   # Build the program
+   .DEFAULT: $(CatProgram main, main ../cats)
+</pre>
+<p>
+Some notes. The confuration in the project OMekeroot defines the standard configuration, including
+the dependency scanner, the default rule for compiling source files, and functions for building
+libraries and programs.
+<p>
+These rules and functions are inherited by subdirectories, so the <tt>.SCANNER</tt> and build rules
+are used automatically in each subdirectory, so you don't need to repeat them.
+<p>
+<h5><a name="section_24">Finishing up</a></h5>
+
+<p>
+At this point we are done, but there are a few things we can consider.
+<p>
+First, the rules for building cat programs is defined in the project <tt>OMakefile</tt>. If you had
+another cat project somewhere, you would need to copy the <tt>OMakeroot</tt> (and modify it as
+needed). Instead of that, you should consider moving the configuration to a shared library
+directory, in a file like <tt>Cat.om</tt>. That way, instead of copying the code, you could include
+the shared copy with an OMAke command <tt>open Cat</tt>. The share ddirectory should be added to your
+<tt>OMAKEPATH</tt> environment variable to ensure that <tt>omake</tt> knows how to find it.
+<p>
+Better yet, if you are happy with your work, consider submitting it as a standard configuration (by
+sending a request to <tt>omake@metaprl.org</tt>) so that others can make use of it too.
+<p>
+<h4><a name="section_25">Collapsing the hierarchy, .SUBDIRS bodies</a></h4>
+
+<p>
+Some projects have many subdirectories that all have the same configuration. For instance, suppose
+you have a project with many subdirectories, each containing a set of images that are to be composed
+into a web page. Apart from the specific images, the configuration of each file is the same.
+<p>
+To make this more concrete, suppose the project hase four subdirectories <tt>page1</tt>, <tt>page2</tt>,
+<tt>page3</tt>, and <tt>page4</tt>. Each contains two files <tt>image1.jpg</tt> and <tt>image2.jpg</tt>
+that are part of a web page generated by a program <tt>genhtml</tt>.
+<p>
+Instead of of defining a <tt>OMakefile</tt> in each directory, we can define it as a body to the
+<tt>.SUBDIRS</tt> command.
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        index.html: image1.jpg image2jpg
+            genhtml $+ &gt; $@
+</pre>
+<p>
+The body of the <tt>.SUBDIRS</tt> is interpreted exactly as if it were the <tt>OMakefile</tt>, and it
+can contain any of the normal commands. The body is evaluated <em>in the subdirectory</em>
+for each
+of the subdirectories. We can see this if we add a statement that prints the current directory
+(<tt>$(CWD)</tt>).
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        println($(absname $(CWD)))
+        index.html: image1.jpg image2jpg
+            genhtml $+ &gt; $@
+  # prints
+    /home/jyh/.../page1
+    /home/jyh/.../page2
+    /home/jyh/.../page3
+    /home/jyh/.../page4
+</pre>
+<p>
+<h5><a name="section_26">Using glob patterns</a></h5>
+
+<p>
+Of course, this specification is quite rigid. In practice, it is likely that each subdirectory will
+have a different set of images, and all should be included in the web page. One of the easier
+solutions is to use one of the directory-listing functions, like <tt>glob</tt> or <tt>ls</tt>. The
+<tt>glob</tt> function takes a shell pattern, and returns an array of file with matching filenames in
+the current directory.
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        IMAGES = $(glob *.jpg)
+        index.html: $(IMAGES)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+<h5><a name="section_27">Simplified sub-configurations</a></h5>
+
+<p>
+Another option is to add a configuration file in each of the subdirectories that defines
+directory-specific information. For this example, we might define a file <tt>BuildInfo.om</tt> in
+each of the subdirectories that defines a list of images in that directory. The <tt>.SUBDIRS</tt>
+line is similar, but we include the BuildInfo file.
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        include BuildInfo   # Defines the IMAGES variable
+
+        index.html: $(IMAGES)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+Where we might have the following configurations.
+<p>
+<pre>
+   page1/BuildInfo.om:
+       IMAGES[] = image.jpg
+   page2/BuildInfo.om:
+       IMAGES[] = ../common/header.jpg winlogo.jpg
+   page3/BuildInfo.om:
+       IMAGES[] = ../common/header.jpg unixlogo.jpg daemon.jpg
+   page4/BuildInfo.om:
+       IMAGES[] = fee.jpg fi.jpg foo.jpg fum.jpg
+</pre>
+<p>
+<h5><a name="section_28">Computing the subdirectory list</a></h5>
+
+<p>
+The other hardcoded specification is the list of subdirectories <tt>page1</tt>, ..., <tt>page4</tt>.
+Rather than editing the project <tt>OMakefile</tt> each time a directory is added, we could compute it
+(again with <tt>glob</tt>).
+<p>
+<pre>
+    .SUBDIRS: $(glob page*)
+        index.html: $(glob *.jpg)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+Alternately, the directory structure may be hierarchical. Instead of using <tt>glob</tt>, we could
+use the <tt>subdirs</tt> function, returns each of the directories in a hierarchy. For example, this
+is the result of evaluating the <tt>subdirs</tt> function in the omake project root. The <tt>P</tt>
+option, passed as the first argument, specifies that the listing is &ldquo;proper,&rdquo; it should not
+include the <tt>omake</tt> directory itself.
+<p>
+<pre>
+    osh&gt; subdirs(P, .)
+    - : &lt;array
+            /home/jyh/.../omake/mk : Dir
+            /home/jyh/.../omake/RPM : Dir
+            ...
+            /home/jyh/.../omake/osx_resources : Dir&gt;
+</pre>
+<p>
+Using <tt>subdirs</tt>, our example is now as follows.
+<p>
+<pre>
+    .SUBDIRS: $(subdirs P, .)
+        index.html: $(glob *.jpg)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+In this case, <em>every</em>
+subdirectory will be included in the project.
+<p>
+If we are using the <tt>BuildInfo.om</tt> option. Instead of including every subdirectory, we could
+include only those that contain a <tt>BuildInfo.om</tt> file. For this purpose, we can use the
+<tt>find</tt> function, which traverses the directory hierarchy looking for files that match a test
+expression. In our case, we want to search for files with the name <tt>BuildInfo.om</tt>.
+Here is an example call.
+<p>
+<pre>
+    osh&gt; FILES = $(find . -name BuildInfo.om)
+    - : &lt;array
+            /home/jyh/.../omake/doc/html/BuildInfo.om : File
+            /home/jyh/.../omake/src/BuildInfo.om : File
+            /home/jyh/.../omake/tests/simple/BuildInfo.om : File&gt;
+    osh&gt; DIRS = $(dirof $(FILES))
+    - : &lt;array
+            /home/jyh/.../omake/doc/html : Dir
+            /home/jyh/.../omake/src : Dir
+            /home/jyh/.../omake/tests/simple : Dir&gt;
+</pre>
+<p>
+In this example, there are three <tt>BuildInfo.om</tt> files, in the <tt>doc/html</tt>, <tt>src</tt>, and
+<tt>tests/simple</tt> directories. The <tt>dirof</tt> function returns the directories for each of the
+files.
+<p>
+Returning to our original example, we modify it as follows.
+<p>
+<pre>
+    .SUBDIRS: $(dirof $(find . -name BuildInfo.om))
+        include BuildInfo   # Defines the IMAGES variable
+
+        index.html: $(IMAGES)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+<h5><a name="section_29">Temporary directories</a></h5>
+
+<p>
+Sometimes, your project may include temporary directories--directories where you place intermediate
+results. these deirectories are deleted whenever the project is cleanup up. This means, in
+particular, that you can't place an <tt>OMakefile</tt> in a temporary directory, because it will be
+removed when the directory is removed.
+<p>
+Instead, if you need to define a configuration for any of these directories, you will need to define
+it using a <tt>.SUBDIRS</tt> body.
+<p>
+<pre>
+    section
+        CREATE_SUBDIRS = true
+
+        .SUBDIRS: tmp
+            # Compute an MD5 digest
+            %.digest: %.comments
+               echo $(digest $&lt;) &gt; $@
+
+            # Extract comments from the source files
+            %.comments: ../src/%.src
+               grep '^#' $&lt; &gt; $@
+
+            .DEFAULT: foo.digest
+
+    .PHONY: clean
+
+    clean:
+        rm -rf tmp
+</pre>
+<p>
+In this example, we define the <tt>CREATE_SUBDIRS</tt> variable as true, so that the <tt>tmp</tt>
+directory will be created if it does not exist. The <tt>.SUBDIRS</tt> body in this example is a bit
+contrived, but it illustrates the kind of specification you might expect. The <tt>clean</tt>
+phony-target indicates that the <tt>tmp</tt> directory should be removed when the project is cleaned
+up.
+<p>
+<h2><a name="section_30">Language examples</a></h2>
 
 <p>
 In this section, we'll explore the core language through a series of examples (examples of the build
@@ -1496,7 +2041,7 @@ system are the topic of Section <a href="omake-build-examples#examples">Build</a
 For most of these examples, we'll use the <tt>osh</tt> command interpreter. For simplicity, the
 values printed by <tt>osh</tt> have been abbreviated.
 <p>
-<h4><a name="section_20">Strings and arrays</a></h4>
+<h4><a name="section_31">Strings and arrays</a></h4>
 
 <p>
 The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
@@ -1534,7 +2079,7 @@ useful, especially for filenames that contain whitespace.
     "fee"  "fi"  "foo"  "fum"  "Hello world"
 </pre>
 <p>
-<h4><a name="section_21">Files and directories</a></h4>
+<h4><a name="section_32">Files and directories</a></h4>
 
 <p>
 OMake projects usually span multiple directories, and different parts of the project execute
@@ -1571,7 +2116,7 @@ file.
     ...
 </pre>
 <p>
-<h4><a name="section_22">Iteration, mapping, and foreach</a></h4>
+<h4><a name="section_33">Iteration, mapping, and foreach</a></h4>
 
 <p>
 Most builtin functions operate transparently on arrays.
@@ -1592,10 +2137,10 @@ element before each of the original elements.
 <p>
 Even though most functions work on arrays, there are times when you will want to do it yourself.
 The <tt>foreach</tt> function is the way to go. The <tt>foreach</tt> function has two forms, but the
-form with a body is most useful. The function takes two arguments and a body. The second argument
-is an array, and the first is a variable. The body is evaluated once for each element of the array,
-where the variable is bound to the element. Let's define a function to add 1 to each element of an
-array of numbers.
+form with a body is most useful. In this form, the function takes two arguments and a body. The
+second argument is an array, and the first is a variable. The body is evaluated once for each
+element of the array, where the variable is bound to the element. Let's define a function to add 1
+to each element of an array of numbers.
 <p>
 <pre>
    osh&gt; add1(l) =
@@ -1605,20 +2150,48 @@ array of numbers.
    - : 8 22 76 : Array
 </pre>
 <p>
-Sometimes you have an array of filenames, and you want to define a special rule for each of them.
-Rules are not special, you can define them anywhere a statement is expected. Say we want to write a
-function to process each file, and place the result in the TMP directory.
+Sometimes you have an array of filenames, and you want to define a rule for each of them. Rules are
+not special, you can define them anywhere a statement is expected. Say we want to write a function
+that describes how to process each file, placing the result in the <tt>tmp/</tt> directory.
 <p>
 <pre>
    TMP = $(dir tmp)
-   ...
+
    my-special-rule(files) =
       foreach(name, $(files))
-         tmp/$(name): $(name)
+         $(TMP)/$(name): $(name)
             process $&lt; &gt; $@
 </pre>
 <p>
-<h4><a name="section_23">Lazy expressions</a></h4>
+Later, in some other part of the project, we may decide that we want to use this function to process some files.
+<p>
+<pre>
+   # These are the files to process in src/lib
+   MY_SPECIAL_FILES[] =
+       fee.src
+       fi.src
+       file with spaces in its name.src
+   my-special-rule($(MY_SPECIAL_FILES))
+</pre>
+<p>
+The result of calling <tt>my-special-rule</tt> is
+exactly the same as if we had written the following three rules explicitly.
+<p>
+<pre>
+    $(TMP)/fee.src: fee.src
+        process fee &gt; $@
+    $(TMP)/fi.src: fi.src
+        process fi.src &gt; $@
+    $(TMP)/$"file with spaces in its name.src": $"file with spaces in its name.src"
+        process $&lt; &gt; $@
+</pre>
+<p>
+Of course, writing these rules is not nearly as pleasant as calling the function. The usual
+properties of function abstraction give us the usual benefits. The code is less redundant, and
+there is a single location (the <tt>my-special-rule</tt> function) that defines the build rule.
+Later, if we want to modify/update the rule, we need do so in only one location.
+<p>
+<h4><a name="section_34">Lazy expressions</a></h4>
 
 <p>
 Lazy expressions are expressions that are not evaluated until their result is needed. Some people,
@@ -1686,7 +2259,7 @@ could equivalently define <tt>PREFIXED_INCLUDES</tt> as a function with zero arg
         addprefix(-I, $(INCLUDES))
 </pre>
 <p>
-<h4><a name="section_24">Scoping and exports</a></h4>
+<h4><a name="section_35">Scoping and exports</a></h4>
 
 <p>
 The OMake language is functional (apart from IO and shell commands). This comes in two parts:
@@ -1735,7 +2308,7 @@ Exports are especially useful in loop to export values from one iteration of a l
    osh&gt;sum(1 2 3)
    - : 0 : Int
 
-   # Oops!
+   # Oops, that didn't work!
    osh&gt;sum(l) =
            total = 0
            foreach(i, $l)
@@ -1754,19 +2327,18 @@ A <tt>while</tt> loop is another form of loop, with an auto-export.
     osh&gt;while $(lt $i, 10)
             total = $(add $(total), $i)
             i = $(add $i, 1)
-            export
     osh&gt;println($(total))
     45
 </pre>
 <p>
-<h4><a name="section_25">Shell aliases</a></h4>
+<h4><a name="section_36">Shell aliases</a></h4>
 
 <p>
 Sometimes you may want to define an <em>alias</em>,
 an OMake command that masquerades as a real shell
 command. You can do this by adding your function as a method to the <tt>Shell</tt> object.
 <p>
-For an example, suppose we define builtin <tt>awk</tt> function to print out all the comments in a file.
+For an example, suppose we use the <tt>awk</tt> function to print out all the comments in a file.
 <p>
 <pre>
     osh&gt;cat comment.om
@@ -1794,16 +2366,16 @@ To add it as an alias, add the method (using += to preserve the existing entries
    # File finished
 </pre>
 <p>
-A shell command is passed an array of argument <tt>argv</tt>. This does <em>not</em>
+A shell command is passed an array of arguments <tt>argv</tt>. This does <em>not</em>
 include the name
 of the alias.
 <p>
-<h4><a name="section_26">Input/output redirection on the cheap</a></h4>
+<h4><a name="section_37">Input/output redirection on the cheap</a></h4>
 
 <p>
 As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
 have already written a lot of code that prints to the standard output channel, but now you decide
-you want to redirect it. One way to do it is using the alias method of the previous example: define
+you want to redirect it. One way to do it is using the technique in the previous example: define
 your function as an alias, and then use shell redirection to place the output where you want.
 <p>
 There is an alternate method that is easier in some cases. The variables <tt>stdin</tt>,
@@ -1841,7 +2413,7 @@ This also works for shell commands. If you like to gamble, you can try the follo
     Hello world
 </pre>
 <p>
-<h2><a name="section_27">Synopsis</a></h2>
+<h2><a name="section_38">Synopsis</a></h2>
 
 <p>
 <tt>omake</tt>
@@ -1877,7 +2449,7 @@ This also works for shell commands. If you like to gamble, you can try the follo
 [<i>filename...</i>]
 [<b>var-definition...</b>]
 <p>
-<h2><a name="section_28">Command-line options</a></h2>
+<h2><a name="section_39">Command-line options</a></h2>
 
 <p>
 <dl compact>
@@ -2059,7 +2631,7 @@ In addition, <tt>omake</tt>
 supports a number of debugging flags on the command line. Run
 <tt>omake --help</tt> to get a summary of these flags.
 <p>
-<h2><a name="section_29">OMake concepts and syntax</a></h2>
+<h2><a name="section_40">OMake concepts and syntax</a></h2>
 
 <p>
 Projects are specified to <tt>omake</tt>
@@ -2072,7 +2644,7 @@ has three main kinds of syntactic objects:
 variable definitions, function definitions, and rule definitions.
 <p>
 <a name="variables"></a>
-<h4><a name="section_30">Variables</a></h4>
+<h4><a name="section_41">Variables</a></h4>
 
 <p>
 Variables are defined with the following syntax. The name is any sequence of alphanumeric
@@ -2111,7 +2683,7 @@ definitions.
 In this example, the value of the <tt>X</tt> variable is the string <tt>gcc -Wall -g -O2</tt> as
 before, and the value of the <tt>Y</tt> variable is <tt>gcc -Wall -g -O2 -O3</tt>.
 <p>
-<h4><a name="section_31">Adding to a variable definition</a></h4>
+<h4><a name="section_42">Adding to a variable definition</a></h4>
 
 <p>
 Variables definitions may also use the += operator, which adds the new text to an existing
@@ -2125,7 +2697,7 @@ definition. The following two definitions are equivalent.
    CFLAGS += -Wall -g
 </pre>
 <p>
-<h4><a name="section_32">Arrays</a></h4>
+<h4><a name="section_43">Arrays</a></h4>
 
 <p>
 Arrays can be defined by appending the <tt>[]</tt> sequence to the variable name and defining initial
@@ -2141,7 +2713,7 @@ code sequence prints <tt>c d e</tt>.
     println($(nth 2, $(X)))
 </pre>
 <p>
-<h4><a name="section_33">Special characters and quoting</a></h4>
+<h4><a name="section_44">Special characters and quoting</a></h4>
 
 <p>
 The following characters are special to <tt>omake</tt>:
@@ -2180,7 +2752,7 @@ double-quotations is arbitrary. The outermost quotations are not included in the
 </pre>
 <p>
 <a name="functions"></a>
-<h4><a name="section_34">Function definitions</a></h4>
+<h4><a name="section_45">Function definitions</a></h4>
 
 <p>
 Functions are defined using the following syntax.
@@ -2251,13 +2823,13 @@ prints the string &ldquo;She says: Hello world&rdquo;.
     Printer(She)
 </pre>
 <p>
-<h4><a name="section_35">Comments</a></h4>
+<h4><a name="section_46">Comments</a></h4>
 
 <p>
 Comments begin with the <tt>#</tt> character and continue to the end of the line.
 <p>
 <a name="include"></a>
-<h4><a name="section_36">File inclusion</a></h4>
+<h4><a name="section_47">File inclusion</a></h4>
 
 <p>
 Files may be included with the <tt>include</tt> form. The included file must use
@@ -2267,7 +2839,7 @@ the same syntax as an <tt>OMakefile</tt>.
     include files.omake
 </pre>
 <p>
-<h4><a name="section_37">Scoping, sections</a></h4>
+<h4><a name="section_48">Scoping, sections</a></h4>
 
 <p>
 Scopes in <tt>omake</tt>
@@ -2335,7 +2907,7 @@ subdirectory, but not by the <tt>bar</tt> and <tt>baz</tt> ones; furthermore
 this implicit rule will not be in scope in the current directory.
 <p>
 <a name="conditionals"></a>
-<h4><a name="section_38">Conditionals</a></h4>
+<h4><a name="section_49">Conditionals</a></h4>
 
 <p>
 Top level conditionals have the following form.
@@ -2382,7 +2954,7 @@ The following example illustrates a typical use of a conditional. The
 </pre>
 <p>
 <a name="matching"></a>
-<h4><a name="section_39">Matching</a></h4>
+<h4><a name="section_50">Matching</a></h4>
 
 <p>
 Pattern matching is performed with the <tt>switch</tt> and <tt>match</tt> forms.
@@ -2446,7 +3018,7 @@ that are matched by <tt>\(...\)</tt> expressions.
 </pre>
 <p>
 <a name="objects"></a>
-<h2><a name="section_40">Objects</a></h2>
+<h2><a name="section_51">Objects</a></h2>
 
 <p>
 OMake is an object-oriented language. Generally speaking, an object is a value that contains fields
@@ -2470,7 +3042,7 @@ following object might be used to specify a point $(1, 5)$ on the two-dimensiona
 The fields <tt>x</tt> and <tt>y</tt> represent the coordinates of the point. The method <tt>print</tt>
 prints out the position of the point.
 <p>
-<h4><a name="section_41">Classes</a></h4>
+<h4><a name="section_52">Classes</a></h4>
 
 <p>
 We can also define <em>classes</em>.
@@ -2517,7 +3089,7 @@ objects are <em>functional</em>---the
 this example, the object <tt>p2</tt> is a different object from <tt>p1</tt>, which retains the original
 $(1, 5)$ coordinates.
 <p>
-<h4><a name="section_42">Inheritance</a></h4>
+<h4><a name="section_53">Inheritance</a></h4>
 
 <p>
 Classes and objects support inheritance (including multiple inheritance) with the <tt>extends</tt>
@@ -2541,13 +3113,13 @@ directive. The following definition of <tt>Point3D</tt> defines a point with <tt
     p = $(Point3D.new 1, 5)
 </pre>
 <p>
-<h2><a name="section_43">Special objects/sections</a></h2>
+<h2><a name="section_54">Special objects/sections</a></h2>
 
 <p>
 Objects provide one way to manage the OMake namespace. There are also four special objects that are
 further used to control the namespace.
 <p>
-<h4><a name="section_44">private.</a></h4>
+<h4><a name="section_55">private.</a></h4>
 
 <p>
 The <tt>private.</tt> section is used to define variables that are private to the current file/scope.
@@ -2620,7 +3192,7 @@ mentioned explicitly.
 </li>
 </ol>
 <p>
-<h4><a name="section_45">protected.</a></h4>
+<h4><a name="section_56">protected.</a></h4>
 
 <p>
 The <tt>protected.</tt> object is used to define fields that are local to an object. They can
@@ -2661,7 +3233,7 @@ In general, it is a good idea to define object variables as protected. The resul
 modular because variables in your object will not produce unexpected clashes with variables defined
 in other parts of the project.
 <p>
-<h4><a name="section_46">public.</a></h4>
+<h4><a name="section_57">public.</a></h4>
 
 <p>
 The <tt>public.</tt> object is used to specify public dynamically-scoped variables. In the following
@@ -2696,7 +3268,7 @@ defined as fields of an object.
     Obj.print()
 </pre>
 <p>
-<h4><a name="section_47">static.</a></h4>
+<h4><a name="section_58">static.</a></h4>
 
 <p>
 The <tt>static.</tt> object is used to specify values that are persistent across runs of OMake. They
@@ -2723,7 +3295,7 @@ available. The <tt>$(where latex)</tt> function returns the full pathname for <t
 As a matter of style, a <tt>static.</tt> section that is used for configuration should print what it
 is doing, using <tt>---</tt> as a print prefix.
 <p>
-<h4><a name="section_48">Short syntax for scoping objects</a></h4>
+<h4><a name="section_59">Short syntax for scoping objects</a></h4>
 
 <p>
 The usual dot-notation can be used for private, protected, and public variables (but not
@@ -2743,7 +3315,7 @@ static variables).
     println(The private value of X is: $(private.X))
 </pre>
 <p>
-<h4><a name="section_49">Modular programming</a></h4>
+<h4><a name="section_60">Modular programming</a></h4>
 
 <p>
 The scoping objects help provide a form of modularity. When you write a new file or program,
@@ -2767,7 +3339,7 @@ you can control this with private definitions.
 </pre>
 <p>
 <a name="rules"></a>
-<h2><a name="section_50">Rules</a></h2>
+<h2><a name="section_61">Rules</a></h2>
 
 <p>
 Rules are used by OMake to specify how to build files. At its simplest, a rule has the following
@@ -2841,7 +3413,7 @@ names. The next step defines a rule to build a target library <tt>$(name).a</tt>
 the value of the variable <tt>AR</tt> is taken from the caller's scope (see also the section on
 Scoping).
 <p>
-<h4><a name="section_51">Implicit rules</a></h4>
+<h4><a name="section_62">Implicit rules</a></h4>
 
 <p>
 Rules may also be implicit. That is, the files may be specified by wildcard patterns.
@@ -2861,7 +3433,7 @@ directory. However subdirectories included via the <tt>.SUBDIRS</tt> rules
 inherit all the implicit rules that are in scope (see also the section on
 Scoping).
 <p>
-<h4><a name="section_52">Bounded implicit rules</a></h4>
+<h4><a name="section_63">Bounded implicit rules</a></h4>
 
 <p>
 Implicit rules may specify the set of files they apply to. The following syntax is used.
@@ -2878,7 +3450,7 @@ For example, the following rule applies only to the files <tt>a.o</tt> and <tt>b
         $(CC) $(CFLAGS) -DSPECIAL -c $*.c
 </pre>
 <p>
-<h4><a name="section_53">section</a></h4>
+<h4><a name="section_64">section</a></h4>
 
 <p>
 Frequently, the commands in a rule body are expressions to be evaluated by the shell. <tt>omake</tt>
@@ -2910,7 +3482,7 @@ follows.
        fprintln($@, $""#include &lt;stdio.h&gt; int main() { printf("Hello world\n"); }"")
 </pre>
 <p>
-<h4><a name="section_54">section rule</a></h4>
+<h4><a name="section_65">section rule</a></h4>
 
 <p>
 Rules can also be computed using the <tt>section rule</tt> form, where a rule body is expected instead
@@ -2928,10 +3500,10 @@ if it exists, otherwise <tt>hello.c</tt> is created from the file <tt>default.c<
                  cp default.c hello.c
 </pre>
 <p>
-<h2><a name="section_55">Special dependencies</a></h2>
+<h2><a name="section_66">Special dependencies</a></h2>
 
 <p>
-<h4><a name="section_56">:exists:</a></h4>
+<h4><a name="section_67">:exists:</a></h4>
 
 <p>
 In some cases, the contents of a dependency do not matter, only whether the file exists or not. In
@@ -2943,7 +3515,7 @@ this case, the <tt>:exists:</tt> qualifier can be used for the dependency.
            $(CP) a.c $@
 </pre>
 <p>
-<h4><a name="section_57">:effects:</a></h4>
+<h4><a name="section_68">:effects:</a></h4>
 
 <p>
 Some commands produce files by side-effect. For example, the
@@ -2960,7 +3532,7 @@ have overlapping side-effects.
         latex paper
 </pre>
 <p>
-<h4><a name="section_58">:value:</a></h4>
+<h4><a name="section_69">:value:</a></h4>
 
 The <tt>:value:</tt> dependency is used to specify that the rule execution depends on the value of an
 expression. For example, the following rule
@@ -2998,7 +3570,7 @@ containing variables like <tt>$@</tt>, <tt>$^</tt>, etc are legal.
 </li>
 </ul>
 <p>
-<h2><a name="section_59">.SCANNER rules</a></h2>
+<h2><a name="section_70">.SCANNER rules</a></h2>
 
 <p>
 Scanner rules define a way to specify automatic dependency scanning. A <tt>.SCANNER</tt> rule has the
@@ -3067,7 +3639,7 @@ giving us a solution that works.
        gcc -MM $(addprefix -I, $(INCLUDES)) $&lt;
 </pre>
 <p>
-<h4><a name="section_60">Named scanners, and the :scanner: target</a></h4>
+<h4><a name="section_71">Named scanners, and the :scanner: target</a></h4>
 
 <p>
 Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
@@ -3109,7 +3681,7 @@ The above has the advantage of only running <tt>gcc</tt>
 once and a disadvantage that when a single
 source file changes, all the files will end up being re-scanned.
 <p>
-<h4><a name="section_61">Notes</a></h4>
+<h4><a name="section_72">Notes</a></h4>
 
 <p>
 In most cases, you won't need to define scanners of your own. The standard installation includes
@@ -3125,12 +3697,12 @@ The explicit <tt>:scanner:</tt> dependencies reduce the chances of scanner mis-s
 large complicated projects it might be a good idea to set <tt>SCANNER_MODE</tt> to <tt>error</tt> and
 use only the named <tt>.SCANNER</tt> rules and explicit <tt>:scanner:</tt> specifications.
 <p>
-<h2><a name="section_62">Other special targets</a></h2>
+<h2><a name="section_73">Other special targets</a></h2>
 
 <p>
 There are several other special targets that define special actions to be take by <tt>omake</tt>.
 <p>
-<h4><a name="section_63">.DEFAULT</a></h4>
+<h4><a name="section_74">.DEFAULT</a></h4>
 
 <p>
 The <tt>.DEFAULT</tt> target specifies a target to be built by default
@@ -3143,7 +3715,7 @@ to build the program <tt>hello</tt> by default
    .DEFAULT: hello
 </pre>
 <p>
-<h4><a name="section_64">.SUBDIRS</a></h4>
+<h4><a name="section_75">.SUBDIRS</a></h4>
 
 <p>
 The <tt>.SUBDIRS</tt> target is used to specify a set of subdirectories
@@ -3179,7 +3751,7 @@ Furthermore, if one exists, it is ignored. The following includes the file if it
        .DEFAULT: lib.a
 </pre>
 <p>
-<h4><a name="section_65">.INCLUDE</a></h4>
+<h4><a name="section_76">.INCLUDE</a></h4>
 
 <p>
 The <tt>.INCLUDE</tt> target is like the <tt>include</tt> directive, but it specifies a rule to build
@@ -3230,7 +3802,7 @@ overwrite it), you should make the rule evaluation conditional on whether the ta
           cp config.defaults config
 </pre>
 <p>
-<h4><a name="section_66">.PHONY</a></h4>
+<h4><a name="section_77">.PHONY</a></h4>
 
 <p>
 A &ldquo;phony&rdquo; target is a target that is not a real file, but exists to collect a set of dependencies.
@@ -3245,7 +3817,7 @@ be run whenever the <tt>install</tt> target is built (for example, by running <t
       cp myprogram.exe /usr/bin
 </pre>
 <p>
-<h2><a name="section_67">Rule scoping</a></h2>
+<h2><a name="section_78">Rule scoping</a></h2>
 
 <p>
 As we have mentioned before, <tt>omake</tt>
@@ -3315,7 +3887,7 @@ In this case, <tt>hello_lib.o</tt> is also mentioned as an explicit target, in a
 <tt>CFLAGS=-g -DLIBRARY</tt>. Since no rule body is specified, it is compiled using the usual
 implicit rule for building <tt>.o</tt> files (in a context where <tt>CFLAGS=-g -DLIBRARY</tt>).
 <p>
-<h4><a name="section_68">Scoping of implicit rules</a></h4>
+<h4><a name="section_79">Scoping of implicit rules</a></h4>
 
 <p>
 Implicit rules (rules containing wildcard patterns) are <em>not</em>
@@ -3345,7 +3917,7 @@ building <tt>%.o</tt> files. The implicit rule adds the <tt>-DLIBRARY</tt> optio
 is defined only for the target <tt>hello_lib.o</tt>; the target <tt>hello_code.o</tt> is built as
 normal.
 <p>
-<h4><a name="section_69">Scoping of .SCANNER rules</a></h4>
+<h4><a name="section_80">Scoping of .SCANNER rules</a></h4>
 
 <p>
 Scanner rules are scoped the same way as normal rules. If the <tt>.SCANNER</tt> rule is explicit
@@ -3382,7 +3954,7 @@ with the <tt>-MM</tt> flag to compute dependencies. For the target <tt>hello_lib
 is called with <tt>CFLAGS=-g -DLIBRARY</tt>, and for <tt>hello_code.o</tt> it is called with
 <tt>CFLAGS=-g -O3</tt>.
 <p>
-<h4><a name="section_70">Scoping for .PHONY targets</a></h4>
+<h4><a name="section_81">Scoping for .PHONY targets</a></h4>
 
 <p>
 Phony targets (targets that do not correspond to files) are defined with a <tt>.PHONY:</tt> rule.
@@ -3424,7 +3996,7 @@ from the project root.
     .SUBDIRS: src lib clib
 </pre>
 <p>
-<h2><a name="section_71">The OSH shell</a></h2>
+<h2><a name="section_82">The OSH shell</a></h2>
 
 <p>
 OMake also includes a standalone command-line interpreter <tt>osh</tt>
@@ -3433,7 +4005,7 @@ interactive shell. The shell uses the same syntax, and provides the same feature
 <tt>omake</tt>
 supports, including Win32.
 <p>
-<h4><a name="section_72">Startup</a></h4>
+<h4><a name="section_83">Startup</a></h4>
 
 <p>
 On startup, <tt>osh</tt>
@@ -3472,7 +4044,7 @@ a terminal end-of-file (usually <tt>^D</tt> on Unix systems).
 </dd>
 </dl>
 <p>
-<h4><a name="section_73">Aliases</a></h4>
+<h4><a name="section_84">Aliases</a></h4>
 
 <p>
 Command aliases are defined by adding functions to the <tt>Shell.</tt> object. The following alias
@@ -3487,7 +4059,7 @@ adds the <tt>-AF</tt> option to the <tt>ls</tt> command.
 Quoted commands do not undergo alias expansion. The quotation <tt>"ls"</tt> prevents the alias from
 being recursive.
 <p>
-<h4><a name="section_74">Interactive syntax</a></h4>
+<h4><a name="section_85">Interactive syntax</a></h4>
 
 <p>
 The interactive syntax in <tt>osh</tt> is the same as the syntax of an <tt>OMakefile</tt>, with one
@@ -3511,7 +4083,7 @@ auto-indents the text.
 <p>
 The colon signifier is also allowed in files, although it is not required.
 <p>
-<h4><a name="section_75">See also</a></h4>
+<h4><a name="section_86">See also</a></h4>
 
 <p>
 See Section <a href="omake-shell.html">omake-shell</a>
@@ -3519,13 +4091,13 @@ for more information on the shell language,
 and Section <a href="omake-system.html">omake-system</a>
 for more information on job control.
 <p>
-<h2><a name="section_76">OMake lexical conventions</a></h2>
+<h2><a name="section_87">OMake lexical conventions</a></h2>
 
 <p>
 The OMake language is based on the language for GNU/BSD make, where there are few lexical
 conventions. Strictly speaking, there are no keywords, and few special symbols.
 <p>
-<h4><a name="section_77">Comments</a></h4>
+<h4><a name="section_88">Comments</a></h4>
 
 <p>
 Comments begin with the <tt>#</tt> character and continue to the end-of-line.
@@ -3538,7 +4110,7 @@ Examples.
    # This $comment contains a quote " character
 </pre>
 <p>
-<h4><a name="section_78">Special characters</a></h4>
+<h4><a name="section_89">Special characters</a></h4>
 
 <p>
 The following characters are special in some contexts.
@@ -3584,7 +4156,7 @@ Examples:
 </li>
 </ul>
 <p>
-<h4><a name="section_79">Identifiers</a></h4>
+<h4><a name="section_90">Identifiers</a></h4>
 
 <p>
 Identifiers (variable names) are drawn from the ASCII alphanumeric characters as well as <tt>_</tt>,
@@ -3611,7 +4183,7 @@ The following are not legal identifiers.
     x+y    hello&amp;world
 </pre>
 <p>
-<h4><a name="section_80">Command identifiers</a></h4>
+<h4><a name="section_91">Command identifiers</a></h4>
 
 <p>
 The following words have special significance when they occur as the <em>first</em>
@@ -3626,7 +4198,7 @@ of a program line. They are not otherwise special.
     try      value  when     while
 </pre>
 <p>
-<h4><a name="section_81">Variable references</a></h4>
+<h4><a name="section_92">Variable references</a></h4>
 
 <p>
 A variable reference is denoted with the <tt>$</tt> special character followed by an identifier. If
@@ -3659,7 +4231,7 @@ followed by additional legal identifier charqcters. Suppose the value of the <tt
 The special sequence <tt>$$</tt> represents the character literal <tt>$</tt>. That is, the
 two-character sequences <tt>\$</tt> and <tt>$$</tt> are normally equalivalent.
 <p>
-<h4><a name="section_82">String constants</a></h4>
+<h4><a name="section_93">String constants</a></h4>
 
 <p>
 Literal strings are defined with matching string delimiters. A left string delimiter begins with
@@ -3710,7 +4282,7 @@ quotation symbols is included in the sequence.
     Hello world
 </pre>
 <p>
-<h2><a name="section_83">The OMake grammar</a></h2>
+<h2><a name="section_94">The OMake grammar</a></h2>
 
 <p>
 OMake programs are constructed from expressions and statements. Generally, an input program
@@ -3719,7 +4291,7 @@ significant--if a statement consists of more than one line, the second and remai
 the <em>body</em>)
 are usually indented relative to the first line.
 <p>
-<h4><a name="section_84">Expressions</a></h4>
+<h4><a name="section_95">Expressions</a></h4>
 
 <p>
 The following table lists the syntax for expressions.
@@ -3847,7 +4419,7 @@ An <em>expression</em>
 is a sequence composed of text, string-literals, variables references and
 function applications. Text is any sequence of non-special characters.
 <p>
-<h5><a name="section_85">Inline applications</a></h5>
+<h5><a name="section_96">Inline applications</a></h5>
 
 <p>
 An <em>application</em>
@@ -3887,7 +4459,7 @@ which must be an object with a method <tt>c</tt>. This method is called with arg
 The additional dollar sequences specify evaluation order, <tt>$`</tt> (lazy) and <tt>$,</tt> (eager), as
 discussed in <a href="#dollar">the section on dollar modifiers</a>.
 <p>
-<h4><a name="section_86">Statements and programs</a></h4>
+<h4><a name="section_97">Statements and programs</a></h4>
 
 <p>
 The following table lists the syntax of statements and programs.
@@ -4211,7 +4783,7 @@ The following table lists the syntax of statements and programs.
 <em>rule-option</em>
 </table>
 <p>
-<h5><a name="section_87">Special forms</a></h5>
+<h5><a name="section_98">Special forms</a></h5>
 
 <p>
 The special forms include the following.
@@ -4351,7 +4923,7 @@ specifies an identifier for an object. The <tt>extends</tt> command specifies a 
     extends expr
 </pre>
 <p>
-<h5><a name="section_88">Variable definitions</a></h5>
+<h5><a name="section_99">Variable definitions</a></h5>
 
 <p>
 See <a href="omake-language.html#variables">Variables</a>.
@@ -4395,7 +4967,7 @@ object. Private variables are statically scoped.
     private.Z = $"Hello world"
 </pre>
 <p>
-<h5><a name="section_89">Applications and function definitions</a></h5>
+<h5><a name="section_100">Applications and function definitions</a></h5>
 
 <p>
 See <a href="omake-language.html#functions">Functions</a>.
@@ -4443,7 +5015,7 @@ list of identifiers, and the body of the function is indented.
     - : 10 : Int
 </pre>
 <p>
-<h5><a name="section_90">Objects</a></h5>
+<h5><a name="section_101">Objects</a></h5>
 
 <p>
 See <a href="omake-language.html#objects">Objects</a>.
@@ -4513,7 +5085,7 @@ time, the <tt>extends</tt> directive performs inclusion of the entire parent obj
 In this example, the <tt>triple</tt> object has three fields x, y, and z; and two methods <tt>zoom</tt>
 and <tt>crazy</tt>.
 <p>
-<h5><a name="section_91">Rules</a></h5>
+<h5><a name="section_102">Rules</a></h5>
 
 <p>
 See <a href="omake-rules.html#rules">Rules</a>.
@@ -4628,7 +5200,7 @@ Several variables are defined during rule evaluation.
 </li>
 </ul>
 <p>
-<h5><a name="section_92">Shell commands</a></h5>
+<h5><a name="section_103">Shell commands</a></h5>
 
 <p>
 See <a href="omake-shell.html#shell">Shell</a>.
@@ -4652,7 +5224,7 @@ considered to be a shell command. Here are some examples.
 </pre>
 <p>
 <a name="dollar"></a>
-<h2><a name="section_93">Dollar modifiers</a></h2>
+<h2><a name="section_104">Dollar modifiers</a></h2>
 
 <p>
 Inline applications have a function and zero-or-more arguments. Evaluation is normally strict: when
@@ -4728,47 +5300,47 @@ osh&gt; println($"$X")  # force the evaluation and print
 1.c 2.c 3.c
 </pre>
 <p>
-<h2><a name="section_94">Builtin variables</a></h2>
+<h2><a name="section_105">Builtin variables</a></h2>
 
 <p>
-<h4><a name="section_95">OSTYPE</a></h4>
+<h4><a name="section_106">OSTYPE</a></h4>
 
 Set to the machine architecture <tt>omake</tt>
 is running on. Possible values are
 <tt>Unix</tt> (for all Unix versions, including Linux and Mac OS X), <tt>Win32</tt>
 (for MS-Windows, OMake compiled with MSVC++ or Mingw), and <tt>Cygwin</tt> (for
 MS-Windows, OMake compiled with Cygwin).
-<h4><a name="section_96">SYSNAME</a></h4>
+<h4><a name="section_107">SYSNAME</a></h4>
 
 The name of the operating system for the current machine.
-<h4><a name="section_97">NODENAME</a></h4>
+<h4><a name="section_108">NODENAME</a></h4>
 
 The hostname of the current machine.
-<h4><a name="section_98">OS_VERSION</a></h4>
+<h4><a name="section_109">OS_VERSION</a></h4>
 
 The operating system release.
-<h4><a name="section_99">MACHINE</a></h4>
+<h4><a name="section_110">MACHINE</a></h4>
 
 The machine architecture, e.g.  <tt>i386</tt>, <tt>sparc</tt>, etc.
-<h4><a name="section_100">HOST</a></h4>
+<h4><a name="section_111">HOST</a></h4>
 
 Same as <tt>NODENAME</tt>.
-<h4><a name="section_101">OMAKE_VERSION</a></h4>
+<h4><a name="section_112">OMAKE_VERSION</a></h4>
 
 Version of OMake.
-<h4><a name="section_102">USER</a></h4>
+<h4><a name="section_113">USER</a></h4>
 
 The login name of the user executing the process.
-<h4><a name="section_103">HOME</a></h4>
+<h4><a name="section_114">HOME</a></h4>
 
 The home directory of the user executing the process.
-<h4><a name="section_104">PID</a></h4>
+<h4><a name="section_115">PID</a></h4>
 
 The OMake process id.
-<h2><a name="section_105">Boolean functions and control flow</a></h2>
+<h2><a name="section_116">Boolean functions and control flow</a></h2>
 
 <p>
-<h4><a name="section_106">not</a></h4>
+<h4><a name="section_117">not</a></h4>
 
 <p>
 <pre>
@@ -4783,7 +5355,7 @@ value can be represented by the strings <tt>false</tt>, <tt>no</tt>,
 <tt>not</tt> function negates a Boolean value.
 <p>
 For example, <tt>$(not false)</tt> expands to the string <tt>true</tt>, and <tt>$(not hello world)</tt> expands to <tt>false</tt>.
-<h4><a name="section_107">equal</a></h4>
+<h4><a name="section_118">equal</a></h4>
 
 <p>
 <pre>
@@ -4795,7 +5367,7 @@ For example, <tt>$(not false)</tt> expands to the string <tt>true</tt>, and <tt>
 The <tt>equal</tt> function tests for equality of two values.
 <p>
 For example <tt>$(equal a, b)</tt> expands to <tt>false</tt>, and <tt>$(equal hello world, hello world)</tt> expands to <tt>true</tt>.
-<h4><a name="section_108">and</a></h4>
+<h4><a name="section_119">and</a></h4>
 
 <p>
 <pre>
@@ -4813,7 +5385,7 @@ For example, in the following code, <tt>X</tt> is true, and <tt>Y</tt> is false.
     X = $(and $(equal $(A), a) true $(equal $(B), b))
     Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
 </pre>
-<h4><a name="section_109">or</a></h4>
+<h4><a name="section_120">or</a></h4>
 
 <p>
 <pre>
@@ -4831,7 +5403,7 @@ For example, in the following code, <tt>X</tt> is true, and <tt>Y</tt> is false.
     X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
     Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
 </pre>
-<h4><a name="section_110">if</a></h4>
+<h4><a name="section_121">if</a></h4>
 
 <p>
 <pre>
@@ -4881,7 +5453,7 @@ for defining the C compiler configuration.
       CFLAGS += -g -O2
       export
 </pre>
-<h4><a name="section_111">switch, match</a></h4>
+<h4><a name="section_122">switch, match</a></h4>
 
 <p>
 The <tt>switch</tt> and <tt>match</tt> functions perform pattern matching.
@@ -4945,7 +5517,7 @@ uses regular expression matching.
    default
       println(The string $(FILE) has no suffix)
 </pre>
-<h4><a name="section_112">try</a></h4>
+<h4><a name="section_123">try</a></h4>
 
 <p>
 <pre>
@@ -4986,7 +5558,7 @@ are evaluated and the value <tt>v</tt> is returned as the result.
 <p>
 There can be any number of <tt>catch</tt> clauses; the <tt>finally</tt> clause
 is optional.
-<h4><a name="section_113">raise</a></h4>
+<h4><a name="section_124">raise</a></h4>
 
 <p>
 <pre>
@@ -4998,7 +5570,7 @@ The <tt>raise</tt> function raises an exception.
 The <tt>exn</tt> object can be any object. However,
 the normal convention is to raise an <tt>Exception</tt>
 object.
-<h4><a name="section_114">exit</a></h4>
+<h4><a name="section_125">exit</a></h4>
 
 <p>
 <pre>
@@ -5013,7 +5585,7 @@ abnormally.
 <p>
 The <tt>exit</tt> function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination.
-<h4><a name="section_115">defined</a></h4>
+<h4><a name="section_126">defined</a></h4>
 
 <p>
 <pre>
@@ -5030,7 +5602,7 @@ if it is not already defined.
        X = a b c
        export
 </pre>
-<h4><a name="section_116">defined-env</a></h4>
+<h4><a name="section_127">defined-env</a></h4>
 
 <p>
 <pre>
@@ -5049,7 +5621,7 @@ if $(defined-env DEBUG)
     CFLAGS += -g
     export
 </pre>
-<h4><a name="section_117">getenv</a></h4>
+<h4><a name="section_128">getenv</a></h4>
 
 <p>
 <pre>
@@ -5079,7 +5651,7 @@ You may also use the alternate form.
      getenv(NAME)
          default
 </pre>
-<h4><a name="section_118">setenv</a></h4>
+<h4><a name="section_129">setenv</a></h4>
 
 <p>
 <pre>
@@ -5092,7 +5664,7 @@ The <tt>setenv</tt> function sets the value of a variable in
 the process environment. Environment variables are scoped
 like normal variables.
 <p>
-<h4><a name="section_119">get-registry</a></h4>
+<h4><a name="section_130">get-registry</a></h4>
 
 <p>
 <pre>
@@ -5136,7 +5708,7 @@ You may also use the alternate form.
        default
 </pre>
 <p>
-<h4><a name="section_120">getvar</a></h4>
+<h4><a name="section_131">getvar</a></h4>
 
 <p>
 <pre>
@@ -5155,7 +5727,7 @@ For example, the following code defines X to be the string abc.
     foo_1 = abc
     X = $(getvar $(NAME)_1)
 </pre>
-<h4><a name="section_121">setvar</a></h4>
+<h4><a name="section_132">setvar</a></h4>
 
 <p>
 <pre>
@@ -5171,10 +5743,10 @@ following code defines the variable <tt>X</tt> to be the string <tt>abc</tt>.
    NAME = X
    setvar($(NAME), abc)
 </pre>
-<h2><a name="section_122">Arrays and sequences</a></h2>
+<h2><a name="section_133">Arrays and sequences</a></h2>
 
 <p>
-<h4><a name="section_123">array</a></h4>
+<h4><a name="section_134">array</a></h4>
 
 <p>
 <pre>
@@ -5199,7 +5771,7 @@ In addition, array variables can be declared as follows.
 In this case, the elements of the array are exactly
 <tt>&lt;val1&gt;</tt>, ..., <tt>&lt;valn&gt;</tt>, and whitespace is
 preserved literally.
-<h4><a name="section_124">split</a></h4>
+<h4><a name="section_135">split</a></h4>
 
 <p>
 <pre>
@@ -5223,7 +5795,7 @@ defined to be the array <tt>/bin /usr/bin /usr/local/bin</tt>.
 <p>
 The <tt>sep</tt> argument may be omitted. In this case <tt>split</tt> breaks its
 arguments along the white space. Quotations are not split.
-<h4><a name="section_125">concat</a></h4>
+<h4><a name="section_136">concat</a></h4>
 
 <p>
 <pre>
@@ -5243,7 +5815,7 @@ defined to be the string <tt>foo_x_bar_x_baz</tt>.
     X = foo  bar     baz
     Y = $(concat _x_, $(X))
 </pre>
-<h4><a name="section_126">length</a></h4>
+<h4><a name="section_137">length</a></h4>
 
 <p>
 <pre>
@@ -5254,7 +5826,7 @@ defined to be the string <tt>foo_x_bar_x_baz</tt>.
 The <tt>length</tt> function returns the number of elements in its argument.
 <p>
 For example, the expression <tt>$(length a b "c d")</tt> evaluates to 3.
-<h4><a name="section_127">nth</a></h4>
+<h4><a name="section_138">nth</a></h4>
 
 <p>
 <pre>
@@ -5268,7 +5840,7 @@ The <tt>nth</tt> function returns the nth element of its argument, treated as
 a list. Counting starts at 0. An exception is raised if the index is not in bounds.
 <p>
 For example, the expression <tt>$(nth 1, a "b c" d)</tt> evaluates to <tt>"b c"</tt>.
-<h4><a name="section_128">nth-hd</a></h4>
+<h4><a name="section_139">nth-hd</a></h4>
 
 <p>
 <pre>
@@ -5284,7 +5856,7 @@ at least <tt>i</tt> elements long.
 <p>
 For example, the expression <tt>$(nth-hd 2, a "b c" d)</tt> evaluates to <tt>a "b c"</tt>.
 <p>
-<h4><a name="section_129">nth-tl</a></h4>
+<h4><a name="section_140">nth-tl</a></h4>
 
 <p>
 <pre>
@@ -5300,7 +5872,7 @@ at least <tt>i</tt> elements long.
 <p>
 For example, the expression <tt>$(nth-tl 1, a "b c" d)</tt> evaluates to <tt>"b c" d</tt>.
 <p>
-<h4><a name="section_130">sub</a></h4>
+<h4><a name="section_141">sub</a></h4>
 
 <p>
 <pre>
@@ -5316,7 +5888,7 @@ Counting starts at 0. An exception is raised if the specified
 range is not in bounds.
 <p>
 For example, the expression <tt>$(sub 1, 2, a "b c" d e)</tt> evaluates to <tt>"b c" d</tt>.
-<h4><a name="section_131">rev</a></h4>
+<h4><a name="section_142">rev</a></h4>
 
 <p>
 <pre>
@@ -5326,7 +5898,7 @@ For example, the expression <tt>$(sub 1, 2, a "b c" d e)</tt> evaluates to <tt>"
 <p>
 The <tt>rev</tt> function returns the elements of a sequence in reverse order.
 For example, the expression <tt>$(rev a "b c" d)</tt> evaluates to <tt>d "b c" a</tt>.
-<h4><a name="section_132">string</a></h4>
+<h4><a name="section_143">string</a></h4>
 
 <p>
 <pre>
@@ -5338,7 +5910,7 @@ The <tt>string</tt> function flattens a sequence into a single string.
 This is similar to the <tt>concat</tt> function, but the elements are
 separated by whitespace. The result is treated as a unit; whitespace
 is significant.
-<h4><a name="section_133">quote</a></h4>
+<h4><a name="section_144">quote</a></h4>
 
 <p>
 <pre>
@@ -5353,7 +5925,7 @@ escaped.
 For example, the expression <tt>$(quote a "b c" d)</tt> evaluates
 to <tt>"a \"b c\" d"</tt>, and <tt>$(quote abc)</tt> evaluates to
 <tt>"abc"</tt>.
-<h4><a name="section_134">quote-argv</a></h4>
+<h4><a name="section_145">quote-argv</a></h4>
 
 <p>
 <pre>
@@ -5364,7 +5936,7 @@ to <tt>"a \"b c\" d"</tt>, and <tt>$(quote abc)</tt> evaluates to
 The <tt>quote-argv</tt> function flattens a sequence into a single string,
 and adds quotes around the string. The quotation is formed so that
 a command-line parse can separate the string back into its components.
-<h4><a name="section_135">html-string</a></h4>
+<h4><a name="section_146">html-string</a></h4>
 
 <p>
 <pre>
@@ -5377,7 +5949,7 @@ and escaped special HTML characters.
 This is similar to the <tt>concat</tt> function, but the elements are
 separated by whitespace. The result is treated as a unit; whitespace
 is significant.
-<h4><a name="section_136">addsuffix</a></h4>
+<h4><a name="section_147">addsuffix</a></h4>
 
 <p>
 <pre>
@@ -5391,7 +5963,7 @@ The number of elements in the array is exactly the same as the number of
 elements in the sequence.
 <p>
 For example, <tt>$(addsuffix .c, a b "c d")</tt> evaluates to <tt>a.c b.c "c d".c</tt>.
-<h4><a name="section_137">mapsuffix</a></h4>
+<h4><a name="section_148">mapsuffix</a></h4>
 
 <p>
 <pre>
@@ -5406,7 +5978,7 @@ of string concatenation. The number of elements in the array is
 twice the number of elements in the sequence.
 <p>
 For example, <tt>$(mapsuffix .c, a b "c d")</tt> evaluates to <tt>a .c b .c "c d" .c</tt>.
-<h4><a name="section_138">addsuffixes</a></h4>
+<h4><a name="section_149">addsuffixes</a></h4>
 
 <p>
 <pre>
@@ -5421,7 +5993,7 @@ and <tt>sequence</tt> has <tt>m</tt> elements, the the result has <tt>n * m</tt>
 <p>
 For example, the <tt>$(addsuffixes .c .o, a b c)</tt> expressions evaluates to
 <tt>a.c a.o b.c b.o c.o c.a</tt>.
-<h4><a name="section_139">removeprefix</a></h4>
+<h4><a name="section_150">removeprefix</a></h4>
 
 <p>
 <pre>
@@ -5432,7 +6004,7 @@ For example, the <tt>$(addsuffixes .c .o, a b c)</tt> expressions evaluates to
 <p>
 The <tt>removeprefix</tt> function removes a prefix from each component
 of a sequence.
-<h4><a name="section_140">removesuffix</a></h4>
+<h4><a name="section_151">removesuffix</a></h4>
 
 <p>
 <pre>
@@ -5444,7 +6016,7 @@ The <tt>removesuffix</tt> function removes the suffixes from each component
 of a sequence.
 <p>
 For example, <tt>$(removesuffix a.c b.foo "c d")</tt> expands to <tt>a b "c d"</tt>.
-<h4><a name="section_141">replacesuffixes</a></h4>
+<h4><a name="section_152">replacesuffixes</a></h4>
 
 <p>
 <pre>
@@ -5459,7 +6031,7 @@ in sequence. The <tt>old-suffixes</tt> and <tt>new-suffixes</tt> sequences
 should have the same length.
 <p>
 For example, <tt>$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)</tt> expands to <tt>a.o b.o c.z</tt>.
-<h4><a name="section_142">addprefix</a></h4>
+<h4><a name="section_153">addprefix</a></h4>
 
 <p>
 <pre>
@@ -5473,7 +6045,7 @@ The number of element in the result array is exactly the same as the number
 of elements in the argument sequence.
 <p>
 For example, <tt>$(addprefix foo/, a b "c d")</tt> evaluates to <tt>foo/a foo/b foo/"c d"</tt>.
-<h4><a name="section_143">mapprefix</a></h4>
+<h4><a name="section_154">mapprefix</a></h4>
 
 <p>
 <pre>
@@ -5488,7 +6060,7 @@ string concatenation. The result array contains twice as many elements
 as the argument sequence.
 <p>
 For example, <tt>$(mapprefix foo, a b "c d")</tt> expands to <tt>foo a foo b foo "c d"</tt>.
-<h4><a name="section_144">add-wrapper</a></h4>
+<h4><a name="section_155">add-wrapper</a></h4>
 
 <p>
 <pre>
@@ -5502,7 +6074,7 @@ The <tt>add-wrapper</tt> functions adds both a prefix and a suffix to each compo
 For example, the expression <tt>$(add-wrapper dir/, .c, a b)</tt> evaluates to
 <tt>dir/a.c dir/b.c</tt>. String concatenation is used. The array result
 has the same number of elements as the argument sequence.
-<h4><a name="section_145">set</a></h4>
+<h4><a name="section_156">set</a></h4>
 
 <p>
 <pre>
@@ -5513,7 +6085,7 @@ has the same number of elements as the argument sequence.
 The <tt>set</tt> function sorts a set of string components, eliminating duplicates.
 <p>
 For example, <tt>$(set z y z "m n" w a)</tt> expands to <tt>"m n" a w y z</tt>.
-<h4><a name="section_146">mem</a></h4>
+<h4><a name="section_157">mem</a></h4>
 
 <p>
 <pre>
@@ -5526,7 +6098,7 @@ The <tt>mem</tt> function tests for membership in a sequence.
 <p>
 For example, <tt>$(mem "m n", y z "m n" w a)</tt> evaluates to <tt>true</tt>,
 while <tt>$(mem m n, y z "m n" w a)</tt> evaluates to <tt>false</tt>.
-<h4><a name="section_147">intersection</a></h4>
+<h4><a name="section_158">intersection</a></h4>
 
 <p>
 <pre>
@@ -5543,7 +6115,7 @@ if desired.
 <p>
 For example, the expression <tt>$(intersection c a b a, b a)</tt> evaluates to
 <tt>a b a</tt>.
-<h4><a name="section_148">intersects</a></h4>
+<h4><a name="section_159">intersects</a></h4>
 
 <p>
 <pre>
@@ -5558,7 +6130,7 @@ it is empty.
 <p>
 For example, the expression <tt>$(intersects a b c, d c e)</tt> evaluates to <tt>true</tt>,
 and <tt>$(intersects a b c a, d e f)</tt> evaluates to <tt>false</tt>.
-<h4><a name="section_149">set-diff</a></h4>
+<h4><a name="section_160">set-diff</a></h4>
 
 <p>
 <pre>
@@ -5576,7 +6148,7 @@ if desired.
 <p>
 For example, the expression <tt>$(set-diff c a b a e, b a)</tt> evaluates to
 <tt>c e</tt>.
-<h4><a name="section_150">filter</a></h4>
+<h4><a name="section_161">filter</a></h4>
 
 <p>
 <pre>
@@ -5590,7 +6162,7 @@ The patterns is a non-empty sequence of patterns, each may contain one occurrenc
 <tt>%</tt> character.
 <p>
 For example <tt>$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)</tt> evaluates to <tt>x.o b.h y.o</tt>.
-<h4><a name="section_151">filter-out</a></h4>
+<h4><a name="section_162">filter-out</a></h4>
 
 <p>
 <pre>
@@ -5604,7 +6176,7 @@ The patterns is a non-empty sequence of patterns, each may contain one occurrenc
 <tt>%</tt> character.
 <p>
 For example <tt>$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)</tt> evaluates to <tt>x.o y.o</tt>.
-<h4><a name="section_152">capitalize</a></h4>
+<h4><a name="section_163">capitalize</a></h4>
 
 <p>
 <pre>
@@ -5615,7 +6187,7 @@ For example <tt>$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)</tt> eval
 The <tt>capitalize</tt> function capitalizes each word in a sequence.
 For example, <tt>$(capitalize through the looking Glass)</tt> evaluates to
 <tt>Through The Looking Glass</tt>.
-<h4><a name="section_153">uncapitalize</a></h4>
+<h4><a name="section_164">uncapitalize</a></h4>
 
 <p>
 <pre>
@@ -5627,7 +6199,7 @@ The <tt>uncapitalize</tt> function uncapitalizes each word in its argument.
 <p>
 For example, <tt>$(uncapitalize through the looking Glass)</tt> evaluates to
 <tt>through the looking glass</tt>.
-<h4><a name="section_154">uppercase</a></h4>
+<h4><a name="section_165">uppercase</a></h4>
 
 <p>
 <pre>
@@ -5638,7 +6210,7 @@ For example, <tt>$(uncapitalize through the looking Glass)</tt> evaluates to
 The <tt>uppercase</tt> function converts each word in a sequence to uppercase.
 For example, <tt>$(uppercase through the looking Glass)</tt> evaluates to
 <tt>THROUGH THE LOOKING GLASS</tt>.
-<h4><a name="section_155">lowercase</a></h4>
+<h4><a name="section_166">lowercase</a></h4>
 
 <p>
 <pre>
@@ -5650,7 +6222,7 @@ The <tt>lowercase</tt> function reduces each word in its argument to lowercase.
 <p>
 For example, <tt>$(lowercase through tHe looking Glass)</tt> evaluates to
 <tt>through the looking glass</tt>.
-<h4><a name="section_156">system</a></h4>
+<h4><a name="section_167">system</a></h4>
 
 <p>
 <pre>
@@ -5669,7 +6241,7 @@ expression <tt>system(ls foo)</tt>.
 <pre>
    ls foo
 </pre>
-<h4><a name="section_157">shell</a></h4>
+<h4><a name="section_168">shell</a></h4>
 
 <p>
 <pre>
@@ -5692,7 +6264,7 @@ For example, if the current directory contains the files <tt>OMakeroot</tt>,
 <tt>OMakefile</tt>, and <tt>hello.c</tt>, then <tt>$(shell ls)</tt> evaluates to
 <tt>hello.c OMakefile OMakeroot</tt> (on a Unix system).
 <a name="while"></a>
-<h4><a name="section_158">while</a></h4>
+<h4><a name="section_169">while</a></h4>
 
 <p>
 <pre>
@@ -5754,9 +6326,9 @@ value is printed.
     default
        echo $i
 </pre>
-<h2><a name="section_159">Arithmetic</a></h2>
+<h2><a name="section_170">Arithmetic</a></h2>
 
-<h4><a name="section_160">int</a></h4>
+<h4><a name="section_171">int</a></h4>
 
 <p>
 The <tt>int</tt> function can be used to create integers.
@@ -5764,13 +6336,13 @@ It returns an <tt>Int</tt> object.
 <p>
 <tt>$(int 17)</tt>.
 <p>
-<h4><a name="section_161">float</a></h4>
+<h4><a name="section_172">float</a></h4>
 
 The <tt>float</tt> function can be used to create floating-point numbers.
 It returns a <tt>Float</tt> object.
 <p>
 <tt>$(float 3.1415926)</tt>.
-<h4><a name="section_162">Basic arithmetic</a></h4>
+<h4><a name="section_173">Basic arithmetic</a></h4>
 
 <p>
 The following functions can be used to perform basic arithmetic.
@@ -5803,7 +6375,7 @@ The following functions can be used to perform basic arithmetic.
 <li><tt>$(asr &lt;numbers&gt;)</tt>: arithmetic shift right.
 </li>
 </ul>
-<h4><a name="section_163">Comparisons</a></h4>
+<h4><a name="section_174">Comparisons</a></h4>
 
 <p>
 The following functions can be used to perform numerical comparisons.
@@ -5828,9 +6400,9 @@ The following functions can be used to perform numerical comparisons.
 <li><tt>$(ugt &lt;numbers&gt;)</tt>: unsigned greater than.
 </li>
 </ul>
-<h2><a name="section_164">First-class functions</a></h2>
+<h2><a name="section_175">First-class functions</a></h2>
 
-<h4><a name="section_165">fun</a></h4>
+<h4><a name="section_176">fun</a></h4>
 
 <p>
 The <tt>fun</tt> form introduces anonymous functions.
@@ -5852,7 +6424,7 @@ The three following definitions are equivalent.
        fun(X, Y)
           value $(addsuffix $(Y), $(X))
 </pre>
-<h4><a name="section_166">apply</a></h4>
+<h4><a name="section_177">apply</a></h4>
 
 <p>
 The <tt>apply</tt> operator is used to apply a function.
@@ -5872,7 +6444,7 @@ The the two expressions below are equivalent.
     X = F(a b c, .c)
     X = $(apply $(F), a b c, .c)
 </pre>
-<h4><a name="section_167">applya</a></h4>
+<h4><a name="section_178">applya</a></h4>
 
 <p>
 The <tt>applya</tt> operator is used to apply a function to
@@ -5891,10 +6463,10 @@ of <tt>Z</tt> is <tt>file.c</tt>.
        .c
     Z = $(applya $(F), $(args))
 </pre>
-<h2><a name="section_168">Iteration and mapping</a></h2>
+<h2><a name="section_179">Iteration and mapping</a></h2>
 
 <p>
-<h4><a name="section_169">foreach</a></h4>
+<h4><a name="section_180">foreach</a></h4>
 
 <p>
 The <tt>foreach</tt> function maps a function over a sequence.
@@ -5929,9 +6501,9 @@ body. The final value of <tt>X</tt> is <tt>a.c b.c c.c</tt>.
        X += $(x).c
        export
 </pre>
-<h2><a name="section_170">File operations</a></h2>
+<h2><a name="section_181">File operations</a></h2>
 
-<h4><a name="section_171">file, dir</a></h4>
+<h4><a name="section_182">file, dir</a></h4>
 
 <p>
 <pre>
@@ -5974,7 +6546,7 @@ Once these variables are defined, they can be used in build commands in subdirec
    install: hello
 	cp hello $(BIN)
 </pre>
-<h4><a name="section_172">tmpfile</a></h4>
+<h4><a name="section_183">tmpfile</a></h4>
 
 <p>
 <pre>
@@ -5986,7 +6558,7 @@ Once these variables are defined, they can be used in build commands in subdirec
 <p>
 The <tt>tmpfile</tt> function returns the name of a fresh temporary file in
 the temporary directory.
-<h4><a name="section_173">in</a></h4>
+<h4><a name="section_184">in</a></h4>
 
 <p>
 <pre>
@@ -6011,7 +6583,7 @@ The following commands create links in the <tt>$(LIB)</tt> directory.
 <p>
 Note that the <tt>in</tt> function only affects the expansion of <tt>Node</tt>
 (<tt>File</tt> and <tt>Dir</tt>) values.
-<h4><a name="section_174">which</a></h4>
+<h4><a name="section_185">which</a></h4>
 
 <p>
 <pre>
@@ -6023,7 +6595,7 @@ The <tt>which</tt> function searches for executables in the
 current command search path, and returns <tt>file</tt> values
 for each of the commands. It is an error if a command is
 not found.
-<h4><a name="section_175">where</a></h4>
+<h4><a name="section_186">where</a></h4>
 
 <p>
 The <tt>where</tt> function is similar to which, except it returns the list of
@@ -6037,7 +6609,7 @@ describe the command as a built-in function.
     echo is a Shell object method (a built-in function)
     /bin/echo
 </pre>
-<h4><a name="section_176">exists-in-path</a></h4>
+<h4><a name="section_187">exists-in-path</a></h4>
 
 <p>
 <pre>
@@ -6047,7 +6619,7 @@ describe the command as a built-in function.
 <p>
 The <tt>exists-in-path</tt> function tests whether all executables
 are present in the current search path.
-<h4><a name="section_177">basename</a></h4>
+<h4><a name="section_188">basename</a></h4>
 
 <p>
 <pre>
@@ -6060,7 +6632,7 @@ The basename is the filename with any leading directory components removed.
 <p>
 For example, the expression <tt>$(basename dir1/dir2/a.out /etc/modules.conf /foo.ml)</tt> evaluates to
 <tt>a.out modules.conf foo.ml</tt>.
-<h4><a name="section_178">rootname</a></h4>
+<h4><a name="section_189">rootname</a></h4>
 
 <p>
 <pre>
@@ -6073,7 +6645,7 @@ The rootname is the filename with the final suffix removed.
 <p>
 For example, the expression <tt>$(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml)</tt> evaluates to
 <tt>dir1/dir2/a /etc/a.b /foo</tt>.
-<h4><a name="section_179">dirof</a></h4>
+<h4><a name="section_190">dirof</a></h4>
 
 <p>
 <pre>
@@ -6085,7 +6657,7 @@ The <tt>dirof</tt> function returns the directory for each of the listed files.
 <p>
 For example, the expression <tt>$(dirof dir/dir2/a.out /etc/modules.conf /foo.ml)</tt> evaluates
 to the directories <tt>dir1/dir2 /etc /</tt>.
-<h4><a name="section_180">fullname</a></h4>
+<h4><a name="section_191">fullname</a></h4>
 
 <p>
 <pre>
@@ -6095,7 +6667,7 @@ to the directories <tt>dir1/dir2 /etc /</tt>.
 <p>
 The <tt>fullname</tt> function returns the pathname relative to the project root
 for each of the files or directories.
-<h4><a name="section_181">absname</a></h4>
+<h4><a name="section_192">absname</a></h4>
 
 <p>
 <pre>
@@ -6105,7 +6677,7 @@ for each of the files or directories.
 <p>
 The <tt>absname</tt> function returns the absolute pathname for each of the files
 or directories.
-<h4><a name="section_182">homename</a></h4>
+<h4><a name="section_193">homename</a></h4>
 
 <p>
 <pre>
@@ -6117,7 +6689,7 @@ The <tt>homename</tt> function returns the name of a file in
 tilde form, if possible. The unexpanded forms are computed
 lazily: the <tt>homename</tt> function will usually evaluate to an absolute
 pathname until the first tilde-expansion for the same directory.
-<h4><a name="section_183">suffix</a></h4>
+<h4><a name="section_194">suffix</a></h4>
 
 <p>
 <pre>
@@ -6130,7 +6702,7 @@ If a file has no suffix, the function returns the empty string.
 <p>
 For example, the expression <tt>$(suffix dir1/dir2/a.out /etc/a /foo.ml)</tt> evaluates
 to <tt>.out .ml</tt>.
-<h4><a name="section_184">file-exists, target-exists, target-is-proper</a></h4>
+<h4><a name="section_195">file-exists, target-exists, target-is-proper</a></h4>
 
 <p>
 <pre>
@@ -6146,7 +6718,7 @@ However, it returns true if the file exists <em>or</em>
 if it can be built
 by the current project. The <tt>target-is-proper</tt> returns true only
 if the file can be generated in the current project.
-<h4><a name="section_185">stat-reset</a></h4>
+<h4><a name="section_196">stat-reset</a></h4>
 
 <p>
 <pre>
@@ -6157,7 +6729,7 @@ if the file can be generated in the current project.
 OMake uses a stat-cache. The <tt>stat-reset</tt> function reset the <tt>stat</tt>
 information for the given files, forcing the <tt>stat</tt> information to
 be recomputed the next time it is requested.
-<h4><a name="section_186">filter-exists, filter-targets, filter-proper-targets</a></h4>
+<h4><a name="section_197">filter-exists, filter-targets, filter-proper-targets</a></h4>
 
 <p>
 <pre>
@@ -6203,7 +6775,7 @@ for removing intermediate files.
 If you use CVS, you may wish to use the <tt>cvs_realclean</tt> program that
 is distributed with <tt>omake</tt>.
 <p>
-<h4><a name="section_187">file-sort</a></h4>
+<h4><a name="section_198">file-sort</a></h4>
 
 <p>
 <pre>
@@ -6250,7 +6822,7 @@ in the current project.
 </li>
 </ul>
 <p>
-<h4><a name="section_188">sort rule</a></h4>
+<h4><a name="section_199">sort rule</a></h4>
 
 <p>
 It is possible to further constrain the sorter through the use of
@@ -6275,7 +6847,7 @@ suffix <tt>.bar</tt>, and any file with suffix <tt>.bar</tt> should be
 placed after a file with suffix <tt>.baz</tt>.
 <p>
 In this example, the result of the sort is <tt>d.baz c.baz b.bar a.foo</tt>.
-<h4><a name="section_189">file-check-sort</a></h4>
+<h4><a name="section_200">file-check-sort</a></h4>
 
 <p>
 <pre>
@@ -6289,7 +6861,7 @@ is in sort order. If so, the list is returned unchanged.
 If not, the function raises an exception.
 <p>
 <tt>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</tt>
-<h4><a name="section_190">glob</a></h4>
+<h4><a name="section_201">glob</a></h4>
 
 <p>
 <pre>
@@ -6354,7 +6926,7 @@ behavior of <tt>glob</tt>.
 </dl>
 <p>
 The returned files are sorted by name.
-<h4><a name="section_191">ls</a></h4>
+<h4><a name="section_202">ls</a></h4>
 
 <p>
 <pre>
@@ -6381,7 +6953,7 @@ plus the following.
 The <tt>GLOB_ALLOW</tt> and <tt>GLOB_IGNORE</tt> variables can be defined
 to control the globbing behavior.
 The returned files are sorted by name.
-<h4><a name="section_192">subdirs</a></h4>
+<h4><a name="section_203">subdirs</a></h4>
 
 <p>
 <pre>
@@ -6408,7 +6980,7 @@ rules.
 <dd> Include only proper subdirectories.
 </dd>
 </dl>
-<h4><a name="section_193">mkdir</a></h4>
+<h4><a name="section_204">mkdir</a></h4>
 
 <p>
 <pre>
@@ -6435,7 +7007,7 @@ The following options are supported.
 <dd> Interpret the remaining names literally.
 </li>
 </ul>
-<h4><a name="section_194">Stat</a></h4>
+<h4><a name="section_205">Stat</a></h4>
 
 <p>
 The <tt>Stat</tt> object represents the result returned by the <tt>stat</tt>
@@ -6490,7 +7062,7 @@ will have meaning on all architectures.
 </dd>
 </dl>
 <p>
-<h4><a name="section_195">stat</a></h4>
+<h4><a name="section_206">stat</a></h4>
 
 <p>
 <pre>
@@ -6505,7 +7077,7 @@ The <tt>stat</tt> functions return file information.
 If the file is a symbolic link, the <tt>stat</tt> function refers to the
 destination of the link; the <tt>lstat</tt> function refers to the link
 itself.
-<h4><a name="section_196">unlink</a></h4>
+<h4><a name="section_207">unlink</a></h4>
 
 <p>
 <pre>
@@ -6539,7 +7111,7 @@ The following options are supported for <tt>rm</tt> and <tt>rmdir</tt>.
 <dd> the rest of the values are interpreted literally.
 </li>
 </ul>
-<h4><a name="section_197">rename</a></h4>
+<h4><a name="section_208">rename</a></h4>
 
 <p>
 <pre>
@@ -6581,7 +7153,7 @@ The <tt>mv</tt> and <tt>cp</tt> functions take the following options.
 <dd> Interpret the remaining arguments literally.
 </li>
 </ul>
-<h4><a name="section_198">link</a></h4>
+<h4><a name="section_209">link</a></h4>
 
 <p>
 <pre>
@@ -6597,7 +7169,7 @@ or directory <tt>src</tt>.
 Hard links are not supported in Win32.
 <p>
 Normally, only the superuser can create hard links to directories.
-<h4><a name="section_199">symlink</a></h4>
+<h4><a name="section_210">symlink</a></h4>
 
 <p>
 <pre>
@@ -6616,7 +7188,7 @@ the target directory. For example, the expression
 <tt>c/d -&gt; ../a/b</tt>.
 <p>
 Symbolic links are not supported in Win32.
-<h4><a name="section_200">readlink</a></h4>
+<h4><a name="section_211">readlink</a></h4>
 
 <p>
 <pre>
@@ -6625,7 +7197,7 @@ Symbolic links are not supported in Win32.
 </pre>
 <p>
 The <tt>readlink</tt> function reads the value of a symbolic link.
-<h4><a name="section_201">chmod</a></h4>
+<h4><a name="section_212">chmod</a></h4>
 
 <p>
 <pre>
@@ -6656,7 +7228,7 @@ Options:
 <dd> Interpret the remaining argument literally.
 </li>
 </ul>
-<h4><a name="section_202">chown</a></h4>
+<h4><a name="section_213">chown</a></h4>
 
 <p>
 <pre>
@@ -6673,7 +7245,7 @@ Options:
 The <tt>chown</tt> function changes the user and group id of the file.
 If the <tt>gid</tt> is not specified, it is not changed. If either
 id is -1, that id is not changed.
-<h4><a name="section_203">umask</a></h4>
+<h4><a name="section_214">umask</a></h4>
 
 <p>
 <pre>
@@ -6685,7 +7257,7 @@ id is -1, that id is not changed.
 Sets the file mode creation mask.
 The previous mask is returned.
 This value is not scoped, changes have global effect.
-<h4><a name="section_204">digest</a></h4>
+<h4><a name="section_215">digest</a></h4>
 
 <p>
 <pre>
@@ -6701,7 +7273,7 @@ The <tt>digest</tt> and <tt>digest-optional</tt> functions compute MD5 digests
 of files. The <tt>digest</tt> function raises an exception if a file
 does no exist. The <tt>digest-optional</tt> returns <tt>false</tt> if a
 file does no exist. MD5 digests are cached.
-<h4><a name="section_205">find-in-path</a></h4>
+<h4><a name="section_216">find-in-path</a></h4>
 
 <p>
 <pre>
@@ -6718,7 +7290,7 @@ path. Only the tail of the filename is significant. The <tt>find-in-path</tt>
 function raises an exception if the file can't be found.
 The <tt>find-in-path-optional</tt> function silently removes
 files that can't be found.
-<h4><a name="section_206">digest-path</a></h4>
+<h4><a name="section_217">digest-path</a></h4>
 
 <p>
 <pre>
@@ -6735,7 +7307,7 @@ path and returns the file and digest for each file. Only the tail of the
 filename is significant. The <tt>digest-in-path</tt> function raises an exception
 if the file can't be found. The <tt>digest-in-path-optional</tt>
 function silently removes elements that can't be found.
-<h4><a name="section_207">rehash</a></h4>
+<h4><a name="section_218">rehash</a></h4>
 
 <p>
 <pre>
@@ -6743,7 +7315,7 @@ function silently removes elements that can't be found.
 </pre>
 <p>
 The <tt>rehash</tt> function resets all search paths.
-<h4><a name="section_208">vmount</a></h4>
+<h4><a name="section_219">vmount</a></h4>
 
 <p>
 <pre>
@@ -6774,7 +7346,7 @@ The options are as follows.
 </dl>
 <p>
 Mount operations are scoped.
-<h4><a name="section_209">add-project-directories</a></h4>
+<h4><a name="section_220">add-project-directories</a></h4>
 
 <p>
 <pre>
@@ -6785,7 +7357,7 @@ Mount operations are scoped.
 Add the directories to the set of directories that omake considers to be part
 of the project. This is mainly used to avoid omake complaining that the
 current directory is not part of the project.
-<h4><a name="section_210">remove-project-directories</a></h4>
+<h4><a name="section_221">remove-project-directories</a></h4>
 
 <p>
 <pre>
@@ -6796,7 +7368,7 @@ current directory is not part of the project.
 Removed the directories from the set of directories that omake considers to be part
 of the project. This is mainly used to cancel a <tt>.SUBDIRS</tt> from including
 a directory if it is determined that the directory does not need to be compiled.
-<h4><a name="section_211">test</a></h4>
+<h4><a name="section_222">test</a></h4>
 
 <p>
 <pre>
@@ -6928,7 +7500,7 @@ the <em>string</em>.
 A <em>file</em>
 is a <em>string</em>
 that represents the name of a file.
-<h4><a name="section_212">find</a></h4>
+<h4><a name="section_223">find</a></h4>
 
 <p>
 <pre>
@@ -6957,9 +7529,9 @@ additions.
 <li><tt>-name</tt> <em>string</em> : The current file matches the regular expression.
 </li>
 </ul>
-<h2><a name="section_213">IO functions</a></h2>
+<h2><a name="section_224">IO functions</a></h2>
 
-<h4><a name="section_214">Standard channels</a></h4>
+<h4><a name="section_225">Standard channels</a></h4>
 
 <p>
 The following variables define the standard channels.
@@ -6993,7 +7565,7 @@ stderr : OutChannel
 The standard error channel, open for writing.
 </dd>
 </dl>
-<h4><a name="section_215">fopen</a></h4>
+<h4><a name="section_226">fopen</a></h4>
 
 <p>
 The <tt>fopen</tt> function opens a file for reading or writing.
@@ -7035,7 +7607,7 @@ The <tt>mode</tt> is a combination of the following characters.
 <p>
 Binary mode is not significant on Unix systems, where
 text and binary modes are equivalent.
-<h4><a name="section_216">close</a></h4>
+<h4><a name="section_227">close</a></h4>
 
 <p>
 <pre>
@@ -7045,7 +7617,7 @@ text and binary modes are equivalent.
 <p>
 The <tt>close</tt> function closes a file that was previously opened
 with <tt>fopen</tt>.
-<h4><a name="section_217">read</a></h4>
+<h4><a name="section_228">read</a></h4>
 
 <p>
 <pre>
@@ -7059,7 +7631,7 @@ The <tt>read</tt> function reads up to <tt>amount</tt>
 bytes from an input channel, and returns
 the data that was read. If an end-of-file condition is reached,
 the function raises a <tt>RuntimeException</tt> exception.
-<h4><a name="section_218">write</a></h4>
+<h4><a name="section_229">write</a></h4>
 
 <p>
 <pre>
@@ -7087,7 +7659,7 @@ if the length of the <tt>buffer</tt>.
 <p>
 If an end-of-file condition is reached,
 the function raises a <tt>RuntimeException</tt> exception.
-<h4><a name="section_219">lseek</a></h4>
+<h4><a name="section_230">lseek</a></h4>
 
 <p>
 <pre>
@@ -7115,7 +7687,7 @@ follows:
 </dl>
 <p>
 The <tt>lseek</tt> function returns the new position in the file.
-<h4><a name="section_220">rewind</a></h4>
+<h4><a name="section_231">rewind</a></h4>
 
 <p>
 <pre>
@@ -7125,7 +7697,7 @@ The <tt>lseek</tt> function returns the new position in the file.
 <p>
 The <tt>rewind</tt> function set the current file position to the
 beginning of the file.
-<h4><a name="section_221">tell</a></h4>
+<h4><a name="section_232">tell</a></h4>
 
 <p>
 <pre>
@@ -7135,7 +7707,7 @@ beginning of the file.
 </pre>
 <p>
 The <tt>tell</tt> function returns the current position of the <tt>channel</tt>.
-<h4><a name="section_222">flush</a></h4>
+<h4><a name="section_233">flush</a></h4>
 
 <p>
 <pre>
@@ -7145,7 +7717,7 @@ The <tt>tell</tt> function returns the current position of the <tt>channel</tt>.
 <p>
 The <tt>flush</tt> function can be used only on files that are open for writing.
 It flushes all pending data to the file.
-<h4><a name="section_223">dup</a></h4>
+<h4><a name="section_234">dup</a></h4>
 
 <p>
 <pre>
@@ -7156,7 +7728,7 @@ It flushes all pending data to the file.
 <p>
 The <tt>dup</tt> function returns a new channel referencing the
 same file as the argument.
-<h4><a name="section_224">dup2</a></h4>
+<h4><a name="section_235">dup2</a></h4>
 
 <p>
 <pre>
@@ -7168,7 +7740,7 @@ same file as the argument.
 <p>
 The <tt>dup2</tt> function causes <tt>channel2</tt> to refer to the same
 file as <tt>channel1</tt>.
-<h4><a name="section_225">set-nonblock</a></h4>
+<h4><a name="section_236">set-nonblock</a></h4>
 
 <p>
 <pre>
@@ -7180,7 +7752,7 @@ file as <tt>channel1</tt>.
 The <tt>set-nonblock-mode</tt> function sets the nonblocking flag on the
 given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a <tt>RuntimeException</tt>.
-<h4><a name="section_226">set-close-on-exec-mode</a></h4>
+<h4><a name="section_237">set-close-on-exec-mode</a></h4>
 
 <p>
 <pre>
@@ -7193,7 +7765,7 @@ cannot be completed immediately, the operations raises a <tt>RuntimeException</t
 The <tt>set-close-on-exec-mode</tt> function sets the close-on-exec
 flags for the given channels. If the close-on-exec flag is set, the channel
 is not inherited by child processes. Otherwise it is.
-<h4><a name="section_227">pipe</a></h4>
+<h4><a name="section_238">pipe</a></h4>
 
 <p>
 <pre>
@@ -7205,7 +7777,7 @@ The <tt>pipe</tt> function creates a <tt>Pipe</tt> object, which has two
 fields. The <tt>read</tt> field is a channel that is opened for
 reading, and the <tt>write</tt> field is a channel that is opened
 for writing.
-<h4><a name="section_228">mkfifo</a></h4>
+<h4><a name="section_239">mkfifo</a></h4>
 
 <p>
 <pre>
@@ -7215,7 +7787,7 @@ for writing.
 </pre>
 <p>
 The <tt>mkfifo</tt> function creates a named pipe.
-<h4><a name="section_229">select</a></h4>
+<h4><a name="section_240">select</a></h4>
 
 <p>
 <pre>
@@ -7246,7 +7818,7 @@ which has the following fields:
 <dd> An array of channels on which an error has occurred.
 </dd>
 </dl>
-<h4><a name="section_230">lockf</a></h4>
+<h4><a name="section_241">lockf</a></h4>
 
 <p>
 <pre>
@@ -7282,7 +7854,7 @@ The possible values for <tt>command</tt> are the following.
 <dd> Lock a region for reading; fail is already locked.
 </dd>
 </dl>
-<h4><a name="section_231">InetAddr</a></h4>
+<h4><a name="section_242">InetAddr</a></h4>
 
 <p>
 The <tt>InetAddr</tt> object describes an Internet address.
@@ -7297,7 +7869,7 @@ It contains the following fields.
 </dd>
 </dl>
 <p>
-<h4><a name="section_232">Host</a></h4>
+<h4><a name="section_243">Host</a></h4>
 
 <p>
 A <tt>Host</tt> object contains the following fields.
@@ -7317,7 +7889,7 @@ A <tt>Host</tt> object contains the following fields.
 </dd>
 </dl>
 <p>
-<h4><a name="section_233">gethostbyname</a></h4>
+<h4><a name="section_244">gethostbyname</a></h4>
 
 <p>
 <pre>
@@ -7330,7 +7902,7 @@ The <tt>gethostbyname</tt> function returns a <tt>Host</tt> object
 for the specified host. The <tt>host</tt> may specify a domain name
 or an Internet address.
 <p>
-<h4><a name="section_234">Protocol</a></h4>
+<h4><a name="section_245">Protocol</a></h4>
 
 <p>
 The <tt>Protocol</tt> object represents a protocol entry.
@@ -7348,7 +7920,7 @@ It has the following fields.
 </dd>
 </dl>
 <p>
-<h4><a name="section_235">getprotobyname</a></h4>
+<h4><a name="section_246">getprotobyname</a></h4>
 
 <p>
 <pre>
@@ -7360,7 +7932,7 @@ It has the following fields.
 The <tt>getprotobyname</tt> function returns a <tt>Protocol</tt> object for the
 specified protocol. The <tt>name</tt> may be a protocol name, or a
 protocol number.
-<h4><a name="section_236">Service</a></h4>
+<h4><a name="section_247">Service</a></h4>
 
 <p>
 The <tt>Service</tt> object represents a network service.
@@ -7381,7 +7953,7 @@ It has the following fields.
 </dd>
 </dl>
 <p>
-<h4><a name="section_237">getservbyname</a></h4>
+<h4><a name="section_248">getservbyname</a></h4>
 
 <p>
 <pre>
@@ -7392,7 +7964,7 @@ It has the following fields.
 <p>
 The <tt>getservbyname</tt> function gets the information for a network service.
 The <tt>service</tt> may be specified as a service name or number.
-<h4><a name="section_238">socket</a></h4>
+<h4><a name="section_249">socket</a></h4>
 
 <p>
 <pre>
@@ -7438,7 +8010,7 @@ The <tt>type</tt> may have the following values.
 <p>
 The <tt>protocol</tt> is an <tt>Int</tt> or <tt>String</tt> that specifies
 a protocol in the protocols database.
-<h4><a name="section_239">bind</a></h4>
+<h4><a name="section_250">bind</a></h4>
 
 <p>
 <pre>
@@ -7459,7 +8031,7 @@ or IP address, and the <tt>port</tt> is a port number.
 <p>
 The 2-argument form is for <tt>Unix</tt> sockets. The <tt>file</tt> specifies the filename
 for the address.
-<h4><a name="section_240">listen</a></h4>
+<h4><a name="section_251">listen</a></h4>
 
 <p>
 <pre>
@@ -7471,7 +8043,7 @@ for the address.
 <p>
 The <tt>listen</tt> function sets up the socket for receiving up to <tt>requests</tt> number
 of pending connection requests.
-<h4><a name="section_241">accept</a></h4>
+<h4><a name="section_252">accept</a></h4>
 
 <p>
 <pre>
@@ -7481,7 +8053,7 @@ of pending connection requests.
 </pre>
 <p>
 The <tt>accept</tt> function accepts a connection on a socket.
-<h4><a name="section_242">connect</a></h4>
+<h4><a name="section_253">connect</a></h4>
 
 <p>
 <pre>
@@ -7504,7 +8076,7 @@ is the port number.
 <p>
 The 2-argument form is for Unix sockets. The <tt>name</tt> argument
 is the filename of the socket.
-<h4><a name="section_243">getchar</a></h4>
+<h4><a name="section_254">getchar</a></h4>
 
 <p>
 <pre>
@@ -7517,7 +8089,7 @@ is the filename of the socket.
 The <tt>getc</tt> function returns the next character of a file.
 If the argument is not specified, <tt>stdin</tt> is used as input.
 If the end of file has been reached, the function returns <tt>false</tt>.
-<h4><a name="section_244">gets</a></h4>
+<h4><a name="section_255">gets</a></h4>
 
 <p>
 <pre>
@@ -7530,7 +8102,7 @@ If the end of file has been reached, the function returns <tt>false</tt>.
 The <tt>gets</tt> function returns the next line from a file.
 The function returns the empty string if the end of file has been reached.
 The line terminator is removed.
-<h4><a name="section_245">fgets</a></h4>
+<h4><a name="section_256">fgets</a></h4>
 
 <p>
 <pre>
@@ -7544,7 +8116,7 @@ The <tt>fgets</tt> function returns the next line from a file that has been
 opened for reading with <tt>fopen</tt>. The function returns the empty string
 if the end of file has been reached. The returned string is returned as
 literal data. The line terminator is not removed.
-<h4><a name="section_246">Printing functions</a></h4>
+<h4><a name="section_257">Printing functions</a></h4>
 
 <p>
 Output is printed with the <tt>print</tt> and <tt>println</tt> functions.
@@ -7563,7 +8135,7 @@ printed, the <tt>print</tt> function does not.
 The <tt>fprint</tt> functions print to a file that has been previously opened with
 <tt>fopen</tt>. The <tt>print</tt> functions print to the standard output channel, and
 the <tt>eprint</tt> functions print to the standard error channel.
-<h4><a name="section_247">Value printing functions</a></h4>
+<h4><a name="section_258">Value printing functions</a></h4>
 
 <p>
 Values can be printed with the <tt>printv</tt> and <tt>printvln</tt> functions.
@@ -7582,10 +8154,10 @@ printed, the <tt>printv</tt> function does not.
 The <tt>fprintv</tt> functions print to a file that has been previously opened with
 <tt>fopen</tt>. The <tt>printv</tt> functions print to the standard output channel, and
 the <tt>eprintv</tt> functions print to the standard error channel.
-<h2><a name="section_248">Higher-level IO functions</a></h2>
+<h2><a name="section_259">Higher-level IO functions</a></h2>
 
 <p>
-<h4><a name="section_249">Regular expressions</a></h4>
+<h4><a name="section_260">Regular expressions</a></h4>
 
 <p>
 Many of the higher-level functions use regular expressions.
@@ -7711,7 +8283,7 @@ abstractly. Some of these sequences can change depending on your LOCALE.
 <li><tt>[:space:]</tt> Whitespace characters.
 </li>
 </ul>
-<h4><a name="section_250">cat</a></h4>
+<h4><a name="section_261">cat</a></h4>
 
 <p>
 <pre>
@@ -7721,7 +8293,7 @@ abstractly. Some of these sequences can change depending on your LOCALE.
 <p>
 The <tt>cat</tt> function concatenates the output from multiple files
 and returns it as a string.
-<h4><a name="section_251">grep</a></h4>
+<h4><a name="section_262">grep</a></h4>
 
 <p>
 <pre>
@@ -7754,7 +8326,7 @@ The <tt>pattern</tt> is a regular expression.
 <p>
 If successful (<tt>grep</tt> found a match), the function returns <tt>true</tt>.
 Otherwise, it returns <tt>false</tt>.
-<h4><a name="section_252">scan</a></h4>
+<h4><a name="section_263">scan</a></h4>
 
 <p>
 <pre>
@@ -7851,7 +8423,7 @@ same way as other variables, so this definition does not affect the meaning of
            ...
         close(stdout)
 </pre>
-<h4><a name="section_253">awk</a></h4>
+<h4><a name="section_264">awk</a></h4>
 
 <p>
 <pre>
@@ -7929,7 +8501,7 @@ same way as other variables, so this definition does not affect the meaning of
            ...
         close(stdout)
 </pre>
-<h4><a name="section_254">fsubst</a></h4>
+<h4><a name="section_265">fsubst</a></h4>
 
 <p>
 <pre>
@@ -7978,7 +8550,7 @@ an expression <tt>word.</tt> with its capitalized form.
           value $(capitalize $1).
        close(stdout)
 </pre>
-<h4><a name="section_255">Lexer</a></h4>
+<h4><a name="section_266">Lexer</a></h4>
 
 <p>
 The <tt>Lexer</tt> object defines a facility for lexical analysis, similar to the
@@ -8074,7 +8646,7 @@ Lexer object operate on <tt>InChannel</tt> objects.
 The method <tt>lexer1.lex-channel(channel)</tt> reads the next
 token from the channel argument.
 <p>
-<h4><a name="section_256">Lexer matching</a></h4>
+<h4><a name="section_267">Lexer matching</a></h4>
 
 <p>
 During lexical analysis, clauses are selected by longest match.
@@ -8084,7 +8656,7 @@ lexer raises a <tt>RuntimeException</tt>. If more than one clause
 matches the same amount of input, the first one is chosen
 for evaluation.
 <p>
-<h4><a name="section_257">Extending lexer definitions</a></h4>
+<h4><a name="section_268">Extending lexer definitions</a></h4>
 
 <p>
 Suppose we wish to augment the lexer example so that it ignores
@@ -8135,7 +8707,7 @@ that we just created.
 The body for the comment clause calls the <tt>lex-comment</tt> lexer when
 a comment is encountered, and continues lexing when that lexer returns.
 <p>
-<h4><a name="section_258">Threading the lexer object</a></h4>
+<h4><a name="section_269">Threading the lexer object</a></h4>
 
 <p>
 Clause bodies may also end with an <tt>export</tt> directive. In this case
@@ -8144,7 +8716,7 @@ the <tt>Parser</tt> object below, the lexer should define the <tt>loc</tt>, <tt>
 and <tt>value</tt> fields in each <tt>export</tt> clause. Each time
 the <tt>Parser</tt> calls the lexer, it calls it with the lexer returned
 from the previous lex invocation.
-<h4><a name="section_259">Parser</a></h4>
+<h4><a name="section_270">Parser</a></h4>
 
 <p>
 The <tt>Parser</tt> object provides a facility for syntactic analysis based
@@ -8228,7 +8800,7 @@ action performs the calculation. The variables <tt>$1, $2, ...</tt>
 correspond to the values associated with each of the variables
 on the right-hand-side of the production.
 <p>
-<h4><a name="section_260">Calling the parser</a></h4>
+<h4><a name="section_271">Calling the parser</a></h4>
 
 <p>
 The parser is called with the <tt>$(parser1.parse-channel start, channel)</tt>
@@ -8236,7 +8808,7 @@ or <tt>$(parser1.parse-file start, file)</tt> functions. The <tt>start</tt>
 argument is the start symbol, and the <tt>channel</tt> or <tt>file</tt>
 is the input to the parser.
 <p>
-<h4><a name="section_261">Parsing control</a></h4>
+<h4><a name="section_272">Parsing control</a></h4>
 
 <p>
 The parser generator generates a pushdown automation based on LALR(1)
@@ -8255,7 +8827,7 @@ is set, this also prints with parser table together with any conflicts.
 The <tt>loc</tt> variable is defined within action bodies, and represents
 the input range for all tokens on the right-hand-side of the production.
 <p>
-<h4><a name="section_262">Extending parsers</a></h4>
+<h4><a name="section_273">Extending parsers</a></h4>
 
 <p>
 Parsers may also be extended by inheritance.
@@ -8299,7 +8871,7 @@ of the <tt>left</tt> method accomplishes this.
 <p>
 In this case, we use the new lexer <tt>lexer2</tt>, and we add productions
 for the new shift operations.
-<h4><a name="section_263">gettimeofday</a></h4>
+<h4><a name="section_274">gettimeofday</a></h4>
 
 <p>
 <pre>
@@ -8308,22 +8880,22 @@ for the new shift operations.
 <p>
 The <tt>gettimeofday</tt> function returns the time of day in seconds
 since January 1, 1970.
-<h2><a name="section_264">Shell functions</a></h2>
+<h2><a name="section_275">Shell functions</a></h2>
 
-<h4><a name="section_265">echo</a></h4>
+<h4><a name="section_276">echo</a></h4>
 
 <p>
 The <tt>echo</tt> function prints a string.
 <p>
 <tt>$(echo &lt;args&gt;)</tt>
 <tt>echo &lt;args&gt;</tt>
-<h4><a name="section_266">jobs</a></h4>
+<h4><a name="section_277">jobs</a></h4>
 
 <p>
 The <tt>jobs</tt> function prints a list of jobs.
 <p>
 <tt>jobs</tt>
-<h4><a name="section_267">cd</a></h4>
+<h4><a name="section_278">cd</a></h4>
 
 <p>
 The <tt>cd</tt> function changes the current directory.
@@ -8365,25 +8937,25 @@ directory <tt>./foo</tt>, <tt>~/dir1/foo</tt>, <tt>~/dir2/foo</tt>.
     cd foo
 </pre>
 <p>
-<h4><a name="section_268">bg</a></h4>
+<h4><a name="section_279">bg</a></h4>
 
 <p>
 The <tt>bg</tt> function places a job in the background.
 <p>
 <tt>bg &lt;pid...&gt;</tt>
-<h4><a name="section_269">fg</a></h4>
+<h4><a name="section_280">fg</a></h4>
 
 <p>
 The <tt>fg</tt> function brings a job to the foreground.
 <p>
 <tt>fg &lt;pid...&gt;</tt>
-<h4><a name="section_270">stop</a></h4>
+<h4><a name="section_281">stop</a></h4>
 
 <p>
 The <tt>stop</tt> function suspends a job.
 <p>
 <tt>stop &lt;pid...&gt;</tt>
-<h4><a name="section_271">wait</a></h4>
+<h4><a name="section_282">wait</a></h4>
 
 <p>
 The <tt>wait</tt> function waits for a job to finish.
@@ -8391,13 +8963,13 @@ If no process identifiers are given, the shell waits for
 all jobs to complete.
 <p>
 <tt>wait &lt;pid...&gt;</tt>
-<h4><a name="section_272">kill</a></h4>
+<h4><a name="section_283">kill</a></h4>
 
 <p>
 The <tt>kill</tt> function signals a job.
 <p>
 <tt>kill [signal] &lt;pid...&gt;</tt>
-<h4><a name="section_273">history</a></h4>
+<h4><a name="section_284">history</a></h4>
 
 <p>
 <pre>
@@ -8420,13 +8992,13 @@ to be saved. The default value is <tt>~/.omake/osh_history</tt>.
 The <tt>history-length</tt> variable can be redefined to specify the maximum number of
 lines in the history that you want saved. The default value is <tt>100</tt>.
 <p>
-<h2><a name="section_274">Pervasives</a></h2>
+<h2><a name="section_285">Pervasives</a></h2>
 
 <p>
 <tt>Pervasives</tt> defines the objects that are defined in all
 programs. The following objects are defined.
 <p>
-<h4><a name="section_275">Object</a></h4>
+<h4><a name="section_286">Object</a></h4>
 
 <p>
 Parent objects: none.
@@ -8484,7 +9056,7 @@ function collects just the field names of an object.
 </li>
 </ul>
 <p>
-<h4><a name="section_276">Map</a></h4>
+<h4><a name="section_287">Map</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
@@ -8553,26 +9125,26 @@ defined using definitions with the form <tt>$|key|</tt>
 The usual modifiers are also allowed. The expression <tt>$`|key|</tt> represents
 lazy evaluation of the key, and <tt>$,|key|</tt> is normal evaluation.
 <p>
-<h4><a name="section_277">Number</a></h4>
+<h4><a name="section_288">Number</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
 <p>
 The <tt>Number</tt> object is the parent object for integers
 and floating-point numbers.
-<h4><a name="section_278">Int</a></h4>
+<h4><a name="section_289">Int</a></h4>
 
 <p>
 Parent objects: <tt>Number</tt>.
 <p>
 The <tt>Int</tt> object represents integer values.
-<h4><a name="section_279">Float</a></h4>
+<h4><a name="section_290">Float</a></h4>
 
 <p>
 Parent objects: <tt>Number</tt>.
 <p>
 The <tt>Float</tt> object represents floating-point numbers.
-<h4><a name="section_280">Sequence</a></h4>
+<h4><a name="section_291">Sequence</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
@@ -8618,7 +9190,7 @@ function counts the number of zeros in the sequence.
 </pre>
 </li>
 </ul>
-<h4><a name="section_281">Array</a></h4>
+<h4><a name="section_292">Array</a></h4>
 
 <p>
 Parent objects: <tt>Sequence</tt>.
@@ -8633,11 +9205,11 @@ It provides the following additional methods.
 </li>
 </ul>
 <p>
-<h4><a name="section_282">String</a></h4>
+<h4><a name="section_293">String</a></h4>
 
 <p>
 Parent objects: <tt>Array</tt>.
-<h4><a name="section_283">Fun</a></h4>
+<h4><a name="section_294">Fun</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
@@ -8647,14 +9219,14 @@ The <tt>Fun</tt> object provides the following methods.
 <li><tt>$(f.arity)</tt>: the arity if the function.
 </li>
 </ul>
-<h4><a name="section_284">Rule</a></h4>
+<h4><a name="section_295">Rule</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
 <p>
 The <tt>Rule</tt> object represents a build rule.
 It does not currently have any methods.
-<h4><a name="section_285">Target</a></h4>
+<h4><a name="section_296">Target</a></h4>
 
 <p>
 Parent object: <tt>Object</tt>.
@@ -8703,7 +9275,7 @@ contain different values in different contexts. The easiest way
 to make sure that the <tt>Target</tt> information is complete is
 to compute it within a rule body, where the rule depends on
 the target file, or the dependencies of the target file.
-<h4><a name="section_286">Node</a></h4>
+<h4><a name="section_297">Node</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
@@ -8731,19 +9303,19 @@ the link, not the link itself.
 <li><tt>$(node.chown &lt;uid&gt;, &lt;gid&gt;)</tt>: change the owner and group id of this file.
 </li>
 </ul>
-<h4><a name="section_287">File</a></h4>
+<h4><a name="section_298">File</a></h4>
 
 <p>
 Parent objects: <tt>Node</tt>.
 <p>
 The file object represents the name of a file.
-<h4><a name="section_288">Dir</a></h4>
+<h4><a name="section_299">Dir</a></h4>
 
 <p>
 Parent objects: <tt>Node</tt>.
 <p>
 The <tt>Dir</tt> object represents the name of a directory.
-<h4><a name="section_289">Channel</a></h4>
+<h4><a name="section_300">Channel</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
@@ -8754,7 +9326,7 @@ It provides the following methods.
 <li><tt>$(o.close)</tt>: close the channel.
 </li>
 </ul>
-<h4><a name="section_290">InChannel</a></h4>
+<h4><a name="section_301">InChannel</a></h4>
 
 <p>
 Parent objects: <tt>Channel</tt>.
@@ -8767,7 +9339,7 @@ It provides the following methods.
 <li><tt>$(InChannel.fopen &lt;file&gt;)</tt>: open a new input channel.
 </li>
 </ul>
-<h4><a name="section_291">OutChannel</a></h4>
+<h4><a name="section_302">OutChannel</a></h4>
 
 <p>
 Parent object: <tt>Channel</tt>.
@@ -8790,26 +9362,26 @@ appending to the file.
 followed by a line terminator.
 </li>
 </ul>
-<h4><a name="section_292">Location</a></h4>
+<h4><a name="section_303">Location</a></h4>
 
 <p>
 Parent objects: <tt>Location</tt>.
 <p>
 The <tt>Location</tt> object represents a location in a file.
-<h4><a name="section_293">Position</a></h4>
+<h4><a name="section_304">Position</a></h4>
 
 <p>
 Parent objects: <tt>Position</tt>.
 <p>
 The <tt>Position</tt> object represents a stack trace.
-<h4><a name="section_294">Exception</a></h4>
+<h4><a name="section_305">Exception</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
 <p>
 The <tt>Exception</tt> object is used as the base object for exceptions.
 It has no fields.
-<h4><a name="section_295">RuntimeException</a></h4>
+<h4><a name="section_306">RuntimeException</a></h4>
 
 <p>
 Parent objects: <tt>Exception</tt>.
@@ -8824,7 +9396,7 @@ exception was raised.
 <li><tt>message</tt>: a string containing the exception message.
 </li>
 </ul>
-<h4><a name="section_296">Shell</a></h4>
+<h4><a name="section_307">Shell</a></h4>
 
 <p>
 Parent objects: <tt>Object</tt>.
@@ -9065,10 +9637,10 @@ See the documentation for the <tt>find</tt> function.
 </ul>
 </li>
 </ul>
-<h2><a name="section_297">Build functions</a></h2>
+<h2><a name="section_308">Build functions</a></h2>
 
 <p>
-<h4><a name="section_298">OMakeFlags</a></h4>
+<h4><a name="section_309">OMakeFlags</a></h4>
 
 <p>
 <pre>
@@ -9089,7 +9661,7 @@ the <tt>VERBOSE</tt> environment variable is defined.
         OMakeFlags(-S --progress)
         export
 </pre>
-<h4><a name="section_299">OMakeVersion</a></h4>
+<h4><a name="section_310">OMakeVersion</a></h4>
 
 <p>
 <pre>
@@ -9108,7 +9680,7 @@ is less than <tt>&lt;version1&gt;</tt>,
 then an exception is raised. In the two argument form,
 the version must lie between <tt>version1</tt> and <tt>version2</tt>.
 <p>
-<h4><a name="section_300">cmp-versions</a></h4>
+<h4><a name="section_311">cmp-versions</a></h4>
 
 <pre>
    $(cmp-versions version1, version2)
@@ -9118,7 +9690,7 @@ the version must lie between <tt>version1</tt> and <tt>version2</tt>.
 The <tt>cmp-versions\</tt> functions can be used to compare arbitrary version strings.
 It returns 0 when the two version strings are equal, a negative number when the first
 string represents an earlier version, and a positive number otherwise.
-<h4><a name="section_301">DefineCommandVars</a></h4>
+<h4><a name="section_312">DefineCommandVars</a></h4>
 
 <p>
 <pre>
@@ -9130,14 +9702,14 @@ the commandline. Variables definitions are passed on the command line
 in the form <tt>name=value</tt>. This function is primarily for internal
 use by <tt>omake</tt>
 to define these variables for the first time.
-<h2><a name="section_302">The OMakeroot file</a></h2>
+<h2><a name="section_313">The OMakeroot file</a></h2>
 
 <p>
 The standard <tt>OMakeroot</tt>
 file defines the functions are rules
 for building standard projects.
 <p>
-<h4><a name="section_303">Variables</a></h4>
+<h4><a name="section_314">Variables</a></h4>
 
 <dl compact>
 <dt>ROOT</dt>
@@ -9190,7 +9762,7 @@ does not specify a <tt>:scanner:</tt> dependency, and there is a default
 </dl>
 </dd>
 </dl>
-<h4><a name="section_304">System variables</a></h4>
+<h4><a name="section_315">System variables</a></h4>
 
 <p>
 <dl compact>
@@ -9216,13 +9788,13 @@ does not specify a <tt>:scanner:</tt> dependency, and there is a default
 <dd> File suffix for executables (default is empty for <tt>Unix</tt>, and <tt>.exe</tt> on <tt>Win32</tt> and <tt>Cygwin</tt>).
 </dd>
 </dl>
-<h2><a name="section_305">Building C programs</a></h2>
+<h2><a name="section_316">Building C programs</a></h2>
 
 <p>
 <tt>omake</tt>
 provides extensive support for building C programs.
 <p>
-<h4><a name="section_306">C configuration variables</a></h4>
+<h4><a name="section_317">C configuration variables</a></h4>
 
 <p>
 The following variables can be redefined in your project.
@@ -9281,7 +9853,7 @@ and <tt>lib</tt> on <tt>Win32</tt>).
 <dd> The name of the <tt>lex</tt> lexer generator (default is <tt>lex</tt> on <tt>Unix</tt>, empty on <tt>Win32</tt>).
 </dd>
 </dl>
-<h4><a name="section_307">CGeneratedFiles, LocalCGeneratedFiles</a></h4>
+<h4><a name="section_318">CGeneratedFiles, LocalCGeneratedFiles</a></h4>
 
 <pre>
 CGeneratedFiles(files)
@@ -9300,7 +9872,7 @@ The <tt>CGeneratedFiles</tt> function is <em>global</em>
 before any C files anywhere in the project are scanned for dependencies. The
 <tt>LocalCGeneratedFiles</tt> function follows the normal scoping rules of OMake.
 <p>
-<h4><a name="section_308">StaticCLibrary</a></h4>
+<h4><a name="section_319">StaticCLibrary</a></h4>
 
 <p>
 The <tt>StaticCLibrary</tt> builds a static library.
@@ -9323,7 +9895,7 @@ on <tt>Win32</tt>.
 StaticCLibrary(libfoo, a b c)
 .DEFAULT: $(StaticCLibrary libbar, a b c d)
 </pre>
-<h4><a name="section_309">StaticCLibraryCopy</a></h4>
+<h4><a name="section_320">StaticCLibraryCopy</a></h4>
 
 <p>
 The <tt>StaticCLibraryCopy</tt> function copies the static library
@@ -9345,7 +9917,7 @@ For example, the following code copies the library
 
 StaticCLibraryCopy(install, /usr/lib, libfoo)
 </pre>
-<h4><a name="section_310">StaticCLibraryInstall</a></h4>
+<h4><a name="section_321">StaticCLibraryInstall</a></h4>
 
 <p>
 The <tt>StaticCLibraryInstall</tt> function builds a library, and
@@ -9357,13 +9929,13 @@ in the target directory.
 <pre>
 StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
 </pre>
-<h4><a name="section_311">StaticCObject, StaticCObjectCopy, StaticCObjectInstall</a></h4>
+<h4><a name="section_322">StaticCObject, StaticCObjectCopy, StaticCObjectInstall</a></h4>
 
 <p>
 These functions mirror the <tt>StaticCLibrary</tt>, <tt>StaticCLibraryCopy</tt>,
 and <tt>StaticCLibraryInstall</tt> functions, but they build an <em>object</em>
 file (a <tt>.o</tt> file on <tt>Unix</tt>, and a <tt>.obj</tt> file on <tt>Win32</tt>).
-<h4><a name="section_312">CProgram</a></h4>
+<h4><a name="section_323">CProgram</a></h4>
 
 <p>
 The <tt>CProgram</tt> function builds a C program from a set
@@ -9397,7 +9969,7 @@ section
    LIBS = libfoo$(EXT_LIB)
    CProgram(foo, bar baz)
 </pre>
-<h4><a name="section_313">CProgramCopy</a></h4>
+<h4><a name="section_324">CProgramCopy</a></h4>
 
 <p>
 The <tt>CProgramCopy</tt> function copies a file to an install location.
@@ -9407,7 +9979,7 @@ The <tt>CProgramCopy</tt> function copies a file to an install location.
 <pre>
 CProgramCopy(install, /usr/bin, foo)
 </pre>
-<h4><a name="section_314">CProgramInstall</a></h4>
+<h4><a name="section_325">CProgramInstall</a></h4>
 
 <p>
 The <tt>CProgramInstall</tt> function specifies a program to build,
@@ -9420,16 +9992,16 @@ section
    LIBS = libfoo$(EXT_LIB)
    CProgramInstall(install, /usr/bin, foo, bar baz)
 </pre>
-<h4><a name="section_315">CXXProgram, CXXProgramInstall</a></h4>
+<h4><a name="section_326">CXXProgram, CXXProgramInstall</a></h4>
 
 <p>
 The <tt>CXXProgram</tt> and <tt>CXXProgramInstall</tt> functions are
 equivalent to their C counterparts, except that would use <tt>$(CXX)</tt> and <tt>$(CXXFLAGS)</tt>
 for linking instead of <tt>$(CC)</tt> and <tt>$(CFLAGS)</tt>.
-<h2><a name="section_316">Building OCaml programs</a></h2>
+<h2><a name="section_327">Building OCaml programs</a></h2>
 
 <p>
-<h4><a name="section_317">Variables for OCaml programs</a></h4>
+<h4><a name="section_328">Variables for OCaml programs</a></h4>
 
 <p>
 The following variables can be redefined in your project.
@@ -9493,7 +10065,7 @@ Both <tt>BYTE_ENABLED</tt> and <tt>NATIVE_ENABLED</tt> can be set to true;
 at least one should be set to true.
 </dd>
 </dl>
-<h4><a name="section_318">OCaml command flags</a></h4>
+<h4><a name="section_329">OCaml command flags</a></h4>
 
 <p>
 The following variables specify additional options to be passed to
@@ -9527,7 +10099,7 @@ the OCaml tools.
 <dd> Flags to pass to either linker.
 </dd>
 </dl>
-<h4><a name="section_319">Library variables</a></h4>
+<h4><a name="section_330">Library variables</a></h4>
 
 <p>
 The following variables are used during linking.
@@ -9550,7 +10122,7 @@ standard libraries like <tt>unix</tt> or <tt>str</tt>.
 <dd> Extra flags for the library.
 </dd>
 </dl>
-<h4><a name="section_320">OCamlGeneratedFiles, LocalOCamlGeneratedFiles</a></h4>
+<h4><a name="section_331">OCamlGeneratedFiles, LocalOCamlGeneratedFiles</a></h4>
 
 <pre>
 OCamlGeneratedFiles(files)
@@ -9569,7 +10141,7 @@ The <tt>OCamlGeneratedFiles</tt> function is <em>global</em>
 before any OCaml files anywhere in the project are scanned for dependencies. The
 <tt>LocalOCamlGeneratedFiles</tt> function follows the normal scoping rules of OMake.
 <p>
-<h4><a name="section_321">OCamlLibrary</a></h4>
+<h4><a name="section_332">OCamlLibrary</a></h4>
 
 <p>
 The <tt>OCamlLibrary</tt> function builds an OCaml library.
@@ -9601,7 +10173,7 @@ and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>libfoo.cma</tt
 <pre>
 OCamlLibrary(libfoo, foo bar)
 </pre>
-<h4><a name="section_322">OCamlPackage</a></h4>
+<h4><a name="section_333">OCamlPackage</a></h4>
 
 <p>
 The <tt>OCamlPackage</tt> function builds an OCaml package.
@@ -9623,7 +10195,7 @@ and <tt>bar.cmx</tt> (if <tt>NATIVE_ENABLED</tt> is set), and <tt>package.cmo</t
 <pre>
 OCamlPackage(package, foo bar)
 </pre>
-<h4><a name="section_323">OCamlLibraryCopy</a></h4>
+<h4><a name="section_334">OCamlLibraryCopy</a></h4>
 
 <p>
 The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
@@ -9632,14 +10204,14 @@ The <tt>OCamlLibraryCopy</tt> function copies a library to an install location.
 <p>
 The <tt>&lt;interface-files&gt;</tt> specify additional interface files
 to be copied if the <tt>INSTALL_INTERFACES</tt> variable is true.
-<h4><a name="section_324">OCamlLibraryInstall</a></h4>
+<h4><a name="section_335">OCamlLibraryInstall</a></h4>
 
 <p>
 The <tt>OCamlLibraryInstall</tt> function builds a library
 and copies it to an install location in one step.
 <p>
 <tt>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</tt>
-<h4><a name="section_325">OCamlProgram</a></h4>
+<h4><a name="section_336">OCamlProgram</a></h4>
 
 <p>
 The <tt>OCamlProgram</tt> function builds an OCaml program. It returns the array with all
@@ -9673,7 +10245,7 @@ become dependencies of the target program.
 <dd> Flags to pass to both linkers.
 </dd>
 </dl>
-<h4><a name="section_326">OCamlProgramCopy</a></h4>
+<h4><a name="section_337">OCamlProgramCopy</a></h4>
 
 <p>
 The <tt>OCamlProgramCopy</tt> function copies an OCaml program to an install location.
@@ -9687,17 +10259,17 @@ Additional variables used:
 is copied; otherwise the byte-code executable is copied.
 </dd>
 </dl>
-<h4><a name="section_327">OCamlProgramInstall</a></h4>
+<h4><a name="section_338">OCamlProgramInstall</a></h4>
 
 <p>
 The <tt>OCamlProgramInstall</tt> function builds a programs and copies it to
 an install location in one step.
 <p>
 <tt>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</tt>
-<h2><a name="section_328">Building LaTeX programs</a></h2>
+<h2><a name="section_339">Building LaTeX programs</a></h2>
 
 <p>
-<h4><a name="section_329">Configuration variables</a></h4>
+<h4><a name="section_340">Configuration variables</a></h4>
 
 <p>
 The following variables can be modified in your project.
@@ -9742,7 +10314,7 @@ and depends on the version of LaTeX you have installed).
 to generate the <tt>.pdf</tt> document (default <tt>false</tt>).
 </dd>
 </dl>
-<h4><a name="section_330">LaTeXDocument</a></h4>
+<h4><a name="section_341">LaTeXDocument</a></h4>
 
 <p>
 The <tt>LaTeXDocument</tt> produces a LaTeX document.
@@ -9762,7 +10334,7 @@ taken from the <tt>TEXINPUTS</tt> environment variable).
 <dd> Additional files this document depends on.
 </dd>
 </dl>
-<h4><a name="section_331">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
+<h4><a name="section_342">TeXGeneratedFiles, LocalTeXGeneratedFiles</a></h4>
 
 <pre>
 TeXGeneratedFiles(files)
@@ -9781,7 +10353,7 @@ The <tt>TeXGeneratedFiles</tt> function is <em>global</em>
 before any TeX files anywhere in the project are scanned for dependencies. The
 <tt>LocalTeXGeneratedFiles</tt> function follows the normal scoping rules of OMake.
 <p>
-<h4><a name="section_332">LaTeXDocumentCopy</a></h4>
+<h4><a name="section_343">LaTeXDocumentCopy</a></h4>
 
 <p>
 The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
@@ -9789,16 +10361,16 @@ The <tt>LaTeXDocumentCopy</tt> copies the document to an install location.
 <tt>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</tt>
 <p>
 This function copies just the <tt>.pdf</tt> and <tt>.ps</tt> files.
-<h4><a name="section_333">LaTeXDocumentInstall</a></h4>
+<h4><a name="section_344">LaTeXDocumentInstall</a></h4>
 
 <p>
 The <tt>LaTeXDocumentInstall</tt> builds a document and copies it to an
 install location in one step.
 <p>
 <tt>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</tt>
-<h2><a name="section_334">Examining the dependency graph</a></h2>
+<h2><a name="section_345">Examining the dependency graph</a></h2>
 
-<h4><a name="section_335">dependencies, dependencies-all</a></h4>
+<h4><a name="section_346">dependencies, dependencies-all</a></h4>
 
 <p>
 <pre>
@@ -9841,7 +10413,7 @@ building the project before it can be deleted. For a shorter form, see the
        rm $(dependencies-proper $(APP))
 </pre>
 <p>
-<h4><a name="section_336">target</a></h4>
+<h4><a name="section_347">target</a></h4>
 
 <pre>
    $(target targets) : Rule Array
@@ -9851,7 +10423,7 @@ building the project before it can be deleted. For a shorter form, see the
 <p>
 The <tt>target</tt> function returns the Target object associated with each
 of the targets. See the <tt>Target</tt> object for more information.
-<h4><a name="section_337">rule</a></h4>
+<h4><a name="section_348">rule</a></h4>
 
 <p>
 The <tt>rule</tt> function is called whenever a build rule is defined.
@@ -9910,10 +10482,10 @@ square brackets are used to indicate arrays.
         [[:name1:, option1], [:name2:, option2]]
         [expr1; expr2])
 </pre>
-<h2><a name="section_338">References</a></h2>
+<h2><a name="section_349">References</a></h2>
 
 <p>
-<h4><a name="section_339">See Also</a></h4>
+<h4><a name="section_350">See Also</a></h4>
 
 <p>
 <a href="omake.html">omake(1)</a>,
@@ -9929,12 +10501,12 @@ square brackets are used to indicate arrays.
 <a href="osh.html">osh(1)</a>,
 <em>make</em>(1)
 <p>
-<h4><a name="section_340">Version</a></h4>
+<h4><a name="section_351">Version</a></h4>
 
 <p>
 Version: 0.9.6.9 of April 11, 2006.
 <p>
-<h4><a name="section_341">License and Copyright</a></h4>
+<h4><a name="section_352">License and Copyright</a></h4>
 
 <p>
 &copy;2003-2006, Mojave Group, Caltech
@@ -9953,7 +10525,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <p>
-<h4><a name="section_342">Author</a></h4>
+<h4><a name="section_353">Author</a></h4>
 
 <p>
 Jason Hickey <em>et. al.</em><br>

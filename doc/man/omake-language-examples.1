@@ -126,10 +126,10 @@ element before each of the original elements.
 .PP
 Even though most functions work on arrays, there are times when you will want to do it yourself.
 The foreach function is the way to go. The foreach function has two forms, but the
-form with a body is most useful. The function takes two arguments and a body. The second argument
-is an array, and the first is a variable. The body is evaluated once for each element of the array,
-where the variable is bound to the element. Let\&'s define a function to add 1 to each element of an
-array of numbers.
+form with a body is most useful. In this form, the function takes two arguments and a body. The
+second argument is an array, and the first is a variable. The body is evaluated once for each
+element of the array, where the variable is bound to the element. Let\&'s define a function to add 1
+to each element of an array of numbers.
 .PP
 .Vb
    osh> add1(l) =
@@ -139,18 +139,46 @@ array of numbers.
    \- : 8 22 76 : Array
 .Ve
 .PP
-Sometimes you have an array of filenames, and you want to define a special rule for each of them.
-Rules are not special, you can define them anywhere a statement is expected. Say we want to write a
-function to process each file, and place the result in the TMP directory.
+Sometimes you have an array of filenames, and you want to define a rule for each of them. Rules are
+not special, you can define them anywhere a statement is expected. Say we want to write a function
+that describes how to process each file, placing the result in the tmp/ directory.
 .PP
 .Vb
    TMP = $(dir tmp)
-   ...
+
    my\-special\-rule(files) =
       foreach(name, $(files))
-         tmp/$(name): $(name)
+         $(TMP)/$(name): $(name)
             process $< > $@
 .Ve
+.PP
+Later, in some other part of the project, we may decide that we want to use this function to process some files.
+.PP
+.Vb
+   # These are the files to process in src/lib
+   MY_SPECIAL_FILES[] =
+       fee.src
+       fi.src
+       file with spaces in its name.src
+   my\-special\-rule($(MY_SPECIAL_FILES))
+.Ve
+.PP
+The result of calling my\-special\-rule is
+exactly the same as if we had written the following three rules explicitly.
+.PP
+.Vb
+    $(TMP)/fee.src: fee.src
+        process fee > $@
+    $(TMP)/fi.src: fi.src
+        process fi.src > $@
+    $(TMP)/$"file with spaces in its name.src": $"file with spaces in its name.src"
+        process $< > $@
+.Ve
+.PP
+Of course, writing these rules is not nearly as pleasant as calling the function. The usual
+properties of function abstraction give us the usual benefits. The code is less redundant, and
+there is a single location (the my\-special\-rule function) that defines the build rule.
+Later, if we want to modify/update the rule, we need do so in only one location.
 .PP
 .SS LAZY EXPRESSIONS
 .PP
@@ -267,7 +295,7 @@ Exports are especially useful in loop to export values from one iteration of a l
    osh>sum(1 2 3)
    \- : 0 : Int
 
-   # Oops!
+   # Oops, that didn't work!
    osh>sum(l) =
            total = 0
            foreach(i, $l)
@@ -286,7 +314,6 @@ A while loop is another form of loop, with an auto\-export.
     osh>while $(lt $i, 10)
             total = $(add $(total), $i)
             i = $(add $i, 1)
-            export
     osh>println($(total))
     45
 .Ve
@@ -297,7 +324,7 @@ Sometimes you may want to define an \fIalias\fP,
 an OMake command that masquerades as a real shell
 command. You can do this by adding your function as a method to the Shell object.
 .PP
-For an example, suppose we define builtin awk function to print out all the comments in a file.
+For an example, suppose we use the awk function to print out all the comments in a file.
 .PP
 .Vb
     osh>cat comment.om
@@ -325,7 +352,7 @@ To add it as an alias, add the method (using += to preserve the existing entries
    # File finished
 .Ve
 .PP
-A shell command is passed an array of argument argv\&. This does \fInot\fP
+A shell command is passed an array of arguments argv\&. This does \fInot\fP
 include the name
 of the alias.
 .PP
@@ -333,7 +360,7 @@ of the alias.
 .PP
 As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
 have already written a lot of code that prints to the standard output channel, but now you decide
-you want to redirect it. One way to do it is using the alias method of the previous example: define
+you want to redirect it. One way to do it is using the technique in the previous example: define
 your function as an alias, and then use shell redirection to place the output where you want.
 .PP
 There is an alternate method that is easier in some cases. The variables stdin,

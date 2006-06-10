@@ -87,6 +87,7 @@ let default_options =
      opt_flush_include       = false;
      opt_flush_static        = false;
      opt_allow_exceptions    = false;
+     opt_absname             = false
    }
 
 (*
@@ -199,7 +200,10 @@ let options_spec =
        "Build and print dependencies";
     "--show-dependencies", Lm_arg.StringFold (fun options s ->
           { options with opt_show_dependencies = s :: options.opt_show_dependencies }), (**)
-       "Show dependencies if the file is built"]
+       "Show dependencies if the file is built";
+    "--absname", Lm_arg.SetFold (fun options b -> { options with opt_absname = b }), (**)
+       "Filenames are always displayed as absolute paths"]
+
 
 (*
  * Directories.

@@ -332,6 +332,8 @@ val venv_intern           : venv -> phony_ok -> string -> Node.t
 val venv_intern_cd        : venv -> phony_ok -> Dir.t -> string -> Node.t
 val venv_intern_dir       : venv -> string -> Dir.t
 val venv_intern_target    : venv -> phony_ok -> target -> Node.t
+val venv_dirname          : venv -> Dir.t -> string
+val venv_nodename         : venv -> Node.t -> string
 
 val venv_mount       : venv -> mount_option list -> Dir.t -> Dir.t -> venv
 

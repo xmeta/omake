@@ -1918,6 +1918,21 @@ let node_set_of_names venv phony_flag names =
    node_set_add_names venv phony_flag NodeSet.empty names
 
 (*
+ * Convert back to a string.
+ *)
+let venv_dirname venv dir =
+   if venv.venv_inner.venv_options.opt_absname then
+      Dir.absname dir
+   else
+      Dir.name venv.venv_inner.venv_dir dir
+
+let venv_nodename venv dir =
+   if venv.venv_inner.venv_options.opt_absname then
+      Node.absname dir
+   else
+      Node.name venv.venv_inner.venv_dir dir
+
+(*
  * Add a mount point.
  *)
 let venv_mount venv options src dst =
@@ -1941,7 +1956,7 @@ let string_of_target venv target =
       TargetString s ->
          s
     | TargetNode node ->
-         Node.name venv.venv_inner.venv_dir node
+         venv_nodename venv node
 
 (*
  * Compile a wild pattern.

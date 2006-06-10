@@ -24,13 +24,29 @@ man page.
 <li><a href="#section_2">OMakeroot vs. OMakefile </a></li>
 <li><a href="#section_3">An example C project </a></li>
 <li><a href="#section_4">An example OCaml project </a></li>
-</ul>
-<li><a href="#section_5">References </a>
+<li><a href="#section_5">Handling new languages </a>
 <ul>
-<li><a href="#section_6">See Also </a></li>
-<li><a href="#section_7">Version </a></li>
-<li><a href="#section_8">License and Copyright </a></li>
-<li><a href="#section_9">Author </a></li>
+<li><a href="#section_6">Defining a default compilation rule </a></li>
+<li><a href="#section_7">Defining a rule for linking </a></li>
+<li><a href="#section_8">Dependency scanning </a></li>
+<li><a href="#section_9">Pulling it all together </a></li>
+<li><a href="#section_10">Finishing up </a></li>
+</ul>
+<li><a href="#section_11">Collapsing the hierarchy, .SUBDIRS bodies </a>
+<ul>
+<li><a href="#section_12">Using glob patterns </a></li>
+<li><a href="#section_13">Simplified sub-configurations </a></li>
+<li><a href="#section_14">Computing the subdirectory list </a></li>
+<li><a href="#section_15">Temporary directories </a></li>
+</ul>
+</li>
+</ul>
+<li><a href="#section_16">References </a>
+<ul>
+<li><a href="#section_17">See Also </a></li>
+<li><a href="#section_18">Version </a></li>
+<li><a href="#section_19">License and Copyright </a></li>
+<li><a href="#section_20">Author </a></li>
 </ul>
 </li>
 </ul>
@@ -256,7 +272,7 @@ my_project/src/main/OMakefile:
     # The first argument is the name of the executable.
     # The second argument is an array of object files (without suffix)
     # that are part of the program.
-    CProgram(horsefly, horsefly)
+    CProgram(horsefly, horsefly main)
 
     # Build the program by default (in case omake is called
     # without any arguments).  EXE is defined as .exe on Win32,
@@ -299,7 +315,7 @@ This time, the directory tree looks like this.
                |---&gt; OMakefile
                |---&gt; horsefly.ml
                |---&gt; horsefly.mli
-               `---&gt; main.c
+               `---&gt; main.ml
 </pre>
 <p>
 The listing is only a bit different.
@@ -355,7 +371,7 @@ my_project/src/main/OMakefile:
     # The first argument is the name of the executable.
     # The second argument is an array of object files (without suffix)
     # that are part of the program.
-    OCamlProgram(horsefly, horsefly)
+    OCamlProgram(horsefly, horsefly main)
 
     # Build the program by default (in case omake is called
     # without any arguments).  EXE is defined as .exe on Win32,
@@ -367,10 +383,539 @@ In this case, most of the configuration here is defined in the file <tt>build/OC
 particular configuration, files in <tt>my_project/src/lib</tt> are compiled aggressively with the
 option <tt>-inline 10</tt>, but files in <tt>my_project/src/lib</tt> are compiled normally.
 <p>
-<h2><a name="section_5">References</a></h2>
+<h4><a name="section_5">Handling new languages</a></h4>
 
 <p>
-<h4><a name="section_6">See Also</a></h4>
+The previous two examples seem to be easy enough, but they rely on the OMake standard library (the
+files <tt>build/C</tt> and <tt>build/OCaml</tt>) to do all the work. What happens if we want to write a
+build configuration for a language that is not already supported in the OMake standard library?
+<p>
+For this example, let's suppose we are adopting a new language. The language uses the standard
+compile/link model, but is not in the OMake standard library. Specifically, let's say we have the
+following setup.
+<p>
+<ul compact>
+<li>Source files are defined in files with a <tt>.cat</tt> suffix (for Categorical Abstract Terminology).
+</li>
+<li><tt>.cat</tt> files are compiled with the <tt>catc</tt> compiler to produce <tt>.woof</tt> files
+(Wicked Object-Oriented Format).
+</li>
+<li><tt>.woof</tt> files are linked by the <tt>catc</tt> compiler with the <tt>-c</tt> option to produce
+a <tt>.dog</tt> executable (Digital Object Group). The <tt>catc</tt> also defines a <tt>-a</tt> option to
+combine several <tt>.woof</tt> files into a library.
+</li>
+<li>Each <tt>.cat</tt> can refer to other source files. If a source file <tt>a.cat</tt> contains a
+line <tt>open b</tt>, then <tt>a.cat</tt> depends on the file <tt>b.woof</tt>, and <tt>a.cat</tt> must be
+recompiled if <tt>b.woof</tt> changes. The <tt>catc</tt> function takes a <tt>-I</tt> option to define a
+search path for dependencies.
+</li>
+</ul>
+<p>
+To define a build configuration, we have to do three things.
+<ol compact>
+<li value =1>Define a <tt>.SCANNER</tt> rule for discovering dependency information for the source files.
+</li>
+<li value =2>Define a generic rule for compiling a <tt>.cat</tt> file to a <tt>.woof</tt> file.
+</li>
+<li value =3>Define a rule (as a function) for linking <tt>.woof</tt> files to produce a <tt>.dog</tt> executable.
+</li>
+</ol>
+<p>
+Initially, these definitions will be placed in the project root <tt>OMakefile</tt>.
+<p>
+<h5><a name="section_6">Defining a default compilation rule</a></h5>
+
+<p>
+Let's start with part 2, defining a generic compilation rule. We'll define the build rule as an
+<em>implicit</em>
+rule. To handle the include path, we'll define a variable <tt>CAT_INCLUDES</tt> that
+specifies the include path. This will be an array of directories. To define the options, we'll use
+a lazy variable (see <a href="omake-language-examples.html#lazy">Lazy Applications</a>).
+In case there
+are any other standard flags, we'll define a <tt>CAT_FLAGS</tt> variable.
+<p>
+<pre>
+   # Define the catc command, in case we ever want to override it
+   CATC = catc
+
+   # The default flags are empty
+   CAT_FLAGS =
+
+   # The directories in the include path (empty by default)
+   INCLUDES[] =
+
+   # Compute the include options from the include path
+   PREFIXED_INCLUDES[] = $`(mapprefix -I, $(INCLUDES))
+
+   # The default way to build a .woof file
+   %.woof: %.cat
+       $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $&lt;
+</pre>
+<p>
+The final part is the build rule itself, where we call the <tt>catc</tt> compiler with the include
+path, and the <tt>CAT_FLAGS</tt> that have been defined. The <tt>$&lt;</tt> variable represents the source
+file.
+<p>
+<h5><a name="section_7">Defining a rule for linking</a></h5>
+
+<p>
+For linking, we'll define another rule describing how to perform linking. Instead of defining an
+implicit rule, we'll define a function that describes the linking step. The function will take two
+arguments; the first is the name of the executable (without suffix), and the second is the files to
+link (also without suffixes). Here is the code fragment.
+<p>
+<pre>
+    # Optional link options
+    CAT_LINK_FLAGS =
+
+    # The function that defines how to build a .dog program
+    CatProgram(program, files) =
+        # Add the suffixes
+        file_names = $(addsuffix .woof, $(files))
+        prog_name = $(addsuffix .dog, $(files))
+
+        # The build rule
+        $(prog_name): $(file_names)
+            $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -o $@ $+
+
+        # Return the program name
+        value $(prog_name)
+</pre>
+<p>
+The <tt>CAT_LINK_FLAGS</tt> variable is defined just in case we want to pass additional flags specific
+to the link step. Now that this function is defined, whenever we want to define a rule for building
+a program, we simply call the rule. The previous implicit rule specifies how to compile each source file,
+and the <tt>CatProgram</tt> function specifies how to build the executable.
+<p>
+<pre>
+    # Build a rover.dog program from the source
+    # files neko.cat and chat.cat.
+    # Compile it by default.
+    .DEFAULT: $(CatProgram rover, neko chat)
+</pre>
+<p>
+<h5><a name="section_8">Dependency scanning</a></h5>
+
+<p>
+That's it, almost. The part we left out was automated dependency scanning. This is one of the
+nicer features of OMake, and one that makes build specifications easier to write and more robust.
+Strictly speaking, it isn't required, but you definitely want to do it.
+<p>
+The mechanism is to define a <tt>.SCANNER</tt> rule, which is like a normal rule, but it specifies how
+to compute dependencies, not the target itself. In this case, we want to define a <tt>.SCANNER</tt>
+rule of the following form.
+<p>
+<pre>
+    .SCANNER: %.woof: %.cat
+        &lt;commands&gt;
+</pre>
+<p>
+This rule specifies that a <tt>.woof</tt> file may have additional dependencies that can be extracted
+from the corresponding <tt>.cat</tt> file by executing the <tt>&lt;commands&gt;</tt>. The <em>result</em>
+of
+executing the <tt>&lt;commands&gt;</tt> should be a sequence of dependencies in OMake format, printed to the
+standard output.
+<p>
+As we mentioned, each <tt>.cat</tt> file specifies dependencies on <tt>.woof</tt> files with an
+<tt>open</tt> directive. For example, if the <tt>neko.cat</tt> file contains a line <tt>open chat</tt>,
+then <tt>neko.woof</tt> depends on <tt>chat.woof</tt>. In this case, the <tt>&lt;commands&gt;</tt> should print
+the following line.
+<p>
+<pre>
+    neko.woof: chat.woof
+</pre>
+<p>
+For an analogy that might make this clearer, consider the C programming language, where a <tt>.o</tt>
+file is produced by compiling a <tt>.c</tt> file. If a file <tt>foo.c</tt> contains a line like
+<tt>#include "fum.h"</tt>, then <tt>foo.c</tt> should be recompiled whenever <tt>fum.h</tt> changes. That
+is, the file <tt>foo.o</tt> <em>depends</em>
+on the file <tt>fum.h</tt>. In the OMake parlance, this is
+called an <em>implicit</em>
+dependency, and the <tt>.SCANNER</tt> <tt>&lt;commands&gt;</tt> would print a line
+like the following.
+<p>
+<pre>
+    foo.o: fum.h
+</pre>
+<p>
+Now, returning to the animal world, to compute the dependencies of <tt>neko.woof</tt>, we should scan
+<tt>neko.cat</tt>, line-by-line, looking for lines of the form <tt>open &lt;name&gt;</tt>. We could do this
+by writing a program, but it is easy enough to do it in <tt>omake</tt> itself. We can use the builtin
+<tt>awk</tt> function to scan the source file. One slight complication is that the dependencies
+depend on the <tt>INCLUDE</tt> path. We'll use the <tt>find-in-path</tt> function to find them. Here
+we go.
+<p>
+<pre>
+    .SCANNER: %.woof: %.cat
+        section
+            # Scan the file
+            deps[] =
+            awk($&lt;)
+            case $'^open'
+                deps[] += $2
+                export
+
+            # Remove duplicates, and find the files in the include path
+            deps = $(find-in-path $(INCLUDES), $(set $(deps)))
+
+            # Print the dependencies
+            println($"$@: $(deps)")
+</pre>
+<p>
+Let's look at the parts. First, the entire body is defined in a <tt>section</tt> because we are
+computing it internally, not as a sequence of shell commands.
+<p>
+We use the <tt>deps</tt> variable to collect all the dependencies. The <tt>awk</tt> function scans the
+source file (<tt>$&lt;</tt>) line-by-line. For lines that match the regular expression <tt>^open</tt>
+(meaning that the line begins with the word <tt>open</tt>), we add the second word on the line to the
+<tt>deps</tt> variable. For example, if the input line is <tt>open chat</tt>, then we would add the
+<tt>chat</tt> string to the <tt>deps</tt> array. All other lines in the source file are ignored.
+<p>
+Next, the <tt>$(set $(deps))</tt> expression removes any duplicate values in the <tt>deps</tt> array
+(sorting the array alphabetically in the process). The <tt>find-in-path</tt> function then finds the
+actual location of each file in the include path.
+<p>
+The final step is print the result as the string <tt>$"$@: $(deps)"</tt> The quotations are added to
+flatten the <tt>deps</tt> array to a simple string.
+<p>
+<h5><a name="section_9">Pulling it all together</a></h5>
+
+<p>
+To complete the example, let's pull it all together into a single project, much like our previous
+example.
+<p>
+<pre>
+    my_project/
+    |--&gt; OMakeroot
+    |--&gt; OMakefile
+    `--&gt; src/
+         |---&gt; OMakefile
+         |---&gt; lib/
+         |     |---&gt; OMakefile
+         |     |---&gt; neko.cat
+         |     `---&gt; chat.cat
+         `---&gt; main/
+               |---&gt; OMakefile
+               `---&gt; main.cat
+</pre>
+<p>
+The listing for the entire project is as follows. Here, we also include a function
+<tt>CatLibrary</tt> to link several <tt>.woof</tt> files into a library.
+<p>
+<pre>
+my_project/OMakeroot:
+    # Process the command-line vars
+    DefineCommandVars()
+
+    # Include the OMakefile in this directory.
+    .SUBDIRS: .
+
+my_project/OMakefile:
+   ########################################################################
+   # Standard config for compiling .cat files
+   #
+
+   # Define the catc command, in case we ever want to override it
+   CATC = catc
+
+   # The default flags are empty
+   CAT_FLAGS =
+
+   # The directories in the include path (empty by default)
+   INCLUDES[] =
+
+   # Compute the include options from the include path
+   PREFIXED_INCLUDES[] = $`(mapprefix -I, $(INCLUDES))
+
+   # Dependency scanner for .cat files
+   .SCANNER: %.woof: %.cat
+        section
+            # Scan the file
+            deps[] =
+            awk($&lt;)
+            case $'^open'
+                deps[] += $2
+                export
+
+            # Remove duplicates, and find the files in the include path
+            deps = $(find-in-path $(INCLUDES), $(set $(deps)))
+
+            # Print the dependencies
+            println($"$@: $(deps)")
+
+   # The default way to compile a .cat file
+   %.woof: %.cat
+       $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $&lt;
+
+   # Optional link options
+   CAT_LINK_FLAGS =
+
+   # Build a library for several .woof files
+   CatLibrary(lib, files) =
+       # Add the suffixes
+       file_names = $(addsuffix .woof, $(files))
+       lib_name = $(addsuffix .woof, $(lib))
+
+       # The build rule
+       $(lib_name): $(file_names)
+           $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -a $@ $+
+
+       # Return the program name
+       value $(lib_name)
+
+   # The function that defines how to build a .dog program
+   CatProgram(program, files) =
+       # Add the suffixes
+       file_names = $(addsuffix .woof, $(files))
+       prog_name = $(addsuffix .dog, $(program))
+
+       # The build rule
+       $(prog_name): $(file_names)
+           $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) $(CAT_LINK_FLAGS) -o $@ $+
+
+       # Return the program name
+       value $(prog_name)
+
+   ########################################################################
+   # Now the program proper
+   #
+
+   # Include the src subdirectory
+   .SUBDIRS: src
+
+my_project/src/OMakefile:
+   .SUBDIRS: lib main
+
+my_project/src/lib/OMakefile:
+   CatLibrary(cats, neko chat)
+
+my_project/src/main/OMakefile:
+   # Allow includes from the ../lib directory
+   INCLUDES[] += ../lib
+
+   # Build the program
+   .DEFAULT: $(CatProgram main, main ../cats)
+</pre>
+<p>
+Some notes. The confuration in the project OMekeroot defines the standard configuration, including
+the dependency scanner, the default rule for compiling source files, and functions for building
+libraries and programs.
+<p>
+These rules and functions are inherited by subdirectories, so the <tt>.SCANNER</tt> and build rules
+are used automatically in each subdirectory, so you don't need to repeat them.
+<p>
+<h5><a name="section_10">Finishing up</a></h5>
+
+<p>
+At this point we are done, but there are a few things we can consider.
+<p>
+First, the rules for building cat programs is defined in the project <tt>OMakefile</tt>. If you had
+another cat project somewhere, you would need to copy the <tt>OMakeroot</tt> (and modify it as
+needed). Instead of that, you should consider moving the configuration to a shared library
+directory, in a file like <tt>Cat.om</tt>. That way, instead of copying the code, you could include
+the shared copy with an OMAke command <tt>open Cat</tt>. The share ddirectory should be added to your
+<tt>OMAKEPATH</tt> environment variable to ensure that <tt>omake</tt> knows how to find it.
+<p>
+Better yet, if you are happy with your work, consider submitting it as a standard configuration (by
+sending a request to <tt>omake@metaprl.org</tt>) so that others can make use of it too.
+<p>
+<h4><a name="section_11">Collapsing the hierarchy, .SUBDIRS bodies</a></h4>
+
+<p>
+Some projects have many subdirectories that all have the same configuration. For instance, suppose
+you have a project with many subdirectories, each containing a set of images that are to be composed
+into a web page. Apart from the specific images, the configuration of each file is the same.
+<p>
+To make this more concrete, suppose the project hase four subdirectories <tt>page1</tt>, <tt>page2</tt>,
+<tt>page3</tt>, and <tt>page4</tt>. Each contains two files <tt>image1.jpg</tt> and <tt>image2.jpg</tt>
+that are part of a web page generated by a program <tt>genhtml</tt>.
+<p>
+Instead of of defining a <tt>OMakefile</tt> in each directory, we can define it as a body to the
+<tt>.SUBDIRS</tt> command.
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        index.html: image1.jpg image2jpg
+            genhtml $+ &gt; $@
+</pre>
+<p>
+The body of the <tt>.SUBDIRS</tt> is interpreted exactly as if it were the <tt>OMakefile</tt>, and it
+can contain any of the normal commands. The body is evaluated <em>in the subdirectory</em>
+for each
+of the subdirectories. We can see this if we add a statement that prints the current directory
+(<tt>$(CWD)</tt>).
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        println($(absname $(CWD)))
+        index.html: image1.jpg image2jpg
+            genhtml $+ &gt; $@
+  # prints
+    /home/jyh/.../page1
+    /home/jyh/.../page2
+    /home/jyh/.../page3
+    /home/jyh/.../page4
+</pre>
+<p>
+<h5><a name="section_12">Using glob patterns</a></h5>
+
+<p>
+Of course, this specification is quite rigid. In practice, it is likely that each subdirectory will
+have a different set of images, and all should be included in the web page. One of the easier
+solutions is to use one of the directory-listing functions, like <tt>glob</tt> or <tt>ls</tt>. The
+<tt>glob</tt> function takes a shell pattern, and returns an array of file with matching filenames in
+the current directory.
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        IMAGES = $(glob *.jpg)
+        index.html: $(IMAGES)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+<h5><a name="section_13">Simplified sub-configurations</a></h5>
+
+<p>
+Another option is to add a configuration file in each of the subdirectories that defines
+directory-specific information. For this example, we might define a file <tt>BuildInfo.om</tt> in
+each of the subdirectories that defines a list of images in that directory. The <tt>.SUBDIRS</tt>
+line is similar, but we include the BuildInfo file.
+<p>
+<pre>
+    .SUBDIRS: page1 page2 page3 page4
+        include BuildInfo   # Defines the IMAGES variable
+
+        index.html: $(IMAGES)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+Where we might have the following configurations.
+<p>
+<pre>
+   page1/BuildInfo.om:
+       IMAGES[] = image.jpg
+   page2/BuildInfo.om:
+       IMAGES[] = ../common/header.jpg winlogo.jpg
+   page3/BuildInfo.om:
+       IMAGES[] = ../common/header.jpg unixlogo.jpg daemon.jpg
+   page4/BuildInfo.om:
+       IMAGES[] = fee.jpg fi.jpg foo.jpg fum.jpg
+</pre>
+<p>
+<h5><a name="section_14">Computing the subdirectory list</a></h5>
+
+<p>
+The other hardcoded specification is the list of subdirectories <tt>page1</tt>, ..., <tt>page4</tt>.
+Rather than editing the project <tt>OMakefile</tt> each time a directory is added, we could compute it
+(again with <tt>glob</tt>).
+<p>
+<pre>
+    .SUBDIRS: $(glob page*)
+        index.html: $(glob *.jpg)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+Alternately, the directory structure may be hierarchical. Instead of using <tt>glob</tt>, we could
+use the <tt>subdirs</tt> function, returns each of the directories in a hierarchy. For example, this
+is the result of evaluating the <tt>subdirs</tt> function in the omake project root. The <tt>P</tt>
+option, passed as the first argument, specifies that the listing is &ldquo;proper,&rdquo; it should not
+include the <tt>omake</tt> directory itself.
+<p>
+<pre>
+    osh&gt; subdirs(P, .)
+    - : &lt;array
+            /home/jyh/.../omake/mk : Dir
+            /home/jyh/.../omake/RPM : Dir
+            ...
+            /home/jyh/.../omake/osx_resources : Dir&gt;
+</pre>
+<p>
+Using <tt>subdirs</tt>, our example is now as follows.
+<p>
+<pre>
+    .SUBDIRS: $(subdirs P, .)
+        index.html: $(glob *.jpg)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+In this case, <em>every</em>
+subdirectory will be included in the project.
+<p>
+If we are using the <tt>BuildInfo.om</tt> option. Instead of including every subdirectory, we could
+include only those that contain a <tt>BuildInfo.om</tt> file. For this purpose, we can use the
+<tt>find</tt> function, which traverses the directory hierarchy looking for files that match a test
+expression. In our case, we want to search for files with the name <tt>BuildInfo.om</tt>.
+Here is an example call.
+<p>
+<pre>
+    osh&gt; FILES = $(find . -name BuildInfo.om)
+    - : &lt;array
+            /home/jyh/.../omake/doc/html/BuildInfo.om : File
+            /home/jyh/.../omake/src/BuildInfo.om : File
+            /home/jyh/.../omake/tests/simple/BuildInfo.om : File&gt;
+    osh&gt; DIRS = $(dirof $(FILES))
+    - : &lt;array
+            /home/jyh/.../omake/doc/html : Dir
+            /home/jyh/.../omake/src : Dir
+            /home/jyh/.../omake/tests/simple : Dir&gt;
+</pre>
+<p>
+In this example, there are three <tt>BuildInfo.om</tt> files, in the <tt>doc/html</tt>, <tt>src</tt>, and
+<tt>tests/simple</tt> directories. The <tt>dirof</tt> function returns the directories for each of the
+files.
+<p>
+Returning to our original example, we modify it as follows.
+<p>
+<pre>
+    .SUBDIRS: $(dirof $(find . -name BuildInfo.om))
+        include BuildInfo   # Defines the IMAGES variable
+
+        index.html: $(IMAGES)
+            genhtml $+ &gt; $@
+</pre>
+<p>
+<h5><a name="section_15">Temporary directories</a></h5>
+
+<p>
+Sometimes, your project may include temporary directories--directories where you place intermediate
+results. these deirectories are deleted whenever the project is cleanup up. This means, in
+particular, that you can't place an <tt>OMakefile</tt> in a temporary directory, because it will be
+removed when the directory is removed.
+<p>
+Instead, if you need to define a configuration for any of these directories, you will need to define
+it using a <tt>.SUBDIRS</tt> body.
+<p>
+<pre>
+    section
+        CREATE_SUBDIRS = true
+
+        .SUBDIRS: tmp
+            # Compute an MD5 digest
+            %.digest: %.comments
+               echo $(digest $&lt;) &gt; $@
+
+            # Extract comments from the source files
+            %.comments: ../src/%.src
+               grep '^#' $&lt; &gt; $@
+
+            .DEFAULT: foo.digest
+
+    .PHONY: clean
+
+    clean:
+        rm -rf tmp
+</pre>
+<p>
+In this example, we define the <tt>CREATE_SUBDIRS</tt> variable as true, so that the <tt>tmp</tt>
+directory will be created if it does not exist. The <tt>.SUBDIRS</tt> body in this example is a bit
+contrived, but it illustrates the kind of specification you might expect. The <tt>clean</tt>
+phony-target indicates that the <tt>tmp</tt> directory should be removed when the project is cleaned
+up.
+<p>
+<h2><a name="section_16">References</a></h2>
+
+<p>
+<h4><a name="section_17">See Also</a></h4>
 
 <p>
 <a href="omake.html">omake(1)</a>,
@@ -386,12 +931,12 @@ option <tt>-inline 10</tt>, but files in <tt>my_project/src/lib</tt> are compile
 <a href="osh.html">osh(1)</a>,
 <em>make</em>(1)
 <p>
-<h4><a name="section_7">Version</a></h4>
+<h4><a name="section_18">Version</a></h4>
 
 <p>
 Version: 0.9.6.9 of April 11, 2006.
 <p>
-<h4><a name="section_8">License and Copyright</a></h4>
+<h4><a name="section_19">License and Copyright</a></h4>
 
 <p>
 &copy;2003-2006, Mojave Group, Caltech
@@ -410,7 +955,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <p>
-<h4><a name="section_9">Author</a></h4>
+<h4><a name="section_20">Author</a></h4>
 
 <p>
 Jason Hickey <em>et. al.</em><br>
