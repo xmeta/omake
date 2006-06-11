@@ -2,6 +2,10 @@
  * The Unix-style test command.
  * See the usage comment below.
  *
+ * \begin{doc}
+ * \section{File predicates}
+ * \end{doc}
+ *
  * ----------------------------------------------------------------
  *
  * @begin[license]
@@ -748,6 +752,7 @@ and parse_exp venv pos tokens =
  *     # boo is newer than foo, and foo is empty
  *     osh> test(\( boo -nt foo \) -a -e foo)
  *     - : true
+ * \end{verbatim}
  * \end{doc}
  *)
 let print_usage venv pos loc =
@@ -831,10 +836,22 @@ let test_cmd venv pos loc argv =
  * \end{itemize}
  *
  * The \verb+find+ function performs a recursive scan of all subdirectories.
- * The following call is run from the root of the \verb+omake+ source directory.
+ * The following call is being run from the root of the \verb+omake+ source directory.
  *
  * \begin{verbatim}
- *     osh> find(. -name fo*)
+ *     osh> find(. -name fo* )
+ *     - : <array
+ *             /home/jyh/.../omake/mk/.svn/format
+ *             /home/jyh/.../omake/RPM/.svn/format
+ *             ...
+ *             /home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+ * \end{verbatim}
+ *
+ * Another example, listing only those files that are normal files
+ * or symbolic links.
+ *
+ * \begin{verbatim}
+ *     osh> find(. -name fo* -a \( -f {} -o -L {} \))
  *     - : <array
  *             /home/jyh/.../omake/mk/.svn/format
  *             /home/jyh/.../omake/RPM/.svn/format

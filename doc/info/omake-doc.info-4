@@ -19,41 +19,40 @@ Node: Subsection 8-1-1,	Next: Section 8-2,	Prev: Section 8-1,	Up: Section 8-1
 =========================
   
   The following variables define the standard channels.
-
+  
 
  stdin
 ------
-  
+
 <<
   stdin : InChannel
 >>
   
   The standard input channel, open for reading.
-
+  
 
  stdout
 -------
-   
+ 
 <<
   stdout : OutChannel
 >>
   
   The standard output channel, open for writing.
-
+  
 
  stderr
 -------
-   
+ 
 <<
   stderr : OutChannel
 >>
   
   The standard error channel, open for writing.
 
-
  fopen
 ------
-  
+
   The `fopen' function opens a file for reading or writing.
 <<
      $(fopen file, mode) : Channel
@@ -79,21 +78,20 @@ combination of the following characters.
   Binary mode is not significant on Unix systems, where text and binary
 modes are equivalent.
 
-
  close
 ------
-  
+
 <<
       $(close channel...)
          channel : Channel
 >>
   
   The `close' function closes a file that was previously opened with
-`fopen'. 
+`fopen'.
 
  read
 -----
-  
+
 <<
      $(read channel, amount) : String
         channel : InChannel
@@ -105,10 +103,9 @@ modes are equivalent.
 and returns the data that was read. If an end-of-file condition is
 reached, the function raises a `RuntimeException' exception.
 
-
  write
 ------
-  
+
 <<
      $(write channel, buffer, offset, amount) : String
         channel : OutChannel
@@ -131,10 +128,9 @@ length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception.
 
-
  lseek
 ------
-  
+
 <<
       $(lseek channel, offset, whence) : Int
          channel : Channel
@@ -155,21 +151,20 @@ according to the `whence' directive, as follows:
   
   The `lseek' function returns the new position in the file.
 
-
  rewind
 -------
-  
+
 <<
      rewind(channel...)
         channel : Channel
 >>
   
   The `rewind' function set the current file position to the beginning
-of the file. 
+of the file.
 
  tell
 -----
-  
+
 <<
       $(tell channel...) : Int...
          channel : Channel
@@ -178,10 +173,9 @@ of the file.
   
   The `tell' function returns the current position of the `channel'.
 
-
  flush
 ------
-  
+
 <<
      $(flush channel...)
         channel : OutChannel
@@ -190,10 +184,9 @@ of the file.
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file.
 
-
  dup
 ----
-  
+
 <<
       $(dup channel) : Channel
          channel : Channel
@@ -201,11 +194,11 @@ writing. It flushes all pending data to the file.
 >>
   
   The `dup' function returns a new channel referencing the same file as
-the argument. 
+the argument.
 
  dup2
 -----
-  
+
 <<
      dup2(channel1, channel2)
         channel1 : Channel
@@ -214,11 +207,11 @@ the argument.
 >>
   
   The `dup2' function causes `channel2' to refer to the same file as
-`channel1'. 
+`channel1'.
 
  set-nonblock
 -------------
-  
+
 <<
      set-nonblock-mode(mode, channel...)
         channel : Channel
@@ -230,10 +223,9 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'.
 
-
  set-close-on-exec-mode
 -----------------------
-  
+
 <<
      set-close-on-exec-mode(mode, channel...)
         channel : Channel
@@ -245,10 +237,9 @@ cannot be completed immediately, the operations raises a
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is.
 
-
  pipe
 -----
-  
+
 <<
      $(pipe) : Pipe
      raises RuntimeException
@@ -258,10 +249,9 @@ inherited by child processes. Otherwise it is.
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing.
 
-
  mkfifo
 -------
-  
+
 <<
      mkfifo(mode, node...)
         mode : Int
@@ -270,10 +260,9 @@ field is a channel that is opened for writing.
   
   The `mkfifo' function creates a named pipe.
 
-
  select
 -------
-  
+
 <<
      $(select rfd..., wfd..., wfd..., timeout) : Select
         rfd : InChannel
@@ -294,11 +283,11 @@ the following fields:
  read  An array of channels available for reading. 
  write  An array of channels available for writing. 
  error  An array of channels on which an error has occurred. 
-   
+
 
  lockf
 ------
-  
+
 <<
       lockf(channel, command, len)
          channel : Channel
@@ -317,11 +306,11 @@ region starts at the current position and extends for `len' bytes.
  F_TEST  Test a region for other locks. 
  F_RLOCK  Lock a region for reading; block if already locked. 
  F_TRLOCK  Lock a region for reading; fail is already locked. 
-   
+
 
  InetAddr
 ---------
-  
+
   The `InetAddr' object describes an Internet address. It contains the
 following fields.
   
@@ -329,11 +318,11 @@ following fields.
  addr  `String': the Internet address. 
  port  `Int': the port number. 
   
-
+  
 
  Host
 -----
-  
+
   A `Host' object contains the following fields.
   
   
@@ -343,11 +332,11 @@ following fields.
  addrs  `InetAddr Array': an array of Internet addresses belonging to
    the host. 
   
-
+  
 
  gethostbyname
 --------------
-  
+
 <<
      $(gethostbyname host...) : Host...
         host : String
@@ -356,11 +345,11 @@ following fields.
   
   The `gethostbyname' function returns a `Host' object for the specified
 host. The `host' may specify a domain name or an Internet address.
-
+  
 
  Protocol
 ---------
-  
+
   The `Protocol' object represents a protocol entry. It has the
 following fields.
   
@@ -369,11 +358,11 @@ following fields.
  aliases  `String Array': aliases for the protocol. 
  proto  `Int': the protocol number. 
   
-
+  
 
  getprotobyname
 ---------------
-  
+
 <<
      $(getprotobyname name...) : Protocol...
         name : Int or String
@@ -382,11 +371,11 @@ following fields.
   
   The `getprotobyname' function returns a `Protocol' object for the
 specified protocol. The `name' may be a protocol name, or a protocol
-number. 
+number.
 
  Service
 --------
-  
+
   The `Service' object represents a network service. It has the
 following fields.
   
@@ -396,11 +385,11 @@ following fields.
  port  `Int': the port number of the service. 
  proto  `Protocol': the protocol for the service. 
   
-
+  
 
  getservbyname
 --------------
-  
+
 <<
      $(getservbyname service...) : Service...
         service : String or Int
@@ -410,10 +399,9 @@ following fields.
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number.
 
-
  socket
 -------
-  
+
 <<
      $(socket domain, type, protocol) : Channel
         domain : String
@@ -440,10 +428,9 @@ service. The `service' may be specified as a service name or number.
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database.
 
-
  bind
 -----
-  
+
 <<
      bind(socket, host, port)
         socket : InOutChannel
@@ -461,10 +448,9 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address.
 
-
  listen
 -------
-  
+
 <<
      listen(socket, requests)
         socket : InOutChannel
@@ -475,10 +461,9 @@ filename for the address.
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests.
 
-
  accept
 -------
-  
+
 <<
      $(accept socket) : InOutChannel
         socket : InOutChannel
@@ -487,10 +472,9 @@ filename for the address.
   
   The `accept' function accepts a connection on a socket.
 
-
  connect
 --------
-  
+
 <<
       connect(socket, addr, port)
          socket : InOutChannel
@@ -509,10 +493,9 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket.
 
-
  getchar
 --------
-  
+
 <<
       $(getc) : String
       $(getc file) : String
@@ -524,10 +507,9 @@ filename of the socket.
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'.
 
-
  gets
 -----
-  
+
 <<
      $(gets) : String
      $(gets channel) : String
@@ -539,10 +521,9 @@ has been reached, the function returns `false'.
 returns the empty string if the end of file has been reached. The line
 terminator is removed.
 
-
  fgets
 ------
-  
+
 <<
      $(fgets) : String
      $(fgets channel) : String
@@ -709,11 +690,11 @@ abstractly. Some of these sequences can change depending on your LOCALE.
  - `[:punct:]' Punctuation characters. 
  - `[:blank:]' Space or tab characters. 
  - `[:space:]' Whitespace characters. 
-   
+
 
  cat
 ----
-  
+
 <<
       cat(files) : Sequence
          files : File or InChannel Sequence
@@ -722,10 +703,9 @@ abstractly. Some of these sequences can change depending on your LOCALE.
   The `cat' function concatenates the output from multiple files and
 returns it as a string.
 
-
  grep
 -----
-  
+
 <<
      grep(pattern) : String  # input from stdin, default options
         pattern : String
@@ -750,10 +730,9 @@ highly-simplified version of grep(1).
   If successful (`grep' found a match), the function returns `true'.
 Otherwise, it returns `false'.
 
-
  scan
 -----
-  
+
 <<
      scan(input-files)
      case string1
@@ -833,11 +812,11 @@ meaning of `stdout' outside the `calc' function.
              ...
           close(stdout)
 >>
-
+  
 
  awk
 ----
-  
+
 <<
      awk(input-files)
      case pattern1:
@@ -903,11 +882,11 @@ meaning of `stdout' outside the `filter' function.
              ...
           close(stdout)
 >>
-
+  
 
  fsubst
 -------
-  
+
 <<
      fsubst(files)
      case pattern1 [options]
@@ -944,11 +923,11 @@ expression `word.' with its capitalized form.
             value $(capitalize $1).
          close(stdout)
 >>
-
+  
 
  Lexer
 ------
-  
+
   The `Lexer' object defines a facility for lexical analysis, similar to
 the lex(1) and flex(1) programs.
   In omake, lexical analyzers can be constructed dynamically by
@@ -1249,10 +1228,9 @@ accomplishes this.
   In this case, we use the new lexer `lexer2', and we add productions
 for the new shift operations.
 
-
  gettimeofday
 -------------
-  
+
 <<
      $(gettimeofday) : Float
 >>
@@ -1265,25 +1243,23 @@ Node: Chapter 9,	Next: Chapter 10,	Prev: Section 8-4,	Up: Top
 
 Chapter 9     Shell functions
 *****************************
-    
-
+   
 
  echo
 -----
-  
+
   The `echo' function prints a string.
   `$(echo <args>)' `echo <args>'
 
-
  jobs
 -----
-  
+
   The `jobs' function prints a list of jobs.
-  `jobs' 
+  `jobs'
 
  cd
 ---
-  
+
   The `cd' function changes the current directory.
 <<
       cd(dir)
@@ -1316,43 +1292,42 @@ directory `./foo', `~/dir1/foo', `~/dir2/foo'.
       cd foo
 >>
   
-
+  
 
  bg
 ---
-  
+
   The `bg' function places a job in the background.
-  `bg <pid...>' 
+  `bg <pid...>'
 
  fg
 ---
-  
+
   The `fg' function brings a job to the foreground.
-  `fg <pid...>' 
+  `fg <pid...>'
 
  stop
 -----
-  
+
   The `stop' function suspends a job.
-  `stop <pid...>' 
+  `stop <pid...>'
 
  wait
 -----
-  
+
   The `wait' function waits for a job to finish. If no process
 identifiers are given, the shell waits for all jobs to complete.
-  `wait <pid...>' 
+  `wait <pid...>'
 
  kill
 -----
-  
+
   The `kill' function signals a job.
   `kill [signal] <pid...>'
 
-
  history
 --------
-  
+
 <<
       $(history-index) : Int
       $(history) : String Sequence
@@ -1392,11 +1367,11 @@ Node: Section 10-1,	Next: Chapter 11,	Prev: Chapter 10,	Up: Chapter 10
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
-
+  
 
  Object
 -------
-  
+
   Parent objects: none.
   The `Object' object is the root object. Every class is a subclass of
 `Object'.
@@ -1442,11 +1417,11 @@ Node: Section 10-1,	Next: Chapter 11,	Prev: Chapter 10,	Up: Chapter 10
            return $(names)
         >>
   
-
+  
 
  Map
 ----
-  
+
   Parent objects: `Object'.
   A `Map' object is a dictionary from values to values. The `<key>'
 values are restricted to simple values: integers, floating-point
@@ -1502,32 +1477,30 @@ $|key 1|
   The usual modifiers are also allowed. The expression `$`|key|'
 represents lazy evaluation of the key, and `$,|key|' is normal
 evaluation.
-
+  
 
  Number
 -------
-  
+
   Parent objects: `Object'.
   The `Number' object is the parent object for integers and
-floating-point numbers. 
+floating-point numbers.
 
  Int
 ----
-  
+
   Parent objects: `Number'.
   The `Int' object represents integer values.
 
-
  Float
 ------
-  
+
   Parent objects: `Number'.
   The `Float' object represents floating-point numbers.
 
-
  Sequence
 ---------
-  
+
   Parent objects: `Object'.
   The `Sequence' object represents a generic object containing
 sequential elements. It provides the following methods.
@@ -1564,11 +1537,11 @@ sequential elements. It provides the following methods.
               export
            return $(count)
         >>
-   
+
 
  Array
 ------
-  
+
   Parent objects: `Sequence'.
   The `Array' is a random-access sequence. It provides the following
 additional methods.
@@ -1577,33 +1550,32 @@ additional methods.
  - `$(s.nth <i>)': returns element `i' of the sequence. 
  - `$(s.rev <i>)': returns the reversed sequence. 
   
-
+  
 
  String
 -------
-  
-  Parent objects: `Array'.
 
+  Parent objects: `Array'.
 
  Fun
 ----
-  
+
   Parent objects: `Object'.
   The `Fun' object provides the following methods. 
   
  - `$(f.arity)': the arity if the function. 
-   
+
 
  Rule
 -----
-  
+
   Parent objects: `Object'.
   The `Rule' object represents a build rule. It does not currently have
-any methods. 
+any methods.
 
  Target
 -------
-  
+
   Parent object: `Object'.
   The `Target' object contains information collected for a specific
 target file.
@@ -1636,11 +1608,11 @@ is possible that the `Target' object for a node will contain different
 values in different contexts. The easiest way to make sure that the
 `Target' information is complete is to compute it within a rule body,
 where the rule depends on the target file, or the dependencies of the
-target file. 
+target file.
 
  Node
 -----
-  
+
   Parent objects: `Object'.
   The `Node' object is the parent object for files and directories. It
 supports the following operations. 
@@ -1659,46 +1631,44 @@ supports the following operations.
  - `$(node.chmod <perm>)': change the permission of this file. 
  - `$(node.chown <uid>, <gid>)': change the owner and group id of this
    file. 
-   
+
 
  File
 -----
-  
+
   Parent objects: `Node'.
   The file object represents the name of a file.
 
-
  Dir
 ----
-  
+
   Parent objects: `Node'.
   The `Dir' object represents the name of a directory.
 
-
  Channel
 --------
-  
+
   Parent objects: `Object'.
   A `Channel' is a generic IO channel. It provides the following
 methods. 
   
  - `$(o.close)': close the channel. 
-   
+
 
  InChannel
 ----------
-  
+
   Parent objects: `Channel'.
   A `InChannel' is an input channel. The variable `stdin' is the
 standard input channel.
   It provides the following methods. 
   
  - `$(InChannel.fopen <file>)': open a new input channel. 
-   
+
 
  OutChannel
 -----------
-  
+
   Parent object: `Channel'.
   A `OutChannel' is an output channel. The variables `stdout' and
 `stderr' are the standard output and error channels.
@@ -1711,33 +1681,30 @@ standard input channel.
  - `$(c.print <string>)': print a string to the channel. 
  - `$(c.println <string>)': print a string to the channel, followed by a
    line terminator. 
-   
+
 
  Location
 ---------
-  
+
   Parent objects: `Location'.
   The `Location' object represents a location in a file.
 
-
  Position
 ---------
-  
+
   Parent objects: `Position'.
   The `Position' object represents a stack trace.
 
-
  Exception
 ----------
-  
+
   Parent objects: `Object'.
   The `Exception' object is used as the base object for exceptions. It
 has no fields.
 
-
  RuntimeException
 -----------------
-  
+
   Parent objects: `Exception'.
   The `RuntimeException' object represents an exception from the runtime
 system. It has the following fields.
@@ -1746,11 +1713,11 @@ system. It has the following fields.
  - `position': a string representing the location where the  exception
    was raised. 
  - `message': a string containing the exception message. 
-   
+
 
  Shell
 ------
-  
+
   Parent objects: `Object'.
   The `Shell' object contains the collection of builtin functions
 available as shell commands.

@@ -64,7 +64,8 @@ let phony_targets = [".PHONY"; ".DEFAULT"; ".SUBDIRS"; ".SCANNER"; ".INCLUDE"; "
  * Set options.
  *
  * \begin{doc}
- * \section{OMakeFlags}
+ * \section{Options and versioning}
+ * \fun{OMakeFlags}
  *
  * \begin{verbatim}
  *    OMakeFlags(options)
@@ -98,7 +99,7 @@ let set_options venv pos loc args =
  * Version checking.
  *
  * \begin{doc}
- * \section{OMakeVersion}
+ * \fun{OMakeVersion}
  *
  * \begin{verbatim}
  *    OMakeVersion(version1)
@@ -114,7 +115,7 @@ let set_options venv pos loc args =
  * then an exception is raised.  In the two argument form,
  * the version must lie between \verb+version1+ and \verb+version2+.
  *
- * \section{cmp-versions}
+ * \fun{cmp-versions}
  * \begin{verbatim}
  *    $(cmp-versions version1, version2)
  *       version1, version2 : String
@@ -206,7 +207,7 @@ let cmp_version venv pos loc args =
  * Add the command-line vars.
  *
  * \begin{doc}
- * \section{DefineCommandVars}
+ * \fun{DefineCommandVars}
  *
  * \begin{verbatim}
  *    DefineCommandVars()

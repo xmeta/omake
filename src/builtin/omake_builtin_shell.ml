@@ -5,6 +5,8 @@
  * \chapter{Shell functions}
  * \label{chapter:shell}
  * \cutname{omake-shell.html}
+ *
+ * \section{Basic functions}
  * \end{doc}
  *
  * ----------------------------------------------------------------
@@ -125,20 +127,6 @@ let echo_fun venv pos loc args =
       echo args;
       Lm_channel.output_char outx '\n';
       Lm_channel.flush outx;
-      ValNone
-
-(*
- * \begin{doc}
- * \fun{jobs}
- *
- * The \verb+jobs+ function prints a list of jobs.
- *
- * \verb+jobs+
- * \end{doc}
- *)
-let jobs_fun venv pos loc args =
-   let _pos = string_pos "jobs" pos in
-      Omake_shell_job.jobs venv;
       ValNone
 
 (*
@@ -271,6 +259,21 @@ let cd_fun venv pos loc args =
 
 (*
  * \begin{doc}
+ * \section{Job control}
+ * \fun{jobs}
+ *
+ * The \verb+jobs+ function prints a list of jobs.
+ *
+ * \verb+jobs+
+ * \end{doc}
+ *)
+let jobs_fun venv pos loc args =
+   let _pos = string_pos "jobs" pos in
+      Omake_shell_job.jobs venv;
+      ValNone
+
+(*
+ * \begin{doc}
  * \fun{bg}
  *
  * The \verb+bg+ function places a job in the background.
@@ -369,6 +372,7 @@ let kill_fun venv pos loc args =
 
 (*
  * \begin{doc}
+ * \section{Command history}
  * \fun{history}
  *
  * \begin{verbatim}

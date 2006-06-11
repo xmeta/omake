@@ -114,45 +114,44 @@ Node: Subsection 11-5-1,	Next: Subsection 11-5-2,	Prev: Section 11-5,	Up: Sectio
 
 11.5.1   Variables
 ==================
-   
+
 
  ROOT
 -----
-   The root directory of the current project.
-
+ The root directory of
+the current project.
 
  CWD
 ----
-   The current working directory (the directory is set for each
-OMakefile in the project).
-
+ The current working
+directory (the directory is set for each OMakefile in the project).
 
  EMPTY
 ------
-   The empty string.
-
+ The empty string.
 
  STDROOT
 --------
-   The name of the standard installed OMakeroot file.
-
+ The name of the
+standard installed OMakeroot file.
 
  VERBOSE
 --------
-   Whether certain commands should be verbose (`false' by default).
-
+ Whether certain
+commands should be verbose (`false' by default).
 
  ABORT_ON_COMMAND_ERROR
 -----------------------
-   If set to true, the construction of a target should  be aborted
-whenever one of the commands to build it fail. This defaults to true, 
-and should normally be left that way.
-
+ If
+set to true, the construction of a target should  be aborted whenever
+one of the commands to build it fail. This defaults to true,  and should
+normally be left that way.
+  
 
  SCANNER_MODE
 -------------
-   This variable should be defined as one of four values  (defaults to
-`enabled'). 
+ This variable
+should be defined as one of four values  (defaults to `enabled'). 
   
  enabled  Allow the use of default `.SCANNER' rules. Whenever a rule
    does  not specify a `:scanner:' dependency explicitly, try to find a 
@@ -171,42 +170,43 @@ Node: Subsection 11-5-2,	Next: Section 11-6,	Prev: Subsection 11-5-1,	Up: Sectio
 11.5.2   System variables
 =========================
   
-
+  
 
  INSTALL
 --------
-   The command to install a program (`install' on `Unix', `cp' on
-`Win32'). 
+ The command to
+install a program (`install' on `Unix', `cp' on `Win32').
 
  PATHSEP
 --------
-   The normal path separator (`:' on `Unix', `;' on `Win32').
-
+ The normal path
+separator (`:' on `Unix', `;' on `Win32').
 
  DIRSEP
 -------
-   The normal directory separator (`/' on `Unix', `\' on `Win32').
-
+ The normal directory
+separator (`/' on `Unix', `\' on `Win32').
 
  EXT_LIB
 --------
-   File suffix for a static library (default is `.a' on `Unix', and
-`.lib' on `Win32'). 
+ File suffix for a
+static library (default is `.a' on `Unix', and `.lib' on `Win32').
 
  EXT_OBJ
 --------
-   File suffix for an object file (default is `.o' on `Unix', and `.obj'
-on `Win32'). 
+ File suffix for an
+object file (default is `.o' on `Unix', and `.obj' on `Win32').
 
  EXT_ASM
 --------
-   File suffix for an assembly file (default is `.s' on `Unix', and
-`.asm' on `Win32'). 
+ File suffix for an
+assembly file (default is `.s' on `Unix', and `.asm' on `Win32').
 
  EXE
 ----
-   File suffix for executables (default is empty for `Unix', and `.exe'
-on `Win32' and `Cygwin'). 
+ File suffix for
+executables (default is empty for `Unix', and `.exe' on `Win32' and
+`Cygwin'). 
 
 Node: Section 11-6,	Next: Subsection 11-6-1,	Prev: Section 11-5,	Up: Chapter 11
   
@@ -228,99 +228,98 @@ Node: Subsection 11-6-1,	Next: Section 11-7,	Prev: Section 11-6,	Up: Section 11-
 ==================================
   
   The following variables can be redefined in your project.
-
+  
 
  CC
 ---
-   The name of the C compiler (on `Unix' it defaults to `gcc' when `gcc'
-is present and  to `cc' otherwise; on `Win32' defaults to `cl /nologo').
-
+ The name of the C
+compiler (on `Unix' it defaults to `gcc' when `gcc' is present and  to
+`cc' otherwise; on `Win32' defaults to `cl /nologo').
 
  CXX
 ----
-   The name of the C++ compiler (on `Unix' it defaults to `gcc' when
-`gcc' is present  and to `c'++ otherwise; on `Win32' defaults to `cl
-/nologo'). 
+ The name of the C++
+compiler (on `Unix' it defaults to `gcc' when `gcc' is present  and to
+`c'++ otherwise; on `Win32' defaults to `cl /nologo').
 
  CPP
 ----
-   The name of the C preprocessor (defaults to `cpp' on `Unix', and `cl
-/E' on `Win32'). 
+ The name of the C
+preprocessor (defaults to `cpp' on `Unix', and `cl /E' on `Win32').
 
  CFLAGS
 -------
-   Compilation flags to pass to the C compiler (default empty on `Unix',
-and `/DWIN32'  on `Win32').
-
+ Compilation flags to
+pass to the C compiler (default empty on `Unix', and `/DWIN32'  on
+`Win32').
 
  CXXFLAGS
 ---------
-   Compilation flags to pass to the C++ compiler (default empty on
-`Unix', and `/DWIN32'  on `Win32').
-
+ Compilation flags
+to pass to the C++ compiler (default empty on `Unix', and `/DWIN32'  on
+`Win32').
 
  INCLUDES
 ---------
-   Additional directories that specify the search path to the C and C++
-compilers (default is `.').  The directories are passed to the C and C++
-compilers with the `-I' option.  The include path with `-I' prefixes is
-defined in the `PREFIXED_INCLUDES' variable.
-
+ Additional
+directories that specify the search path to the C and C++ compilers
+(default is `.').  The directories are passed to the C and C++ compilers
+with the `-I' option.  The include path with `-I' prefixes is defined in
+the `PREFIXED_INCLUDES' variable.
 
  LIBS
 -----
-   Additional libraries needed when building a program (default is
-empty). 
+ Additional libraries
+needed when building a program (default is empty).
 
  AS
 ---
-   The name of the assembler (defaults to `as' on `Unix', and `ml' on
-`Win32'). 
+ The name of the
+assembler (defaults to `as' on `Unix', and `ml' on `Win32').
 
  ASFLAGS
 --------
-   Flags to pass to the assembler (default is empty on `Unix', and `/c
-/coff' on `Win32'). 
+ Flags to pass to
+the assembler (default is empty on `Unix', and `/c /coff' on `Win32').
 
  AR
 ---
-   The name of the program to create static libraries (defaults to `ar
-cq' on `Unix',  and `lib' on `Win32').
-
+ The name of the program
+to create static libraries (defaults to `ar cq' on `Unix',  and `lib' on
+`Win32').
 
  AROUT
 ------
-   The option string that specifies the output file for `AR'.
-
+ The option string
+that specifies the output file for `AR'.
 
  LD
 ---
-   The name of the linker (defaults to `ld' on `Unix', and `cl' on
-`Win32'). 
+ The name of the linker
+(defaults to `ld' on `Unix', and `cl' on `Win32').
 
  LDFLAGS
 --------
-   Options to pass to the linker (default is empty).
-
+ Options to pass to
+the linker (default is empty).
 
  YACC
 -----
-   The name of the `yacc' parser generator (default is `yacc' on `Unix',
-empty on `Win32'). 
+ The name of the `yacc'
+parser generator (default is `yacc' on `Unix', empty on `Win32').
 
  LEX
 ----
-   The name of the `lex' lexer generator (default is `lex' on `Unix',
-empty on `Win32').
-
+ The name of the `lex'
+lexer generator (default is `lex' on `Unix', empty on `Win32').
 
  CGeneratedFiles
 ----------------
-   
+
 
  LocalCGeneratedFiles
 ---------------------
-   
+ 
 <<
   CGeneratedFiles(files)
   LocalCGeneratedFiles(files)
@@ -338,11 +337,11 @@ generated files, specify:
 generated before any C files anywhere in the project are scanned for
 dependencies. The `LocalCGeneratedFiles' function follows the normal
 scoping rules of OMake.
-
+  
 
  StaticCLibrary
 ---------------
-  
+
   The `StaticCLibrary' builds a static library.
   `StaticCLibrary(<target>, <files>)'
   The `<target>' does not include the library suffix, and The `<files>'
@@ -356,11 +355,11 @@ list does not include the object suffix. These are obtained from the
   StaticCLibrary(libfoo, a b c)
   .DEFAULT: $(StaticCLibrary libbar, a b c d)
 >>
-
+  
 
  StaticCLibraryCopy
 -------------------
-  
+
   The `StaticCLibraryCopy' function copies the static library to an
 install location.
   `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
@@ -376,11 +375,11 @@ directory.
   
   StaticCLibraryCopy(install, /usr/lib, libfoo)
 >>
-
+  
 
  StaticCLibraryInstall
 ----------------------
-  
+
   The `StaticCLibraryInstall' function builds a library, and sets the
 install location in one step. It returns the filename of the library in
 the target directory.
@@ -388,27 +387,26 @@ the target directory.
 <<
   StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
 >>
-
+  
 
  StaticCObject
 --------------
-   
+
 
  StaticCObjectCopy
 ------------------
-   
+
 
  StaticCObjectInstall
 ---------------------
-  
+
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
 
-
  CProgram
 ---------
-  
+
   The `CProgram' function builds a C program from a set of object files
 and libraries.
   `CProgram(<name>, <files>)'
@@ -429,21 +427,21 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
      LIBS = libfoo$(EXT_LIB)
      CProgram(foo, bar baz)
 >>
-
+  
 
  CProgramCopy
 -------------
-  
+
   The `CProgramCopy' function copies a file to an install location.
   `CProgramCopy(<tag>, <dir>, <program>)'
 <<
   CProgramCopy(install, /usr/bin, foo)
 >>
-
+  
 
  CProgramInstall
 ----------------
-  
+
   The `CProgramInstall' function specifies a program to build, and a
 location to install, simultaneously.
   `CProgramInstall(<tag>, <dir>, <name>, <files>)'
@@ -452,15 +450,15 @@ location to install, simultaneously.
      LIBS = libfoo$(EXT_LIB)
      CProgramInstall(install, /usr/bin, foo, bar baz)
 >>
-
+  
 
  CXXProgram
 -----------
-   
+
 
  CXXProgramInstall
 ------------------
-  
+
   The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
 their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
 for linking instead of `$(CC)' and `$(CFLAGS)'. 
@@ -487,97 +485,97 @@ Node: Subsection 11-7-1,	Next: Subsection 11-7-2,	Prev: Section 11-7,	Up: Sectio
   
   The following variables can be redefined in your project.
 
-
  USE_OCAMLFIND
 --------------
-   Whether to use the `ocamlfind' utility (default `false\')
-
+ Whether to
+use the `ocamlfind' utility (default `false\')
 
  OCAMLC
 -------
-   The OCaml bytecode compiler (default `ocamlc.opt' if it exists  and
-`USE_OCAMLFIND' is not set, otherwise `ocamlc').
-
+ The OCaml bytecode
+compiler (default `ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not
+set, otherwise `ocamlc').
 
  OCAMLOPT
 ---------
-   The OCaml native-code compiler (default `ocamlopt.opt' if it  exists
-and `USE_OCAMLFIND' is not set, otherwise `ocamlopt').
-
+ The OCaml
+native-code compiler (default `ocamlopt.opt' if it  exists and
+`USE_OCAMLFIND' is not set, otherwise `ocamlopt').
 
  CAMLP4
 -------
-   The `camlp4' preprocessor (default `camlp4').
-
+ The `camlp4'
+preprocessor (default `camlp4').
 
  OCAMLLEX
 ---------
-   The OCaml lexer generator (default `ocamllex').
-
+ The OCaml lexer
+generator (default `ocamllex').
 
  OCAMLLEXFLAGS
 --------------
-   The flags to pass to `ocamllex' (default `-q').
-
+ The flags to
+pass to `ocamllex' (default `-q').
 
  OCAMLYACC
 ----------
-   The OCaml parser generator (default `ocamlyacc').
-
+ The OCaml parser
+generator (default `ocamlyacc').
 
  OCAMLDEP
 ---------
-   The OCaml dependency analyzer (default `ocamldep').
-
+ The OCaml
+dependency analyzer (default `ocamldep').
 
  OCAMLMKTOP
 -----------
-   The OCaml toploop compiler (default `ocamlmktop').
-
+ The OCaml
+toploop compiler (default `ocamlmktop').
 
  OCAMLLINK
 ----------
-   The OCaml bytecode linker (default `$(OCAMLC)').
-
+ The OCaml
+bytecode linker (default `$(OCAMLC)').
 
  OCAMLOPTLINK
 -------------
-   The OCaml native-code linker (default `$(OCAMLOPT)').
-
+ The OCaml
+native-code linker (default `$(OCAMLOPT)').
 
  OCAMLINCLUDES
 --------------
-   Search path to pass to the OCaml compilers (default `.').  The search
-path with the `-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES' 
-variable. 
+ Search path
+to pass to the OCaml compilers (default `.').  The search path with the
+`-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES'  variable.
 
  OCAMLFIND
 ----------
-   The `ocamlfind' utility (default `ocamlfind' if  `USE_OCAMLFIND' is
-set, otherwise empty).
-
+ The `ocamlfind'
+utility (default `ocamlfind' if  `USE_OCAMLFIND' is set, otherwise
+empty).
 
  OCAMLFINDFLAGS
 ---------------
-   The flags to pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must
-be set). 
+ The flags to
+pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must be set).
 
  OCAMLPACKS
 -----------
-   Package names to pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
-
+ Package names to
+pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
 
  BYTE_ENABLED
 -------------
-   Flag indicating whether to use the bytecode compiler (default `true',
-when no `ocamlopt' found, `false' otherwise).
-
+ Flag
+indicating whether to use the bytecode compiler (default `true', when no
+`ocamlopt' found, `false' otherwise).
 
  NATIVE_ENABLED
 ---------------
-   Flag indicating whether to use the native-code compiler (default
-`true', when ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED'
-and `NATIVE_ENABLED' can be set to true;  at least one should be set to
+ Flag
+indicating whether to use the native-code compiler (default `true', when
+ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED' and
+`NATIVE_ENABLED' can be set to true;  at least one should be set to
 true. 
 
 Node: Subsection 11-7-2,	Next: Subsection 11-7-3,	Prev: Subsection 11-7-1,	Up: Section 11-7
@@ -587,46 +585,47 @@ Node: Subsection 11-7-2,	Next: Subsection 11-7-3,	Prev: Subsection 11-7-1,	Up: S
 ============================
   
   The following variables specify additional options to be passed to the
-OCaml tools. 
+OCaml tools.
 
  OCAMLDEPFLAGS
 --------------
-   Flags to pass to `OCAMLDEP'.
-
+ Flags to pass
+to `OCAMLDEP'.
 
  OCAMLPPFLAGS
 -------------
-   Flags to pass to `CAMLP4'.
-
+ Flags to pass
+to `CAMLP4'.
 
  OCAMLCFLAGS
 ------------
-   Flags to pass to the byte-code compiler (default `-g').
-
+ Flags to pass
+to the byte-code compiler (default `-g').
 
  OCAMLOPTFLAGS
 --------------
-   Flags to pass to the native-code compiler (default empty).
-
+ Flags to pass
+to the native-code compiler (default empty).
 
  OCAMLFLAGS
 -----------
-   Flags to pass to either compiler (default `-warn-error A').
-
+ Flags to pass to
+either compiler (default `-warn-error A').
 
  OCAML_BYTE_LINK_FLAGS
 ----------------------
-   Flags to pass to the byte-code linker (default empty).
-
+ Flags
+to pass to the byte-code linker (default empty).
 
  OCAML_NATIVE_LINK_FLAGS
 ------------------------
-   Flags to pass to the native-code linker (default empty).
 
+Flags to pass to the native-code linker (default empty).
 
  OCAML_LINK_FLAGS
 -----------------
-   Flags to pass to either linker. 
+ Flags to
+pass to either linker. 
 
 Node: Subsection 11-7-3,	Next: Section 11-8,	Prev: Subsection 11-7-2,	Up: Section 11-7
   
@@ -635,38 +634,38 @@ Node: Subsection 11-7-3,	Next: Section 11-8,	Prev: Subsection 11-7-2,	Up: Sectio
 ==========================
   
   The following variables are used during linking.
-
+  
 
  OCAML_LIBS
 -----------
-   Libraries to pass to the linker. These libraries become dependencies 
-of the link step.
-
+ Libraries to
+pass to the linker. These libraries become dependencies  of the link
+step.
 
  OCAML_OTHER_LIBS
 -----------------
-   Additional libraries to pass to the linker. These libraries are  not
-included as dependencies to the link step. Typical use is for the OCaml 
-standard libraries like `unix' or `str'.
-
+ Additional
+libraries to pass to the linker. These libraries are  not included as
+dependencies to the link step. Typical use is for the OCaml  standard
+libraries like `unix' or `str'.
 
  OCAML_CLIBS
 ------------
-   C libraries to pass to the linker.
-
+ C libraries to
+pass to the linker.
 
  OCAML_LIB_FLAGS
 ----------------
-   Extra flags for the library.
-
+ Extra flags
+for the library.
 
  OCamlGeneratedFiles
 --------------------
-   
+
 
  LocalOCamlGeneratedFiles
 -------------------------
-   
+ 
 <<
   OCamlGeneratedFiles(files)
   LocalOCamlGeneratedFiles(files)
@@ -684,22 +683,23 @@ both generated files, specify:
 generated before any OCaml files anywhere in the project are scanned for
 dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
-
+  
 
  OCamlLibrary
 -------------
-  
+
   The `OCamlLibrary' function builds an OCaml library.
   `OCamlLibrary(<libname>, <files>)'
   The `<libname>' and `<files>' are listed without suffixes.
-
+  
 
  ABORT_ON_DEPENDENCY_ERRORS
 ---------------------------
-    The linker requires that the files to be  listed in dependency
-order. If this variable is true, the order of  the files is determined
-by the command line, but omake will  abort with an error message if the
-order is illegal. Otherwise,  the files are sorted automatically.
+ 
+The linker requires that the files to be  listed in dependency order. If
+this variable is true, the order of  the files is determined by the
+command line, but omake will  abort with an error message if the order
+is illegal. Otherwise,  the files are sorted automatically.
   This function returns the list of all the targets that it defines the
 rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
 is set).
@@ -709,11 +709,11 @@ from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
 <<
   OCamlLibrary(libfoo, foo bar)
 >>
-
+  
 
  OCamlPackage
 -------------
-  
+
   The `OCamlPackage' function builds an OCaml package.
   `OCamlPackage(<name>, <files>)'
   The `<name>' and `<files>' are listed without suffixes. The `<files>'
@@ -728,29 +728,27 @@ is set).
 <<
   OCamlPackage(package, foo bar)
 >>
-
+  
 
  OCamlLibraryCopy
 -----------------
-  
+
   The `OCamlLibraryCopy' function copies a library to an install
 location.
   `OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)'
   The `<interface-files>' specify additional interface files to be
 copied if the `INSTALL_INTERFACES' variable is true.
 
-
  OCamlLibraryInstall
 --------------------
-  
+
   The `OCamlLibraryInstall' function builds a library and copies it to
 an install location in one step.
   `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
 
-
  OCamlProgram
 -------------
-  
+
   The `OCamlProgram' function builds an OCaml program. It returns the
 array with all the targets for which it have defined the rules
 (`$(name)$(EXE)' and `$(name).run' and/or `$(name).opt', depending on
@@ -772,11 +770,11 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
    Flags to pass to the native code linker. 
  OCAML_LINK_FLAGS 11.7.2*Note Subsection 11-7-2::  Flags to pass
    to both linkers. 
-   
+
 
  OCamlProgramCopy
 -----------------
-  
+
   The `OCamlProgramCopy' function copies an OCaml program to an install
 location.
   `OCamlProgramCopy(<tag>, <bindir>, <name>)'
@@ -785,11 +783,11 @@ location.
  NATIVE_ENABLED  If `NATIVE_ENABLED'
    11.7.1*Note Subsection 11-7-1:: is set, the native-code
    executable  is copied; otherwise the byte-code executable is copied. 
-   
+
 
  OCamlProgramInstall
 --------------------
-  
+
   The `OCamlProgramInstall' function builds a programs and copies it to
 an install location in one step.
   `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
@@ -814,73 +812,72 @@ Node: Subsection 11-8-1,	Next: Section 11-9,	Prev: Section 11-8,	Up: Section 11-
   
   The following variables can be modified in your project.
 
-
  LATEX
 ------
-   The LaTeX command (default `latex').
-
+ The LaTeX command
+(default `latex').
 
  TETEX2_ENABLED
 ---------------
-   Flag indicating whether to use advanced LaTeX options present in
-TeTeX v.2 (default value is determined the first time omake reads
-`LaTeX.src' and depends on the version of LaTeX you have installed).
-
+ Flag
+indicating whether to use advanced LaTeX options present in TeTeX v.2
+(default value is determined the first time omake reads `LaTeX.src' and
+depends on the version of LaTeX you have installed).
 
  LATEXFLAGS
 -----------
-   The LaTeX flags (defaults depend on the `TETEX2_ENABLED' variable)
-
+ The LaTeX flags
+(defaults depend on the `TETEX2_ENABLED' variable)
 
  BIBTEX
 -------
-   The BibTeX command (default `bibtex').
-
+ The BibTeX command
+(default `bibtex').
 
  MAKEINDEX
 ----------
-   The command to build an index (default `makeindex').
-
+ The command to
+build an index (default `makeindex').
 
  DVIPS
 ------
-   The `.dvi' to PostScript converter (default `dvips').
-
+ The `.dvi' to
+PostScript converter (default `dvips').
 
  DVIPSFLAGS
 -----------
-   Flags to pass to `dvips' (default `-t letter').
-
+ Flags to pass to
+`dvips' (default `-t letter').
 
  DVIPDFM
 --------
-   The `.dvi' to `.pdf' converter (default `dvipdfm').
-
+ The `.dvi' to
+`.pdf' converter (default `dvipdfm').
 
  DVIPDFMFLAGS
 -------------
-   Flags to pass to `dvipdfm' (default `-p letter').
-
+ Flags to pass
+to `dvipdfm' (default `-p letter').
 
  PDFLATEX
 ---------
-   The `.latex' to `.pdf' converter (default `pdflatex').
-
+ The `.latex' to
+`.pdf' converter (default `pdflatex').
 
  PDFLATEXFLAGS
 --------------
-   Flags to pass to pdflatex (default is empty).
-
+ Flags to pass
+to pdflatex (default is empty).
 
  USEPDFLATEX
 ------------
-   Flag indicating whether to use pdflatex instead of dvipdfm to
-generate the `.pdf' document (default `false').
-
+ Flag indicating
+whether to use pdflatex instead of dvipdfm to generate the `.pdf'
+document (default `false').
 
  LaTeXDocument
 --------------
-  
+
   The `LaTeXDocument' produces a LaTeX document.
   `LaTeXDocument(<name>, <texfiles>)'
   The document `<name>' and `<texfiles>' are listed without suffixes.
@@ -888,25 +885,24 @@ This function returns the filenames for the generated `.ps' and `.pdf'
 files.
   Additional variables used:
 
-
  TEXINPUTS
 ----------
-   The LaTeX search path (an array of directories, default is  taken
-from the `TEXINPUTS' environment variable).
-
+ The LaTeX search
+path (an array of directories, default is  taken from the `TEXINPUTS'
+environment variable).
 
  TEXDEPS
 --------
-   Additional files this document depends on.
-
+ Additional files
+this document depends on.
 
  TeXGeneratedFiles
 ------------------
-   
+
 
  LocalTeXGeneratedFiles
 -----------------------
-   
+ 
 <<
   TeXGeneratedFiles(files)
   LocalTeXGeneratedFiles(files)
@@ -924,19 +920,18 @@ generated files, specify:
 generated before any TeX files anywhere in the project are scanned for
 dependencies. The `LocalTeXGeneratedFiles' function follows the normal
 scoping rules of OMake.
-
+  
 
  LaTeXDocumentCopy
 ------------------
-  
+
   The `LaTeXDocumentCopy' copies the document to an install location.
   `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
   This function copies just the `.pdf' and `.ps' files.
 
-
  LaTeXDocumentInstall
 ---------------------
-  
+
   The `LaTeXDocumentInstall' builds a document and copies it to an
 install location in one step.
   `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
@@ -948,15 +943,15 @@ Node: Section 11-9,	Next: Chapter 12,	Prev: Section 11-8,	Up: Chapter 11
 11.9   Examining the dependency graph
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
-   
+
 
  dependencies
 -------------
-   
+
 
  dependencies-all
 -----------------
-  
+
 <<
      $(dependencies targets) : File Array
      $(dependencies-all targets) : File Array
@@ -992,11 +987,11 @@ For a shorter form, see the `filter-proper-targets' function.
          rm $(dependencies-proper $(APP))
 >>
   
-
+  
 
  target
 -------
-   
+ 
 <<
      $(target targets) : Rule Array
         targets : File Sequence
@@ -1006,10 +1001,9 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-
  rule
 -----
-  
+
   The `rule' function is called whenever a build rule is defined. It is
 unlikely that you will need to redefine this function, except in very
 exceptional cases.
@@ -1079,12 +1073,12 @@ Node: Section 12-1,	Next: Section 12-2,	Prev: Chapter 12,	Up: Chapter 12
   On startup, osh reads the file `~/.oshrc' if it exists. The syntax of
 this file is the same as an OMakefile. The following additional
 variables are significant.
-
+  
 
  prompt
 -------
-   The `prompt' variable specifies the command-line prompt. It can be a
-simple string.
+ The `prompt'
+variable specifies the command-line prompt. It can be a simple string.
 <<
       prompt = osh>
 >>
@@ -1101,12 +1095,13 @@ simple string.
       <jyh:kenai.yapper.org ~/links/omake>
 >>
   
-
+  
 
  ignoreeof
 ----------
-    If the `ignoreeof' is `true', then `osh' will not exit on  a
-terminal end-of-file (usually `^D' on Unix systems).
+  If the
+`ignoreeof' is `true', then `osh' will not exit on  a terminal
+end-of-file (usually `^D' on Unix systems).
 
 Node: Section 12-2,	Next: Section 12-3,	Prev: Section 12-1,	Up: Chapter 12
   

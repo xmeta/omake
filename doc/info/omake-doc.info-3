@@ -417,58 +417,58 @@ Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
 7.1   Builtin variables
 *=*=*=*=*=*=*=*=*=*=*=*
 
-   
+
 
  OSTYPE
 -------
-    Set to the machine architecture omake is running on. Possible values
-are  `Unix' (for all Unix versions, including Linux and Mac OS X),
-`Win32'  (for MS-Windows, OMake compiled with MSVC++ or Mingw), and
-`Cygwin' (for  MS-Windows, OMake compiled with Cygwin).
-
+  Set to the machine
+architecture omake is running on. Possible values are  `Unix' (for all
+Unix versions, including Linux and Mac OS X), `Win32'  (for MS-Windows,
+OMake compiled with MSVC++ or Mingw), and `Cygwin' (for  MS-Windows,
+OMake compiled with Cygwin).
 
  SYSNAME
 --------
-    The name of the operating system for the current machine.
-
+  The name of the
+operating system for the current machine.
 
  NODENAME
 ---------
-    The hostname of the current machine.
-
+  The hostname of the
+current machine.
 
  OS_VERSION
 -----------
-    The operating system release.
-
+  The operating
+system release.
 
  MACHINE
 --------
-    The machine architecture, e.g. `i386', `sparc', etc.
-
+  The machine
+architecture, e.g. `i386', `sparc', etc.
 
  HOST
 -----
-    Same as `NODENAME'.
-
+  Same as `NODENAME'.
 
  OMAKE_VERSION
 --------------
-    Version of OMake. 
+  Version of
+OMake.
 
  USER
 -----
-    The login name of the user executing the process.
-
+  The login name of the
+user executing the process.
 
  HOME
 -----
-    The home directory of the user executing the process.
-
+  The home directory of
+the user executing the process.
 
  PID
 ----
-    The OMake process id. 
+  The OMake process id. 
 
 Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
   
@@ -477,11 +477,11 @@ Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
-
+  
 
  not
 ----
-  
+
 <<
      $(not e) : String
         e : String
@@ -494,10 +494,9 @@ negates a Boolean value.
   For example, `$(not false)' expands to the string `true', and `$(not
 hello world)' expands to `false'.
 
-
  equal
 ------
-  
+
 <<
      $(equal e1, e2) : String
         e1 : String
@@ -508,10 +507,9 @@ hello world)' expands to `false'.
   For example `$(equal a, b)' expands to `false', and `$(equal hello
 world, hello world)' expands to `true'.
 
-
  and
 ----
-  
+
 <<
       $(and e1, ..., en) : String
          e1, ..., en: Sequence
@@ -525,11 +523,11 @@ world, hello world)' expands to `true'.
       X = $(and $(equal $(A), a) true $(equal $(B), b))
       Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
 >>
-
+  
 
  or
 ---
-  
+
 <<
      $(or e1, ..., en) : String
         e1, ..., en: String Sequence
@@ -545,10 +543,9 @@ world, hello world)' expands to `true'.
 >>
   
 
-
  if
 ---
-  
+
 <<
       $(if e1, e2[, e3]) : value
          e1 : String
@@ -591,15 +588,15 @@ common idiom for defining the C compiler configuration.
         CFLAGS += -g -O2
         export
 >>
-
+  
 
  switch
 -------
-   
+
 
  match
 ------
-  
+
   The `switch' and `match' functions perform pattern matching.
   `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
 `$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
@@ -653,10 +650,9 @@ function uses regular expression matching.
 >>
   
 
-
  try
 ----
-  
+
 <<
      try
         try-body
@@ -688,12 +684,11 @@ returning a value `v', without encountering another `when' clause, then
 the expressions in the `finally-body' are evaluated and the value `v' is
 returned as the result.
   There can be any number of `catch' clauses; the `finally' clause is
-optional. 
-
+optional.
 
  raise
 ------
-  
+
 <<
      raise exn
         exn : Exception
@@ -701,11 +696,11 @@ optional.
   
   The `raise' function raises an exception. The `exn' object can be any
 object. However, the normal convention is to raise an `Exception'
-object. 
+object.
 
  exit
 -----
-  
+
 <<
      exit(code)
         code : Int
@@ -716,10 +711,9 @@ object.
   The `exit' function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination.
 
-
  defined
 --------
-  
+
 <<
      $(defined sequence) : String
         sequence : Sequence
@@ -733,11 +727,11 @@ variable if it is not already defined.
          X = a b c
          export
 >>
-
+  
 
  defined-env
 ------------
-  
+
 <<
      $(defined-env sequence) : String
         sequence : String
@@ -752,11 +746,11 @@ environment variable `DEBUG' is defined.
       CFLAGS += -g
       export
 >>
-
+  
 
  getenv
 -------
-  
+
 <<
      $(getenv name) : String
      $(getenv name, default) : String
@@ -780,11 +774,11 @@ it is defined, and to `/bin /usr/bin' otherwise.
        getenv(NAME)
            default
 >>
-
+  
 
  setenv
 -------
-  
+
 <<
      setenv(name, value)
         name : String
@@ -793,11 +787,11 @@ it is defined, and to `/bin /usr/bin' otherwise.
   
   The `setenv' function sets the value of a variable in the process
 environment. Environment variables are scoped like normal variables.
-
+  
 
  get-registry
 -------------
-  
+
 <<
      get-registry(hkey, key, field) : String
      get-registry(hkey, key, field, default) : String
@@ -829,11 +823,11 @@ also use the alternate form.
          default
 >>
   
-
+  
 
  getvar
 -------
-  
+
 <<
      $(getvar name) : String
 >>
@@ -846,11 +840,11 @@ also use the alternate form.
       foo_1 = abc
       X = $(getvar $(NAME)_1)
 >>
-
+  
 
  setvar
 -------
-  
+
 <<
      setvar(name, value)
         name : String
@@ -871,11 +865,11 @@ Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
 *=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
-
+  
 
  array
 ------
-  
+
 <<
       $(array elements) : Array
          elements : Sequence
@@ -895,10 +889,9 @@ elements of the string, respecting quotes.
   In this case, the elements of the array are exactly `<val1>', ...,
 `<valn>', and whitespace is preserved literally.
 
-
  split
 ------
-  
+
 <<
      $(split sep, elements) : Array
         sep : String
@@ -919,10 +912,9 @@ the array `/bin /usr/bin /usr/local/bin'.
   The `sep' argument may be omitted. In this case `split' breaks its
 arguments along the white space. Quotations are not split.
 
-
  concat
 -------
-  
+
 <<
      $(concat sep, elements) : String
         sep : String
@@ -938,11 +930,11 @@ the string `foo_x_bar_x_baz'.
       X = foo  bar     baz
       Y = $(concat _x_, $(X))
 >>
-
+  
 
  length
 -------
-  
+
 <<
      $(length sequence) : Int
         sequence : Sequence
@@ -951,10 +943,9 @@ the string `foo_x_bar_x_baz'.
   The `length' function returns the number of elements in its argument.
   For example, the expression `$(length a  b "c d")' evaluates to 3.
 
-
  nth
 ----
-  
+
 <<
      $(nth i, sequence) : value
         i : Int
@@ -966,11 +957,11 @@ the string `foo_x_bar_x_baz'.
 a list. Counting starts at 0. An exception is raised if the index is not
 in bounds.
   For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
-c"'. 
+c"'.
 
  nth-hd
 -------
-  
+
 <<
      $(nth-hd i, sequence) : value
         i : Int
@@ -983,11 +974,11 @@ An exception is raised if the sequence is not at least `i' elements
 long.
   For example, the expression `$(nth-hd 2, a "b c" d)' evaluates to `a
 "b c"'.
-
+  
 
  nth-tl
 -------
-  
+
 <<
      $(nth-tl i, sequence) : value
         i : Int
@@ -1000,11 +991,11 @@ the rest. An exception is raised if the sequence is not at least `i'
 elements long.
   For example, the expression `$(nth-tl 1, a "b c" d)' evaluates to `"b
 c" d'.
-
+  
 
  subrange
 ---------
-  
+
 <<
      $(subrange off, len, sequent) : value
         off : Int
@@ -1017,11 +1008,11 @@ c" d'.
 starts at 0. An exception is raised if the specified range is not in
 bounds.
   For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
-to `"b c" d'. 
+to `"b c" d'.
 
  rev
 ----
-  
+
 <<
       $(rev sequence) : Sequence
          sequence : Sequence
@@ -1029,11 +1020,11 @@ to `"b c" d'.
   
   The `rev' function returns the elements of a sequence in reverse
 order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
-c" a'. 
+c" a'.
 
  string
 -------
-  
+
 <<
      $(string sequence) : String
         sequence : Sequence
@@ -1043,10 +1034,9 @@ c" a'.
 is similar to the `concat' function, but the elements are separated by
 whitespace. The result is treated as a unit; whitespace is significant.
 
-
  quote
 ------
-  
+
 <<
      $(quote sequence) : String
         sequence : Sequence
@@ -1057,10 +1047,9 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-
  quote-argv
 -----------
-  
+
 <<
      $(quote-argv sequence) : String
         sequence : Sequence
@@ -1070,10 +1059,9 @@ c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-
  html-string
 ------------
-  
+
 <<
      $(html-string sequence) : String
         sequence : Sequence
@@ -1084,10 +1072,9 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-
  addsuffix
 ----------
-  
+
 <<
      $(addsuffix suffix, sequence) : Array
         suffix : String
@@ -1098,11 +1085,11 @@ treated as a unit; whitespace is significant.
 The number of elements in the array is exactly the same as the number of
 elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
-d".c'. 
+d".c'.
 
  mapsuffix
 ----------
-  
+
 <<
      $(mapsuffix suffix, sequence) : Array
         suffix : value
@@ -1114,11 +1101,11 @@ It is similar to `addsuffix', but uses array concatenation instead of
 string concatenation. The number of elements in the array is twice the
 number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
-d" .c'. 
+d" .c'.
 
  addsuffixes
 ------------
-  
+
 <<
      $(addsuffixes suffixes, sequence) : Array
         suffixes : Sequence
@@ -1131,10 +1118,9 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-
  removeprefix
 -------------
-  
+
 <<
      $(removeprefix prefix, sequence) : Array
         prefix : String
@@ -1142,11 +1128,11 @@ to `a.c a.o b.c b.o c.o c.a'.
 >>
   
   The `removeprefix' function removes a prefix from each component of a
-sequence. 
+sequence.
 
  removesuffix
 -------------
-  
+
 <<
      $(removesuffix sequence) : Array
         sequence : String
@@ -1159,7 +1145,7 @@ of a sequence.
 
  replacesuffixes
 ----------------
-  
+
 <<
      $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
         old-suffixes : Sequence
@@ -1171,11 +1157,11 @@ of a sequence.
 in sequence. The `old-suffixes' and `new-suffixes' sequences should have
 the same length.
   For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
-to `a.o b.o c.z'. 
+to `a.o b.o c.z'.
 
  addprefix
 ----------
-  
+
 <<
      $(addprefix prefix, sequence) : Array
         prefix : String
@@ -1186,11 +1172,11 @@ to `a.o b.o c.z'.
 sequence. The number of element in the result array is exactly the same
 as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
-foo/"c d"'. 
+foo/"c d"'.
 
  mapprefix
 ----------
-  
+
 <<
      $(mapprefix prefix, sequence) : Array
         prefix : String
@@ -1202,11 +1188,11 @@ sequence. It is similar to `addprefix', but array concatenation is used
 instead of string concatenation. The result array contains twice as many
 elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
-"c d"'. 
+"c d"'.
 
  add-wrapper
 ------------
-  
+
 <<
      $(add-wrapper prefix, suffix, sequence) : Array
         prefix : String
@@ -1218,11 +1204,11 @@ elements as the argument sequence.
 component of a sequence. For example, the expression `$(add-wrapper
 dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
-sequence. 
+sequence.
 
  set
 ----
-  
+
 <<
      $(set sequence) : Array
         sequence : Sequence
@@ -1232,10 +1218,9 @@ sequence.
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-
  mem
 ----
-  
+
 <<
      $(mem elem, sequence) : Boolean
         elem : String
@@ -1246,10 +1231,9 @@ duplicates.
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-
  intersection
 -------------
-  
+
 <<
      $(intersection sequence1, sequence2) : Array
         sequence1 : Sequence
@@ -1261,11 +1245,11 @@ of strings, and computes their intersection. The order of the result is
 undefined, and it may contain duplicates. Use the `set' function to sort
 the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
-to `a b a'. 
+to `a b a'.
 
  intersects
 -----------
-  
+
 <<
      $(intersects sequence1, sequence2) : Boolean
         sequence1 : Sequence
@@ -1278,10 +1262,9 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-
  set-diff
 ---------
-  
+
 <<
      $(set-diff sequence1, sequence2) : Array
         sequence1 : Sequence
@@ -1294,11 +1277,11 @@ set that are not present in the second one). The order of the result is
 undefined and it may contain duplicates. Use the `set' function to sort
 the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
-`c e'. 
+`c e'.
 
  filter
 -------
-  
+
 <<
      $(filter patterns, sequence) : Array
         patterns : Sequence
@@ -1311,10 +1294,9 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-
  filter-out
 -----------
-  
+
 <<
      $(filter-out patterns, sequence) : Array
         patterns : Sequence
@@ -1327,10 +1309,9 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-
  capitalize
 -----------
-  
+
 <<
      $(capitalize sequence) : Array
         sequence : Sequence
@@ -1340,10 +1321,9 @@ evaluates to `x.o y.o'.
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-
  uncapitalize
 -------------
-  
+
 <<
      $(uncapitalize sequence) : Array
         sequence : Sequence
@@ -1353,10 +1333,9 @@ The Looking Glass'.
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-
  uppercase
 ----------
-  
+
 <<
      $(uppercase sequence) : Array
         sequence : Sequence
@@ -1366,10 +1345,9 @@ The Looking Glass'.
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-
  lowercase
 ----------
-  
+
 <<
      $(lowercase sequence) : Array
         sequence : Sequence
@@ -1380,10 +1358,9 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-
  system
 -------
-  
+
 <<
      system(s)
         s : Sequence
@@ -1396,11 +1373,11 @@ function is used internally by omake to evaluate shell commands.
 <<
      ls foo
 >>
-
+  
 
  shell
 ------
-  
+
 <<
      $(shell command) : Array
      $(shella command) : Array
@@ -1417,12 +1394,11 @@ separate items in the array.
 diverted.
   For example, if the current directory contains the files `OMakeroot',
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
-OMakefile OMakeroot' (on a Unix system). 
-
+OMakefile OMakeroot' (on a Unix system).
 
  while
 ------
-  
+
 <<
      while <test>
         <body>
@@ -1483,20 +1459,21 @@ Node: Section 7-4,	Next: Subsection 7-4-1,	Prev: Section 7-3,	Up: Chapter 7
 7.4   Arithmetic
 *=*=*=*=*=*=*=*=
 
-   
+
 
  int
 ----
-  
+
   The `int' function can be used to create integers. It returns an `Int'
 object.
   `$(int 17)'.
-
+  
 
  float
 ------
-   The `float' function can be used to create floating-point numbers. It
-returns a `Float' object.
+ The `float' function
+can be used to create floating-point numbers. It returns a `Float'
+object.
   `$(float 3.1415926)'. 
 * Menu:
 
@@ -1574,11 +1551,11 @@ Node: Section 7-5,	Next: Section 7-6,	Prev: Section 7-4,	Up: Chapter 7
 7.5   First-class functions
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
-   
+
 
  fun
 ----
-  
+
   The `fun' form introduces anonymous functions.
   `$(fun <v1>, ..., <vn>, <body>)'
   The last argument is the body of the function. The other arguments are
@@ -1594,11 +1571,11 @@ the parameter names.
          fun(X, Y)
             value $(addsuffix $(Y), $(X))
 >>
-
+  
 
  apply
 ------
-  
+
   The `apply' operator is used to apply a function.
   `$(apply <fun>, <args>)'
   Suppose we have the following function definition.
@@ -1612,11 +1589,11 @@ the parameter names.
       X = F(a b c, .c)
       X = $(apply $(F), a b c, .c)
 >>
-
+  
 
  applya
 -------
-  
+
   The `applya' operator is used to apply a function to an array of
 arguments.
   `$(applya <fun>, <args>)'
@@ -1637,11 +1614,11 @@ Node: Section 7-6,	Next: Chapter 8,	Prev: Section 7-5,	Up: Chapter 7
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
-
+  
 
  foreach
 --------
-  
+
   The `foreach' function maps a function over a sequence.
 <<
       $(foreach <fun>, <args>)
@@ -1676,16 +1653,15 @@ Node: Chapter 8,	Next: Section 8-1,	Prev: Chapter 7,	Up: Top
 
 Chapter 8     File operations
 *****************************
-    
-
+   
 
  file
 -----
-   
+
 
  dir
 ----
-  
+
 <<
      $(file sequence) : File Sequence
         sequence : Sequence
@@ -1725,11 +1701,11 @@ of the `bin' directory relative to the command being executed.
      install: hello
    cp hello $(BIN)
 >>
-
+  
 
  tmpfile
 --------
-  
+
 <<
       $(tmpfile prefix) : File
       $(tmpfile prefix, suffix) : File
@@ -1738,11 +1714,11 @@ of the `bin' directory relative to the command being executed.
 >>
   
   The `tmpfile' function returns the name of a fresh temporary file in
-the temporary directory. 
+the temporary directory.
 
  in
 ---
-  
+
 <<
      $(in dir, exp) : String Array
         dir : Dir
@@ -1764,10 +1740,9 @@ is relative to the directory where the link is created.
   Note that the `in' function only affects the expansion of `Node'
 (`File' and `Dir') values.
 
-
  which
 ------
-  
+
 <<
      $(which files) : File Sequence
         files : String Sequence
@@ -1777,10 +1752,9 @@ is relative to the directory where the link is created.
 search path, and returns `file' values for each of the commands. It is
 an error if a command is not found.
 
-
  where
 ------
-  
+
   The `where' function is similar to which, except it returns the list
 of all the locations of the given executable (in the order in which the
 corresponding directories appear in `$PATH'). In case a command is
@@ -1791,11 +1765,11 @@ will describe the command as a built-in function.
       echo is a Shell object method (a built-in function)
       /bin/echo
 >>
-
+  
 
  exists-in-path
 ---------------
-  
+
 <<
      $(exists-in-path files) : String
         files : String Sequence
@@ -1804,10 +1778,9 @@ will describe the command as a built-in function.
   The `exists-in-path' function tests whether all executables are
 present in the current search path.
 
-
  basename
 ---------
-  
+
 <<
      $(basename files) : String Sequence
         files : String Sequence
@@ -1819,10 +1792,9 @@ removed.
   For example, the expression `$(basename dir1/dir2/a.out
 /etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'.
 
-
  rootname
 ---------
-  
+
 <<
      $(rootname files) : String Sequence
         files : String Sequence
@@ -1833,10 +1805,9 @@ rootname is the filename with the final suffix removed.
   For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
 /foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'.
 
-
  dirof
 ------
-  
+
 <<
      $(dirof files) : Dir Sequence
         files : File Sequence
@@ -1847,10 +1818,9 @@ files.
   For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
 /foo.ml)' evaluates to the directories `dir1/dir2 /etc /'.
 
-
  fullname
 ---------
-  
+
 <<
      $(fullname files) : String Sequence
         files : File Sequence
@@ -1859,10 +1829,9 @@ files.
   The `fullname' function returns the pathname relative to the project
 root for each of the files or directories.
 
-
  absname
 --------
-  
+
 <<
      $(absname files) : String Sequence
         files : File Sequence
@@ -1871,10 +1840,9 @@ root for each of the files or directories.
   The `absname' function returns the absolute pathname for each of the
 files or directories.
 
-
  homename
 ---------
-  
+
 <<
      $(homename files) : String Sequence
         files : File Sequence
@@ -1885,10 +1853,9 @@ possible. The unexpanded forms are computed lazily: the `homename'
 function will usually evaluate to an absolute pathname until the first
 tilde-expansion for the same directory.
 
-
  suffix
 -------
-  
+
 <<
      $(suffix files) : String Sequence
         files : StringSequence
@@ -1899,18 +1866,17 @@ file has no suffix, the function returns the empty string.
   For example, the expression `$(suffix dir1/dir2/a.out /etc/a /foo.ml)'
 evaluates to `.out .ml'.
 
-
  file-exists
 ------------
-   
+
 
  target-exists
 --------------
-   
+
 
  target-is-proper
 -----------------
-  
+
 <<
      $(file-exists files) : String
      $(target-exists files) : String
@@ -1924,10 +1890,9 @@ However, it returns true if the file exists or if it can be built by the
 current project. The `target-is-proper' returns true only if the file
 can be generated in the current project.
 
-
  stat-reset
 -----------
-  
+
 <<
      $(stat-reset files) : String
          files : File Sequence
@@ -1937,18 +1902,17 @@ can be generated in the current project.
 information for the given files, forcing the `stat' information to be
 recomputed the next time it is requested.
 
-
  filter-exists
 --------------
-   
+
 
  filter-targets
 ---------------
-   
+
 
  filter-proper-targets
 ----------------------
-  
+
 <<
      $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
@@ -1983,11 +1947,12 @@ deleted.
 removing intermediate files.
   If you use CVS, you may wish to use the `cvs_realclean' program that
 is distributed with `omake'.
-
+  
 
  file-sort
 ----------
-    
+
+ 
 <<
      $(file-sort order, files) : File Sequence
         order : String
@@ -2042,10 +2007,9 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'.
 
-
  file-check-sort
 ----------------
-  
+
 <<
      file-check-sort(files)
         files : File Sequence
@@ -2057,10 +2021,9 @@ sort order. If so, the list is returned unchanged. If not, the function
 raises an exception.
   `$(file-check-sort <order>, <files>)'
 
-
  glob
 -----
-  
+
 <<
      $(glob strings) : Node Array
         strings : String Sequence
@@ -2096,10 +2059,9 @@ behavior of `glob'.
   
   The returned files are sorted by name.
 
-
  ls
 ---
-  
+
 <<
      $(ls files) : Node Array
         files : String Sequence
@@ -2119,10 +2081,9 @@ the following.
   The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
 the globbing behavior. The returned files are sorted by name.
 
-
  subdirs
 --------
-  
+
 <<
      $(subdirs dirs) : Dir Array
         dirs : String Sequence
@@ -2138,11 +2099,11 @@ directories, recursively.
  A  Return directories that begin with a . 
  C  Ignore files according to .cvsignore rules. 
  P  Include only proper subdirectories. 
-   
+
 
  mkdir
 ------
-  
+
 <<
      mkdir(mode, node...)
         mode : Int
@@ -2160,11 +2121,11 @@ following options are supported.
  -m mode  Specify the permissions of the created directory. 
  -p  Create parent directories if they do not exist. 
  --  Interpret the remaining names literally. 
-   
+
 
  Stat
 -----
-  
+
   The `Stat' object represents the result returned by the `stat' and
 `lstat' functions. It contains the following fields.
   A `stat' object has the following fields. Not all of the fields will
@@ -2187,11 +2148,11 @@ have meaning on all architectures.
  mtime : last modification time, as a floating point number. 
  ctime : last status change time, as a floating point number. 
   
-
+  
 
  stat
 -----
-  
+
 <<
       $(stat node...) : Stat
          node : Node or Channel
@@ -2204,10 +2165,9 @@ have meaning on all architectures.
 symbolic link, the `stat' function refers to the destination of the
 link; the `lstat' function refers to the link itself.
 
-
  unlink
 -------
-  
+
 <<
      $(unlink file...)
         file : File
@@ -2227,11 +2187,11 @@ removes a directory.
  -r  remove the contents of directories recursively. 
  -v  explain what is going on. 
  --  the rest of the values are interpreted literally. 
-   
+
 
  rename
 -------
-  
+
 <<
       rename(old, new)
          old : Node
@@ -2258,11 +2218,11 @@ directory. If not, the behavior of `mv' is identical to `rename'. The
  -v  Explain what it happening. 
  -r  Copy the contents of directories recursively. 
  --  Interpret the remaining arguments literally. 
-   
+
 
  link
 -----
-  
+
 <<
      link(src, dst)
         src : Node
@@ -2275,10 +2235,9 @@ directory `src'.
   Hard links are not supported in Win32.
   Normally, only the superuser can create hard links to directories.
 
-
  symlink
 --------
-  
+
 <<
      symlink(src, dst)
         src : Node
@@ -2293,10 +2252,9 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
 -> ../a/b'.
   Symbolic links are not supported in Win32.
 
-
  readlink
 ---------
-  
+
 <<
      $(readlink node...) : Node
         node : Node
@@ -2304,10 +2262,9 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
   
   The `readlink' function reads the value of a symbolic link.
 
-
  chmod
 ------
-  
+
 <<
      chmod(mode, dst...)
         mode : Int
@@ -2326,11 +2283,11 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
  -r  Change files and directories recursively. 
  -f  Continue on errors. 
  --  Interpret the remaining argument literally. 
-   
+
 
  chown
 ------
-  
+
 <<
      chown(uid, gid, node...)
         uid : Int
@@ -2344,11 +2301,11 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
   
   The `chown' function changes the user and group id of the file. If the
 `gid' is not specified, it is not changed. If either id is -1, that id
-is not changed. 
+is not changed.
 
  umask
 ------
-  
+
 <<
       $(umask mode) : Int
          mode : Int
@@ -2358,10 +2315,9 @@ is not changed.
   Sets the file mode creation mask. The previous mask is returned. This
 value is not scoped, changes have global effect.
 
-
  digest
 -------
-  
+
 <<
        $(digest files) : String Array
           file : File Array
@@ -2376,10 +2332,9 @@ files. The `digest' function raises an exception if a file does no
 exist. The `digest-optional' returns `false' if a file does no exist.
 MD5 digests are cached.
 
-
  find-in-path
 -------------
-  
+
 <<
       $(find-in-path path, files) : File Array
          path : Dir Array
@@ -2393,11 +2348,11 @@ MD5 digests are cached.
 Only the tail of the filename is significant. The `find-in-path'
 function raises an exception if the file can't be found. The
 `find-in-path-optional' function silently removes files that can't be
-found. 
+found.
 
  digest-path
 ------------
-  
+
 <<
       $(digest-in-path path, files) : String/File Array
          path : Dir Array
@@ -2413,20 +2368,18 @@ filename is significant. The `digest-in-path' function raises an
 exception if the file can't be found. The `digest-in-path-optional'
 function silently removes elements that can't be found.
 
-
  rehash
 -------
-  
+
 <<
       rehash()
 >>
   
   The `rehash' function resets all search paths.
 
-
  vmount
 -------
-  
+
 <<
       vmount(src, dst)
          src, dst : Dir
@@ -2449,10 +2402,9 @@ builds with separate configurations or architectures.
   
   Mount operations are scoped.
 
-
  add-project-directories
 ------------------------
-  
+
 <<
       add-project-directories(dirs)
          dirs : Dir Array
@@ -2462,10 +2414,9 @@ builds with separate configurations or architectures.
 be part of the project. This is mainly used to avoid omake complaining
 that the current directory is not part of the project.
 
-
  remove-project-directories
 ---------------------------
-  
+
 <<
       remove-project-directories(dirs)
          dirs : Dir Array
@@ -2476,10 +2427,9 @@ considers to be part of the project. This is mainly used to cancel a
 `.SUBDIRS' from including a directory if it is determined that the
 directory does not need to be compiled.
 
-
  test
 -----
-  
+
 <<
      test(exp) : Bool
         exp : String Sequence
@@ -2560,9 +2510,13 @@ system, the man page explains more. Here are some examples.
       # boo is newer than foo, and foo is empty
       osh> test(\( boo -nt foo \) -a -e foo)
       - : true
-  \fun{find}
+>>
   
-  \begin{verbatim}
+
+ find
+-----
+
+<<
      find(exp) : Node Array
         exp : String Sequence
 >>
@@ -2584,9 +2538,22 @@ additions.
  - `-name' string : The current file matches the regular expression. 
   
   The `find' function performs a recursive scan of all subdirectories.
-The following call is run from the root of the `omake' source directory.
+The following call is being run from the root of the `omake' source
+directory.
 <<
       osh> find(. -name fo*)
+      - : <array
+              /home/jyh/.../omake/mk/.svn/format
+              /home/jyh/.../omake/RPM/.svn/format
+              ...
+             
+/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+>>
+  
+  Another example, listing only those files that are normal files or
+symbolic links.
+<<
+      osh> find(. -name fo* -a \( -f {} -o -L {} \))
       - : <array
               /home/jyh/.../omake/mk/.svn/format
               /home/jyh/.../omake/RPM/.svn/format

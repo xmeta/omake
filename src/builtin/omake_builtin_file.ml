@@ -67,6 +67,7 @@ let is_dir dir =
  * Get the file from a string.
  *
  * \begin{doc}
+ * \section{File names}
  * \fun{file}
  * \fun{dir}
  *
@@ -210,131 +211,6 @@ let ind venv pos loc args =
                concat_strings strings
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-
-(*
- * Search the PATH.
- *
- * \begin{doc}
- * \fun{which}
- *
- * \begin{verbatim}
- *    $(which files) : File Sequence
- *       files : String Sequence
- * \end{verbatim}
- *
- * The \verb+which+ function searches for executables in the
- * current command search path, and returns \verb+file+ values
- * for each of the commands.  It is an error if a command is
- * not found.
- * \end{doc}
- *)
-let which venv pos loc args =
-   let pos = string_pos "which" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let args =
-               List.map (fun s ->
-                     try Lm_filename_util.which s with
-                        Not_found ->
-                           raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", s)))) args
-            in
-            let args = List.map (fun s -> ValNode (venv_intern venv PhonyProhibited s)) args in
-               concat_array args
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-
-(*
- * \begin{doc}
- * \fun{where}
- *
- * The \verb+where+ function is similar to which, except it returns the list of
- * all the locations of the given executable (in the order in which the
- * corresponding directories appear in \verb+$PATH+). In case a command is handled
- * internally by the \verb+Shell+ object, the first string in the output will
- * describe the command as a built-in function.
- *
- * \begin{verbatim}
- *     % where echo
- *     echo is a Shell object method (a built-in function)
- *     /bin/echo
- * \end{verbatim}
- * \end{doc}
- *)
-let where venv pos loc args =
-   let pos = string_pos "where" pos in
-      match args with
-         [arg] ->
-            begin match strings_of_value venv pos arg with
-               [arg] ->
-                  let res =
-                     try Lm_filename_util.where arg with
-                        Invalid_argument _ ->
-                           raise (OmakeException (loc_pos loc pos, (**)
-                              StringStringError ("where: path separators do not make sense", arg)))
-                  in
-                  let res = List.map (fun s -> ValNode (venv_intern venv PhonyProhibited s)) res in
-                  let res =
-                     try
-                        let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
-                           match eval_single_value venv pos obj with
-                              ValObject obj ->
-                                 let v = venv_find_field_exn obj (Lm_symbol.add arg) in
-                                 let kind =
-                                    match eval_value venv pos v with
-                                       ValPrim _ ->
-                                          "Shell object method (a built-in function)"
-                                     | ValFun _
-                                     | ValFunValue _ ->
-                                          "Shell object method (an omake function)"
-                                     | _ ->
-                                          "Shell object method"
-                                 in
-                                    ValData (arg ^ " is a " ^ kind) :: res
-                            | _ ->
-                                 res
-                     with
-                        Not_found ->
-                           res
-                  in
-                     concat_array res
-             | args ->
-                  raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-            end
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-
-(*
- * \begin{doc}
- * \fun{exists-in-path}
- *
- * \begin{verbatim}
- *    $(exists-in-path files) : String
- *       files : String Sequence
- * \end{verbatim}
- *
- * The \verb+exists-in-path+ function tests whether all executables
- * are present in the current search path.
- * \end{doc}
- *)
-let exists_in_path venv pos loc args =
-   let pos = string_pos "exists-in-path" pos in
-      match args with
-         [arg] ->
-            let args = strings_of_value venv pos arg in
-            let test =
-               List.for_all (fun s ->
-                     try ignore (Lm_filename_util.which s); true with
-                        Failure _
-                      | Not_found ->
-                           false) args
-            in
-               if test then
-                  val_true
-               else
-                  val_false
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Strip the directory.
@@ -560,9 +436,322 @@ let suffix venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
+ * Search the PATH.
+ *
+ * \begin{doc}
+ * \section{Path search}
+ * \fun{which}
+ *
+ * \begin{verbatim}
+ *    $(which files) : File Sequence
+ *       files : String Sequence
+ * \end{verbatim}
+ *
+ * The \verb+which+ function searches for executables in the
+ * current command search path, and returns \verb+file+ values
+ * for each of the commands.  It is an error if a command is
+ * not found.
+ * \end{doc}
+ *)
+let which venv pos loc args =
+   let pos = string_pos "which" pos in
+      match args with
+         [arg] ->
+            let args = strings_of_value venv pos arg in
+            let args =
+               List.map (fun s ->
+                     try Lm_filename_util.which s with
+                        Not_found ->
+                           raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", s)))) args
+            in
+            let args = List.map (fun s -> ValNode (venv_intern venv PhonyProhibited s)) args in
+               concat_array args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun{where}
+ *
+ * The \verb+where+ function is similar to which, except it returns the list of
+ * all the locations of the given executable (in the order in which the
+ * corresponding directories appear in \verb+$PATH+). In case a command is handled
+ * internally by the \verb+Shell+ object, the first string in the output will
+ * describe the command as a built-in function.
+ *
+ * \begin{verbatim}
+ *     % where echo
+ *     echo is a Shell object method (a built-in function)
+ *     /bin/echo
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let where venv pos loc args =
+   let pos = string_pos "where" pos in
+      match args with
+         [arg] ->
+            begin match strings_of_value venv pos arg with
+               [arg] ->
+                  let res =
+                     try Lm_filename_util.where arg with
+                        Invalid_argument _ ->
+                           raise (OmakeException (loc_pos loc pos, (**)
+                              StringStringError ("where: path separators do not make sense", arg)))
+                  in
+                  let res = List.map (fun s -> ValNode (venv_intern venv PhonyProhibited s)) res in
+                  let res =
+                     try
+                        let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+                           match eval_single_value venv pos obj with
+                              ValObject obj ->
+                                 let v = venv_find_field_exn obj (Lm_symbol.add arg) in
+                                 let kind =
+                                    match eval_value venv pos v with
+                                       ValPrim _ ->
+                                          "Shell object method (a built-in function)"
+                                     | ValFun _
+                                     | ValFunValue _ ->
+                                          "Shell object method (an omake function)"
+                                     | _ ->
+                                          "Shell object method"
+                                 in
+                                    ValData (arg ^ " is a " ^ kind) :: res
+                            | _ ->
+                                 res
+                     with
+                        Not_found ->
+                           res
+                  in
+                     concat_array res
+             | args ->
+                  raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+            end
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun{rehash}
+ *
+ * \begin{verbatim}
+ *     rehash()
+ * \end{verbatim}
+ *
+ * The \verb+rehash+ function resets all search paths.
+ * \end{doc}
+ *)
+let rehash venv pos loc args =
+   let cache = venv_cache venv in
+      Omake_cache.rehash cache;
+      ValNone
+
+(*
+ * \begin{doc}
+ * \fun{exists-in-path}
+ *
+ * \begin{verbatim}
+ *    $(exists-in-path files) : String
+ *       files : String Sequence
+ * \end{verbatim}
+ *
+ * The \verb+exists-in-path+ function tests whether all executables
+ * are present in the current search path.
+ * \end{doc}
+ *)
+let exists_in_path venv pos loc args =
+   let pos = string_pos "exists-in-path" pos in
+      match args with
+         [arg] ->
+            let args = strings_of_value venv pos arg in
+            let test =
+               List.for_all (fun s ->
+                     try ignore (Lm_filename_util.which s); true with
+                        Failure _
+                      | Not_found ->
+                           false) args
+            in
+               if test then
+                  val_true
+               else
+                  val_false
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun{digest}
+ *
+ * \begin{verbatim}
+ *      $(digest files) : String Array
+ *         file : File Array
+ *      raises RuntimeException
+ *
+ *      $(digest-optional files) : String Array
+ *         file : File Array
+ * \end{verbatim}
+ *
+ * The \verb+digest+ and \verb+digest-optional+ functions compute MD5 digests
+ * of files.  The \verb+digest+ function raises an exception if a file
+ * does no exist.  The \verb+digest-optional+ returns \verb+false+ if a
+ * file does no exist.   MD5 digests are cached.
+ * \end{doc}
+ *)
+let digest_aux fail venv pos loc args =
+   let pos = string_pos "digest" pos in
+      match args with
+         [arg] ->
+            let cache = venv_cache venv in
+            let values = values_of_value venv pos arg in
+            let values =
+               List.map (fun v ->
+                     match node_value_of_value venv pos v with
+                        ValNode node ->
+                           (match Omake_cache.stat cache node with
+                               Some digest ->
+                                  ValData (Lm_string_util.hexify digest)
+                             | None ->
+                                  if fail then
+                                     raise (OmakeException (loc_pos loc pos, StringNodeError ("file does not exist", node)))
+                                  else
+                                     val_false)
+                      | _ ->
+                           if fail then
+                              raise (OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
+                           else
+                              val_false) values
+            in
+               concat_array values
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+let digest = digest_aux true
+let digest_optional = digest_aux false
+
+(*
+ * \begin{doc}
+ * \fun{find-in-path}
+ *
+ * \begin{verbatim}
+ *     $(find-in-path path, files) : File Array
+ *        path : Dir Array
+ *        files : String Array
+ *     raises RuntimeException
+ *
+ *     $(find-in-path-optional path, files) : File Array
+ * \end{verbatim}
+ *
+ * The \verb+find-in-path+ function searches for the files in a search
+ * path.  Only the tail of the filename is significant.  The \verb+find-in-path+
+ * function raises an exception if the file can't be found.
+ * The \verb+find-in-path-optional+ function silently removes
+ * files that can't be found.
+ * \end{doc}
+ *)
+let search_path_aux fail venv pos loc args =
+   let pos = string_pos "search-path" pos in
+      match args with
+         [dirs; arg] ->
+            (* List the path *)
+            let cache = venv_cache venv in
+            let path = values_of_value venv pos dirs in
+            let path = Omake_eval.path_of_values venv pos path "." in
+            let listing = Omake_cache.ls_path cache path in
+
+            (* Find each file *)
+            let files = strings_of_value venv pos arg in
+            let files =
+               List.fold_left (fun files s ->
+                     let s = Filename.basename s in
+                        try
+                           let file =
+                              match Omake_cache.listing_find cache listing s with
+                                 DirEntry dir ->
+                                    ValDir dir
+                               | NodeEntry node ->
+                                    ValNode node
+                           in
+                              file :: files
+                        with
+                           Not_found ->
+                              if fail then
+                                 raise (OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
+                              else
+                                 files) [] files
+            in
+               concat_array (List.rev files)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let find_in_path = search_path_aux true
+let find_in_path_optional = search_path_aux false
+
+(*
+ * \begin{doc}
+ * \fun{digest-path}
+ *
+ * \begin{verbatim}
+ *     $(digest-in-path path, files) : String/File Array
+ *        path : Dir Array
+ *        files : String Array
+ *     raises RuntimeException
+ *
+ *     $(digest-in-path-optional path, files) : String/File Array
+ * \end{verbatim}
+ *
+ * The \verb+digest-in-path+ function searches for the files in a search
+ * path and returns the file and digest for each file.  Only the tail of the
+ * filename is significant.  The \verb+digest-in-path+ function raises an exception
+ * if the file can't be found.  The \verb+digest-in-path-optional+
+ * function silently removes elements that can't be found.
+ * \end{doc}
+ *)
+let digest_path_aux fail venv pos loc args =
+   let pos = string_pos "digest-path" pos in
+      match args with
+         [dirs; arg] ->
+            (* List the path *)
+            let cache = venv_cache venv in
+            let path = values_of_value venv pos dirs in
+            let path = Omake_eval.path_of_values venv pos path "." in
+            let listing = Omake_cache.ls_path cache path in
+
+            (* Find each file *)
+            let files = strings_of_value venv pos arg in
+            let files =
+               List.fold_left (fun files s ->
+                     let s = Filename.basename s in
+                        try
+                           let file =
+                              match Omake_cache.listing_find cache listing s with
+                                 DirEntry dir ->
+                                    ValArray [ValDir dir; ValData "directory"]
+                               | NodeEntry node ->
+                                    match Omake_cache.stat cache node with
+                                       Some digest ->
+                                          ValArray [ValNode node; ValData (Lm_string_util.hexify digest)]
+                                     | None ->
+                                          raise Not_found
+                           in
+                              file :: files
+                        with
+                           Not_found ->
+                              if fail then
+                                 raise (OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
+                              else
+                                 files) [] files
+            in
+               concat_array (List.rev files)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let digest_in_path = digest_path_aux true
+let digest_in_path_optional = digest_path_aux false
+
+(*
  * Check if a file exists.
  *
  * \begin{doc}
+ * \section{File stats}
  * \fun{file-exists}
  * \fun{target-exists}
  * \fun{target-is-proper}
@@ -752,7 +941,7 @@ let filter_proper_targets venv pos loc args =
  * \item The sorter will fail if the dependencies are cyclic.
  * \end{itemize}
  *
- * \paragraph{sort rule}
+ * \subsubsection{sort rule}
  *
  * It is possible to further constrain the sorter through the use of
  * sort rules.  A sort rule is declared in two steps.  The
@@ -857,6 +1046,7 @@ let sort_val_nodes nodes =
 
 (*
  * \begin{doc}
+ * \section{Globbing and file listings}
  * \fun{glob}
  *
  * \begin{verbatim}
@@ -1150,11 +1340,12 @@ let mode_of_string mode s =
             mode_of_symbolic_string mode s
 
 (************************************************************************
- +* Directories.
+ * Directories.
  *)
 
 (*
  * \begin{doc}
+ * \section{Filesystem operations}
  * \fun{mkdir}
  *
  * \begin{verbatim}
@@ -2130,192 +2321,7 @@ let umask venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{digest}
- *
- * \begin{verbatim}
- *      $(digest files) : String Array
- *         file : File Array
- *      raises RuntimeException
- *
- *      $(digest-optional files) : String Array
- *         file : File Array
- * \end{verbatim}
- *
- * The \verb+digest+ and \verb+digest-optional+ functions compute MD5 digests
- * of files.  The \verb+digest+ function raises an exception if a file
- * does no exist.  The \verb+digest-optional+ returns \verb+false+ if a
- * file does no exist.   MD5 digests are cached.
- * \end{doc}
- *)
-let digest_aux fail venv pos loc args =
-   let pos = string_pos "digest" pos in
-      match args with
-         [arg] ->
-            let cache = venv_cache venv in
-            let values = values_of_value venv pos arg in
-            let values =
-               List.map (fun v ->
-                     match node_value_of_value venv pos v with
-                        ValNode node ->
-                           (match Omake_cache.stat cache node with
-                               Some digest ->
-                                  ValData (Lm_string_util.hexify digest)
-                             | None ->
-                                  if fail then
-                                     raise (OmakeException (loc_pos loc pos, StringNodeError ("file does not exist", node)))
-                                  else
-                                     val_false)
-                      | _ ->
-                           if fail then
-                              raise (OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
-                           else
-                              val_false) values
-            in
-               concat_array values
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-
-let digest = digest_aux true
-let digest_optional = digest_aux false
-
-(*
- * \begin{doc}
- * \fun{find-in-path}
- *
- * \begin{verbatim}
- *     $(find-in-path path, files) : File Array
- *        path : Dir Array
- *        files : String Array
- *     raises RuntimeException
- *
- *     $(find-in-path-optional path, files) : File Array
- * \end{verbatim}
- *
- * The \verb+find-in-path+ function searches for the files in a search
- * path.  Only the tail of the filename is significant.  The \verb+find-in-path+
- * function raises an exception if the file can't be found.
- * The \verb+find-in-path-optional+ function silently removes
- * files that can't be found.
- * \end{doc}
- *)
-let search_path_aux fail venv pos loc args =
-   let pos = string_pos "search-path" pos in
-      match args with
-         [dirs; arg] ->
-            (* List the path *)
-            let cache = venv_cache venv in
-            let path = values_of_value venv pos dirs in
-            let path = Omake_eval.path_of_values venv pos path "." in
-            let listing = Omake_cache.ls_path cache path in
-
-            (* Find each file *)
-            let files = strings_of_value venv pos arg in
-            let files =
-               List.fold_left (fun files s ->
-                     let s = Filename.basename s in
-                        try
-                           let file =
-                              match Omake_cache.listing_find cache listing s with
-                                 DirEntry dir ->
-                                    ValDir dir
-                               | NodeEntry node ->
-                                    ValNode node
-                           in
-                              file :: files
-                        with
-                           Not_found ->
-                              if fail then
-                                 raise (OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
-                              else
-                                 files) [] files
-            in
-               concat_array (List.rev files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-
-let find_in_path = search_path_aux true
-let find_in_path_optional = search_path_aux false
-
-(*
- * \begin{doc}
- * \fun{digest-path}
- *
- * \begin{verbatim}
- *     $(digest-in-path path, files) : String/File Array
- *        path : Dir Array
- *        files : String Array
- *     raises RuntimeException
- *
- *     $(digest-in-path-optional path, files) : String/File Array
- * \end{verbatim}
- *
- * The \verb+digest-in-path+ function searches for the files in a search
- * path and returns the file and digest for each file.  Only the tail of the
- * filename is significant.  The \verb+digest-in-path+ function raises an exception
- * if the file can't be found.  The \verb+digest-in-path-optional+
- * function silently removes elements that can't be found.
- * \end{doc}
- *)
-let digest_path_aux fail venv pos loc args =
-   let pos = string_pos "digest-path" pos in
-      match args with
-         [dirs; arg] ->
-            (* List the path *)
-            let cache = venv_cache venv in
-            let path = values_of_value venv pos dirs in
-            let path = Omake_eval.path_of_values venv pos path "." in
-            let listing = Omake_cache.ls_path cache path in
-
-            (* Find each file *)
-            let files = strings_of_value venv pos arg in
-            let files =
-               List.fold_left (fun files s ->
-                     let s = Filename.basename s in
-                        try
-                           let file =
-                              match Omake_cache.listing_find cache listing s with
-                                 DirEntry dir ->
-                                    ValArray [ValDir dir; ValData "directory"]
-                               | NodeEntry node ->
-                                    match Omake_cache.stat cache node with
-                                       Some digest ->
-                                          ValArray [ValNode node; ValData (Lm_string_util.hexify digest)]
-                                     | None ->
-                                          raise Not_found
-                           in
-                              file :: files
-                        with
-                           Not_found ->
-                              if fail then
-                                 raise (OmakeException (loc_pos loc pos, StringStringError ("file not found", s)))
-                              else
-                                 files) [] files
-            in
-               concat_array (List.rev files)
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
-
-let digest_in_path = digest_path_aux true
-let digest_in_path_optional = digest_path_aux false
-
-(*
- * \begin{doc}
- * \fun{rehash}
- *
- * \begin{verbatim}
- *     rehash()
- * \end{verbatim}
- *
- * The \verb+rehash+ function resets all search paths.
- * \end{doc}
- *)
-let rehash venv pos loc args =
-   let cache = venv_cache venv in
-      Omake_cache.rehash cache;
-      ValNone
-
-(*
- * \begin{doc}
+ * \section{vmount}
  * \fun{vmount}
  *
  * \begin{verbatim}

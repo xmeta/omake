@@ -2996,8 +2996,7 @@ following syntax is used.
 6.3  section
 *=*=*=*=*=*=
 
-   
-  
+
 
 section
 -------
@@ -3035,8 +3034,7 @@ world\n"); }"")
 6.4  section rule
 *=*=*=*=*=*=*=*=*
 
-   
-  
+
 
 section rule
 ------------
@@ -3681,7 +3679,6 @@ or
       Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
 >>
   
-  
 
 if
 --
@@ -3789,7 +3786,6 @@ function uses regular expression matching.
         println(The string $(FILE) has no suffix)
 >>
   
-  
 
 try
 ---
@@ -3825,8 +3821,7 @@ returning a value `v', without encountering another `when' clause, then
 the expressions in the `finally-body' are evaluated and the value `v' is
 returned as the result.
   There can be any number of `catch' clauses; the `finally' clause is
-optional. 
-  
+optional.
 
 raise
 -----
@@ -5608,9 +5603,13 @@ system, the man page explains more. Here are some examples.
       # boo is newer than foo, and foo is empty
       osh> test(\( boo -nt foo \) -a -e foo)
       - : true
-  \fun{find}
+>>
   
-  \begin{verbatim}
+
+find
+----
+  
+<<
      find(exp) : Node Array
         exp : String Sequence
 >>
@@ -5632,9 +5631,22 @@ additions.
  - `-name' string : The current file matches the regular expression. 
   
   The `find' function performs a recursive scan of all subdirectories.
-The following call is run from the root of the `omake' source directory.
+The following call is being run from the root of the `omake' source
+directory.
 <<
       osh> find(. -name fo*)
+      - : <array
+              /home/jyh/.../omake/mk/.svn/format
+              /home/jyh/.../omake/RPM/.svn/format
+              ...
+             
+/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+>>
+  
+  Another example, listing only those files that are normal files or
+symbolic links.
+<<
+      osh> find(. -name fo* -a \( -f {} -o -L {} \))
       - : <array
               /home/jyh/.../omake/mk/.svn/format
               /home/jyh/.../omake/RPM/.svn/format
@@ -9517,6 +9529,7 @@ Index
  - filter-out, 7.3 
  - filter-proper-targets, 8 
  - filter-targets, 8 
+ - find, 8 
  - find-in-path, 8 
  - float, 7.4 
  - flush, 8.1.1 
@@ -9971,6 +9984,7 @@ Index of functions and special forms
  - filter-out, 7.3 
  - filter-proper-targets, 8 
  - filter-targets, 8 
+ - find, 8 
  - find-in-path, 8 
  - float, 7.4 
  - flush, 8.1.1 

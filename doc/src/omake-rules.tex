@@ -106,7 +106,7 @@ For example, the following rule applies only to the files \verb+a.o+ and \verb+b
 \end{verbatim}
 
 \section{section}
-\form{section}
+\formref{section}
 
 Frequently, the commands in a rule body are expressions to be evaluated by the shell.  \Prog{omake}
 also allows expressions to be evaluated by \Prog{omake} itself.
@@ -122,9 +122,9 @@ the \Prog{omake} IO functions to produce the target \verb+hello.c+.
             close($(FP))
 \end{verbatim}
 
-This example uses the quotation \verb+$""...""+ to quote the text being printed.  These quotes are
-not included in the output file.  The \verb+fopen+, \verb+fprintln+, and \verb+close+ functions
-perform file IO as discussed in the IO section.
+This example uses the quotation \verb+$""...""+~\ref{section:quotes} to quote the text being
+printed.  These quotes are not included in the output file.  The \verb+fopen+, \verb+fprintln+, and
+\verb+close+ functions perform file IO as discussed in the IO section.
 
 In addition, commands that are function calls, or special expressions, are interpreted correctly.
 Since the \verb+fprintln+ function can take a file directly, the above rule can be abbreviated as
@@ -136,7 +136,7 @@ follows.
 \end{verbatim}
 
 \section{section rule}
-\form{section rule}
+\formref{section rule}
 
 Rules can also be computed using the \verb+section rule+ form, where a rule body is expected instead
 of an expression.  In the following rule, the file \verb+a.c+ is copied onto the \verb+hello.c+ file
@@ -338,11 +338,7 @@ The explicit \verb+:scanner:+ dependencies reduce the chances of scanner mis-spe
 large complicated projects it might be a good idea to set \verb+SCANNER_MODE+ to \verb+error+ and
 use only the named \verb+.SCANNER+ rules and explicit \verb+:scanner:+ specifications.
 
-\section{Other special targets}
-
-There are several other special targets that define special actions to be take by \Prog{omake}.
-
-\subsection{.DEFAULT}
+\section{.DEFAULT}
 \targetref{.DEFAULT}
 
 The \verb+.DEFAULT+ target specifies a target to be built by default
@@ -353,8 +349,8 @@ instructs \Prog{omake} to build the program \verb+hello+ by default
    .DEFAULT: hello
 \end{verbatim}
 
-\subsection{.SUBDIRS}
-\label{target:.SUBDIRS}
+\section{.SUBDIRS}
+\targetref{.SUBDIRS}
 
 The \verb+.SUBDIRS+ target is used to specify a set of subdirectories
 that are part of the project.  Each subdirectory should have its own
@@ -388,7 +384,7 @@ Furthermore, if one exists, it is ignored.  The following includes the file if i
        .DEFAULT: lib.a
 \end{verbatim}
 
-\subsection{.INCLUDE}
+\section{.INCLUDE}
 \targetref{.INCLUDE}
 
 The \verb+.INCLUDE+ target is like the \verb+include+ directive, but it specifies a rule to build
@@ -433,8 +429,8 @@ overwrite it), you should make the rule evaluation conditional on whether the ta
           cp config.defaults config
 \end{verbatim}
 
-\subsection{.PHONY}
-\label{target:.PHONY}
+\section{.PHONY}
+\targetref{.PHONY}
 
 A ``phony'' target is a target that is not a real file, but exists to collect a set of dependencies.
 Phony targets are specified with the \verb+.PHONY+ rule.  In the following example, the
@@ -511,7 +507,7 @@ In this case, \verb+hello_lib.o+ is also mentioned as an explicit target, in a s
 \verb+CFLAGS=-g -DLIBRARY+.  Since no rule body is specified, it is compiled using the usual
 implicit rule for building \verb+.o+ files (in a context where \verb+CFLAGS=-g -DLIBRARY+).
 
-\section{Scoping of implicit rules}
+\subsection{Scoping of implicit rules}
 
 Implicit rules (rules containing wildcard patterns) are \emph{not} global, they follow the normal
 scoping convention.  This allows different parts of a project to have different sets of implicit
@@ -539,7 +535,7 @@ building \verb+%.o+ files.  The implicit rule adds the \verb+-DLIBRARY+ option. 
 is defined only for the target \verb+hello_lib.o+; the target \verb+hello_code.o+ is built as
 normal.
 
-\section{Scoping of .SCANNER rules}
+\subsection{Scoping of .SCANNER rules}
 
 Scanner rules are scoped the same way as normal rules.  If the \verb+.SCANNER+ rule is explicit
 (containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
@@ -575,7 +571,7 @@ with the \verb+-MM+ flag to compute dependencies.  For the target \verb+hello_li
 is called with \verb+CFLAGS=-g -DLIBRARY+, and for \verb+hello_code.o+ it is called with
 \verb+CFLAGS=-g -O3+.
 
-\section{Scoping for .PHONY targets}
+\subsection{Scoping for .PHONY targets}
 
 Phony targets (targets that do not correspond to files) are defined with a \verb+.PHONY:+ rule.
 Phony targets are scoped as usual.  The following illustrates a common mistake, where the
