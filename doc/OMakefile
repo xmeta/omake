@@ -126,31 +126,32 @@ TEX_FILES = $(file $(addsuffixes .tex, $(TEX_FILES)))
 #
 # HTML files
 #
+HEVEA = hevea
+HACHA = hacha
 HEVEA_OK = false
 static. =
-    HEVEA_OK = $(CheckProg hevea)
+    HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
+
+HEVEA_OPTIONS = -I $(dir src) -I $(dir tex)
 
 if $(HEVEA_OK)
-    HEVEA = hevea -I ../src -I ../tex
-    HACHA = hacha
-
     .SUBDIRS: html
         omake-doc.html: $(TEX_FILES)
-            $(HEVEA) omake-doc
-            $(HEVEA) omake-doc
+            $(HEVEA) $(HEVEA_OPTIONS) omake-doc
+            $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
-        index.html: omake-doc.html
-            $(HACHA) $<
+        omake-toc.html: omake-doc.html
+            $(HACHA) -o $@ $<
 
     .SUBDIRS: txt
         omake-doc.txt: $(TEX_FILES)
-            $(HEVEA) -text omake-doc
-            $(HEVEA) -text omake-doc
+            $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
+            $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
 
     .SUBDIRS: info
         omake-doc.info: $(TEX_FILES)
-            $(HEVEA) -info omake-doc
-            $(HEVEA) -info omake-doc
+            $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
+            $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
 
     .SUBDIRS: ps
         TEXINPUTS[] += ../src ../tex
@@ -165,7 +166,7 @@ if $(HEVEA_OK)
 #
 # Install man pages too
 #
-html: html/omake-doc.html html/index.html
+html: html/omake-doc.html html/omake-toc.html
 tex: ps/omake-doc.ps ps/omake-doc.pdf
 txt: txt/omake-doc.txt
 info: info/omake-doc.info
