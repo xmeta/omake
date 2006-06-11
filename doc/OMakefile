@@ -133,6 +133,7 @@ static. =
     HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
 
 HEVEA_OPTIONS = -I $(dir src) -I $(dir tex)
+HACHA_OPTIONS = -tocter
 
 if $(HEVEA_OK)
     .SUBDIRS: html
@@ -141,7 +142,7 @@ if $(HEVEA_OK)
             $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
         omake-toc.html: omake-doc.html
-            $(HACHA) -o $@ $<
+            $(HACHA) $(HACHA_OPTIONS) -o $@ $<
 
     .SUBDIRS: txt
         omake-doc.txt: $(TEX_FILES)
