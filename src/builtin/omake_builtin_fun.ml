@@ -49,7 +49,7 @@ open Pos
  * \section{Functions}
  *
  * \begin{doc}
- * \subsection{fun}
+ * \fun{fun}
  *
  * The \verb+fun+ form introduces anonymous functions.
  *
@@ -107,7 +107,7 @@ let fun_fun venv pos loc args =
  * Function application.
  *
  * \begin{doc}
- * \subsection{apply}
+ * \fun{apply}
  *
  * The \verb+apply+ operator is used to apply a function.
  *
@@ -143,7 +143,7 @@ let apply_fun venv pos loc args =
  * Function application.
  *
  * \begin{doc}
- * \subsection{applya}
+ * \fun{applya}
  *
  * The \verb+applya+ operator is used to apply a function to
  * an array of arguments.

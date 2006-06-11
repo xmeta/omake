@@ -33,32 +33,30 @@ open configure/Configure
 # \subsection{Variables for OCaml programs}
 #
 # The following variables can be redefined in your project.
-# \begin{description}
-# \item[USE\_OCAMLFIND] Whether to use the \verb+ocamlfind+ utility (default \verb+false\+)
-# \item[OCAMLC] The OCaml bytecode compiler (default \verb+ocamlc.opt+ if it exists
+# \varlabel{USE_OCAMLFIND}{USE\_OCAMLFIND} Whether to use the \verb+ocamlfind+ utility (default \verb+false\+)
+# \var{OCAMLC} The OCaml bytecode compiler (default \verb+ocamlc.opt+ if it exists
 #    and \verb+USE_OCAMLFIND+ is not set, otherwise \verb+ocamlc+).
-# \item[OCAMLOPT] The OCaml native-code compiler (default \verb+ocamlopt.opt+ if it
+# \var{OCAMLOPT} The OCaml native-code compiler (default \verb+ocamlopt.opt+ if it
 #    exists and \verb+USE_OCAMLFIND+ is not set, otherwise \verb+ocamlopt+).
-# \item[CAMLP4] The \verb+camlp4+ preprocessor (default \verb+camlp4+).
-# \item[OCAMLLEX] The OCaml lexer generator (default \verb+ocamllex+).
-# \item[OCAMLLEXFLAGS] The flags to pass to \verb+ocamllex+ (default \verb+-q+).
-# \item[OCAMLYACC] The OCaml parser generator (default \verb+ocamlyacc+).
-# \item[OCAMLDEP] The OCaml dependency analyzer (default \verb+ocamldep+).
-# \item[OCAMLMKTOP] The OCaml toploop compiler (default \verb+ocamlmktop+).
-# \item[OCAMLLINK] The OCaml bytecode linker (default \verb+$(OCAMLC)+).
-# \item[OCAMLOPTLINK] The OCaml native-code linker (default \verb+$(OCAMLOPT)+).
-# \item[OCAMLINCLUDES] Search path to pass to the OCaml compilers (default \verb+.+).
+# \var{CAMLP4} The \verb+camlp4+ preprocessor (default \verb+camlp4+).
+# \var{OCAMLLEX} The OCaml lexer generator (default \verb+ocamllex+).
+# \var{OCAMLLEXFLAGS} The flags to pass to \verb+ocamllex+ (default \verb+-q+).
+# \var{OCAMLYACC} The OCaml parser generator (default \verb+ocamlyacc+).
+# \var{OCAMLDEP} The OCaml dependency analyzer (default \verb+ocamldep+).
+# \var{OCAMLMKTOP} The OCaml toploop compiler (default \verb+ocamlmktop+).
+# \var{OCAMLLINK} The OCaml bytecode linker (default \verb+$(OCAMLC)+).
+# \var{OCAMLOPTLINK} The OCaml native-code linker (default \verb+$(OCAMLOPT)+).
+# \var{OCAMLINCLUDES} Search path to pass to the OCaml compilers (default \verb+.+).
 #    The search path with the \verb+-I+ prefix is defined by the \verb+PREFIXED_OCAMLINCLUDES+
 #    variable.
-# \item[OCAMLFIND] The \verb+ocamlfind+ utility (default \verb+ocamlfind+ if
+# \var{OCAMLFIND} The \verb+ocamlfind+ utility (default \verb+ocamlfind+ if
 #     \verb+USE_OCAMLFIND+ is set, otherwise empty).
-# \item[OCAMLFINDFLAGS] The flags to pass to \verb+ocamlfind+ (default empty, \verb+USE_OCAMLFIND+ must be set).
-# \item[OCAMLPACKS] Package names to pass to \verb+ocamlfind+ (\verb+USE_OCAMLFIND+ must be set).
-# \item[BYTE\_ENABLED] Flag indicating whether to use the bytecode compiler (default \verb+true+, when no \verb+ocamlopt+ found, \verb+false+ otherwise).
-# \item[NATIVE\_ENABLED] Flag indicating whether to use the native-code compiler (default \verb+true+, when ocamlopt is found, \verb+false+ otherwise).
+# \var{OCAMLFINDFLAGS} The flags to pass to \verb+ocamlfind+ (default empty, \verb+USE_OCAMLFIND+ must be set).
+# \var{OCAMLPACKS} Package names to pass to \verb+ocamlfind+ (\verb+USE_OCAMLFIND+ must be set).
+# \varlabel{BYTE_ENABLED}{BYTE\_ENABLED} Flag indicating whether to use the bytecode compiler (default \verb+true+, when no \verb+ocamlopt+ found, \verb+false+ otherwise).
+# \varlabel{NATIVE_ENABLED}{NATIVE\_ENABLED} Flag indicating whether to use the native-code compiler (default \verb+true+, when ocamlopt is found, \verb+false+ otherwise).
 #    Both \verb+BYTE_ENABLED+ and \verb+NATIVE_ENABLED+ can be set to true;
 #    at least one should be set to true.
-# \end{description}
 # \end{doc}
 #
 static. =
@@ -126,17 +124,14 @@ BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 #
 # The following variables specify additional options to be passed to
 # the OCaml tools.
-# \begin{description}
-# \item[OCAMLDEPFLAGS] Flags to pass to \verb+OCAMLDEP+.
-# \item[OCAMLPPFLAGS] Flags to pass to \verb+CAMLP4+.
-# \item[OCAMLCFLAGS] Flags to pass to the byte-code compiler (default \verb+-g+).
-# \item[OCAMLOPTFLAGS] Flags to pass to the native-code compiler (default empty).
-# \item[OCAMLFLAGS] Flags to pass to either compiler (default \verb+-warn-error A+).
-# \item[OCAMLINCLUDES] Include path (default \verb+.+).
-# \item[OCAML\_BYTE\_LINK\_FLAGS] Flags to pass to the byte-code linker (default empty).
-# \item[OCAML\_NATIVE\_LINK\_FLAGS] Flags to pass to the native-code linker (default empty).
-# \item[OCAML\_LINK\_FLAGS] Flags to pass to either linker.
-# \end{description}
+# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+.
+# \var{OCAMLPPFLAGS} Flags to pass to \verb+CAMLP4+.
+# \var{OCAMLCFLAGS} Flags to pass to the byte-code compiler (default \verb+-g+).
+# \var{OCAMLOPTFLAGS} Flags to pass to the native-code compiler (default empty).
+# \var{OCAMLFLAGS} Flags to pass to either compiler (default \verb+-warn-error A+).
+# \varlabel{OCAML_BYTE_LINK_FLAGS}{OCAML\_BYTE\_LINK\_FLAGS} Flags to pass to the byte-code linker (default empty).
+# \varlabel{OCAML_NATIVE_LINK_FLAGS}{OCAML\_NATIVE\_LINK\_FLAGS} Flags to pass to the native-code linker (default empty).
+# \varlabel{OCAML_LINK_FLAGS}{OCAML\_LINK\_FLAGS} Flags to pass to either linker.
 # \end{doc}
 #
 OCAMLDEPFLAGS = $`(if $(NATIVE_ENABLED), -native, $(EMPTY))
@@ -161,15 +156,13 @@ OCAML_NATIVE_LINK_FLAGS =
 #
 # The following variables are used during linking.
 #
-# \begin{description}
-# \item[OCAML\_LIBS] Libraries to pass to the linker.  These libraries become dependencies
+# \varlabel{OCAML_LIBS}{OCAML\_LIBS} Libraries to pass to the linker.  These libraries become dependencies
 #    of the link step.
-# \item[OCAML\_OTHER\_LIBS] Additional libraries to pass to the linker.  These libraries are
+# \varlabel{OCAML_OTHER_LIBS}{OCAML\_OTHER\_LIBS} Additional libraries to pass to the linker.  These libraries are
 #    \emph{not} included as dependencies to the link step.  Typical use is for the OCaml
 #    standard libraries like \verb+unix+ or \verb+str+.
-# \item[OCAML\_CLIBS] C libraries to pass to the linker.
-# \item[OCAML\_LIB\_FLAGS] Extra flags for the library.
-# \end{description}
+# \varlabel{OCAML_CLIBS}{OCAML\_CLIBS} C libraries to pass to the linker.
+# \varlabel{OCAML_LIB_FLAGS}{OCAML\_LIB\_FLAGS} Extra flags for the library.
 # \end{doc}
 #
 OCAML_LIBS =
@@ -307,7 +300,8 @@ OCAML_LIB_FLAGS =
 # Make sure generated files are built before scanning
 #
 # \begin{doc}
-# \subsection{OCamlGeneratedFiles, LocalOCamlGeneratedFiles}
+# \fun{OCamlGeneratedFiles}
+# \fun{LocalOCamlGeneratedFiles}
 # \begin{verbatim}
 # OCamlGeneratedFiles(files)
 # LocalOCamlGeneratedFiles(files)
@@ -383,7 +377,7 @@ OCamlLinkSort(nodes) =
 # Generic rule to build an ML library
 #
 # \begin{doc}
-# \subsection{OCamlLibrary}
+# \fun{OCamlLibrary}
 #
 # The \verb+OCamlLibrary+ function builds an OCaml library.
 #
@@ -391,14 +385,12 @@ OCamlLinkSort(nodes) =
 #
 # The \verb+<libname>+ and \verb+<files>+ are listed \emph{without} suffixes.
 #
-# Additional variables used by the function:
-# \begin{description}
-# \item[ABORT\_ON\_DEPENDENCY\_ERRORS] The linker requires that the files to be
+# \varlabel{ABORT_ON_DEPENDENCY_ERRORS}{ABORT\_ON\_DEPENDENCY\_ERRORS}
+#   The linker requires that the files to be
 #   listed in dependency order.  If this variable is true, the order of
 #   the files is determined by the command line, but \Prog{omake} will
 #   abort with an error message if the order is illegal.  Otherwise,
 #   the files are sorted automatically.
-# \end{description}
 #
 # This function returns the list of all the targets that it defines the rules
 # for (including the \verb+$(name)$(EXT_LIB)+ file when \verb+NATIVE_ENABLED+ is set).
@@ -440,7 +432,7 @@ OCamlLibrary(name, files) =
 # Generic rule to build an ML library
 #
 # \begin{doc}
-# \subsection{OCamlPackage}
+# \fun{OCamlPackage}
 #
 # The \verb+OCamlPackage+ function builds an OCaml package.
 #
@@ -510,7 +502,7 @@ INSTALL_INTERFACES = false
 # Install the library
 #
 # \begin{doc}
-# \subsection{OCamlLibraryCopy}
+# \fun{OCamlLibraryCopy}
 #
 # The \verb+OCamlLibraryCopy+ function copies a library to an install location.
 #
@@ -581,7 +573,7 @@ OCamlLibraryCopy(tag, lib, name, ifiles) =
 # We often use them together
 #
 # \begin{doc}
-# \subsection{OCamlLibraryInstall}
+# \fun{OCamlLibraryInstall}
 #
 # The \verb+OCamlLibraryInstall+ function builds a library
 # and copies it to an install location in one step.
@@ -607,7 +599,7 @@ OCamlLibraryInstall(tag, lib, name, files) =
 #    OCAML_LINK_FLAGS: general additional options (usually the -cclib options)
 #
 # \begin{doc}
-# \subsection{OCamlProgram}
+# \fun{OCamlProgram}
 #
 # The \verb+OCamlProgram+ function builds an OCaml program. It returns the array with all
 # the targets for which it have defined the rules (\verb+$(name)$(EXE)+ and \verb+$(name).run+
@@ -618,14 +610,14 @@ OCamlLibraryInstall(tag, lib, name, files) =
 #
 # Additional variables used:
 # \begin{description}
-# \item[OCAML\_LIBS] Additional libraries passed to the linker, without suffix.  These files
+# \item[OCAML\_LIBS~\ref{var:OCAML_LIBS}] Additional libraries passed to the linker, without suffix.  These files
 #    become dependencies of the target program.
-# \item[OCAML\_OTHER\_LIBS] Additional libraries passed to the linker, without suffix.  These
+# \item[OCAML\_OTHER\_LIBS~\ref{var:OCAML_OTHER_LIBS}] Additional libraries passed to the linker, without suffix.  These
 #    files do \emph{not} become dependencies of the target program.
-# \item[OCAML\_CLIBS] C libraries to pass to the linker.
-# \item[OCAML\_BYTE\_LINK\_FLAGS] Flags to pass to the bytecode linker.
-# \item[OCAML\_NATIVE\_LINK\_FLAGS] Flags to pass to the native code linker.
-# \item[OCAML\_LINK\_FLAGS] Flags to pass to both linkers.
+# \item[OCAML\_CLIBS~\ref{var:OCAML_CLIBS}] C libraries to pass to the linker.
+# \item[OCAML\_BYTE\_LINK\_FLAGS~\ref{var:OCAML_BYTE_LINK_FLAGS}] Flags to pass to the bytecode linker.
+# \item[OCAML\_NATIVE\_LINK\_FLAGS~\ref{var:OCAML_NATIVE_LINK_FLAGS}] Flags to pass to the native code linker.
+# \item[OCAML\_LINK\_FLAGS~\ref{var:OCAML_LINK_FLAGS}] Flags to pass to both linkers.
 # \end{description}
 # \end{doc}
 #
@@ -682,7 +674,7 @@ OCamlProgram(name, files) =
 # Copy to $(BIN) directory
 #
 # \begin{doc}
-# \subsection{OCamlProgramCopy}
+# \fun{OCamlProgramCopy}
 #
 # The \verb+OCamlProgramCopy+ function copies an OCaml program to an install location.
 #
@@ -690,7 +682,7 @@ OCamlProgram(name, files) =
 #
 # Additional variables used:
 # \begin{description}
-# \item[NATIVE\_ENABLED]  If \verb+NATIVE_ENABLED+ is set, the native-code executable
+# \item[NATIVE\_ENABLED]  If \verb+NATIVE_ENABLED+~\ref{var:NATIVE_ENABLED} is set, the native-code executable
 #    is copied; otherwise the byte-code executable is copied.
 # \end{description}
 # \end{doc}
@@ -720,7 +712,7 @@ OCamlProgramCopy(tag, bin, name) =
 # We often use them together
 #
 # \begin{doc}
-# \subsection{OCamlProgramInstall}
+# \fun{OCamlProgramInstall}
 #
 # The \verb+OCamlProgramInstall+ function builds a programs and copies it to
 # an install location in one step.

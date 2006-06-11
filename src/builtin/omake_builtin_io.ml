@@ -56,8 +56,7 @@ open Pos
  *
  * The following variables define the standard channels.
  *
- * \begin{description}
- * \item[stdin]
+ * \var{stdin}
  *
  * \begin{verbatim}
  * stdin : InChannel
@@ -65,20 +64,19 @@ open Pos
  *
  * The standard input channel, open for reading.
  *
- * \item[stdout]
+ * \var{stdout}
  * \begin{verbatim}
  * stdout : OutChannel
  * \end{verbatim}
  *
  * The standard output channel, open for writing.
  *
- * \item[stderr]
+ * \var{stderr}
  * \begin{verbatim}
  * stderr : OutChannel
  * \end{verbatim}
  *
  * The standard error channel, open for writing.
- * \end{description}
  * \end{doc}
  *)
 let builtin_vars =
@@ -91,7 +89,7 @@ let builtin_vars =
  * Open a file.
  *
  * \begin{doc}
- * \subsection{fopen}
+ * \fun{fopen}
  *
  * The \verb+fopen+ function opens a file for reading or writing.
  *
@@ -214,7 +212,7 @@ let fopen venv pos loc args =
  * Closing file descriptors.
  *
  * \begin{doc}
- * \subsection{close}
+ * \fun{close}
  *
  * \begin{verbatim}
  *     $(close channel...)
@@ -242,7 +240,7 @@ let close venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{read}
+ * \fun{read}
  *
  * \begin{verbatim}
  *    $(read channel, amount) : String
@@ -279,7 +277,7 @@ let read venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{write}
+ * \fun{write}
  *
  * \begin{verbatim}
  *    $(write channel, buffer, offset, amount) : String
@@ -347,7 +345,7 @@ let write venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{lseek}
+ * \fun{lseek}
  *
  * \begin{verbatim}
  *     $(lseek channel, offset, whence) : Int
@@ -398,7 +396,7 @@ let lseek venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{rewind}
+ * \fun{rewind}
  *
  * \begin{verbatim}
  *    rewind(channel...)
@@ -429,7 +427,7 @@ let rewind venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{tell}
+ * \fun{tell}
  *
  * \begin{verbatim}
  *     $(tell channel...) : Int...
@@ -462,7 +460,7 @@ let tell venv pos loc args =
  * Flush an output channel.
  *
  * \begin{doc}
- * \subsection{flush}
+ * \fun{flush}
  *
  * \begin{verbatim}
  *    $(flush channel...)
@@ -487,7 +485,7 @@ let flush venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{dup}
+ * \fun{dup}
  *
  * \begin{verbatim}
  *     $(dup channel) : Channel
@@ -519,7 +517,7 @@ let dup venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{dup2}
+ * \fun{dup2}
  *
  * \begin{verbatim}
  *    dup2(channel1, channel2)
@@ -551,7 +549,7 @@ let dup2 venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{set-nonblock}
+ * \fun{set-nonblock}
  *
  * \begin{verbatim}
  *    set-nonblock-mode(mode, channel...)
@@ -591,7 +589,7 @@ let set_nonblock_mode venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{set-close-on-exec-mode}
+ * \fun{set-close-on-exec-mode}
  *
  * \begin{verbatim}
  *    set-close-on-exec-mode(mode, channel...)
@@ -632,7 +630,7 @@ let set_close_on_exec_mode venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{pipe}
+ * \fun{pipe}
  *
  * \begin{verbatim}
  *    $(pipe) : Pipe
@@ -675,7 +673,7 @@ let pipe venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{mkfifo}
+ * \fun{mkfifo}
  *
  * \begin{verbatim}
  *    mkfifo(mode, node...)
@@ -706,7 +704,7 @@ let mkfifo venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{select}
+ * \fun{select}
  *
  * \begin{verbatim}
  *    $(select rfd..., wfd..., wfd..., timeout) : Select
@@ -779,7 +777,7 @@ let select venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{lockf}
+ * \fun{lockf}
  *
  * \begin{verbatim}
  *     lockf(channel, command, len)
@@ -852,7 +850,7 @@ let proto_of_value venv pos arg =
 (*
 (*
  * \begin{doc}
- * \subsection{InetAddr}
+ * \obj{InetAddr}
  *
  * The \verb+InetAddr+ object describes an Internet address.
  * It contains the following fields.
@@ -862,7 +860,7 @@ let proto_of_value venv pos arg =
  * \item[port] \verb+Int+: the port number.
  * \end{description}
  *
- * \subsection{Host}
+ * \obj{Host}
  *
  * A \verb+Host+ object contains the following fields.
  *
@@ -873,7 +871,7 @@ let proto_of_value venv pos arg =
  * \item[addrs] \verb+InetAddr Array+: an array of Internet addresses belonging to the host.
  * \end{description}
  *
- * \subsection{gethostbyname}
+ * \fun{gethostbyname}
  *
  * \begin{verbatim}
  *    $(gethostbyname host...) : Host...
@@ -916,7 +914,7 @@ let gethostbyname venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Protocol}
+ * \obj{Protocol}
  *
  * The \verb+Protocol+ object represents a protocol entry.
  * It has the following fields.
@@ -927,7 +925,7 @@ let gethostbyname venv pos loc args =
  * \item[proto] \verb+Int+: the protocol number.
  * \end{description}
  *
- * \subsection{getprotobyname}
+ * \fun{getprotobyname}
  *
  * \begin{verbatim}
  *    $(getprotobyname name...) : Protocol...
@@ -966,7 +964,7 @@ let getprotobyname venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Service}
+ * \obj{Service}
  *
  * The \verb+Service+ object represents a network service.
  * It has the following fields.
@@ -978,7 +976,7 @@ let getprotobyname venv pos loc args =
  * \item[proto] \verb+Protocol+: the protocol for the service.
  * \end{description}
  *
- * \subsection{getservbyname}
+ * \fun{getservbyname}
  *
  * \begin{verbatim}
  *    $(getservbyname service...) : Service...
@@ -1017,7 +1015,7 @@ let getprotobyname venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{socket}
+ * \fun{socket}
  *
  * \begin{verbatim}
  *    $(socket domain, type, protocol) : Channel
@@ -1102,7 +1100,7 @@ let socket venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{bind}
+ * \fun{bind}
  *
  * \begin{verbatim}
  *    bind(socket, host, port)
@@ -1151,7 +1149,7 @@ let bind venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{listen}
+ * \fun{listen}
  *
  * \begin{verbatim}
  *    listen(socket, requests)
@@ -1182,7 +1180,7 @@ let listen venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{accept}
+ * \fun{accept}
  *
  * \begin{verbatim}
  *    $(accept socket) : InOutChannel
@@ -1211,7 +1209,7 @@ let accept venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{connect}
+ * \fun{connect}
  *
  * \begin{verbatim}
  *     connect(socket, addr, port)
@@ -1268,7 +1266,7 @@ let connect venv pos loc args =
  * Get the next character.
  *
  * \begin{doc}
- * \subsection{getchar}
+ * \fun{getchar}
  *
  * \begin{verbatim}
  *     $(getc) : String
@@ -1309,7 +1307,7 @@ let getc venv pos loc args =
  * Get the next line.
  *
  * \begin{doc}
- * \subsection{gets}
+ * \fun{gets}
  *
  * \begin{verbatim}
  *    $(gets) : String
@@ -1349,7 +1347,7 @@ let gets venv pos loc args =
  * Get the next line.
  *
  * \begin{doc}
- * \subsection{fgets}
+ * \fun{fgets}
  *
  * \begin{verbatim}
  *    $(fgets) : String
@@ -1388,7 +1386,13 @@ let fgets venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Printing functions}
+ * \section{Printing functions}
+ * \funref{fprint}
+ * \funref{print}
+ * \funref{eprint}
+ * \funref{fprintln}
+ * \funref{println}
+ * \funref{eprintln}
  *
  * Output is printed with the \verb+print+ and \verb+println+ functions.
  * The \verb+println+ function adds a terminating newline to the value being
@@ -1453,7 +1457,13 @@ let eprintln venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Value printing functions}
+ * \section{Value printing functions}
+ * \funref{fprintv}
+ * \funref{printv}
+ * \funref{eprintv}
+ * \funref{fprintvln}
+ * \funref{printvln}
+ * \funref{eprintvln}
  *
  * Values can be printed with the \verb+printv+ and \verb+printvln+ functions.
  * The \verb+printvln+ function adds a terminating newline to the value being

@@ -1,14 +1,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Description
 %
-\section{OMake concepts and syntax}
+\chapter{OMake concepts and syntax}
+\label{chapter:language}
+\cutname{omake-language.html}
 
 Projects are specified to \Prog{omake} with \File{OMakefile}s.  The \File{OMakefile} has a format
 similar to a \File{Makefile}.  An \File{OMakefile} has three main kinds of syntactic objects:
 variable definitions, function definitions, and rule definitions.
 
-\hypertarget{variables}{}
-\subsection{Variables}
+\section{Variables}
+\label{section:variables}
 
 Variables are defined with the following syntax.  The name is any sequence of alphanumeric
 characters, underscore \verb+_+, and hyphen \verb+-+.
@@ -43,7 +45,7 @@ definitions.
 In this example, the value of the \verb+X+ variable is the string \verb+gcc -Wall -g -O2+ as
 before, and the value of the \verb+Y+ variable is \verb+gcc -Wall -g -O2 -O3+.
 
-\subsection{Adding to a variable definition}
+\section{Adding to a variable definition}
 
 Variables definitions may also use the += operator, which adds the new text to an existing
 definition.  The following two definitions are equivalent.
@@ -56,7 +58,8 @@ definition.  The following two definitions are equivalent.
    CFLAGS += -Wall -g
 \end{verbatim}
 
-\subsection{Arrays}
+\section{Arrays}
+\index{arrays}
 
 Arrays can be defined by appending the \verb+[]+ sequence to the variable name and defining initial
 values for the elements as separate lines.  Whitespace is significant on each line.  The following
@@ -71,7 +74,8 @@ code sequence prints \verb+c d e+.
     println($(nth 2, $(X)))
 \end{verbatim}
 
-\subsection{Special characters and quoting}
+\section{Special characters and quoting}
+\index{quotations}
 
 The following characters are special to \Prog{omake}: \verb+$():,=#\+.  To treat
 any of these characters as normal text, they should be escaped with the backslash
@@ -106,8 +110,9 @@ double-quotations is arbitrary.  The outermost quotations are not included in th
         The # character is not special"""
 \end{verbatim}
 
-\hypertarget{functions}{}
-\subsection{Function definitions}
+\section{Function definitions}
+\label{section:functions}
+\index{functions}
 
 Functions are defined using the following syntax.
 
@@ -177,12 +182,14 @@ prints the string ``She says: Hello world''.
     Printer(She)
 \end{verbatim}
 
-\subsection{Comments}
+\section{Comments}
 
 Comments begin with the \verb+#+ character and continue to the end of the line.
 
-\hypertarget{include}{}
-\subsection{File inclusion}
+\section{File inclusion}
+\label{section:include}
+\index{include}
+\index[fun]{include}
 
 Files may be included with the \verb+include+ form.  The included file must use
 the same syntax as an \File{OMakefile}.
@@ -207,7 +214,9 @@ the same syntax as an \File{OMakefile}.
 %     open Config
 % \end{verbatim}
 
-\subsection{Scoping, sections}
+\section{Scoping, sections}
+\label{section:section}
+\index{section}
 
 Scopes in \Prog{omake} are defined by indentation level.  When indentation is
 increased, such as in the body of a function, a new scope is introduced.
@@ -270,8 +279,10 @@ example, the newly added yacc rule will be inherited by the \verb+foo+
 subdirectory, but not by the \verb+bar+ and \verb+baz+ ones; furthermore
 this implicit rule will not be in scope in the current directory.
 
-\hypertarget{conditionals}{}
-\subsection{Conditionals}
+\section{Conditionals}
+\label{section:conditionals}
+\index{conditionals}
+\index{if}
 
 Top level conditionals have the following form.
 
@@ -315,8 +326,12 @@ The following example illustrates a typical use of a conditional.  The
        exit(1)
 \end{verbatim}
 
-\hypertarget{matching}{}
-\subsection{Matching}
+\section{Matching}
+\label{section:match}
+\index{switch}
+\index{match}
+\index[fun]{switch}
+\index[fun]{match}
 
 Pattern matching is performed with the \verb+switch+ and \verb+match+ forms.
 
@@ -380,8 +395,9 @@ that are matched by \verb+\(...\)+ expressions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objects
 %
-\hypertarget{objects}{}
 \section{Objects}
+\label{section:objects}
+\index{objects}
 
 OMake is an object-oriented language.  Generally speaking, an object is a value that contains fields
 and methods.  An object is defined with a \verb+.+ suffix for a variable.  For example, the
@@ -404,7 +420,8 @@ following object might be used to specify a point $(1, 5)$ on the two-dimensiona
 The fields \verb+x+ and \verb+y+ represent the coordinates of the point.  The method \verb+print+
 prints out the position of the point.
 
-\subsection{Classes}
+\section{Classes}
+\index{classes}
 
 We can also define \emph{classes}.  For example, suppose we wish to define a generic \verb+Point+
 class with some methods to create, move, and print a point.  A class is really just an object with
@@ -448,7 +465,8 @@ objects are \emph{functional}---the \verb+new+ and \verb+move-right+ methods ret
 this example, the object \verb+p2+ is a different object from \verb+p1+, which retains the original
 $(1, 5)$ coordinates.
 
-\subsection{Inheritance}
+\section{Inheritance}
+\index{inheritance}
 
 Classes and objects support inheritance (including multiple inheritance) with the \verb+extends+
 directive.  The following definition of \verb+Point3D+ defines a point with \verb+x+, \verb+y+, and
@@ -476,7 +494,8 @@ directive.  The following definition of \verb+Point3D+ defines a point with \ver
 Objects provide one way to manage the OMake namespace.  There are also four special objects that are
 further used to control the namespace.
 
-\subsection{private.}
+\section{private.}
+\index{private.}
 
 The \verb+private.+ section is used to define variables that are private to the current file/scope.
 The values are not accessible outside the scope.  Variables defined in a \verb+private.+ object can
@@ -546,7 +565,8 @@ Private variables have two additional properties.
   \end{verbatim}
 \end{enumerate}
 
-\subsection{protected.}
+\section{protected.}
+\index{protected.}
 
 The \verb+protected.+ object is used to define fields that are local to an object.  They can
 be accessed as fields, but they are not passed dynamically to other functions.  The purpose of a
@@ -586,7 +606,8 @@ In general, it is a good idea to define object variables as protected.  The resu
 modular because variables in your object will not produce unexpected clashes with variables defined
 in other parts of the project.
 
-\subsection{public.}
+\section{public.}
+\index{public.}
 
 The \verb+public.+ object is used to specify public dynamically-scoped variables.  In the following
 example, the \verb+public.+ object specifies that the value \verb+X = 4+ is to be dynamically
@@ -619,7 +640,8 @@ scoped.  Public variables \emph{are not} defined as fields of an object.
     Obj.print()
 \end{verbatim}
 
-\subsection{static.}
+\section{static.}
+\index{static.}
 
 The \verb+static.+ object is used to specify values that are persistent across runs of OMake.  They
 are frequently used for configuring a project.  Configuring a project can be expensive, so the
@@ -645,7 +667,7 @@ available.  The \verb+$(where latex)+ function returns the full pathname for \ve
 As a matter of style, a \verb+static.+ section that is used for configuration should print what it
 is doing, using \verb+---+ as a print prefix.
 
-\subsection{Short syntax for scoping objects}
+\section{Short syntax for scoping objects}
 
 The usual dot-notation can be used for private, protected, and public variables (but not
 static variables).
@@ -664,7 +686,7 @@ static variables).
     println(The private value of X is: $(private.X))
 \end{verbatim}
 
-\subsection{Modular programming}
+\section{Modular programming}
 
 The scoping objects help provide a form of modularity.  When you write a new file or program,
 explicit scoping declarations can be used to define an explicit interface for your code, and help
@@ -690,7 +712,7 @@ you can control this with private definitions.
 %%% This stuff is not finished, so we are not advertizing its availability.
 %%%
 
-% \subsection{Policy directives for scoping}
+% \section{Policy directives for scoping}
 %
 % In some cases, you may wish to be careful that you don't accidentally shadow public variables that
 % may be used in other parts of the project.  Running \Prog{omake} with the \verb+--strict+ option

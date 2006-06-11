@@ -659,7 +659,7 @@ and parse_exp venv pos tokens =
  * Usage.
  *
  * \begin{doc}
- * \subsection{test}
+ * \fun{test}
  *
  * \begin{verbatim}
  *    test(exp) : Bool
@@ -727,6 +727,27 @@ and parse_exp venv pos tokens =
  * the \emph{string}.
  *
  * A \emph{file} is a \emph{string} that represents the name of a file.
+ *
+ * The syntax mirrors that of the \Cmd{test}{1} program.  If you are on a Unix system, the man page
+ * explains more.  Here are some examples.
+ *
+ * \begin{verbatim}
+ *     # Create an empty file
+ *     osh> touch foo
+ *     # Is the file empty?
+ *     osh> test(-e foo)
+ *     - : true
+ *     osh> test(! -e foo)
+ *     - : false
+ *     # Create another file
+ *     osh> touch boo
+ *     # Is the newer file newer?
+ *     osh> test(boo -nt foo)
+ *     - : true
+ *     # A more complex query
+ *     # boo is newer than foo, and foo is empty
+ *     osh> test(\( boo -nt foo \) -a -e foo)
+ *     - : true
  * \end{doc}
  *)
 let print_usage venv pos loc =
@@ -783,7 +804,7 @@ let test_cmd venv pos loc argv =
  * Usage.
  *
  * \begin{doc}
- * \subsection{find}
+ * \fun{find}
  *
  * \begin{verbatim}
  *    find(exp) : Node Array
@@ -808,6 +829,18 @@ let test_cmd venv pos loc argv =
  * \begin{itemize}
  * \item    \verb+-name+ \emph{string} : The current file matches the regular expression.
  * \end{itemize}
+ *
+ * The \verb+find+ function performs a recursive scan of all subdirectories.
+ * The following call is run from the root of the \verb+omake+ source directory.
+ *
+ * \begin{verbatim}
+ *     osh> find(. -name fo*)
+ *     - : <array
+ *             /home/jyh/.../omake/mk/.svn/format
+ *             /home/jyh/.../omake/RPM/.svn/format
+ *             ...
+ *             /home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+ * \end{verbatim}
  * \end{doc}
  *)
 let test venv pos loc args =

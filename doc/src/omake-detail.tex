@@ -1,7 +1,8 @@
 %
 % Extra detail.
 %
-\section{Expressions and values}
+\chapter{Expressions and values}
+\label{chaper:extra}
 
 \Prog{omake} provides a full programming-language including many
 system and IO functions.  The language is object-oriented -- everything is
@@ -32,7 +33,7 @@ form to evaluate an expression directly.
     -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
 \end{verbatim}
 
-\subsection{Dynamic scoping}
+\section{Dynamic scoping}
 
 Dynamic scoping means that the value of a variable is determined by the most
 recent binding of the variable in scope at runtime.  Consider the following
@@ -120,7 +121,7 @@ definition in scope in the source text.
    - : "/bin:/usr/bin:/usr/X11R6/bin" : String
 \end{verbatim}
 
-\subsection{Functional evaluation}
+\section{Functional evaluation}
 
 Apart from I/O, \Prog{omake} programs are entirely functional.  This has two parts:
 
@@ -173,7 +174,7 @@ The \verb+A+ variable is not redefined.
        export
 \end{verbatim}
 
-\subsection{Eager evaluation}
+\section{Eager evaluation}
 
 Evaluation in \Prog{omake} is normally eager.  That is, expressions
 are evaluated as soon as they are encountered by the evaluator.  One effect
@@ -211,7 +212,7 @@ since \verb+A+ is 1 and \verb+B+ is 2.  The second time we evaluate \verb+C+,
 it evaluates to 7 because \verb+A+ has been redefined to \verb+5+.  The second
 definition of \verb+B+ has no effect, since it was evaluated at definition time.
 
-\subsection{Strings, Sequences, and Arrays}
+\section{Strings, Sequences, and Arrays}
 
 \Prog{omake} represents most input values as sequences, where a sequence is a list
 of values separated by whitespace.  Sequences are often nested, and may contain
@@ -324,7 +325,7 @@ Arrays are quite helpful on systems where filenames often contain whitespace.
     c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
 \end{verbatim}
 
-\subsection{Objects}
+\section{Objects}
 
 \Prog{omake} is an object-oriented language.  Everything is an object, including
 base values like numbers and strings.  In many projects, this may not be so apparent
@@ -368,7 +369,7 @@ The body of the object is actually an arbitrary program.  The
 variables defined in the body of the object become its fields, and the
 functions defined in the body become its methods.
 
-\subsection{Field and method calls}
+\section{Field and method calls}
 
 The fields and methods of an object are named using \verb+object.name+ notation.
 For example, let's define a one-dimensional point value.
@@ -411,7 +412,7 @@ Note that objects are functional --- it is not possible to modify the fields
 or methods of an existing object in place.  Thus, the \verb+new+ and \verb+move+
 methods return new objects.
 
-\subsection{Method override}
+\section{Method override}
 
 Suppose we wish to create a new object that moves by 2 units, instead of
 just 1.  We can do it by overriding the \verb+move+ method.
@@ -433,7 +434,7 @@ just 1.  We can do it by overriding the \verb+move+ method.
 
 However, by doing this, we have completely replaced the old \verb+move+ method.
 
-\subsection{Super calls}
+\section{Super calls}
 
 Suppose we wish to define a new \verb+move+ method that just calls the old one twice.
 We can refer to the old definition of move using a super call, which uses the notation

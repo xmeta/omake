@@ -41,7 +41,7 @@ open Pos
 
 (*
  * \begin{doc}
- * \subsection{gettimeofday}
+ * \fun{gettimeofday}
  *
  * \begin{verbatim}
  *    $(gettimeofday) : Float

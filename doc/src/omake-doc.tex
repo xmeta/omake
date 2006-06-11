@@ -1,0 +1,151 @@
+\documentclass[dvipdfm]{book}
+
+\usepackage{hevea}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{index}
+
+\newcommand{\authors}{Jason Hickey \emph{et. al.}}
+
+\title{The OMake user guide and reference manual}
+\author{\authors}
+
+%
+% Backwards-compatibility with the LaTeX2Man package
+%
+\newcommand{\Prog}[1]{\texttt{#1}}
+\newcommand{\File}[1]{\texttt{#1}}
+\newcommand{\Cmd}[2]{\texttt{#1}(#2)}
+\newcommand{\Arg}[1]{\texttt{#1}}
+\newcommand{\Opt}[1]{\texttt{#1}}
+\newcommand{\OptArg}[2]{\texttt{#1 #2}}
+\newcommand{\oOpt}[1]{[\texttt{#1}]}
+\newcommand{\oArg}[1]{\texttt{#1}}
+\newcommand{\oOptArg}[2]{[\texttt{#1 <#2>}]}
+
+\newcommand\Version{0.9.6.9}
+\newcommand\Date{\date}
+
+%
+% Identifiers.
+%
+\newcommand\var[1]{\index{#1}\index[var]{#1}\label{var:#1}\subsubsection{#1}}
+\newcommand\varlabel[2]{\index{#2}\index[var]{#2}\label{var:#1}\subsubsection{#2}}
+\newcommand\funref[1]{\index{#1}\index[fun]{#1}\label{fun:#1}}
+\newcommand\fun[1]{\funref{#1}\subsubsection{#1}}
+\newcommand\form[1]{\par\index{#1}\index[fun]{#1}\label{fun:#1}\subsubsection{#1}}
+\newcommand\objref[1]{\index{#1}\index[obj]{#1}\label{obj:#1}}
+\newcommand\obj[1]{\objref{#1}\subsubsection{#1}}
+\newcommand\targetref[1]{\index{#1}\index[target]{#1}\label{target:#1}}
+\newcommand\target[1]{\targetref{#1}\subsubsection{#1}}
+
+\newindex{default}{idx}{ind}{Index}
+\newindex{var}{vidx}{vind}{Index of variables}
+\newindex{fun}{fids}{find}{Index of functions and special forms}
+\newindex{obj}{oids}{oind}{Index of objects}
+\newindex{target}{tids}{tind}{Index of special targets}
+
+\newcommand\heading{%
+\ahref{http://omake.metaprl.org/}{OMake Home}
+\ahref{index.html}{Table of contents}
+\ahref{omake-index.html}{Guide}
+\ahref{omake-options.html}{Options}
+\ahref{omake-all-index.html}{Index}
+\ahref{omake-var-index.html}{Variables}
+\ahref{omake-fun-index.html}{Functions}
+\ahref{omake-obj-index.html}{Objects}
+\ahref{omake-target-index.html}{Targets}
+}
+\htmlhead{\heading}
+\htmlfoot{\heading}
+
+\begin{document}
+
+\maketitle
+
+\begin{htmlonly}
+\ahref{omake-doc.html}{All the documentation on a single page}
+
+\textbf{OMake table of contents}
+\end{htmlonly}
+
+\tableofcontents
+\label{chapter:contents}
+\cutname{omake-contents.html}
+
+\input{omake-index}
+\input{omake-examples}
+\input{omake-build-examples}
+\input{omake-language}
+\input{omake-language-examples}
+\input{omake-rules}
+\input{../tex/omake-base}
+\input{../tex/omake-system}
+\input{../tex/omake-pervasives}
+\input{../tex/omake-root}
+\input{osh}
+\appendix
+\input{omake-options}
+\input{omake-grammar}
+
+\printindex[default]
+\cutname{omake-all-index.html}
+\printindex[var]
+\cutname{omake-var-index.html}
+\printindex[fun]
+\cutname{omake-fun-index.html}
+\printindex[obj]
+\cutname{omake-obj-index.html}
+\printindex[target]
+\cutname{omake-target-index.html}
+
+\chapter{References}
+\label{chapter:references}
+\cutname{omake-references.html}
+
+\subsection{See Also}
+
+omake(1) \ref{chapter:omake},
+osh(1) \ref{chapter:osh},
+make(1)
+
+\subsection{Version}
+
+Version: \Version\ of \Date.
+
+\subsection{License and Copyright}
+
+\copyright\ 2003-2006, Mojave Group, Caltech
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+\subsection{Author}
+
+\noindent
+\authors					\\
+Caltech 256-80					\\
+Pasadena, CA 91125, USA				\\
+Email: \texttt{omake-devel@metaprl.org}		\\
+WWW: \url{http://www.cs.caltech.edu/~jyh}
+
+\end{document}
+
+%% \IfFileExists{rcsinfo.sty}{
+%% \setDate{\rcsInfoLongDate}
+%% }{
+%% \setDate{April 11, 2006}    %%%% must be manually set, if rcsinfo is not present
+%% }

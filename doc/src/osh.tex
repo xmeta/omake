@@ -1,20 +1,20 @@
 %
 %
 %
-
-\section{The OSH shell}
+\chapter{The OSH shell}
+\label{chapter:osh}
+\cutname{osh.html}
 
 OMake also includes a standalone command-line interpreter \Prog{osh} that can be used as an
 interactive shell.  The shell uses the same syntax, and provides the same features on all platforms
 \Prog{omake} supports, including Win32.
 
-\subsection{Startup}
+\section{Startup}
 
 On startup, \Prog{osh} reads the file \verb+~/.oshrc+ if it exists.  The syntax of this file is the
 same as an \Prog{OMakefile}.  The following additional variables are significant.
 
-\begin{description}
-\item[prompt]  The \verb+prompt+ variable specifies the command-line prompt.
+\var{prompt}  The \verb+prompt+ variable specifies the command-line prompt.
 It can be a simple string.
 
 \begin{verbatim}
@@ -35,12 +35,12 @@ An example of the latter prompt is as follows.
     <jyh:kenai.yapper.org ~/links/omake>
 \end{verbatim}
 
-\item[ignoreeof]
+\var{ignoreeof}
    If the \verb+ignoreeof+ is \verb+true+, then \verb+osh+ will not exit on
    a terminal end-of-file (usually \verb+^D+ on Unix systems).
-\end{description}
 
-\subsection{Aliases}
+\section{Aliases}
+\index{aliases}
 
 Command aliases are defined by adding functions to the \verb+Shell.+ object.  The following alias
 adds the \verb+-AF+ option to the \verb+ls+ command.
@@ -54,7 +54,7 @@ adds the \verb+-AF+ option to the \verb+ls+ command.
 Quoted commands do not undergo alias expansion.  The quotation \verb+"ls"+ prevents the alias from
 being recursive.
 
-\subsection{Interactive syntax}
+\section{Interactive syntax}
 
 The interactive syntax in \verb+osh+ is the same as the syntax of an \verb+OMakefile+, with one
 exception in regard to indentation.  The line before an indented block must have a colon at the end
@@ -76,11 +76,6 @@ Note that \verb+osh+ makes some effort to modify the prompt while in an indented
 auto-indents the text.
 
 The colon signifier is also allowed in files, although it is not required.
-
-\subsection{See also}
-
-See Section \href{omake-shell.html}{omake-shell} for more information on the shell language,
-and Section \href{omake-system.html}{omake-system} for more information on job control.
 
 % -*-
 % Local Variables:

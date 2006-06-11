@@ -1,266 +1,139 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!-- Manual page created with latex2man --
--- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
--- NOTE: This file is generated, DO NOT EDIT. -->
-<html>
-<head><title>OMAKE-SHELL</title></head>
-<body bgcolor="white">
-<h1 align=center>
-Shell commands in OMake
-</h1>
-<h4 align=center>Jason Hickey <em>et. al.</em></h4>
-<h4 align=center>April 11, 2006</h4>
-<h4 align=center>Version 0.9.6.9</h4>
-<tt>omake</tt>
-is a flexible build system designed for building a wide variety of projects.
-This document describes the usage and syntax of shell commands.
-For an overview of <tt>omake</tt>,
-see the <a href="omake.html">omake(1)</a>
-man page.
-<h3>Table of Contents</h3>
-<ul>
-<li><a href="#section_1">Shell commands </a>
-<ul>
-<li><a href="#section_2">Basic commands </a></li>
-<li><a href="#section_3">Globbing </a></li>
-<li><a href="#section_4">Background jobs </a></li>
-<li><a href="#section_5">File redirection </a></li>
-<li><a href="#section_6">Pipelines </a></li>
-<li><a href="#section_7">Conditional execution </a></li>
-<li><a href="#section_8">Grouping </a></li>
-<li><a href="#section_9">What is a shell command? </a></li>
-</ul>
-<li><a href="#section_10">References </a>
-<ul>
-<li><a href="#section_11">See Also </a></li>
-<li><a href="#section_12">Version </a></li>
-<li><a href="#section_13">License and Copyright </a></li>
-<li><a href="#section_14">Author </a></li>
-</ul>
-</li>
-</ul>
-<p>
-<a name="shell"></a>
-<h2><a name="section_1">Shell commands</a></h2>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
 
-<p>
-Shell commands (commands to be executed by the operating system) can be freely mixed with other
-code.
-<p>
-<strong>NOTE</strong>:
-the syntax and shell usage is identical on all platforms, including Win32. To avoid
-portability problems on Win32, it is recommended that you avoid the use of the native shell
-interpreter <tt>cmd</tt>.
-<p>
-<pre>
-    LIB = $(dir lib)
-    println(The contents of the $(LIB) directory is:)
-    ls $(LIB)
-</pre>
-<p>
-<h4><a name="section_2">Basic commands</a></h4>
 
-<p>
-The syntax of shell commands is similar to the syntax used by the Unix shell <tt>bash</tt>. In
-general, a command is a <em>pipeline</em>.
-A basic command is part of a pipeline. It is specified
-with the name of an executable and some arguments. Here are some examples.
-<p>
-<pre>
-    ls
-    ls -AF .
-    echo Hello world
-</pre>
-<p>
-The command is found using the current search path in the variable <tt>PATH[]</tt>, which should
-define an array of directories containing executables.
-<p>
-A command may also be prefixed by environment variable definitions.
-<p>
-<pre>
-    # Prints "Hello world"
-    env X="Hello world" Y=2 printenv X
-    # Pass the include path to the Visual C++
-    env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
-</pre>
-<p>
-<h4><a name="section_3">Globbing</a></h4>
 
-<p>
-Commands may contain wildcard patterns. A pattern specifies a set of files through a limited kind
-of regular expression. Patterns are expanded before the function is executed.
-<p>
-<pre>
-   # List all files with a .c suffix
-   ls *.c
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.08">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>
+Shell functions
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="omake-system.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-pervasives.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
 
-   # List all files with a single character prefix, and .c suffix
-   ls ?.c
+<H1 CLASS="chapter"><A NAME="htoc103">Chapter&nbsp;9</A>&nbsp;&nbsp;Shell functions</H1>
+<A NAME="chapter:shell"></A>
 
-   # Rename the file hello.ml to foo.ml
-   mv {hello,foo}.ml
-</pre>
-<p>
-<h4><a name="section_4">Background jobs</a></h4>
+<A NAME="@default232"></A><A NAME="@fun175"></A><A NAME="fun:echo"></A>
+<H4 CLASS="subsubsection">echo</H4>
+The <CODE>echo</CODE> function prints a string.<BR>
+<BR>
+<CODE>$(echo &lt;args&gt;)</CODE>
+<CODE>echo &lt;args&gt;</CODE>
+<A NAME="@default233"></A><A NAME="@fun176"></A><A NAME="fun:jobs"></A>
+<H4 CLASS="subsubsection">jobs</H4>
+The <CODE>jobs</CODE> function prints a list of jobs.<BR>
+<BR>
+<CODE>jobs</CODE>
+<A NAME="@default234"></A><A NAME="@fun177"></A><A NAME="fun:cd"></A>
+<H4 CLASS="subsubsection">cd</H4>
+The <CODE>cd</CODE> function changes the current directory.
+<PRE CLASS="verbatim">
+    cd(dir)
+       dir : Dir
+</PRE>
+The <CODE>cd</CODE> function also supports a 2-argument form:
+<PRE CLASS="verbatim">
+    $(cd dir, e)
+       dir : Dir
+       e : expression
+</PRE>
+In the two-argument form, expression <CODE>e</CODE> is evaluated
+in the directory <CODE>dir</CODE>. The current directory is not
+changed otherwise.<BR>
+<BR>
+The behavior of the <CODE>cd</CODE> function can be changed with the
+<CODE>CDPATH</CODE> variable, which specifies a search path for
+directories. This is normally useful only in the <TT>osh</TT>
+command interpreter.
+<PRE CLASS="verbatim">
+    CDPATH : Dir Sequence
+</PRE>
+For example, the following will change directory to the first
+directory <CODE>./foo</CODE>, <CODE>~/dir1/foo</CODE>, <CODE>~/dir2/foo</CODE>.
+<PRE CLASS="verbatim">
+    CDPATH[] =
+       .
+       $(HOME)/dir1
+       $(HOME)/dir2
+    cd foo
+</PRE>
+<A NAME="@default235"></A><A NAME="@fun178"></A><A NAME="fun:bg"></A>
+<H4 CLASS="subsubsection">bg</H4>
+The <CODE>bg</CODE> function places a job in the background.<BR>
+<BR>
+<CODE>bg &lt;pid...&gt;</CODE>
+<A NAME="@default236"></A><A NAME="@fun179"></A><A NAME="fun:fg"></A>
+<H4 CLASS="subsubsection">fg</H4>
+The <CODE>fg</CODE> function brings a job to the foreground.<BR>
+<BR>
+<CODE>fg &lt;pid...&gt;</CODE>
+<A NAME="@default237"></A><A NAME="@fun180"></A><A NAME="fun:stop"></A>
+<H4 CLASS="subsubsection">stop</H4>
+The <CODE>stop</CODE> function suspends a job.<BR>
+<BR>
+<CODE>stop &lt;pid...&gt;</CODE>
+<A NAME="@default238"></A><A NAME="@fun181"></A><A NAME="fun:wait"></A>
+<H4 CLASS="subsubsection">wait</H4>
+The <CODE>wait</CODE> function waits for a job to finish.
+If no process identifiers are given, the shell waits for
+all jobs to complete.<BR>
+<BR>
+<CODE>wait &lt;pid...&gt;</CODE>
+<A NAME="@default239"></A><A NAME="@fun182"></A><A NAME="fun:kill"></A>
+<H4 CLASS="subsubsection">kill</H4>
+The <CODE>kill</CODE> function signals a job.<BR>
+<BR>
+<CODE>kill [signal] &lt;pid...&gt;</CODE>
+<A NAME="@default240"></A><A NAME="@fun183"></A><A NAME="fun:history"></A>
+<H4 CLASS="subsubsection">history</H4>
+<PRE CLASS="verbatim">
+    $(history-index) : Int
+    $(history) : String Sequence
+    history-file : File
+    history-length : Int
+</PRE>
+The history variables manage the command-line history in <TT>osh</TT>. They have no effect
+in <TT>omake</TT>.<BR>
+<BR>
+The <CODE>history-index</CODE> variable is the current index into the command-line history.
+The <CODE>history</CODE> variable is the current command-line history.<BR>
+<BR>
+The <CODE>history-file</CODE> variable can be redefined if you want the command-line history
+to be saved. The default value is <CODE>~/.omake/osh_history</CODE>.<BR>
+<BR>
+The <CODE>history-length</CODE> variable can be redefined to specify the maximum number of
+lines in the history that you want saved. The default value is <CODE>100</CODE>.
 
-<p>
-The command may also be placed in the background by placing an ampersand after the command. Control
-returns to the shell without waiting for the job to complete. The job continues to run in the
-background.
-<p>
-<pre>
-    gcc -o hugeprogram *.c &amp;
-</pre>
-<p>
-<h4><a name="section_5">File redirection</a></h4>
 
-<p>
-Input and output can be redirected to files by using the <tt>&lt;</tt>, <tt>&gt;</tt>, and <tt>&gt;&amp;</tt>
-directives after the command.
-<p>
-<pre>
-    # Write to the "foo" file
-    echo Hello world &gt; foo
-
-    # Redirect input from the foo file
-    cat &lt; foo
-
-    # Redirect standard output and errors to the foo file
-    gcc -o boo *.c &gt;&amp; foo
-</pre>
-<p>
-<h4><a name="section_6">Pipelines</a></h4>
-
-<p>
-Pipelines are sequences of commands, where the output from each command is sent to the next.
-Pipelines are defined with the <tt>|</tt> and <tt>|&amp;</tt> syntax. With <tt>|</tt> the output is
-redirected, but errors are not. With <tt>|&amp;</tt> both output and errors are redirected.
-<p>
-<pre>
-   # Send the output of the ls command to the printer
-   ls *.c | lpr
-
-   # Send output and errors to jyh as email
-   gcc -o hugefile *.c |&amp; mail jyh
-</pre>
-<p>
-<h4><a name="section_7">Conditional execution</a></h4>
-
-<p>
-Commands may also be composed though conditional evaluation using the <tt>||</tt> and <tt>&amp;&amp;</tt>
-syntax. Every command has an integer exit code, which may be zero or some other integer. A command
-is said to <em>succeed</em>
-if its exit code is zero. The expression <tt>command1 &amp;&amp; command2</tt>
-executes <tt>command2</tt> only if <tt>command1</tt> succeeds. The expression
-<tt>command1 || command2</tt> executes <tt>command2</tt> only if <tt>command1</tt> fails.
-<p>
-<pre>
-   # Display the x/y file if possible
-   cd x &amp;&amp; cat y
-
-   # Run foo.exe, or print an error message
-   (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
-</pre>
-<p>
-<h4><a name="section_8">Grouping</a></h4>
-
-<p>
-Parenthesis are used for grouping in a pipeline or conditional command. In the following
-expression, the <tt>test</tt> function is used to test whether the <tt>foo.exe</tt> file is executable.
-If it is, the <tt>foo.exe</tt> file is executed. If the file is not executable (or if the
-<tt>foo.exe</tt> command fails), the message <tt>"foo.exe is not executable"</tt> is printed.
-<p>
-<pre>
-   # Run foo.exe, or print an error message
-   (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
-</pre>
-<p>
-<h4><a name="section_9">What is a shell command?</a></h4>
-
-<p>
-Syntactially, shell commands are any line that is not one of the following:
-<p>
-<ul compact>
-<li>A variable definition of the form <tt>VAR=string</tt>
-</li>
-<li>A function call <tt>f(...)</tt> or method call <tt>o.f(...)</tt>
-</li>
-<li>A rule definition containing a colon <tt>string: ...</tt>
-</li>
-<li>A special command, including the following:
-<ul compact>
-<li><tt>if ...</tt>
-</li>
-<li><tt>switch ...</tt>
-</li>
-<li><tt>match ...</tt>
-</li>
-<li><tt>section ...</tt>
-</li>
-<li><tt>return ...</tt>
-</li>
-</ul>
-</li>
-</ul>
-<p>
-Commands may also be builtin (aliases). See the documentation for the <tt>Shell</tt> object, defined
-in <tt>Pervasives</tt> for more information.
-<p>
-<h2><a name="section_10">References</a></h2>
-
-<p>
-<h4><a name="section_11">See Also</a></h4>
-
-<p>
-<a href="omake.html">omake(1)</a>,
-<a href="omake-quickstart.html">omake-quickstart(1)</a>,
-<a href="omake-options.html">omake-options(1)</a>,
-<a href="omake-root.html">omake-root(1)</a>,
-<a href="omake-language.html">omake-language(1)</a>,
-<a href="omake-shell.html">omake-shell(1)</a>,
-<a href="omake-rules.html">omake-rules(1)</a>,
-<a href="omake-base.html">omake-base(1)</a>,
-<a href="omake-system.html">omake-system(1)</a>,
-<a href="omake-pervasives.html">omake-pervasives(1)</a>,
-<a href="osh.html">osh(1)</a>,
-<em>make</em>(1)
-<p>
-<h4><a name="section_12">Version</a></h4>
-
-<p>
-Version: 0.9.6.9 of April 11, 2006.
-<p>
-<h4><a name="section_13">License and Copyright</a></h4>
-
-<p>
-&copy;2003-2006, Mojave Group, Caltech
-<p>
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-<p>
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-<p>
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-<p>
-<h4><a name="section_14">Author</a></h4>
-
-<p>
-Jason Hickey <em>et. al.</em><br>
-Caltech 256-80 <br>
-
-Pasadena, CA 91125, USA <br>
-
-Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
-<br>
-WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
-<p>
-</body>
-</html>
-<!-- NOTE: This file is generated, DO NOT EDIT. -->
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
+<HR>
+<A HREF="omake-system.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-pervasives.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

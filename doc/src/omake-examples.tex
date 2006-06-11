@@ -1,25 +1,27 @@
 %
 % Soem examples.
 %
-\section{OMake quickstart guide}
+\chapter{OMake quickstart guide}
+\label{chapter:quickstart}
+\cutname{omake-quickstart.html}
 
-\subsection{For users already familiar with make}
+\section{For users already familiar with make}
 
 For users already familiar with the \Cmd{make}{1} command, here is a list of
 differences to keep in mind when using \Prog{omake}.
 
 \begin{itemize}
 \item In \Prog{omake}, you are much less likely to define build rules of your own.
-  The system provides many standard function (like \verb+StaticCLibrary+ and \verb+CProgram+)
+  The system provides many standard functions (like \verb+StaticCLibrary+~\ref{fun:StaticCLibrary} and \verb+CProgram+~\ref{fun:CProgram})
   to specify these builds more simply.
 \item Implicit rules using \verb+.SUFFIXES+ and the \verb+.suf1.suf2:+ are not supported.
   You should use wildcard patterns instead \verb+%.suf2: %.suf1+.
-\item Scoping is significant: you should define variables and \verb+.PHONY+ targets before they are used.
-\item Subdirectories are incorporated into a project using the \verb+.SUBDIRS:+
+\item Scoping is significant: you should define variables and \verb+.PHONY+~\ref{target:.PHONY} targets before they are used.
+\item Subdirectories are incorporated into a project using the \verb+.SUBDIRS:+~\ref{target:.SUBDIRS}.
   target.
 \end{itemize}
 
-\subsection{Building a small C program}
+\section{Building a small C program}
 
 To start a new project, the easiest method is to change directories to the project
 root and use the command \verb+omake --install+ to install default \File{OMakefile}s.
@@ -48,7 +50,7 @@ Suppose we have a C file called \verb+hello_code.c+ containing the following cod
     }
 \end{verbatim}
 
-To build the program a program \verb+hello+ from this file, we can use the \verb+CProgram+ function.
+To build the program a program \verb+hello+ from this file, we can use the \verb+CProgram+~\ref{fun:CProgram} function.
 The \File{OMakefile} contains just one line that specifies that the program \verb+hello+ is
 to be built from the source code in the \verb+hello_code.c+ file (note that file suffixes
 are not passed to these functions).
@@ -80,7 +82,7 @@ were built, and how many MD5 digests were computed.
 \end{verbatim}
 
 If we want to change the compile options, we can redefine the \verb+CC+ and \verb+CFLAGS+
-variables \emph{before} the \verb+CProgram+ line.  In this example, we will use the \verb+gcc+
+variables \emph{before} the \verb+CProgram+~\ref{fun:CProgram} line.  In this example, we will use the \verb+gcc+
 compiler with the \verb+-g+ option.  In addition, we will specify a \verb+.DEFAULT+ target
 to be built by default.  The \verb+EXE+ variable is defined to be \verb+.exe+ on \verb+Win32+
 systems; it is empty otherwise.
@@ -117,7 +119,7 @@ file \verb+hello_helper.c+.  We would include this in the project as follows.
     .DEFAULT: hello$(EXE)
 \end{verbatim}
 
-\subsection{Larger projects}
+\section{Larger projects}
 
 As the project grows it is likely that we will want to build libraries of code.
 Libraries can be built using the \verb+StaticCLibrary+ function.  Here is an example
@@ -140,7 +142,7 @@ of an \File{OMakefile} with two libraries.
     .DEFAULT: hello$(EXE)
 \end{verbatim}
 
-\subsection{Subdirectories}
+\section{Subdirectories}
 
 As the project grows even further, it is a good idea to split it into several directories.
 Suppose we place the \verb+libfoo+ and \verb+libbar+ into subdirectories.
@@ -204,7 +206,7 @@ Alternatively, we can also place the change in the root \File{OMakefile}.
 \end{verbatim}
 
 Note that the way we have specified it, the \verb+CFLAGS+ variable also contains the \verb+-O3+
-option for the \verb+CProgram+, and \verb+hello_code.c+ and \verb+hello_helper.c+ file will both be
+option for the \verb+CProgram+~\ref{fun:CProgram}, and \verb+hello_code.c+ and \verb+hello_helper.c+ file will both be
 compiled with the \verb+-O3+ option.  If we want to make the change truly local to \verb+libbar+, we
 can put the \verb+bar+ subdirectory in its own scope using the \verb+section+ form.
 
@@ -342,14 +344,14 @@ the string \verb+.. . ../bar ../win32+.  In the \verb+bar+ directory,
 it would be \verb+.. ../foo . ../win32+.  In the root directory it
 would be \verb+. foo bar win32+.
 
-\subsection{Other things to consider}
+\section{Other things to consider}
 
 \Prog{omake} also handles recursive subdirectories.  For example, suppose the \verb+foo+
 directory itself contains several subdirectories.  The \File{foo/OMakefile} would then
 contain its own \verb+.SUBDIRS+ target, and each of its subdirectories would
 contain its own \verb+OMakefile+.
 
-\subsection{Building OCaml programs}
+\section{Building OCaml programs}
 
 By default, \Prog{omake} is also configured with functions for building OCaml programs.
 The functions for OCaml program use the \verb+OCaml+ prefix.  For example, suppose
@@ -429,9 +431,10 @@ The \File{bar/OMakefile} would build an ML library.
    OCamlLibrary(libbar, $(BAR_FILES))
 \end{verbatim}
 
-\section{Notes}
-
-\subsection{The OMakefile and OMakeroot files}
+\section{The OMakefile and OMakeroot files}
+\label{section:omakeroot}
+\index{OMakefile}
+\index{OMakeroot}
 
 \Prog{OMake} uses the \File{OMakefile} and \File{OMakeroot} files for configuring a project.  The
 syntax of these files is the same, but their role is slightly different.  For one thing, every
@@ -468,6 +471,7 @@ Normally, the \verb+OMakeroot+ file should be small and project-independent.  An
 configuration should be placed in the \verb+OMakefiles+ of the project.
 
 \section{Multiple version support}
+\index{vmount}
 
 OMake version \verb+0.9.6+ introduced preliminary support for multiple, simultaneous versions of a
 project.  Versioning uses the \verb+vmount(dir1, dir2)+ function, which defines a ``virtual mount''
@@ -509,7 +513,7 @@ The \verb+vmount+ model is fairly transparent.  The \verb+OMakefile+s can be wri
 referring to files in the \verb+src/+ directory---they need not be aware of mounting.
 However, there are a few points to keep in mind.
 
-\subsection{Notes}
+\section{Notes}
 
 \begin{itemize}
 \item When using the \verb+vmount+ function for versioning, it wise to keep the source files

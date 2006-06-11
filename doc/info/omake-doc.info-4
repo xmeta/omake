@@ -1,0 +1,1913 @@
+This file has been translated from LaTeX by HeVeA.
+
+Node: Section 8-1,	Next: Subsection 8-1-1,	Prev: Chapter 8,	Up: Chapter 8
+  
+
+8.1   IO functions
+*=*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 8-1-1::	Standard channels
+
+
+Node: Subsection 8-1-1,	Next: Section 8-2,	Prev: Section 8-1,	Up: Section 8-1
+  
+
+8.1.1   Standard channels
+=========================
+  
+  The following variables define the standard channels.
+
+
+ stdin
+------
+  
+<<
+  stdin : InChannel
+>>
+  
+  The standard input channel, open for reading.
+
+
+ stdout
+-------
+   
+<<
+  stdout : OutChannel
+>>
+  
+  The standard output channel, open for writing.
+
+
+ stderr
+-------
+   
+<<
+  stderr : OutChannel
+>>
+  
+  The standard error channel, open for writing.
+
+
+ fopen
+------
+  
+  The `fopen' function opens a file for reading or writing.
+<<
+     $(fopen file, mode) : Channel
+        file : File
+        mode : String
+>>
+  
+  The `file' is the name of the file to be opened. The `mode' is a
+combination of the following characters. 
+  
+ r  Open the file for reading; it is an error if the file does not
+   exist. 
+ w  Open the file for writing; the file is created if it does not exist.
+   
+ a  Open the file in append mode; the file is created if it does not
+   exist. 
+ +  Open the file for both reading an writing. 
+ t  Open the file in text mode (default). 
+ b  Open the file in binary mode. 
+ n  Open the file in nonblocking mode. 
+ x  Fail if the file already exists. 
+  
+  Binary mode is not significant on Unix systems, where text and binary
+modes are equivalent.
+
+
+ close
+------
+  
+<<
+      $(close channel...)
+         channel : Channel
+>>
+  
+  The `close' function closes a file that was previously opened with
+`fopen'. 
+
+ read
+-----
+  
+<<
+     $(read channel, amount) : String
+        channel : InChannel
+        amount  : Int
+     raises RuntimeException
+>>
+  
+  The `read' function reads up to `amount' bytes from an input channel,
+and returns the data that was read. If an end-of-file condition is
+reached, the function raises a `RuntimeException' exception.
+
+
+ write
+------
+  
+<<
+     $(write channel, buffer, offset, amount) : String
+        channel : OutChannel
+        buffer  : String
+        offset  : Int
+        amount  : Int
+     $(write channel, buffer) : String
+        channel : OutChannel
+        buffer  : String
+     raises RuntimeException
+>>
+  
+  In the 4-argument form, the `write' function writes bytes to the
+output channel `channel' from the `buffer', starting at position
+`offset'. Up to `amount' bytes are written. The function returns the
+number of bytes that were written.
+  The 3-argument form is similar, but the `offset' is 0.
+  In the 2-argument form, the `offset' is 0, and the `amount' if the
+length of the `buffer'.
+  If an end-of-file condition is reached, the function raises a
+`RuntimeException' exception.
+
+
+ lseek
+------
+  
+<<
+      $(lseek channel, offset, whence) : Int
+         channel : Channel
+         offset  : Int
+         whence  : String
+      raises RuntimeException
+>>
+  
+  The `lseek' function repositions the offset of the channel `channel'
+according to the `whence' directive, as follows:
+  
+  
+ SEEK_SET  The offset is set to `offset'. 
+ SEEK_CUR  The offset is set to its current position plus `offset'
+   bytes. 
+ SEEK_END  The offset is set to the size of the file plus `offset'
+   bytes. 
+  
+  The `lseek' function returns the new position in the file.
+
+
+ rewind
+-------
+  
+<<
+     rewind(channel...)
+        channel : Channel
+>>
+  
+  The `rewind' function set the current file position to the beginning
+of the file. 
+
+ tell
+-----
+  
+<<
+      $(tell channel...) : Int...
+         channel : Channel
+      raises RuntimeException
+>>
+  
+  The `tell' function returns the current position of the `channel'.
+
+
+ flush
+------
+  
+<<
+     $(flush channel...)
+        channel : OutChannel
+>>
+  
+  The `flush' function can be used only on files that are open for
+writing. It flushes all pending data to the file.
+
+
+ dup
+----
+  
+<<
+      $(dup channel) : Channel
+         channel : Channel
+      raises RuntimeException
+>>
+  
+  The `dup' function returns a new channel referencing the same file as
+the argument. 
+
+ dup2
+-----
+  
+<<
+     dup2(channel1, channel2)
+        channel1 : Channel
+        channel2 : Channel
+     raises RuntimeException
+>>
+  
+  The `dup2' function causes `channel2' to refer to the same file as
+`channel1'. 
+
+ set-nonblock
+-------------
+  
+<<
+     set-nonblock-mode(mode, channel...)
+        channel : Channel
+        mode : String
+>>
+  
+  The `set-nonblock-mode' function sets the nonblocking flag on the
+given channel. When IO is performed on the channel, and the operation
+cannot be completed immediately, the operations raises a
+`RuntimeException'.
+
+
+ set-close-on-exec-mode
+-----------------------
+  
+<<
+     set-close-on-exec-mode(mode, channel...)
+        channel : Channel
+        mode : String
+     raises RuntimeException
+>>
+  
+  The `set-close-on-exec-mode' function sets the close-on-exec flags for
+the given channels. If the close-on-exec flag is set, the channel is not
+inherited by child processes. Otherwise it is.
+
+
+ pipe
+-----
+  
+<<
+     $(pipe) : Pipe
+     raises RuntimeException
+>>
+  
+  The `pipe' function creates a `Pipe' object, which has two fields. The
+`read' field is a channel that is opened for reading, and the `write'
+field is a channel that is opened for writing.
+
+
+ mkfifo
+-------
+  
+<<
+     mkfifo(mode, node...)
+        mode : Int
+        node : Node
+>>
+  
+  The `mkfifo' function creates a named pipe.
+
+
+ select
+-------
+  
+<<
+     $(select rfd..., wfd..., wfd..., timeout) : Select
+        rfd : InChannel
+        wfd : OutChannel
+        efd : Channel
+        timeout : float
+     raises RuntimeException
+>>
+  
+  The `select' function polls for possible IO on a set of channels. The
+`rfd' are a sequence of channels for reading, `wfd' are a sequence of
+channels for writing, and `efd' are a sequence of channels to poll for
+error conditions. The `timeout' specifies the maximum amount of time to
+wait for events.
+  On successful return, `select' returns a `Select' object, which has
+the following fields: 
+  
+ read  An array of channels available for reading. 
+ write  An array of channels available for writing. 
+ error  An array of channels on which an error has occurred. 
+   
+
+ lockf
+------
+  
+<<
+      lockf(channel, command, len)
+         channel : Channel
+         command : String
+         len : Int
+      raises RuntimeException
+>>
+  
+  The `lockf' function places a lock on a region of the channel. The
+region starts at the current position and extends for `len' bytes.
+  The possible values for `command' are the following. 
+  
+ F_ULOCK  Unlock a region. 
+ F_LOCK  Lock a region for writing; block if already locked. 
+ F_TLOCK  Lock a region for writing; fail if already locked. 
+ F_TEST  Test a region for other locks. 
+ F_RLOCK  Lock a region for reading; block if already locked. 
+ F_TRLOCK  Lock a region for reading; fail is already locked. 
+   
+
+ InetAddr
+---------
+  
+  The `InetAddr' object describes an Internet address. It contains the
+following fields.
+  
+  
+ addr  `String': the Internet address. 
+ port  `Int': the port number. 
+  
+
+
+ Host
+-----
+  
+  A `Host' object contains the following fields.
+  
+  
+ name  `String': the name of the host. 
+ aliases  `String Array': other names by which the host is known. 
+ addrtype  `String': the preferred socket domain. 
+ addrs  `InetAddr Array': an array of Internet addresses belonging to
+   the host. 
+  
+
+
+ gethostbyname
+--------------
+  
+<<
+     $(gethostbyname host...) : Host...
+        host : String
+     raises RuntimeException
+>>
+  
+  The `gethostbyname' function returns a `Host' object for the specified
+host. The `host' may specify a domain name or an Internet address.
+
+
+ Protocol
+---------
+  
+  The `Protocol' object represents a protocol entry. It has the
+following fields.
+  
+  
+ name  `String': the canonical name of the protocol. 
+ aliases  `String Array': aliases for the protocol. 
+ proto  `Int': the protocol number. 
+  
+
+
+ getprotobyname
+---------------
+  
+<<
+     $(getprotobyname name...) : Protocol...
+        name : Int or String
+     raises RuntimeException
+>>
+  
+  The `getprotobyname' function returns a `Protocol' object for the
+specified protocol. The `name' may be a protocol name, or a protocol
+number. 
+
+ Service
+--------
+  
+  The `Service' object represents a network service. It has the
+following fields.
+  
+  
+ name  `String': the name of the service. 
+ aliases  `String Array': aliases for the service. 
+ port  `Int': the port number of the service. 
+ proto  `Protocol': the protocol for the service. 
+  
+
+
+ getservbyname
+--------------
+  
+<<
+     $(getservbyname service...) : Service...
+        service : String or Int
+     raises RuntimeException
+>>
+  
+  The `getservbyname' function gets the information for a network
+service. The `service' may be specified as a service name or number.
+
+
+ socket
+-------
+  
+<<
+     $(socket domain, type, protocol) : Channel
+        domain : String
+        type : String
+        protocol : String
+     raises RuntimeException
+>>
+  
+  The `socket' function creates an unbound socket.
+  The possible values for the arguments are as follows.
+  The `domain' may have the following values. 
+  
+ PF_UNIX or unix  Unix domain, available only on Unix systems. 
+ PF_INET or inet  Internet domain, IPv4. 
+ PF_INET6 or inet6  Internet domain, IPv6. 
+  
+  The `type' may have the following values. 
+  
+ SOCK_STREAM or stream  Stream socket. 
+ SOCK_DGRAM or dgram  Datagram socket. 
+ SOCK_RAW or raw  Raw socket. 
+ SOCK_SEQPACKET or seqpacket  Sequenced packets socket 
+  
+  The `protocol' is an `Int' or `String' that specifies a protocol in
+the protocols database.
+
+
+ bind
+-----
+  
+<<
+     bind(socket, host, port)
+        socket : InOutChannel
+        host : String
+        port : Int
+     bind(socket, file)
+        socket : InOutChannel
+        file : File
+     raise RuntimeException
+>>
+  
+  The `bind' function binds a socket to an address.
+  The 3-argument form specifies an Internet connection, the `host'
+specifies a host name or IP address, and the `port' is a port number.
+  The 2-argument form is for `Unix' sockets. The `file' specifies the
+filename for the address.
+
+
+ listen
+-------
+  
+<<
+     listen(socket, requests)
+        socket : InOutChannel
+        requests : Int
+     raises RuntimeException
+>>
+  
+  The `listen' function sets up the socket for receiving up to
+`requests' number of pending connection requests.
+
+
+ accept
+-------
+  
+<<
+     $(accept socket) : InOutChannel
+        socket : InOutChannel
+     raises RuntimeException
+>>
+  
+  The `accept' function accepts a connection on a socket.
+
+
+ connect
+--------
+  
+<<
+      connect(socket, addr, port)
+         socket : InOutChannel
+         addr : String
+         port : int
+      connect(socket, name)
+         socket : InOutChannel
+         name : File
+      raise RuntimeException
+>>
+  
+  The `connect' function connects a socket to a remote address.
+  The 3-argument form specifies an Internet connection. The `addr'
+argument is the Internet address of the remote host, specified as a
+domain name or IP address. The `port' argument is the port number.
+  The 2-argument form is for Unix sockets. The `name' argument is the
+filename of the socket.
+
+
+ getchar
+--------
+  
+<<
+      $(getc) : String
+      $(getc file) : String
+         file : InChannel or File
+      raises RuntimeException
+>>
+  
+  The `getc' function returns the next character of a file. If the
+argument is not specified, `stdin' is used as input. If the end of file
+has been reached, the function returns `false'.
+
+
+ gets
+-----
+  
+<<
+     $(gets) : String
+     $(gets channel) : String
+        channel : InChannel or File
+     raises RuntimeException
+>>
+  
+  The `gets' function returns the next line from a file. The function
+returns the empty string if the end of file has been reached. The line
+terminator is removed.
+
+
+ fgets
+------
+  
+<<
+     $(fgets) : String
+     $(fgets channel) : String
+        channel : InChannel or File
+     raises RuntimeException
+>>
+  
+  The `fgets' function returns the next line from a file that has been
+opened for reading with `fopen'. The function returns the empty string
+if the end of file has been reached. The returned string is returned as
+literal data. The line terminator is not removed. 
+
+Node: Section 8-2,	Next: Section 8-3,	Prev: Section 8-1,	Up: Chapter 8
+  
+
+8.2   Printing functions
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+
+
+
+
+
+  Output is printed with the `print' and `println' functions. The
+`println' function adds a terminating newline to the value being
+printed, the `print' function does not.
+<<
+      fprint(<file>, <string>)
+      print(<string>)
+      eprint(<string>)
+      fprintln(<file>, <string>)
+      println(<string>)
+      eprintln(<string>)
+>>
+  
+  The `fprint' functions print to a file that has been previously opened
+with `fopen'. The `print' functions print to the standard output
+channel, and the `eprint' functions print to the standard error channel.
+
+Node: Section 8-3,	Next: Section 8-4,	Prev: Section 8-2,	Up: Chapter 8
+  
+
+8.3   Value printing functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+
+
+
+
+
+  Values can be printed with the `printv' and `printvln' functions. The
+`printvln' function adds a terminating newline to the value being
+printed, the `printv' function does not.
+<<
+      fprintv(<file>, <string>)
+      printv(<string>)
+      eprintv(<string>)
+      fprintvln(<file>, <string>)
+      printvln(<string>)
+      eprintvln(<string>)
+>>
+  
+  The `fprintv' functions print to a file that has been previously
+opened with `fopen'. The `printv' functions print to the standard output
+channel, and the `eprintv' functions print to the standard error
+channel. 
+
+Node: Section 8-4,	Next: Subsection 8-4-1,	Prev: Section 8-3,	Up: Chapter 8
+  
+
+8.4   Higher-level IO functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection 8-4-1::	Regular expressions
+* Subsection 8-4-2::	Lexer matching
+* Subsection 8-4-3::	Extending lexer definitions
+* Subsection 8-4-4::	Threading the lexer object
+* Subsection 8-4-5::	Parser
+* Subsection 8-4-6::	Calling the parser
+* Subsection 8-4-7::	Parsing control
+* Subsection 8-4-8::	Extending parsers
+
+
+Node: Subsection 8-4-1,	Next: Subsection 8-4-2,	Prev: Section 8-4,	Up: Section 8-4
+  
+
+8.4.1   Regular expressions
+===========================
+   
+  Many of the higher-level functions use regular expressions. Regular
+expressions are defined by strings with syntax nearly identical to
+awk(1).
+  Strings may contain the following character constants.
+  
+  
+ - `\\' : a literal backslash. 
+ - `\a' : the alert character `^G'. 
+ - `\b' : the backspace character `^H'. 
+ - `\f' : the formfeed character `^L'. 
+ - `\n' : the newline character `^J'. 
+ - `\r' : the carriage return character `^M'. 
+ - `\t' : the tab character `^I'. 
+ - `\v' : the vertical tab character. 
+ - `\xhh...' : the character represented by the string  of hexadecimal
+   digits `h'. All valid hexadecimal digits  following the sequence are
+   considered to be part of the sequence. 
+ - `\ddd' : the character represented by 1, 2, or 3 octal  digits. 
+  
+  Regular expressions are defined using the special characters
+`.\^$[(){}*?'+.
+  
+  
+ - `c' : matches the literal character `c' if `c' is not  a special
+   character. 
+ - `\c' : matches the literal character `c', even if `c'  is a special
+   character. 
+ - `.' : matches any character, including newline. 
+ - `^' : matches the beginning of a line. 
+ - `$' : matches the end of line. 
+ - `[abc...]' : matches any of the characters `abc...' 
+ - `[^abc...]' : matches any character except `abc...' 
+ - `r1|r2' : matches either `r1' or `r2'. 
+ - `r1r2' : matches `r1' and then `r2'. 
+ - `r'+ : matches one or more occurrences of `r'. 
+ - `r*' : matches zero or more occurrences of `r'. 
+ - `r?' : matches zero or one occurrence of `r'. 
+ - `(r)' : parentheses are used for grouping; matches `r'. 
+ - `\(r\)' : also defines grouping, but the expression matched  within
+   the parentheses is available to the output processor  through one of
+   the variables `$1', `$2', ... 
+ - `r{n}' : matches exactly `n' occurrences of `r'. 
+ - `r{n,}' : matches `n' or more occurrences of `r'. 
+ - `r{n,m}' : matches at least `n' occurrences of `r',  and no more than
+   `m' occurrences. 
+ - `\y': matches the empty string at either the beginning or  end of a
+   word. 
+ - `\B': matches the empty string within a word. 
+ - `\<': matches the empty string at the beginning of a word. 
+ - `\>': matches the empty string at the end of a word. 
+ - `\w': matches any character in a word. 
+ - `\W': matches any character that does not occur within a word. 
+ - `\`': matches the empty string at the beginning of a file. 
+ - `\'': matches the empty string at the end of a file. 
+  
+  Character classes can be used to specify character sequences
+abstractly. Some of these sequences can change depending on your LOCALE.
+  
+  
+ - `[:alnum:]' Alphanumeric characters. 
+ - `[:alpha:]' Alphabetic characters. 
+ - `[:lower:]' Lowercase alphabetic characters. 
+ - `[:upper:]' Uppercase alphabetic characters. 
+ - `[:cntrl:]' Control characters. 
+ - `[:digit:]' Numeric characters. 
+ - `[:xdigit:]' Numeric and hexadecimal characters. 
+ - `[:graph:]' Characters that are printable and visible. 
+ - `[:print:]' Characters that are printable, whether they are visible
+   or not. 
+ - `[:punct:]' Punctuation characters. 
+ - `[:blank:]' Space or tab characters. 
+ - `[:space:]' Whitespace characters. 
+   
+
+ cat
+----
+  
+<<
+      cat(files) : Sequence
+         files : File or InChannel Sequence
+>>
+  
+  The `cat' function concatenates the output from multiple files and
+returns it as a string.
+
+
+ grep
+-----
+  
+<<
+     grep(pattern) : String  # input from stdin, default options
+        pattern : String
+     grep(pattern, files) : String  # default options
+        pattern : String
+        files   : File Sequence
+     grep(options, pattern, files) : String
+       options : String
+       pattern : String
+       files   : File Sequence
+>>
+  
+  The `grep' function searches for occurrences of a regular expression
+`pattern' in a set of files, and prints lines that match. This is like a
+highly-simplified version of grep(1).
+  The options are: 
+  
+ q  If specified, the output from `grep' is not displayed. 
+ n  If specified, output lines include the filename. 
+  
+  The `pattern' is a regular expression.
+  If successful (`grep' found a match), the function returns `true'.
+Otherwise, it returns `false'.
+
+
+ scan
+-----
+  
+<<
+     scan(input-files)
+     case string1
+        body1
+     case string2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `scan' function provides input processing in command-line form.
+The function takes file/filename arguments. If called with no arguments,
+the input is taken from `stdin'. If arguments are provided, each
+specifies an `InChannel', or the name of a file for input. Output is
+always to `stdout'.
+  The `scan' function operates by reading the input one line at a time,
+and processing it according to the following algorithm.
+  For each line, the record is first split into fields, and the fields
+are bound to the variables `$1, $2, ...'. The variable `$0' is defined
+to be the entire line, and `$*' is an array of all the field values. The
+`$(NF)' variable is defined to be the number of fields.
+  Next, a case expression is selected. If `string_i' matches the token
+`$1', then `body_i' is evaluated. If the body ends in an `export', the
+state is passed to the next clause. Otherwise the value is discarded.
+  For example, here is an `scan' function that acts as a simple command
+processor.
+<<
+      calc() =
+         i = 0
+         scan(script.in)
+         case print
+            println($i)
+         case inc
+            i = $(add $i, 1)
+            export
+         case dec
+            i = $(sub $i, 1)
+            export
+         case addconst
+            i = $(add $i, $2)
+            export
+         default
+            eprintln($"Unknown command: $1")
+>>
+  
+  The `scan' function also supports several options.
+<<
+      scan(options, files)
+      ...
+>>
+  
+  
+  
+ A  Parse each line as an argument list, where arguments  may be quoted.
+   For example, the following line has three words,  ```ls''', ```-l''',
+   ```Program Files'''.
+   <<
+            ls -l "Program Files"
+        >>
+ 
+ O  Parse each line using white space as the separator, using the  usual
+   OMake algorithm for string parsing. This is the default. 
+ x  Once each line is split, reduce each word using the  hex
+   representation. This is the usual hex representation used  in URL
+   specifiers, so the string ``Program Files'' may be  alternately
+   represented in the form ProgramProgram+Files. 
+  
+  Note, if you want to redirect the output to a file, the easiest way is
+to redefine the `stdout' variable. The `stdout' variable is scoped the
+same way as other variables, so this definition does not affect the
+meaning of `stdout' outside the `calc' function.
+<<
+      calc() =
+          stdout = $(fopen script.out, w)
+          scan(script.in)
+             ...
+          close(stdout)
+>>
+
+
+ awk
+----
+  
+<<
+     awk(input-files)
+     case pattern1:
+        body1
+     case pattern2:
+        body2
+     ...
+     default:
+        bodyd
+>>
+  
+  The `awk' function provides input processing similar to awk(1), but
+more limited. The function takes filename arguments. If called with no
+arguments, the input is taken from `stdin'. If arguments are provided,
+each specifies an `InChannel', or the name of a file for input. Output
+is always to `stdout'.
+  The variables `RS' and `FS' define record and field separators as
+regular expressions. The default value of `RS' is the regular expression
+`\r|\n|\r\n'. The default value of `FS' is the regular expression `[
+\t]'+.
+  The `awk' function operates by reading the input one record at a time,
+and processing it according to the following algorithm.
+  For each line, the record is first split into fields using the field
+separator `FS', and the fields are bound to the variables `$1, $2, ...'.
+The variable `$0' is defined to be the entire line, and `$*' is an array
+of all the field values. The `$(NF)' variable is defined to be the
+number of fields.
+  Next, the cases are evaluated in order. For each case, if the regular
+expression `pattern_i' matches the record `$0', then `body_i' is
+evaluated. If the body ends in an `export', the state is passed to the
+next clause. Otherwise the value is discarded. If the regular expression
+contains `\(r\)' expression, those expression override the fields `$1,
+$2, ...'.
+  For example, here is an `awk' function to print the text between two
+delimiters `\begin{<name>}' and `\end{<name>}', where the `<name>' must
+belong to a set passed as an argument to the `filter' function.
+<<
+      filter(names) =
+         print = false
+  
+         awk(Awk.in)
+         case $"^\\end\{\([:alpha:]+\)\}"
+            if $(mem $1, $(names))
+               print = false
+               export
+            export
+         default
+            if $(print)
+               println($0)
+         case $"^\\begin\{\([:alpha:]+\)\}"
+            print = $(mem $1, $(names))
+            export
+>>
+  
+  Note, if you want to redirect the output to a file, the easiest way is
+to redefine the `stdout' variable. The `stdout' variable is scoped the
+same way as other variables, so this definition does not affect the
+meaning of `stdout' outside the `filter' function.
+<<
+      filter(names) =
+          stdout = $(fopen file.out, w)
+          awk(Awk.in)
+             ...
+          close(stdout)
+>>
+
+
+ fsubst
+-------
+  
+<<
+     fsubst(files)
+     case pattern1 [options]
+        body1
+     case pattern2 [options]
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `fsubst' function provides a sed(1)-like substitution function.
+Similar to `awk', if `fsubst' is called with no arguments, the input is
+taken from `stdin'. If arguments are provided, each specifies an
+`InChannel', or the name of a file for input.
+  The `RS' variable defines a regular expression that determines a
+record separator, The default value of `RS' is the regular expression
+`\r|\n|\r\n'.
+  The `fsubst' function reads the file one record at a time.
+  For each record, the cases are evaluated in order. Each case defines a
+substitution from a substring matching the `pattern' to replacement text
+defined by the body.
+  Currently, there is only one option: `g'. If specified, each clause
+specifies a global replacement, and all instances of the pattern define
+a substitution. Otherwise, the substitution is applied only once.
+  Output can be redirected by redefining the `stdout' variable.
+  For example, the following program replaces all occurrences of an
+expression `word.' with its capitalized form.
+<<
+      section
+         stdout = $(fopen Subst.out, w)
+         fsubst(Subst.in)
+         case $"\<\([[:alnum:]]+\)\." g
+            value $(capitalize $1).
+         close(stdout)
+>>
+
+
+ Lexer
+------
+  
+  The `Lexer' object defines a facility for lexical analysis, similar to
+the lex(1) and flex(1) programs.
+  In omake, lexical analyzers can be constructed dynamically by
+extending the `Lexer' class. A lexer definition consists of a set of
+directives specified with method calls, and set of clauses specified as
+rules.
+  For example, consider the following lexer definition, which is
+intended for lexical analysis of simple arithmetic expressions for a
+desktop calculator.
+<<
+     lexer1. =
+        extends $(Lexer)
+  
+        other: .
+           eprintln(Illegal character: $* )
+           lex()
+  
+        white: $"[[:space:]]+"
+           lex()
+  
+        op: $"[-+*/()]"
+           switch $*
+           case +
+              Token.unit($(loc), plus)
+           case -
+              Token.unit($(loc), minus)
+           case *
+              Token.unit($(loc), mul)
+           case /
+              Token.unit($(loc), div)
+           case $"("
+              Token.unit($(loc), lparen)
+           case $")"
+              Token.unit($(loc), rparen)
+  
+        number: $"[[:digit:]]+"
+           Token.pair($(loc), exp, $(int $* ))
+  
+        eof: $"\'"
+           Token.unit($(loc), eof)
+>>
+  
+  This program defines an object `lexer1' the extends the `Lexer'
+object, which defines lexing environment.
+  The remainder of the definition consists of a set of clauses, each
+with a method name before the colon; a regular expression after the
+colon; and in this case, a body. The body is optional, if it is not
+specified, the method with the given name should already exist in the
+lexer definition.
+  NB The clause that matches the longest prefix of the input is
+selected. If two clauses match the same input prefix, then the last one
+is selected. This is unlike most standard lexers, but makes more sense
+for extensible grammars.
+  The first clause matches any input that is not matched by the other
+clauses. In this case, an error message is printed for any unknown
+character, and the input is skipped. Note that this clause is selected
+only if no other clause matches.
+  The second clause is responsible for ignoring white space. If
+whitespace is found, it is ignored, and the lexer is called recursively.
+  The third clause is responsible for the arithmetic operators. It makes
+use of the `Token' object, which defines three fields: a `loc' field
+that represents the source location; a `name'; and a `value'.
+  The lexer defines the `loc' variable to be the location of the current
+lexeme in each of the method bodies, so we can use that value to create
+the tokens.
+  The `Token.unit($(loc), name)' method constructs a new `Token' object
+with the given name, and a default value.
+  The `number' clause matches nonnegative integer constants. The
+`Token.pair($(loc), name, value)' constructs a token with the given name
+and value.
+  Lexer object operate on `InChannel' objects. The method
+`lexer1.lex-channel(channel)' reads the next token from the channel
+argument.
+
+Node: Subsection 8-4-2,	Next: Subsection 8-4-3,	Prev: Subsection 8-4-1,	Up: Section 8-4
+  
+
+8.4.2   Lexer matching
+======================
+  
+  During lexical analysis, clauses are selected by longest match. That
+is, the clause that matches the longest sequence of input characters is
+chosen for evaluation. If no clause matches, the lexer raises a
+`RuntimeException'. If more than one clause matches the same amount of
+input, the first one is chosen for evaluation.
+
+Node: Subsection 8-4-3,	Next: Subsection 8-4-4,	Prev: Subsection 8-4-2,	Up: Section 8-4
+  
+
+8.4.3   Extending lexer definitions
+===================================
+  
+  Suppose we wish to augment the lexer example so that it ignores
+comments. We will define comments as any text that begins with the
+string `(*', ends with `*)', and comments may be nested.
+  One convenient way to do this is to define a separate lexer just to
+skip comments.
+<<
+     lex-comment. =
+        extends $(Lexer)
+  
+        level = 0
+  
+        other: .
+           lex()
+  
+        term: $"[*][)]"
+           if $(not $(eq $(level), 0))
+              level = $(sub $(level), 1)
+              lex()
+  
+        next: $"[(][*]"
+           level = $(add $(level), 1)
+           lex()
+  
+        eof: $"\'"
+           eprintln(Unterminated comment)
+>>
+  
+  This lexer contains a field `level' that keeps track of the nesting
+level. On encountering a `(*' string, it increments the level, and for
+`*)', it decrements the level if nonzero, and continues.
+  Next, we need to modify our previous lexer to skip comments. We can do
+this by extending the lexer object `lexer1' that we just created.
+<<
+     lexer1. +=
+        comment: $"[(][*]"
+           lex-comment.lex-channel($(channel))
+           lex()
+>>
+  
+  The body for the comment clause calls the `lex-comment' lexer when a
+comment is encountered, and continues lexing when that lexer returns.
+
+Node: Subsection 8-4-4,	Next: Subsection 8-4-5,	Prev: Subsection 8-4-3,	Up: Section 8-4
+  
+
+8.4.4   Threading the lexer object
+==================================
+  
+  Clause bodies may also end with an `export' directive. In this case
+the lexer object itself is used as the returned token. If used with the
+`Parser' object below, the lexer should define the `loc', `name' and
+`value' fields in each `export' clause. Each time the `Parser' calls the
+lexer, it calls it with the lexer returned from the previous lex
+invocation. 
+
+Node: Subsection 8-4-5,	Next: Subsection 8-4-6,	Prev: Subsection 8-4-4,	Up: Section 8-4
+  
+
+8.4.5   Parser
+==============
+  
+  The `Parser' object provides a facility for syntactic analysis based
+on context-free grammars.
+  `Parser' objects are specified as a sequence of directives, specified
+with method calls; and productions, specified as rules.
+  For example, let's finish building the desktop calculator started in
+the `Lexer' example.
+<<
+     parser1. =
+        extends $(Parser)
+  
+        #
+        # Use the main lexer
+        #
+        lexer = $(lexer1)
+  
+        #
+        # Precedences, in ascending order
+        #
+        left(plus minus)
+        left(mul div)
+        right(uminus)
+  
+        #
+        # A program
+        #
+        start(prog)
+  
+        prog: exp eof
+           return $1
+  
+        #
+        # Simple arithmetic expressions
+        #
+        exp: minus exp :prec: uminus
+           neg($2)
+  
+        exp: exp plus exp
+           add($1, $3)
+  
+        exp: exp minus exp
+           sub($1, $3)
+  
+        exp: exp mul exp
+           mul($1, $3)
+  
+        exp: exp div exp
+           div($1, $3)
+  
+        exp: lparen exp rparen
+           return $2
+>>
+  
+  Parsers are defined as extensions of the `Parser' class. A `Parser'
+object must have a `lexer' field. The `lexer' is not required to be a
+`Lexer' object, but it must provide a `lexer.lex()' method that returns
+a token object with `name' and `value' fields. For this example, we use
+the `lexer1' object that we defined previously.
+  The next step is to define precedences for the terminal symbols. The
+precedences are defined with the `left', `right', and `nonassoc' methods
+in order of increasing precedence.
+  The grammar must have at least one start symbol, declared with the
+`start' method.
+  Next, the productions in the grammar are listed as rules. The name of
+the production is listed before the colon, and a sequence of variables
+is listed to the right of the colon. The body is a semantic action to be
+evaluated when the production is recognized as part of the input.
+  In this example, these are the productions for the arithmetic
+expressions recognized by the desktop calculator. The semantic action
+performs the calculation. The variables `$1, $2, ...' correspond to the
+values associated with each of the variables on the right-hand-side of
+the production.
+
+Node: Subsection 8-4-6,	Next: Subsection 8-4-7,	Prev: Subsection 8-4-5,	Up: Section 8-4
+  
+
+8.4.6   Calling the parser
+==========================
+  
+  The parser is called with the `$(parser1.parse-channel start,
+channel)' or `$(parser1.parse-file start, file)' functions. The `start'
+argument is the start symbol, and the `channel' or `file' is the input
+to the parser.
+
+Node: Subsection 8-4-7,	Next: Subsection 8-4-8,	Prev: Subsection 8-4-6,	Up: Section 8-4
+  
+
+8.4.7   Parsing control
+=======================
+  
+  The parser generator generates a pushdown automation based on LALR(1)
+tables. As usual, if the grammar is ambiguous, this may generate
+shift/reduce or reduce/reduce conflicts. These conflicts are printed to
+standard output when the automaton is generated.
+  By default, the automaton is not constructed until the parser is first
+used.
+  The `build(debug)' method forces the construction of the automaton.
+While not required, it is wise to finish each complete parser with a
+call to the `build(debug)' method. If the `debug' variable is set, this
+also prints with parser table together with any conflicts.
+  The `loc' variable is defined within action bodies, and represents the
+input range for all tokens on the right-hand-side of the production.
+
+Node: Subsection 8-4-8,	Next: Chapter 9,	Prev: Subsection 8-4-7,	Up: Section 8-4
+  
+
+8.4.8   Extending parsers
+=========================
+  
+  Parsers may also be extended by inheritance. For example, let's extend
+the grammar so that it also recognizes the `<<' and `>>' shift
+operations.
+  First, we extend the lexer so that it recognizes these tokens. This
+time, we choose to leave `lexer1' intact, instead of using the +=
+operator.
+<<
+     lexer2. =
+        extends $(lexer1)
+  
+        lsl: $"<<"
+           Token.unit($(loc), lsl)
+  
+        asr: $">>"
+           Token.unit($(loc), asr)
+>>
+  
+  Next, we extend the parser to handle these new operators. We intend
+that the bitwise operators have lower precedence than the other
+arithmetic operators. The two-argument form of the `left' method
+accomplishes this.
+<<
+     parser2. =
+        extends $(parser1)
+  
+        left(plus, lsl lsr asr)
+  
+        lexer = $(lexer2)
+  
+        exp: exp lsl exp
+           lsl($1, $3)
+  
+        exp: exp asr exp
+           asr($1, $3)
+>>
+  
+  In this case, we use the new lexer `lexer2', and we add productions
+for the new shift operations.
+
+
+ gettimeofday
+-------------
+  
+<<
+     $(gettimeofday) : Float
+>>
+  
+  The `gettimeofday' function returns the time of day in seconds since
+January 1, 1970. 
+
+Node: Chapter 9,	Next: Chapter 10,	Prev: Section 8-4,	Up: Top
+  
+
+Chapter 9     Shell functions
+*****************************
+    
+
+
+ echo
+-----
+  
+  The `echo' function prints a string.
+  `$(echo <args>)' `echo <args>'
+
+
+ jobs
+-----
+  
+  The `jobs' function prints a list of jobs.
+  `jobs' 
+
+ cd
+---
+  
+  The `cd' function changes the current directory.
+<<
+      cd(dir)
+         dir : Dir
+>>
+  
+  The `cd' function also supports a 2-argument form:
+<<
+      $(cd dir, e)
+         dir : Dir
+         e : expression
+>>
+  
+  In the two-argument form, expression `e' is evaluated in the directory
+`dir'. The current directory is not changed otherwise.
+  The behavior of the `cd' function can be changed with the `CDPATH'
+variable, which specifies a search path for directories. This is
+normally useful only in the osh command interpreter.
+<<
+      CDPATH : Dir Sequence
+>>
+  
+  For example, the following will change directory to the first
+directory `./foo', `~/dir1/foo', `~/dir2/foo'.
+<<
+      CDPATH[] =
+         .
+         $(HOME)/dir1
+         $(HOME)/dir2
+      cd foo
+>>
+  
+
+
+ bg
+---
+  
+  The `bg' function places a job in the background.
+  `bg <pid...>' 
+
+ fg
+---
+  
+  The `fg' function brings a job to the foreground.
+  `fg <pid...>' 
+
+ stop
+-----
+  
+  The `stop' function suspends a job.
+  `stop <pid...>' 
+
+ wait
+-----
+  
+  The `wait' function waits for a job to finish. If no process
+identifiers are given, the shell waits for all jobs to complete.
+  `wait <pid...>' 
+
+ kill
+-----
+  
+  The `kill' function signals a job.
+  `kill [signal] <pid...>'
+
+
+ history
+--------
+  
+<<
+      $(history-index) : Int
+      $(history) : String Sequence
+      history-file : File
+      history-length : Int
+>>
+  
+  The history variables manage the command-line history in osh. They
+have no effect in omake.
+  The `history-index' variable is the current index into the
+command-line history. The `history' variable is the current command-line
+history.
+  The `history-file' variable can be redefined if you want the
+command-line history to be saved. The default value is
+`~/.omake/osh_history'.
+  The `history-length' variable can be redefined to specify the maximum
+number of lines in the history that you want saved. The default value is
+`100'.   
+
+Node: Chapter 10,	Next: Section 10-1,	Prev: Chapter 9,	Up: Top
+  
+
+Chapter 10     Pervasives
+*************************
+    
+  `Pervasives' defines the objects that are defined in all programs. The
+following objects are defined.
+* Menu:
+
+* Section 10-1::	Pervasives objects
+
+
+Node: Section 10-1,	Next: Chapter 11,	Prev: Chapter 10,	Up: Chapter 10
+  
+
+10.1   Pervasives objects
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+
+
+ Object
+-------
+  
+  Parent objects: none.
+  The `Object' object is the root object. Every class is a subclass of
+`Object'.
+  It provides the following fields:
+  
+  
+ - `$(o.object-length)': the number of fields and methods in the object.
+   
+ - `$(o.object-mem <var>)': returns `true' iff the `<var>' is a field 
+   or method of the object. 
+ - `$(o.object-add <var>, <value>)': adds the field to the object, 
+   returning a new object. 
+ - `$(o.object-find <var>)': fetches the field or method from the
+   object;  it is equivalent to `$(o.<var>)', but the variable can be
+   non-constant. 
+ - `$(o.object-map <fun>)': maps a function over the object. The
+   function  should take two arguments; the first is a field name, the
+   second is the  value of that field. The result is a new object
+   constructed from the  values returned by the function. 
+ - `o.object-foreach': the `foreach' form is equivalent to `map',  but
+   with altered syntax.
+   <<
+        o.foreach(<var1>, <var2>)
+           <body>
+        >>
+ 
+  For example, the following function prints all the fields of an 
+   object `o'.
+   <<
+        PrintObject(o) =
+           o.foreach(v, x)
+              println($(v) = $(x))
+        >>
+ 
+  The `export' form is valid in a `foreach' body. The following 
+   function collects just the field names of an object.
+   <<
+        FieldNames(o) =
+           names =
+           o.foreach(v, x)
+              names += $(v)
+              export
+           return $(names)
+        >>
+  
+
+
+ Map
+----
+  
+  Parent objects: `Object'.
+  A `Map' object is a dictionary from values to values. The `<key>'
+values are restricted to simple values: integers, floating-point
+numbers, strings, files, directories, and arrays of simple values.
+  The Map object provides the following methods.
+  
+  
+ - `$(o.mem <key>)': returns `true' iff the `<key>' is defined  in the
+   map. 
+ - `$(o.add <key>, <value>)': adds the field to the map,  returning a
+   new map. 
+ - `$(o.find <key>)': fetches the field from the map. 
+ - `$(o.map <fun>)': maps a function over the map. The function  should
+   take two arguments; the first is a field name, the second is the 
+   value of that field. The result is a new object constructed from the 
+   values returned by the function. 
+ - `o.foreach': the `foreach' form is equivalent to `map',  but with
+   altered syntax.
+   <<
+        o.foreach(<var1>, <var2>)
+           <body>
+        >>
+ 
+  For example, the following function prints all the fields of an 
+   object `o'.
+   <<
+        PrintObject(o) =
+           o.foreach(v, x)
+              println($(v) = $(x))
+        >>
+ 
+  The `export' form is valid in a `foreach' body. The following 
+   function collects just the field names of the map.
+   <<
+        FieldNames(o) =
+           names =
+           o.foreach(v, x)
+              names += $(v)
+              export
+           return $(names)
+        >>
+  
+  There is also simpler syntax when the key is a string. The table can
+be defined using definitions with the form `$|key|' (the number of pipe
+symbols `|' is allowed to vary).
+<<
+      $|key 1| = value1
+      $||key1|key2|| = value2    # The key is key1|key2
+      X = $|key 1|               # Define X to be the value of field
+$|key 1|
+>>
+  
+  The usual modifiers are also allowed. The expression `$`|key|'
+represents lazy evaluation of the key, and `$,|key|' is normal
+evaluation.
+
+
+ Number
+-------
+  
+  Parent objects: `Object'.
+  The `Number' object is the parent object for integers and
+floating-point numbers. 
+
+ Int
+----
+  
+  Parent objects: `Number'.
+  The `Int' object represents integer values.
+
+
+ Float
+------
+  
+  Parent objects: `Number'.
+  The `Float' object represents floating-point numbers.
+
+
+ Sequence
+---------
+  
+  Parent objects: `Object'.
+  The `Sequence' object represents a generic object containing
+sequential elements. It provides the following methods.
+  
+  
+ - `$(s.length)': the number of elements in the sequence. 
+ - `$(s.map <fun>)': maps a function over the fields in the sequence. 
+   The function should take one argument. The result is a new sequence 
+   constructed from the values returned by the function. 
+ - `s.foreach': the `foreach' form is equivalent to `map',  but with
+   altered syntax.
+   <<
+        s.foreach(<var>)
+           <body>
+        >>
+ 
+  For example, the following function prints all the elements of the
+   sequence.
+   <<
+        PrintSequence(s) =
+           s.foreach(x)
+              println(Elem = $(x))
+        >>
+ 
+  The `export' form is valid in a `foreach' body. The following 
+   function counts the number of zeros in the sequence.
+   <<
+        Zeros(s) =
+           count = $(int 0)
+           s.foreach(v)
+              if $(equal $(v), 0)
+                 count = $(add $(count), 1)
+                 export
+              export
+           return $(count)
+        >>
+   
+
+ Array
+------
+  
+  Parent objects: `Sequence'.
+  The `Array' is a random-access sequence. It provides the following
+additional methods.
+  
+  
+ - `$(s.nth <i>)': returns element `i' of the sequence. 
+ - `$(s.rev <i>)': returns the reversed sequence. 
+  
+
+
+ String
+-------
+  
+  Parent objects: `Array'.
+
+
+ Fun
+----
+  
+  Parent objects: `Object'.
+  The `Fun' object provides the following methods. 
+  
+ - `$(f.arity)': the arity if the function. 
+   
+
+ Rule
+-----
+  
+  Parent objects: `Object'.
+  The `Rule' object represents a build rule. It does not currently have
+any methods. 
+
+ Target
+-------
+  
+  Parent object: `Object'.
+  The `Target' object contains information collected for a specific
+target file.
+  
+  
+ - `target': the target file. 
+ - `effects': the files that may be modified by a  side-effect when this
+   target is built. 
+ - `scanner_deps': static dependencies that must be built  before this
+   target can be scanned. 
+ - `static-deps': statically-defined build dependencies  of this target.
+   
+ - `build-deps': all the build dependencies for the target,  including
+   static and scanned dependencies. 
+ - `build-values': all the value dependencies associated  with the
+   build. 
+ - `build-commands': the commands to build the target. 
+  
+  The object supports the following methods.
+  
+  
+ - `find(file)': returns a Target object for the given file.  Raises a
+   `RuntimeException' if the specified target is  not part of the
+   project. 
+ - `find-optional(file)': returns a `Target' object  for the given file,
+   or `false' if the file is not  part of the project. 
+  
+  NOTE: the information for a target is constructed dynamically, so it
+is possible that the `Target' object for a node will contain different
+values in different contexts. The easiest way to make sure that the
+`Target' information is complete is to compute it within a rule body,
+where the rule depends on the target file, or the dependencies of the
+target file. 
+
+ Node
+-----
+  
+  Parent objects: `Object'.
+  The `Node' object is the parent object for files and directories. It
+supports the following operations. 
+  
+ - `$(node.stat)': returns a `stat' object for the file. If the file is
+   a symbolic link, the `stat' information is for the destination of the
+   link, not the link itself.
+ 
+ - `$(node.lstat)': returns a `stat' object for the file or symbolic
+   link. 
+ - `$(node.unlink)': removes the file. 
+ - `$(node.rename <file>)': renames the file. 
+ - `$(node.link <file>)': creates a hard link `<dst>' to this file. 
+ - `$(node.symlink <file>)': create a symbolic link `<dst>' to this
+   file. 
+ - `$(node.chmod <perm>)': change the permission of this file. 
+ - `$(node.chown <uid>, <gid>)': change the owner and group id of this
+   file. 
+   
+
+ File
+-----
+  
+  Parent objects: `Node'.
+  The file object represents the name of a file.
+
+
+ Dir
+----
+  
+  Parent objects: `Node'.
+  The `Dir' object represents the name of a directory.
+
+
+ Channel
+--------
+  
+  Parent objects: `Object'.
+  A `Channel' is a generic IO channel. It provides the following
+methods. 
+  
+ - `$(o.close)': close the channel. 
+   
+
+ InChannel
+----------
+  
+  Parent objects: `Channel'.
+  A `InChannel' is an input channel. The variable `stdin' is the
+standard input channel.
+  It provides the following methods. 
+  
+ - `$(InChannel.fopen <file>)': open a new input channel. 
+   
+
+ OutChannel
+-----------
+  
+  Parent object: `Channel'.
+  A `OutChannel' is an output channel. The variables `stdout' and
+`stderr' are the standard output and error channels.
+  It provides the following methods. 
+  
+ - `$(OutChannel.fopen <file>)': open a new output channel. 
+ - `$(OutChannel.append <file>)': opens a new output channel, appending
+   to the file. 
+ - `$(c.flush)': flush the output channel. 
+ - `$(c.print <string>)': print a string to the channel. 
+ - `$(c.println <string>)': print a string to the channel, followed by a
+   line terminator. 
+   
+
+ Location
+---------
+  
+  Parent objects: `Location'.
+  The `Location' object represents a location in a file.
+
+
+ Position
+---------
+  
+  Parent objects: `Position'.
+  The `Position' object represents a stack trace.
+
+
+ Exception
+----------
+  
+  Parent objects: `Object'.
+  The `Exception' object is used as the base object for exceptions. It
+has no fields.
+
+
+ RuntimeException
+-----------------
+  
+  Parent objects: `Exception'.
+  The `RuntimeException' object represents an exception from the runtime
+system. It has the following fields.
+  
+  
+ - `position': a string representing the location where the  exception
+   was raised. 
+ - `message': a string containing the exception message. 
+   
+
+ Shell
+------
+  
+  Parent objects: `Object'.
+  The `Shell' object contains the collection of builtin functions
+available as shell commands.
+  You can define aliases by extending this object with additional
+methods. All methods in this class are called with one argument: a
+single array containing an argument list.
+  
+  
+ - `echo'
+ The `echo' function prints its arguments to the standard output
+   channel. 
+ - `jobs'
+ The `jobs' method prints the status of currently running commands. 
+ - `cd'
+ The `cd' function changes the current directory. Note that the current
+   directory follows the usual scoping rules. For example, the following
+   program lists the files in the `foo' directory, but the current
+   directory is not changed.
+   <<
+        section
+           echo Listing files in the foo directory...
+           cd foo
+           ls
+     
+        echo Listing files in the current directory...
+        ls
+   >>
+ 
+ - `bg'
+ The `bg' method places a job in the background. The job is resumed if
+   it has been suspended. 
+ - `fg'
+ The `fg' method brings a job to the foreground. The job is resumed if
+   it has been suspended. 
+ - `stop'
+ The `stop' method suspends a running job. 
+ - `wait'
+ The `wait' function waits for a running job to terminate. It is not
+   possible to wait for a suspended job.
+ The job is not brought to the foreground. If the `wait' is interrupted,
+   the job continues to run in the background. 
+ - `kill'
+ The `kill' function signal a job.
+ `kill [signal] <pid...>'.
+ The signals are either numeric, or symbolic. The symbolic signals are
+   named as follows.
+ ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2, CHLD, STOP,
+   TSTP, TTIN, TTOU, VTALRM, PROF. 
+ - `exit'
+ The `exit' function terminates the current session. 
+ - `which', `where'
+ See the documentation for the corresponding functions. 
+ - `rehash'
+ Reset the search path. 
+ - `history'
+ Print the current command-line history. 
+ - Win32 functions.
+ Win32 doesn't provide very many programs for scripting, except  for the
+   functions that are builtin to the DOS `cmd.exe'.  The following
+   functions are defined on Win32 and only on Win32.  On other systems,
+   it is expected that these programs already  exist.
+ 
+     
+    - `grep'
+      <<
+           grep [-q] [-n] pattern files...
+      >>
+    
+    The `grep' function calls the omake `grep' function. 
+  By default, omake uses internal versions of the following commands:
+   `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
+   really want to use the standard system versions of these commands,
+   set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
+   `OMakeroot' file.
+ 
+     
+    - `mkdir'
+      <<
+            mkdir [-m <mode>] [-p] files
+      >>
+    
+    The `mkdir' function is used to create directories. The -verb+-m+
+      option can be used to specify the permission mode of the created
+      directory. If the `-p' option is specified, the full path is
+      created. 
+    - `cp' 
+    - `mv'
+      <<
+            cp [-f] [-i] [-v] src dst
+            cp [-f] [-i] [-v] files dst
+            mv [-f] [-i] [-v] src dst
+            mv [-f] [-i] [-v] files dst
+      >>
+    
+    The `cp' function copies a `src' file to a `dst' file, overwriting
+      it if it already exists. If more than one source file is
+      specified, the final file must be a directory, and the source
+      files are copied into the directory.
+    
+        
+       -f  Copy files forcibly, do not prompt. 
+       -i  Prompt before removing destination files. 
+       -v  Explain what is happening. 
+     
+    - `rm'
+      <<
+           rm [-f] [-i] [-v] [-r] files
+           rmdir [-f] [-i] [-v] [-r] dirs
+      >>
+    
+    The `rm' function removes a set of files. No warnings are issued if
+      the files do not exist, or if they cannot be removed.
+    Options: 
+        
+       -f  Forcibly remove files, do not prompt. 
+       -i  Prompt before removal. 
+       -v  Explain what is happening. 
+       -r  Remove contents of directories recursively. 
+     
+    - `chmod'
+      <<
+            chmod [-r] [-v] [-f] mode files
+      >>
+    
+    The `chmod' function changes the permissions on a set of files or
+      directories. This function does nothing on Win32. The `mode' may
+      be specified as an octal number, or in symbolic form
+      `[ugoa]*['-=][rwxXstugo]+. See the man page for `chmod' for
+      details.
+    Options: 
+        
+       -r  Change permissions of all files in a directory recursively. 
+       -v  Explain what is happening. 
+       -f  Continue on errors. 
+     
+    - `cat'
+      <<
+           cat files...
+      >>
+    
+    The `cat' function prints the contents of the files to stdout 
+    - `test'
+      <<
+           test \emph{expression}
+           \verb+[+ \emph{expression} +]+
+           \verb+[ --help+
+           \verb+[ --version+
+      >>
+    
+    See the documentation for the `test' function.
+    
+    - `find'
+      <<
+           find \emph{expression}
+      >>
+    
+    See the documentation for the `find' function.
+ 
+  
+    

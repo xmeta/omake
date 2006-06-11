@@ -1,8 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Shell commands
 %
-\hypertarget{shell}{}
-\section{Shell commands}
+\chapter{Shell commands}
+\label{chapter:shell}
 
 Shell commands (commands to be executed by the operating system) can be freely mixed with other
 code.
@@ -17,7 +17,7 @@ interpreter \verb+cmd+.
     ls $(LIB)
 \end{verbatim}
 
-\subsection{Basic commands}
+\section{Basic commands}
 
 The syntax of shell commands is similar to the syntax used by the Unix shell \verb+bash+.  In
 general, a command is a \emph{pipeline}.  A basic command is part of a pipeline.  It is specified
@@ -41,7 +41,7 @@ A command may also be prefixed by environment variable definitions.
     env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
 \end{verbatim}
 
-\subsection{Globbing}
+\section{Globbing}
 
 Commands may contain wildcard patterns.  A pattern specifies a set of files through a limited kind
 of regular expression.  Patterns are expanded before the function is executed.
@@ -57,7 +57,7 @@ of regular expression.  Patterns are expanded before the function is executed.
    mv {hello,foo}.ml
 \end{verbatim}
 
-\subsection{Background jobs}
+\section{Background jobs}
 
 The command may also be placed in the background by placing an ampersand after the command.  Control
 returns to the shell without waiting for the job to complete.  The job continues to run in the
@@ -67,7 +67,7 @@ background.
     gcc -o hugeprogram *.c &
 \end{verbatim}
 
-\subsection{File redirection}
+\section{File redirection}
 
 Input and output can be redirected to files by using the \verb+<+, \verb+>+, and \verb+>&+
 directives after the command.
@@ -83,7 +83,7 @@ directives after the command.
     gcc -o boo *.c >& foo
 \end{verbatim}
 
-\subsection{Pipelines}
+\section{Pipelines}
 
 Pipelines are sequences of commands, where the output from each command is sent to the next.
 Pipelines are defined with the \verb+|+ and \verb+|&+ syntax.  With \verb+|+ the output is
@@ -97,7 +97,7 @@ redirected, but errors are not.  With \verb+|&+ both output and errors are redir
    gcc -o hugefile *.c |& mail jyh
 \end{verbatim}
 
-\subsection{Conditional execution}
+\section{Conditional execution}
 
 Commands may also be composed though conditional evaluation using the \verb+||+ and \verb+&&+
 syntax.  Every command has an integer exit code, which may be zero or some other integer.  A command
@@ -113,7 +113,7 @@ executes \verb+command2+ only if \verb+command1+ succeeds.  The expression
    (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
 \end{verbatim}
 
-\subsection{Grouping}
+\section{Grouping}
 
 Parenthesis are used for grouping in a pipeline or conditional command.  In the following
 expression, the \verb+test+ function is used to test whether the \verb+foo.exe+ file is executable.
@@ -125,7 +125,7 @@ If it is, the \verb+foo.exe+ file is executed.  If the file is not executable (o
    (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
 \end{verbatim}
 
-\subsection{What is a shell command?}
+\section{What is a shell command?}
 
 Syntactially, shell commands are any line that is not one of the following:
 

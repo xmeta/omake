@@ -89,116 +89,12 @@ Shell. +=
       case $'\(Manual page created with latex2man\) on .* [2-9][0-9][0-9][0-9]'
          value $1
 
-   #
-   # In HTML, convert double-quotes to something better
-   #
-   html-convert-quotes(argv) =
-      fsubst($(argv))
-      case $"``" g
-          value $'&ldquo;'
-      case $"''" g
-          value $'&rdquo;'
-
-#
-# Generating the TeX files.
-#
-PROLOGUE_FILES[] =
-    omake-prologue
-
-EPILOGUE_FILES[] =
-    omake-notes
-    omake-epilogue
-
-PROLOGUE_FILES[] = $(add-wrapper src/, .tex, $(PROLOGUE_FILES))
-EPILOGUE_FILES[] = $(add-wrapper src/, .tex, $(EPILOGUE_FILES))
-
-#
-# Standard sections not extracted from the source code
-#
-INDEX_FILES[] =
-    omake-index-prologue
-    omake-index
-
-QUICKSTART_FILES[] =
-    omake-examples-prologue
-    omake-examples
-
-OPTIONS_FILES[] =
-    omake-options-prologue
-    omake-options
-
-LANGUAGE_FILES[] =
-    omake-language-prologue
-    omake-language
-
-LANGUAGE_EXAMPLES_FILES[] =
-    omake-language-examples-prologue
-    omake-language-examples
-
-BUILD_EXAMPLES_FILES[] =
-    omake-build-examples-prologue
-    omake-build-examples
-
-GRAMMAR_FILES[] =
-    omake-grammar-prologue
-    omake-grammar
-
-RULES_FILES[] =
-    omake-rules-prologue
-    omake-rules
-
-SHELL_FILES[] =
-    omake-shell-prologue
-    omake-shell
-
-OSH_FILES[] =
-    osh-prologue
-    osh
-
-ALL_FILES[] =
-    omake-index-prologue
-    omake-index
-    omake-examples
-    omake-build-examples
-    omake-language-examples
-    omake-options
-    omake-language
-    omake-rules
-    osh
-    omake-grammar
-
-ALL_FILES = $(add-wrapper src/, .tex, $(ALL_FILES))
-
-#
-# Cat the files in various ways
-#
-ManDocument(dst, files) =
-   FILES = $(add-wrapper src/, .tex, $(files))
-
-   tex/$(dst).tex: $(FILES) $(PROLOGUE_FILES) $(EPILOGUE_FILES)
-      cat $(PROLOGUE_FILES) $(FILES) $(EPILOGUE_FILES) > $@
-
-ManDocument(osh,              $(OSH_FILES))
-ManDocument(omake,            $(INDEX_FILES))
-ManDocument(omake-options,    $(OPTIONS_FILES))
-ManDocument(omake-quickstart, $(QUICKSTART_FILES))
-ManDocument(omake-language,   $(LANGUAGE_FILES))
-ManDocument(omake-language-examples,   $(LANGUAGE_EXAMPLES_FILES))
-ManDocument(omake-build-examples,      $(BUILD_EXAMPLES_FILES))
-ManDocument(omake-grammar,    $(GRAMMAR_FILES))
-ManDocument(omake-shell,      $(SHELL_FILES))
-ManDocument(omake-rules,      $(RULES_FILES))
-
 #
 # Extract the documentation from the src files.
 #
 ExtractManDocument(dst, files) =
-    PROLOGUE_FILES += $(add-wrapper src/, -prologue.tex, $(dst))
-
-    tex/$(dst).tex: $(files) $(PROLOGUE_FILES) $(EPILOGUE_FILES)
-        cat $(PROLOGUE_FILES) > $@
-        extract-docs $(files) >> $@
-        cat $(EPILOGUE_FILES) >> $@
+    tex/$(dst).tex: $(files)
+        extract-docs $(files) > $@
 
 ExtractManDocument(omake-base,       $(MAN_BASE_FILES))
 ExtractManDocument(omake-system,     $(MAN_SYSTEM_FILES))
@@ -206,96 +102,73 @@ ExtractManDocument(omake-pervasives, $(MAN_PERVASIVES_FILES))
 ExtractManDocument(omake-root,       $(MAN_ROOT_FILES))
 
 #
-# Everything on one page
+# Generating the TeX files.
 #
-tex/omake-doc.tex: $(ALL_FILES) $(MAN_ALL_FILES) $(PROLOGUE_FILES) $(EPILOGUE_FILES)
-    cat $(PROLOGUE_FILES) $(ALL_FILES) > $@
-    extract-docs $(MAN_ALL_FILES) >> $@
-    cat $(EPILOGUE_FILES) >> $@
+TEX_FILES[] =
+    src/omake-doc
+    src/omake-index
+    src/omake-examples
+    src/omake-build-examples
+    src/omake-language-examples
+    src/omake-options
+    src/omake-language
+    src/omake-detail
+    src/omake-rules
+    tex/omake-base
+    tex/omake-system
+    tex/omake-pervasives
+    tex/omake-root
+    src/osh
+    src/omake-grammar
+
+TEX_FILES = $(file $(addsuffixes .tex, $(TEX_FILES)))
 
 #
-# All the documents we care about
+# HTML files
 #
-MAN_FILES[] =
-    osh
-    omake
-    omake-options
-    omake-quickstart
-    omake-build-examples
-    omake-language-examples
-    omake-language
-    omake-grammar
-    omake-shell
-    omake-rules
-    omake-base
-    omake-system
-    omake-pervasives
-    omake-root
-    omake-doc
-
-TROFF_OK = false
+HEVEA_OK = false
 static. =
-    if $(CheckProg troff)
-        print(--- Checking whether troff version >= 1.19... )
-        VERSION = $(last $(shell troff --version))
-        TROFF_OK = $(ge $(cmp-versions $(VERSION), 1.19), 0)
-        println($'(Version '$(VERSION) $(if $(TROFF_OK), $'OK)', $'TOO OLD)'))
-        export TROFF_OK
+    HEVEA_OK = $(CheckProg hevea)
 
-TXT_DOCUMENTS  =
-   if $(TROFF_OK)
-      value $(file $(add-wrapper man/,  .txt,     $(MAN_FILES)))
-MAN_DOCUMENTS  = $(file $(add-wrapper man/,  .1,       $(MAN_FILES)))
-HTML_DOCUMENTS = $(file $(add-wrapper html/, .html,    $(MAN_FILES)))
+if $(HEVEA_OK)
+    HEVEA = hevea -I ../src -I ../tex
+    HACHA = hacha
 
-#
-# Macros file
-#
-OMAKE_MACROS = $(file src/omake-macros.pl)
-
-#
-# Normal LaTeX version
-#
-if $(MAN_ENABLED)
     .SUBDIRS: html
-         $(HTML_DOCUMENTS): %.html: ../tex/%.tex $(OMAKE_MACROS)
-            +LANG=C latex2man -t$(OMAKE_MACROS) -H $< $@.tmp
-            remove-latex2man-date $@.tmp | remove-trailing-whitespace | html-convert-quotes > $@
-            rm $@.tmp
+        omake-doc.html: $(TEX_FILES)
+            $(HEVEA) omake-doc
+            $(HEVEA) omake-doc
 
-    .SUBDIRS: man
-        $(MAN_DOCUMENTS): %.1: ../tex/%.tex $(OMAKE_MACROS)
-            +LANG=C latex2man -t$(OMAKE_MACROS) -M $< $@.tmp
-            remove-latex2man-date $@.tmp | remove-trailing-whitespace > $@
-            rm $@.tmp
+        index.html: omake-doc.html
+            $(HACHA) $<
 
-        if $(TROFF_OK)
-            $(TXT_DOCUMENTS): %.txt: %.1
-                +LANG=C troff -man -Tascii $< | grotty -c -b -u -o > $@
+    .SUBDIRS: txt
+        omake-doc.txt: $(TEX_FILES)
+            $(HEVEA) -text omake-doc
+            $(HEVEA) -text omake-doc
 
-
-    #
-    # Everything on one page.
-    #
-    ps/omake-doc.tex: tex/omake-doc.tex $(OMAKE_MACROS)
-        +LANG=C latex2man -t$(OMAKE_MACROS) -L $< $@.tmp
-        remove-latex2man-date $@.tmp | remove-trailing-whitespace > $@
-        rm $@.tmp
+    .SUBDIRS: info
+        omake-doc.info: $(TEX_FILES)
+            $(HEVEA) -info omake-doc
+            $(HEVEA) -info omake-doc
 
     .SUBDIRS: ps
+        TEXINPUTS[] += ../src ../tex
+
+        omake-doc.tex: ../src/omake-doc.tex
+            $(symlink $<, $@)
+
+        TEXDEPS[] += $(TEX_FILES)
+
         LaTeXDocument(omake-doc, omake-doc)
 
 #
 # Install man pages too
 #
-txt: $(TXT_DOCUMENTS)
-man: $(MAN_DOCUMENTS)
-html: $(HTML_DOCUMENTS)
+html: html/omake-doc.html html/index.html
 tex: ps/omake-doc.ps ps/omake-doc.pdf
-
-install: $(MAN_DOCUMENTS)
-    mkdir -p "$(INSTALL_MANDIR)/man1"
-    cp -f -m 444 $(MAN_DOCUMENTS) "$(INSTALL_MANDIR)/man1/"
+txt: txt/omake-doc.txt
+info: info/omake-doc.info
 
 clean:
     $(CLEAN) ps/*.aux ps/*.fls ps/*.log ps/*.tex ps/*.out tex/*.tex

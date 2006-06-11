@@ -1,0 +1,2604 @@
+This file has been translated from LaTeX by HeVeA.
+
+Node: Section 6-7,	Next: Section 6-8,	Prev: Section 6-6,	Up: Chapter 6
+  
+
+6.7   Named scanners, and the :scanner: target
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Sometimes it may be useful to specify explicitly which scanner should
+be used in a rule. For example, we might compile `.c' files with
+different options, or (heaven help us) we may be using both `gcc' and
+the Microsoft Visual C++ compiler `cl'. In general, the target of a
+`.SCANNER' is not tied to a particular target, and we may name it as we
+like.
+<<
+      .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional
+$(INCLUDES), $&)
+          gcc -MM $(addprefix -I, $(INCLUDES)) $<
+  
+      .SCANNER: scan-cl-%.c: %.c :value: $(digest-in-path-optional
+$(INCLUDES), $&)
+          cl --scan-dependencies-or-something $(addprefix /I,
+$(INCLUDES)) $<
+>>
+  
+  The next step is to define explicit scanner dependencies. The
+`:scanner:' dependency is used for this. In this case, the scanner
+dependencies are specified explicitly.
+<<
+      $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%c
+          gcc ...
+  
+      $(CL_FILES): %.obj: %.c :scanner: scan-cl-%c
+          cl ...
+>>
+  
+  Explicit `:scanner:' scanner specification may also be used to state
+that a single `.SCANNER' rule should be used to generate dependencies
+for more than one target. For example,
+<<
+      .SCANNER: scan-all-c: $(GCC_FILES) :value:
+$(digest-in-path-optional $(INCLUDES), $&)
+          gcc -MM $(addprefix -I, $(INCLUDES)) $(GCC_FILES)
+  
+      $(GCC_FILES): %.o: %.c :scanner: scan-all-c
+          ...
+>>
+  
+  The above has the advantage of only running gcc once and a
+disadvantage that when a single source file changes, all the files will
+end up being re-scanned.
+
+Node: Section 6-8,	Next: Section 6-9,	Prev: Section 6-7,	Up: Chapter 6
+  
+
+6.8   Notes
+*=*=*=*=*=*
+
+  
+  In most cases, you won't need to define scanners of your own. The
+standard installation includes default scanners (both explicitly and
+implicitly named ones) for C, OCaml, and LaTeX files.
+  The `SCANNER_MODE' 11.5.1*Note Subsection 11-5-1:: variable
+controls the usage of implicit scanner dependencies.
+  The explicit `:scanner:' dependencies reduce the chances of scanner
+mis-specifications. In large complicated projects it might be a good
+idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
+rules and explicit `:scanner:' specifications.
+
+Node: Section 6-9,	Next: Subsection 6-9-1,	Prev: Section 6-8,	Up: Chapter 6
+  
+
+6.9   Other special targets
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  There are several other special targets that define special actions to
+be take by omake.
+* Menu:
+
+* Subsection 6-9-1::	.DEFAULT
+* Subsection 6-9-2::	.SUBDIRS
+* Subsection 6-9-3::	.INCLUDE
+* Subsection 6-9-4::	.PHONY
+
+
+Node: Subsection 6-9-1,	Next: Subsection 6-9-2,	Prev: Section 6-9,	Up: Section 6-9
+  
+
+6.9.1   .DEFAULT
+================
+   
+  The `.DEFAULT' target specifies a target to be built by default if
+omake is run without explicit targets. The following rule instructs
+omake to build the program `hello' by default
+<<
+     .DEFAULT: hello
+>>
+  
+
+Node: Subsection 6-9-2,	Next: Subsection 6-9-3,	Prev: Subsection 6-9-1,	Up: Section 6-9
+  
+
+6.9.2   .SUBDIRS
+================
+   
+  The `.SUBDIRS' target is used to specify a set of subdirectories that
+are part of the project. Each subdirectory should have its own
+OMakefile, which is evaluated in the context of the current environment.
+<<
+     .SUBDIRS: src doc tests
+>>
+  
+  This rule specifies that the `OMakefile's in each of the `src', `doc',
+and `tests' directories should be read.
+  In some cases, especially when the `OMakefile's are very similar in a
+large number of subdirectories, it is inconvenient to have a separate
+`OMakefile' for each directory. If the `.SUBDIRS' rule has a body, the
+body is used instead of the `OMakefile'.
+<<
+     .SUBDIRS: src1 src2 src3
+        println(Subdirectory $(CWD))
+        .DEFAULT: lib.a
+>>
+  
+  In this case, the `src1', `src2', and `src3' files do not need
+`OMakefile's. Furthermore, if one exists, it is ignored. The following
+includes the file if it exists.
+<<
+     .SUBDIRS: src1 src2 src3
+         if $(file-exists OMakefile)
+            include OMakefile
+         .DEFAULT: lib.a
+>>
+  
+
+Node: Subsection 6-9-3,	Next: Subsection 6-9-4,	Prev: Subsection 6-9-2,	Up: Section 6-9
+  
+
+6.9.3   .INCLUDE
+================
+   
+  The `.INCLUDE' target is like the `include' directive, but it
+specifies a rule to build the file if it does not exist.
+<<
+     .INCLUDE: config
+         echo "CONFIG_READ = true" > config
+  
+      echo CONFIG_READ is $(CONFIG_READ)
+>>
+  
+  You may also specify dependencies to an `.INCLUDE' rule.
+<<
+     .INCLUDE: config: config.defaults
+        cp config.defaults config
+>>
+  
+  A word of caution is in order here. The usual policy is used for
+determining when the rule is out-of-date. The rule is executed if any of
+the following hold.
+  
+  
+ - the target does not exist, 
+ - the rule has never been executed before, 
+ - any of the following have changed since the last time the rule was
+   executed, 
+     
+    - the target, 
+    - the dependencies, 
+    - the commands-text. 
+  
+  
+  In some of the cases, this will mean that the rule is executed even if
+the target file already exists. If the target is a file that you expect
+to edit by hand (and therefore you don't want to overwrite it), you
+should make the rule evaluation conditional on whether the target
+already exists.
+<<
+     .INCLUDE: config: config.defaults
+         # Don't overwrite my carefully hand-edited file
+         if $(not $(file-exists config))
+            cp config.defaults config
+>>
+  
+
+Node: Subsection 6-9-4,	Next: Section 6-10,	Prev: Subsection 6-9-3,	Up: Section 6-9
+  
+
+6.9.4   .PHONY
+==============
+   
+  A ``phony'' target is a target that is not a real file, but exists to
+collect a set of dependencies. Phony targets are specified with the
+`.PHONY' rule. In the following example, the `install' target does not
+correspond to a file, but it corresponds to some commands that should be
+run whenever the `install' target is built (for example, by running
+`omake install').
+<<
+     .PHONY: install
+  
+     install: myprogram.exe
+        cp myprogram.exe /usr/bin
+>>
+  
+
+Node: Section 6-10,	Next: Section 6-11,	Prev: Section 6-9,	Up: Chapter 6
+  
+
+6.10   Rule scoping
+*=*=*=*=*=*=*=*=*=*
+
+   
+  As we have mentioned before, omake is a scoped language. This provides
+great flexibility---different parts of the project can define different
+configurations without interfering with one another (for example, one
+part of the project might be compiled with `CFLAGS=-O3' and another with
+`CFLAGS=-g').
+  But how is the scope for a target file selected? Suppose we are
+building a file `dir/foo.o'. omake uses the following rules to determine
+the scope.
+  
+  
+ - First, if there is an explicit rule for building `dir/foo.o' (a rule
+   with no wildcards), the context for that rule determines the scope
+   for building the target. 
+ - Otherwise, the directory `dir/' must be part of the project. This
+   normally means that a configuration file `dir/OMakefile' exists
+   (although, see the `.SUBDIRS' section for another way to specify the
+   `OMakefile'). In this case, the scope of the target is the scope at
+   the end of the `dir/OMakefile'. 
+  
+  To illustrate rule scoping, let's go back to the example of a ``Hello
+world'' program with two files. Here is an example `OMakefile' (the two
+definitions of `CFLAGS' are for illustration).
+<<
+      # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # Redefine CFLAGS
+      CFLAGS += -O3
+>>
+  
+  In this project, the target `hello' is explicit. The scope of the
+`hello' target is the line beginning with `hello:', where the value of
+`CFLAGS' is `-g'. The other two targets, `hello_code.o' and
+`hello_lib.o' do not appear as explicit targets, so their scope is at
+the end of the `OMakefile', where the `CFLAGS' variable is defined to be
+`-g -O3'. That is, `hello' will be linked with `CFLAGS=-g' and the `.o'
+files will be compiled with `CFLAGS=-g -O3'.
+  We can change this behavior for any of the targets by specifying them
+as explicit targets. For example, suppose we wish to compile
+`hello_lib.o' with a preprocessor variable `LIBRARY'.
+<<
+      # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          CFLAGS += -DLIBRARY
+          hello_lib.o:
+  
+      # Redefine CFLAGS
+      CFLAGS += -O3
+>>
+  
+  In this case, `hello_lib.o' is also mentioned as an explicit target,
+in a scope where `CFLAGS=-g -DLIBRARY'. Since no rule body is specified,
+it is compiled using the usual implicit rule for building `.o' files (in
+a context where `CFLAGS=-g -DLIBRARY').
+
+Node: Section 6-11,	Next: Section 6-12,	Prev: Section 6-10,	Up: Chapter 6
+  
+
+6.11   Scoping of implicit rules
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Implicit rules (rules containing wildcard patterns) are not global,
+they follow the normal scoping convention. This allows different parts
+of a project to have different sets of implicit rules. If we like, we
+can modify the example above to provide a new implicit rule for building
+`hello_lib.o'.
+<<
+      # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          %.o: %.c
+              $(CC) $(CFLAGS) -DLIBRARY -c $<
+          hello_lib.o:
+  
+      # Redefine CFLAGS
+      CFLAGS += -O3
+>>
+  
+  In this case, the target `hello_lib.o' is built in a scope with a new
+implicit rule for building `%.o' files. The implicit rule adds the
+`-DLIBRARY' option. This implicit rule is defined only for the target
+`hello_lib.o'; the target `hello_code.o' is built as normal.
+
+Node: Section 6-12,	Next: Section 6-13,	Prev: Section 6-11,	Up: Chapter 6
+  
+
+6.12   Scoping of .SCANNER rules
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Scanner rules are scoped the same way as normal rules. If the
+`.SCANNER' rule is explicit (containing no wildcard patterns), then the
+scope of the scan target is the same as the the rule. If the `.SCANNER'
+rule is implicit, then the environment is taken from the `:scanner:'
+dependency.
+<<
+      # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # scanner for .c files
+      .SCANNER: scan-c-%.c: %.c
+         $(CC) $(CFLAGS) -MM $<
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          CFLAGS += -DLIBRARY
+          hello_lib.o: hello_lib.c :scanner: scan-c-hello_lib.c
+             $(CC) $(CFLAGS) -c $<
+  
+      # Compile hello_code.c with CFLAGS = -g -O3
+      section
+          CFLAGS += -O3
+          hello_code.o: hello_code.c :scanner: scan-c-hello_code.c
+             $(CC) $(CFLAGS) -c $<
+>>
+  
+  Again, this is for illustration---it is unlikely you would need to
+write a complicated configuration like this! In this case, the
+`.SCANNER' rule specifies that the C-compiler should be called with the
+`-MM' flag to compute dependencies. For the target `hello_lib.o', the
+scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
+is called with `CFLAGS=-g -O3'.
+
+Node: Section 6-13,	Next: Chapter 7,	Prev: Section 6-12,	Up: Chapter 6
+  
+
+6.13   Scoping for .PHONY targets
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Phony targets (targets that do not correspond to files) are defined
+with a `.PHONY:' rule. Phony targets are scoped as usual. The following
+illustrates a common mistake, where the `.PHONY' target is declared
+after it is used.
+<<
+      # !!This example is broken!!
+      all: hello
+  
+      hello: hello_code.o hello_lib.o
+          $(CC) $(CFLAGS) -o $@ $+
+  
+      .PHONY: all
+>>
+  
+  This doesn't work as expected because the `.PHONY' declaration occurs
+too late. The proper way to write this example is to place the `.PHONY'
+declaration first.
+<<
+      # Phony targets must be declared before being used
+      .PHONY: all
+  
+      all: hello
+  
+      hello: hello_code.o hello_lib.o
+          $(CC) $(CFLAGS) -o $@ $+
+>>
+  
+  Phony targets are passed to subdirectories. As a practical matter, it
+is wise to declare all `.PHONY' targets in your root `OMakefile', before
+any `.SUBDIRS'. This will ensure that 1) they are considered as phony
+targets in each of the sbdirectories, and 2) you can build them from the
+project root.
+<<
+      .PHONY: all install clean
+  
+      .SUBDIRS: src lib clib
+>>
+  
+   
+
+Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
+  
+
+Chapter 7     Base library
+**************************
+     
+* Menu:
+
+* Section 7-1::	Builtin variables
+* Section 7-2::	Boolean functions and control flow
+* Section 7-3::	Arrays and sequences
+* Section 7-4::	Arithmetic
+* Section 7-5::	First-class functions
+* Section 7-6::	Iteration and mapping
+
+
+Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
+  
+
+7.1   Builtin variables
+*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+
+ OSTYPE
+-------
+    Set to the machine architecture omake is running on. Possible values
+are  `Unix' (for all Unix versions, including Linux and Mac OS X),
+`Win32'  (for MS-Windows, OMake compiled with MSVC++ or Mingw), and
+`Cygwin' (for  MS-Windows, OMake compiled with Cygwin).
+
+
+ SYSNAME
+--------
+    The name of the operating system for the current machine.
+
+
+ NODENAME
+---------
+    The hostname of the current machine.
+
+
+ OS_VERSION
+-----------
+    The operating system release.
+
+
+ MACHINE
+--------
+    The machine architecture, e.g. `i386', `sparc', etc.
+
+
+ HOST
+-----
+    Same as `NODENAME'.
+
+
+ OMAKE_VERSION
+--------------
+    Version of OMake. 
+
+ USER
+-----
+    The login name of the user executing the process.
+
+
+ HOME
+-----
+    The home directory of the user executing the process.
+
+
+ PID
+----
+    The OMake process id. 
+
+Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
+  
+
+7.2   Boolean functions and control flow
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+
+
+ not
+----
+  
+<<
+     $(not e) : String
+        e : String
+>>
+  
+  Boolean values in omake are represented by case-insensitive strings.
+The false value can be represented by the strings `false', `no', `nil',
+`undefined' or `0', and everything else is true. The `not' function
+negates a Boolean value.
+  For example, `$(not false)' expands to the string `true', and `$(not
+hello world)' expands to `false'.
+
+
+ equal
+------
+  
+<<
+     $(equal e1, e2) : String
+        e1 : String
+        e2 : String
+>>
+  
+  The `equal' function tests for equality of two values.
+  For example `$(equal a, b)' expands to `false', and `$(equal hello
+world, hello world)' expands to `true'.
+
+
+ and
+----
+  
+<<
+      $(and e1, ..., en) : String
+         e1, ..., en: Sequence
+>>
+  
+  The `and' function evaluates to the conjunction of its arguments.
+  For example, in the following code, `X' is true, and `Y' is false.
+<<
+      A = a
+      B = b
+      X = $(and $(equal $(A), a) true $(equal $(B), b))
+      Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
+>>
+
+
+ or
+---
+  
+<<
+     $(or e1, ..., en) : String
+        e1, ..., en: String Sequence
+>>
+  
+  The `or' function evaluates to the disjunction of its arguments.
+  For example, in the following code, `X' is true, and `Y' is false.
+<<
+      A = a
+      B = b
+      X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
+      Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
+>>
+  
+
+
+ if
+---
+  
+<<
+      $(if e1, e2[, e3]) : value
+         e1 : String
+         e2, e3 : value
+>>
+  
+  The `if' function represents a conditional based on a Boolean value.
+For example `$(if $(equal a, b), c, d)' evaluates to `d'.
+  Conditionals may also be declared with an alternate syntax.
+<<
+     if e1
+        body1
+     elseif e2
+        body2
+     ...
+     else
+        bodyn
+>>
+  
+  If the expression `e1' is not false, then the expressions in `body1'
+are evaluated and the result is returned as the value of the
+conditional. Otherwise, if `e1' evaluates to false, the evaluation
+continues with the `e2' expression. If none of the conditional
+expressions is true, then the expressions in `bodyn' are evaluated and
+the result is returned as the value of the conditional.
+  There can be any number of `elseif' clauses; the `else' clause is
+optional.
+  Note that each branch of the conditional defines its own scope, so
+variables defined in the branches are normally not visible outside the
+conditional. The `export' command may be used to export the variables
+defined in a scope. For example, the following expression represents a
+common idiom for defining the C compiler configuration.
+<<
+     if $(equal $(OSTYPE), Win32)
+        CC = cl
+        CFLAGS += /DWIN32
+        export
+     else
+        CC = gcc
+        CFLAGS += -g -O2
+        export
+>>
+
+
+ switch
+-------
+   
+
+ match
+------
+  
+  The `switch' and `match' functions perform pattern matching.
+  `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
+`$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
+  The number of `<pattern>/<value>' pairs is arbitrary. They strictly
+alternate; the total number of arguments to `<match>' must be odd.
+  The `<arg>' is evaluated to a string, and compared with `<pattern_1>'.
+If it matches, the result of the expression is `<value_1>'. Otherwise
+evaluation continues with the remaining patterns until a match is found.
+If no pattern matches, the value is the empty string.
+  The `switch' function uses string comparison to compare the argument
+with the patterns. For example, the following expression defines the
+`FILE' variable to be either `foo', `bar', or the empty string,
+depending on the value of the `OSTYPE' variable.
+<<
+      FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
+>>
+  
+  The `match' function uses regular expression patterns (see the `grep'
+function). If a match is found, the variables `$1, $2, ...' are bound to
+the substrings matched between `\(' and `\)' delimiters. The `$0'
+variable contains the entire match, and `$*' is an array of the matched
+substrings. to the matched substrings.
+<<
+      FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a,
+foo_$2/$1.o)
+>>
+  
+  The `switch' and `match' functions also have an alternate (more
+usable) form.
+<<
+     match e
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  If the value of expression `e' matches `pattern_i' and no previous
+pattern, then `body_i' is evaluated and returned as the result of the
+`match'. The `switch' function uses string comparison; the `match'
+function uses regular expression matching.
+<<
+     match $(FILE)
+     case $".*\(\.[^\/.]*\)"
+        println(The string $(FILE) has suffix $1)
+     default
+        println(The string $(FILE) has no suffix)
+>>
+  
+
+
+ try
+----
+  
+<<
+     try
+        try-body
+     catch class1(v1)
+        catch-body
+     when expr
+        when-body
+     ...
+     finally
+        finally-body
+>>
+  
+  The `try' form is used for exception handling. First, the expressions
+in the `try-body' are evaluated.
+  If evaluation results in a value `v' without raising an exception,
+then the expressions in the `finally-body' are evaluated and the value
+`v' is returned as the result.
+  If evaluation of the `try-body' results in a exception object `obj',
+the `catch' clauses are examined in order. When examining `catch' clause
+`catch class(v)', if the exception object `obj' is an instance of the
+class name `class', the variable `v' is bound to the exception object,
+and the expressions in the `catch-body' are evaluated.
+  If a `when' clause is encountered while a `catch' body is being
+evaluated, the predicate `expr' is evaluated. If the result is true,
+evaluation continues with the expressions in the `when-body'. Otherwise,
+the next `catch' clause is considered for evaluation.
+  If evaluation of a `catch-body' or `when-body' completes successfully,
+returning a value `v', without encountering another `when' clause, then
+the expressions in the `finally-body' are evaluated and the value `v' is
+returned as the result.
+  There can be any number of `catch' clauses; the `finally' clause is
+optional. 
+
+
+ raise
+------
+  
+<<
+     raise exn
+        exn : Exception
+>>
+  
+  The `raise' function raises an exception. The `exn' object can be any
+object. However, the normal convention is to raise an `Exception'
+object. 
+
+ exit
+-----
+  
+<<
+     exit(code)
+        code : Int
+>>
+  
+  The `exit' function terminates omake abnormally.
+  `$(exit <code>)'
+  The `exit' function takes one integer argument, which is exit code.
+Non-zero values indicate abnormal termination.
+
+
+ defined
+--------
+  
+<<
+     $(defined sequence) : String
+        sequence : Sequence
+>>
+  
+  The `defined' function test whether all the variables in the sequence
+are currently defined. For example, the following code defines the `X'
+variable if it is not already defined.
+<<
+      if $(not $(defined X))
+         X = a b c
+         export
+>>
+
+
+ defined-env
+------------
+  
+<<
+     $(defined-env sequence) : String
+        sequence : String
+>>
+  
+  The `defined-env' function tests whether a variable is defined as part
+of the process environment.
+  For example, the following code adds the `-g' compile option if the
+environment variable `DEBUG' is defined.
+<<
+  if $(defined-env DEBUG)
+      CFLAGS += -g
+      export
+>>
+
+
+ getenv
+-------
+  
+<<
+     $(getenv name) : String
+     $(getenv name, default) : String
+>>
+  
+  The `getenv' function gets the value of a variable from the process
+environment. The function takes one or two arguments.
+  In the single argument form, an exception is raised if the variable
+variable is not defined in the environment. In the two-argument form,
+the second argument is returned as the result if the value is not
+defined.
+  For example, the following code defines the variable `X' to be a
+space-separated list of elements of the `PATH' environment variable if
+it is defined, and to `/bin /usr/bin' otherwise.
+<<
+      X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
+>>
+  
+  You may also use the alternate form. 
+<<
+       getenv(NAME)
+           default
+>>
+
+
+ setenv
+-------
+  
+<<
+     setenv(name, value)
+        name : String
+        value : String
+>>
+  
+  The `setenv' function sets the value of a variable in the process
+environment. Environment variables are scoped like normal variables.
+
+
+ get-registry
+-------------
+  
+<<
+     get-registry(hkey, key, field) : String
+     get-registry(hkey, key, field, default) : String
+         hkey : String
+         key : String
+         field : String
+>>
+  
+  The `get-registry' function retrieves a string value from the system
+registry on Win32. On other architectures, there is no registry.
+  The `hive' (I think that is the right word), indicates which part of
+the registry to use. It should be one of the following values.
+  
+  
+ - `HKEY_CLASSES_ROOT' 
+ - `HKEY_CURRENT_CONFIG' 
+ - `HKEY_CURRENT_USER' 
+ - `HKEY_LOCAL_MACHINE' 
+ - `HKEY_USERS' 
+   Refer to the Microsoft documentation if you want to know what these
+mean.
+  The `key' is the field you want to get from the registry. It should
+have a form like `A\B\C' (if you use forward slashes, they will be
+converted to backslashes). The field is the sub-field of the key.
+  In the 4-argument form, the `default' is returned on failure. You may
+also use the alternate form.
+<<
+      get-registry(hkey, key, field)
+         default
+>>
+  
+
+
+ getvar
+-------
+  
+<<
+     $(getvar name) : String
+>>
+  
+  The `getvar' function gets the value of a variable.
+  An exception is raised if the variable variable is not defined.
+  For example, the following code defines X to be the string abc.
+<<
+      NAME = foo
+      foo_1 = abc
+      X = $(getvar $(NAME)_1)
+>>
+
+
+ setvar
+-------
+  
+<<
+     setvar(name, value)
+        name : String
+        value : String
+>>
+  
+  The `setvar' function defines a new variable. For example, the
+following code defines the variable `X' to be the string `abc'.
+<<
+     NAME = X
+     setvar($(NAME), abc)
+>>
+
+Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
+  
+
+7.3   Arrays and sequences
+*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+
+
+ array
+------
+  
+<<
+      $(array elements) : Array
+         elements : Sequence
+>>
+  
+  The `array' function creates an array from a sequence. If the `<arg>'
+is a string, the elements of the array are the whitespace-separated
+elements of the string, respecting quotes.
+  In addition, array variables can be declared as follows.
+<<
+      A[] =
+         <val1>
+         ...
+         <valn>
+>>
+  
+  In this case, the elements of the array are exactly `<val1>', ...,
+`<valn>', and whitespace is preserved literally.
+
+
+ split
+------
+  
+<<
+     $(split sep, elements) : Array
+        sep : String
+        elements : Sequence
+>>
+  
+  The `split' function takes two arguments, a string of separators, and
+a string argument. The result is an array of elements determined by
+splitting the elements by all occurrence of the separator in the
+`elements' sequence.
+  For example, in the following code, the `X' variable is defined to be
+the array `/bin /usr/bin /usr/local/bin'.
+<<
+      PATH = /bin:/usr/bin:/usr/local/bin
+      X = $(split :, $(PATH))
+>>
+  
+  The `sep' argument may be omitted. In this case `split' breaks its
+arguments along the white space. Quotations are not split.
+
+
+ concat
+-------
+  
+<<
+     $(concat sep, elements) : String
+        sep : String
+        elements : Sequence
+>>
+  
+  The `concat' function takes two arguments, a separator string, and a
+sequence of elements. The result is a string formed by concatenating the
+elements, placing the separator between adjacent elements.
+  For example, in the following code, the `X' variable is defined to be
+the string `foo_x_bar_x_baz'.
+<<
+      X = foo  bar     baz
+      Y = $(concat _x_, $(X))
+>>
+
+
+ length
+-------
+  
+<<
+     $(length sequence) : Int
+        sequence : Sequence
+>>
+  
+  The `length' function returns the number of elements in its argument.
+  For example, the expression `$(length a  b "c d")' evaluates to 3.
+
+
+ nth
+----
+  
+<<
+     $(nth i, sequence) : value
+        i : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `nth' function returns the nth element of its argument, treated as
+a list. Counting starts at 0. An exception is raised if the index is not
+in bounds.
+  For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
+c"'. 
+
+ nth-hd
+-------
+  
+<<
+     $(nth-hd i, sequence) : value
+        i : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `nth-hd' function returns the first `i' elements of the sequence.
+An exception is raised if the sequence is not at least `i' elements
+long.
+  For example, the expression `$(nth-hd 2, a "b c" d)' evaluates to `a
+"b c"'.
+
+
+ nth-tl
+-------
+  
+<<
+     $(nth-tl i, sequence) : value
+        i : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `nth-tl' function skips `i' elements of the sequence and returns
+the rest. An exception is raised if the sequence is not at least `i'
+elements long.
+  For example, the expression `$(nth-tl 1, a "b c" d)' evaluates to `"b
+c" d'.
+
+
+ subrange
+---------
+  
+<<
+     $(subrange off, len, sequent) : value
+        off : Int
+        len : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `subrange' function returns a subrange of the sequence. Counting
+starts at 0. An exception is raised if the specified range is not in
+bounds.
+  For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
+to `"b c" d'. 
+
+ rev
+----
+  
+<<
+      $(rev sequence) : Sequence
+         sequence : Sequence
+>>
+  
+  The `rev' function returns the elements of a sequence in reverse
+order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
+c" a'. 
+
+ string
+-------
+  
+<<
+     $(string sequence) : String
+        sequence : Sequence
+>>
+  
+  The `string' function flattens a sequence into a single string. This
+is similar to the `concat' function, but the elements are separated by
+whitespace. The result is treated as a unit; whitespace is significant.
+
+
+ quote
+------
+  
+<<
+     $(quote sequence) : String
+        sequence : Sequence
+>>
+  
+  The `quote' function flattens a sequence into a single string and adds
+quotes around the string. Inner quotation symbols are escaped.
+  For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
+c\" d"', and `$(quote abc)' evaluates to `"abc"'.
+
+
+ quote-argv
+-----------
+  
+<<
+     $(quote-argv sequence) : String
+        sequence : Sequence
+>>
+  
+  The `quote-argv' function flattens a sequence into a single string,
+and adds quotes around the string. The quotation is formed so that a
+command-line parse can separate the string back into its components.
+
+
+ html-string
+------------
+  
+<<
+     $(html-string sequence) : String
+        sequence : Sequence
+>>
+  
+  The `html-string' function flattens a sequence into a single string,
+and escaped special HTML characters. This is similar to the `concat'
+function, but the elements are separated by whitespace. The result is
+treated as a unit; whitespace is significant.
+
+
+ addsuffix
+----------
+  
+<<
+     $(addsuffix suffix, sequence) : Array
+        suffix : String
+        sequence : Sequence
+>>
+  
+  The `addsuffix' function adds a suffix to each component of sequence.
+The number of elements in the array is exactly the same as the number of
+elements in the sequence.
+  For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
+d".c'. 
+
+ mapsuffix
+----------
+  
+<<
+     $(mapsuffix suffix, sequence) : Array
+        suffix : value
+        sequence : Sequence
+>>
+  
+  The `mapsuffix' function adds a suffix to each component of sequence.
+It is similar to `addsuffix', but uses array concatenation instead of
+string concatenation. The number of elements in the array is twice the
+number of elements in the sequence.
+  For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
+d" .c'. 
+
+ addsuffixes
+------------
+  
+<<
+     $(addsuffixes suffixes, sequence) : Array
+        suffixes : Sequence
+        sequence : Sequence
+>>
+  
+  The `addsuffixes' function adds all suffixes in its first argument to
+each component of a sequence. If `suffixes' has `n' elements, and
+`sequence' has `m' elements, the the result has `n * m' elements.
+  For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
+to `a.c a.o b.c b.o c.o c.a'.
+
+
+ removeprefix
+-------------
+  
+<<
+     $(removeprefix prefix, sequence) : Array
+        prefix : String
+        sequence : Array
+>>
+  
+  The `removeprefix' function removes a prefix from each component of a
+sequence. 
+
+ removesuffix
+-------------
+  
+<<
+     $(removesuffix sequence) : Array
+        sequence : String
+>>
+  
+  The `removesuffix' function removes the suffixes from each component
+of a sequence.
+  For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
+
+
+ replacesuffixes
+----------------
+  
+<<
+     $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
+        old-suffixes : Sequence
+        new-suffixes : Sequence
+        sequence : Sequence
+>>
+  
+  The `replacesuffixes' function modifies the suffix of each component
+in sequence. The `old-suffixes' and `new-suffixes' sequences should have
+the same length.
+  For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
+to `a.o b.o c.z'. 
+
+ addprefix
+----------
+  
+<<
+     $(addprefix prefix, sequence) : Array
+        prefix : String
+        sequence : Sequence
+>>
+  
+  The `addprefix' function adds a prefix to each component of a
+sequence. The number of element in the result array is exactly the same
+as the number of elements in the argument sequence.
+  For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
+foo/"c d"'. 
+
+ mapprefix
+----------
+  
+<<
+     $(mapprefix prefix, sequence) : Array
+        prefix : String
+        sequence : Sequence
+>>
+  
+  The `mapprefix' function adds a prefix to each component of a
+sequence. It is similar to `addprefix', but array concatenation is used
+instead of string concatenation. The result array contains twice as many
+elements as the argument sequence.
+  For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
+"c d"'. 
+
+ add-wrapper
+------------
+  
+<<
+     $(add-wrapper prefix, suffix, sequence) : Array
+        prefix : String
+        suffix : String
+        sequence : Sequence
+>>
+  
+  The `add-wrapper' functions adds both a prefix and a suffix to each
+component of a sequence. For example, the expression `$(add-wrapper
+dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
+used. The array result has the same number of elements as the argument
+sequence. 
+
+ set
+----
+  
+<<
+     $(set sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `set' function sorts a set of string components, eliminating
+duplicates.
+  For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
+
+
+ mem
+----
+  
+<<
+     $(mem elem, sequence) : Boolean
+        elem : String
+        sequence : Sequence
+>>
+  
+  The `mem' function tests for membership in a sequence.
+  For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
+`$(mem m n, y z "m n" w a)' evaluates to `false'.
+
+
+ intersection
+-------------
+  
+<<
+     $(intersection sequence1, sequence2) : Array
+        sequence1 : Sequence
+        sequence2 : Sequence
+>>
+  
+  The `intersection' function takes two arguments, treats them as sets
+of strings, and computes their intersection. The order of the result is
+undefined, and it may contain duplicates. Use the `set' function to sort
+the result and eliminate duplicates in the result if desired.
+  For example, the expression `$(intersection c a b a, b a)' evaluates
+to `a b a'. 
+
+ intersects
+-----------
+  
+<<
+     $(intersects sequence1, sequence2) : Boolean
+        sequence1 : Sequence
+        sequence2 : Sequence
+>>
+  
+  The `intersects' function tests whether two sets have a non-empty
+intersection. This is slightly more efficient than computing the
+intersection and testing whether it is empty.
+  For example, the expression `$(intersects a b c, d c e)' evaluates to
+`true', and `$(intersects a b c a, d e f)' evaluates to `false'.
+
+
+ set-diff
+---------
+  
+<<
+     $(set-diff sequence1, sequence2) : Array
+        sequence1 : Sequence
+        sequence2 : Sequence
+>>
+  
+  The `set-diff' function takes two arguments, treats them as sets of
+strings, and computes their difference (all the elements of the first
+set that are not present in the second one). The order of the result is
+undefined and it may contain duplicates. Use the `set' function to sort
+the result and eliminate duplicates in the result if desired.
+  For example, the expression `$(set-diff c a b a e, b a)' evaluates to
+`c e'. 
+
+ filter
+-------
+  
+<<
+     $(filter patterns, sequence) : Array
+        patterns : Sequence
+        sequence : Sequence
+>>
+  
+  The `filter' function picks elements from a sequence. The patterns is
+a non-empty sequence of patterns, each may contain one occurrence of the
+wildcard `%' character.
+  For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
+evaluates to `x.o b.h y.o'.
+
+
+ filter-out
+-----------
+  
+<<
+     $(filter-out patterns, sequence) : Array
+        patterns : Sequence
+        sequence : Sequence
+>>
+  
+  The `filter-out' function removes elements from a sequence. The
+patterns is a non-empty sequence of patterns, each may contain one
+occurrence of the wildcard `%' character.
+  For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
+evaluates to `x.o y.o'.
+
+
+ capitalize
+-----------
+  
+<<
+     $(capitalize sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `capitalize' function capitalizes each word in a sequence. For
+example, `$(capitalize through the looking Glass)' evaluates to `Through
+The Looking Glass'.
+
+
+ uncapitalize
+-------------
+  
+<<
+     $(uncapitalize sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `uncapitalize' function uncapitalizes each word in its argument.
+  For example, `$(uncapitalize through the looking Glass)' evaluates to
+`through the looking glass'.
+
+
+ uppercase
+----------
+  
+<<
+     $(uppercase sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `uppercase' function converts each word in a sequence to
+uppercase. For example, `$(uppercase through the looking Glass)'
+evaluates to `THROUGH THE LOOKING GLASS'.
+
+
+ lowercase
+----------
+  
+<<
+     $(lowercase sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `lowercase' function reduces each word in its argument to
+lowercase.
+  For example, `$(lowercase through tHe looking Glass)' evaluates to
+`through the looking glass'.
+
+
+ system
+-------
+  
+<<
+     system(s)
+        s : Sequence
+>>
+  
+  The `system' function is used to evaluate a shell expression. This
+function is used internally by omake to evaluate shell commands.
+  For example, the following program is equivalent to the expression
+`system(ls foo)'.
+<<
+     ls foo
+>>
+
+
+ shell
+------
+  
+<<
+     $(shell command) : Array
+     $(shella command) : Array
+     $(shell-code command) : Int
+        command : Sequence
+>>
+  
+  The `shell' function evaluates a command using the command shell, and
+returns the whitespace-separated words of the standard output as the
+result.
+  The `shella' function acts similarly, but it returns the lines as
+separate items in the array.
+  The `shell-code' function returns the exit code. The output is not
+diverted.
+  For example, if the current directory contains the files `OMakeroot',
+`OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
+OMakefile OMakeroot' (on a Unix system). 
+
+
+ while
+------
+  
+<<
+     while <test>
+        <body>
+>>
+  
+  --or--
+<<
+      while <test>
+      case <test1>
+         <body1>
+      ...
+      case <testn>
+         <bodyn>
+      default
+         <bodyd>
+>>
+  
+  The loop is executed while the test is true. In the first form, the
+`<body>' is executed on every loop iteration. In the second form, the
+body `<bodyI>' is selected, as the first case where the test `<testI>'
+is true. If none apply, the optional default case is evaluated. If no
+cases are true, the loop exits. The environment is automatically
+exported.
+  Examples.
+  Iterate for `i' from `0' to `9'.
+<<
+      i = 0
+      while $(lt $i, 10)
+         echo $i
+         i = $(add $i, 1)
+>>
+  
+  The following example is equivalent.
+<<
+     i = 0
+     while true
+     case $(lt $i, 10)
+        echo $i
+        i = $(add $i, 1)
+>>
+  
+  The following example is similar, but some special cases are printed.
+value is printed.
+<<
+      i = 0
+      while $(lt $i, 10)
+      case $(equal $i, 0)
+         echo zero
+      case $(equal $i, 1)
+         echo one
+      default
+         echo $i
+>>
+
+Node: Section 7-4,	Next: Subsection 7-4-1,	Prev: Section 7-3,	Up: Chapter 7
+  
+
+7.4   Arithmetic
+*=*=*=*=*=*=*=*=
+
+   
+
+ int
+----
+  
+  The `int' function can be used to create integers. It returns an `Int'
+object.
+  `$(int 17)'.
+
+
+ float
+------
+   The `float' function can be used to create floating-point numbers. It
+returns a `Float' object.
+  `$(float 3.1415926)'. 
+* Menu:
+
+* Subsection 7-4-1::	Basic arithmetic
+* Subsection 7-4-2::	Comparisons
+
+
+Node: Subsection 7-4-1,	Next: Subsection 7-4-2,	Prev: Section 7-4,	Up: Section 7-4
+  
+
+7.4.1   Basic arithmetic
+========================
+   
+
+
+
+
+
+
+
+
+
+
+
+
+  The following functions can be used to perform basic arithmetic.
+  
+  
+ - `$(neg <numbers>)': arithmetic inverse 
+ - `$(add <numbers>)': addition. 
+ - `$(sub <numbers>)': subtraction. 
+ - `$(mul <numbers>)': multiplication. 
+ - `$(div <numbers>)': division. 
+ - `$(mod <numbers>)': remainder. 
+ - `$(lnot <numbers>)': bitwise inverse. 
+ - `$(land <numbers>)': bitwise and. 
+ - `$(lor <numbers>)': bitwise or. 
+ - `$(lxor <numbers>)': bitwise exclusive-or. 
+ - `$(lsl <numbers>)': logical shift left. 
+ - `$(lsr <numbers>)': logical shift right. 
+ - `$(asr <numbers>)': arithmetic shift right. 
+   
+
+Node: Subsection 7-4-2,	Next: Section 7-5,	Prev: Subsection 7-4-1,	Up: Section 7-4
+  
+
+7.4.2   Comparisons
+===================
+   
+
+
+
+
+
+
+
+
+  The following functions can be used to perform numerical comparisons.
+  
+  
+ - `$(lt <numbers>)': less then. 
+ - `$(le <numbers>)': no more than. 
+ - `$(eq <numbers>)': equal. 
+ - `$(ge <numbers>)': no less than. 
+ - `$(gt <numbers>)': greater than. 
+ - `$(ult <numbers>)': unsigned less than. 
+ - `$(ule <numbers>)': unsigned greater than. 
+ - `$(uge <numbers>)': unsigned greater than or equal. 
+ - `$(ugt <numbers>)': unsigned greater than. 
+   
+
+Node: Section 7-5,	Next: Section 7-6,	Prev: Section 7-4,	Up: Chapter 7
+  
+
+7.5   First-class functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+
+ fun
+----
+  
+  The `fun' form introduces anonymous functions.
+  `$(fun <v1>, ..., <vn>, <body>)'
+  The last argument is the body of the function. The other arguments are
+the parameter names.
+  The three following definitions are equivalent.
+<<
+      F(X, Y) =
+         return($(addsuffix $(Y), $(X)))
+  
+      F = $(fun X, Y, $(addsuffix $(Y), $(X)))
+  
+      F =
+         fun(X, Y)
+            value $(addsuffix $(Y), $(X))
+>>
+
+
+ apply
+------
+  
+  The `apply' operator is used to apply a function.
+  `$(apply <fun>, <args>)'
+  Suppose we have the following function definition.
+<<
+      F(X, Y) =
+         return($(addsuffix $(Y), $(X)))
+>>
+  
+  The the two expressions below are equivalent.
+<<
+      X = F(a b c, .c)
+      X = $(apply $(F), a b c, .c)
+>>
+
+
+ applya
+-------
+  
+  The `applya' operator is used to apply a function to an array of
+arguments.
+  `$(applya <fun>, <args>)'
+  For example, in the following program, the value of `Z' is `file.c'.
+<<
+      F(X, Y) =
+         return($(addsuffix $(Y), $(X)))
+      args[] =
+         file
+         .c
+      Z = $(applya $(F), $(args))
+>>
+
+Node: Section 7-6,	Next: Chapter 8,	Prev: Section 7-5,	Up: Chapter 7
+  
+
+7.6   Iteration and mapping
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+
+
+ foreach
+--------
+  
+  The `foreach' function maps a function over a sequence.
+<<
+      $(foreach <fun>, <args>)
+  
+      foreach(<var>, <args>)
+         <body>
+>>
+  
+  For example, the following program defines the variable `X' as an
+array `a.c b.c c.c'.
+<<
+      X =
+         foreach(x, a b c)
+            value $(x).c
+  
+      # Equivalent expression
+      X = $(foreach $(fun x, $(x).c), abc)
+>>
+  
+  There is also an abbreviated syntax.
+  The `export' form can also be used in a `foreach' body. The final
+value of `X' is `a.c b.c c.c'.
+<<
+      X =
+      foreach(x, a b c)
+         X += $(x).c
+         export
+>>
+
+Node: Chapter 8,	Next: Section 8-1,	Prev: Chapter 7,	Up: Top
+  
+
+Chapter 8     File operations
+*****************************
+    
+
+
+ file
+-----
+   
+
+ dir
+----
+  
+<<
+     $(file sequence) : File Sequence
+        sequence : Sequence
+     $(dir sequence) : Dir Sequence
+        sequence : Sequence
+>>
+  
+  The `file' and `dir' functions define location-independent references
+to files and directories. In omake, the commands to build a target are
+executed in the target's directory. Since there may be many directories
+in an omake project, the build system provides a way to construct a
+reference to a file in one directory, and use it in another without
+explicitly modifying the file name. The functions have the following
+syntax, where the name should refer to a file or directory.
+  For example, we can construct a reference to a file `foo' in the
+current directory.
+<<
+     FOO = $(file foo)
+     .SUBDIRS: bar
+>>
+  
+  If the `FOO' variable is expanded in the `bar' subdirectory, it will
+expand to `../foo'.
+  These commands are often used in the top-level OMakefile to provide
+location-independent references to top-level directories, so that build
+commands may refer to these directories as if they were absolute.
+<<
+     ROOT = $(dir .)
+     LIB  = $(dir lib)
+     BIN  = $(dir bin)
+>>
+  
+  Once these variables are defined, they can be used in build commands
+in subdirectories as follows, where `$(BIN)' will expand to the location
+of the `bin' directory relative to the command being executed.
+<<
+     install: hello
+   cp hello $(BIN)
+>>
+
+
+ tmpfile
+--------
+  
+<<
+      $(tmpfile prefix) : File
+      $(tmpfile prefix, suffix) : File
+          prefix : String
+          suffix : String
+>>
+  
+  The `tmpfile' function returns the name of a fresh temporary file in
+the temporary directory. 
+
+ in
+---
+  
+<<
+     $(in dir, exp) : String Array
+        dir : Dir
+        exp : expression
+>>
+  
+  The `in' function is closely related to the `dir' and `file'
+functions. It takes a directory and an expression, and evaluates the
+expression in that effective directory. For example, one common way to
+install a file is to define a symbol link, where the value of the link
+is relative to the directory where the link is created.
+  The following commands create links in the `$(LIB)' directory.
+<<
+      FOO = $(file foo)
+      install:
+         ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
+>>
+  
+  Note that the `in' function only affects the expansion of `Node'
+(`File' and `Dir') values.
+
+
+ which
+------
+  
+<<
+     $(which files) : File Sequence
+        files : String Sequence
+>>
+  
+  The `which' function searches for executables in the current command
+search path, and returns `file' values for each of the commands. It is
+an error if a command is not found.
+
+
+ where
+------
+  
+  The `where' function is similar to which, except it returns the list
+of all the locations of the given executable (in the order in which the
+corresponding directories appear in `$PATH'). In case a command is
+handled internally by the `Shell' object, the first string in the output
+will describe the command as a built-in function.
+<<
+      % where echo
+      echo is a Shell object method (a built-in function)
+      /bin/echo
+>>
+
+
+ exists-in-path
+---------------
+  
+<<
+     $(exists-in-path files) : String
+        files : String Sequence
+>>
+  
+  The `exists-in-path' function tests whether all executables are
+present in the current search path.
+
+
+ basename
+---------
+  
+<<
+     $(basename files) : String Sequence
+        files : String Sequence
+>>
+  
+  The `basename' function returns the base names for a list of files.
+The basename is the filename with any leading directory components
+removed.
+  For example, the expression `$(basename dir1/dir2/a.out
+/etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'.
+
+
+ rootname
+---------
+  
+<<
+     $(rootname files) : String Sequence
+        files : String Sequence
+>>
+  
+  The `rootname' function returns the root name for a list of files. The
+rootname is the filename with the final suffix removed.
+  For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
+/foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'.
+
+
+ dirof
+------
+  
+<<
+     $(dirof files) : Dir Sequence
+        files : File Sequence
+>>
+  
+  The `dirof' function returns the directory for each of the listed
+files.
+  For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
+/foo.ml)' evaluates to the directories `dir1/dir2 /etc /'.
+
+
+ fullname
+---------
+  
+<<
+     $(fullname files) : String Sequence
+        files : File Sequence
+>>
+  
+  The `fullname' function returns the pathname relative to the project
+root for each of the files or directories.
+
+
+ absname
+--------
+  
+<<
+     $(absname files) : String Sequence
+        files : File Sequence
+>>
+  
+  The `absname' function returns the absolute pathname for each of the
+files or directories.
+
+
+ homename
+---------
+  
+<<
+     $(homename files) : String Sequence
+        files : File Sequence
+>>
+  
+  The `homename' function returns the name of a file in tilde form, if
+possible. The unexpanded forms are computed lazily: the `homename'
+function will usually evaluate to an absolute pathname until the first
+tilde-expansion for the same directory.
+
+
+ suffix
+-------
+  
+<<
+     $(suffix files) : String Sequence
+        files : StringSequence
+>>
+  
+  The `suffix' function returns the suffixes for a list of files. If a
+file has no suffix, the function returns the empty string.
+  For example, the expression `$(suffix dir1/dir2/a.out /etc/a /foo.ml)'
+evaluates to `.out .ml'.
+
+
+ file-exists
+------------
+   
+
+ target-exists
+--------------
+   
+
+ target-is-proper
+-----------------
+  
+<<
+     $(file-exists files) : String
+     $(target-exists files) : String
+     $(target-is-proper files) : String
+         files : File Sequence
+>>
+  
+  The `file-exists' function checks whether the files listed exist. The
+`target-exists' function is similar to the `file-exists' function.
+However, it returns true if the file exists or if it can be built by the
+current project. The `target-is-proper' returns true only if the file
+can be generated in the current project.
+
+
+ stat-reset
+-----------
+  
+<<
+     $(stat-reset files) : String
+         files : File Sequence
+>>
+  
+  OMake uses a stat-cache. The `stat-reset' function reset the `stat'
+information for the given files, forcing the `stat' information to be
+recomputed the next time it is requested.
+
+
+ filter-exists
+--------------
+   
+
+ filter-targets
+---------------
+   
+
+ filter-proper-targets
+----------------------
+  
+<<
+     $(filter-exists files) : File Sequence
+     $(filter-targets files) : File Sequence
+     $(filter-proper-targets) : File Sequence
+        files : File Sequence
+>>
+  
+  The `filter-exists', `filter-targets', and `filter-proper-targets'
+functions remove files from a list of files. 
+  
+ - `filter-exists': the result is the list of files that exist. 
+ - `filter-targets': the result is the list of files either exist, or 
+   can be built by the current project. 
+ - `filter-proper-targets': the result is the list of files that can  be
+   built in the current project. 
+  
+  One way to create a simple ``clean'' rule that removes generated files
+from the project is by removing all files that can be built in the
+current project. CAUTION: you should be careful before you do this. The
+rule removes any file that can potentially be reconstructed. There is no
+check to make sure that the commands to rebuild the file would actually
+succeed. Also, note that no file outside the current project will be
+deleted.
+<<
+      .PHONY: clean
+  
+      clean:
+          rm $(filter-proper-targets $(ls R, .))
+>>
+  
+  See the `dependencies-proper' function to see an alternate method for
+removing intermediate files.
+  If you use CVS, you may wish to use the `cvs_realclean' program that
+is distributed with `omake'.
+
+
+ file-sort
+----------
+    
+<<
+     $(file-sort order, files) : File Sequence
+        order : String
+        files : File Sequence
+>>
+  
+  The `file-sort' function sorts a list of filenames by build order
+augmented by a set of sort rules. Sort rules are declared using the
+`.ORDER' target. The `.BUILDORDER' defines the default order.
+  `$(file-sort <order>, <files>)'
+  For example, suppose we have the following set of rules.
+<<
+     a: b c
+     b: d
+     c: d
+  
+     .DEFAULT: a b c d
+        echo $(file-sort .BUILDORDER, a b c d)
+>>
+  
+  In the case, the sorter produces the result `d b c a'. That is, a
+target is sorted after its dependencies. The sorter is frequently used
+to sort files that are to be linked by their dependencies (for languages
+where this matters).
+  There are three important restrictions to the sorter: 
+  
+ - The sorter can be used only within a rule body. The reason for this
+   is that all dependencies must be known before the sort is performed. 
+ - The sorter can only sort files that are buildable in the current
+   project. 
+ - The sorter will fail if the dependencies are cyclic. 
+  
+ sort rule
+  
+  It is possible to further constrain the sorter through the use of sort
+rules. A sort rule is declared in two steps. The target must be listed
+as an `.ORDER' target; and then a set of sort rules must be given. A
+sort rule defines a pattern constraint.
+<<
+     .ORDER: .MYORDER
+  
+     .MYORDER: %.foo: %.bar
+     .MYORDER: %.bar: %.baz
+  
+     .DEFAULT: a.foo b.bar c.baz d.baz
+        echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
+>>
+  
+  In this example, the `.MYORDER' sort rule specifies that any file with
+a suffix `.foo' should be placed after any file with suffix `.bar', and
+any file with suffix `.bar' should be placed after a file with suffix
+`.baz'.
+  In this example, the result of the sort is `d.baz c.baz b.bar a.foo'.
+
+
+ file-check-sort
+----------------
+  
+<<
+     file-check-sort(files)
+        files : File Sequence
+     raises RuntimeException
+>>
+  
+  The `file-check-sort' function checks whether a list of files is in
+sort order. If so, the list is returned unchanged. If not, the function
+raises an exception.
+  `$(file-check-sort <order>, <files>)'
+
+
+ glob
+-----
+  
+<<
+     $(glob strings) : Node Array
+        strings : String Sequence
+     $(glob options, strings) : Node Array
+        options : String
+        strings : String Sequence
+>>
+  
+  The `glob' function performs glob-expansion.
+  The . and .. entries are always ignored.
+  The options are: 
+  
+ b  Do not perform csh(1)-style brace expansion. 
+ e  The `\' character does not escape special characters. 
+ n  If an expansion fails, return the expansion literally instead of
+   aborting. 
+ i  If an expansion fails, it expands to nothing. 
+ .  Allow wildcard patterns to match files beginning with a . 
+ A  Return all files, including files that begin with a . 
+ D  Match only directory files. 
+ C  Ignore files according to cvs(1) rules. 
+ P  Include only proper subdirectories. 
+  
+  In addition, the following variables may be defined that affect the
+behavior of `glob'.
+  
+  
+ GLOB_OPTIONS  A string containing default options. 
+ GLOB_IGNORE  A list of shell patterns for filenames that `glob' should
+   ignore. 
+ GLOB_ALLOW  A list of shell patterns. If a file does not match a
+   pattern in  `GLOB_ALLOW', it is ignored. 
+  
+  The returned files are sorted by name.
+
+
+ ls
+---
+  
+<<
+     $(ls files) : Node Array
+        files : String Sequence
+     $(ls options, files) : Node Array
+        files : String Sequence
+>>
+  
+  The `ls' function returns the filenames in a directory.
+  The . and .. entries are always ignored. The patterns are shell-style
+patterns, and are glob-expanded.
+  The options include all of the options to the `glob' function, plus
+the following.
+  
+  
+ R  Perform a recursive listing. 
+  
+  The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
+the globbing behavior. The returned files are sorted by name.
+
+
+ subdirs
+--------
+  
+<<
+     $(subdirs dirs) : Dir Array
+        dirs : String Sequence
+     $(subdirs options, dirs) : Dir Array
+        options : String
+        dirs : String Sequence
+>>
+  
+  The `subdirs' function returns all the subdirectories of a list of
+directories, recursively.
+  The possible options are the following: 
+  
+ A  Return directories that begin with a . 
+ C  Ignore files according to .cvsignore rules. 
+ P  Include only proper subdirectories. 
+   
+
+ mkdir
+------
+  
+<<
+     mkdir(mode, node...)
+        mode : Int
+        node : Node
+     raises RuntimeException
+  
+     mkdir(node...)
+        node : Node
+     raises RuntimeException
+>>
+  
+  The `mkdir' function creates a directory, or a set of directories. The
+following options are supported. 
+  
+ -m mode  Specify the permissions of the created directory. 
+ -p  Create parent directories if they do not exist. 
+ --  Interpret the remaining names literally. 
+   
+
+ Stat
+-----
+  
+  The `Stat' object represents the result returned by the `stat' and
+`lstat' functions. It contains the following fields.
+  A `stat' object has the following fields. Not all of the fields will
+have meaning on all architectures.
+  
+  
+ dev : the device number. 
+ ino : the inode number. 
+ kind : the kind of the file, one of the following:  `REG' (regular
+   file),  `DIR' (directory),  `CHR' (character device),  `BLK' (block
+   device),  `LNK' (symbolic link),  `FIFO' (named pipe),  `SOCK'
+   (socket). 
+ perm : access rights, represented as an integer. 
+ nlink : number of links. 
+ uid : user id of the owner. 
+ gid : group id of the file's group. 
+ rdev : device minor number. 
+ size : size in bytes. 
+ atime : last access time, as a floating point number. 
+ mtime : last modification time, as a floating point number. 
+ ctime : last status change time, as a floating point number. 
+  
+
+
+ stat
+-----
+  
+<<
+      $(stat node...) : Stat
+         node : Node or Channel
+      $(lstat node...) : Stat
+         node : Node or Channel
+      raises RuntimeException
+>>
+  
+  The `stat' functions return file information. If the file is a
+symbolic link, the `stat' function refers to the destination of the
+link; the `lstat' function refers to the link itself.
+
+
+ unlink
+-------
+  
+<<
+     $(unlink file...)
+        file : File
+     #(rm file...)
+        file : File
+     $(rmdir dir...)
+        dir : Dir
+     raises RuntimeException
+>>
+  
+  The `unlink' and `rm' functions remove a file. The `rmdir' function
+removes a directory.
+  The following options are supported for `rm' and `rmdir'. 
+  
+ -f  ignore nonexistent files, never prompt. 
+ -i  prompt before removal. 
+ -r  remove the contents of directories recursively. 
+ -v  explain what is going on. 
+ --  the rest of the values are interpreted literally. 
+   
+
+ rename
+-------
+  
+<<
+      rename(old, new)
+         old : Node
+         new : Node
+      mv(nodes... dir)
+         nodes : Node Sequence
+         dir   : Dir
+      cp(nodes... dir)
+         nodes : Node Sequence
+         dir   : Dir
+      raises RuntimeException
+>>
+  
+  The `rename' function changes the name of a file or directory named
+`old' to `new'.
+  The `mv' function is similar, but if `new' is a directory, and it
+exists, then the files specified by the sequence are moved into the
+directory. If not, the behavior of `mv' is identical to `rename'. The
+`cp' function is similar, but the original file is not removed.
+  The `mv' and `cp' functions take the following options. 
+  
+ -f  Do not prompt before overwriting. 
+ -i  Prompt before overwriting. 
+ -v  Explain what it happening. 
+ -r  Copy the contents of directories recursively. 
+ --  Interpret the remaining arguments literally. 
+   
+
+ link
+-----
+  
+<<
+     link(src, dst)
+        src : Node
+        dst : Node
+     raises RuntimeException
+>>
+  
+  The `link' function creates a hard link named `dst' to the file or
+directory `src'.
+  Hard links are not supported in Win32.
+  Normally, only the superuser can create hard links to directories.
+
+
+ symlink
+--------
+  
+<<
+     symlink(src, dst)
+        src : Node
+        dst : Node
+     raises RuntimeException
+>>
+  
+  The `symlink' function creates a symbolic link `dst' that points to
+the `src' file.
+  The link name is computed relative to the target directory. For
+example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
+-> ../a/b'.
+  Symbolic links are not supported in Win32.
+
+
+ readlink
+---------
+  
+<<
+     $(readlink node...) : Node
+        node : Node
+>>
+  
+  The `readlink' function reads the value of a symbolic link.
+
+
+ chmod
+------
+  
+<<
+     chmod(mode, dst...)
+        mode : Int
+        dst : Node or Channel
+     chmod(mode dst...)
+        mode : String
+        dst : Node Sequence
+     raises RuntimeException
+>>
+  
+  The `chmod' function changes the permissions of the targets. The
+`chmod' function does nothing on Win32 platforms.
+  Options: 
+  
+ -v  Explain what is happening. 
+ -r  Change files and directories recursively. 
+ -f  Continue on errors. 
+ --  Interpret the remaining argument literally. 
+   
+
+ chown
+------
+  
+<<
+     chown(uid, gid, node...)
+        uid : Int
+        gid : Int
+        node : Node or Channel
+     chown(uid, node...)
+        uid : Int
+        node : Node or Channel
+     raises RuntimeException
+>>
+  
+  The `chown' function changes the user and group id of the file. If the
+`gid' is not specified, it is not changed. If either id is -1, that id
+is not changed. 
+
+ umask
+------
+  
+<<
+      $(umask mode) : Int
+         mode : Int
+      raises RuntimeException
+>>
+  
+  Sets the file mode creation mask. The previous mask is returned. This
+value is not scoped, changes have global effect.
+
+
+ digest
+-------
+  
+<<
+       $(digest files) : String Array
+          file : File Array
+       raises RuntimeException
+  
+       $(digest-optional files) : String Array
+          file : File Array
+>>
+  
+  The `digest' and `digest-optional' functions compute MD5 digests of
+files. The `digest' function raises an exception if a file does no
+exist. The `digest-optional' returns `false' if a file does no exist.
+MD5 digests are cached.
+
+
+ find-in-path
+-------------
+  
+<<
+      $(find-in-path path, files) : File Array
+         path : Dir Array
+         files : String Array
+      raises RuntimeException
+  
+      $(find-in-path-optional path, files) : File Array
+>>
+  
+  The `find-in-path' function searches for the files in a search path.
+Only the tail of the filename is significant. The `find-in-path'
+function raises an exception if the file can't be found. The
+`find-in-path-optional' function silently removes files that can't be
+found. 
+
+ digest-path
+------------
+  
+<<
+      $(digest-in-path path, files) : String/File Array
+         path : Dir Array
+         files : String Array
+      raises RuntimeException
+  
+      $(digest-in-path-optional path, files) : String/File Array
+>>
+  
+  The `digest-in-path' function searches for the files in a search path
+and returns the file and digest for each file. Only the tail of the
+filename is significant. The `digest-in-path' function raises an
+exception if the file can't be found. The `digest-in-path-optional'
+function silently removes elements that can't be found.
+
+
+ rehash
+-------
+  
+<<
+      rehash()
+>>
+  
+  The `rehash' function resets all search paths.
+
+
+ vmount
+-------
+  
+<<
+      vmount(src, dst)
+         src, dst : Dir
+      vmount(flags, src, dst)
+         flags : String
+         src, dst : Dir
+>>
+  
+  ``Mount'' the `src' directory on the `dst' directory. This is a
+virtual mount, changing the behavior of the `$(file ...)' function. When
+the `$(file str)' function is used, the resulting file is taken relative
+to the `src' directory if the file exists. Otherwise, the file is
+relative to the current directory.
+  The main purpose of the `vmount' function is to support multiple
+builds with separate configurations or architectures.
+  The options are as follows. 
+  
+ l  Create symbolic links to files in the `src' directory. 
+ c  Copy files from the `src' directory. 
+  
+  Mount operations are scoped.
+
+
+ add-project-directories
+------------------------
+  
+<<
+      add-project-directories(dirs)
+         dirs : Dir Array
+>>
+  
+  Add the directories to the set of directories that omake considers to
+be part of the project. This is mainly used to avoid omake complaining
+that the current directory is not part of the project.
+
+
+ remove-project-directories
+---------------------------
+  
+<<
+      remove-project-directories(dirs)
+         dirs : Dir Array
+>>
+  
+  Removed the directories from the set of directories that omake
+considers to be part of the project. This is mainly used to cancel a
+`.SUBDIRS' from including a directory if it is determined that the
+directory does not need to be compiled.
+
+
+ test
+-----
+  
+<<
+     test(exp) : Bool
+        exp : String Sequence
+>>
+  
+  The expression grammar is as follows:
+  
+  
+ - `!' expression : expression is not true 
+ - expression1 `-a' expression2 : both expressions are true 
+ - expression1 `-o' expression2 : at least one expression is true 
+ - `(' expression `)' : expression is true 
+  
+  The base expressions are:
+  
+  
+ - `-n' string : The string has nonzero length 
+ - `-z' string : The string has zero length 
+ - string `=' string : The strings are equal 
+ - string `!=' string : The strings are not equal
+ 
+ - int1 `-eq' int2 : The integers are equal 
+ - int1 `-ne' int2 : The integers are not equal 
+ - int1 `-gt' int2 : int1 is larger than int2 
+ - int1 `-ge' int2 : int2 is not larger than int1 
+ - int1 `-lt' int2 : int1 is smaller than int2 
+ - int1 `-le' int2 : int1 is not larger than int2
+ 
+ - file1 `-ef' file2 : On Unix, file1 and file2 have the  same device
+   and inode number.  On Win32, file1 and file2 have the  same name. 
+ - file1 `-nt' file2 : file1 is newer than file2 
+ - file1 `-ot' file2 : file1 is older than file2
+ 
+ - `-b' file : The file is a block special file 
+ - `-c' file : The file is a character special file 
+ - `-d' file : The file is a directory 
+ - `-e' file : The file exists 
+ - `-f' file : The file is a normal file 
+ - `-g' file : The set`-group'`-id' bit is set on the file 
+ - `-G' file : The file's group is the current effective group 
+ - `-h' file : The file is a symbolic link (also `-L') 
+ - `-k' file : The file's sticky bit is set 
+ - `-L' file : The file is a symbolic link (also `-h') 
+ - `-O' file : The file's owner is the current effective user 
+ - `-p' file : The file is a named pipe 
+ - `-r' file : The file is readable 
+ - `-s' file : The file is empty 
+ - `-S' file : The file is a socket 
+ - `-u' file : The set`-user'`-id' bit is set on the file 
+ - `-w' file : The file is writable 
+ - `-x' file : The file is executable 
+  
+  A string is any sequence of characters; leading `-' characters are
+allowed.
+  An int is a string that can be interpreted as an integer. Unlike
+traditional versions of the test program, the leading characters may
+specify an arity. The prefix `0b' means the numbers is in binary; the
+prefix `0o' means the number is in octal; the prefix `0x' means the
+number is in hexadecimal. An int can also be specified as `-l' string,
+which evaluates to the length of the string.
+  A file is a string that represents the name of a file.
+  The syntax mirrors that of the test(1) program. If you are on a Unix
+system, the man page explains more. Here are some examples.
+<<
+      # Create an empty file
+      osh> touch foo
+      # Is the file empty?
+      osh> test(-e foo)
+      - : true
+      osh> test(! -e foo)
+      - : false
+      # Create another file
+      osh> touch boo
+      # Is the newer file newer?
+      osh> test(boo -nt foo)
+      - : true
+      # A more complex query
+      # boo is newer than foo, and foo is empty
+      osh> test(\( boo -nt foo \) -a -e foo)
+      - : true
+  \fun{find}
+  
+  \begin{verbatim}
+     find(exp) : Node Array
+        exp : String Sequence
+>>
+  
+  The `find' function searches a directory recursively, returning the
+files for which the expression evaluates to true.
+  The expression argument uses the same syntax as the `test' function,
+with the following exceptions.
+  
+  
+ 1. The expression may begin with a directory. If not specified, the
+   current  directory is searched. 
+ 2. The `{}' string expands to the current file being examined. 
+  
+  The syntax of the expression is the same as `test', with the following
+additions.
+  
+  
+ - `-name' string : The current file matches the regular expression. 
+  
+  The `find' function performs a recursive scan of all subdirectories.
+The following call is run from the root of the `omake' source directory.
+<<
+      osh> find(. -name fo*)
+      - : <array
+              /home/jyh/.../omake/mk/.svn/format
+              /home/jyh/.../omake/RPM/.svn/format
+              ...
+             
+/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+>>
+   
+* Menu:
+
+* Section 8-1::	IO functions
+* Section 8-2::	Printing functions
+* Section 8-3::	Value printing functions
+* Section 8-4::	Higher-level IO functions
+

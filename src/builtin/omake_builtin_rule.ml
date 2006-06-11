@@ -1,6 +1,12 @@
 (*
  * Some builtin functions.
  *
+ * \begin{doc}
+ * \chapter{Build functions}
+ * \label{chapter:rule}
+ * \cutname{omake-rule.html}
+ * \end{doc}
+ *
  * ----------------------------------------------------------------
  *
  * @begin[license]
@@ -58,9 +64,7 @@ let phony_targets = [".PHONY"; ".DEFAULT"; ".SUBDIRS"; ".SCANNER"; ".INCLUDE"; "
  * Set options.
  *
  * \begin{doc}
- * \section{Build functions}
- *
- * \subsection{OMakeFlags}
+ * \section{OMakeFlags}
  *
  * \begin{verbatim}
  *    OMakeFlags(options)
@@ -94,7 +98,7 @@ let set_options venv pos loc args =
  * Version checking.
  *
  * \begin{doc}
- * \subsection{OMakeVersion}
+ * \section{OMakeVersion}
  *
  * \begin{verbatim}
  *    OMakeVersion(version1)
@@ -110,7 +114,7 @@ let set_options venv pos loc args =
  * then an exception is raised.  In the two argument form,
  * the version must lie between \verb+version1+ and \verb+version2+.
  *
- * \subsection{cmp-versions}
+ * \section{cmp-versions}
  * \begin{verbatim}
  *    $(cmp-versions version1, version2)
  *       version1, version2 : String
@@ -202,7 +206,7 @@ let cmp_version venv pos loc args =
  * Add the command-line vars.
  *
  * \begin{doc}
- * \subsection{DefineCommandVars}
+ * \section{DefineCommandVars}
  *
  * \begin{verbatim}
  *    DefineCommandVars()

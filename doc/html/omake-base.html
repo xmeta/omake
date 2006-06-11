@@ -1,284 +1,135 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!-- Manual page created with latex2man --
--- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
--- NOTE: This file is generated, DO NOT EDIT. -->
-<html>
-<head><title>OMAKE-BASE</title></head>
-<body bgcolor="white">
-<h1 align=center>
-The OMake core library
-</h1>
-<h4 align=center>Jason Hickey <em>et. al.</em></h4>
-<h4 align=center>April 11, 2006</h4>
-<h4 align=center>Version 0.9.6.9</h4>
-<tt>omake</tt>
-is a flexible build system designed for building a wide variety of projects.
-This document describes the basic built-in functions. For an overview of <tt>omake</tt>,
-see the <a href="omake.html">omake(1)</a>
-man page.
-<h3>Table of Contents</h3>
-<ul>
-<li><a href="#section_1">Builtin variables </a>
-<ul>
-<li><a href="#section_2">OSTYPE </a></li>
-<li><a href="#section_3">SYSNAME </a></li>
-<li><a href="#section_4">NODENAME </a></li>
-<li><a href="#section_5">OS_VERSION </a></li>
-<li><a href="#section_6">MACHINE </a></li>
-<li><a href="#section_7">HOST </a></li>
-<li><a href="#section_8">OMAKE_VERSION </a></li>
-<li><a href="#section_9">USER </a></li>
-<li><a href="#section_10">HOME </a></li>
-<li><a href="#section_11">PID </a></li>
-</ul>
-<li><a href="#section_12">Boolean functions and control flow </a>
-<ul>
-<li><a href="#section_13">not </a></li>
-<li><a href="#section_14">equal </a></li>
-<li><a href="#section_15">and </a></li>
-<li><a href="#section_16">or </a></li>
-<li><a href="#section_17">if </a></li>
-<li><a href="#section_18">switch, match </a></li>
-<li><a href="#section_19">try </a></li>
-<li><a href="#section_20">raise </a></li>
-<li><a href="#section_21">exit </a></li>
-<li><a href="#section_22">defined </a></li>
-<li><a href="#section_23">defined-env </a></li>
-<li><a href="#section_24">getenv </a></li>
-<li><a href="#section_25">setenv </a></li>
-<li><a href="#section_26">get-registry </a></li>
-<li><a href="#section_27">getvar </a></li>
-<li><a href="#section_28">setvar </a></li>
-</ul>
-<li><a href="#section_29">Arrays and sequences </a>
-<ul>
-<li><a href="#section_30">array </a></li>
-<li><a href="#section_31">split </a></li>
-<li><a href="#section_32">concat </a></li>
-<li><a href="#section_33">length </a></li>
-<li><a href="#section_34">nth </a></li>
-<li><a href="#section_35">nth-hd </a></li>
-<li><a href="#section_36">nth-tl </a></li>
-<li><a href="#section_37">sub </a></li>
-<li><a href="#section_38">rev </a></li>
-<li><a href="#section_39">string </a></li>
-<li><a href="#section_40">quote </a></li>
-<li><a href="#section_41">quote-argv </a></li>
-<li><a href="#section_42">html-string </a></li>
-<li><a href="#section_43">addsuffix </a></li>
-<li><a href="#section_44">mapsuffix </a></li>
-<li><a href="#section_45">addsuffixes </a></li>
-<li><a href="#section_46">removeprefix </a></li>
-<li><a href="#section_47">removesuffix </a></li>
-<li><a href="#section_48">replacesuffixes </a></li>
-<li><a href="#section_49">addprefix </a></li>
-<li><a href="#section_50">mapprefix </a></li>
-<li><a href="#section_51">add-wrapper </a></li>
-<li><a href="#section_52">set </a></li>
-<li><a href="#section_53">mem </a></li>
-<li><a href="#section_54">intersection </a></li>
-<li><a href="#section_55">intersects </a></li>
-<li><a href="#section_56">set-diff </a></li>
-<li><a href="#section_57">filter </a></li>
-<li><a href="#section_58">filter-out </a></li>
-<li><a href="#section_59">capitalize </a></li>
-<li><a href="#section_60">uncapitalize </a></li>
-<li><a href="#section_61">uppercase </a></li>
-<li><a href="#section_62">lowercase </a></li>
-<li><a href="#section_63">system </a></li>
-<li><a href="#section_64">shell </a></li>
-<li><a href="#section_65">while </a></li>
-</ul>
-<li><a href="#section_66">Arithmetic </a>
-<ul>
-<li><a href="#section_67">int </a></li>
-<li><a href="#section_68">float </a></li>
-<li><a href="#section_69">Basic arithmetic </a></li>
-<li><a href="#section_70">Comparisons </a></li>
-</ul>
-<li><a href="#section_71">First-class functions </a>
-<ul>
-<li><a href="#section_72">fun </a></li>
-<li><a href="#section_73">apply </a></li>
-<li><a href="#section_74">applya </a></li>
-</ul>
-<li><a href="#section_75">Iteration and mapping </a>
-<ul>
-<li><a href="#section_76">foreach </a></li>
-</ul>
-<li><a href="#section_77">File operations </a>
-<ul>
-<li><a href="#section_78">file, dir </a></li>
-<li><a href="#section_79">tmpfile </a></li>
-<li><a href="#section_80">in </a></li>
-<li><a href="#section_81">which </a></li>
-<li><a href="#section_82">where </a></li>
-<li><a href="#section_83">exists-in-path </a></li>
-<li><a href="#section_84">basename </a></li>
-<li><a href="#section_85">rootname </a></li>
-<li><a href="#section_86">dirof </a></li>
-<li><a href="#section_87">fullname </a></li>
-<li><a href="#section_88">absname </a></li>
-<li><a href="#section_89">homename </a></li>
-<li><a href="#section_90">suffix </a></li>
-<li><a href="#section_91">file-exists, target-exists, target-is-proper </a></li>
-<li><a href="#section_92">stat-reset </a></li>
-<li><a href="#section_93">filter-exists, filter-targets, filter-proper-targets </a></li>
-<li><a href="#section_94">file-sort </a></li>
-<li><a href="#section_95">sort rule </a></li>
-<li><a href="#section_96">file-check-sort </a></li>
-<li><a href="#section_97">glob </a></li>
-<li><a href="#section_98">ls </a></li>
-<li><a href="#section_99">subdirs </a></li>
-<li><a href="#section_100">mkdir </a></li>
-<li><a href="#section_101">Stat </a></li>
-<li><a href="#section_102">stat </a></li>
-<li><a href="#section_103">unlink </a></li>
-<li><a href="#section_104">rename </a></li>
-<li><a href="#section_105">link </a></li>
-<li><a href="#section_106">symlink </a></li>
-<li><a href="#section_107">readlink </a></li>
-<li><a href="#section_108">chmod </a></li>
-<li><a href="#section_109">chown </a></li>
-<li><a href="#section_110">umask </a></li>
-<li><a href="#section_111">digest </a></li>
-<li><a href="#section_112">find-in-path </a></li>
-<li><a href="#section_113">digest-path </a></li>
-<li><a href="#section_114">rehash </a></li>
-<li><a href="#section_115">vmount </a></li>
-<li><a href="#section_116">add-project-directories </a></li>
-<li><a href="#section_117">remove-project-directories </a></li>
-<li><a href="#section_118">test </a></li>
-<li><a href="#section_119">find </a></li>
-</ul>
-<li><a href="#section_120">References </a>
-<ul>
-<li><a href="#section_121">See Also </a></li>
-<li><a href="#section_122">Version </a></li>
-<li><a href="#section_123">License and Copyright </a></li>
-<li><a href="#section_124">Author </a></li>
-</ul>
-</li>
-</ul>
-<p>
-<h2><a name="section_1">Builtin variables</a></h2>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
 
-<p>
-<h4><a name="section_2">OSTYPE</a></h4>
 
-Set to the machine architecture <tt>omake</tt>
-is running on. Possible values are
-<tt>Unix</tt> (for all Unix versions, including Linux and Mac OS X), <tt>Win32</tt>
-(for MS-Windows, OMake compiled with MSVC++ or Mingw), and <tt>Cygwin</tt> (for
-MS-Windows, OMake compiled with Cygwin).
-<h4><a name="section_3">SYSNAME</a></h4>
 
-The name of the operating system for the current machine.
-<h4><a name="section_4">NODENAME</a></h4>
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.08">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>
+Base library
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="omake-rules.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-system.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
 
-The hostname of the current machine.
-<h4><a name="section_5">OS_VERSION</a></h4>
+<H1 CLASS="chapter"><A NAME="htoc80">Chapter&nbsp;7</A>&nbsp;&nbsp;Base library</H1>
+<A NAME="chapter:base"></A>
 
-The operating system release.
-<h4><a name="section_6">MACHINE</a></h4>
-
-The machine architecture, e.g.  <tt>i386</tt>, <tt>sparc</tt>, etc.
-<h4><a name="section_7">HOST</a></h4>
-
-Same as <tt>NODENAME</tt>.
-<h4><a name="section_8">OMAKE_VERSION</a></h4>
-
-Version of OMake.
-<h4><a name="section_9">USER</a></h4>
-
-The login name of the user executing the process.
-<h4><a name="section_10">HOME</a></h4>
-
-The home directory of the user executing the process.
-<h4><a name="section_11">PID</a></h4>
-
-The OMake process id.
-<h2><a name="section_12">Boolean functions and control flow</a></h2>
-
-<p>
-<h4><a name="section_13">not</a></h4>
-
-<p>
-<pre>
+<A NAME="toc58"></A>
+<H2 CLASS="section"><A NAME="htoc81">7.1</A>&nbsp;&nbsp;Builtin variables</H2>
+<A NAME="@default40"></A><A NAME="@var0"></A><A NAME="var:OSTYPE"></A>
+<H4 CLASS="subsubsection">OSTYPE</H4>
+ Set to the machine architecture <TT>omake</TT> is running on. Possible values are
+ <CODE>Unix</CODE> (for all Unix versions, including Linux and Mac OS X), <CODE>Win32</CODE>
+ (for MS-Windows, OMake compiled with MSVC++ or Mingw), and <CODE>Cygwin</CODE> (for
+ MS-Windows, OMake compiled with Cygwin).
+<A NAME="@default41"></A><A NAME="@var1"></A><A NAME="var:SYSNAME"></A>
+<H4 CLASS="subsubsection">SYSNAME</H4>
+ The name of the operating system for the current machine.
+<A NAME="@default42"></A><A NAME="@var2"></A><A NAME="var:NODENAME"></A>
+<H4 CLASS="subsubsection">NODENAME</H4>
+ The hostname of the current machine.
+<A NAME="@default43"></A><A NAME="@var3"></A><A NAME="var:OS_VERSION"></A>
+<H4 CLASS="subsubsection">OS_VERSION</H4>
+ The operating system release.
+<A NAME="@default44"></A><A NAME="@var4"></A><A NAME="var:MACHINE"></A>
+<H4 CLASS="subsubsection">MACHINE</H4>
+ The machine architecture, e.g. <CODE>i386</CODE>, <CODE>sparc</CODE>, etc.
+<A NAME="@default45"></A><A NAME="@var5"></A><A NAME="var:HOST"></A>
+<H4 CLASS="subsubsection">HOST</H4>
+ Same as <CODE>NODENAME</CODE>.
+<A NAME="@default46"></A><A NAME="@var6"></A><A NAME="var:OMAKE_VERSION"></A>
+<H4 CLASS="subsubsection">OMAKE_VERSION</H4>
+ Version of OMake.
+<A NAME="@default47"></A><A NAME="@var7"></A><A NAME="var:USER"></A>
+<H4 CLASS="subsubsection">USER</H4>
+ The login name of the user executing the process.
+<A NAME="@default48"></A><A NAME="@var8"></A><A NAME="var:HOME"></A>
+<H4 CLASS="subsubsection">HOME</H4>
+ The home directory of the user executing the process.
+<A NAME="@default49"></A><A NAME="@var9"></A><A NAME="var:PID"></A>
+<H4 CLASS="subsubsection">PID</H4>
+ The OMake process id.
+<A NAME="toc59"></A>
+<H2 CLASS="section"><A NAME="htoc82">7.2</A>&nbsp;&nbsp;Boolean functions and control flow</H2>
+<A NAME="@default50"></A><A NAME="@fun5"></A><A NAME="fun:not"></A>
+<H4 CLASS="subsubsection">not</H4>
+<PRE CLASS="verbatim">
    $(not e) : String
       e : String
-</pre>
-<p>
+</PRE>
 Boolean values in omake are represented by case-insensitive strings. The
-<em>false</em>
-value can be represented by the strings <tt>false</tt>, <tt>no</tt>,
-<tt>nil</tt>, <tt>undefined</tt> or <tt>0</tt>, and everything else is true. The
-<tt>not</tt> function negates a Boolean value.
-<p>
-For example, <tt>$(not false)</tt> expands to the string <tt>true</tt>, and <tt>$(not hello world)</tt> expands to <tt>false</tt>.
-<h4><a name="section_14">equal</a></h4>
-
-<p>
-<pre>
+<EM>false</EM> value can be represented by the strings <CODE>false</CODE>, <CODE>no</CODE>,
+<CODE>nil</CODE>, <CODE>undefined</CODE> or <CODE>0</CODE>, and everything else is true. The
+<CODE>not</CODE> function negates a Boolean value.<BR>
+<BR>
+For example, <CODE>$(not false)</CODE> expands to the string <CODE>true</CODE>, and <CODE>$(not hello world)</CODE> expands to <CODE>false</CODE>.
+<A NAME="@default51"></A><A NAME="@fun6"></A><A NAME="fun:equal"></A>
+<H4 CLASS="subsubsection">equal</H4>
+<PRE CLASS="verbatim">
    $(equal e1, e2) : String
       e1 : String
       e2 : String
-</pre>
-<p>
-The <tt>equal</tt> function tests for equality of two values.
-<p>
-For example <tt>$(equal a, b)</tt> expands to <tt>false</tt>, and <tt>$(equal hello world, hello world)</tt> expands to <tt>true</tt>.
-<h4><a name="section_15">and</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>equal</CODE> function tests for equality of two values.<BR>
+<BR>
+For example <CODE>$(equal a, b)</CODE> expands to <CODE>false</CODE>, and <CODE>$(equal hello world, hello world)</CODE> expands to <CODE>true</CODE>.
+<A NAME="@default52"></A><A NAME="@fun7"></A><A NAME="fun:and"></A>
+<H4 CLASS="subsubsection">and</H4>
+<PRE CLASS="verbatim">
     $(and e1, ..., en) : String
        e1, ..., en: Sequence
-</pre>
-<p>
-The <tt>and</tt> function evaluates to the conjunction of its arguments.
-<p>
-For example, in the following code, <tt>X</tt> is true, and <tt>Y</tt> is false.
-<p>
-<pre>
+</PRE>
+The <CODE>and</CODE> function evaluates to the conjunction of its arguments.<BR>
+<BR>
+For example, in the following code, <CODE>X</CODE> is true, and <CODE>Y</CODE> is false.
+<PRE CLASS="verbatim">
     A = a
     B = b
     X = $(and $(equal $(A), a) true $(equal $(B), b))
     Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
-</pre>
-<h4><a name="section_16">or</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default53"></A><A NAME="@fun8"></A><A NAME="fun:or"></A>
+<H4 CLASS="subsubsection">or</H4>
+<PRE CLASS="verbatim">
    $(or e1, ..., en) : String
       e1, ..., en: String Sequence
-</pre>
-<p>
-The <tt>or</tt> function evaluates to the disjunction of its arguments.
-<p>
-For example, in the following code, <tt>X</tt> is true, and <tt>Y</tt> is false.
-<p>
-<pre>
+</PRE>
+The <CODE>or</CODE> function evaluates to the disjunction of its arguments.<BR>
+<BR>
+For example, in the following code, <CODE>X</CODE> is true, and <CODE>Y</CODE> is false.
+<PRE CLASS="verbatim">
     A = a
     B = b
     X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
     Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
-</pre>
-<h4><a name="section_17">if</a></h4>
-
-<p>
-<pre>
+</PRE>
+<A NAME="@default54"></A><A NAME="@fun9"></A><A NAME="fun:if"></A>
+<H4 CLASS="subsubsection">if</H4>
+<PRE CLASS="verbatim">
     $(if e1, e2[, e3]) : value
        e1 : String
        e2, e3 : value
-</pre>
-<p>
-The <tt>if</tt> function represents a conditional based on a Boolean value.
-For example <tt>$(if $(equal a, b), c, d)</tt> evaluates to <tt>d</tt>.
-<p>
+</PRE>
+The <CODE>if</CODE> function represents a conditional based on a Boolean value.
+For example <CODE>$(if $(equal a, b), c, d)</CODE> evaluates to <CODE>d</CODE>.<BR>
+<BR>
 Conditionals may also be declared with an alternate syntax.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    if e1
       body1
    elseif e2
@@ -286,25 +137,23 @@ Conditionals may also be declared with an alternate syntax.
    ...
    else
       bodyn
-</pre>
-<p>
-If the expression <tt>e1</tt> is not false, then the expressions in <tt>body1</tt>
+</PRE>
+If the expression <CODE>e1</CODE> is not false, then the expressions in <CODE>body1</CODE>
 are evaluated and the result is returned as the value of the conditional. Otherwise,
-if <tt>e1</tt> evaluates to false, the evaluation continues with the <tt>e2</tt>
+if <CODE>e1</CODE> evaluates to false, the evaluation continues with the <CODE>e2</CODE>
 expression. If none of the conditional expressions is true, then the expressions
-in <tt>bodyn</tt> are evaluated and the result is returned as the value
-of the conditional.
-<p>
-There can be any number of <tt>elseif</tt> clauses; the <tt>else</tt> clause is
-optional.
-<p>
+in <CODE>bodyn</CODE> are evaluated and the result is returned as the value
+of the conditional.<BR>
+<BR>
+There can be any number of <CODE>elseif</CODE> clauses; the <CODE>else</CODE> clause is
+optional.<BR>
+<BR>
 Note that each branch of the conditional defines its own scope, so variables
 defined in the branches are normally not visible outside the conditional.
-The <tt>export</tt> command may be used to export the variables defined in
+The <CODE>export</CODE> command may be used to export the variables defined in
 a scope. For example, the following expression represents a common idiom
 for defining the C compiler configuration.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    if $(equal $(OSTYPE), Win32)
       CC = cl
       CFLAGS += /DWIN32
@@ -313,49 +162,44 @@ for defining the C compiler configuration.
       CC = gcc
       CFLAGS += -g -O2
       export
-</pre>
-<h4><a name="section_18">switch, match</a></h4>
-
-<p>
-The <tt>switch</tt> and <tt>match</tt> functions perform pattern matching.
-<p>
-<tt>$(switch &lt;arg&gt;, &lt;pattern_1&gt;, &lt;value_1&gt;, ..., &lt;pattern_n&gt;, &lt;value_n&gt;)</tt>
-<tt>$(match &lt;arg&gt;, &lt;pattern_1&gt;, &lt;value_1&gt;, ..., &lt;pattern_n&gt;, &lt;value_n&gt;)</tt>
-<p>
-The number of <tt>&lt;pattern&gt;/&lt;value&gt;</tt> pairs is arbitrary. They strictly
-alternate; the total number of arguments to <tt>&lt;match&gt;</tt> must be odd.
-<p>
-The <tt>&lt;arg&gt;</tt> is evaluated to a string, and compared with <tt>&lt;pattern_1&gt;</tt>.
-If it matches, the result of the expression is <tt>&lt;value_1&gt;</tt>. Otherwise
+</PRE><A NAME="@default55"></A><A NAME="@fun10"></A><A NAME="fun:switch"></A>
+<H4 CLASS="subsubsection">switch</H4>
+<A NAME="@default56"></A><A NAME="@fun11"></A><A NAME="fun:match"></A>
+<H4 CLASS="subsubsection">match</H4>
+The <CODE>switch</CODE> and <CODE>match</CODE> functions perform pattern matching.<BR>
+<BR>
+<CODE>$(switch &lt;arg&gt;, &lt;pattern_1&gt;, &lt;value_1&gt;, ..., &lt;pattern_n&gt;, &lt;value_n&gt;)</CODE>
+<CODE>$(match &lt;arg&gt;, &lt;pattern_1&gt;, &lt;value_1&gt;, ..., &lt;pattern_n&gt;, &lt;value_n&gt;)</CODE><BR>
+<BR>
+The number of <CODE>&lt;pattern&gt;/&lt;value&gt;</CODE> pairs is arbitrary. They strictly
+alternate; the total number of arguments to <CODE>&lt;match&gt;</CODE> must be odd.<BR>
+<BR>
+The <CODE>&lt;arg&gt;</CODE> is evaluated to a string, and compared with <CODE>&lt;pattern_1&gt;</CODE>.
+If it matches, the result of the expression is <CODE>&lt;value_1&gt;</CODE>. Otherwise
 evaluation continues with the remaining patterns until a match is found.
-If no pattern matches, the value is the empty string.
-<p>
-The <tt>switch</tt> function uses string comparison to compare
+If no pattern matches, the value is the empty string.<BR>
+<BR>
+The <CODE>switch</CODE> function uses string comparison to compare
 the argument with the patterns. For example, the following
-expression defines the <tt>FILE</tt> variable to be either
-<tt>foo</tt>, <tt>bar</tt>, or the empty string, depending
-on the value of the <tt>OSTYPE</tt> variable.
-<p>
-<pre>
+expression defines the <CODE>FILE</CODE> variable to be either
+<CODE>foo</CODE>, <CODE>bar</CODE>, or the empty string, depending
+on the value of the <CODE>OSTYPE</CODE> variable.
+<PRE CLASS="verbatim">
     FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
-</pre>
-<p>
-The <tt>match</tt> function uses regular expression patterns (see the
-<tt>grep</tt> function). If a match is found, the variables
-<tt>$1, $2, ...</tt> are bound to the substrings matched between
-<tt>\(</tt> and <tt>\)</tt> delimiters.
-The <tt>$0</tt> variable contains the entire match, and <tt>$*</tt>
+</PRE>
+The <CODE>match</CODE> function uses regular expression patterns (see the
+<CODE>grep</CODE> function). If a match is found, the variables
+<CODE>$1, $2, ...</CODE> are bound to the substrings matched between
+<CODE>\(</CODE> and <CODE>\)</CODE> delimiters.
+The <CODE>$0</CODE> variable contains the entire match, and <CODE>$*</CODE>
 is an array of the matched substrings.
 to the matched substrings.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a, foo_$2/$1.o)
-</pre>
-<p>
-The <tt>switch</tt> and <tt>match</tt> functions also have an alternate (more usable)
+</PRE>
+The <CODE>switch</CODE> and <CODE>match</CODE> functions also have an alternate (more usable)
 form.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    match e
    case pattern1
       body1
@@ -364,24 +208,21 @@ form.
    ...
    default
       bodyd
-</pre>
-<p>
-If the value of expression <tt>e</tt> matches <tt>pattern_i</tt> and no previous pattern,
-then <tt>body_i</tt> is evaluated and returned as the result of the <tt>match</tt>.
-The <tt>switch</tt> function uses string comparison; the <tt>match</tt> function
+</PRE>
+If the value of expression <CODE>e</CODE> matches <CODE>pattern_i</CODE> and no previous pattern,
+then <CODE>body_i</CODE> is evaluated and returned as the result of the <CODE>match</CODE>.
+The <CODE>switch</CODE> function uses string comparison; the <CODE>match</CODE> function
 uses regular expression matching.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    match $(FILE)
    case $".*\(\.[^\/.]*\)"
       println(The string $(FILE) has suffix $1)
    default
       println(The string $(FILE) has no suffix)
-</pre>
-<h4><a name="section_19">try</a></h4>
-
-<p>
-<pre>
+</PRE>
+<A NAME="@default57"></A><A NAME="@fun12"></A><A NAME="fun:try"></A>
+<H4 CLASS="subsubsection">try</H4>
+<PRE CLASS="verbatim">
    try
       try-body
    catch class1(v1)
@@ -391,751 +232,631 @@ uses regular expression matching.
    ...
    finally
       finally-body
-</pre>
-<p>
-The <tt>try</tt> form is used for exception handling.
-First, the expressions in the <tt>try-body</tt> are evaluated.
-<p>
-If evaluation results in a value <tt>v</tt> without raising an
-exception, then the expressions in the <tt>finally-body</tt>
-are evaluated and the value <tt>v</tt> is returned as the result.
-<p>
-If evaluation of the <tt>try-body</tt> results in a exception object <tt>obj</tt>,
-the <tt>catch</tt> clauses are examined in order. When examining <tt>catch</tt>
-clause <tt>catch class(v)</tt>, if the exception object <tt>obj</tt>
-is an instance of the class name <tt>class</tt>, the variable <tt>v</tt> is bound
-to the exception object, and the expressions in the <tt>catch-body</tt>
-are evaluated.
-<p>
-If a <tt>when</tt> clause is encountered while a <tt>catch</tt> body is being evaluated,
-the predicate <tt>expr</tt> is evaluated. If the result is true, evaluation continues
-with the expressions in the <tt>when-body</tt>. Otherwise, the next <tt>catch</tt>
-clause is considered for evaluation.
-<p>
-If evaluation of a <tt>catch-body</tt> or <tt>when-body</tt> completes successfully,
-returning a value <tt>v</tt>, without encountering another <tt>when</tt> clause,
-then the expressions in the <tt>finally-body</tt>
-are evaluated and the value <tt>v</tt> is returned as the result.
-<p>
-There can be any number of <tt>catch</tt> clauses; the <tt>finally</tt> clause
+</PRE>
+The <CODE>try</CODE> form is used for exception handling.
+First, the expressions in the <CODE>try-body</CODE> are evaluated.<BR>
+<BR>
+If evaluation results in a value <CODE>v</CODE> without raising an
+exception, then the expressions in the <CODE>finally-body</CODE>
+are evaluated and the value <CODE>v</CODE> is returned as the result.<BR>
+<BR>
+If evaluation of the <CODE>try-body</CODE> results in a exception object <CODE>obj</CODE>,
+the <CODE>catch</CODE> clauses are examined in order. When examining <CODE>catch</CODE>
+clause <CODE>catch class(v)</CODE>, if the exception object <CODE>obj</CODE>
+is an instance of the class name <CODE>class</CODE>, the variable <CODE>v</CODE> is bound
+to the exception object, and the expressions in the <CODE>catch-body</CODE>
+are evaluated.<BR>
+<BR>
+If a <CODE>when</CODE> clause is encountered while a <CODE>catch</CODE> body is being evaluated,
+the predicate <CODE>expr</CODE> is evaluated. If the result is true, evaluation continues
+with the expressions in the <CODE>when-body</CODE>. Otherwise, the next <CODE>catch</CODE>
+clause is considered for evaluation.<BR>
+<BR>
+If evaluation of a <CODE>catch-body</CODE> or <CODE>when-body</CODE> completes successfully,
+returning a value <CODE>v</CODE>, without encountering another <CODE>when</CODE> clause,
+then the expressions in the <CODE>finally-body</CODE>
+are evaluated and the value <CODE>v</CODE> is returned as the result.<BR>
+<BR>
+There can be any number of <CODE>catch</CODE> clauses; the <CODE>finally</CODE> clause
 is optional.
-<h4><a name="section_20">raise</a></h4>
-
-<p>
-<pre>
+<BR>
+<BR>
+<A NAME="@default58"></A><A NAME="@fun13"></A><A NAME="fun:raise"></A>
+<H4 CLASS="subsubsection">raise</H4>
+<PRE CLASS="verbatim">
    raise exn
       exn : Exception
-</pre>
-<p>
-The <tt>raise</tt> function raises an exception.
-The <tt>exn</tt> object can be any object. However,
-the normal convention is to raise an <tt>Exception</tt>
+</PRE>
+The <CODE>raise</CODE> function raises an exception.
+The <CODE>exn</CODE> object can be any object. However,
+the normal convention is to raise an <CODE>Exception</CODE>
 object.
-<h4><a name="section_21">exit</a></h4>
-
-<p>
-<pre>
+<A NAME="@default59"></A><A NAME="@fun14"></A><A NAME="fun:exit"></A>
+<H4 CLASS="subsubsection">exit</H4>
+<PRE CLASS="verbatim">
    exit(code)
       code : Int
-</pre>
-<p>
-The <tt>exit</tt> function terminates <tt>omake</tt>
-abnormally.
-<p>
-<tt>$(exit &lt;code&gt;)</tt>
-<p>
-The <tt>exit</tt> function takes one integer argument, which is exit code.
+</PRE>
+The <CODE>exit</CODE> function terminates <TT>omake</TT> abnormally.<BR>
+<BR>
+<CODE>$(exit &lt;code&gt;)</CODE><BR>
+<BR>
+The <CODE>exit</CODE> function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination.
-<h4><a name="section_22">defined</a></h4>
-
-<p>
-<pre>
+<A NAME="@default60"></A><A NAME="@fun15"></A><A NAME="fun:defined"></A>
+<H4 CLASS="subsubsection">defined</H4>
+<PRE CLASS="verbatim">
    $(defined sequence) : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>defined</tt> function test whether all the variables in the sequence are
-currently defined. For example, the following code defines the <tt>X</tt> variable
+</PRE>
+The <CODE>defined</CODE> function test whether all the variables in the sequence are
+currently defined. For example, the following code defines the <CODE>X</CODE> variable
 if it is not already defined.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     if $(not $(defined X))
        X = a b c
        export
-</pre>
-<h4><a name="section_23">defined-env</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default61"></A><A NAME="@fun16"></A><A NAME="fun:defined-env"></A>
+<H4 CLASS="subsubsection">defined-env</H4>
+<PRE CLASS="verbatim">
    $(defined-env sequence) : String
       sequence : String
-</pre>
-<p>
-The <tt>defined-env</tt> function tests whether a variable is defined
-as part of the process environment.
-<p>
-For example, the following code adds the <tt>-g</tt> compile
-option if the environment variable <tt>DEBUG</tt> is defined.
-<p>
-<pre>
+</PRE>
+The <CODE>defined-env</CODE> function tests whether a variable is defined
+as part of the process environment.<BR>
+<BR>
+For example, the following code adds the <CODE>-g</CODE> compile
+option if the environment variable <CODE>DEBUG</CODE> is defined.
+<PRE CLASS="verbatim">
 if $(defined-env DEBUG)
     CFLAGS += -g
     export
-</pre>
-<h4><a name="section_24">getenv</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default62"></A><A NAME="@fun17"></A><A NAME="fun:getenv"></A>
+<H4 CLASS="subsubsection">getenv</H4>
+<PRE CLASS="verbatim">
    $(getenv name) : String
    $(getenv name, default) : String
-</pre>
-<p>
-The <tt>getenv</tt> function gets the value of a variable from
-the process environment. The function takes one or two arguments.
-<p>
+</PRE>
+The <CODE>getenv</CODE> function gets the value of a variable from
+the process environment. The function takes one or two arguments.<BR>
+<BR>
 In the single argument form, an exception is raised if the variable
 variable is not defined in the environment. In the two-argument form,
 the second argument is returned as the result if the value is not
-defined.
-<p>
-For example, the following code defines the variable <tt>X</tt>
-to be a space-separated list of elements of the <tt>PATH</tt>
-environment variable if it is defined, and to <tt>/bin /usr/bin</tt>
+defined.<BR>
+<BR>
+For example, the following code defines the variable <CODE>X</CODE>
+to be a space-separated list of elements of the <CODE>PATH</CODE>
+environment variable if it is defined, and to <CODE>/bin /usr/bin</CODE>
 otherwise.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
-</pre>
-<p>
+</PRE>
 You may also use the alternate form.
-<pre>
+<PRE CLASS="verbatim">
      getenv(NAME)
          default
-</pre>
-<h4><a name="section_25">setenv</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default63"></A><A NAME="@fun18"></A><A NAME="fun:setenv"></A>
+<H4 CLASS="subsubsection">setenv</H4>
+<PRE CLASS="verbatim">
    setenv(name, value)
       name : String
       value : String
-</pre>
-<p>
-The <tt>setenv</tt> function sets the value of a variable in
+</PRE>
+The <CODE>setenv</CODE> function sets the value of a variable in
 the process environment. Environment variables are scoped
-like normal variables.
-<p>
-<h4><a name="section_26">get-registry</a></h4>
-
-<p>
-<pre>
+like normal variables.<BR>
+<BR>
+<A NAME="@default64"></A><A NAME="@fun19"></A><A NAME="fun:get-registry"></A>
+<H4 CLASS="subsubsection">get-registry</H4>
+<PRE CLASS="verbatim">
    get-registry(hkey, key, field) : String
    get-registry(hkey, key, field, default) : String
        hkey : String
        key : String
        field : String
-</pre>
-<p>
-The <tt>get-registry</tt> function retrieves a string value from the
+</PRE>
+The <CODE>get-registry</CODE> function retrieves a string value from the
 system registry on Win32. On other architectures, there is no
-registry.
-<p>
-The <tt>hive</tt> (I think that is the right word), indicates which part
+registry.<BR>
+<BR>
+The <CODE>hive</CODE> (I think that is the right word), indicates which part
 of the registry to use. It should be one of the following values.
-<p>
-<ul compact>
-<li><tt>HKEY_CLASSES_ROOT</tt>
-</li>
-<li><tt>HKEY_CURRENT_CONFIG</tt>
-</li>
-<li><tt>HKEY_CURRENT_USER</tt>
-</li>
-<li><tt>HKEY_LOCAL_MACHINE</tt>
-</li>
-<li><tt>HKEY_USERS</tt>
-</li>
-</ul>
-Refer to the Microsoft documentation if you want to know what these mean.
-<p>
-The <tt>key</tt> is the field you want to get from the registry.
-It should have a form like <tt>A\B\C</tt> (if you use forward slashes, they will
-be converted to backslashes). The field is the sub-field of the key.
-<p>
-In the 4-argument form, the <tt>default</tt> is returned on failure.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>HKEY_CLASSES_ROOT</CODE>
+<LI CLASS="li-itemize"><CODE>HKEY_CURRENT_CONFIG</CODE>
+<LI CLASS="li-itemize"><CODE>HKEY_CURRENT_USER</CODE>
+<LI CLASS="li-itemize"><CODE>HKEY_LOCAL_MACHINE</CODE>
+<LI CLASS="li-itemize"><CODE>HKEY_USERS</CODE>
+</UL>
+Refer to the Microsoft documentation if you want to know what these mean.<BR>
+<BR>
+The <CODE>key</CODE> is the field you want to get from the registry.
+It should have a form like <CODE>A\B\C</CODE> (if you use forward slashes, they will
+be converted to backslashes). The field is the sub-field of the key.<BR>
+<BR>
+In the 4-argument form, the <CODE>default</CODE> is returned on failure.
 You may also use the alternate form.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     get-registry(hkey, key, field)
        default
-</pre>
-<p>
-<h4><a name="section_27">getvar</a></h4>
-
-<p>
-<pre>
+</PRE>
+<A NAME="@default65"></A><A NAME="@fun20"></A><A NAME="fun:getvar"></A>
+<H4 CLASS="subsubsection">getvar</H4>
+<PRE CLASS="verbatim">
    $(getvar name) : String
-</pre>
-<p>
-The <tt>getvar</tt> function gets the value of a variable.
-<p>
+</PRE>
+The <CODE>getvar</CODE> function gets the value of a variable.<BR>
+<BR>
 An exception is raised if the variable
-variable is not defined.
-<p>
+variable is not defined.<BR>
+<BR>
 For example, the following code defines X to be the string abc.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     NAME = foo
     foo_1 = abc
     X = $(getvar $(NAME)_1)
-</pre>
-<h4><a name="section_28">setvar</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default66"></A><A NAME="@fun21"></A><A NAME="fun:setvar"></A>
+<H4 CLASS="subsubsection">setvar</H4>
+<PRE CLASS="verbatim">
    setvar(name, value)
       name : String
       value : String
-</pre>
-<p>
-The <tt>setvar</tt> function defines a new variable. For example, the
-following code defines the variable <tt>X</tt> to be the string <tt>abc</tt>.
-<p>
-<pre>
+</PRE>
+The <CODE>setvar</CODE> function defines a new variable. For example, the
+following code defines the variable <CODE>X</CODE> to be the string <CODE>abc</CODE>.
+<PRE CLASS="verbatim">
    NAME = X
    setvar($(NAME), abc)
-</pre>
-<h2><a name="section_29">Arrays and sequences</a></h2>
-
-<p>
-<h4><a name="section_30">array</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="toc60"></A>
+<H2 CLASS="section"><A NAME="htoc83">7.3</A>&nbsp;&nbsp;Arrays and sequences</H2>
+<A NAME="@default67"></A><A NAME="@fun22"></A><A NAME="fun:array"></A>
+<H4 CLASS="subsubsection">array</H4>
+<PRE CLASS="verbatim">
     $(array elements) : Array
        elements : Sequence
-</pre>
-<p>
-The <tt>array</tt> function creates an array from a sequence.
-If the <tt>&lt;arg&gt;</tt> is a string, the elements of the array
+</PRE>
+The <CODE>array</CODE> function creates an array from a sequence.
+If the <CODE>&lt;arg&gt;</CODE> is a string, the elements of the array
 are the whitespace-separated elements of the string, respecting
-quotes.
-<p>
+quotes.<BR>
+<BR>
 In addition, array variables can be declared as follows.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     A[] =
        &lt;val1&gt;
        ...
        &lt;valn&gt;
-</pre>
-<p>
+</PRE>
 In this case, the elements of the array are exactly
-<tt>&lt;val1&gt;</tt>, ..., <tt>&lt;valn&gt;</tt>, and whitespace is
+<CODE>&lt;val1&gt;</CODE>, ..., <CODE>&lt;valn&gt;</CODE>, and whitespace is
 preserved literally.
-<h4><a name="section_31">split</a></h4>
-
-<p>
-<pre>
+<A NAME="@default68"></A><A NAME="@fun23"></A><A NAME="fun:split"></A>
+<H4 CLASS="subsubsection">split</H4>
+<PRE CLASS="verbatim">
    $(split sep, elements) : Array
       sep : String
       elements : Sequence
-</pre>
-<p>
-The <tt>split</tt> function takes two arguments, a string of separators, and
+</PRE>
+The <CODE>split</CODE> function takes two arguments, a string of separators, and
 a string argument. The result is an array of elements determined by
 splitting the elements by all occurrence of the separator in the
-<tt>elements</tt> sequence.
-<p>
-For example, in the following code, the <tt>X</tt> variable is
-defined to be the array <tt>/bin /usr/bin /usr/local/bin</tt>.
-<p>
-<pre>
+<CODE>elements</CODE> sequence.<BR>
+<BR>
+For example, in the following code, the <CODE>X</CODE> variable is
+defined to be the array <CODE>/bin /usr/bin /usr/local/bin</CODE>.
+<PRE CLASS="verbatim">
     PATH = /bin:/usr/bin:/usr/local/bin
     X = $(split :, $(PATH))
-</pre>
-<p>
-The <tt>sep</tt> argument may be omitted. In this case <tt>split</tt> breaks its
+</PRE>
+The <CODE>sep</CODE> argument may be omitted. In this case <CODE>split</CODE> breaks its
 arguments along the white space. Quotations are not split.
-<h4><a name="section_32">concat</a></h4>
-
-<p>
-<pre>
+<A NAME="@default69"></A><A NAME="@fun24"></A><A NAME="fun:concat"></A>
+<H4 CLASS="subsubsection">concat</H4>
+<PRE CLASS="verbatim">
    $(concat sep, elements) : String
       sep : String
       elements : Sequence
-</pre>
-<p>
-The <tt>concat</tt> function takes two arguments, a separator string, and
+</PRE>
+The <CODE>concat</CODE> function takes two arguments, a separator string, and
 a sequence of elements. The result is a string formed by concatenating
-the elements, placing the separator between adjacent elements.
-<p>
-For example, in the following code, the <tt>X</tt> variable is
-defined to be the string <tt>foo_x_bar_x_baz</tt>.
-<p>
-<pre>
+the elements, placing the separator between adjacent elements.<BR>
+<BR>
+For example, in the following code, the <CODE>X</CODE> variable is
+defined to be the string <CODE>foo_x_bar_x_baz</CODE>.
+<PRE CLASS="verbatim">
     X = foo  bar     baz
     Y = $(concat _x_, $(X))
-</pre>
-<h4><a name="section_33">length</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default70"></A><A NAME="@fun25"></A><A NAME="fun:length"></A>
+<H4 CLASS="subsubsection">length</H4>
+<PRE CLASS="verbatim">
    $(length sequence) : Int
       sequence : Sequence
-</pre>
-<p>
-The <tt>length</tt> function returns the number of elements in its argument.
-<p>
-For example, the expression <tt>$(length a b "c d")</tt> evaluates to 3.
-<h4><a name="section_34">nth</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>length</CODE> function returns the number of elements in its argument.<BR>
+<BR>
+For example, the expression <CODE>$(length a  b "c d")</CODE> evaluates to 3.
+<A NAME="@default71"></A><A NAME="@fun26"></A><A NAME="fun:nth"></A>
+<H4 CLASS="subsubsection">nth</H4>
+<PRE CLASS="verbatim">
    $(nth i, sequence) : value
       i : Int
       sequence : Sequence
    raises RuntimeException
-</pre>
-<p>
-The <tt>nth</tt> function returns the nth element of its argument, treated as
-a list. Counting starts at 0. An exception is raised if the index is not in bounds.
-<p>
-For example, the expression <tt>$(nth 1, a "b c" d)</tt> evaluates to <tt>"b c"</tt>.
-<h4><a name="section_35">nth-hd</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>nth</CODE> function returns the nth element of its argument, treated as
+a list. Counting starts at 0. An exception is raised if the index is not in bounds.<BR>
+<BR>
+For example, the expression <CODE>$(nth 1, a "b c" d)</CODE> evaluates to <CODE>"b c"</CODE>.
+<A NAME="@default72"></A><A NAME="@fun27"></A><A NAME="fun:nth-hd"></A>
+<H4 CLASS="subsubsection">nth-hd</H4>
+<PRE CLASS="verbatim">
    $(nth-hd i, sequence) : value
       i : Int
       sequence : Sequence
    raises RuntimeException
-</pre>
-<p>
-The <tt>nth-hd</tt> function returns the first <tt>i</tt> elements of
+</PRE>
+The <CODE>nth-hd</CODE> function returns the first <CODE>i</CODE> elements of
 the sequence. An exception is raised if the sequence is not
-at least <tt>i</tt> elements long.
-<p>
-For example, the expression <tt>$(nth-hd 2, a "b c" d)</tt> evaluates to <tt>a "b c"</tt>.
-<p>
-<h4><a name="section_36">nth-tl</a></h4>
-
-<p>
-<pre>
+at least <CODE>i</CODE> elements long.<BR>
+<BR>
+For example, the expression <CODE>$(nth-hd 2, a "b c" d)</CODE> evaluates to <CODE>a "b c"</CODE>.<BR>
+<BR>
+<A NAME="@default73"></A><A NAME="@fun28"></A><A NAME="fun:nth-tl"></A>
+<H4 CLASS="subsubsection">nth-tl</H4>
+<PRE CLASS="verbatim">
    $(nth-tl i, sequence) : value
       i : Int
       sequence : Sequence
    raises RuntimeException
-</pre>
-<p>
-The <tt>nth-tl</tt> function skips <tt>i</tt> elements of the sequence
+</PRE>
+The <CODE>nth-tl</CODE> function skips <CODE>i</CODE> elements of the sequence
 and returns the rest. An exception is raised if the sequence is not
-at least <tt>i</tt> elements long.
-<p>
-For example, the expression <tt>$(nth-tl 1, a "b c" d)</tt> evaluates to <tt>"b c" d</tt>.
-<p>
-<h4><a name="section_37">sub</a></h4>
-
-<p>
-<pre>
-   $(sub off, len, sequent) : value
+at least <CODE>i</CODE> elements long.<BR>
+<BR>
+For example, the expression <CODE>$(nth-tl 1, a "b c" d)</CODE> evaluates to <CODE>"b c" d</CODE>.<BR>
+<BR>
+<A NAME="@default74"></A><A NAME="@fun29"></A><A NAME="fun:subrange"></A>
+<H4 CLASS="subsubsection">subrange</H4>
+<PRE CLASS="verbatim">
+   $(subrange off, len, sequent) : value
       off : Int
       len : Int
       sequence : Sequence
    raises RuntimeException
-</pre>
-<p>
-The <tt>sub</tt> function returns a subrange of the sequence.
+</PRE>
+The <CODE>subrange</CODE> function returns a subrange of the sequence.
 Counting starts at 0. An exception is raised if the specified
-range is not in bounds.
-<p>
-For example, the expression <tt>$(sub 1, 2, a "b c" d e)</tt> evaluates to <tt>"b c" d</tt>.
-<h4><a name="section_38">rev</a></h4>
-
-<p>
-<pre>
+range is not in bounds.<BR>
+<BR>
+For example, the expression <CODE>$(subrange 1, 2, a "b c" d e)</CODE> evaluates to <CODE>"b c" d</CODE>.
+<A NAME="@default75"></A><A NAME="@fun30"></A><A NAME="fun:rev"></A>
+<H4 CLASS="subsubsection">rev</H4>
+<PRE CLASS="verbatim">
     $(rev sequence) : Sequence
        sequence : Sequence
-</pre>
-<p>
-The <tt>rev</tt> function returns the elements of a sequence in reverse order.
-For example, the expression <tt>$(rev a "b c" d)</tt> evaluates to <tt>d "b c" a</tt>.
-<h4><a name="section_39">string</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>rev</CODE> function returns the elements of a sequence in reverse order.
+For example, the expression <CODE>$(rev a "b c" d)</CODE> evaluates to <CODE>d "b c" a</CODE>.
+<A NAME="@default76"></A><A NAME="@fun31"></A><A NAME="fun:string"></A>
+<H4 CLASS="subsubsection">string</H4>
+<PRE CLASS="verbatim">
    $(string sequence) : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>string</tt> function flattens a sequence into a single string.
-This is similar to the <tt>concat</tt> function, but the elements are
+</PRE>
+The <CODE>string</CODE> function flattens a sequence into a single string.
+This is similar to the <CODE>concat</CODE> function, but the elements are
 separated by whitespace. The result is treated as a unit; whitespace
 is significant.
-<h4><a name="section_40">quote</a></h4>
-
-<p>
-<pre>
+<A NAME="@default77"></A><A NAME="@fun32"></A><A NAME="fun:quote"></A>
+<H4 CLASS="subsubsection">quote</H4>
+<PRE CLASS="verbatim">
    $(quote sequence) : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>quote</tt> function flattens a sequence into a single string
+</PRE>
+The <CODE>quote</CODE> function flattens a sequence into a single string
 and adds quotes around the string. Inner quotation symbols are
-escaped.
-<p>
-For example, the expression <tt>$(quote a "b c" d)</tt> evaluates
-to <tt>"a \"b c\" d"</tt>, and <tt>$(quote abc)</tt> evaluates to
-<tt>"abc"</tt>.
-<h4><a name="section_41">quote-argv</a></h4>
-
-<p>
-<pre>
+escaped.<BR>
+<BR>
+For example, the expression <CODE>$(quote a "b c" d)</CODE> evaluates
+to <CODE>"a \"b c\" d"</CODE>, and <CODE>$(quote abc)</CODE> evaluates to
+<CODE>"abc"</CODE>.
+<A NAME="@default78"></A><A NAME="@fun33"></A><A NAME="fun:quote-argv"></A>
+<H4 CLASS="subsubsection">quote-argv</H4>
+<PRE CLASS="verbatim">
    $(quote-argv sequence) : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>quote-argv</tt> function flattens a sequence into a single string,
+</PRE>
+The <CODE>quote-argv</CODE> function flattens a sequence into a single string,
 and adds quotes around the string. The quotation is formed so that
 a command-line parse can separate the string back into its components.
-<h4><a name="section_42">html-string</a></h4>
-
-<p>
-<pre>
+<A NAME="@default79"></A><A NAME="@fun34"></A><A NAME="fun:html-string"></A>
+<H4 CLASS="subsubsection">html-string</H4>
+<PRE CLASS="verbatim">
    $(html-string sequence) : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>html-string</tt> function flattens a sequence into a single string,
+</PRE>
+The <CODE>html-string</CODE> function flattens a sequence into a single string,
 and escaped special HTML characters.
-This is similar to the <tt>concat</tt> function, but the elements are
+This is similar to the <CODE>concat</CODE> function, but the elements are
 separated by whitespace. The result is treated as a unit; whitespace
 is significant.
-<h4><a name="section_43">addsuffix</a></h4>
-
-<p>
-<pre>
+<A NAME="@default80"></A><A NAME="@fun35"></A><A NAME="fun:addsuffix"></A>
+<H4 CLASS="subsubsection">addsuffix</H4>
+<PRE CLASS="verbatim">
    $(addsuffix suffix, sequence) : Array
       suffix : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>addsuffix</tt> function adds a suffix to each component of sequence.
+</PRE>
+The <CODE>addsuffix</CODE> function adds a suffix to each component of sequence.
 The number of elements in the array is exactly the same as the number of
-elements in the sequence.
-<p>
-For example, <tt>$(addsuffix .c, a b "c d")</tt> evaluates to <tt>a.c b.c "c d".c</tt>.
-<h4><a name="section_44">mapsuffix</a></h4>
-
-<p>
-<pre>
+elements in the sequence.<BR>
+<BR>
+For example, <CODE>$(addsuffix .c, a b "c d")</CODE> evaluates to <CODE>a.c b.c "c d".c</CODE>.
+<A NAME="@default81"></A><A NAME="@fun36"></A><A NAME="fun:mapsuffix"></A>
+<H4 CLASS="subsubsection">mapsuffix</H4>
+<PRE CLASS="verbatim">
    $(mapsuffix suffix, sequence) : Array
       suffix : value
       sequence : Sequence
-</pre>
-<p>
-The <tt>mapsuffix</tt> function adds a suffix to each component of sequence.
-It is similar to <tt>addsuffix</tt>, but uses array concatenation instead
+</PRE>
+The <CODE>mapsuffix</CODE> function adds a suffix to each component of sequence.
+It is similar to <CODE>addsuffix</CODE>, but uses array concatenation instead
 of string concatenation. The number of elements in the array is
-twice the number of elements in the sequence.
-<p>
-For example, <tt>$(mapsuffix .c, a b "c d")</tt> evaluates to <tt>a .c b .c "c d" .c</tt>.
-<h4><a name="section_45">addsuffixes</a></h4>
-
-<p>
-<pre>
+twice the number of elements in the sequence.<BR>
+<BR>
+For example, <CODE>$(mapsuffix .c, a b "c d")</CODE> evaluates to <CODE>a .c b .c "c d" .c</CODE>.
+<A NAME="@default82"></A><A NAME="@fun37"></A><A NAME="fun:addsuffixes"></A>
+<H4 CLASS="subsubsection">addsuffixes</H4>
+<PRE CLASS="verbatim">
    $(addsuffixes suffixes, sequence) : Array
       suffixes : Sequence
       sequence : Sequence
-</pre>
-<p>
-The <tt>addsuffixes</tt> function adds all suffixes in its first argument
-to each component of a sequence. If <tt>suffixes</tt> has <tt>n</tt> elements,
-and <tt>sequence</tt> has <tt>m</tt> elements, the the result has <tt>n * m</tt> elements.
-<p>
-For example, the <tt>$(addsuffixes .c .o, a b c)</tt> expressions evaluates to
-<tt>a.c a.o b.c b.o c.o c.a</tt>.
-<h4><a name="section_46">removeprefix</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>addsuffixes</CODE> function adds all suffixes in its first argument
+to each component of a sequence. If <CODE>suffixes</CODE> has <CODE>n</CODE> elements,
+and <CODE>sequence</CODE> has <CODE>m</CODE> elements, the the result has <CODE>n * m</CODE> elements.<BR>
+<BR>
+For example, the <CODE>$(addsuffixes .c .o, a b c)</CODE> expressions evaluates to
+<CODE>a.c a.o b.c b.o c.o c.a</CODE>.
+<A NAME="@default83"></A><A NAME="@fun38"></A><A NAME="fun:removeprefix"></A>
+<H4 CLASS="subsubsection">removeprefix</H4>
+<PRE CLASS="verbatim">
    $(removeprefix prefix, sequence) : Array
       prefix : String
       sequence : Array
-</pre>
-<p>
-The <tt>removeprefix</tt> function removes a prefix from each component
+</PRE>
+The <CODE>removeprefix</CODE> function removes a prefix from each component
 of a sequence.
-<h4><a name="section_47">removesuffix</a></h4>
-
-<p>
-<pre>
+<A NAME="@default84"></A><A NAME="@fun39"></A><A NAME="fun:removesuffix"></A>
+<H4 CLASS="subsubsection">removesuffix</H4>
+<PRE CLASS="verbatim">
    $(removesuffix sequence) : Array
       sequence : String
-</pre>
-<p>
-The <tt>removesuffix</tt> function removes the suffixes from each component
-of a sequence.
-<p>
-For example, <tt>$(removesuffix a.c b.foo "c d")</tt> expands to <tt>a b "c d"</tt>.
-<h4><a name="section_48">replacesuffixes</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>removesuffix</CODE> function removes the suffixes from each component
+of a sequence.<BR>
+<BR>
+For example, <CODE>$(removesuffix a.c b.foo "c d")</CODE> expands to <CODE>a b "c d"</CODE>.
+<A NAME="@default85"></A><A NAME="@fun40"></A><A NAME="fun:replacesuffixes"></A>
+<H4 CLASS="subsubsection">replacesuffixes</H4>
+<PRE CLASS="verbatim">
    $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
       old-suffixes : Sequence
       new-suffixes : Sequence
       sequence : Sequence
-</pre>
-<p>
-The <tt>replacesuffixes</tt> function modifies the suffix of each component
-in sequence. The <tt>old-suffixes</tt> and <tt>new-suffixes</tt> sequences
-should have the same length.
-<p>
-For example, <tt>$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)</tt> expands to <tt>a.o b.o c.z</tt>.
-<h4><a name="section_49">addprefix</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>replacesuffixes</CODE> function modifies the suffix of each component
+in sequence. The <CODE>old-suffixes</CODE> and <CODE>new-suffixes</CODE> sequences
+should have the same length.<BR>
+<BR>
+For example, <CODE>$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)</CODE> expands to <CODE>a.o b.o c.z</CODE>.
+<A NAME="@default86"></A><A NAME="@fun41"></A><A NAME="fun:addprefix"></A>
+<H4 CLASS="subsubsection">addprefix</H4>
+<PRE CLASS="verbatim">
    $(addprefix prefix, sequence) : Array
       prefix : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>addprefix</tt> function adds a prefix to each component of a sequence.
+</PRE>
+The <CODE>addprefix</CODE> function adds a prefix to each component of a sequence.
 The number of element in the result array is exactly the same as the number
-of elements in the argument sequence.
-<p>
-For example, <tt>$(addprefix foo/, a b "c d")</tt> evaluates to <tt>foo/a foo/b foo/"c d"</tt>.
-<h4><a name="section_50">mapprefix</a></h4>
-
-<p>
-<pre>
+of elements in the argument sequence.<BR>
+<BR>
+For example, <CODE>$(addprefix foo/, a b "c d")</CODE> evaluates to <CODE>foo/a foo/b foo/"c d"</CODE>.
+<A NAME="@default87"></A><A NAME="@fun42"></A><A NAME="fun:mapprefix"></A>
+<H4 CLASS="subsubsection">mapprefix</H4>
+<PRE CLASS="verbatim">
    $(mapprefix prefix, sequence) : Array
       prefix : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>mapprefix</tt> function adds a prefix to each component of a sequence.
-It is similar to <tt>addprefix</tt>, but array concatenation is used instead of
+</PRE>
+The <CODE>mapprefix</CODE> function adds a prefix to each component of a sequence.
+It is similar to <CODE>addprefix</CODE>, but array concatenation is used instead of
 string concatenation. The result array contains twice as many elements
-as the argument sequence.
-<p>
-For example, <tt>$(mapprefix foo, a b "c d")</tt> expands to <tt>foo a foo b foo "c d"</tt>.
-<h4><a name="section_51">add-wrapper</a></h4>
-
-<p>
-<pre>
+as the argument sequence.<BR>
+<BR>
+For example, <CODE>$(mapprefix foo, a b "c d")</CODE> expands to <CODE>foo a foo b foo "c d"</CODE>.
+<A NAME="@default88"></A><A NAME="@fun43"></A><A NAME="fun:add-wrapper"></A>
+<H4 CLASS="subsubsection">add-wrapper</H4>
+<PRE CLASS="verbatim">
    $(add-wrapper prefix, suffix, sequence) : Array
       prefix : String
       suffix : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>add-wrapper</tt> functions adds both a prefix and a suffix to each component of a sequence.
-For example, the expression <tt>$(add-wrapper dir/, .c, a b)</tt> evaluates to
-<tt>dir/a.c dir/b.c</tt>. String concatenation is used. The array result
+</PRE>
+The <CODE>add-wrapper</CODE> functions adds both a prefix and a suffix to each component of a sequence.
+For example, the expression <CODE>$(add-wrapper dir/, .c, a b)</CODE> evaluates to
+<CODE>dir/a.c dir/b.c</CODE>. String concatenation is used. The array result
 has the same number of elements as the argument sequence.
-<h4><a name="section_52">set</a></h4>
-
-<p>
-<pre>
+<A NAME="@default89"></A><A NAME="@fun44"></A><A NAME="fun:set"></A>
+<H4 CLASS="subsubsection">set</H4>
+<PRE CLASS="verbatim">
    $(set sequence) : Array
       sequence : Sequence
-</pre>
-<p>
-The <tt>set</tt> function sorts a set of string components, eliminating duplicates.
-<p>
-For example, <tt>$(set z y z "m n" w a)</tt> expands to <tt>"m n" a w y z</tt>.
-<h4><a name="section_53">mem</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>set</CODE> function sorts a set of string components, eliminating duplicates.<BR>
+<BR>
+For example, <CODE>$(set z y z "m n" w a)</CODE> expands to <CODE>"m n" a w y z</CODE>.
+<A NAME="@default90"></A><A NAME="@fun45"></A><A NAME="fun:mem"></A>
+<H4 CLASS="subsubsection">mem</H4>
+<PRE CLASS="verbatim">
    $(mem elem, sequence) : Boolean
       elem : String
       sequence : Sequence
-</pre>
-<p>
-The <tt>mem</tt> function tests for membership in a sequence.
-<p>
-For example, <tt>$(mem "m n", y z "m n" w a)</tt> evaluates to <tt>true</tt>,
-while <tt>$(mem m n, y z "m n" w a)</tt> evaluates to <tt>false</tt>.
-<h4><a name="section_54">intersection</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>mem</CODE> function tests for membership in a sequence.<BR>
+<BR>
+For example, <CODE>$(mem "m n", y z "m n" w a)</CODE> evaluates to <CODE>true</CODE>,
+while <CODE>$(mem m n, y z "m n" w a)</CODE> evaluates to <CODE>false</CODE>.
+<A NAME="@default91"></A><A NAME="@fun46"></A><A NAME="fun:intersection"></A>
+<H4 CLASS="subsubsection">intersection</H4>
+<PRE CLASS="verbatim">
    $(intersection sequence1, sequence2) : Array
       sequence1 : Sequence
       sequence2 : Sequence
-</pre>
-<p>
-The <tt>intersection</tt> function takes two arguments, treats them
+</PRE>
+The <CODE>intersection</CODE> function takes two arguments, treats them
 as sets of strings, and computes their intersection. The order of the result
-is undefined, and it may contain duplicates. Use the <tt>set</tt>
+is undefined, and it may contain duplicates. Use the <CODE>set</CODE>
 function to sort the result and eliminate duplicates in the result
-if desired.
-<p>
-For example, the expression <tt>$(intersection c a b a, b a)</tt> evaluates to
-<tt>a b a</tt>.
-<h4><a name="section_55">intersects</a></h4>
-
-<p>
-<pre>
+if desired.<BR>
+<BR>
+For example, the expression <CODE>$(intersection c a b a, b a)</CODE> evaluates to
+<CODE>a b a</CODE>.
+<A NAME="@default92"></A><A NAME="@fun47"></A><A NAME="fun:intersects"></A>
+<H4 CLASS="subsubsection">intersects</H4>
+<PRE CLASS="verbatim">
    $(intersects sequence1, sequence2) : Boolean
       sequence1 : Sequence
       sequence2 : Sequence
-</pre>
-<p>
-The <tt>intersects</tt> function tests whether two sets have a non-empty intersection.
+</PRE>
+The <CODE>intersects</CODE> function tests whether two sets have a non-empty intersection.
 This is slightly more efficient than computing the intersection and testing whether
-it is empty.
-<p>
-For example, the expression <tt>$(intersects a b c, d c e)</tt> evaluates to <tt>true</tt>,
-and <tt>$(intersects a b c a, d e f)</tt> evaluates to <tt>false</tt>.
-<h4><a name="section_56">set-diff</a></h4>
-
-<p>
-<pre>
+it is empty.<BR>
+<BR>
+For example, the expression <CODE>$(intersects a b c, d c e)</CODE> evaluates to <CODE>true</CODE>,
+and <CODE>$(intersects a b c a, d e f)</CODE> evaluates to <CODE>false</CODE>.
+<A NAME="@default93"></A><A NAME="@fun48"></A><A NAME="fun:set-diff"></A>
+<H4 CLASS="subsubsection">set-diff</H4>
+<PRE CLASS="verbatim">
    $(set-diff sequence1, sequence2) : Array
       sequence1 : Sequence
       sequence2 : Sequence
-</pre>
-<p>
-The <tt>set-diff</tt> function takes two arguments, treats them
+</PRE>
+The <CODE>set-diff</CODE> function takes two arguments, treats them
 as sets of strings, and computes their difference (all the elements of the
 first set that are not present in the second one). The order of the result
-is undefined and it may contain duplicates. Use the <tt>set</tt>
+is undefined and it may contain duplicates. Use the <CODE>set</CODE>
 function to sort the result and eliminate duplicates in the result
-if desired.
-<p>
-For example, the expression <tt>$(set-diff c a b a e, b a)</tt> evaluates to
-<tt>c e</tt>.
-<h4><a name="section_57">filter</a></h4>
-
-<p>
-<pre>
+if desired.<BR>
+<BR>
+For example, the expression <CODE>$(set-diff c a b a e, b a)</CODE> evaluates to
+<CODE>c e</CODE>.
+<A NAME="@default94"></A><A NAME="@fun49"></A><A NAME="fun:filter"></A>
+<H4 CLASS="subsubsection">filter</H4>
+<PRE CLASS="verbatim">
    $(filter patterns, sequence) : Array
       patterns : Sequence
       sequence : Sequence
-</pre>
-<p>
-The <tt>filter</tt> function picks elements from a sequence.
+</PRE>
+The <CODE>filter</CODE> function picks elements from a sequence.
 The patterns is a non-empty sequence of patterns, each may contain one occurrence of the wildcard
-<tt>%</tt> character.
-<p>
-For example <tt>$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)</tt> evaluates to <tt>x.o b.h y.o</tt>.
-<h4><a name="section_58">filter-out</a></h4>
-
-<p>
-<pre>
+<CODE>%</CODE> character.<BR>
+<BR>
+For example <CODE>$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)</CODE> evaluates to <CODE>x.o b.h y.o</CODE>.
+<A NAME="@default95"></A><A NAME="@fun50"></A><A NAME="fun:filter-out"></A>
+<H4 CLASS="subsubsection">filter-out</H4>
+<PRE CLASS="verbatim">
    $(filter-out patterns, sequence) : Array
       patterns : Sequence
       sequence : Sequence
-</pre>
-<p>
-The <tt>filter-out</tt> function removes elements from a sequence.
+</PRE>
+The <CODE>filter-out</CODE> function removes elements from a sequence.
 The patterns is a non-empty sequence of patterns, each may contain one occurrence of the wildcard
-<tt>%</tt> character.
-<p>
-For example <tt>$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)</tt> evaluates to <tt>x.o y.o</tt>.
-<h4><a name="section_59">capitalize</a></h4>
-
-<p>
-<pre>
+<CODE>%</CODE> character.<BR>
+<BR>
+For example <CODE>$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)</CODE> evaluates to <CODE>x.o y.o</CODE>.
+<A NAME="@default96"></A><A NAME="@fun51"></A><A NAME="fun:capitalize"></A>
+<H4 CLASS="subsubsection">capitalize</H4>
+<PRE CLASS="verbatim">
    $(capitalize sequence) : Array
       sequence : Sequence
-</pre>
-<p>
-The <tt>capitalize</tt> function capitalizes each word in a sequence.
-For example, <tt>$(capitalize through the looking Glass)</tt> evaluates to
-<tt>Through The Looking Glass</tt>.
-<h4><a name="section_60">uncapitalize</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>capitalize</CODE> function capitalizes each word in a sequence.
+For example, <CODE>$(capitalize through the looking Glass)</CODE> evaluates to
+<CODE>Through The Looking Glass</CODE>.
+<A NAME="@default97"></A><A NAME="@fun52"></A><A NAME="fun:uncapitalize"></A>
+<H4 CLASS="subsubsection">uncapitalize</H4>
+<PRE CLASS="verbatim">
    $(uncapitalize sequence) : Array
       sequence : Sequence
-</pre>
-<p>
-The <tt>uncapitalize</tt> function uncapitalizes each word in its argument.
-<p>
-For example, <tt>$(uncapitalize through the looking Glass)</tt> evaluates to
-<tt>through the looking glass</tt>.
-<h4><a name="section_61">uppercase</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>uncapitalize</CODE> function uncapitalizes each word in its argument.<BR>
+<BR>
+For example, <CODE>$(uncapitalize through the looking Glass)</CODE> evaluates to
+<CODE>through the looking glass</CODE>.
+<A NAME="@default98"></A><A NAME="@fun53"></A><A NAME="fun:uppercase"></A>
+<H4 CLASS="subsubsection">uppercase</H4>
+<PRE CLASS="verbatim">
    $(uppercase sequence) : Array
       sequence : Sequence
-</pre>
-<p>
-The <tt>uppercase</tt> function converts each word in a sequence to uppercase.
-For example, <tt>$(uppercase through the looking Glass)</tt> evaluates to
-<tt>THROUGH THE LOOKING GLASS</tt>.
-<h4><a name="section_62">lowercase</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>uppercase</CODE> function converts each word in a sequence to uppercase.
+For example, <CODE>$(uppercase through the looking Glass)</CODE> evaluates to
+<CODE>THROUGH THE LOOKING GLASS</CODE>.
+<A NAME="@default99"></A><A NAME="@fun54"></A><A NAME="fun:lowercase"></A>
+<H4 CLASS="subsubsection">lowercase</H4>
+<PRE CLASS="verbatim">
    $(lowercase sequence) : Array
       sequence : Sequence
-</pre>
-<p>
-The <tt>lowercase</tt> function reduces each word in its argument to lowercase.
-<p>
-For example, <tt>$(lowercase through tHe looking Glass)</tt> evaluates to
-<tt>through the looking glass</tt>.
-<h4><a name="section_63">system</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>lowercase</CODE> function reduces each word in its argument to lowercase.<BR>
+<BR>
+For example, <CODE>$(lowercase through tHe looking Glass)</CODE> evaluates to
+<CODE>through the looking glass</CODE>.
+<A NAME="@default100"></A><A NAME="@fun55"></A><A NAME="fun:system"></A>
+<H4 CLASS="subsubsection">system</H4>
+<PRE CLASS="verbatim">
    system(s)
       s : Sequence
-</pre>
-<p>
-The <tt>system</tt> function is used to evaluate a shell expression.
-This function is used internally by <tt>omake</tt>
-to evaluate
-shell commands.
-<p>
+</PRE>
+The <CODE>system</CODE> function is used to evaluate a shell expression.
+This function is used internally by <TT>omake</TT> to evaluate
+shell commands.<BR>
+<BR>
 For example, the following program is equivalent to the
-expression <tt>system(ls foo)</tt>.
-<p>
-<pre>
+expression <CODE>system(ls foo)</CODE>.
+<PRE CLASS="verbatim">
    ls foo
-</pre>
-<h4><a name="section_64">shell</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default101"></A><A NAME="@fun56"></A><A NAME="fun:shell"></A>
+<H4 CLASS="subsubsection">shell</H4>
+<PRE CLASS="verbatim">
    $(shell command) : Array
    $(shella command) : Array
    $(shell-code command) : Int
       command : Sequence
-</pre>
-<p>
-The <tt>shell</tt> function evaluates a command using the command shell,
-and returns the whitespace-separated words of the standard output as the result.
-<p>
-The <tt>shella</tt> function acts similarly, but it returns the lines
-as separate items in the array.
-<p>
-The <tt>shell-code</tt> function returns the exit code. The output is not
-diverted.
-<p>
-For example, if the current directory contains the files <tt>OMakeroot</tt>,
-<tt>OMakefile</tt>, and <tt>hello.c</tt>, then <tt>$(shell ls)</tt> evaluates to
-<tt>hello.c OMakefile OMakeroot</tt> (on a Unix system).
-<a name="while"></a>
-<h4><a name="section_65">while</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>shell</CODE> function evaluates a command using the command shell,
+and returns the whitespace-separated words of the standard output as the result.<BR>
+<BR>
+The <CODE>shella</CODE> function acts similarly, but it returns the lines
+as separate items in the array.<BR>
+<BR>
+The <CODE>shell-code</CODE> function returns the exit code. The output is not
+diverted.<BR>
+<BR>
+For example, if the current directory contains the files <CODE>OMakeroot</CODE>,
+<CODE>OMakefile</CODE>, and <CODE>hello.c</CODE>, then <CODE>$(shell ls)</CODE> evaluates to
+<CODE>hello.c OMakefile OMakeroot</CODE> (on a Unix system).
+<A NAME="while"></A>
+<A NAME="@default102"></A><A NAME="@fun57"></A><A NAME="fun:while"></A>
+<H4 CLASS="subsubsection">while</H4>
+<PRE CLASS="verbatim">
    while &lt;test&gt;
       &lt;body&gt;
-</pre>
-<p>
---or--
-<p>
-<pre>
+</PRE>
+&ndash;or&ndash;
+<PRE CLASS="verbatim">
     while &lt;test&gt;
     case &lt;test1&gt;
        &lt;body1&gt;
@@ -1144,40 +865,34 @@ For example, if the current directory contains the files <tt>OMakeroot</tt>,
        &lt;bodyn&gt;
     default
        &lt;bodyd&gt;
-</pre>
-<p>
+</PRE>
 The loop is executed while the test is true.
-In the first form, the <tt>&lt;body&gt;</tt> is executed on every loop iteration.
-In the second form, the body <tt>&lt;bodyI&gt;</tt> is selected, as the first
-case where the test <tt>&lt;testI&gt;</tt> is true. If none apply, the optional
+In the first form, the <CODE>&lt;body&gt;</CODE> is executed on every loop iteration.
+In the second form, the body <CODE>&lt;bodyI&gt;</CODE> is selected, as the first
+case where the test <CODE>&lt;testI&gt;</CODE> is true. If none apply, the optional
 default case is evaluated. If no cases are true, the loop exits.
-The environment is automatically exported.
-<p>
-Examples.
-<p>
-Iterate for <tt>i</tt> from <tt>0</tt> to <tt>9</tt>.
-<p>
-<pre>
+The environment is automatically exported.<BR>
+<BR>
+Examples.<BR>
+<BR>
+Iterate for <CODE>i</CODE> from <CODE>0</CODE> to <CODE>9</CODE>.
+<PRE CLASS="verbatim">
     i = 0
     while $(lt $i, 10)
        echo $i
        i = $(add $i, 1)
-</pre>
-<p>
+</PRE>
 The following example is equivalent.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    i = 0
    while true
    case $(lt $i, 10)
       echo $i
       i = $(add $i, 1)
-</pre>
-<p>
+</PRE>
 The following example is similar, but some special cases are printed.
 value is printed.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     i = 0
     while $(lt $i, 10)
     case $(equal $i, 0)
@@ -1186,96 +901,88 @@ value is printed.
        echo one
     default
        echo $i
-</pre>
-<h2><a name="section_66">Arithmetic</a></h2>
+</PRE><A NAME="toc61"></A>
+<H2 CLASS="section"><A NAME="htoc84">7.4</A>&nbsp;&nbsp;Arithmetic</H2>
+<A NAME="@default103"></A><A NAME="@fun58"></A><A NAME="fun:int"></A>
+<H4 CLASS="subsubsection">int</H4>
+The <CODE>int</CODE> function can be used to create integers.
+It returns an <CODE>Int</CODE> object.<BR>
+<BR>
+<CODE>$(int 17)</CODE>.<BR>
+<BR>
+<A NAME="@default104"></A><A NAME="@fun59"></A><A NAME="fun:float"></A>
+<H4 CLASS="subsubsection">float</H4>
+The <CODE>float</CODE> function can be used to create floating-point numbers.
+It returns a <CODE>Float</CODE> object.<BR>
+<BR>
+<CODE>$(float 3.1415926)</CODE>.
 
-<h4><a name="section_67">int</a></h4>
-
-<p>
-The <tt>int</tt> function can be used to create integers.
-It returns an <tt>Int</tt> object.
-<p>
-<tt>$(int 17)</tt>.
-<p>
-<h4><a name="section_68">float</a></h4>
-
-The <tt>float</tt> function can be used to create floating-point numbers.
-It returns a <tt>Float</tt> object.
-<p>
-<tt>$(float 3.1415926)</tt>.
-<h4><a name="section_69">Basic arithmetic</a></h4>
-
-<p>
+<H3 CLASS="subsection"><A NAME="htoc85">7.4.1</A>&nbsp;&nbsp;Basic arithmetic</H3>
+<A NAME="@default105"></A><A NAME="@fun60"></A><A NAME="fun:neg"></A>
+<A NAME="@default106"></A><A NAME="@fun61"></A><A NAME="fun:add"></A>
+<A NAME="@default107"></A><A NAME="@fun62"></A><A NAME="fun:sub"></A>
+<A NAME="@default108"></A><A NAME="@fun63"></A><A NAME="fun:mul"></A>
+<A NAME="@default109"></A><A NAME="@fun64"></A><A NAME="fun:div"></A>
+<A NAME="@default110"></A><A NAME="@fun65"></A><A NAME="fun:mod"></A>
+<A NAME="@default111"></A><A NAME="@fun66"></A><A NAME="fun:lnot"></A>
+<A NAME="@default112"></A><A NAME="@fun67"></A><A NAME="fun:land"></A>
+<A NAME="@default113"></A><A NAME="@fun68"></A><A NAME="fun:lor"></A>
+<A NAME="@default114"></A><A NAME="@fun69"></A><A NAME="fun:lxor"></A>
+<A NAME="@default115"></A><A NAME="@fun70"></A><A NAME="fun:lsl"></A>
+<A NAME="@default116"></A><A NAME="@fun71"></A><A NAME="fun:lsr"></A>
+<A NAME="@default117"></A><A NAME="@fun72"></A><A NAME="fun:asr"></A>
 The following functions can be used to perform basic arithmetic.
-<p>
-<ul compact>
-<li><tt>$(neg &lt;numbers&gt;)</tt>: arithmetic inverse
-</li>
-<li><tt>$(add &lt;numbers&gt;)</tt>: addition.
-</li>
-<li><tt>$(sub &lt;numbers&gt;)</tt>: subtraction.
-</li>
-<li><tt>$(mul &lt;numbers&gt;)</tt>: multiplication.
-</li>
-<li><tt>$(div &lt;numbers&gt;)</tt>: division.
-</li>
-<li><tt>$(mod &lt;numbers&gt;)</tt>: remainder.
-</li>
-<li><tt>$(lnot &lt;numbers&gt;)</tt>: bitwise inverse.
-</li>
-<li><tt>$(land &lt;numbers&gt;)</tt>: bitwise and.
-</li>
-<li><tt>$(lor &lt;numbers&gt;)</tt>: bitwise or.
-</li>
-<li><tt>$(lxor &lt;numbers&gt;)</tt>: bitwise exclusive-or.
-</li>
-<li><tt>$(lsl &lt;numbers&gt;)</tt>: logical shift left.
-</li>
-<li><tt>$(lsr &lt;numbers&gt;)</tt>: logical shift right.
-</li>
-<li><tt>$(asr &lt;numbers&gt;)</tt>: arithmetic shift right.
-</li>
-</ul>
-<h4><a name="section_70">Comparisons</a></h4>
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>$(neg &lt;numbers&gt;)</CODE>: arithmetic inverse
+<LI CLASS="li-itemize"><CODE>$(add &lt;numbers&gt;)</CODE>: addition.
+<LI CLASS="li-itemize"><CODE>$(sub &lt;numbers&gt;)</CODE>: subtraction.
+<LI CLASS="li-itemize"><CODE>$(mul &lt;numbers&gt;)</CODE>: multiplication.
+<LI CLASS="li-itemize"><CODE>$(div &lt;numbers&gt;)</CODE>: division.
+<LI CLASS="li-itemize"><CODE>$(mod &lt;numbers&gt;)</CODE>: remainder.
+<LI CLASS="li-itemize"><CODE>$(lnot &lt;numbers&gt;)</CODE>: bitwise inverse.
+<LI CLASS="li-itemize"><CODE>$(land &lt;numbers&gt;)</CODE>: bitwise and.
+<LI CLASS="li-itemize"><CODE>$(lor &lt;numbers&gt;)</CODE>: bitwise or.
+<LI CLASS="li-itemize"><CODE>$(lxor &lt;numbers&gt;)</CODE>: bitwise exclusive-or.
+<LI CLASS="li-itemize"><CODE>$(lsl &lt;numbers&gt;)</CODE>: logical shift left.
+<LI CLASS="li-itemize"><CODE>$(lsr &lt;numbers&gt;)</CODE>: logical shift right.
+<LI CLASS="li-itemize"><CODE>$(asr &lt;numbers&gt;)</CODE>: arithmetic shift right.
+</UL>
 
-<p>
+<H3 CLASS="subsection"><A NAME="htoc86">7.4.2</A>&nbsp;&nbsp;Comparisons</H3>
+<A NAME="@default118"></A><A NAME="@fun73"></A><A NAME="fun:lt"></A>
+<A NAME="@default119"></A><A NAME="@fun74"></A><A NAME="fun:le"></A>
+<A NAME="@default120"></A><A NAME="@fun75"></A><A NAME="fun:eq"></A>
+<A NAME="@default121"></A><A NAME="@fun76"></A><A NAME="fun:ge"></A>
+<A NAME="@default122"></A><A NAME="@fun77"></A><A NAME="fun:gt"></A>
+<A NAME="@default123"></A><A NAME="@fun78"></A><A NAME="fun:ult"></A>
+<A NAME="@default124"></A><A NAME="@fun79"></A><A NAME="fun:ule"></A>
+<A NAME="@default125"></A><A NAME="@fun80"></A><A NAME="fun:uge"></A>
+<A NAME="@default126"></A><A NAME="@fun81"></A><A NAME="fun:ugt"></A>
 The following functions can be used to perform numerical comparisons.
-<p>
-<ul compact>
-<li><tt>$(lt &lt;numbers&gt;)</tt>: less then.
-</li>
-<li><tt>$(le &lt;numbers&gt;)</tt>: no more than.
-</li>
-<li><tt>$(eq &lt;numbers&gt;)</tt>: equal.
-</li>
-<li><tt>$(ge &lt;numbers&gt;)</tt>: no less than.
-</li>
-<li><tt>$(gt &lt;numbers&gt;)</tt>: greater than.
-</li>
-<li><tt>$(ult &lt;numbers&gt;)</tt>: unsigned less than.
-</li>
-<li><tt>$(ule &lt;numbers&gt;)</tt>: unsigned greater than.
-</li>
-<li><tt>$(uge &lt;numbers&gt;)</tt>: unsigned greater than or equal.
-</li>
-<li><tt>$(ugt &lt;numbers&gt;)</tt>: unsigned greater than.
-</li>
-</ul>
-<h2><a name="section_71">First-class functions</a></h2>
-
-<h4><a name="section_72">fun</a></h4>
-
-<p>
-The <tt>fun</tt> form introduces anonymous functions.
-<p>
-<tt>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</tt>
-<p>
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>$(lt &lt;numbers&gt;)</CODE>: less then.
+<LI CLASS="li-itemize"><CODE>$(le &lt;numbers&gt;)</CODE>: no more than.
+<LI CLASS="li-itemize"><CODE>$(eq &lt;numbers&gt;)</CODE>: equal.
+<LI CLASS="li-itemize"><CODE>$(ge &lt;numbers&gt;)</CODE>: no less than.
+<LI CLASS="li-itemize"><CODE>$(gt &lt;numbers&gt;)</CODE>: greater than.
+<LI CLASS="li-itemize"><CODE>$(ult &lt;numbers&gt;)</CODE>: unsigned less than.
+<LI CLASS="li-itemize"><CODE>$(ule &lt;numbers&gt;)</CODE>: unsigned greater than.
+<LI CLASS="li-itemize"><CODE>$(uge &lt;numbers&gt;)</CODE>: unsigned greater than or equal.
+<LI CLASS="li-itemize"><CODE>$(ugt &lt;numbers&gt;)</CODE>: unsigned greater than.
+</UL>
+<A NAME="toc62"></A>
+<H2 CLASS="section"><A NAME="htoc87">7.5</A>&nbsp;&nbsp;First-class functions</H2>
+<A NAME="@default127"></A><A NAME="@fun82"></A><A NAME="fun:fun"></A>
+<H4 CLASS="subsubsection">fun</H4>
+The <CODE>fun</CODE> form introduces anonymous functions.<BR>
+<BR>
+<CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</CODE><BR>
+<BR>
 The last argument is the body of the function.
-The other arguments are the parameter names.
-<p>
+The other arguments are the parameter names.<BR>
+<BR>
 The three following definitions are equivalent.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     F(X, Y) =
        return($(addsuffix $(Y), $(X)))
 
@@ -1284,1167 +991,79 @@ The three following definitions are equivalent.
     F =
        fun(X, Y)
           value $(addsuffix $(Y), $(X))
-</pre>
-<h4><a name="section_73">apply</a></h4>
-
-<p>
-The <tt>apply</tt> operator is used to apply a function.
-<p>
-<tt>$(apply &lt;fun&gt;, &lt;args&gt;)</tt>
-<p>
+</PRE><A NAME="@default128"></A><A NAME="@fun83"></A><A NAME="fun:apply"></A>
+<H4 CLASS="subsubsection">apply</H4>
+The <CODE>apply</CODE> operator is used to apply a function.<BR>
+<BR>
+<CODE>$(apply &lt;fun&gt;, &lt;args&gt;)</CODE><BR>
+<BR>
 Suppose we have the following function definition.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     F(X, Y) =
        return($(addsuffix $(Y), $(X)))
-</pre>
-<p>
+</PRE>
 The the two expressions below are equivalent.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     X = F(a b c, .c)
     X = $(apply $(F), a b c, .c)
-</pre>
-<h4><a name="section_74">applya</a></h4>
-
-<p>
-The <tt>applya</tt> operator is used to apply a function to
-an array of arguments.
-<p>
-<tt>$(applya &lt;fun&gt;, &lt;args&gt;)</tt>
-<p>
+</PRE><A NAME="@default129"></A><A NAME="@fun84"></A><A NAME="fun:applya"></A>
+<H4 CLASS="subsubsection">applya</H4>
+The <CODE>applya</CODE> operator is used to apply a function to
+an array of arguments.<BR>
+<BR>
+<CODE>$(applya &lt;fun&gt;, &lt;args&gt;)</CODE><BR>
+<BR>
 For example, in the following program, the value
-of <tt>Z</tt> is <tt>file.c</tt>.
-<p>
-<pre>
+of <CODE>Z</CODE> is <CODE>file.c</CODE>.
+<PRE CLASS="verbatim">
     F(X, Y) =
        return($(addsuffix $(Y), $(X)))
     args[] =
        file
        .c
     Z = $(applya $(F), $(args))
-</pre>
-<h2><a name="section_75">Iteration and mapping</a></h2>
-
-<p>
-<h4><a name="section_76">foreach</a></h4>
-
-<p>
-The <tt>foreach</tt> function maps a function over a sequence.
-<p>
-<pre>
+</PRE><A NAME="toc63"></A>
+<H2 CLASS="section"><A NAME="htoc88">7.6</A>&nbsp;&nbsp;Iteration and mapping</H2>
+<A NAME="@default130"></A><A NAME="@fun85"></A><A NAME="fun:foreach"></A>
+<H4 CLASS="subsubsection">foreach</H4>
+The <CODE>foreach</CODE> function maps a function over a sequence.
+<PRE CLASS="verbatim">
     $(foreach &lt;fun&gt;, &lt;args&gt;)
 
     foreach(&lt;var&gt;, &lt;args&gt;)
        &lt;body&gt;
-</pre>
-<p>
-For example, the following program defines the variable <tt>X</tt>
-as an array <tt>a.c b.c c.c</tt>.
-<p>
-<pre>
+</PRE>
+For example, the following program defines the variable <CODE>X</CODE>
+as an array <CODE>a.c b.c c.c</CODE>.
+<PRE CLASS="verbatim">
     X =
        foreach(x, a b c)
           value $(x).c
 
     # Equivalent expression
     X = $(foreach $(fun x, $(x).c), abc)
-</pre>
-<p>
-There is also an abbreviated syntax.
-<p>
-The <tt>export</tt> form can also be used in a <tt>foreach</tt>
-body. The final value of <tt>X</tt> is <tt>a.c b.c c.c</tt>.
-<p>
-<pre>
+</PRE>
+There is also an abbreviated syntax.<BR>
+<BR>
+The <CODE>export</CODE> form can also be used in a <CODE>foreach</CODE>
+body. The final value of <CODE>X</CODE> is <CODE>a.c b.c c.c</CODE>.
+<PRE CLASS="verbatim">
     X =
     foreach(x, a b c)
        X += $(x).c
        export
-</pre>
-<h2><a name="section_77">File operations</a></h2>
-
-<h4><a name="section_78">file, dir</a></h4>
-
-<p>
-<pre>
-   $(file sequence) : File Sequence
-      sequence : Sequence
-   $(dir sequence) : Dir Sequence
-      sequence : Sequence
-</pre>
-<p>
-The <tt>file</tt> and <tt>dir</tt> functions define location-independent references to files and directories.
-In <tt>omake</tt>,
-the commands to build a target are executed in the target's directory. Since there may be
-many directories in an <tt>omake</tt>
-project, the build system provides a way to construct a reference to a file
-in one directory, and use it in another without explicitly modifying the file name. The functions have the following
-syntax, where the name should refer to a file or directory.
-<p>
-For example, we can construct a reference to a file <tt>foo</tt> in the current directory.
-<p>
-<pre>
-   FOO = $(file foo)
-   .SUBDIRS: bar
-</pre>
-<p>
-If the <tt>FOO</tt> variable is expanded in the <tt>bar</tt> subdirectory, it will expand to <tt>../foo</tt>.
-<p>
-These commands are often used in the top-level OMakefile to provide location-independent references to
-top-level directories, so that build commands may refer to these directories as if they were absolute.
-<p>
-<pre>
-   ROOT = $(dir .)
-   LIB  = $(dir lib)
-   BIN  = $(dir bin)
-</pre>
-<p>
-Once these variables are defined, they can be used in build commands in subdirectories as follows, where
-<tt>$(BIN)</tt> will expand to the location of the <tt>bin</tt> directory relative to the command being executed.
-<p>
-<pre>
-   install: hello
-	cp hello $(BIN)
-</pre>
-<h4><a name="section_79">tmpfile</a></h4>
-
-<p>
-<pre>
-    $(tmpfile prefix) : File
-    $(tmpfile prefix, suffix) : File
-        prefix : String
-        suffix : String
-</pre>
-<p>
-The <tt>tmpfile</tt> function returns the name of a fresh temporary file in
-the temporary directory.
-<h4><a name="section_80">in</a></h4>
-
-<p>
-<pre>
-   $(in dir, exp) : String Array
-      dir : Dir
-      exp : expression
-</pre>
-<p>
-The <tt>in</tt> function is closely related to the <tt>dir</tt> and
-<tt>file</tt> functions. It takes a directory and an expression, and
-evaluates the expression in that effective directory.
-For example, one common way to install a file is to define a symbol link, where the
-value of the link is relative to the directory where the link is created.
-<p>
-The following commands create links in the <tt>$(LIB)</tt> directory.
-<p>
-<pre>
-    FOO = $(file foo)
-    install:
-       ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
-</pre>
-<p>
-Note that the <tt>in</tt> function only affects the expansion of <tt>Node</tt>
-(<tt>File</tt> and <tt>Dir</tt>) values.
-<h4><a name="section_81">which</a></h4>
-
-<p>
-<pre>
-   $(which files) : File Sequence
-      files : String Sequence
-</pre>
-<p>
-The <tt>which</tt> function searches for executables in the
-current command search path, and returns <tt>file</tt> values
-for each of the commands. It is an error if a command is
-not found.
-<h4><a name="section_82">where</a></h4>
-
-<p>
-The <tt>where</tt> function is similar to which, except it returns the list of
-all the locations of the given executable (in the order in which the
-corresponding directories appear in <tt>$PATH</tt>). In case a command is handled
-internally by the <tt>Shell</tt> object, the first string in the output will
-describe the command as a built-in function.
-<p>
-<pre>
-    % where echo
-    echo is a Shell object method (a built-in function)
-    /bin/echo
-</pre>
-<h4><a name="section_83">exists-in-path</a></h4>
-
-<p>
-<pre>
-   $(exists-in-path files) : String
-      files : String Sequence
-</pre>
-<p>
-The <tt>exists-in-path</tt> function tests whether all executables
-are present in the current search path.
-<h4><a name="section_84">basename</a></h4>
-
-<p>
-<pre>
-   $(basename files) : String Sequence
-      files : String Sequence
-</pre>
-<p>
-The <tt>basename</tt> function returns the base names for a list of files.
-The basename is the filename with any leading directory components removed.
-<p>
-For example, the expression <tt>$(basename dir1/dir2/a.out /etc/modules.conf /foo.ml)</tt> evaluates to
-<tt>a.out modules.conf foo.ml</tt>.
-<h4><a name="section_85">rootname</a></h4>
-
-<p>
-<pre>
-   $(rootname files) : String Sequence
-      files : String Sequence
-</pre>
-<p>
-The <tt>rootname</tt> function returns the root name for a list of files.
-The rootname is the filename with the final suffix removed.
-<p>
-For example, the expression <tt>$(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml)</tt> evaluates to
-<tt>dir1/dir2/a /etc/a.b /foo</tt>.
-<h4><a name="section_86">dirof</a></h4>
-
-<p>
-<pre>
-   $(dirof files) : Dir Sequence
-      files : File Sequence
-</pre>
-<p>
-The <tt>dirof</tt> function returns the directory for each of the listed files.
-<p>
-For example, the expression <tt>$(dirof dir/dir2/a.out /etc/modules.conf /foo.ml)</tt> evaluates
-to the directories <tt>dir1/dir2 /etc /</tt>.
-<h4><a name="section_87">fullname</a></h4>
-
-<p>
-<pre>
-   $(fullname files) : String Sequence
-      files : File Sequence
-</pre>
-<p>
-The <tt>fullname</tt> function returns the pathname relative to the project root
-for each of the files or directories.
-<h4><a name="section_88">absname</a></h4>
-
-<p>
-<pre>
-   $(absname files) : String Sequence
-      files : File Sequence
-</pre>
-<p>
-The <tt>absname</tt> function returns the absolute pathname for each of the files
-or directories.
-<h4><a name="section_89">homename</a></h4>
-
-<p>
-<pre>
-   $(homename files) : String Sequence
-      files : File Sequence
-</pre>
-<p>
-The <tt>homename</tt> function returns the name of a file in
-tilde form, if possible. The unexpanded forms are computed
-lazily: the <tt>homename</tt> function will usually evaluate to an absolute
-pathname until the first tilde-expansion for the same directory.
-<h4><a name="section_90">suffix</a></h4>
-
-<p>
-<pre>
-   $(suffix files) : String Sequence
-      files : StringSequence
-</pre>
-<p>
-The <tt>suffix</tt> function returns the suffixes for a list of files.
-If a file has no suffix, the function returns the empty string.
-<p>
-For example, the expression <tt>$(suffix dir1/dir2/a.out /etc/a /foo.ml)</tt> evaluates
-to <tt>.out .ml</tt>.
-<h4><a name="section_91">file-exists, target-exists, target-is-proper</a></h4>
-
-<p>
-<pre>
-   $(file-exists files) : String
-   $(target-exists files) : String
-   $(target-is-proper files) : String
-       files : File Sequence
-</pre>
-<p>
-The <tt>file-exists</tt> function checks whether the files listed exist.
-The <tt>target-exists</tt> function is similar to the <tt>file-exists</tt> function.
-However, it returns true if the file exists <em>or</em>
-if it can be built
-by the current project. The <tt>target-is-proper</tt> returns true only
-if the file can be generated in the current project.
-<h4><a name="section_92">stat-reset</a></h4>
-
-<p>
-<pre>
-   $(stat-reset files) : String
-       files : File Sequence
-</pre>
-<p>
-OMake uses a stat-cache. The <tt>stat-reset</tt> function reset the <tt>stat</tt>
-information for the given files, forcing the <tt>stat</tt> information to
-be recomputed the next time it is requested.
-<h4><a name="section_93">filter-exists, filter-targets, filter-proper-targets</a></h4>
-
-<p>
-<pre>
-   $(filter-exists files) : File Sequence
-   $(filter-targets files) : File Sequence
-   $(filter-proper-targets) : File Sequence
-      files : File Sequence
-</pre>
-<p>
-The <tt>filter-exists</tt>, <tt>filter-targets</tt>, and <tt>filter-proper-targets</tt>
-functions remove files from a list of files.
-<ul compact>
-<li><tt>filter-exists</tt>: the result is the list of files that exist.
-</li>
-<li><tt>filter-targets</tt>: the result is the list of files either exist, or
-can be built by the current project.
-</li>
-<li><tt>filter-proper-targets</tt>: the result is the list of files that can
-be built in the current project.
-</li>
-</ul>
-<p>
-One way to create a simple &ldquo;clean&rdquo; rule that removes generated files from
-the project is by removing all files that can be built in the current
-project. CAUTION: you should be careful before you do this. The rule
-removes <em>any</em>
-file that can <em>potentially</em>
-be reconstructed.
-There is no check to make sure that the commands to rebuild the file
-would actually succeed. Also, note that no file outside the
-current project will be deleted.
-<p>
-<pre>
-    .PHONY: clean
-
-    clean:
-        rm $(filter-proper-targets $(ls R, .))
-</pre>
-<p>
-See the <tt>dependencies-proper</tt> function to see an alternate method
-for removing intermediate files.
-<p>
-If you use CVS, you may wish to use the <tt>cvs_realclean</tt> program that
-is distributed with <tt>omake</tt>.
-<p>
-<h4><a name="section_94">file-sort</a></h4>
-
-<p>
-<pre>
-   $(file-sort order, files) : File Sequence
-      order : String
-      files : File Sequence
-</pre>
-<p>
-The <tt>file-sort</tt> function sorts a list of filenames by
-build order augmented by a set of sort rules. Sort
-rules are declared using the <tt>.ORDER</tt> target.
-The <tt>.BUILDORDER</tt> defines the default order.
-<p>
-<tt>$(file-sort &lt;order&gt;, &lt;files&gt;)</tt>
-<p>
-For example, suppose we have the following set of rules.
-<p>
-<pre>
-   a: b c
-   b: d
-   c: d
-
-   .DEFAULT: a b c d
-      echo $(file-sort .BUILDORDER, a b c d)
-</pre>
-<p>
-In the case, the sorter produces the result <tt>d b c a</tt>.
-That is, a target is sorted <em>after</em>
-its dependencies.
-The sorter is frequently used to sort files that are to be linked
-by their dependencies (for languages where this matters).
-<p>
-There are three important restrictions to the sorter:
-<ul compact>
-<li>The sorter can be used only within a rule body.
-The reason for this is that <em>all</em>
-dependencies
-must be known before the sort is performed.
-</li>
-<li>The sorter can only sort files that are buildable
-in the current project.
-</li>
-<li>The sorter will fail if the dependencies are cyclic.
-</li>
-</ul>
-<p>
-<h4><a name="section_95">sort rule</a></h4>
-
-<p>
-It is possible to further constrain the sorter through the use of
-sort rules. A sort rule is declared in two steps. The
-target must be listed as an <tt>.ORDER</tt> target; and then
-a set of sort rules must be given. A sort rule defines
-a pattern constraint.
-<p>
-<pre>
-   .ORDER: .MYORDER
-
-   .MYORDER: %.foo: %.bar
-   .MYORDER: %.bar: %.baz
-
-   .DEFAULT: a.foo b.bar c.baz d.baz
-      echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
-</pre>
-<p>
-In this example, the <tt>.MYORDER</tt> sort rule specifies that any
-file with a suffix <tt>.foo</tt> should be placed after any file with
-suffix <tt>.bar</tt>, and any file with suffix <tt>.bar</tt> should be
-placed after a file with suffix <tt>.baz</tt>.
-<p>
-In this example, the result of the sort is <tt>d.baz c.baz b.bar a.foo</tt>.
-<h4><a name="section_96">file-check-sort</a></h4>
-
-<p>
-<pre>
-   file-check-sort(files)
-      files : File Sequence
-   raises RuntimeException
-</pre>
-<p>
-The <tt>file-check-sort</tt> function checks whether a list of files
-is in sort order. If so, the list is returned unchanged.
-If not, the function raises an exception.
-<p>
-<tt>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</tt>
-<h4><a name="section_97">glob</a></h4>
-
-<p>
-<pre>
-   $(glob strings) : Node Array
-      strings : String Sequence
-   $(glob options, strings) : Node Array
-      options : String
-      strings : String Sequence
-</pre>
-<p>
-The <tt>glob</tt> function performs glob-expansion.
-<p>
-The . and .. entries are always ignored.
-<p>
-The options are:
-<dl compact>
-<dt>b</dt>
-<dd> Do not perform <em>csh</em>(1)-style
-brace expansion.
-</dd>
-<dt>e</dt>
-<dd> The <tt>\</tt> character does not escape special characters.
-</dd>
-<dt>n</dt>
-<dd> If an expansion fails, return the expansion literally instead of aborting.
-</dd>
-<dt>i</dt>
-<dd> If an expansion fails, it expands to nothing.
-</dd>
-<dt>.</dt>
-<dd> Allow wildcard patterns to match files beginning with a .
-</dd>
-<dt>A</dt>
-<dd> Return all files, including files that begin with a .
-</dd>
-<dt>D</dt>
-<dd> Match only directory files.
-</dd>
-<dt>C</dt>
-<dd> Ignore files according to <em>cvs</em>(1)
-rules.
-</dd>
-<dt>P</dt>
-<dd> Include only proper subdirectories.
-</dd>
-</dl>
-<p>
-In addition, the following variables may be defined that affect the
-behavior of <tt>glob</tt>.
-<p>
-<dl compact>
-<dt>GLOB_OPTIONS</dt>
-<dd> A string containing default options.
-</dd>
-<dt>GLOB_IGNORE</dt>
-<dd> A list of shell patterns for filenames that <tt>glob</tt> should ignore.
-</dd>
-<dt>GLOB_ALLOW</dt>
-<dd> A list of shell patterns. If a file does not match a pattern in
-<tt>GLOB_ALLOW</tt>, it is ignored.
-</dd>
-</dl>
-<p>
-The returned files are sorted by name.
-<h4><a name="section_98">ls</a></h4>
-
-<p>
-<pre>
-   $(ls files) : Node Array
-      files : String Sequence
-   $(ls options, files) : Node Array
-      files : String Sequence
-</pre>
-<p>
-The <tt>ls</tt> function returns the filenames in a directory.
-<p>
-The . and .. entries are always ignored.
-The patterns are shell-style patterns, and are glob-expanded.
-<p>
-The options include all of the options to the <tt>glob</tt> function,
-plus the following.
-<p>
-<dl compact>
-<dt>R</dt>
-<dd> Perform a recursive listing.
-</dd>
-</dl>
-<p>
-The <tt>GLOB_ALLOW</tt> and <tt>GLOB_IGNORE</tt> variables can be defined
-to control the globbing behavior.
-The returned files are sorted by name.
-<h4><a name="section_99">subdirs</a></h4>
-
-<p>
-<pre>
-   $(subdirs dirs) : Dir Array
-      dirs : String Sequence
-   $(subdirs options, dirs) : Dir Array
-      options : String
-      dirs : String Sequence
-</pre>
-<p>
-The <tt>subdirs</tt> function returns all the subdirectories
-of a list of directories, recursively.
-<p>
-The possible options are the following:
-<dl compact>
-<dt>A</dt>
-<dd> Return directories that begin with a .
-</dd>
-<dt>C</dt>
-<dd> Ignore files according to <tt>.cvsignore</tt>
-rules.
-</dd>
-<dt>P</dt>
-<dd> Include only proper subdirectories.
-</dd>
-</dl>
-<h4><a name="section_100">mkdir</a></h4>
-
-<p>
-<pre>
-   mkdir(mode, node...)
-      mode : Int
-      node : Node
-   raises RuntimeException
-
-   mkdir(node...)
-      node : Node
-   raises RuntimeException
-</pre>
-<p>
-The <tt>mkdir</tt> function creates a directory, or a set of directories.
-The following options are supported.
-<ul compact>
-<dt>-m mode</dt>
-<dd> Specify the permissions of the created directory.
-</dd>
-<dt>-p</dt>
-<dd> Create parent directories if they do not exist.
-</dd>
-<dt>--</dt>
-<dd> Interpret the remaining names literally.
-</li>
-</ul>
-<h4><a name="section_101">Stat</a></h4>
-
-<p>
-The <tt>Stat</tt> object represents the result returned by the <tt>stat</tt>
-and <tt>lstat</tt> functions. It contains the following fields.
-<p>
-A <tt>stat</tt> object has the following fields. Not all of the fields
-will have meaning on all architectures.
-<p>
-<dl compact>
-<dt>dev</dt>
-<dd>: the device number.
-</dd>
-<dt>ino</dt>
-<dd>: the inode number.
-</dd>
-<dt>kind</dt>
-<dd>: the kind of the file, one of the following:
-<tt>REG</tt> (regular file),
-<tt>DIR</tt> (directory),
-<tt>CHR</tt> (character device),
-<tt>BLK</tt> (block device),
-<tt>LNK</tt> (symbolic link),
-<tt>FIFO</tt> (named pipe),
-<tt>SOCK</tt> (socket).
-</dd>
-<dt>perm</dt>
-<dd>: access rights, represented as an integer.
-</dd>
-<dt>nlink</dt>
-<dd>: number of links.
-</dd>
-<dt>uid</dt>
-<dd>: user id of the owner.
-</dd>
-<dt>gid</dt>
-<dd>: group id of the file's group.
-</dd>
-<dt>rdev</dt>
-<dd>: device minor number.
-</dd>
-<dt>size</dt>
-<dd>: size in bytes.
-</dd>
-<dt>atime</dt>
-<dd>: last access time, as a floating point number.
-</dd>
-<dt>mtime</dt>
-<dd>: last modification time, as a floating point number.
-</dd>
-<dt>ctime</dt>
-<dd>: last status change time, as a floating point number.
-</dd>
-</dl>
-<p>
-<h4><a name="section_102">stat</a></h4>
-
-<p>
-<pre>
-    $(stat node...) : Stat
-       node : Node or Channel
-    $(lstat node...) : Stat
-       node : Node or Channel
-    raises RuntimeException
-</pre>
-<p>
-The <tt>stat</tt> functions return file information.
-If the file is a symbolic link, the <tt>stat</tt> function refers to the
-destination of the link; the <tt>lstat</tt> function refers to the link
-itself.
-<h4><a name="section_103">unlink</a></h4>
-
-<p>
-<pre>
-   $(unlink file...)
-      file : File
-   #(rm file...)
-      file : File
-   $(rmdir dir...)
-      dir : Dir
-   raises RuntimeException
-</pre>
-<p>
-The <tt>unlink</tt> and <tt>rm</tt> functions remove a file.
-The <tt>rmdir</tt> function removes a directory.
-<p>
-The following options are supported for <tt>rm</tt> and <tt>rmdir</tt>.
-<ul compact>
-<dt>-f</dt>
-<dd> ignore nonexistent files, never prompt.
-</dd>
-<dt>-i</dt>
-<dd> prompt before removal.
-</dd>
-<dt>-r</dt>
-<dd> remove the contents of directories recursively.
-</dd>
-<dt>-v</dt>
-<dd> explain what is going on.
-</dd>
-<dt>--</dt>
-<dd> the rest of the values are interpreted literally.
-</li>
-</ul>
-<h4><a name="section_104">rename</a></h4>
-
-<p>
-<pre>
-    rename(old, new)
-       old : Node
-       new : Node
-    mv(nodes... dir)
-       nodes : Node Sequence
-       dir   : Dir
-    cp(nodes... dir)
-       nodes : Node Sequence
-       dir   : Dir
-    raises RuntimeException
-</pre>
-<p>
-The <tt>rename</tt> function changes the name of a file or directory named <tt>old</tt>
-to <tt>new</tt>.
-<p>
-The <tt>mv</tt> function is similar, but if <tt>new</tt> is a directory, and it exists,
-then the files specified by the sequence are moved into the directory. If not,
-the behavior of <tt>mv</tt> is identical to <tt>rename</tt>. The <tt>cp</tt> function
-is similar, but the original file is not removed.
-<p>
-The <tt>mv</tt> and <tt>cp</tt> functions take the following options.
-<ul compact>
-<dt>-f</dt>
-<dd> Do not prompt before overwriting.
-</dd>
-<dt>-i</dt>
-<dd> Prompt before overwriting.
-</dd>
-<dt>-v</dt>
-<dd> Explain what it happening.
-</dd>
-<dt>-r</dt>
-<dd> Copy the contents of directories recursively.
-</dd>
-<dt>--</dt>
-<dd> Interpret the remaining arguments literally.
-</li>
-</ul>
-<h4><a name="section_105">link</a></h4>
-
-<p>
-<pre>
-   link(src, dst)
-      src : Node
-      dst : Node
-   raises RuntimeException
-</pre>
-<p>
-The <tt>link</tt> function creates a hard link named <tt>dst</tt> to the file
-or directory <tt>src</tt>.
-<p>
-Hard links are not supported in Win32.
-<p>
-Normally, only the superuser can create hard links to directories.
-<h4><a name="section_106">symlink</a></h4>
-
-<p>
-<pre>
-   symlink(src, dst)
-      src : Node
-      dst : Node
-   raises RuntimeException
-</pre>
-<p>
-The <tt>symlink</tt> function creates a symbolic link <tt>dst</tt> that
-points to the <tt>src</tt> file.
-<p>
-The link name is computed relative to
-the target directory. For example, the expression
-<tt>$(symlink a/b, c/d)</tt> creates a link named
-<tt>c/d -&gt; ../a/b</tt>.
-<p>
-Symbolic links are not supported in Win32.
-<h4><a name="section_107">readlink</a></h4>
-
-<p>
-<pre>
-   $(readlink node...) : Node
-      node : Node
-</pre>
-<p>
-The <tt>readlink</tt> function reads the value of a symbolic link.
-<h4><a name="section_108">chmod</a></h4>
-
-<p>
-<pre>
-   chmod(mode, dst...)
-      mode : Int
-      dst : Node or Channel
-   chmod(mode dst...)
-      mode : String
-      dst : Node Sequence
-   raises RuntimeException
-</pre>
-<p>
-The <tt>chmod</tt> function changes the permissions of the targets.
-The <tt>chmod</tt> function does nothing on Win32 platforms.
-<p>
-Options:
-<ul compact>
-<dt>-v</dt>
-<dd> Explain what is happening.
-</dd>
-<dt>-r</dt>
-<dd> Change files and directories recursively.
-</dd>
-<dt>-f</dt>
-<dd> Continue on errors.
-</dd>
-<dt>--</dt>
-<dd> Interpret the remaining argument literally.
-</li>
-</ul>
-<h4><a name="section_109">chown</a></h4>
-
-<p>
-<pre>
-   chown(uid, gid, node...)
-      uid : Int
-      gid : Int
-      node : Node or Channel
-   chown(uid, node...)
-      uid : Int
-      node : Node or Channel
-   raises RuntimeException
-</pre>
-<p>
-The <tt>chown</tt> function changes the user and group id of the file.
-If the <tt>gid</tt> is not specified, it is not changed. If either
-id is -1, that id is not changed.
-<h4><a name="section_110">umask</a></h4>
-
-<p>
-<pre>
-    $(umask mode) : Int
-       mode : Int
-    raises RuntimeException
-</pre>
-<p>
-Sets the file mode creation mask.
-The previous mask is returned.
-This value is not scoped, changes have global effect.
-<h4><a name="section_111">digest</a></h4>
-
-<p>
-<pre>
-     $(digest files) : String Array
-        file : File Array
-     raises RuntimeException
-
-     $(digest-optional files) : String Array
-        file : File Array
-</pre>
-<p>
-The <tt>digest</tt> and <tt>digest-optional</tt> functions compute MD5 digests
-of files. The <tt>digest</tt> function raises an exception if a file
-does no exist. The <tt>digest-optional</tt> returns <tt>false</tt> if a
-file does no exist. MD5 digests are cached.
-<h4><a name="section_112">find-in-path</a></h4>
-
-<p>
-<pre>
-    $(find-in-path path, files) : File Array
-       path : Dir Array
-       files : String Array
-    raises RuntimeException
-
-    $(find-in-path-optional path, files) : File Array
-</pre>
-<p>
-The <tt>find-in-path</tt> function searches for the files in a search
-path. Only the tail of the filename is significant. The <tt>find-in-path</tt>
-function raises an exception if the file can't be found.
-The <tt>find-in-path-optional</tt> function silently removes
-files that can't be found.
-<h4><a name="section_113">digest-path</a></h4>
-
-<p>
-<pre>
-    $(digest-in-path path, files) : String/File Array
-       path : Dir Array
-       files : String Array
-    raises RuntimeException
-
-    $(digest-in-path-optional path, files) : String/File Array
-</pre>
-<p>
-The <tt>digest-in-path</tt> function searches for the files in a search
-path and returns the file and digest for each file. Only the tail of the
-filename is significant. The <tt>digest-in-path</tt> function raises an exception
-if the file can't be found. The <tt>digest-in-path-optional</tt>
-function silently removes elements that can't be found.
-<h4><a name="section_114">rehash</a></h4>
-
-<p>
-<pre>
-    rehash()
-</pre>
-<p>
-The <tt>rehash</tt> function resets all search paths.
-<h4><a name="section_115">vmount</a></h4>
-
-<p>
-<pre>
-    vmount(src, dst)
-       src, dst : Dir
-    vmount(flags, src, dst)
-       flags : String
-       src, dst : Dir
-</pre>
-<p>
-&ldquo;Mount&rdquo; the <tt>src</tt> directory on the <tt>dst</tt> directory. This is
-a virtual mount, changing the behavior of the <tt>$(file ...)</tt> function.
-When the <tt>$(file str)</tt> function is used, the resulting file is taken
-relative to the <tt>src</tt> directory if the file exists. Otherwise, the
-file is relative to the current directory.
-<p>
-The main purpose of the <tt>vmount</tt> function is to support multiple
-builds with separate configurations or architectures.
-<p>
-The options are as follows.
-<dl compact>
-<dt>l</dt>
-<dd> Create symbolic links to files in the <tt>src</tt> directory.
-</dd>
-<dt>c</dt>
-<dd> Copy files from the <tt>src</tt> directory.
-</dd>
-</dl>
-<p>
-Mount operations are scoped.
-<h4><a name="section_116">add-project-directories</a></h4>
-
-<p>
-<pre>
-    add-project-directories(dirs)
-       dirs : Dir Array
-</pre>
-<p>
-Add the directories to the set of directories that omake considers to be part
-of the project. This is mainly used to avoid omake complaining that the
-current directory is not part of the project.
-<h4><a name="section_117">remove-project-directories</a></h4>
-
-<p>
-<pre>
-    remove-project-directories(dirs)
-       dirs : Dir Array
-</pre>
-<p>
-Removed the directories from the set of directories that omake considers to be part
-of the project. This is mainly used to cancel a <tt>.SUBDIRS</tt> from including
-a directory if it is determined that the directory does not need to be compiled.
-<h4><a name="section_118">test</a></h4>
-
-<p>
-<pre>
-   test(exp) : Bool
-      exp : String Sequence
-</pre>
-<p>
-The <em>expression</em>
-grammar is as follows:
-<p>
-<ul compact>
-<li><tt>!</tt> <em>expression</em> : <em>expression</em> is not true
-</li>
-<li><em>expression1</em>
-<tt>-a</tt> <em>expression2</em> : both expressions are true
-</li>
-<li><em>expression1</em>
-<tt>-o</tt> <em>expression2</em> : at least one expression is true
-</li>
-<li><tt>(</tt> <em>expression</em>
-<tt>)</tt> : <em>expression</em> is true
-</li>
-</ul>
-<p>
-The base expressions are:
-<p>
-<ul compact>
-<li><tt>-n</tt> <em>string</em> : The <em>string</em> has nonzero length
-</li>
-<li><tt>-z</tt> <em>string</em> : The <em>string</em> has zero length
-</li>
-<li><em>string</em>
-<tt>=</tt> <em>string</em> : The strings are equal
-</li>
-<li><em>string</em>
-<tt>!=</tt> <em>string</em> : The strings are not equal
-<p>
-</li>
-<li><em>int1</em>
-<tt>-eq</tt> <em>int2</em> : The integers are equal
-</li>
-<li><em>int1</em>
-<tt>-ne</tt> <em>int2</em> : The integers are not equal
-</li>
-<li><em>int1</em>
-<tt>-gt</tt> <em>int2</em> : <em>int1</em> is larger than <em>int2</em>
-</li>
-<li><em>int1</em>
-<tt>-ge</tt> <em>int2</em> : <em>int2</em> is not larger than <em>int1</em>
-</li>
-<li><em>int1</em>
-<tt>-lt</tt> <em>int2</em> : <em>int1</em> is smaller than <em>int2</em>
-</li>
-<li><em>int1</em>
-<tt>-le</tt> <em>int2</em> : <em>int1</em> is not larger than <em>int2</em>
-<p>
-</li>
-<li><em>file1</em>
-<tt>-ef</tt> <em>file2</em> : On Unix, <em>file1</em> and <em>file2</em> have the
-same device and inode number.
-On Win32, <em>file1</em>
-and <em>file2</em>
-have the
-same name.
-</li>
-<li><em>file1</em>
-<tt>-nt</tt> <em>file2</em> : <em>file1</em> is newer than <em>file2</em>
-</li>
-<li><em>file1</em>
-<tt>-ot</tt> <em>file2</em> : <em>file1</em> is older than <em>file2</em>
-<p>
-</li>
-<li><tt>-b</tt> <em>file</em> : The file is a block special file
-</li>
-<li><tt>-c</tt> <em>file</em> : The file is a character special file
-</li>
-<li><tt>-d</tt> <em>file</em> : The file is a directory
-</li>
-<li><tt>-e</tt> <em>file</em> : The file exists
-</li>
-<li><tt>-f</tt> <em>file</em> : The file is a normal file
-</li>
-<li><tt>-g</tt> <em>file</em> : The set
-<tt>-group</tt><tt>-id</tt> bit is set on the file
-</li>
-<li><tt>-G</tt> <em>file</em> : The file's group is the current effective group
-</li>
-<li><tt>-h</tt> <em>file</em> : The file is a symbolic link (also
-<tt>-L</tt>)
-</li>
-<li><tt>-k</tt> <em>file</em> : The file's sticky bit is set
-</li>
-<li><tt>-L</tt> <em>file</em> : The file is a symbolic link (also
-<tt>-h</tt>)
-</li>
-<li><tt>-O</tt> <em>file</em> : The file's owner is the current effective user
-</li>
-<li><tt>-p</tt> <em>file</em> : The file is a named pipe
-</li>
-<li><tt>-r</tt> <em>file</em> : The file is readable
-</li>
-<li><tt>-s</tt> <em>file</em> : The file is empty
-</li>
-<li><tt>-S</tt> <em>file</em> : The file is a socket
-</li>
-<li><tt>-u</tt> <em>file</em> : The set
-<tt>-user</tt><tt>-id</tt> bit is set on the file
-</li>
-<li><tt>-w</tt> <em>file</em> : The file is writable
-</li>
-<li><tt>-x</tt> <em>file</em> : The file is executable
-</li>
-</ul>
-<p>
-A <em>string</em>
-is any sequence of characters; leading <tt>-</tt> characters are allowed.
-<p>
-An <em>int</em>
-is a <em>string</em>
-that can be interpreted as an integer. Unlike traditional
-versions of the test program, the leading characters may specify an arity. The
-prefix <tt>0b</tt> means the numbers is in binary; the prefix <tt>0o</tt> means
-the number is in octal; the prefix <tt>0x</tt> means the number is in hexadecimal.
-An <em>int</em>
-can also be specified as <tt>-l</tt> <em>string</em>,
-which evaluates to the length of
-the <em>string</em>.
-<p>
-A <em>file</em>
-is a <em>string</em>
-that represents the name of a file.
-<h4><a name="section_119">find</a></h4>
-
-<p>
-<pre>
-   find(exp) : Node Array
-      exp : String Sequence
-</pre>
-<p>
-The <tt>find</tt> function searches a directory recursively, returning the
-files for which the expression evaluates to true.
-<p>
-The expression argument uses the same syntax as the <tt>test</tt> function,
-with the following exceptions.
-<p>
-<ol compact>
-<li value =1>The expression may begin with a directory. If not specified, the current
-directory is searched.
-</li>
-<li value =2>The <tt>{}</tt> string expands to the current file being examined.
-</li>
-</ol>
-<p>
-The syntax of the expression is the same as <tt>test</tt>, with the following
-additions.
-<p>
-<ul compact>
-<li><tt>-name</tt> <em>string</em> : The current file matches the regular expression.
-</li>
-</ul>
-<h2><a name="section_120">References</a></h2>
-
-<p>
-<h4><a name="section_121">See Also</a></h4>
-
-<p>
-<a href="omake.html">omake(1)</a>,
-<a href="omake-quickstart.html">omake-quickstart(1)</a>,
-<a href="omake-options.html">omake-options(1)</a>,
-<a href="omake-root.html">omake-root(1)</a>,
-<a href="omake-language.html">omake-language(1)</a>,
-<a href="omake-shell.html">omake-shell(1)</a>,
-<a href="omake-rules.html">omake-rules(1)</a>,
-<a href="omake-base.html">omake-base(1)</a>,
-<a href="omake-system.html">omake-system(1)</a>,
-<a href="omake-pervasives.html">omake-pervasives(1)</a>,
-<a href="osh.html">osh(1)</a>,
-<em>make</em>(1)
-<p>
-<h4><a name="section_122">Version</a></h4>
-
-<p>
-Version: 0.9.6.9 of April 11, 2006.
-<p>
-<h4><a name="section_123">License and Copyright</a></h4>
-
-<p>
-&copy;2003-2006, Mojave Group, Caltech
-<p>
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-<p>
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-<p>
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-<p>
-<h4><a name="section_124">Author</a></h4>
-
-<p>
-Jason Hickey <em>et. al.</em><br>
-Caltech 256-80 <br>
-
-Pasadena, CA 91125, USA <br>
-
-Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
-<br>
-WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
-<p>
-</body>
-</html>
-<!-- NOTE: This file is generated, DO NOT EDIT. -->
+</PRE><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
+<HR>
+<A HREF="omake-rules.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-system.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

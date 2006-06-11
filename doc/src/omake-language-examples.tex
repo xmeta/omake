@@ -1,15 +1,17 @@
 %
 % Some examples.
 %
-\section{Language examples}
+\chapter{Additional language examples}
+\label{chapter:language-examples}
+\cutname{omake-language-examples.html}
 
 In this section, we'll explore the core language through a series of examples (examples of the build
-system are the topic of Section \href{omake-build-examples#examples}{Build}).
+system are the topic of the Chapter~\ref{chapter:build-examples}).
 
 For most of these examples, we'll use the \verb+osh+ command interpreter.  For simplicity, the
 values printed by \verb+osh+ have been abbreviated.
 
-\subsection{Strings and arrays}
+\section{Strings and arrays}
 
 The basic OMake values are strings, sequences, and arrays of values.  Sequences are like arrays of
 values separated by whitespace; the sequences are split on demand by functions that expect arrays.
@@ -46,7 +48,7 @@ useful, especially for filenames that contain whitespace.
     "fee"  "fi"  "foo"  "fum"  "Hello world"
 \end{verbatim}       
 
-\subsection{Files and directories}
+\section{Files and directories}
 
 OMake projects usually span multiple directories, and different parts of the project execute
 commands in different directories.  There is a need to define a location-independent name for a file
@@ -82,7 +84,7 @@ file.
     ...
 \end{verbatim}
 
-\subsection{Iteration, mapping, and foreach}
+\section{Iteration, mapping, and foreach}
 
 Most builtin functions operate transparently on arrays.
 
@@ -156,7 +158,8 @@ properties of function abstraction give us the usual benefits.  The code is less
 there is a single location (the \verb+my-special-rule+ function) that defines the build rule.
 Later, if we want to modify/update the rule, we need do so in only one location.
 
-\subsection{Lazy expressions}
+\section{Lazy expressions}
+\label{section:lazy}
 
 Lazy expressions are expressions that are not evaluated until their result is needed.  Some people,
 including this author, frown on overuse of lazy expressions, mainly because it is difficult to know
@@ -223,7 +226,7 @@ could equivalently define \verb+PREFIXED_INCLUDES+ as a function with zero argum
         addprefix(-I, $(INCLUDES))
 \end{verbatim}
 
-\subsection{Scoping and exports}
+\section{Scoping and exports}
 
 The OMake language is functional (apart from IO and shell commands).  This comes in two parts:
 functions are first-class, and variables are immutable (there is no assignment operator).  The
@@ -294,7 +297,7 @@ A \verb+while+ loop is another form of loop, with an auto-export.
     45
 \end{verbatim}
 
-\subsection{Shell aliases}
+\section{Shell aliases}
 
 Sometimes you may want to define an \emph{alias}, an OMake command that masquerades as a real shell
 command.  You can do this by adding your function as a method to the \verb+Shell+ object.
@@ -330,7 +333,7 @@ To add it as an alias, add the method (using += to preserve the existing entries
 A shell command is passed an array of arguments \verb+argv+.  This does \emph{not} include the name
 of the alias.
 
-\subsection{Input/output redirection on the cheap}
+\section{Input/output redirection on the cheap}
 
 As it turns out, scoping also provides a nice alternate way to perform redirection.  Suppose you
 have already written a lot of code that prints to the standard output channel, but now you decide

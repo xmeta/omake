@@ -36,23 +36,21 @@ open build/Common
 # \subsection{Configuration variables}
 #
 # The following variables can be modified in your project.
-# \begin{description}
-# \item[LATEX] The \LaTeX\ command (default \verb+latex+).
-# \item[TETEX2\_ENABLED] Flag indicating whether to use advanced \LaTeX\ options
+# \var{LATEX} The \LaTeX\ command (default \verb+latex+).
+# \varlabel{TETEX2_ENABLED}{TETEX2\_ENABLED} Flag indicating whether to use advanced \LaTeX\ options
 # present in TeTeX v.2 (default value is determined the first time omake reads \verb+LaTeX.src+
 # and depends on the version of \LaTeX\ you have installed).
-# \item[LATEXFLAGS] The \LaTeX\ flags (defaults depend on the \verb+TETEX2_ENABLED+ variable)
-# \item[BIBTEX] The BibTeX command (default \verb+bibtex+).
-# \item[MAKEINDEX] The command to build an index (default \verb+makeindex+).
-# \item[DVIPS] The \verb+.dvi+ to PostScript converter (default \verb+dvips+).
-# \item[DVIPSFLAGS] Flags to pass to \verb+dvips+ (default \verb+-t letter+).
-# \item[DVIPDFM] The \verb+.dvi+ to \verb+.pdf+ converter (default \verb+dvipdfm+).
-# \item[DVIPDFMFLAGS] Flags to pass to \verb+dvipdfm+ (default \verb+-p letter+).
-# \item[PDFLATEX] The \verb+.latex+ to \verb+.pdf+ converter (default \verb+pdflatex+).
-# \item[PDFLATEXFLAGS] Flags to pass to pdflatex (default is empty).
-# \item[USEPDFLATEX] Flag indicating whether to use pdflatex instead of dvipdfm
+# \var{LATEXFLAGS} The \LaTeX\ flags (defaults depend on the \verb+TETEX2_ENABLED+ variable)
+# \var{BIBTEX} The BibTeX command (default \verb+bibtex+).
+# \var{MAKEINDEX} The command to build an index (default \verb+makeindex+).
+# \var{DVIPS} The \verb+.dvi+ to PostScript converter (default \verb+dvips+).
+# \var{DVIPSFLAGS} Flags to pass to \verb+dvips+ (default \verb+-t letter+).
+# \var{DVIPDFM} The \verb+.dvi+ to \verb+.pdf+ converter (default \verb+dvipdfm+).
+# \var{DVIPDFMFLAGS} Flags to pass to \verb+dvipdfm+ (default \verb+-p letter+).
+# \var{PDFLATEX} The \verb+.latex+ to \verb+.pdf+ converter (default \verb+pdflatex+).
+# \var{PDFLATEXFLAGS} Flags to pass to pdflatex (default is empty).
+# \var{USEPDFLATEX} Flag indicating whether to use pdflatex instead of dvipdfm
 # to generate the \verb+.pdf+ document (default \verb+false+).
-# \end{description}
 # \end{doc}
 #
 BIBTEX = bibtex
@@ -213,7 +211,7 @@ Shell. +=
 #    TEXDEPS: files that are implicitly included, including suffixes
 #
 # \begin{doc}
-# \subsection{LaTeXDocument}
+# \fun{LaTeXDocument}
 #
 # The \verb+LaTeXDocument+ produces a \LaTeX\ document.
 #
@@ -223,18 +221,18 @@ Shell. +=
 # returns the filenames for the generated \verb+.ps+ and \verb+.pdf+ files.
 #
 # Additional variables used:
-# \begin{description}
-# \item[TEXINPUTS] The \LaTeX\ search path (an array of directories, default is
+# \var{TEXINPUTS}
+# The \LaTeX\ search path (an array of directories, default is
 #   taken from the \verb+TEXINPUTS+ environment variable).
-# \item[TEXDEPS] Additional files this document depends on.
-# \end{description}
+# \var{TEXDEPS} Additional files this document depends on.
 # \end{doc}
 
 #
 # Make sure generated files are built before scanning
 #
 # \begin{doc}
-# \subsection{TeXGeneratedFiles, LocalTeXGeneratedFiles}
+# \fun{TeXGeneratedFiles}
+# \fun{LocalTeXGeneratedFiles}
 # \begin{verbatim}
 # TeXGeneratedFiles(files)
 # LocalTeXGeneratedFiles(files)
@@ -244,7 +242,7 @@ Shell. +=
 # that need to be generated before any \LaTeX files are scanned for dependencies. For example,
 # if \verb+config.tex+ and \verb+inputs.tex+ are both generated files, specify:
 # \begin{verbatim}
-# TeXGeneratedFiles(config.tex inputs.tex)
+#     TeXGeneratedFiles(config.tex inputs.tex)
 # \end{verbatim}
 #
 # The \verb+TeXGeneratedFiles+ function is \emph{global} --- its arguments will be generated
@@ -327,7 +325,7 @@ LaTeXDocument(name, texfiles) =
 # Copy the document to a library directory
 #
 # \begin{doc}
-# \subsection{LaTeXDocumentCopy}
+# \fun{LaTeXDocumentCopy}
 #
 # The \verb+LaTeXDocumentCopy+ copies the document to an install location.
 #
@@ -351,7 +349,7 @@ LaTeXDocumentCopy(tag, lib, dst, src) =
 # Build the document and copy it
 #
 # \begin{doc}
-# \subsection{LaTeXDocumentInstall}
+# \fun{LaTeXDocumentInstall}
 #
 # The \verb+LaTeXDocumentInstall+ builds a document and copies it to an
 # install location in one step.

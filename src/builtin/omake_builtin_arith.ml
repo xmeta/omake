@@ -50,14 +50,14 @@ open Pos
 
 (*
  * \begin{doc}
- * \subsection{int}
+ * \fun{int}
  *
  * The \verb+int+ function can be used to create integers.
  * It returns an \verb+Int+ object.
  *
  * \verb+$(int 17)+.
  *
- * \subsection{float}
+ * \fun{float}
  * The \verb+float+ function can be used to create floating-point numbers.
  * It returns a \verb+Float+ object.
  *
@@ -89,6 +89,19 @@ let float_fun venv pos loc args =
  *
  * \begin{doc}
  * \subsection{Basic arithmetic}
+ * \funref{neg}
+ * \funref{add}
+ * \funref{sub}
+ * \funref{mul}
+ * \funref{div}
+ * \funref{mod}
+ * \funref{lnot}
+ * \funref{land}
+ * \funref{lor}
+ * \funref{lxor}
+ * \funref{lsl}
+ * \funref{lsr}
+ * \funref{asr}
  *
  * The following functions can be used to perform basic arithmetic.
  *
@@ -184,6 +197,15 @@ let arith id_int op_int op_float venv pos loc args =
  *
  * \begin{doc}
  * \subsection{Comparisons}
+ * \funref{lt}
+ * \funref{le}
+ * \funref{eq}
+ * \funref{ge}
+ * \funref{gt}
+ * \funref{ult}
+ * \funref{ule}
+ * \funref{uge}
+ * \funref{ugt}
  *
  * The following functions can be used to perform numerical comparisons.
  *

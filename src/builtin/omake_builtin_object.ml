@@ -542,7 +542,7 @@ let sequence_rev venv pos loc args =
  * \begin{doc}
  * \section{Iteration and mapping}
  *
- * \subsection{foreach}
+ * \fun{foreach}
  *
  * The \verb+foreach+ function maps a function over a sequence.
  *

@@ -60,7 +60,8 @@ open Pos
  * Find dependencies of a target.
  *
  * \begin{doc}
- * \subsection{dependencies, dependencies-all}
+ * \fun{dependencies}
+ * \fun{dependencies-all}
  *
  * \begin{verbatim}
  *    $(dependencies targets) : File Array
@@ -177,7 +178,7 @@ let dependencies_proper = dependencies_all_core (fun command -> not (is_leaf_com
 
 (*
  * \begin{doc}
- * \subsection{target}
+ * \fun{target}
  * \begin{verbatim}
  *    $(target targets) : Rule Array
  *       targets : File Sequence
@@ -306,7 +307,7 @@ let project_directories venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{rule}
+ * \fun{rule}
  *
  * The \verb+rule+ function is called whenever a build rule is defined.
  * It is unlikely that you will need to redefine this function, except in

@@ -1,7 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Usage
 %
-\section{Synopsis}
+\chapter{Synopsis}
+\label{chapter:options}
+\cutname{omake-options.html}
 
 \Prog{omake}
     \oOpt{-k}
@@ -15,20 +17,20 @@
     \oOpt{-u}
     \oOpt{-U}
     \oOpt{-R}
-    \oOpt{--project}
-    \oOpt{--progress} \oOpt{--no-progress}
-    \oOpt{--print-status} \oOpt{--no-print-status}
-    \oOpt{--print-exit} \oOpt{--no-print-exit}
-    \oOpt{--print-dependencies}
-    \oOptArg{--show-dependencies}{\ target}
-    \oOpt{--force-dotomake}
-    \oOptArg{--dotomake}{\ dir}
-    \oOpt{--flush-includes}
-    \oOpt{--configure}
-    \oOpt{--install}
-    \oOpt{--install-all}
-    \oOpt{--install-force}
-    \oOpt{--version}
+    \oOpt{-{}-project}
+    \oOpt{-{}-progress} \oOpt{-{}-no-progress}
+    \oOpt{-{}-print-status} \oOpt{-{}-no-print-status}
+    \oOpt{-{}-print-exit} \oOpt{-{}-no-print-exit}
+    \oOpt{-{}-print-dependencies}
+    \oOptArg{-{}-show-dependencies}{\ target}
+    \oOpt{-{}-force-dotomake}
+    \oOptArg{-{}-dotomake}{\ dir}
+    \oOpt{-{}-flush-includes}
+    \oOpt{-{}-configure}
+    \oOpt{-{}-install}
+    \oOpt{-{}-install-all}
+    \oOpt{-{}-install-force}
+    \oOpt{-{}-version}
     \oArg{filename...}
     \oOpt{var-definition...}
 
@@ -37,7 +39,7 @@
 %
 \section{Command-line options}
 
-\begin{Description}\setlength{\itemsep}{0cm}
+\begin{description}\setlength{\itemsep}{0cm}
 \item[\Opt{-k}] Do not abort when a build command fails;
 continue to build as much of the project as possible.
 
@@ -48,14 +50,14 @@ This can be used to see what would happen if the project were to be built.
 
 \item[\Opt{-S}] Do not print commands as they are executed \emph{unless} they produce output.
 
-\item[\Opt{--progress}] Print a progress indicator.
+\item[\Opt{-{}-progress}] Print a progress indicator.
 This is normally used with the \Opt{-s} or \Opt{-S} options.
 
-\item[\Opt{--no-progress}] Do not print a progress indicator (default).
+\item[\Opt{-{}-no-progress}] Do not print a progress indicator (default).
 
-\item[\Opt{--print-exit}] Print termination codes when commands complete.
+\item[\Opt{-{}-print-exit}] Print termination codes when commands complete.
 
-\item[\Opt{--no-print-exit}] Do not print termination codes when commands complete (default).
+\item[\Opt{-{}-no-print-exit}] Do not print termination codes when commands complete (default).
 
 \item[\Opt{-w}] Print directory information in \Prog{make} format as commands are executed.
 This is mainly useful for editors that expect \Prog{make}-style
@@ -76,15 +78,15 @@ directory and its subdirectories.  If the \Opt{-R} option is specified, the buil
 
 \item[\Opt{-U}] Do not trust cached build information.  This will force the entire project to be rebuilt.
 
-\item[\Opt{--depend}] Do not trust cached dependency information.  This will force files to be rescanned
+\item[\Opt{-{}-depend}] Do not trust cached dependency information.  This will force files to be rescanned
 for dependency information.
 
-\item[\Opt{--configure}] Re-run \verb+static.\+ sections of the included omake files, instead of
+\item[\Opt{-{}-configure}] Re-run \verb+static.\+ sections of the included omake files, instead of
 trusting the cached results.
 
-\item[\oOpt{--force-dotomake}] Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
+\item[\oOpt{-{}-force-dotomake}] Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
 
-\item[\oOptArg{--dotomake}{\ dir}] Use the specified directory instead of the \verb+$HOME/.omake+
+\item[\oOptArg{-{}-dotomake}{\ dir}] Use the specified directory instead of the \verb+$HOME/.omake+
 for the placement of the \verb+.omc+ cache files.
 
 \item[\OptArg{-j}{count}] Run multiple build commands in parallel.  The \Arg{count} specifies a
@@ -97,26 +99,26 @@ must use the same filesystem location for the project.
 Remote execution is currently an experimental feature.  Remote filesystems like NFS do not provide
 adequate file consistency for this to work.
 
-\item[\Opt{--print-dependencies}] Print dependency information for the targets on the command line.
+\item[\Opt{-{}-print-dependencies}] Print dependency information for the targets on the command line.
 
-\item[\OptArg{--show-dependencies}{\ target}] Print dependency information \emph{if} the \verb+target+ is built.
+\item[\OptArg{-{}-show-dependencies}{\ target}] Print dependency information \emph{if} the \verb+target+ is built.
 
-\item[\Opt{--install}] Install default files \File{OMakefile} and \File{OMakeroot} into the current
+\item[\Opt{-{}-install}] Install default files \File{OMakefile} and \File{OMakeroot} into the current
   directory.  You would typically do this to start a project in the current directory.
 
-\item[\Opt{--install-all}] In addition to installing files \File{OMakefile} and \File{OMakeroot},
+\item[\Opt{-{}-install-all}] In addition to installing files \File{OMakefile} and \File{OMakeroot},
   install default \File{OMakefile}s into each subdirectory of the current directory.
   \Cmd{cvs}{1} rules are used for filtering the subdirectory list.  For example, \File{OMakefile}s
   are not copied into directories called \verb+CVS+, \verb+RCCS+, etc.
 
-\item[\Opt{--install-force}] Normally, \Prog{omake} will prompt before it overwrites any
+\item[\Opt{-{}-install-force}] Normally, \Prog{omake} will prompt before it overwrites any
   existing \File{OMakefile}.  If this option is given, all files are forcibly overwritten
   without prompting.
 
 \item[\Opt{var-definition}] \Prog{omake} variables can also be defined on the command
   line in the form \verb+name=value+.  For example, the \verb+CFLAGS+ variable might be defined
   on the command line with the argument \verb+CFLAGS="-Wall -g"+.
-\end{Description}
+\end{description}
 
 In addition, \Prog{omake} supports a number of debugging flags on the command line. Run
 \verb+omake --help+ to get a summary of these flags.

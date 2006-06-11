@@ -2,7 +2,9 @@
  * Builtin operations on files.
  *
  * \begin{doc}
- * \section{File operations}
+ * \chapter{File operations}
+ * \label{chapter:system}
+ * \cutname{omake-system.html}
  * \end{doc}
  *
  * ----------------------------------------------------------------
@@ -65,7 +67,8 @@ let is_dir dir =
  * Get the file from a string.
  *
  * \begin{doc}
- * \subsection{file, dir}
+ * \fun{file}
+ * \fun{dir}
  *
  * \begin{verbatim}
  *    $(file sequence) : File Sequence
@@ -129,7 +132,7 @@ let dir venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{tmpfile}
+ * \fun{tmpfile}
  *
  * \begin{verbatim}
  *     $(tmpfile prefix) : File
@@ -159,7 +162,7 @@ let tmpfile venv pos loc args =
  * Display something from a different directory.
  *
  * \begin{doc}
- * \subsection{in}
+ * \fun{in}
  *
  * \begin{verbatim}
  *    $(in dir, exp) : String Array
@@ -212,7 +215,7 @@ let ind venv pos loc args =
  * Search the PATH.
  *
  * \begin{doc}
- * \subsection{which}
+ * \fun{which}
  *
  * \begin{verbatim}
  *    $(which files) : File Sequence
@@ -243,7 +246,7 @@ let which venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{where}
+ * \fun{where}
  *
  * The \verb+where+ function is similar to which, except it returns the list of
  * all the locations of the given executable (in the order in which the
@@ -303,7 +306,7 @@ let where venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{exists-in-path}
+ * \fun{exists-in-path}
  *
  * \begin{verbatim}
  *    $(exists-in-path files) : String
@@ -337,7 +340,7 @@ let exists_in_path venv pos loc args =
  * Strip the directory.
  *
  * \begin{doc}
- * \subsection{basename}
+ * \fun{basename}
  *
  * \begin{verbatim}
  *    $(basename files) : String Sequence
@@ -365,7 +368,7 @@ let basename venv pos loc args =
  * Strip the directory.
  *
  * \begin{doc}
- * \subsection{rootname}
+ * \fun{rootname}
  *
  * \begin{verbatim}
  *    $(rootname files) : String Sequence
@@ -393,7 +396,7 @@ let rootname venv pos loc args =
  * Get the directory.
  *
  * \begin{doc}
- * \subsection{dirof}
+ * \fun{dirof}
  *
  * \begin{verbatim}
  *    $(dirof files) : Dir Sequence
@@ -428,7 +431,7 @@ let dirof venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{fullname}
+ * \fun{fullname}
  *
  * \begin{verbatim}
  *    $(fullname files) : String Sequence
@@ -463,7 +466,7 @@ let fullname venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{absname}
+ * \fun{absname}
  *
  * \begin{verbatim}
  *    $(absname files) : String Sequence
@@ -500,7 +503,7 @@ let absname venv pos loc args =
  * Strip the directory.
  *
  * \begin{doc}
- * \subsection{homename}
+ * \fun{homename}
  *
  * \begin{verbatim}
  *    $(homename files) : String Sequence
@@ -532,7 +535,7 @@ let homename venv pos loc args =
  * Strip the directory.
  *
  * \begin{doc}
- * \subsection{suffix}
+ * \fun{suffix}
  *
  * \begin{verbatim}
  *    $(suffix files) : String Sequence
@@ -560,7 +563,9 @@ let suffix venv pos loc args =
  * Check if a file exists.
  *
  * \begin{doc}
- * \subsection{file-exists, target-exists, target-is-proper}
+ * \fun{file-exists}
+ * \fun{target-exists}
+ * \fun{target-is-proper}
  *
  * \begin{verbatim}
  *    $(file-exists files) : String
@@ -595,7 +600,7 @@ let node_exists node_exists venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{stat-reset}
+ * \fun{stat-reset}
  *
  * \begin{verbatim}
  *    $(stat-reset files) : String
@@ -622,7 +627,9 @@ let stat_reset venv pos loc args =
  * Filter out the files that don't exist.
  *
  * \begin{doc}
- * \subsection{filter-exists, filter-targets, filter-proper-targets}
+ * \fun{filter-exists}
+ * \fun{filter-targets}
+ * \fun{filter-proper-targets}
  *
  * \begin{verbatim}
  *    $(filter-exists files) : File Sequence
@@ -702,7 +709,9 @@ let filter_proper_targets venv pos loc args =
  * Get the file from a string.
  *
  * \begin{doc}
- * \subsection{file-sort}
+ * \fun{file-sort}
+ * \index{link-order sorting}
+ * \index{sorting (link-order)}
  *
  * \begin{verbatim}
  *    $(file-sort order, files) : File Sequence
@@ -743,7 +752,7 @@ let filter_proper_targets venv pos loc args =
  * \item The sorter will fail if the dependencies are cyclic.
  * \end{itemize}
  *
- * \subsection{sort rule}
+ * \paragraph{sort rule}
  *
  * It is possible to further constrain the sorter through the use of
  * sort rules.  A sort rule is declared in two steps.  The
@@ -793,7 +802,7 @@ let sort venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{file-check-sort}
+ * \fun{file-check-sort}
  *
  * \begin{verbatim}
  *    file-check-sort(files)
@@ -848,7 +857,7 @@ let sort_val_nodes nodes =
 
 (*
  * \begin{doc}
- * \subsection{glob}
+ * \fun{glob}
  *
  * \begin{verbatim}
  *    $(glob strings) : Node Array
@@ -917,7 +926,7 @@ let glob venv pos loc args =
  * ls function.
  *
  * \begin{doc}
- * \subsection{ls}
+ * \fun{ls}
  *
  * \begin{verbatim}
  *    $(ls files) : Node Array
@@ -987,7 +996,7 @@ let ls venv pos loc args =
  * The builtin function.
  *
  * \begin{doc}
- * \subsection{subdirs}
+ * \fun{subdirs}
  *
  * \begin{verbatim}
  *    $(subdirs dirs) : Dir Array
@@ -1146,7 +1155,7 @@ let mode_of_string mode s =
 
 (*
  * \begin{doc}
- * \subsection{mkdir}
+ * \fun{mkdir}
  *
  * \begin{verbatim}
  *    mkdir(mode, node...)
@@ -1161,11 +1170,11 @@ let mode_of_string mode s =
  *
  * The \verb+mkdir+ function creates a directory, or a set of directories.
  * The following options are supported.
- * \begin{itemize}
+ * \begin{description}
  * \item[-m mode] Specify the permissions of the created directory.
  * \item[-p] Create parent directories if they do not exist.
  * \item[--] Interpret the remaining names literally.
- * \end{itemize}
+ * \end{description}
  * \end{doc}
  *)
 type mkdir_info =
@@ -1240,7 +1249,7 @@ let mkdir venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Stat}
+ * \obj{Stat}
  *
  * The \verb+Stat+ object represents the result returned by the \verb+stat+
  * and \verb+lstat+ functions.  It contains the following fields.
@@ -1270,7 +1279,7 @@ let mkdir venv pos loc args =
  * \item[ctime]: last status change time, as a floating point number.
  * \end{description}
  *
- * \subsection{stat}
+ * \fun{stat}
  *
  * \begin{verbatim}
  *     $(stat node...) : Stat
@@ -1368,7 +1377,7 @@ let lstat =
 
 (*
  * \begin{doc}
- * \subsection{unlink}
+ * \fun{unlink}
  *
  * \begin{verbatim}
  *    $(unlink file...)
@@ -1384,13 +1393,13 @@ let lstat =
  * The \verb+rmdir+ function removes a directory.
  *
  * The following options are supported for \verb+rm+ and \verb+rmdir+.
- * \begin{itemize}
+ * \begin{description}
  * \item[-f] ignore nonexistent files, never prompt.
  * \item[-i] prompt before removal.
  * \item[-r] remove the contents of directories recursively.
  * \item[-v] explain what is going on.
  * \item[--] the rest of the values are interpreted literally.
- * \end{itemize}
+ * \end{description}
  * \end{doc}
  *)
 let unlink_aux rm_fun venv pos loc args =
@@ -1542,7 +1551,7 @@ let rm = rm_command Unix.unlink
 
 (*
  * \begin{doc}
- * \subsection{rename}
+ * \fun{rename}
  *
  * \begin{verbatim}
  *     rename(old, new)
@@ -1566,13 +1575,13 @@ let rm = rm_command Unix.unlink
  * is similar, but the original file is not removed.
  *
  * The \verb+mv+ and \verb+cp+ functions take the following options.
- * \begin{itemize}
+ * \begin{description}
  * \item[-f] Do not prompt before overwriting.
  * \item[-i] Prompt before overwriting.
  * \item[-v] Explain what it happening.
  * \item[-r] Copy the contents of directories recursively.
  * \item[--] Interpret the remaining arguments literally.
- * \end{itemize}
+ * \end{description}
  * \end{doc}
  *)
 let rename venv pos loc args =
@@ -1793,7 +1802,7 @@ let mv = mv_aux mv_file
 
 (*
  * \begin{doc}
- * \subsection{link}
+ * \fun{link}
  *
  * \begin{verbatim}
  *    link(src, dst)
@@ -1827,7 +1836,7 @@ let link venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{symlink}
+ * \fun{symlink}
  *
  * \begin{verbatim}
  *    symlink(src, dst)
@@ -1866,7 +1875,7 @@ let symlink venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{readlink}
+ * \fun{readlink}
  *
  * \begin{verbatim}
  *    $(readlink node...) : Node
@@ -1903,7 +1912,7 @@ let readlink venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{chmod}
+ * \fun{chmod}
  *
  * \begin{verbatim}
  *    chmod(mode, dst...)
@@ -1919,12 +1928,12 @@ let readlink venv pos loc args =
  * The \verb+chmod+ function does nothing on Win32 platforms.
  *
  * Options:
- * \begin{itemize}
+ * \begin{description}
  * \item[-v] Explain what is happening.
  * \item[-r] Change files and directories recursively.
  * \item[-f] Continue on errors.
  * \item[--] Interpret the remaining argument literally.
- * \end{itemize}
+ * \end{description}
  * \end{doc}
  *)
 type chmod_info =
@@ -2042,7 +2051,7 @@ let chmod venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{chown}
+ * \fun{chown}
  *
  * \begin{verbatim}
  *    chown(uid, gid, node...)
@@ -2092,7 +2101,7 @@ let chown venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{umask}
+ * \fun{umask}
  *
  * \begin{verbatim}
  *     $(umask mode) : Int
@@ -2121,7 +2130,7 @@ let umask venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{digest}
+ * \fun{digest}
  *
  * \begin{verbatim}
  *      $(digest files) : String Array
@@ -2171,7 +2180,7 @@ let digest_optional = digest_aux false
 
 (*
  * \begin{doc}
- * \subsection{find-in-path}
+ * \fun{find-in-path}
  *
  * \begin{verbatim}
  *     $(find-in-path path, files) : File Array
@@ -2229,7 +2238,7 @@ let find_in_path_optional = search_path_aux false
 
 (*
  * \begin{doc}
- * \subsection{digest-path}
+ * \fun{digest-path}
  *
  * \begin{verbatim}
  *     $(digest-in-path path, files) : String/File Array
@@ -2291,7 +2300,7 @@ let digest_in_path_optional = digest_path_aux false
 
 (*
  * \begin{doc}
- * \subsection{rehash}
+ * \fun{rehash}
  *
  * \begin{verbatim}
  *     rehash()
@@ -2307,7 +2316,7 @@ let rehash venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{vmount}
+ * \fun{vmount}
  *
  * \begin{verbatim}
  *     vmount(src, dst)
@@ -2399,7 +2408,7 @@ let vmount venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{add-project-directories}
+ * \fun{add-project-directories}
  *
  * \begin{verbatim}
  *     add-project-directories(dirs)
@@ -2424,7 +2433,7 @@ let add_project_directories venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{remove-project-directories}
+ * \fun{remove-project-directories}
  *
  * \begin{verbatim}
  *     remove-project-directories(dirs)

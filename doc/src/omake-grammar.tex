@@ -1,6 +1,10 @@
 %
 % A more formal description of the grammar.
 %
+\chapter{OMake grammar}
+\label{chapter:grammar}
+\cutname{omake-grammar.html}
+
 \section{OMake lexical conventions}
 
 The OMake language is based on the language for GNU/BSD make, where there are few lexical
@@ -129,16 +133,12 @@ string is terminated with a matching sequence of quotation symbols.  The delimit
 be mixed; it must contain only single-quote characters, or double-quote characters.  The following
 are legal strings.
 
-[jyh: there is a bug in the formatter where single-quote pairs are being converted to double-quotes.
-I've added \verb+\+ symbols in these cases to prevent that.  This should be considered to be an artifact of
-typesetting--the \verb+\+ characters \emph{must not} be included in code.]
-
 \begin{verbatim}
     $'Hello world'
     $"""printf("Hello world\n")"""
-    $'\'\'\'
+    $''''
 Large "block" of
-text # spanning ''multiple'' lines'\'\'\'
+text # spanning ''multiple'' lines''''
 \end{verbatim}
 
 The string delimiters are \emph{not} included in the string constant.  In the single-quote form,
@@ -150,7 +150,7 @@ The following are some examples.
 \begin{verbatim}
     X = Hello
     Y = $""$X world""             # Hello world
-    Z = $'\'\'$X world'\'\'       # $X world
+    Z = $'''$X world'''           # $X world
     I = 3
     W = $"6 > $(add $I, 2)"       # 6 > 5
 \end{verbatim}
@@ -180,7 +180,7 @@ the \emph{body}) are usually indented relative to the first line.
 
 The following table lists the syntax for expressions.
 
-\begin{Table}{3}
+\begin{tabular}{rcl}
 \emph{expr} & ::= &\\
 &   & \emph{(empty)}\\
 &   & -- Text (see note)\\
@@ -200,7 +200,7 @@ The following table lists the syntax for expressions.
 \\
 \emph{arg} & ::= & \emph{expr}   -- excluding special characters \verb+)(,+)\\
 \emph{args} & ::= & \emph{(empty)} | \emph{arg}, ..., \emph{arg}
-\end{Table}
+\end{tabular}
 
 An \emph{expression} is a sequence composed of text, string-literals, variables references and
 function applications.  Text is any sequence of non-special characters.
@@ -235,13 +235,13 @@ which must be an object with a method \verb+c+.  This method is called with argu
 \end{itemize}
 
 The additional dollar sequences specify evaluation order, \verb+$`+ (lazy) and \verb+$,+ (eager), as
-discussed in \href{#dollar}{the section on dollar modifiers}.
+discussed in the section on dollar modifiers~\ref{section:dollar}.
 
 \subsection{Statements and programs}
 
 The following table lists the syntax of statements and programs.
 
-\begin{Table}{3}
+\begin{tabular}{rcl}
 \emph{params} & ::= & \emph{(empty)} | \emph{id}, ..., \emph{id}\\
 \\
 \emph{target} & ::= & \emph{expr} -- excluding special character \verb+:+\\
@@ -256,7 +256,7 @@ The following table lists the syntax of statements and programs.
 & | & \texttt{class} \emph{id} ... \emph{id}\\
 \\
 &   & -- Variable definitions\\
-& | & \emph{pathid} \{+\}= \emph{expr}\\
+& | & \emph{pathid} $+^?$= \emph{expr}\\
 & | & \emph{pathid} \{+\}= \verb+<eol>+ \emph{indented-body}\\
 & | & \emph{pathid}\verb+[]+ \{+\}= \emph{expr}\\
 & | & \emph{pathid}\verb+[]+ \{+\}= \verb+<eol>+ \emph{indented-exprs}\\
@@ -290,13 +290,13 @@ The following table lists the syntax of statements and programs.
 \emph{rule-option} & ::= & \emph{:id:} \emph{target}\\
 \emph{rule-options} & ::= & \emph{(empty)}\\
 & | & \emph{rule-options} \emph{rule-option}
-\end{Table}
+\end{tabular}
 
 \subsubsection{Special forms}
 
 The special forms include the following.
 
-\textbf{Conditionals} (see \href{omake-language.html#conditionals}{Conditionals}).  The \verb+if+ command
+\textbf{Conditionals} (see the section on conditionals~\ref{section:conditionals}).  The \verb+if+ command
 should be followed by an expression that represents the condition, and an indented body.  The
 conditional may be followed by \verb+elseif+ and \verb+else+ blocks.
 
@@ -310,7 +310,7 @@ conditional may be followed by \verb+elseif+ and \verb+else+ blocks.
         indented-body
 \end{verbatim}
 
-\textbf{matching} (see \href{omake-language.html#matching}{Matching}).  The \verb+switch+ and
+\textbf{matching} (see the section on matching~\ref{section:match}).  The \verb+switch+ and
 \verb+match+ commands perform pattern-matching.  All cases are optional.  Each case may include
 \verb+when+ clauses that specify additional matching conditions.
 
@@ -327,7 +327,7 @@ conditional may be followed by \verb+elseif+ and \verb+else+ blocks.
        indented-body
 \end{verbatim}
 
-\textbf{Exceptions} (see \href{omake-language.html#exceptions}{Exceptions}).  The \verb+try+ command
+\textbf{Exceptions} (see the \verb+try+ function~\ref{fun:try}).  The \verb+try+ command
 introduces an exception handler.  Each \verb+name+ is the name of a class.  All cases, including
 \verb+catch+, \verb+default+, and \verb+finally+ are optional.  The \verb+catch+ and \verb+default+
 clauses contain optional \verb+when+ clauses.
@@ -354,7 +354,7 @@ The \verb+raise+ command is used to raise an exception.
     raise expr
 \end{verbatim}        
 
-\textbf{section} (see \href{omake-language.html#section}{Sections}).  The \verb+section+ command
+\textbf{section} (see the \verb+section+ description~\ref{section:section}).  The \verb+section+ command
 introduces a new scope.
 
 \begin{verbatim}
@@ -362,7 +362,7 @@ introduces a new scope.
         indented-body
 \end{verbatim}
 
-\textbf{include, open} (see \href{omake-language.html#include}{Include}).  The \verb+include+ command
+\textbf{include, open} (see the \verb+include+ description~\ref{section:include}).  The \verb+include+ command
 performs file inclusion.  The expression should evaluate to a file name.
 
 The \verb+open+ form is like include, but it performs the inclusion only if the inclusion has not
@@ -374,21 +374,21 @@ behavior will change in subsequent revisions.]
     open expr
 \end{verbatim}
 
-\textbf{return} (see \href{omake-language.html#functions}{Return}).  The \verb+return+ command
+\textbf{return} (see the description of functions~\ref{section:functions}).  The \verb+return+ command
 terminates execution and returns a value from a function.
 
 \begin{verbatim}
     return expr
 \end{verbatim}
 
-\textbf{value} (see \href{omake-language#functions}{Value}).  The \verb+value+ command is an identity.
+\textbf{value} (see the description of functions~\ref{section:functions}).  The \verb+value+ command is an identity.
 Syntactically, it is used to coerce a n expression to a statement.
 
 \begin{verbatim}
     value expr
 \end{verbatim}
 
-\textbf{export} (See \href{omake-language.html#export}{Export}).  The \verb+export+ command exports
+\textbf{export} (see the section on scoping~\ref{section:section}).  The \verb+export+ command exports
 a environment from a nested block.  If no identifiers are specified, the entire environment is exported.
 Otherwise, the export is limited to the specified identifiers.
 
@@ -396,14 +396,14 @@ Otherwise, the export is limited to the specified identifiers.
     export id ... id
 \end{verbatim}
 
-\textbf{while} (See \href{omake-base.html#while}{While}).  The \verb+while+ command introduces a \verb+while+ loop.
+\textbf{while} (see the \verb+while+ description~\ref{fun:while}).  The \verb+while+ command introduces a \verb+while+ loop.
 
 \begin{verbatim}
     while expr
         indented-body
 \end{verbatim}
 
-\textbf{class, extends} (See \href{omake-language.html#objects}{Objects}).  The \verb+class+ command
+\textbf{class, extends} (see the section on objects~\ref{section:objects}).  The \verb+class+ command
 specifies an identifier for an object.  The \verb+extends+ command specifies a parent object.
 
 \begin{verbatim}
@@ -413,7 +413,7 @@ specifies an identifier for an object.  The \verb+extends+ command specifies a p
 
 \subsubsection{Variable definitions}
 
-See \href{omake-language.html#variables}{Variables}.  The simplest variable definition has the
+See the section on variables~\ref{section:variables}.  The simplest variable definition has the
 following syntax.  The \verb+=+ form is a new definition.  The += form appends the value to
 an existing definition.
 
@@ -455,7 +455,7 @@ object.  Private variables are statically scoped.
 
 \subsubsection{Applications and function definitions}
 
-See \href{omake-language.html#functions}{Functions}.  A function-application statement is specified as a
+See the section on functions~\ref{section:functions}.  A function-application statement is specified as a
 function name, followed a parenthesized list of comma-separated arguments.
 
 \begin{verbatim}
@@ -501,7 +501,7 @@ list of identifiers, and the body of the function is indented.
 
 \subsubsection{Objects}
 
-See \href{omake-language.html#objects}{Objects}.  Objects are defined as an identifier with a
+See the section on objects~\ref{section:objects}.  Objects are defined as an identifier with a
 terminal period.  The body of the object is indented.
 
 \begin{verbatim}
@@ -569,7 +569,7 @@ and \verb+crazy+.
 
 \subsubsection{Rules}
 
-See \href{omake-rules.html#rules}{Rules}.  A rule has the following parts.
+See the chapter on rules~\ref{chapter:rules}.  A rule has the following parts.
 \begin{enumerate}
 \item A sequence of targets;
 \item one or two colons;
@@ -658,7 +658,7 @@ Several variables are defined during rule evaluation.
 
 \subsubsection{Shell commands}
 
-See \href{omake-shell.html#shell}{Shell}.
+See the chapter on shell commands~\ref{chapter:shell}.
 
 While it is possible to give a precise specification of shell commands, the informal description is
 simpler.  Any non-empty statement where each prefix is \emph{not} one of the other statements, is
@@ -681,8 +681,8 @@ considered to be a shell command.  Here are some examples.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Evaluation
 %
-\hypertarget{dollar}{}
 \section{Dollar modifiers}
+\label{section:dollar}
 
 Inline applications have a function and zero-or-more arguments.  Evaluation is normally strict: when
 an application is evaluated, the function identifier is evaluated to a function, the arguments are

@@ -1,7 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Short description
 %
-\section{Description}
+\chapter{Description}
+\label{chapter:omake}
+\cutname{omake.html}
 
 \Prog{omake} is designed for building projects that might have source files in several directories.
 Projects are normally specified using an \File{OMakefile} in each of the project directories, and an
@@ -10,7 +12,7 @@ general build rules, and the \File{OMakefile}s specify the build parameters spec
 subdirectories.  When \Prog{omake} runs, it walks the configuration tree, evaluating rules from all
 of the \File{OMakefile}s.  The project is then built from the entire collection of build rules.
 
-\subsection{Automatic dependency analysis}
+\section{Automatic dependency analysis}
 
 Dependency analysis has always been problematic with the \Cmd{make}{1} program.  \Prog{omake}
 addresses this by adding the \verb+.SCANNER+ target, which specifies a command to produce
@@ -24,7 +26,7 @@ dependencies.  For example, the following rule
 is the standard way to generate dependencies for \verb+.c+ files.  \Prog{omake} will automatically
 run the scanner when it needs to determine dependencies for a file.
 
-\subsection{Content-based dependency analysis}
+\section{Content-based dependency analysis}
 
 Dependency analysis in omake uses MD5 digests to determine whether files have changed.  After each
 run, \Prog{omake} stores the dependency information in a file called \File{.omakedb} in the project
@@ -38,56 +40,55 @@ modification time, size, and inode number.
 %
 See the following manual pages for more information.
 
-\textbf{Guide} If you are new to OMake, you the \href{omake-quickstart.html}{omake-quickstart}
-presents a short introduction that describes how to set up a project.  The
+\section{Guide}
+\label{section:guide}
+
+If you are new to OMake, you the \href{omake-quickstart.html}{omake-quickstart} presents a short
+introduction that describes how to set up a project.  The
 \href{omake-build-examples.html}{omake-build-examples} gives larger examples of build projects, and
 \href{omake-language-examples.html}{omake-language-examples} presents programming examples.
 
 \begin{description}
-\item[\href{omake-quickstart.html}{omake-quickstart}]
+\item[Quickstart \ref{chapter:quickstart}]
 %
    A quickstart guide to using \Prog{omake}.
-\item[\href{omake-build-examples.html}{omake-build-examples}]
+\item[Build examples \ref{chapter:build-examples}]
 %
    Advanced build examples.
-\item[\href{omake-language-examples.html}{omake-language-examples}]
-%
-   Advanced language examples.
-\item[\textbf{Reference}]
-\begin{description}
-\item[\href{omake-language.html}{omake-language}]
+\item[The OMake language~\ref{chapter:language}]
 %
    The \Prog{omake} language, including a description of objects, expressions, and values.
-\item[\href{omake-root.html}{omake-root}]
+\item[Language examples \ref{chapter:language-examples}]
 %
-   The system \File{OMakeroot} contains the default specification of how to build C, OCaml, and
-   \LaTeX\ programs.
-\item[\href{omake-shell.html}{omake-shell}]
-%
-   Using the \Prog{omake} shell for command-line interpretation.
-\item[\href{omake-rules.html}{omake-rules}]
+   Advanced language examples.
+\item[Build rules~\ref{chapter:rules}]
 %
    Using \Prog{omake} rules to build program.
-\item[\href{omake-base.html}{omake-base}]
+\item[Base builtin functions~\ref{chapter:base}]
 %
    Functions and variables in the core standard library.
-\item[\href{omake-system.html}{omake-system}]
+\item[System functions~\ref{chapter:system}]
 %
    Functions on files, input/output, and system commands.
-\item[\href{omake-pervasives.html}{omake-pervasives}]
+\item[Shell commands~\ref{chapter:shell}]
+%
+   Using the \Prog{omake} shell for command-line interpretation.
+\item[The standard objects Pervasives.om~\ref{chapter:pervasives}]
 %
    Pervasives defines the built-in objects.
-\item[\href{osh.html}{osh}]
+\item[Standard build functions~\ref{chapter:rule}]
+%
+   The standard build library.
+\item[The interactive command interpreter~\ref{chapter:osh}]
 %
    The \Prog{osh} command-line interpreter.
-\end{description}
 \item[\textbf{Appendices}]
 \begin{description}
-\item[\href{omake-options.html}{omake-options}]
+\item[OMake command-line options~\ref{chapter:options}]
 %
    Command-line options for \Prog{omake}.
 %
-\item[\href{omake-grammar.html}{omake-grammar}]
+\item[The OMake language grammar~\ref{chapter:grammar}]
 %
    A more precise specification of the OMake language.
 \end{description}

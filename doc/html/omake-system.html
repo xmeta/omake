@@ -1,209 +1,884 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!-- Manual page created with latex2man --
--- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
--- NOTE: This file is generated, DO NOT EDIT. -->
-<html>
-<head><title>OMAKE-SYSTEM</title></head>
-<body bgcolor="white">
-<h1 align=center>
-OMake system functions
-</h1>
-<h4 align=center>Jason Hickey <em>et. al.</em></h4>
-<h4 align=center>April 11, 2006</h4>
-<h4 align=center>Version 0.9.6.9</h4>
-<tt>omake</tt>
-is a flexible build system designed for building a wide variety of projects.
-This document describes the functions for interacting with the operating system,
-including commands for input/output, and system commands for information about
-the filesystem.
-For an overview of <tt>omake</tt>,
-see the <a href="omake.html">omake(1)</a>
-man page.
-<h3>Table of Contents</h3>
-<ul>
-<li><a href="#section_1">IO functions </a>
-<ul>
-<li><a href="#section_2">Standard channels </a></li>
-<li><a href="#section_3">fopen </a></li>
-<li><a href="#section_4">close </a></li>
-<li><a href="#section_5">read </a></li>
-<li><a href="#section_6">write </a></li>
-<li><a href="#section_7">lseek </a></li>
-<li><a href="#section_8">rewind </a></li>
-<li><a href="#section_9">tell </a></li>
-<li><a href="#section_10">flush </a></li>
-<li><a href="#section_11">dup </a></li>
-<li><a href="#section_12">dup2 </a></li>
-<li><a href="#section_13">set-nonblock </a></li>
-<li><a href="#section_14">set-close-on-exec-mode </a></li>
-<li><a href="#section_15">pipe </a></li>
-<li><a href="#section_16">mkfifo </a></li>
-<li><a href="#section_17">select </a></li>
-<li><a href="#section_18">lockf </a></li>
-<li><a href="#section_19">InetAddr </a></li>
-<li><a href="#section_20">Host </a></li>
-<li><a href="#section_21">gethostbyname </a></li>
-<li><a href="#section_22">Protocol </a></li>
-<li><a href="#section_23">getprotobyname </a></li>
-<li><a href="#section_24">Service </a></li>
-<li><a href="#section_25">getservbyname </a></li>
-<li><a href="#section_26">socket </a></li>
-<li><a href="#section_27">bind </a></li>
-<li><a href="#section_28">listen </a></li>
-<li><a href="#section_29">accept </a></li>
-<li><a href="#section_30">connect </a></li>
-<li><a href="#section_31">getchar </a></li>
-<li><a href="#section_32">gets </a></li>
-<li><a href="#section_33">fgets </a></li>
-<li><a href="#section_34">Printing functions </a></li>
-<li><a href="#section_35">Value printing functions </a></li>
-</ul>
-<li><a href="#section_36">Higher-level IO functions </a>
-<ul>
-<li><a href="#section_37">Regular expressions </a></li>
-<li><a href="#section_38">cat </a></li>
-<li><a href="#section_39">grep </a></li>
-<li><a href="#section_40">scan </a></li>
-<li><a href="#section_41">awk </a></li>
-<li><a href="#section_42">fsubst </a></li>
-<li><a href="#section_43">Lexer </a></li>
-<li><a href="#section_44">Lexer matching </a></li>
-<li><a href="#section_45">Extending lexer definitions </a></li>
-<li><a href="#section_46">Threading the lexer object </a></li>
-<li><a href="#section_47">Parser </a></li>
-<li><a href="#section_48">Calling the parser </a></li>
-<li><a href="#section_49">Parsing control </a></li>
-<li><a href="#section_50">Extending parsers </a></li>
-<li><a href="#section_51">gettimeofday </a></li>
-</ul>
-<li><a href="#section_52">Shell functions </a>
-<ul>
-<li><a href="#section_53">echo </a></li>
-<li><a href="#section_54">jobs </a></li>
-<li><a href="#section_55">cd </a></li>
-<li><a href="#section_56">bg </a></li>
-<li><a href="#section_57">fg </a></li>
-<li><a href="#section_58">stop </a></li>
-<li><a href="#section_59">wait </a></li>
-<li><a href="#section_60">kill </a></li>
-<li><a href="#section_61">history </a></li>
-</ul>
-<li><a href="#section_62">References </a>
-<ul>
-<li><a href="#section_63">See Also </a></li>
-<li><a href="#section_64">Version </a></li>
-<li><a href="#section_65">License and Copyright </a></li>
-<li><a href="#section_66">Author </a></li>
-</ul>
-</li>
-</ul>
-<p>
-<h2><a name="section_1">IO functions</a></h2>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
 
-<h4><a name="section_2">Standard channels</a></h4>
 
-<p>
-The following variables define the standard channels.
-<p>
-<dl compact>
-<dt>stdin</dt>
-<dd>
-<p>
-<pre>
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.08">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>
+File operations
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="omake-base.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-shell.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
+
+<H1 CLASS="chapter"><A NAME="htoc89">Chapter&nbsp;8</A>&nbsp;&nbsp;File operations</H1>
+<A NAME="chapter:system"></A>
+
+<A NAME="@default131"></A><A NAME="@fun86"></A><A NAME="fun:file"></A>
+<H4 CLASS="subsubsection">file</H4>
+<A NAME="@default132"></A><A NAME="@fun87"></A><A NAME="fun:dir"></A>
+<H4 CLASS="subsubsection">dir</H4>
+<PRE CLASS="verbatim">
+   $(file sequence) : File Sequence
+      sequence : Sequence
+   $(dir sequence) : Dir Sequence
+      sequence : Sequence
+</PRE>
+The <CODE>file</CODE> and <CODE>dir</CODE> functions define location-independent references to files and directories.
+In <TT>omake</TT>, the commands to build a target are executed in the target's directory. Since there may be
+many directories in an <TT>omake</TT> project, the build system provides a way to construct a reference to a file
+in one directory, and use it in another without explicitly modifying the file name. The functions have the following
+syntax, where the name should refer to a file or directory.<BR>
+<BR>
+For example, we can construct a reference to a file <CODE>foo</CODE> in the current directory.
+<PRE CLASS="verbatim">
+   FOO = $(file foo)
+   .SUBDIRS: bar
+</PRE>
+If the <CODE>FOO</CODE> variable is expanded in the <CODE>bar</CODE> subdirectory, it will expand to <CODE>../foo</CODE>.<BR>
+<BR>
+These commands are often used in the top-level OMakefile to provide location-independent references to
+top-level directories, so that build commands may refer to these directories as if they were absolute.
+<PRE CLASS="verbatim">
+   ROOT = $(dir .)
+   LIB  = $(dir lib)
+   BIN  = $(dir bin)
+</PRE>
+Once these variables are defined, they can be used in build commands in subdirectories as follows, where
+<CODE>$(BIN)</CODE> will expand to the location of the <CODE>bin</CODE> directory relative to the command being executed.
+<PRE CLASS="verbatim">
+   install: hello
+ cp hello $(BIN)
+</PRE><A NAME="@default133"></A><A NAME="@fun88"></A><A NAME="fun:tmpfile"></A>
+<H4 CLASS="subsubsection">tmpfile</H4>
+<PRE CLASS="verbatim">
+    $(tmpfile prefix) : File
+    $(tmpfile prefix, suffix) : File
+        prefix : String
+        suffix : String
+</PRE>
+The <CODE>tmpfile</CODE> function returns the name of a fresh temporary file in
+the temporary directory.
+<A NAME="@default134"></A><A NAME="@fun89"></A><A NAME="fun:in"></A>
+<H4 CLASS="subsubsection">in</H4>
+<PRE CLASS="verbatim">
+   $(in dir, exp) : String Array
+      dir : Dir
+      exp : expression
+</PRE>
+The <CODE>in</CODE> function is closely related to the <CODE>dir</CODE> and
+<CODE>file</CODE> functions. It takes a directory and an expression, and
+evaluates the expression in that effective directory.
+For example, one common way to install a file is to define a symbol link, where the
+value of the link is relative to the directory where the link is created.<BR>
+<BR>
+The following commands create links in the <CODE>$(LIB)</CODE> directory.
+<PRE CLASS="verbatim">
+    FOO = $(file foo)
+    install:
+       ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
+</PRE>
+Note that the <CODE>in</CODE> function only affects the expansion of <CODE>Node</CODE>
+(<CODE>File</CODE> and <CODE>Dir</CODE>) values.
+<A NAME="@default135"></A><A NAME="@fun90"></A><A NAME="fun:which"></A>
+<H4 CLASS="subsubsection">which</H4>
+<PRE CLASS="verbatim">
+   $(which files) : File Sequence
+      files : String Sequence
+</PRE>
+The <CODE>which</CODE> function searches for executables in the
+current command search path, and returns <CODE>file</CODE> values
+for each of the commands. It is an error if a command is
+not found.
+<A NAME="@default136"></A><A NAME="@fun91"></A><A NAME="fun:where"></A>
+<H4 CLASS="subsubsection">where</H4>
+The <CODE>where</CODE> function is similar to which, except it returns the list of
+all the locations of the given executable (in the order in which the
+corresponding directories appear in <CODE>$PATH</CODE>). In case a command is handled
+internally by the <CODE>Shell</CODE> object, the first string in the output will
+describe the command as a built-in function.
+<PRE CLASS="verbatim">
+    % where echo
+    echo is a Shell object method (a built-in function)
+    /bin/echo
+</PRE><A NAME="@default137"></A><A NAME="@fun92"></A><A NAME="fun:exists-in-path"></A>
+<H4 CLASS="subsubsection">exists-in-path</H4>
+<PRE CLASS="verbatim">
+   $(exists-in-path files) : String
+      files : String Sequence
+</PRE>
+The <CODE>exists-in-path</CODE> function tests whether all executables
+are present in the current search path.
+<A NAME="@default138"></A><A NAME="@fun93"></A><A NAME="fun:basename"></A>
+<H4 CLASS="subsubsection">basename</H4>
+<PRE CLASS="verbatim">
+   $(basename files) : String Sequence
+      files : String Sequence
+</PRE>
+The <CODE>basename</CODE> function returns the base names for a list of files.
+The basename is the filename with any leading directory components removed.<BR>
+<BR>
+For example, the expression <CODE>$(basename dir1/dir2/a.out /etc/modules.conf /foo.ml)</CODE> evaluates to
+<CODE>a.out modules.conf foo.ml</CODE>.
+<A NAME="@default139"></A><A NAME="@fun94"></A><A NAME="fun:rootname"></A>
+<H4 CLASS="subsubsection">rootname</H4>
+<PRE CLASS="verbatim">
+   $(rootname files) : String Sequence
+      files : String Sequence
+</PRE>
+The <CODE>rootname</CODE> function returns the root name for a list of files.
+The rootname is the filename with the final suffix removed.<BR>
+<BR>
+For example, the expression <CODE>$(rootname dir1/dir2/a.out /etc/a.b.c /foo.ml)</CODE> evaluates to
+<CODE>dir1/dir2/a /etc/a.b /foo</CODE>.
+<A NAME="@default140"></A><A NAME="@fun95"></A><A NAME="fun:dirof"></A>
+<H4 CLASS="subsubsection">dirof</H4>
+<PRE CLASS="verbatim">
+   $(dirof files) : Dir Sequence
+      files : File Sequence
+</PRE>
+The <CODE>dirof</CODE> function returns the directory for each of the listed files.<BR>
+<BR>
+For example, the expression <CODE>$(dirof dir/dir2/a.out /etc/modules.conf /foo.ml)</CODE> evaluates
+to the directories <CODE>dir1/dir2 /etc /</CODE>.
+<A NAME="@default141"></A><A NAME="@fun96"></A><A NAME="fun:fullname"></A>
+<H4 CLASS="subsubsection">fullname</H4>
+<PRE CLASS="verbatim">
+   $(fullname files) : String Sequence
+      files : File Sequence
+</PRE>
+The <CODE>fullname</CODE> function returns the pathname relative to the project root
+for each of the files or directories.
+<A NAME="@default142"></A><A NAME="@fun97"></A><A NAME="fun:absname"></A>
+<H4 CLASS="subsubsection">absname</H4>
+<PRE CLASS="verbatim">
+   $(absname files) : String Sequence
+      files : File Sequence
+</PRE>
+The <CODE>absname</CODE> function returns the absolute pathname for each of the files
+or directories.
+<A NAME="@default143"></A><A NAME="@fun98"></A><A NAME="fun:homename"></A>
+<H4 CLASS="subsubsection">homename</H4>
+<PRE CLASS="verbatim">
+   $(homename files) : String Sequence
+      files : File Sequence
+</PRE>
+The <CODE>homename</CODE> function returns the name of a file in
+tilde form, if possible. The unexpanded forms are computed
+lazily: the <CODE>homename</CODE> function will usually evaluate to an absolute
+pathname until the first tilde-expansion for the same directory.
+<A NAME="@default144"></A><A NAME="@fun99"></A><A NAME="fun:suffix"></A>
+<H4 CLASS="subsubsection">suffix</H4>
+<PRE CLASS="verbatim">
+   $(suffix files) : String Sequence
+      files : StringSequence
+</PRE>
+The <CODE>suffix</CODE> function returns the suffixes for a list of files.
+If a file has no suffix, the function returns the empty string.<BR>
+<BR>
+For example, the expression <CODE>$(suffix dir1/dir2/a.out /etc/a /foo.ml)</CODE> evaluates
+to <CODE>.out .ml</CODE>.
+<A NAME="@default145"></A><A NAME="@fun100"></A><A NAME="fun:file-exists"></A>
+<H4 CLASS="subsubsection">file-exists</H4>
+<A NAME="@default146"></A><A NAME="@fun101"></A><A NAME="fun:target-exists"></A>
+<H4 CLASS="subsubsection">target-exists</H4>
+<A NAME="@default147"></A><A NAME="@fun102"></A><A NAME="fun:target-is-proper"></A>
+<H4 CLASS="subsubsection">target-is-proper</H4>
+<PRE CLASS="verbatim">
+   $(file-exists files) : String
+   $(target-exists files) : String
+   $(target-is-proper files) : String
+       files : File Sequence
+</PRE>
+The <CODE>file-exists</CODE> function checks whether the files listed exist.
+The <CODE>target-exists</CODE> function is similar to the <CODE>file-exists</CODE> function.
+However, it returns true if the file exists <EM>or</EM> if it can be built
+by the current project. The <CODE>target-is-proper</CODE> returns true only
+if the file can be generated in the current project.
+<A NAME="@default148"></A><A NAME="@fun103"></A><A NAME="fun:stat-reset"></A>
+<H4 CLASS="subsubsection">stat-reset</H4>
+<PRE CLASS="verbatim">
+   $(stat-reset files) : String
+       files : File Sequence
+</PRE>
+OMake uses a stat-cache. The <CODE>stat-reset</CODE> function reset the <CODE>stat</CODE>
+information for the given files, forcing the <CODE>stat</CODE> information to
+be recomputed the next time it is requested.
+<A NAME="@default149"></A><A NAME="@fun104"></A><A NAME="fun:filter-exists"></A>
+<H4 CLASS="subsubsection">filter-exists</H4>
+<A NAME="@default150"></A><A NAME="@fun105"></A><A NAME="fun:filter-targets"></A>
+<H4 CLASS="subsubsection">filter-targets</H4>
+<A NAME="@default151"></A><A NAME="@fun106"></A><A NAME="fun:filter-proper-targets"></A>
+<H4 CLASS="subsubsection">filter-proper-targets</H4>
+<PRE CLASS="verbatim">
+   $(filter-exists files) : File Sequence
+   $(filter-targets files) : File Sequence
+   $(filter-proper-targets) : File Sequence
+      files : File Sequence
+</PRE>
+The <CODE>filter-exists</CODE>, <CODE>filter-targets</CODE>, and <CODE>filter-proper-targets</CODE>
+functions remove files from a list of files.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>filter-exists</CODE>: the result is the list of files that exist.
+<LI CLASS="li-itemize"><CODE>filter-targets</CODE>: the result is the list of files either exist, or
+ can be built by the current project.
+<LI CLASS="li-itemize"><CODE>filter-proper-targets</CODE>: the result is the list of files that can
+ be built in the current project.
+</UL>
+One way to create a simple &#8220;clean&#8221; rule that removes generated files from
+the project is by removing all files that can be built in the current
+project. CAUTION: you should be careful before you do this. The rule
+removes <EM>any</EM> file that can <EM>potentially</EM> be reconstructed.
+There is no check to make sure that the commands to rebuild the file
+would actually succeed. Also, note that no file outside the
+current project will be deleted.
+<PRE CLASS="verbatim">
+    .PHONY: clean
+
+    clean:
+        rm $(filter-proper-targets $(ls R, .))
+</PRE>
+See the <CODE>dependencies-proper</CODE> function to see an alternate method
+for removing intermediate files.<BR>
+<BR>
+If you use CVS, you may wish to use the <CODE>cvs_realclean</CODE> program that
+is distributed with <CODE>omake</CODE>.<BR>
+<BR>
+<A NAME="@default152"></A><A NAME="@fun107"></A><A NAME="fun:file-sort"></A>
+<H4 CLASS="subsubsection">file-sort</H4>
+<A NAME="@default153"></A>
+<A NAME="@default154"></A>
+<PRE CLASS="verbatim">
+   $(file-sort order, files) : File Sequence
+      order : String
+      files : File Sequence
+</PRE>
+The <CODE>file-sort</CODE> function sorts a list of filenames by
+build order augmented by a set of sort rules. Sort
+rules are declared using the <CODE>.ORDER</CODE> target.
+The <CODE>.BUILDORDER</CODE> defines the default order.<BR>
+<BR>
+<CODE>$(file-sort &lt;order&gt;, &lt;files&gt;)</CODE><BR>
+<BR>
+For example, suppose we have the following set of rules.
+<PRE CLASS="verbatim">
+   a: b c
+   b: d
+   c: d
+
+   .DEFAULT: a b c d
+      echo $(file-sort .BUILDORDER, a b c d)
+</PRE>
+In the case, the sorter produces the result <CODE>d b c a</CODE>.
+That is, a target is sorted <EM>after</EM> its dependencies.
+The sorter is frequently used to sort files that are to be linked
+by their dependencies (for languages where this matters).<BR>
+<BR>
+There are three important restrictions to the sorter:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+The sorter can be used only within a rule body.
+The reason for this is that <EM>all</EM> dependencies
+must be known before the sort is performed.
+<LI CLASS="li-itemize">The sorter can only sort files that are buildable
+in the current project.
+<LI CLASS="li-itemize">The sorter will fail if the dependencies are cyclic.
+</UL>
+
+<H5 CLASS="paragraph">sort rule</H5>
+It is possible to further constrain the sorter through the use of
+sort rules. A sort rule is declared in two steps. The
+target must be listed as an <CODE>.ORDER</CODE> target; and then
+a set of sort rules must be given. A sort rule defines
+a pattern constraint.
+<PRE CLASS="verbatim">
+   .ORDER: .MYORDER
+
+   .MYORDER: %.foo: %.bar
+   .MYORDER: %.bar: %.baz
+
+   .DEFAULT: a.foo b.bar c.baz d.baz
+      echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
+</PRE>
+In this example, the <CODE>.MYORDER</CODE> sort rule specifies that any
+file with a suffix <CODE>.foo</CODE> should be placed after any file with
+suffix <CODE>.bar</CODE>, and any file with suffix <CODE>.bar</CODE> should be
+placed after a file with suffix <CODE>.baz</CODE>.<BR>
+<BR>
+In this example, the result of the sort is <CODE>d.baz c.baz b.bar a.foo</CODE>.
+<A NAME="@default155"></A><A NAME="@fun108"></A><A NAME="fun:file-check-sort"></A>
+<H4 CLASS="subsubsection">file-check-sort</H4>
+<PRE CLASS="verbatim">
+   file-check-sort(files)
+      files : File Sequence
+   raises RuntimeException
+</PRE>
+The <CODE>file-check-sort</CODE> function checks whether a list of files
+is in sort order. If so, the list is returned unchanged.
+If not, the function raises an exception.<BR>
+<BR>
+<CODE>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</CODE>
+<A NAME="@default156"></A><A NAME="@fun109"></A><A NAME="fun:glob"></A>
+<H4 CLASS="subsubsection">glob</H4>
+<PRE CLASS="verbatim">
+   $(glob strings) : Node Array
+      strings : String Sequence
+   $(glob options, strings) : Node Array
+      options : String
+      strings : String Sequence
+</PRE>
+The <CODE>glob</CODE> function performs glob-expansion.<BR>
+<BR>
+The . and .. entries are always ignored.<BR>
+<BR>
+The options are:
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>b</B><DD CLASS="dd-description"> Do not perform <TT>csh</TT>(1)-style brace expansion.
+<DT CLASS="dt-description"><B>e</B><DD CLASS="dd-description"> The <CODE>\</CODE> character does not escape special characters.
+<DT CLASS="dt-description"><B>n</B><DD CLASS="dd-description"> If an expansion fails, return the expansion literally instead of aborting.
+<DT CLASS="dt-description"><B>i</B><DD CLASS="dd-description"> If an expansion fails, it expands to nothing.
+<DT CLASS="dt-description"><B>.</B><DD CLASS="dd-description"> Allow wildcard patterns to match files beginning with a .
+<DT CLASS="dt-description"><B>A</B><DD CLASS="dd-description"> Return all files, including files that begin with a .
+<DT CLASS="dt-description"><B>D</B><DD CLASS="dd-description"> Match only directory files.
+<DT CLASS="dt-description"><B>C</B><DD CLASS="dd-description"> Ignore files according to <TT>cvs</TT>(1) rules.
+<DT CLASS="dt-description"><B>P</B><DD CLASS="dd-description"> Include only proper subdirectories.
+</DL>
+In addition, the following variables may be defined that affect the
+behavior of <CODE>glob</CODE>.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>GLOB_OPTIONS</B><DD CLASS="dd-description"> A string containing default options.
+<DT CLASS="dt-description"><B>GLOB_IGNORE</B><DD CLASS="dd-description"> A list of shell patterns for filenames that <CODE>glob</CODE> should ignore.
+<DT CLASS="dt-description"><B>GLOB_ALLOW</B><DD CLASS="dd-description"> A list of shell patterns. If a file does not match a pattern in
+ <CODE>GLOB_ALLOW</CODE>, it is ignored.
+</DL>
+The returned files are sorted by name.
+<A NAME="@default157"></A><A NAME="@fun110"></A><A NAME="fun:ls"></A>
+<H4 CLASS="subsubsection">ls</H4>
+<PRE CLASS="verbatim">
+   $(ls files) : Node Array
+      files : String Sequence
+   $(ls options, files) : Node Array
+      files : String Sequence
+</PRE>
+The <CODE>ls</CODE> function returns the filenames in a directory.<BR>
+<BR>
+The . and .. entries are always ignored.
+The patterns are shell-style patterns, and are glob-expanded.<BR>
+<BR>
+The options include all of the options to the <CODE>glob</CODE> function,
+plus the following.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>R</B><DD CLASS="dd-description"> Perform a recursive listing.
+</DL>
+The <CODE>GLOB_ALLOW</CODE> and <CODE>GLOB_IGNORE</CODE> variables can be defined
+to control the globbing behavior.
+The returned files are sorted by name.
+<A NAME="@default158"></A><A NAME="@fun111"></A><A NAME="fun:subdirs"></A>
+<H4 CLASS="subsubsection">subdirs</H4>
+<PRE CLASS="verbatim">
+   $(subdirs dirs) : Dir Array
+      dirs : String Sequence
+   $(subdirs options, dirs) : Dir Array
+      options : String
+      dirs : String Sequence
+</PRE>
+The <CODE>subdirs</CODE> function returns all the subdirectories
+of a list of directories, recursively.<BR>
+<BR>
+The possible options are the following:
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>A</B><DD CLASS="dd-description"> Return directories that begin with a .
+<DT CLASS="dt-description"><B>C</B><DD CLASS="dd-description"> Ignore files according to <TT>.cvsignore</TT> rules.
+<DT CLASS="dt-description"><B>P</B><DD CLASS="dd-description"> Include only proper subdirectories.
+</DL>
+<A NAME="@default159"></A><A NAME="@fun112"></A><A NAME="fun:mkdir"></A>
+<H4 CLASS="subsubsection">mkdir</H4>
+<PRE CLASS="verbatim">
+   mkdir(mode, node...)
+      mode : Int
+      node : Node
+   raises RuntimeException
+
+   mkdir(node...)
+      node : Node
+   raises RuntimeException
+</PRE>
+The <CODE>mkdir</CODE> function creates a directory, or a set of directories.
+The following options are supported.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>-m mode</B><DD CLASS="dd-description"> Specify the permissions of the created directory.
+<DT CLASS="dt-description"><B>-p</B><DD CLASS="dd-description"> Create parent directories if they do not exist.
+<DT CLASS="dt-description"><B>&ndash;</B><DD CLASS="dd-description"> Interpret the remaining names literally.
+</DL>
+<A NAME="@default160"></A><A NAME="@obj0"></A><A NAME="obj:Stat"></A>
+<H4 CLASS="subsubsection">Stat</H4>
+The <CODE>Stat</CODE> object represents the result returned by the <CODE>stat</CODE>
+and <CODE>lstat</CODE> functions. It contains the following fields.<BR>
+<BR>
+A <CODE>stat</CODE> object has the following fields. Not all of the fields
+will have meaning on all architectures.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>dev</B><DD CLASS="dd-description">: the device number.
+<DT CLASS="dt-description"><B>ino</B><DD CLASS="dd-description">: the inode number.
+<DT CLASS="dt-description"><B>kind</B><DD CLASS="dd-description">: the kind of the file, one of the following:
+ <CODE>REG</CODE> (regular file),
+ <CODE>DIR</CODE> (directory),
+ <CODE>CHR</CODE> (character device),
+ <CODE>BLK</CODE> (block device),
+ <CODE>LNK</CODE> (symbolic link),
+ <CODE>FIFO</CODE> (named pipe),
+ <CODE>SOCK</CODE> (socket).
+<DT CLASS="dt-description"><B>perm</B><DD CLASS="dd-description">: access rights, represented as an integer.
+<DT CLASS="dt-description"><B>nlink</B><DD CLASS="dd-description">: number of links.
+<DT CLASS="dt-description"><B>uid</B><DD CLASS="dd-description">: user id of the owner.
+<DT CLASS="dt-description"><B>gid</B><DD CLASS="dd-description">: group id of the file's group.
+<DT CLASS="dt-description"><B>rdev</B><DD CLASS="dd-description">: device minor number.
+<DT CLASS="dt-description"><B>size</B><DD CLASS="dd-description">: size in bytes.
+<DT CLASS="dt-description"><B>atime</B><DD CLASS="dd-description">: last access time, as a floating point number.
+<DT CLASS="dt-description"><B>mtime</B><DD CLASS="dd-description">: last modification time, as a floating point number.
+<DT CLASS="dt-description"><B>ctime</B><DD CLASS="dd-description">: last status change time, as a floating point number.
+</DL>
+<A NAME="@default161"></A><A NAME="@fun113"></A><A NAME="fun:stat"></A>
+<H4 CLASS="subsubsection">stat</H4>
+<PRE CLASS="verbatim">
+    $(stat node...) : Stat
+       node : Node or Channel
+    $(lstat node...) : Stat
+       node : Node or Channel
+    raises RuntimeException
+</PRE>
+The <CODE>stat</CODE> functions return file information.
+If the file is a symbolic link, the <CODE>stat</CODE> function refers to the
+destination of the link; the <CODE>lstat</CODE> function refers to the link
+itself.
+<A NAME="@default162"></A><A NAME="@fun114"></A><A NAME="fun:unlink"></A>
+<H4 CLASS="subsubsection">unlink</H4>
+<PRE CLASS="verbatim">
+   $(unlink file...)
+      file : File
+   #(rm file...)
+      file : File
+   $(rmdir dir...)
+      dir : Dir
+   raises RuntimeException
+</PRE>
+The <CODE>unlink</CODE> and <CODE>rm</CODE> functions remove a file.
+The <CODE>rmdir</CODE> function removes a directory.<BR>
+<BR>
+The following options are supported for <CODE>rm</CODE> and <CODE>rmdir</CODE>.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>-f</B><DD CLASS="dd-description"> ignore nonexistent files, never prompt.
+<DT CLASS="dt-description"><B>-i</B><DD CLASS="dd-description"> prompt before removal.
+<DT CLASS="dt-description"><B>-r</B><DD CLASS="dd-description"> remove the contents of directories recursively.
+<DT CLASS="dt-description"><B>-v</B><DD CLASS="dd-description"> explain what is going on.
+<DT CLASS="dt-description"><B>&ndash;</B><DD CLASS="dd-description"> the rest of the values are interpreted literally.
+</DL>
+<A NAME="@default163"></A><A NAME="@fun115"></A><A NAME="fun:rename"></A>
+<H4 CLASS="subsubsection">rename</H4>
+<PRE CLASS="verbatim">
+    rename(old, new)
+       old : Node
+       new : Node
+    mv(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    cp(nodes... dir)
+       nodes : Node Sequence
+       dir   : Dir
+    raises RuntimeException
+</PRE>
+The <CODE>rename</CODE> function changes the name of a file or directory named <CODE>old</CODE>
+to <CODE>new</CODE>.<BR>
+<BR>
+The <CODE>mv</CODE> function is similar, but if <CODE>new</CODE> is a directory, and it exists,
+then the files specified by the sequence are moved into the directory. If not,
+the behavior of <CODE>mv</CODE> is identical to <CODE>rename</CODE>. The <CODE>cp</CODE> function
+is similar, but the original file is not removed.<BR>
+<BR>
+The <CODE>mv</CODE> and <CODE>cp</CODE> functions take the following options.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>-f</B><DD CLASS="dd-description"> Do not prompt before overwriting.
+<DT CLASS="dt-description"><B>-i</B><DD CLASS="dd-description"> Prompt before overwriting.
+<DT CLASS="dt-description"><B>-v</B><DD CLASS="dd-description"> Explain what it happening.
+<DT CLASS="dt-description"><B>-r</B><DD CLASS="dd-description"> Copy the contents of directories recursively.
+<DT CLASS="dt-description"><B>&ndash;</B><DD CLASS="dd-description"> Interpret the remaining arguments literally.
+</DL>
+<A NAME="@default164"></A><A NAME="@fun116"></A><A NAME="fun:link"></A>
+<H4 CLASS="subsubsection">link</H4>
+<PRE CLASS="verbatim">
+   link(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+</PRE>
+The <CODE>link</CODE> function creates a hard link named <CODE>dst</CODE> to the file
+or directory <CODE>src</CODE>.<BR>
+<BR>
+Hard links are not supported in Win32.<BR>
+<BR>
+Normally, only the superuser can create hard links to directories.
+<A NAME="@default165"></A><A NAME="@fun117"></A><A NAME="fun:symlink"></A>
+<H4 CLASS="subsubsection">symlink</H4>
+<PRE CLASS="verbatim">
+   symlink(src, dst)
+      src : Node
+      dst : Node
+   raises RuntimeException
+</PRE>
+The <CODE>symlink</CODE> function creates a symbolic link <CODE>dst</CODE> that
+points to the <CODE>src</CODE> file.<BR>
+<BR>
+The link name is computed relative to
+the target directory. For example, the expression
+<CODE>$(symlink a/b, c/d)</CODE> creates a link named
+<CODE>c/d -&gt; ../a/b</CODE>.<BR>
+<BR>
+Symbolic links are not supported in Win32.
+<A NAME="@default166"></A><A NAME="@fun118"></A><A NAME="fun:readlink"></A>
+<H4 CLASS="subsubsection">readlink</H4>
+<PRE CLASS="verbatim">
+   $(readlink node...) : Node
+      node : Node
+</PRE>
+The <CODE>readlink</CODE> function reads the value of a symbolic link.
+<A NAME="@default167"></A><A NAME="@fun119"></A><A NAME="fun:chmod"></A>
+<H4 CLASS="subsubsection">chmod</H4>
+<PRE CLASS="verbatim">
+   chmod(mode, dst...)
+      mode : Int
+      dst : Node or Channel
+   chmod(mode dst...)
+      mode : String
+      dst : Node Sequence
+   raises RuntimeException
+</PRE>
+The <CODE>chmod</CODE> function changes the permissions of the targets.
+The <CODE>chmod</CODE> function does nothing on Win32 platforms.<BR>
+<BR>
+Options:
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>-v</B><DD CLASS="dd-description"> Explain what is happening.
+<DT CLASS="dt-description"><B>-r</B><DD CLASS="dd-description"> Change files and directories recursively.
+<DT CLASS="dt-description"><B>-f</B><DD CLASS="dd-description"> Continue on errors.
+<DT CLASS="dt-description"><B>&ndash;</B><DD CLASS="dd-description"> Interpret the remaining argument literally.
+</DL>
+<A NAME="@default168"></A><A NAME="@fun120"></A><A NAME="fun:chown"></A>
+<H4 CLASS="subsubsection">chown</H4>
+<PRE CLASS="verbatim">
+   chown(uid, gid, node...)
+      uid : Int
+      gid : Int
+      node : Node or Channel
+   chown(uid, node...)
+      uid : Int
+      node : Node or Channel
+   raises RuntimeException
+</PRE>
+The <CODE>chown</CODE> function changes the user and group id of the file.
+If the <CODE>gid</CODE> is not specified, it is not changed. If either
+id is -1, that id is not changed.
+<A NAME="@default169"></A><A NAME="@fun121"></A><A NAME="fun:umask"></A>
+<H4 CLASS="subsubsection">umask</H4>
+<PRE CLASS="verbatim">
+    $(umask mode) : Int
+       mode : Int
+    raises RuntimeException
+</PRE>
+Sets the file mode creation mask.
+The previous mask is returned.
+This value is not scoped, changes have global effect.
+<A NAME="@default170"></A><A NAME="@fun122"></A><A NAME="fun:digest"></A>
+<H4 CLASS="subsubsection">digest</H4>
+<PRE CLASS="verbatim">
+     $(digest files) : String Array
+        file : File Array
+     raises RuntimeException
+
+     $(digest-optional files) : String Array
+        file : File Array
+</PRE>
+The <CODE>digest</CODE> and <CODE>digest-optional</CODE> functions compute MD5 digests
+of files. The <CODE>digest</CODE> function raises an exception if a file
+does no exist. The <CODE>digest-optional</CODE> returns <CODE>false</CODE> if a
+file does no exist. MD5 digests are cached.
+<A NAME="@default171"></A><A NAME="@fun123"></A><A NAME="fun:find-in-path"></A>
+<H4 CLASS="subsubsection">find-in-path</H4>
+<PRE CLASS="verbatim">
+    $(find-in-path path, files) : File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(find-in-path-optional path, files) : File Array
+</PRE>
+The <CODE>find-in-path</CODE> function searches for the files in a search
+path. Only the tail of the filename is significant. The <CODE>find-in-path</CODE>
+function raises an exception if the file can't be found.
+The <CODE>find-in-path-optional</CODE> function silently removes
+files that can't be found.
+<A NAME="@default172"></A><A NAME="@fun124"></A><A NAME="fun:digest-path"></A>
+<H4 CLASS="subsubsection">digest-path</H4>
+<PRE CLASS="verbatim">
+    $(digest-in-path path, files) : String/File Array
+       path : Dir Array
+       files : String Array
+    raises RuntimeException
+
+    $(digest-in-path-optional path, files) : String/File Array
+</PRE>
+The <CODE>digest-in-path</CODE> function searches for the files in a search
+path and returns the file and digest for each file. Only the tail of the
+filename is significant. The <CODE>digest-in-path</CODE> function raises an exception
+if the file can't be found. The <CODE>digest-in-path-optional</CODE>
+function silently removes elements that can't be found.
+<A NAME="@default173"></A><A NAME="@fun125"></A><A NAME="fun:rehash"></A>
+<H4 CLASS="subsubsection">rehash</H4>
+<PRE CLASS="verbatim">
+    rehash()
+</PRE>
+The <CODE>rehash</CODE> function resets all search paths.
+<A NAME="@default174"></A><A NAME="@fun126"></A><A NAME="fun:vmount"></A>
+<H4 CLASS="subsubsection">vmount</H4>
+<PRE CLASS="verbatim">
+    vmount(src, dst)
+       src, dst : Dir
+    vmount(flags, src, dst)
+       flags : String
+       src, dst : Dir
+</PRE>
+&#8220;Mount&#8221; the <CODE>src</CODE> directory on the <CODE>dst</CODE> directory. This is
+a virtual mount, changing the behavior of the <CODE>$(file ...)</CODE> function.
+When the <CODE>$(file str)</CODE> function is used, the resulting file is taken
+relative to the <CODE>src</CODE> directory if the file exists. Otherwise, the
+file is relative to the current directory.<BR>
+<BR>
+The main purpose of the <CODE>vmount</CODE> function is to support multiple
+builds with separate configurations or architectures.<BR>
+<BR>
+The options are as follows.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>l</B><DD CLASS="dd-description"> Create symbolic links to files in the <CODE>src</CODE> directory.
+<DT CLASS="dt-description"><B>c</B><DD CLASS="dd-description"> Copy files from the <CODE>src</CODE> directory.
+</DL>
+Mount operations are scoped.
+<A NAME="@default175"></A><A NAME="@fun127"></A><A NAME="fun:add-project-directories"></A>
+<H4 CLASS="subsubsection">add-project-directories</H4>
+<PRE CLASS="verbatim">
+    add-project-directories(dirs)
+       dirs : Dir Array
+</PRE>
+Add the directories to the set of directories that omake considers to be part
+of the project. This is mainly used to avoid omake complaining that the
+current directory is not part of the project.
+<A NAME="@default176"></A><A NAME="@fun128"></A><A NAME="fun:remove-project-directories"></A>
+<H4 CLASS="subsubsection">remove-project-directories</H4>
+<PRE CLASS="verbatim">
+    remove-project-directories(dirs)
+       dirs : Dir Array
+</PRE>
+Removed the directories from the set of directories that omake considers to be part
+of the project. This is mainly used to cancel a <CODE>.SUBDIRS</CODE> from including
+a directory if it is determined that the directory does not need to be compiled.
+<A NAME="@default177"></A><A NAME="@fun129"></A><A NAME="fun:test"></A>
+<H4 CLASS="subsubsection">test</H4>
+<PRE CLASS="verbatim">
+   test(exp) : Bool
+      exp : String Sequence
+</PRE>
+The <EM>expression</EM> grammar is as follows:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>!</CODE> <EM>expression</EM> : <EM>expression</EM> is not true
+<LI CLASS="li-itemize"><EM>expression1</EM> <CODE>-a</CODE> <EM>expression2</EM> : both expressions are true
+<LI CLASS="li-itemize"><EM>expression1</EM> <CODE>-o</CODE> <EM>expression2</EM> : at least one expression is true
+<LI CLASS="li-itemize"><CODE>(</CODE> <EM>expression</EM> <CODE>)</CODE> : <EM>expression</EM> is true
+</UL>
+The base expressions are:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>-n</CODE> <EM>string</EM> : The <EM>string</EM> has nonzero length
+<LI CLASS="li-itemize"><CODE>-z</CODE> <EM>string</EM> : The <EM>string</EM> has zero length
+<LI CLASS="li-itemize"><EM>string</EM> <CODE>=</CODE> <EM>string</EM> : The strings are equal
+<LI CLASS="li-itemize"><EM>string</EM> <CODE>!=</CODE> <EM>string</EM> : The strings are not equal<BR>
+<BR>
+<LI CLASS="li-itemize"><EM>int1</EM> <CODE>-eq</CODE> <EM>int2</EM> : The integers are equal
+<LI CLASS="li-itemize"><EM>int1</EM> <CODE>-ne</CODE> <EM>int2</EM> : The integers are not equal
+<LI CLASS="li-itemize"><EM>int1</EM> <CODE>-gt</CODE> <EM>int2</EM> : <EM>int1</EM> is larger than <EM>int2</EM>
+<LI CLASS="li-itemize"><EM>int1</EM> <CODE>-ge</CODE> <EM>int2</EM> : <EM>int2</EM> is not larger than <EM>int1</EM>
+<LI CLASS="li-itemize"><EM>int1</EM> <CODE>-lt</CODE> <EM>int2</EM> : <EM>int1</EM> is smaller than <EM>int2</EM>
+<LI CLASS="li-itemize"><EM>int1</EM> <CODE>-le</CODE> <EM>int2</EM> : <EM>int1</EM> is not larger than <EM>int2</EM><BR>
+<BR>
+<LI CLASS="li-itemize"><EM>file1</EM> <CODE>-ef</CODE> <EM>file2</EM> : On Unix, <EM>file1</EM> and <EM>file2</EM> have the
+ same device and inode number.
+ On Win32, <EM>file1</EM> and <EM>file2</EM> have the
+ same name.
+<LI CLASS="li-itemize"><EM>file1</EM> <CODE>-nt</CODE> <EM>file2</EM> : <EM>file1</EM> is newer than <EM>file2</EM>
+<LI CLASS="li-itemize"><EM>file1</EM> <CODE>-ot</CODE> <EM>file2</EM> : <EM>file1</EM> is older than <EM>file2</EM><BR>
+<BR>
+<LI CLASS="li-itemize"><CODE>-b</CODE> <EM>file</EM> : The file is a block special file
+<LI CLASS="li-itemize"><CODE>-c</CODE> <EM>file</EM> : The file is a character special file
+<LI CLASS="li-itemize"><CODE>-d</CODE> <EM>file</EM> : The file is a directory
+<LI CLASS="li-itemize"><CODE>-e</CODE> <EM>file</EM> : The file exists
+<LI CLASS="li-itemize"><CODE>-f</CODE> <EM>file</EM> : The file is a normal file
+<LI CLASS="li-itemize"><CODE>-g</CODE> <EM>file</EM> : The set<CODE>-group</CODE><CODE>-id</CODE> bit is set on the file
+<LI CLASS="li-itemize"><CODE>-G</CODE> <EM>file</EM> : The file's group is the current effective group
+<LI CLASS="li-itemize"><CODE>-h</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-L</CODE>)
+<LI CLASS="li-itemize"><CODE>-k</CODE> <EM>file</EM> : The file's sticky bit is set
+<LI CLASS="li-itemize"><CODE>-L</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-h</CODE>)
+<LI CLASS="li-itemize"><CODE>-O</CODE> <EM>file</EM> : The file's owner is the current effective user
+<LI CLASS="li-itemize"><CODE>-p</CODE> <EM>file</EM> : The file is a named pipe
+<LI CLASS="li-itemize"><CODE>-r</CODE> <EM>file</EM> : The file is readable
+<LI CLASS="li-itemize"><CODE>-s</CODE> <EM>file</EM> : The file is empty
+<LI CLASS="li-itemize"><CODE>-S</CODE> <EM>file</EM> : The file is a socket
+<LI CLASS="li-itemize"><CODE>-u</CODE> <EM>file</EM> : The set<CODE>-user</CODE><CODE>-id</CODE> bit is set on the file
+<LI CLASS="li-itemize"><CODE>-w</CODE> <EM>file</EM> : The file is writable
+<LI CLASS="li-itemize"><CODE>-x</CODE> <EM>file</EM> : The file is executable
+</UL>
+A <EM>string</EM> is any sequence of characters; leading <CODE>-</CODE> characters are allowed.<BR>
+<BR>
+An <EM>int</EM> is a <EM>string</EM> that can be interpreted as an integer. Unlike traditional
+versions of the test program, the leading characters may specify an arity. The
+prefix <CODE>0b</CODE> means the numbers is in binary; the prefix <CODE>0o</CODE> means
+the number is in octal; the prefix <CODE>0x</CODE> means the number is in hexadecimal.
+An <EM>int</EM> can also be specified as <CODE>-l</CODE> <EM>string</EM>, which evaluates to the length of
+the <EM>string</EM>.<BR>
+<BR>
+A <EM>file</EM> is a <EM>string</EM> that represents the name of a file.<BR>
+<BR>
+The syntax mirrors that of the <TT>test</TT>(1) program. If you are on a Unix system, the man page
+explains more. Here are some examples.
+<PRE CLASS="verbatim">
+    # Create an empty file
+    osh&gt; touch foo
+    # Is the file empty?
+    osh&gt; test(-e foo)
+    - : true
+    osh&gt; test(! -e foo)
+    - : false
+    # Create another file
+    osh&gt; touch boo
+    # Is the newer file newer?
+    osh&gt; test(boo -nt foo)
+    - : true
+    # A more complex query
+    # boo is newer than foo, and foo is empty
+    osh&gt; test(\( boo -nt foo \) -a -e foo)
+    - : true
+\fun{find}
+
+\begin{verbatim}
+   find(exp) : Node Array
+      exp : String Sequence
+</PRE>
+The <CODE>find</CODE> function searches a directory recursively, returning the
+files for which the expression evaluates to true.<BR>
+<BR>
+The expression argument uses the same syntax as the <CODE>test</CODE> function,
+with the following exceptions.
+<OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+The expression may begin with a directory. If not specified, the current
+ directory is searched.
+<LI CLASS="li-enumerate">The <CODE>{}</CODE> string expands to the current file being examined.
+</OL>
+The syntax of the expression is the same as <CODE>test</CODE>, with the following
+additions.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>-name</CODE> <EM>string</EM> : The current file matches the regular expression.
+</UL>
+The <CODE>find</CODE> function performs a recursive scan of all subdirectories.
+The following call is run from the root of the <CODE>omake</CODE> source directory.
+<PRE CLASS="verbatim">
+    osh&gt; find(. -name fo*)
+    - : &lt;array
+            /home/jyh/.../omake/mk/.svn/format
+            /home/jyh/.../omake/RPM/.svn/format
+            ...
+            /home/jyh/.../omake/osx_resources/installer_files/.svn/format&gt;
+</PRE>
+<A NAME="toc64"></A>
+<H2 CLASS="section"><A NAME="htoc90">8.1</A>&nbsp;&nbsp;IO functions</H2>
+
+<H3 CLASS="subsection"><A NAME="htoc91">8.1.1</A>&nbsp;&nbsp;Standard channels</H3>
+The following variables define the standard channels.<BR>
+<BR>
+<A NAME="@default178"></A><A NAME="@var10"></A><A NAME="var:stdin"></A>
+<H4 CLASS="subsubsection">stdin</H4>
+<PRE CLASS="verbatim">
 stdin : InChannel
-</pre>
-<p>
-The standard input channel, open for reading.
-<p>
-</dd>
-<dt>stdout</dt>
-<dd>
-<pre>
+</PRE>
+The standard input channel, open for reading.<BR>
+<BR>
+<A NAME="@default179"></A><A NAME="@var11"></A><A NAME="var:stdout"></A>
+<H4 CLASS="subsubsection">stdout</H4>
+<PRE CLASS="verbatim">
 stdout : OutChannel
-</pre>
-<p>
-The standard output channel, open for writing.
-<p>
-</dd>
-<dt>stderr</dt>
-<dd>
-<pre>
+</PRE>
+The standard output channel, open for writing.<BR>
+<BR>
+<A NAME="@default180"></A><A NAME="@var12"></A><A NAME="var:stderr"></A>
+<H4 CLASS="subsubsection">stderr</H4>
+<PRE CLASS="verbatim">
 stderr : OutChannel
-</pre>
-<p>
+</PRE>
 The standard error channel, open for writing.
-</dd>
-</dl>
-<h4><a name="section_3">fopen</a></h4>
-
-<p>
-The <tt>fopen</tt> function opens a file for reading or writing.
-<p>
-<pre>
+<A NAME="@default181"></A><A NAME="@fun130"></A><A NAME="fun:fopen"></A>
+<H4 CLASS="subsubsection">fopen</H4>
+The <CODE>fopen</CODE> function opens a file for reading or writing.
+<PRE CLASS="verbatim">
    $(fopen file, mode) : Channel
       file : File
       mode : String
-</pre>
-<p>
-The <tt>file</tt> is the name of the file to be opened.
-The <tt>mode</tt> is a combination of the following characters.
-<dl compact>
-<dt>r</dt>
-<dd> Open the file for reading; it is an error if the file does not exist.
-</dd>
-<dt>w</dt>
-<dd> Open the file for writing; the file is created if it does not exist.
-</dd>
-<dt>a</dt>
-<dd> Open the file in append mode; the file is created if it does not exist.
-</dd>
-<dt>+</dt>
-<dd> Open the file for both reading an writing.
-</dd>
-<dt>t</dt>
-<dd> Open the file in text mode (default).
-</dd>
-<dt>b</dt>
-<dd> Open the file in binary mode.
-</dd>
-<dt>n</dt>
-<dd> Open the file in nonblocking mode.
-</dd>
-<dt>x</dt>
-<dd> Fail if the file already exists.
-</dd>
-</dl>
-<p>
+</PRE>
+The <CODE>file</CODE> is the name of the file to be opened.
+The <CODE>mode</CODE> is a combination of the following characters.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>r</B><DD CLASS="dd-description"> Open the file for reading; it is an error if the file does not exist.
+<DT CLASS="dt-description"><B>w</B><DD CLASS="dd-description"> Open the file for writing; the file is created if it does not exist.
+<DT CLASS="dt-description"><B>a</B><DD CLASS="dd-description"> Open the file in append mode; the file is created if it does not exist.
+<DT CLASS="dt-description"><B>+</B><DD CLASS="dd-description"> Open the file for both reading an writing.
+<DT CLASS="dt-description"><B>t</B><DD CLASS="dd-description"> Open the file in text mode (default).
+<DT CLASS="dt-description"><B>b</B><DD CLASS="dd-description"> Open the file in binary mode.
+<DT CLASS="dt-description"><B>n</B><DD CLASS="dd-description"> Open the file in nonblocking mode.
+<DT CLASS="dt-description"><B>x</B><DD CLASS="dd-description"> Fail if the file already exists.
+</DL>
 Binary mode is not significant on Unix systems, where
 text and binary modes are equivalent.
-<h4><a name="section_4">close</a></h4>
-
-<p>
-<pre>
+<A NAME="@default182"></A><A NAME="@fun131"></A><A NAME="fun:close"></A>
+<H4 CLASS="subsubsection">close</H4>
+<PRE CLASS="verbatim">
     $(close channel...)
        channel : Channel
-</pre>
-<p>
-The <tt>close</tt> function closes a file that was previously opened
-with <tt>fopen</tt>.
-<h4><a name="section_5">read</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>close</CODE> function closes a file that was previously opened
+with <CODE>fopen</CODE>.
+<A NAME="@default183"></A><A NAME="@fun132"></A><A NAME="fun:read"></A>
+<H4 CLASS="subsubsection">read</H4>
+<PRE CLASS="verbatim">
    $(read channel, amount) : String
       channel : InChannel
       amount  : Int
    raises RuntimeException
-</pre>
-<p>
-The <tt>read</tt> function reads up to <tt>amount</tt>
+</PRE>
+The <CODE>read</CODE> function reads up to <CODE>amount</CODE>
 bytes from an input channel, and returns
 the data that was read. If an end-of-file condition is reached,
-the function raises a <tt>RuntimeException</tt> exception.
-<h4><a name="section_6">write</a></h4>
-
-<p>
-<pre>
+the function raises a <CODE>RuntimeException</CODE> exception.
+<A NAME="@default184"></A><A NAME="@fun133"></A><A NAME="fun:write"></A>
+<H4 CLASS="subsubsection">write</H4>
+<PRE CLASS="verbatim">
    $(write channel, buffer, offset, amount) : String
       channel : OutChannel
       buffer  : String
@@ -213,376 +888,262 @@ the function raises a <tt>RuntimeException</tt> exception.
       channel : OutChannel
       buffer  : String
    raises RuntimeException
-</pre>
-<p>
-In the 4-argument form, the <tt>write</tt> function writes
-bytes to the output channel <tt>channel</tt> from the <tt>buffer</tt>,
-starting at position <tt>offset</tt>. Up to <tt>amount</tt> bytes
+</PRE>
+In the 4-argument form, the <CODE>write</CODE> function writes
+bytes to the output channel <CODE>channel</CODE> from the <CODE>buffer</CODE>,
+starting at position <CODE>offset</CODE>. Up to <CODE>amount</CODE> bytes
 are written. The function returns the number of bytes that were
-written.
-<p>
-The 3-argument form is similar, but the <tt>offset</tt> is 0.
-<p>
-In the 2-argument form, the <tt>offset</tt> is 0, and the <tt>amount</tt>
-if the length of the <tt>buffer</tt>.
-<p>
+written.<BR>
+<BR>
+The 3-argument form is similar, but the <CODE>offset</CODE> is 0.<BR>
+<BR>
+In the 2-argument form, the <CODE>offset</CODE> is 0, and the <CODE>amount</CODE>
+if the length of the <CODE>buffer</CODE>.<BR>
+<BR>
 If an end-of-file condition is reached,
-the function raises a <tt>RuntimeException</tt> exception.
-<h4><a name="section_7">lseek</a></h4>
-
-<p>
-<pre>
+the function raises a <CODE>RuntimeException</CODE> exception.
+<A NAME="@default185"></A><A NAME="@fun134"></A><A NAME="fun:lseek"></A>
+<H4 CLASS="subsubsection">lseek</H4>
+<PRE CLASS="verbatim">
     $(lseek channel, offset, whence) : Int
        channel : Channel
        offset  : Int
        whence  : String
     raises RuntimeException
-</pre>
-<p>
-The <tt>lseek</tt> function repositions the offset of the
-channel <tt>channel</tt> according to the <tt>whence</tt> directive, as
+</PRE>
+The <CODE>lseek</CODE> function repositions the offset of the
+channel <CODE>channel</CODE> according to the <CODE>whence</CODE> directive, as
 follows:
-<p>
-<dl compact>
-<dt>SEEK_SET</dt>
-<dd> The offset is set to <tt>offset</tt>.
-</dd>
-<dt>SEEK_CUR</dt>
-<dd> The offset is set to its current position plus <tt>offset</tt> bytes.
-</dd>
-<dt>SEEK_END</dt>
-<dd> The offset is set to the size of the file plus <tt>offset</tt> bytes.
-</dd>
-</dl>
-<p>
-The <tt>lseek</tt> function returns the new position in the file.
-<h4><a name="section_8">rewind</a></h4>
-
-<p>
-<pre>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>SEEK_SET</B><DD CLASS="dd-description"> The offset is set to <CODE>offset</CODE>.
+<DT CLASS="dt-description"><B>SEEK_CUR</B><DD CLASS="dd-description"> The offset is set to its current position plus <CODE>offset</CODE> bytes.
+<DT CLASS="dt-description"><B>SEEK_END</B><DD CLASS="dd-description"> The offset is set to the size of the file plus <CODE>offset</CODE> bytes.
+</DL>
+The <CODE>lseek</CODE> function returns the new position in the file.
+<A NAME="@default186"></A><A NAME="@fun135"></A><A NAME="fun:rewind"></A>
+<H4 CLASS="subsubsection">rewind</H4>
+<PRE CLASS="verbatim">
    rewind(channel...)
       channel : Channel
-</pre>
-<p>
-The <tt>rewind</tt> function set the current file position to the
+</PRE>
+The <CODE>rewind</CODE> function set the current file position to the
 beginning of the file.
-<h4><a name="section_9">tell</a></h4>
-
-<p>
-<pre>
+<A NAME="@default187"></A><A NAME="@fun136"></A><A NAME="fun:tell"></A>
+<H4 CLASS="subsubsection">tell</H4>
+<PRE CLASS="verbatim">
     $(tell channel...) : Int...
        channel : Channel
     raises RuntimeException
-</pre>
-<p>
-The <tt>tell</tt> function returns the current position of the <tt>channel</tt>.
-<h4><a name="section_10">flush</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>tell</CODE> function returns the current position of the <CODE>channel</CODE>.
+<A NAME="@default188"></A><A NAME="@fun137"></A><A NAME="fun:flush"></A>
+<H4 CLASS="subsubsection">flush</H4>
+<PRE CLASS="verbatim">
    $(flush channel...)
       channel : OutChannel
-</pre>
-<p>
-The <tt>flush</tt> function can be used only on files that are open for writing.
+</PRE>
+The <CODE>flush</CODE> function can be used only on files that are open for writing.
 It flushes all pending data to the file.
-<h4><a name="section_11">dup</a></h4>
-
-<p>
-<pre>
+<A NAME="@default189"></A><A NAME="@fun138"></A><A NAME="fun:dup"></A>
+<H4 CLASS="subsubsection">dup</H4>
+<PRE CLASS="verbatim">
     $(dup channel) : Channel
        channel : Channel
     raises RuntimeException
-</pre>
-<p>
-The <tt>dup</tt> function returns a new channel referencing the
+</PRE>
+The <CODE>dup</CODE> function returns a new channel referencing the
 same file as the argument.
-<h4><a name="section_12">dup2</a></h4>
-
-<p>
-<pre>
+<A NAME="@default190"></A><A NAME="@fun139"></A><A NAME="fun:dup2"></A>
+<H4 CLASS="subsubsection">dup2</H4>
+<PRE CLASS="verbatim">
    dup2(channel1, channel2)
       channel1 : Channel
       channel2 : Channel
    raises RuntimeException
-</pre>
-<p>
-The <tt>dup2</tt> function causes <tt>channel2</tt> to refer to the same
-file as <tt>channel1</tt>.
-<h4><a name="section_13">set-nonblock</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>dup2</CODE> function causes <CODE>channel2</CODE> to refer to the same
+file as <CODE>channel1</CODE>.
+<A NAME="@default191"></A><A NAME="@fun140"></A><A NAME="fun:set-nonblock"></A>
+<H4 CLASS="subsubsection">set-nonblock</H4>
+<PRE CLASS="verbatim">
    set-nonblock-mode(mode, channel...)
       channel : Channel
       mode : String
-</pre>
-<p>
-The <tt>set-nonblock-mode</tt> function sets the nonblocking flag on the
+</PRE>
+The <CODE>set-nonblock-mode</CODE> function sets the nonblocking flag on the
 given channel. When IO is performed on the channel, and the operation
-cannot be completed immediately, the operations raises a <tt>RuntimeException</tt>.
-<h4><a name="section_14">set-close-on-exec-mode</a></h4>
-
-<p>
-<pre>
+cannot be completed immediately, the operations raises a <CODE>RuntimeException</CODE>.
+<A NAME="@default192"></A><A NAME="@fun141"></A><A NAME="fun:set-close-on-exec-mode"></A>
+<H4 CLASS="subsubsection">set-close-on-exec-mode</H4>
+<PRE CLASS="verbatim">
    set-close-on-exec-mode(mode, channel...)
       channel : Channel
       mode : String
    raises RuntimeException
-</pre>
-<p>
-The <tt>set-close-on-exec-mode</tt> function sets the close-on-exec
+</PRE>
+The <CODE>set-close-on-exec-mode</CODE> function sets the close-on-exec
 flags for the given channels. If the close-on-exec flag is set, the channel
 is not inherited by child processes. Otherwise it is.
-<h4><a name="section_15">pipe</a></h4>
-
-<p>
-<pre>
+<A NAME="@default193"></A><A NAME="@fun142"></A><A NAME="fun:pipe"></A>
+<H4 CLASS="subsubsection">pipe</H4>
+<PRE CLASS="verbatim">
    $(pipe) : Pipe
    raises RuntimeException
-</pre>
-<p>
-The <tt>pipe</tt> function creates a <tt>Pipe</tt> object, which has two
-fields. The <tt>read</tt> field is a channel that is opened for
-reading, and the <tt>write</tt> field is a channel that is opened
+</PRE>
+The <CODE>pipe</CODE> function creates a <CODE>Pipe</CODE> object, which has two
+fields. The <CODE>read</CODE> field is a channel that is opened for
+reading, and the <CODE>write</CODE> field is a channel that is opened
 for writing.
-<h4><a name="section_16">mkfifo</a></h4>
-
-<p>
-<pre>
+<A NAME="@default194"></A><A NAME="@fun143"></A><A NAME="fun:mkfifo"></A>
+<H4 CLASS="subsubsection">mkfifo</H4>
+<PRE CLASS="verbatim">
    mkfifo(mode, node...)
       mode : Int
       node : Node
-</pre>
-<p>
-The <tt>mkfifo</tt> function creates a named pipe.
-<h4><a name="section_17">select</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>mkfifo</CODE> function creates a named pipe.
+<A NAME="@default195"></A><A NAME="@fun144"></A><A NAME="fun:select"></A>
+<H4 CLASS="subsubsection">select</H4>
+<PRE CLASS="verbatim">
    $(select rfd..., wfd..., wfd..., timeout) : Select
       rfd : InChannel
       wfd : OutChannel
       efd : Channel
       timeout : float
    raises RuntimeException
-</pre>
-<p>
-The <tt>select</tt> function polls for possible IO on a set of channels.
-The <tt>rfd</tt> are a sequence of channels for reading, <tt>wfd</tt> are a
-sequence of channels for writing, and <tt>efd</tt> are a sequence of
-channels to poll for error conditions. The <tt>timeout</tt> specifies
-the maximum amount of time to wait for events.
-<p>
-On successful return, <tt>select</tt> returns a <tt>Select</tt> object,
+</PRE>
+The <CODE>select</CODE> function polls for possible IO on a set of channels.
+The <CODE>rfd</CODE> are a sequence of channels for reading, <CODE>wfd</CODE> are a
+sequence of channels for writing, and <CODE>efd</CODE> are a sequence of
+channels to poll for error conditions. The <CODE>timeout</CODE> specifies
+the maximum amount of time to wait for events.<BR>
+<BR>
+On successful return, <CODE>select</CODE> returns a <CODE>Select</CODE> object,
 which has the following fields:
-<dl compact>
-<dt>read</dt>
-<dd> An array of channels available for reading.
-</dd>
-<dt>write</dt>
-<dd> An array of channels available for writing.
-</dd>
-<dt>error</dt>
-<dd> An array of channels on which an error has occurred.
-</dd>
-</dl>
-<h4><a name="section_18">lockf</a></h4>
-
-<p>
-<pre>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>read</B><DD CLASS="dd-description"> An array of channels available for reading.
+<DT CLASS="dt-description"><B>write</B><DD CLASS="dd-description"> An array of channels available for writing.
+<DT CLASS="dt-description"><B>error</B><DD CLASS="dd-description"> An array of channels on which an error has occurred.
+</DL>
+<A NAME="@default196"></A><A NAME="@fun145"></A><A NAME="fun:lockf"></A>
+<H4 CLASS="subsubsection">lockf</H4>
+<PRE CLASS="verbatim">
     lockf(channel, command, len)
        channel : Channel
        command : String
        len : Int
     raises RuntimeException
-</pre>
-<p>
-The <tt>lockf</tt> function places a lock on a region of the channel.
-The region starts at the current position and extends for <tt>len</tt>
-bytes.
-<p>
-The possible values for <tt>command</tt> are the following.
-<dl compact>
-<dt>F_ULOCK</dt>
-<dd> Unlock a region.
-</dd>
-<dt>F_LOCK</dt>
-<dd> Lock a region for writing; block if already locked.
-</dd>
-<dt>F_TLOCK</dt>
-<dd> Lock a region for writing; fail if already locked.
-</dd>
-<dt>F_TEST</dt>
-<dd> Test a region for other locks.
-</dd>
-<dt>F_RLOCK</dt>
-<dd> Lock a region for reading; block if already locked.
-</dd>
-<dt>F_TRLOCK</dt>
-<dd> Lock a region for reading; fail is already locked.
-</dd>
-</dl>
-<h4><a name="section_19">InetAddr</a></h4>
-
-<p>
-The <tt>InetAddr</tt> object describes an Internet address.
+</PRE>
+The <CODE>lockf</CODE> function places a lock on a region of the channel.
+The region starts at the current position and extends for <CODE>len</CODE>
+bytes.<BR>
+<BR>
+The possible values for <CODE>command</CODE> are the following.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>F_ULOCK</B><DD CLASS="dd-description"> Unlock a region.
+<DT CLASS="dt-description"><B>F_LOCK</B><DD CLASS="dd-description"> Lock a region for writing; block if already locked.
+<DT CLASS="dt-description"><B>F_TLOCK</B><DD CLASS="dd-description"> Lock a region for writing; fail if already locked.
+<DT CLASS="dt-description"><B>F_TEST</B><DD CLASS="dd-description"> Test a region for other locks.
+<DT CLASS="dt-description"><B>F_RLOCK</B><DD CLASS="dd-description"> Lock a region for reading; block if already locked.
+<DT CLASS="dt-description"><B>F_TRLOCK</B><DD CLASS="dd-description"> Lock a region for reading; fail is already locked.
+</DL>
+<A NAME="@default197"></A><A NAME="@obj1"></A><A NAME="obj:InetAddr"></A>
+<H4 CLASS="subsubsection">InetAddr</H4>
+The <CODE>InetAddr</CODE> object describes an Internet address.
 It contains the following fields.
-<p>
-<dl compact>
-<dt>addr</dt>
-<dd> <tt>String</tt>: the Internet address.
-</dd>
-<dt>port</dt>
-<dd> <tt>Int</tt>: the port number.
-</dd>
-</dl>
-<p>
-<h4><a name="section_20">Host</a></h4>
-
-<p>
-A <tt>Host</tt> object contains the following fields.
-<p>
-<dl compact>
-<dt>name</dt>
-<dd> <tt>String</tt>: the name of the host.
-</dd>
-<dt>aliases</dt>
-<dd> <tt>String Array</tt>: other names by which the host is known.
-</dd>
-<dt>addrtype</dt>
-<dd> <tt>String</tt>: the preferred socket domain.
-</dd>
-<dt>addrs</dt>
-<dd> <tt>InetAddr Array</tt>: an array of Internet addresses belonging to the host.
-</dd>
-</dl>
-<p>
-<h4><a name="section_21">gethostbyname</a></h4>
-
-<p>
-<pre>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>addr</B><DD CLASS="dd-description"> <CODE>String</CODE>: the Internet address.
+<DT CLASS="dt-description"><B>port</B><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number.
+</DL>
+<A NAME="@default198"></A><A NAME="@obj2"></A><A NAME="obj:Host"></A>
+<H4 CLASS="subsubsection">Host</H4>
+A <CODE>Host</CODE> object contains the following fields.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>name</B><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the host.
+<DT CLASS="dt-description"><B>aliases</B><DD CLASS="dd-description"> <CODE>String Array</CODE>: other names by which the host is known.
+<DT CLASS="dt-description"><B>addrtype</B><DD CLASS="dd-description"> <CODE>String</CODE>: the preferred socket domain.
+<DT CLASS="dt-description"><B>addrs</B><DD CLASS="dd-description"> <CODE>InetAddr Array</CODE>: an array of Internet addresses belonging to the host.
+</DL>
+<A NAME="@default199"></A><A NAME="@fun146"></A><A NAME="fun:gethostbyname"></A>
+<H4 CLASS="subsubsection">gethostbyname</H4>
+<PRE CLASS="verbatim">
    $(gethostbyname host...) : Host...
       host : String
    raises RuntimeException
-</pre>
-<p>
-The <tt>gethostbyname</tt> function returns a <tt>Host</tt> object
-for the specified host. The <tt>host</tt> may specify a domain name
-or an Internet address.
-<p>
-<h4><a name="section_22">Protocol</a></h4>
-
-<p>
-The <tt>Protocol</tt> object represents a protocol entry.
+</PRE>
+The <CODE>gethostbyname</CODE> function returns a <CODE>Host</CODE> object
+for the specified host. The <CODE>host</CODE> may specify a domain name
+or an Internet address.<BR>
+<BR>
+<A NAME="@default200"></A><A NAME="@obj3"></A><A NAME="obj:Protocol"></A>
+<H4 CLASS="subsubsection">Protocol</H4>
+The <CODE>Protocol</CODE> object represents a protocol entry.
 It has the following fields.
-<p>
-<dl compact>
-<dt>name</dt>
-<dd> <tt>String</tt>: the canonical name of the protocol.
-</dd>
-<dt>aliases</dt>
-<dd> <tt>String Array</tt>: aliases for the protocol.
-</dd>
-<dt>proto</dt>
-<dd> <tt>Int</tt>: the protocol number.
-</dd>
-</dl>
-<p>
-<h4><a name="section_23">getprotobyname</a></h4>
-
-<p>
-<pre>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>name</B><DD CLASS="dd-description"> <CODE>String</CODE>: the canonical name of the protocol.
+<DT CLASS="dt-description"><B>aliases</B><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the protocol.
+<DT CLASS="dt-description"><B>proto</B><DD CLASS="dd-description"> <CODE>Int</CODE>: the protocol number.
+</DL>
+<A NAME="@default201"></A><A NAME="@fun147"></A><A NAME="fun:getprotobyname"></A>
+<H4 CLASS="subsubsection">getprotobyname</H4>
+<PRE CLASS="verbatim">
    $(getprotobyname name...) : Protocol...
       name : Int or String
    raises RuntimeException
-</pre>
-<p>
-The <tt>getprotobyname</tt> function returns a <tt>Protocol</tt> object for the
-specified protocol. The <tt>name</tt> may be a protocol name, or a
+</PRE>
+The <CODE>getprotobyname</CODE> function returns a <CODE>Protocol</CODE> object for the
+specified protocol. The <CODE>name</CODE> may be a protocol name, or a
 protocol number.
-<h4><a name="section_24">Service</a></h4>
-
-<p>
-The <tt>Service</tt> object represents a network service.
+<A NAME="@default202"></A><A NAME="@obj4"></A><A NAME="obj:Service"></A>
+<H4 CLASS="subsubsection">Service</H4>
+The <CODE>Service</CODE> object represents a network service.
 It has the following fields.
-<p>
-<dl compact>
-<dt>name</dt>
-<dd> <tt>String</tt>: the name of the service.
-</dd>
-<dt>aliases</dt>
-<dd> <tt>String Array</tt>: aliases for the service.
-</dd>
-<dt>port</dt>
-<dd> <tt>Int</tt>: the port number of the service.
-</dd>
-<dt>proto</dt>
-<dd> <tt>Protocol</tt>: the protocol for the service.
-</dd>
-</dl>
-<p>
-<h4><a name="section_25">getservbyname</a></h4>
-
-<p>
-<pre>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>name</B><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the service.
+<DT CLASS="dt-description"><B>aliases</B><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the service.
+<DT CLASS="dt-description"><B>port</B><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number of the service.
+<DT CLASS="dt-description"><B>proto</B><DD CLASS="dd-description"> <CODE>Protocol</CODE>: the protocol for the service.
+</DL>
+<A NAME="@default203"></A><A NAME="@fun148"></A><A NAME="fun:getservbyname"></A>
+<H4 CLASS="subsubsection">getservbyname</H4>
+<PRE CLASS="verbatim">
    $(getservbyname service...) : Service...
       service : String or Int
    raises RuntimeException
-</pre>
-<p>
-The <tt>getservbyname</tt> function gets the information for a network service.
-The <tt>service</tt> may be specified as a service name or number.
-<h4><a name="section_26">socket</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>getservbyname</CODE> function gets the information for a network service.
+The <CODE>service</CODE> may be specified as a service name or number.
+<A NAME="@default204"></A><A NAME="@fun149"></A><A NAME="fun:socket"></A>
+<H4 CLASS="subsubsection">socket</H4>
+<PRE CLASS="verbatim">
    $(socket domain, type, protocol) : Channel
       domain : String
       type : String
       protocol : String
    raises RuntimeException
-</pre>
-<p>
-The <tt>socket</tt> function creates an unbound socket.
-<p>
-The possible values for the arguments are as follows.
-<p>
-The <tt>domain</tt> may have the following values.
-<dl compact>
-<dt>PF_UNIX or unix</dt>
-<dd> Unix domain, available only on Unix systems.
-</dd>
-<dt>PF_INET or inet</dt>
-<dd> Internet domain, IPv4.
-</dd>
-<dt>PF_INET6 or inet6</dt>
-<dd> Internet domain, IPv6.
-</dd>
-</dl>
-<p>
-The <tt>type</tt> may have the following values.
-<dl compact>
-<dt>SOCK_STREAM or stream</dt>
-<dd> Stream socket.
-</dd>
-<dt>SOCK_DGRAM or dgram</dt>
-<dd> Datagram socket.
-</dd>
-<dt>SOCK_RAW or raw</dt>
-<dd> Raw socket.
-</dd>
-<dt>SOCK_SEQPACKET or seqpacket</dt>
-<dd> Sequenced packets socket
-</dd>
-</dl>
-<p>
-The <tt>protocol</tt> is an <tt>Int</tt> or <tt>String</tt> that specifies
+</PRE>
+The <CODE>socket</CODE> function creates an unbound socket.<BR>
+<BR>
+The possible values for the arguments are as follows.<BR>
+<BR>
+The <CODE>domain</CODE> may have the following values.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>PF_UNIX or unix</B><DD CLASS="dd-description"> Unix domain, available only on Unix systems.
+<DT CLASS="dt-description"><B>PF_INET or inet</B><DD CLASS="dd-description"> Internet domain, IPv4.
+<DT CLASS="dt-description"><B>PF_INET6 or inet6</B><DD CLASS="dd-description"> Internet domain, IPv6.
+</DL>
+The <CODE>type</CODE> may have the following values.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>SOCK_STREAM or stream</B><DD CLASS="dd-description"> Stream socket.
+<DT CLASS="dt-description"><B>SOCK_DGRAM or dgram</B><DD CLASS="dd-description"> Datagram socket.
+<DT CLASS="dt-description"><B>SOCK_RAW or raw</B><DD CLASS="dd-description"> Raw socket.
+<DT CLASS="dt-description"><B>SOCK_SEQPACKET or seqpacket</B><DD CLASS="dd-description"> Sequenced packets socket
+</DL>
+The <CODE>protocol</CODE> is an <CODE>Int</CODE> or <CODE>String</CODE> that specifies
 a protocol in the protocols database.
-<h4><a name="section_27">bind</a></h4>
-
-<p>
-<pre>
+<A NAME="@default205"></A><A NAME="@fun150"></A><A NAME="fun:bind"></A>
+<H4 CLASS="subsubsection">bind</H4>
+<PRE CLASS="verbatim">
    bind(socket, host, port)
       socket : InOutChannel
       host : String
@@ -591,41 +1152,35 @@ a protocol in the protocols database.
       socket : InOutChannel
       file : File
    raise RuntimeException
-</pre>
-<p>
-The <tt>bind</tt> function binds a socket to an address.
-<p>
-The 3-argument form specifies an Internet connection, the <tt>host</tt> specifies a host name
-or IP address, and the <tt>port</tt> is a port number.
-<p>
-The 2-argument form is for <tt>Unix</tt> sockets. The <tt>file</tt> specifies the filename
+</PRE>
+The <CODE>bind</CODE> function binds a socket to an address.<BR>
+<BR>
+The 3-argument form specifies an Internet connection, the <CODE>host</CODE> specifies a host name
+or IP address, and the <CODE>port</CODE> is a port number.<BR>
+<BR>
+The 2-argument form is for <CODE>Unix</CODE> sockets. The <CODE>file</CODE> specifies the filename
 for the address.
-<h4><a name="section_28">listen</a></h4>
-
-<p>
-<pre>
+<A NAME="@default206"></A><A NAME="@fun151"></A><A NAME="fun:listen"></A>
+<H4 CLASS="subsubsection">listen</H4>
+<PRE CLASS="verbatim">
    listen(socket, requests)
       socket : InOutChannel
       requests : Int
    raises RuntimeException
-</pre>
-<p>
-The <tt>listen</tt> function sets up the socket for receiving up to <tt>requests</tt> number
+</PRE>
+The <CODE>listen</CODE> function sets up the socket for receiving up to <CODE>requests</CODE> number
 of pending connection requests.
-<h4><a name="section_29">accept</a></h4>
-
-<p>
-<pre>
+<A NAME="@default207"></A><A NAME="@fun152"></A><A NAME="fun:accept"></A>
+<H4 CLASS="subsubsection">accept</H4>
+<PRE CLASS="verbatim">
    $(accept socket) : InOutChannel
       socket : InOutChannel
    raises RuntimeException
-</pre>
-<p>
-The <tt>accept</tt> function accepts a connection on a socket.
-<h4><a name="section_30">connect</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>accept</CODE> function accepts a connection on a socket.
+<A NAME="@default208"></A><A NAME="@fun153"></A><A NAME="fun:connect"></A>
+<H4 CLASS="subsubsection">connect</H4>
+<PRE CLASS="verbatim">
     connect(socket, addr, port)
        socket : InOutChannel
        addr : String
@@ -634,238 +1189,180 @@ The <tt>accept</tt> function accepts a connection on a socket.
        socket : InOutChannel
        name : File
     raise RuntimeException
-</pre>
-<p>
-The <tt>connect</tt> function connects a socket to a remote address.
-<p>
+</PRE>
+The <CODE>connect</CODE> function connects a socket to a remote address.<BR>
+<BR>
 The 3-argument form specifies an Internet connection.
-The <tt>addr</tt> argument is the Internet address of the remote host,
-specified as a domain name or IP address. The <tt>port</tt> argument
-is the port number.
-<p>
-The 2-argument form is for Unix sockets. The <tt>name</tt> argument
+The <CODE>addr</CODE> argument is the Internet address of the remote host,
+specified as a domain name or IP address. The <CODE>port</CODE> argument
+is the port number.<BR>
+<BR>
+The 2-argument form is for Unix sockets. The <CODE>name</CODE> argument
 is the filename of the socket.
-<h4><a name="section_31">getchar</a></h4>
-
-<p>
-<pre>
+<A NAME="@default209"></A><A NAME="@fun154"></A><A NAME="fun:getchar"></A>
+<H4 CLASS="subsubsection">getchar</H4>
+<PRE CLASS="verbatim">
     $(getc) : String
     $(getc file) : String
        file : InChannel or File
     raises RuntimeException
-</pre>
-<p>
-The <tt>getc</tt> function returns the next character of a file.
-If the argument is not specified, <tt>stdin</tt> is used as input.
-If the end of file has been reached, the function returns <tt>false</tt>.
-<h4><a name="section_32">gets</a></h4>
-
-<p>
-<pre>
+</PRE>
+The <CODE>getc</CODE> function returns the next character of a file.
+If the argument is not specified, <CODE>stdin</CODE> is used as input.
+If the end of file has been reached, the function returns <CODE>false</CODE>.
+<A NAME="@default210"></A><A NAME="@fun155"></A><A NAME="fun:gets"></A>
+<H4 CLASS="subsubsection">gets</H4>
+<PRE CLASS="verbatim">
    $(gets) : String
    $(gets channel) : String
       channel : InChannel or File
    raises RuntimeException
-</pre>
-<p>
-The <tt>gets</tt> function returns the next line from a file.
+</PRE>
+The <CODE>gets</CODE> function returns the next line from a file.
 The function returns the empty string if the end of file has been reached.
 The line terminator is removed.
-<h4><a name="section_33">fgets</a></h4>
-
-<p>
-<pre>
+<A NAME="@default211"></A><A NAME="@fun156"></A><A NAME="fun:fgets"></A>
+<H4 CLASS="subsubsection">fgets</H4>
+<PRE CLASS="verbatim">
    $(fgets) : String
    $(fgets channel) : String
       channel : InChannel or File
    raises RuntimeException
-</pre>
-<p>
-The <tt>fgets</tt> function returns the next line from a file that has been
-opened for reading with <tt>fopen</tt>. The function returns the empty string
+</PRE>
+The <CODE>fgets</CODE> function returns the next line from a file that has been
+opened for reading with <CODE>fopen</CODE>. The function returns the empty string
 if the end of file has been reached. The returned string is returned as
 literal data. The line terminator is not removed.
-<h4><a name="section_34">Printing functions</a></h4>
-
-<p>
-Output is printed with the <tt>print</tt> and <tt>println</tt> functions.
-The <tt>println</tt> function adds a terminating newline to the value being
-printed, the <tt>print</tt> function does not.
-<p>
-<pre>
+<A NAME="toc65"></A>
+<H2 CLASS="section"><A NAME="htoc92">8.2</A>&nbsp;&nbsp;Printing functions</H2>
+<A NAME="@default212"></A><A NAME="@fun157"></A><A NAME="fun:fprint"></A>
+<A NAME="@default213"></A><A NAME="@fun158"></A><A NAME="fun:print"></A>
+<A NAME="@default214"></A><A NAME="@fun159"></A><A NAME="fun:eprint"></A>
+<A NAME="@default215"></A><A NAME="@fun160"></A><A NAME="fun:fprintln"></A>
+<A NAME="@default216"></A><A NAME="@fun161"></A><A NAME="fun:println"></A>
+<A NAME="@default217"></A><A NAME="@fun162"></A><A NAME="fun:eprintln"></A>
+Output is printed with the <CODE>print</CODE> and <CODE>println</CODE> functions.
+The <CODE>println</CODE> function adds a terminating newline to the value being
+printed, the <CODE>print</CODE> function does not.
+<PRE CLASS="verbatim">
     fprint(&lt;file&gt;, &lt;string&gt;)
     print(&lt;string&gt;)
     eprint(&lt;string&gt;)
     fprintln(&lt;file&gt;, &lt;string&gt;)
     println(&lt;string&gt;)
     eprintln(&lt;string&gt;)
-</pre>
-<p>
-The <tt>fprint</tt> functions print to a file that has been previously opened with
-<tt>fopen</tt>. The <tt>print</tt> functions print to the standard output channel, and
-the <tt>eprint</tt> functions print to the standard error channel.
-<h4><a name="section_35">Value printing functions</a></h4>
-
-<p>
-Values can be printed with the <tt>printv</tt> and <tt>printvln</tt> functions.
-The <tt>printvln</tt> function adds a terminating newline to the value being
-printed, the <tt>printv</tt> function does not.
-<p>
-<pre>
+</PRE>
+The <CODE>fprint</CODE> functions print to a file that has been previously opened with
+<CODE>fopen</CODE>. The <CODE>print</CODE> functions print to the standard output channel, and
+the <CODE>eprint</CODE> functions print to the standard error channel.
+<A NAME="toc66"></A>
+<H2 CLASS="section"><A NAME="htoc93">8.3</A>&nbsp;&nbsp;Value printing functions</H2>
+<A NAME="@default218"></A><A NAME="@fun163"></A><A NAME="fun:fprintv"></A>
+<A NAME="@default219"></A><A NAME="@fun164"></A><A NAME="fun:printv"></A>
+<A NAME="@default220"></A><A NAME="@fun165"></A><A NAME="fun:eprintv"></A>
+<A NAME="@default221"></A><A NAME="@fun166"></A><A NAME="fun:fprintvln"></A>
+<A NAME="@default222"></A><A NAME="@fun167"></A><A NAME="fun:printvln"></A>
+<A NAME="@default223"></A><A NAME="@fun168"></A><A NAME="fun:eprintvln"></A>
+Values can be printed with the <CODE>printv</CODE> and <CODE>printvln</CODE> functions.
+The <CODE>printvln</CODE> function adds a terminating newline to the value being
+printed, the <CODE>printv</CODE> function does not.
+<PRE CLASS="verbatim">
     fprintv(&lt;file&gt;, &lt;string&gt;)
     printv(&lt;string&gt;)
     eprintv(&lt;string&gt;)
     fprintvln(&lt;file&gt;, &lt;string&gt;)
     printvln(&lt;string&gt;)
     eprintvln(&lt;string&gt;)
-</pre>
-<p>
-The <tt>fprintv</tt> functions print to a file that has been previously opened with
-<tt>fopen</tt>. The <tt>printv</tt> functions print to the standard output channel, and
-the <tt>eprintv</tt> functions print to the standard error channel.
-<h2><a name="section_36">Higher-level IO functions</a></h2>
+</PRE>
+The <CODE>fprintv</CODE> functions print to a file that has been previously opened with
+<CODE>fopen</CODE>. The <CODE>printv</CODE> functions print to the standard output channel, and
+the <CODE>eprintv</CODE> functions print to the standard error channel.
+<A NAME="toc67"></A>
+<H2 CLASS="section"><A NAME="htoc94">8.4</A>&nbsp;&nbsp;Higher-level IO functions</H2>
 
-<p>
-<h4><a name="section_37">Regular expressions</a></h4>
-
-<p>
+<H3 CLASS="subsection"><A NAME="htoc95">8.4.1</A>&nbsp;&nbsp;Regular expressions</H3>
+<A NAME="@default224"></A>
 Many of the higher-level functions use regular expressions.
 Regular expressions are defined by strings with syntax nearly identical
-to <em>awk</em>(1).
-<p>
+to <TT>awk</TT>(1).<BR>
+<BR>
 Strings may contain the following character constants.
-<p>
-<ul compact>
-<li><tt>\\</tt> : a literal backslash.
-</li>
-<li><tt>\a</tt> : the alert character <tt>^G</tt>.
-</li>
-<li><tt>\b</tt> : the backspace character <tt>^H</tt>.
-</li>
-<li><tt>\f</tt> : the formfeed character <tt>^L</tt>.
-</li>
-<li><tt>
-</tt>: the newline character <tt>^J</tt>.
-</li>
-<li><tt>\r</tt> : the carriage return character <tt>^M</tt>.
-</li>
-<li><tt>\t</tt> : the tab character <tt>^I</tt>.
-</li>
-<li><tt>\v</tt> : the vertical tab character.
-</li>
-<li><tt>\xhh...</tt> : the character represented by the string
-of hexadecimal digits <tt>h</tt>. All valid hexadecimal digits
-following the sequence are considered to be part of the sequence.
-</li>
-<li><tt>\ddd</tt> : the character represented by 1, 2, or 3 octal
-digits.
-</li>
-</ul>
-<p>
-Regular expressions are defined using the special characters <tt>.\^$[(){}*?</tt>+.
-<p>
-<ul compact>
-<li><tt>c</tt> : matches the literal character <tt>c</tt> if <tt>c</tt> is not
-a special character.
-</li>
-<li><tt>\c</tt> : matches the literal character <tt>c</tt>, even if <tt>c</tt>
-is a special character.
-</li>
-<li><tt>.</tt> : matches any character, including newline.
-</li>
-<li><tt>^</tt> : matches the beginning of a line.
-</li>
-<li><tt>$</tt> : matches the end of line.
-</li>
-<li><tt>[abc...]</tt> : matches any of the characters <tt>abc...</tt>
-</li>
-<li><tt>[^abc...]</tt> : matches any character except <tt>abc...</tt>
-</li>
-<li><tt>r1|r2</tt> : matches either <tt>r1</tt> or <tt>r2</tt>.
-</li>
-<li><tt>r1r2</tt> : matches <tt>r1</tt> and then <tt>r2</tt>.
-</li>
-<li><tt>r</tt>+ : matches one or more occurrences of <tt>r</tt>.
-</li>
-<li><tt>r*</tt> : matches zero or more occurrences of <tt>r</tt>.
-</li>
-<li><tt>r?</tt> : matches zero or one occurrence of <tt>r</tt>.
-</li>
-<li><tt>(r)</tt> : parentheses are used for grouping; matches <tt>r</tt>.
-</li>
-<li><tt>\(r\)</tt> : also defines grouping, but the expression matched
-within the parentheses is available to the output processor
-through one of the variables <tt>$1</tt>, <tt>$2</tt>, ...
-</li>
-<li><tt>r{n}</tt> : matches exactly <tt>n</tt> occurrences of <tt>r</tt>.
-</li>
-<li><tt>r{n,}</tt> : matches <tt>n</tt> or more occurrences of <tt>r</tt>.
-</li>
-<li><tt>r{n,m}</tt> : matches at least <tt>n</tt> occurrences of <tt>r</tt>,
-and no more than <tt>m</tt> occurrences.
-</li>
-<li><tt>\y</tt>: matches the empty string at either the beginning or
-end of a word.
-</li>
-<li><tt>\B</tt>: matches the empty string within a word.
-</li>
-<li><tt>\&lt;</tt>: matches the empty string at the beginning of a word.
-</li>
-<li><tt>\&gt;</tt>: matches the empty string at the end of a word.
-</li>
-<li><tt>\w</tt>: matches any character in a word.
-</li>
-<li><tt>\W</tt>: matches any character that does not occur within a word.
-</li>
-<li><tt>\`</tt>: matches the empty string at the beginning of a file.
-</li>
-<li><tt>\'</tt>: matches the empty string at the end of a file.
-</li>
-</ul>
-<p>
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>\\</CODE> : a literal backslash.
+<LI CLASS="li-itemize"><CODE>\a</CODE> : the alert character <CODE>^G</CODE>.
+<LI CLASS="li-itemize"><CODE>\b</CODE> : the backspace character <CODE>^H</CODE>.
+<LI CLASS="li-itemize"><CODE>\f</CODE> : the formfeed character <CODE>^L</CODE>.
+<LI CLASS="li-itemize"><CODE>\n</CODE> : the newline character <CODE>^J</CODE>.
+<LI CLASS="li-itemize"><CODE>\r</CODE> : the carriage return character <CODE>^M</CODE>.
+<LI CLASS="li-itemize"><CODE>\t</CODE> : the tab character <CODE>^I</CODE>.
+<LI CLASS="li-itemize"><CODE>\v</CODE> : the vertical tab character.
+<LI CLASS="li-itemize"><CODE>\xhh...</CODE> : the character represented by the string
+ of hexadecimal digits <CODE>h</CODE>. All valid hexadecimal digits
+ following the sequence are considered to be part of the sequence.
+<LI CLASS="li-itemize"><CODE>\ddd</CODE> : the character represented by 1, 2, or 3 octal
+ digits.
+</UL>
+Regular expressions are defined using the special characters <CODE>.\^$[(){}*?</CODE>+.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>c</CODE> : matches the literal character <CODE>c</CODE> if <CODE>c</CODE> is not
+ a special character.
+<LI CLASS="li-itemize"><CODE>\c</CODE> : matches the literal character <CODE>c</CODE>, even if <CODE>c</CODE>
+ is a special character.
+<LI CLASS="li-itemize"><CODE>.</CODE> : matches any character, including newline.
+<LI CLASS="li-itemize"><CODE>^</CODE> : matches the beginning of a line.
+<LI CLASS="li-itemize"><CODE>$</CODE> : matches the end of line.
+<LI CLASS="li-itemize"><CODE>[abc...]</CODE> : matches any of the characters <CODE>abc...</CODE>
+<LI CLASS="li-itemize"><CODE>[^abc...]</CODE> : matches any character except <CODE>abc...</CODE>
+<LI CLASS="li-itemize"><CODE>r1|r2</CODE> : matches either <CODE>r1</CODE> or <CODE>r2</CODE>.
+<LI CLASS="li-itemize"><CODE>r1r2</CODE> : matches <CODE>r1</CODE> and then <CODE>r2</CODE>.
+<LI CLASS="li-itemize"><CODE>r</CODE>+ : matches one or more occurrences of <CODE>r</CODE>.
+<LI CLASS="li-itemize"><CODE>r*</CODE> : matches zero or more occurrences of <CODE>r</CODE>.
+<LI CLASS="li-itemize"><CODE>r?</CODE> : matches zero or one occurrence of <CODE>r</CODE>.
+<LI CLASS="li-itemize"><CODE>(r)</CODE> : parentheses are used for grouping; matches <CODE>r</CODE>.
+<LI CLASS="li-itemize"><CODE>\(r\)</CODE> : also defines grouping, but the expression matched
+ within the parentheses is available to the output processor
+ through one of the variables <CODE>$1</CODE>, <CODE>$2</CODE>, ...
+<LI CLASS="li-itemize"><CODE>r{n}</CODE> : matches exactly <CODE>n</CODE> occurrences of <CODE>r</CODE>.
+<LI CLASS="li-itemize"><CODE>r{n,}</CODE> : matches <CODE>n</CODE> or more occurrences of <CODE>r</CODE>.
+<LI CLASS="li-itemize"><CODE>r{n,m}</CODE> : matches at least <CODE>n</CODE> occurrences of <CODE>r</CODE>,
+ and no more than <CODE>m</CODE> occurrences.
+<LI CLASS="li-itemize"><CODE>\y</CODE>: matches the empty string at either the beginning or
+ end of a word.
+<LI CLASS="li-itemize"><CODE>\B</CODE>: matches the empty string within a word.
+<LI CLASS="li-itemize"><CODE>\&lt;</CODE>: matches the empty string at the beginning of a word.
+<LI CLASS="li-itemize"><CODE>\&gt;</CODE>: matches the empty string at the end of a word.
+<LI CLASS="li-itemize"><CODE>\w</CODE>: matches any character in a word.
+<LI CLASS="li-itemize"><CODE>\W</CODE>: matches any character that does not occur within a word.
+<LI CLASS="li-itemize"><CODE>\`</CODE>: matches the empty string at the beginning of a file.
+<LI CLASS="li-itemize"><CODE>\'</CODE>: matches the empty string at the end of a file.
+</UL>
 Character classes can be used to specify character sequences
 abstractly. Some of these sequences can change depending on your LOCALE.
-<p>
-<ul compact>
-<li><tt>[:alnum:]</tt> Alphanumeric characters.
-</li>
-<li><tt>[:alpha:]</tt> Alphabetic characters.
-</li>
-<li><tt>[:lower:]</tt> Lowercase alphabetic characters.
-</li>
-<li><tt>[:upper:]</tt> Uppercase alphabetic characters.
-</li>
-<li><tt>[:cntrl:]</tt> Control characters.
-</li>
-<li><tt>[:digit:]</tt> Numeric characters.
-</li>
-<li><tt>[:xdigit:]</tt> Numeric and hexadecimal characters.
-</li>
-<li><tt>[:graph:]</tt> Characters that are printable and visible.
-</li>
-<li><tt>[:print:]</tt> Characters that are printable, whether they are visible or not.
-</li>
-<li><tt>[:punct:]</tt> Punctuation characters.
-</li>
-<li><tt>[:blank:]</tt> Space or tab characters.
-</li>
-<li><tt>[:space:]</tt> Whitespace characters.
-</li>
-</ul>
-<h4><a name="section_38">cat</a></h4>
-
-<p>
-<pre>
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>[:alnum:]</CODE> Alphanumeric characters.
+<LI CLASS="li-itemize"><CODE>[:alpha:]</CODE> Alphabetic characters.
+<LI CLASS="li-itemize"><CODE>[:lower:]</CODE> Lowercase alphabetic characters.
+<LI CLASS="li-itemize"><CODE>[:upper:]</CODE> Uppercase alphabetic characters.
+<LI CLASS="li-itemize"><CODE>[:cntrl:]</CODE> Control characters.
+<LI CLASS="li-itemize"><CODE>[:digit:]</CODE> Numeric characters.
+<LI CLASS="li-itemize"><CODE>[:xdigit:]</CODE> Numeric and hexadecimal characters.
+<LI CLASS="li-itemize"><CODE>[:graph:]</CODE> Characters that are printable and visible.
+<LI CLASS="li-itemize"><CODE>[:print:]</CODE> Characters that are printable, whether they are visible or not.
+<LI CLASS="li-itemize"><CODE>[:punct:]</CODE> Punctuation characters.
+<LI CLASS="li-itemize"><CODE>[:blank:]</CODE> Space or tab characters.
+<LI CLASS="li-itemize"><CODE>[:space:]</CODE> Whitespace characters.
+</UL>
+<A NAME="@default225"></A><A NAME="@fun169"></A><A NAME="fun:cat"></A>
+<H4 CLASS="subsubsection">cat</H4>
+<PRE CLASS="verbatim">
     cat(files) : Sequence
        files : File or InChannel Sequence
-</pre>
-<p>
-The <tt>cat</tt> function concatenates the output from multiple files
+</PRE>
+The <CODE>cat</CODE> function concatenates the output from multiple files
 and returns it as a string.
-<h4><a name="section_39">grep</a></h4>
-
-<p>
-<pre>
+<A NAME="@default226"></A><A NAME="@fun170"></A><A NAME="fun:grep"></A>
+<H4 CLASS="subsubsection">grep</H4>
+<PRE CLASS="verbatim">
    grep(pattern) : String  # input from stdin, default options
       pattern : String
    grep(pattern, files) : String  # default options
@@ -875,30 +1372,23 @@ and returns it as a string.
      options : String
      pattern : String
      files   : File Sequence
-</pre>
-<p>
-The <tt>grep</tt> function searches for occurrences of a regular
-expression <tt>pattern</tt> in a set of files, and prints lines that match.
-This is like a highly-simplified version of <em>grep</em>(1).
-<p>
+</PRE>
+The <CODE>grep</CODE> function searches for occurrences of a regular
+expression <CODE>pattern</CODE> in a set of files, and prints lines that match.
+This is like a highly-simplified version of <TT>grep</TT>(1).<BR>
+<BR>
 The options are:
-<dl compact>
-<dt>q</dt>
-<dd> If specified, the output from <tt>grep</tt> is not displayed.
-</dd>
-<dt>n</dt>
-<dd> If specified, output lines include the filename.
-</dd>
-</dl>
-<p>
-The <tt>pattern</tt> is a regular expression.
-<p>
-If successful (<tt>grep</tt> found a match), the function returns <tt>true</tt>.
-Otherwise, it returns <tt>false</tt>.
-<h4><a name="section_40">scan</a></h4>
-
-<p>
-<pre>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>q</B><DD CLASS="dd-description"> If specified, the output from <CODE>grep</CODE> is not displayed.
+<DT CLASS="dt-description"><B>n</B><DD CLASS="dd-description"> If specified, output lines include the filename.
+</DL>
+The <CODE>pattern</CODE> is a regular expression.<BR>
+<BR>
+If successful (<CODE>grep</CODE> found a match), the function returns <CODE>true</CODE>.
+Otherwise, it returns <CODE>false</CODE>.
+<A NAME="@default227"></A><A NAME="@fun171"></A><A NAME="fun:scan"></A>
+<H4 CLASS="subsubsection">scan</H4>
+<PRE CLASS="verbatim">
    scan(input-files)
    case string1
       body1
@@ -907,31 +1397,29 @@ Otherwise, it returns <tt>false</tt>.
    ...
    default
       bodyd
-</pre>
-<p>
-The <tt>scan</tt> function provides input processing in command-line form.
+</PRE>
+The <CODE>scan</CODE> function provides input processing in command-line form.
 The function takes file/filename arguments. If called with no
-arguments, the input is taken from <tt>stdin</tt>. If arguments are provided,
-each specifies an <tt>InChannel</tt>, or the name of a file for input.
-Output is always to <tt>stdout</tt>.
-<p>
-The <tt>scan</tt> function operates by reading the input one line at a time,
-and processing it according to the following algorithm.
-<p>
+arguments, the input is taken from <CODE>stdin</CODE>. If arguments are provided,
+each specifies an <CODE>InChannel</CODE>, or the name of a file for input.
+Output is always to <CODE>stdout</CODE>.<BR>
+<BR>
+The <CODE>scan</CODE> function operates by reading the input one line at a time,
+and processing it according to the following algorithm.<BR>
+<BR>
 For each line,
 the record is first split into fields, and
-the fields are bound to the variables <tt>$1, $2, ...</tt>. The variable
-<tt>$0</tt> is defined to be the entire line, and <tt>$*</tt> is an array
-of all the field values. The <tt>$(NF)</tt> variable is defined to be the number
-of fields.
-<p>
-Next, a case expression is selected. If <tt>string_i</tt> matches the token <tt>$1</tt>,
-then <tt>body_i</tt> is evaluated. If the body ends in an <tt>export</tt>, the state
-is passed to the next clause. Otherwise the value is discarded.
-<p>
-For example, here is an <tt>scan</tt> function that acts as a simple command processor.
-<p>
-<pre>
+the fields are bound to the variables <CODE>$1, $2, ...</CODE>. The variable
+<CODE>$0</CODE> is defined to be the entire line, and <CODE>$*</CODE> is an array
+of all the field values. The <CODE>$(NF)</CODE> variable is defined to be the number
+of fields.<BR>
+<BR>
+Next, a case expression is selected. If <CODE>string_i</CODE> matches the token <CODE>$1</CODE>,
+then <CODE>body_i</CODE> is evaluated. If the body ends in an <CODE>export</CODE>, the state
+is passed to the next clause. Otherwise the value is discarded.<BR>
+<BR>
+For example, here is an <CODE>scan</CODE> function that acts as a simple command processor.
+<PRE CLASS="verbatim">
     calc() =
        i = 0
        scan(script.in)
@@ -948,54 +1436,38 @@ For example, here is an <tt>scan</tt> function that acts as a simple command pro
           export
        default
           eprintln($"Unknown command: $1")
-</pre>
-<p>
-The <tt>scan</tt> function also supports several options.
-<p>
-<pre>
+</PRE>
+The <CODE>scan</CODE> function also supports several options.
+<PRE CLASS="verbatim">
     scan(options, files)
     ...
-</pre>
-<p>
-<ol compact>
-<dt>A</dt>
-<dd> Parse each line as an argument list, where arguments
-may be quoted. For example, the following line has three words,
-&ldquo;<tt>ls</tt>&rdquo;, &ldquo;<tt>-l</tt>&rdquo;, &ldquo;<tt>Program Files</tt>&rdquo;.
-<p>
-<pre>
+</PRE>
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B>A</B><DD CLASS="dd-description"> Parse each line as an argument list, where arguments
+ may be quoted. For example, the following line has three words,
+ &#8220;<CODE>ls</CODE>&#8221;, &#8220;<CODE>-l</CODE>&#8221;, &#8220;<CODE>Program Files</CODE>&#8221;.
+<PRE CLASS="verbatim">
        ls -l "Program Files"
-</pre>
-</dd>
-<dt>O</dt>
-<dd> Parse each line using white space as the separator, using the
-usual OMake algorithm for string parsing. This is the default.
-</dd>
-<dt>x</dt>
-<dd> Once each line is split, reduce each word using the
-hex representation. This is the usual hex representation used
-in URL specifiers, so the string &ldquo;Program Files&rdquo; may be
-alternately represented in the form Program%20Files or
-Program+Files.
-</li>
-</ol>
-<p>
+   </PRE><DT CLASS="dt-description"><B>O</B><DD CLASS="dd-description"> Parse each line using white space as the separator, using the
+ usual OMake algorithm for string parsing. This is the default.
+<DT CLASS="dt-description"><B>x</B><DD CLASS="dd-description"> Once each line is split, reduce each word using the
+ hex representation. This is the usual hex representation used
+ in URL specifiers, so the string &#8220;Program Files&#8221; may be
+ alternately represented in the form ProgramProgram+Files.
+</DL>
 Note, if you want to redirect the output to a file, the easiest way is to
-redefine the <tt>stdout</tt> variable. The <tt>stdout</tt> variable is scoped the
+redefine the <CODE>stdout</CODE> variable. The <CODE>stdout</CODE> variable is scoped the
 same way as other variables, so this definition does not affect the meaning of
-<tt>stdout</tt> outside the <tt>calc</tt> function.
-<p>
-<pre>
+<CODE>stdout</CODE> outside the <CODE>calc</CODE> function.
+<PRE CLASS="verbatim">
     calc() =
         stdout = $(fopen script.out, w)
         scan(script.in)
            ...
         close(stdout)
-</pre>
-<h4><a name="section_41">awk</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default228"></A><A NAME="@fun172"></A><A NAME="fun:awk"></A>
+<H4 CLASS="subsubsection">awk</H4>
+<PRE CLASS="verbatim">
    awk(input-files)
    case pattern1:
       body1
@@ -1004,43 +1476,39 @@ same way as other variables, so this definition does not affect the meaning of
    ...
    default:
       bodyd
-</pre>
-<p>
-The <tt>awk</tt> function provides input processing similar to <em>awk</em>(1),
+</PRE>
+The <CODE>awk</CODE> function provides input processing similar to <TT>awk</TT>(1),
 but more limited. The function takes filename arguments. If called with no
-arguments, the input is taken from <tt>stdin</tt>. If arguments are provided,
-each specifies an <tt>InChannel</tt>, or the name of a file for input.
-Output is always to <tt>stdout</tt>.
-<p>
-The variables <tt>RS</tt> and <tt>FS</tt> define record and field separators
+arguments, the input is taken from <CODE>stdin</CODE>. If arguments are provided,
+each specifies an <CODE>InChannel</CODE>, or the name of a file for input.
+Output is always to <CODE>stdout</CODE>.<BR>
+<BR>
+The variables <CODE>RS</CODE> and <CODE>FS</CODE> define record and field separators
 as regular expressions.
-The default value of <tt>RS</tt> is the regular expression <tt>\r|
-|\r
-</tt>.
-The default value of <tt>FS</tt> is the regular expression <tt>[ \t]</tt>+.
-<p>
-The <tt>awk</tt> function operates by reading the input one record at a time,
-and processing it according to the following algorithm.
-<p>
+The default value of <CODE>RS</CODE> is the regular expression <CODE>\r|\n|\r\n</CODE>.
+The default value of <CODE>FS</CODE> is the regular expression <CODE>[ \t]</CODE>+.<BR>
+<BR>
+The <CODE>awk</CODE> function operates by reading the input one record at a time,
+and processing it according to the following algorithm.<BR>
+<BR>
 For each line,
-the record is first split into fields using the field separator <tt>FS</tt>, and
-the fields are bound to the variables <tt>$1, $2, ...</tt>. The variable
-<tt>$0</tt> is defined to be the entire line, and <tt>$*</tt> is an array
-of all the field values. The <tt>$(NF)</tt> variable is defined to be the number
-of fields.
-<p>
+the record is first split into fields using the field separator <CODE>FS</CODE>, and
+the fields are bound to the variables <CODE>$1, $2, ...</CODE>. The variable
+<CODE>$0</CODE> is defined to be the entire line, and <CODE>$*</CODE> is an array
+of all the field values. The <CODE>$(NF)</CODE> variable is defined to be the number
+of fields.<BR>
+<BR>
 Next, the cases are evaluated in order.
-For each case, if the regular expression <tt>pattern_i</tt> matches the record <tt>$0</tt>,
-then <tt>body_i</tt> is evaluated. If the body ends in an <tt>export</tt>, the state
+For each case, if the regular expression <CODE>pattern_i</CODE> matches the record <CODE>$0</CODE>,
+then <CODE>body_i</CODE> is evaluated. If the body ends in an <CODE>export</CODE>, the state
 is passed to the next clause. Otherwise the value is discarded. If the regular
-expression contains <tt>\(r\)</tt> expression, those expression override the
-fields <tt>$1, $2, ...</tt>.
-<p>
-For example, here is an <tt>awk</tt> function to print the text between two
-delimiters <tt>\begin{&lt;name&gt;}</tt> and <tt>\end{&lt;name&gt;}</tt>, where the <tt>&lt;name&gt;</tt>
-must belong to a set passed as an argument to the <tt>filter</tt> function.
-<p>
-<pre>
+expression contains <CODE>\(r\)</CODE> expression, those expression override the
+fields <CODE>$1, $2, ...</CODE>.<BR>
+<BR>
+For example, here is an <CODE>awk</CODE> function to print the text between two
+delimiters <CODE>\begin{&lt;name&gt;}</CODE> and <CODE>\end{&lt;name&gt;}</CODE>, where the <CODE>&lt;name&gt;</CODE>
+must belong to a set passed as an argument to the <CODE>filter</CODE> function.
+<PRE CLASS="verbatim">
     filter(names) =
        print = false
 
@@ -1056,24 +1524,20 @@ must belong to a set passed as an argument to the <tt>filter</tt> function.
        case $"^\\begin\{\([:alpha:]+\)\}"
           print = $(mem $1, $(names))
           export
-</pre>
-<p>
+</PRE>
 Note, if you want to redirect the output to a file, the easiest way is to
-redefine the <tt>stdout</tt> variable. The <tt>stdout</tt> variable is scoped the
+redefine the <CODE>stdout</CODE> variable. The <CODE>stdout</CODE> variable is scoped the
 same way as other variables, so this definition does not affect the meaning of
-<tt>stdout</tt> outside the <tt>filter</tt> function.
-<p>
-<pre>
+<CODE>stdout</CODE> outside the <CODE>filter</CODE> function.
+<PRE CLASS="verbatim">
     filter(names) =
         stdout = $(fopen file.out, w)
         awk(Awk.in)
            ...
         close(stdout)
-</pre>
-<h4><a name="section_42">fsubst</a></h4>
-
-<p>
-<pre>
+</PRE><A NAME="@default229"></A><A NAME="@fun173"></A><A NAME="fun:fsubst"></A>
+<H4 CLASS="subsubsection">fsubst</H4>
+<PRE CLASS="verbatim">
    fsubst(files)
    case pattern1 [options]
       body1
@@ -1082,61 +1546,50 @@ same way as other variables, so this definition does not affect the meaning of
    ...
    default
       bodyd
-</pre>
-<p>
-The <tt>fsubst</tt> function provides a <em>sed</em>(1)-like
-substitution
-function. Similar to <tt>awk</tt>, if <tt>fsubst</tt> is called with no
-arguments, the input is taken from <tt>stdin</tt>. If arguments are provided,
-each specifies an <tt>InChannel</tt>, or the name of a file for input.
-<p>
-The <tt>RS</tt> variable defines a regular expression that determines a record separator,
-The default value of <tt>RS</tt> is the regular expression <tt>\r|
-|\r
-</tt>.
-<p>
-The <tt>fsubst</tt> function reads the file one record at a time.
-<p>
+</PRE>
+The <CODE>fsubst</CODE> function provides a <TT>sed</TT>(1)-like substitution
+function. Similar to <CODE>awk</CODE>, if <CODE>fsubst</CODE> is called with no
+arguments, the input is taken from <CODE>stdin</CODE>. If arguments are provided,
+each specifies an <CODE>InChannel</CODE>, or the name of a file for input.<BR>
+<BR>
+The <CODE>RS</CODE> variable defines a regular expression that determines a record separator,
+The default value of <CODE>RS</CODE> is the regular expression <CODE>\r|\n|\r\n</CODE>.<BR>
+<BR>
+The <CODE>fsubst</CODE> function reads the file one record at a time.<BR>
+<BR>
 For each record, the cases are evaluated in order. Each case defines
-a substitution from a substring matching the <tt>pattern</tt> to
-replacement text defined by the body.
-<p>
-Currently, there is only one option: <tt>g</tt>.
+a substitution from a substring matching the <CODE>pattern</CODE> to
+replacement text defined by the body.<BR>
+<BR>
+Currently, there is only one option: <CODE>g</CODE>.
 If specified, each clause specifies a global replacement,
 and all instances of the pattern define a substitution.
-Otherwise, the substitution is applied only once.
-<p>
-Output can be redirected by redefining the <tt>stdout</tt> variable.
-<p>
+Otherwise, the substitution is applied only once.<BR>
+<BR>
+Output can be redirected by redefining the <CODE>stdout</CODE> variable.<BR>
+<BR>
 For example, the following program replaces all occurrences of
-an expression <tt>word.</tt> with its capitalized form.
-<p>
-<pre>
+an expression <CODE>word.</CODE> with its capitalized form.
+<PRE CLASS="verbatim">
     section
        stdout = $(fopen Subst.out, w)
        fsubst(Subst.in)
        case $"\&lt;\([[:alnum:]]+\)\." g
           value $(capitalize $1).
        close(stdout)
-</pre>
-<h4><a name="section_43">Lexer</a></h4>
-
-<p>
-The <tt>Lexer</tt> object defines a facility for lexical analysis, similar to the
-<em>lex</em>(1)
-and <em>flex</em>(1)
-programs.
-<p>
-In <tt>omake</tt>,
-lexical analyzers can be constructed dynamically by extending
-the <tt>Lexer</tt> class. A lexer definition consists of a set of directives specified
-with method calls, and set of clauses specified as rules.
-<p>
+</PRE><A NAME="@default230"></A><A NAME="@obj5"></A><A NAME="obj:Lexer"></A>
+<H4 CLASS="subsubsection">Lexer</H4>
+The <CODE>Lexer</CODE> object defines a facility for lexical analysis, similar to the
+<TT>lex</TT>(1) and <TT>flex</TT>(1) programs.<BR>
+<BR>
+In <TT>omake</TT>, lexical analyzers can be constructed dynamically by extending
+the <CODE>Lexer</CODE> class. A lexer definition consists of a set of directives specified
+with method calls, and set of clauses specified as rules.<BR>
+<BR>
 For example, consider the following lexer definition, which is intended
 for lexical analysis of simple arithmetic expressions for a desktop
 calculator.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    lexer1. =
       extends $(Lexer)
 
@@ -1167,76 +1620,70 @@ calculator.
 
       eof: $"\'"
          Token.unit($(loc), eof)
-</pre>
-<p>
-This program defines an object <tt>lexer1</tt> the extends the <tt>Lexer</tt>
-object, which defines lexing environment.
-<p>
+</PRE>
+This program defines an object <CODE>lexer1</CODE> the extends the <CODE>Lexer</CODE>
+object, which defines lexing environment.<BR>
+<BR>
 The remainder of the definition consists of a set of clauses,
 each with a method name before the colon; a regular expression
 after the colon; and in this case, a body. The body is optional,
 if it is not specified, the method with the given name should
-already exist in the lexer definition.
-<p>
-<em>NB</em>
-The clause that matches the <em>longest</em>
-prefix of the input
-is selected. If two clauses match the same input prefix, then the <em>last</em>
+already exist in the lexer definition.<BR>
+<BR>
+<EM>NB</EM> The clause that matches the <EM>longest</EM> prefix of the input
+is selected. If two clauses match the same input prefix, then the <EM>last</EM>
 one is selected. This is unlike most standard lexers, but makes more sense
-for extensible grammars.
-<p>
+for extensible grammars.<BR>
+<BR>
 The first clause matches any input that is not matched by the other clauses.
 In this case, an error message is printed for any unknown character, and
 the input is skipped. Note that this clause is selected only if no other
-clause matches.
-<p>
+clause matches.<BR>
+<BR>
 The second clause is responsible for ignoring white space.
 If whitespace is found, it is ignored, and the lexer is called
-recursively.
-<p>
+recursively.<BR>
+<BR>
 The third clause is responsible for the arithmetic operators.
-It makes use of the <tt>Token</tt> object, which defines three
-fields: a <tt>loc</tt> field that represents the source location;
-a <tt>name</tt>; and a <tt>value</tt>.
-<p>
-The lexer defines the <tt>loc</tt> variable to be the location
+It makes use of the <CODE>Token</CODE> object, which defines three
+fields: a <CODE>loc</CODE> field that represents the source location;
+a <CODE>name</CODE>; and a <CODE>value</CODE>.<BR>
+<BR>
+The lexer defines the <CODE>loc</CODE> variable to be the location
 of the current lexeme in each of the method bodies, so we can use
-that value to create the tokens.
-<p>
-The <tt>Token.unit($(loc), name)</tt>
-method constructs a new <tt>Token</tt> object with the given name,
-and a default value.
-<p>
-The <tt>number</tt> clause matches nonnegative integer constants.
-The <tt>Token.pair($(loc), name, value)</tt> constructs a token with the
-given name and value.
-<p>
-Lexer object operate on <tt>InChannel</tt> objects.
-The method <tt>lexer1.lex-channel(channel)</tt> reads the next
-token from the channel argument.
-<p>
-<h4><a name="section_44">Lexer matching</a></h4>
+that value to create the tokens.<BR>
+<BR>
+The <CODE>Token.unit($(loc), name)</CODE>
+method constructs a new <CODE>Token</CODE> object with the given name,
+and a default value.<BR>
+<BR>
+The <CODE>number</CODE> clause matches nonnegative integer constants.
+The <CODE>Token.pair($(loc), name, value)</CODE> constructs a token with the
+given name and value.<BR>
+<BR>
+Lexer object operate on <CODE>InChannel</CODE> objects.
+The method <CODE>lexer1.lex-channel(channel)</CODE> reads the next
+token from the channel argument.<BR>
+<BR>
 
-<p>
+<H3 CLASS="subsection"><A NAME="htoc96">8.4.2</A>&nbsp;&nbsp;Lexer matching</H3>
 During lexical analysis, clauses are selected by longest match.
 That is, the clause that matches the longest sequence of input
 characters is chosen for evaluation. If no clause matches, the
-lexer raises a <tt>RuntimeException</tt>. If more than one clause
+lexer raises a <CODE>RuntimeException</CODE>. If more than one clause
 matches the same amount of input, the first one is chosen
-for evaluation.
-<p>
-<h4><a name="section_45">Extending lexer definitions</a></h4>
+for evaluation.<BR>
+<BR>
 
-<p>
+<H3 CLASS="subsection"><A NAME="htoc97">8.4.3</A>&nbsp;&nbsp;Extending lexer definitions</H3>
 Suppose we wish to augment the lexer example so that it ignores
 comments. We will define comments as any text that begins with
-the string <tt>(*</tt>, ends with <tt>*)</tt>, and comments may
-be nested.
-<p>
+the string <CODE>(*</CODE>, ends with <CODE>*)</CODE>, and comments may
+be nested.<BR>
+<BR>
 One convenient way to do this is to define a separate lexer
 just to skip comments.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    lex-comment. =
       extends $(Lexer)
 
@@ -1256,48 +1703,42 @@ just to skip comments.
 
       eof: $"\'"
          eprintln(Unterminated comment)
-</pre>
-<p>
-This lexer contains a field <tt>level</tt> that keeps track of the nesting
-level. On encountering a <tt>(*</tt> string, it increments the level,
-and for <tt>*)</tt>, it decrements the level if nonzero, and continues.
-<p>
+</PRE>
+This lexer contains a field <CODE>level</CODE> that keeps track of the nesting
+level. On encountering a <CODE>(*</CODE> string, it increments the level,
+and for <CODE>*)</CODE>, it decrements the level if nonzero, and continues.<BR>
+<BR>
 Next, we need to modify our previous lexer to skip comments.
-We can do this by extending the lexer object <tt>lexer1</tt>
+We can do this by extending the lexer object <CODE>lexer1</CODE>
 that we just created.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    lexer1. +=
       comment: $"[(][*]"
          lex-comment.lex-channel($(channel))
          lex()
-</pre>
-<p>
-The body for the comment clause calls the <tt>lex-comment</tt> lexer when
-a comment is encountered, and continues lexing when that lexer returns.
-<p>
-<h4><a name="section_46">Threading the lexer object</a></h4>
+</PRE>
+The body for the comment clause calls the <CODE>lex-comment</CODE> lexer when
+a comment is encountered, and continues lexing when that lexer returns.<BR>
+<BR>
 
-<p>
-Clause bodies may also end with an <tt>export</tt> directive. In this case
+<H3 CLASS="subsection"><A NAME="htoc98">8.4.4</A>&nbsp;&nbsp;Threading the lexer object</H3>
+Clause bodies may also end with an <CODE>export</CODE> directive. In this case
 the lexer object itself is used as the returned token. If used with
-the <tt>Parser</tt> object below, the lexer should define the <tt>loc</tt>, <tt>name</tt>
-and <tt>value</tt> fields in each <tt>export</tt> clause. Each time
-the <tt>Parser</tt> calls the lexer, it calls it with the lexer returned
+the <CODE>Parser</CODE> object below, the lexer should define the <CODE>loc</CODE>, <CODE>name</CODE>
+and <CODE>value</CODE> fields in each <CODE>export</CODE> clause. Each time
+the <CODE>Parser</CODE> calls the lexer, it calls it with the lexer returned
 from the previous lex invocation.
-<h4><a name="section_47">Parser</a></h4>
 
-<p>
-The <tt>Parser</tt> object provides a facility for syntactic analysis based
-on context-free grammars.
-<p>
-<tt>Parser</tt> objects are specified as a sequence of directives,
-specified with method calls; and productions, specified as rules.
-<p>
+<H3 CLASS="subsection"><A NAME="htoc99">8.4.5</A>&nbsp;&nbsp;Parser</H3>
+The <CODE>Parser</CODE> object provides a facility for syntactic analysis based
+on context-free grammars.<BR>
+<BR>
+<CODE>Parser</CODE> objects are specified as a sequence of directives,
+specified with method calls; and productions, specified as rules.<BR>
+<BR>
 For example, let's finish building the desktop calculator started
-in the <tt>Lexer</tt> example.
-<p>
-<pre>
+in the <CODE>Lexer</CODE> example.
+<PRE CLASS="verbatim">
    parser1. =
       extends $(Parser)
 
@@ -1341,73 +1782,68 @@ in the <tt>Lexer</tt> example.
 
       exp: lparen exp rparen
          return $2
-</pre>
-<p>
-Parsers are defined as extensions of the <tt>Parser</tt> class.
-A <tt>Parser</tt> object must have a <tt>lexer</tt> field. The <tt>lexer</tt>
-is not required to be a <tt>Lexer</tt> object, but it must provide
-a <tt>lexer.lex()</tt> method that returns a token object with
-<tt>name</tt> and <tt>value</tt> fields. For this example, we use the
-<tt>lexer1</tt> object that we defined previously.
-<p>
+</PRE>
+Parsers are defined as extensions of the <CODE>Parser</CODE> class.
+A <CODE>Parser</CODE> object must have a <CODE>lexer</CODE> field. The <CODE>lexer</CODE>
+is not required to be a <CODE>Lexer</CODE> object, but it must provide
+a <CODE>lexer.lex()</CODE> method that returns a token object with
+<CODE>name</CODE> and <CODE>value</CODE> fields. For this example, we use the
+<CODE>lexer1</CODE> object that we defined previously.<BR>
+<BR>
 The next step is to define precedences for the terminal symbols.
-The precedences are defined with the <tt>left</tt>, <tt>right</tt>,
-and <tt>nonassoc</tt> methods in order of increasing precedence.
-<p>
+The precedences are defined with the <CODE>left</CODE>, <CODE>right</CODE>,
+and <CODE>nonassoc</CODE> methods in order of increasing precedence.<BR>
+<BR>
 The grammar must have at least one start symbol, declared with
-the <tt>start</tt> method.
-<p>
+the <CODE>start</CODE> method.<BR>
+<BR>
 Next, the productions in the grammar are listed as rules.
 The name of the production is listed before the colon, and
 a sequence of variables is listed to the right of the colon.
 The body is a semantic action to be evaluated when the production
-is recognized as part of the input.
-<p>
+is recognized as part of the input.<BR>
+<BR>
 In this example, these are the productions for the arithmetic
 expressions recognized by the desktop calculator. The semantic
-action performs the calculation. The variables <tt>$1, $2, ...</tt>
+action performs the calculation. The variables <CODE>$1, $2, ...</CODE>
 correspond to the values associated with each of the variables
-on the right-hand-side of the production.
-<p>
-<h4><a name="section_48">Calling the parser</a></h4>
+on the right-hand-side of the production.<BR>
+<BR>
 
-<p>
-The parser is called with the <tt>$(parser1.parse-channel start, channel)</tt>
-or <tt>$(parser1.parse-file start, file)</tt> functions. The <tt>start</tt>
-argument is the start symbol, and the <tt>channel</tt> or <tt>file</tt>
-is the input to the parser.
-<p>
-<h4><a name="section_49">Parsing control</a></h4>
+<H3 CLASS="subsection"><A NAME="htoc100">8.4.6</A>&nbsp;&nbsp;Calling the parser</H3>
+The parser is called with the <CODE>$(parser1.parse-channel start, channel)</CODE>
+or <CODE>$(parser1.parse-file start, file)</CODE> functions. The <CODE>start</CODE>
+argument is the start symbol, and the <CODE>channel</CODE> or <CODE>file</CODE>
+is the input to the parser.<BR>
+<BR>
 
-<p>
+<H3 CLASS="subsection"><A NAME="htoc101">8.4.7</A>&nbsp;&nbsp;Parsing control</H3>
 The parser generator generates a pushdown automation based on LALR(1)
 tables. As usual, if the grammar is ambiguous, this may generate shift/reduce
 or reduce/reduce conflicts. These conflicts are printed to standard
-output when the automaton is generated.
-<p>
+output when the automaton is generated.<BR>
+<BR>
 By default, the automaton is not constructed until the parser is
-first used.
-<p>
-The <tt>build(debug)</tt> method forces the construction of the automaton.
+first used.<BR>
+<BR>
+The <CODE>build(debug)</CODE> method forces the construction of the automaton.
 While not required, it is wise to finish each complete parser with
-a call to the <tt>build(debug)</tt> method. If the <tt>debug</tt> variable
-is set, this also prints with parser table together with any conflicts.
-<p>
-The <tt>loc</tt> variable is defined within action bodies, and represents
-the input range for all tokens on the right-hand-side of the production.
-<p>
-<h4><a name="section_50">Extending parsers</a></h4>
+a call to the <CODE>build(debug)</CODE> method. If the <CODE>debug</CODE> variable
+is set, this also prints with parser table together with any conflicts.<BR>
+<BR>
+The <CODE>loc</CODE> variable is defined within action bodies, and represents
+the input range for all tokens on the right-hand-side of the production.<BR>
+<BR>
 
-<p>
+<H3 CLASS="subsection"><A NAME="htoc102">8.4.8</A>&nbsp;&nbsp;Extending parsers</H3>
 Parsers may also be extended by inheritance.
 For example, let's extend the grammar so that it also recognizes
-the <tt>&lt;&lt;</tt> and <tt>&gt;&gt;</tt> shift operations.
-<p>
+the <CODE>&lt;&lt;</CODE> and <CODE>&gt;&gt;</CODE> shift operations.<BR>
+<BR>
 First, we extend the lexer so that it recognizes these tokens.
-This time, we choose to leave <tt>lexer1</tt> intact, instead of
+This time, we choose to leave <CODE>lexer1</CODE> intact, instead of
 using the += operator.
-<p>
-<pre>
+<PRE CLASS="verbatim">
    lexer2. =
       extends $(lexer1)
 
@@ -1416,14 +1852,12 @@ using the += operator.
 
       asr: $"&gt;&gt;"
          Token.unit($(loc), asr)
-</pre>
-<p>
+</PRE>
 Next, we extend the parser to handle these new operators.
 We intend that the bitwise operators have lower precedence
 than the other arithmetic operators. The two-argument form
-of the <tt>left</tt> method accomplishes this.
-<p>
-<pre>
+of the <CODE>left</CODE> method accomplishes this.
+<PRE CLASS="verbatim">
    parser2. =
       extends $(parser1)
 
@@ -1436,185 +1870,28 @@ of the <tt>left</tt> method accomplishes this.
 
       exp: exp asr exp
          asr($1, $3)
-</pre>
-<p>
-In this case, we use the new lexer <tt>lexer2</tt>, and we add productions
+</PRE>
+In this case, we use the new lexer <CODE>lexer2</CODE>, and we add productions
 for the new shift operations.
-<h4><a name="section_51">gettimeofday</a></h4>
-
-<p>
-<pre>
+<A NAME="@default231"></A><A NAME="@fun174"></A><A NAME="fun:gettimeofday"></A>
+<H4 CLASS="subsubsection">gettimeofday</H4>
+<PRE CLASS="verbatim">
    $(gettimeofday) : Float
-</pre>
-<p>
-The <tt>gettimeofday</tt> function returns the time of day in seconds
+</PRE>
+The <CODE>gettimeofday</CODE> function returns the time of day in seconds
 since January 1, 1970.
-<h2><a name="section_52">Shell functions</a></h2>
-
-<h4><a name="section_53">echo</a></h4>
-
-<p>
-The <tt>echo</tt> function prints a string.
-<p>
-<tt>$(echo &lt;args&gt;)</tt>
-<tt>echo &lt;args&gt;</tt>
-<h4><a name="section_54">jobs</a></h4>
-
-<p>
-The <tt>jobs</tt> function prints a list of jobs.
-<p>
-<tt>jobs</tt>
-<h4><a name="section_55">cd</a></h4>
-
-<p>
-The <tt>cd</tt> function changes the current directory.
-<p>
-<pre>
-    cd(dir)
-       dir : Dir
-</pre>
-<p>
-The <tt>cd</tt> function also supports a 2-argument form:
-<p>
-<pre>
-    $(cd dir, e)
-       dir : Dir
-       e : expression
-</pre>
-<p>
-In the two-argument form, expression <tt>e</tt> is evaluated
-in the directory <tt>dir</tt>. The current directory is not
-changed otherwise.
-<p>
-The behavior of the <tt>cd</tt> function can be changed with the
-<tt>CDPATH</tt> variable, which specifies a search path for
-directories. This is normally useful only in the <tt>osh</tt>
-command interpreter.
-<p>
-<pre>
-    CDPATH : Dir Sequence
-</pre>
-<p>
-For example, the following will change directory to the first
-directory <tt>./foo</tt>, <tt>~/dir1/foo</tt>, <tt>~/dir2/foo</tt>.
-<p>
-<pre>
-    CDPATH[] =
-       .
-       $(HOME)/dir1
-       $(HOME)/dir2
-    cd foo
-</pre>
-<p>
-<h4><a name="section_56">bg</a></h4>
-
-<p>
-The <tt>bg</tt> function places a job in the background.
-<p>
-<tt>bg &lt;pid...&gt;</tt>
-<h4><a name="section_57">fg</a></h4>
-
-<p>
-The <tt>fg</tt> function brings a job to the foreground.
-<p>
-<tt>fg &lt;pid...&gt;</tt>
-<h4><a name="section_58">stop</a></h4>
-
-<p>
-The <tt>stop</tt> function suspends a job.
-<p>
-<tt>stop &lt;pid...&gt;</tt>
-<h4><a name="section_59">wait</a></h4>
-
-<p>
-The <tt>wait</tt> function waits for a job to finish.
-If no process identifiers are given, the shell waits for
-all jobs to complete.
-<p>
-<tt>wait &lt;pid...&gt;</tt>
-<h4><a name="section_60">kill</a></h4>
-
-<p>
-The <tt>kill</tt> function signals a job.
-<p>
-<tt>kill [signal] &lt;pid...&gt;</tt>
-<h4><a name="section_61">history</a></h4>
-
-<p>
-<pre>
-    $(history-index) : Int
-    $(history) : String Sequence
-    history-file : File
-    history-length : Int
-</pre>
-<p>
-The history variables manage the command-line history in <tt>osh</tt>.
-They have no effect
-in <tt>omake</tt>.
-<p>
-The <tt>history-index</tt> variable is the current index into the command-line history.
-The <tt>history</tt> variable is the current command-line history.
-<p>
-The <tt>history-file</tt> variable can be redefined if you want the command-line history
-to be saved. The default value is <tt>~/.omake/osh_history</tt>.
-<p>
-The <tt>history-length</tt> variable can be redefined to specify the maximum number of
-lines in the history that you want saved. The default value is <tt>100</tt>.
-<h2><a name="section_62">References</a></h2>
-
-<p>
-<h4><a name="section_63">See Also</a></h4>
-
-<p>
-<a href="omake.html">omake(1)</a>,
-<a href="omake-quickstart.html">omake-quickstart(1)</a>,
-<a href="omake-options.html">omake-options(1)</a>,
-<a href="omake-root.html">omake-root(1)</a>,
-<a href="omake-language.html">omake-language(1)</a>,
-<a href="omake-shell.html">omake-shell(1)</a>,
-<a href="omake-rules.html">omake-rules(1)</a>,
-<a href="omake-base.html">omake-base(1)</a>,
-<a href="omake-system.html">omake-system(1)</a>,
-<a href="omake-pervasives.html">omake-pervasives(1)</a>,
-<a href="osh.html">osh(1)</a>,
-<em>make</em>(1)
-<p>
-<h4><a name="section_64">Version</a></h4>
-
-<p>
-Version: 0.9.6.9 of April 11, 2006.
-<p>
-<h4><a name="section_65">License and Copyright</a></h4>
-
-<p>
-&copy;2003-2006, Mojave Group, Caltech
-<p>
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-<p>
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-<p>
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-<p>
-<h4><a name="section_66">Author</a></h4>
-
-<p>
-Jason Hickey <em>et. al.</em><br>
-Caltech 256-80 <br>
-
-Pasadena, CA 91125, USA <br>
-
-Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
-<br>
-WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
-<p>
-</body>
-</html>
-<!-- NOTE: This file is generated, DO NOT EDIT. -->
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
+<HR>
+<A HREF="omake-base.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-shell.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

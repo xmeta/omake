@@ -1,6 +1,12 @@
 (*
  * Some builtin functions.
  *
+ * \begin{doc}
+ * \chapter{Base library}
+ * \label{chapter:base}
+ * \cutname{omake-base.html}
+ * \end{doc}
+ *
  * ----------------------------------------------------------------
  *
  * @begin[license]
@@ -54,29 +60,28 @@ open Pos
  *
  * \begin{doc}
  * \section{Builtin variables}
- *
- * \subsection{OSTYPE}
+ * \var{OSTYPE}
  *    Set to the machine architecture \Prog{omake} is running on.  Possible values are
  *    \verb+Unix+ (for all  Unix  versions, including Linux and Mac OS X), \verb+Win32+
  *    (for MS-Windows, OMake compiled with MSVC++ or Mingw), and \verb+Cygwin+ (for
  *    MS-Windows, OMake compiled with Cygwin).
- * \subsection{SYSNAME}
+ * \var{SYSNAME}
  *    The name of the operating system for the current machine.
- * \subsection{NODENAME}
+ * \var{NODENAME}
  *    The hostname of the current machine.
- * \subsection{OS\_VERSION}
+ * \varlabel{OS_VERSION}{OS\_VERSION}
  *    The operating system release.
- * \subsection{MACHINE}
+ * \var{MACHINE}
  *    The machine architecture, e.g.\ \verb+i386+, \verb+sparc+, etc.
- * \subsection{HOST}
+ * \var{HOST}
  *    Same as \verb+NODENAME+.
- * \subsection{OMAKE\_VERSION}
+ * \varlabel{OMAKE_VERSION}{OMAKE\_VERSION}
  *    Version of OMake.
- * \subsection{USER}
+ * \var{USER}
  *    The login name of the user executing the process.
- * \subsection{HOME}
+ * \var{HOME}
  *    The home directory of the user executing the process.
- * \subsection{PID}
+ * \var{PID}
  *    The OMake process id.
  * \end{doc}
  *)
@@ -87,7 +92,7 @@ open Pos
  * \begin{doc}
  * \section{Boolean functions and control flow}
  *
- * \subsection{not}
+ * \fun{not}
  *
  * \begin{verbatim}
  *    $(not e) : String
@@ -117,7 +122,7 @@ let not_fun venv pos loc args =
  * Check if two values are equal.
  *
  * \begin{doc}
- * \subsection{equal}
+ * \fun{equal}
  *
  * \begin{verbatim}
  *    $(equal e1, e2) : String
@@ -145,7 +150,7 @@ let equal venv pos loc args =
  * Conjunction.
  *
  * \begin{doc}
- * \subsection{and}
+ * \fun{and}
  *
  * \begin{verbatim}
  *     $(and e1, ..., en) : String
@@ -177,7 +182,7 @@ let and_fun venv pos loc args =
  * Disjunction.
  *
  * \begin{doc}
- * \subsection{or}
+ * \fun{or}
  *
  * \begin{verbatim}
  *    $(or e1, ..., en) : String
@@ -210,7 +215,7 @@ let or_fun venv pos loc args =
  * The values are computed lazily.
  *
  * \begin{doc}
- * \subsection{if}
+ * \form{if}
  *
  * \begin{verbatim}
  *     $(if e1, e2[, e3]) : value
@@ -280,7 +285,8 @@ let if_fun venv pos loc args =
  * Match command.
  *
  * \begin{doc}
- * \subsection{switch, match}
+ * \fun{switch}
+ * \fun{match}
  *
  * The \verb+switch+ and \verb+match+ functions perform pattern matching.
  *
@@ -420,7 +426,7 @@ let match_fun =
 
 (*
  * \begin{doc}
- * \subsection{try}
+ * \form{try}
  *
  * \begin{verbatim}
  *    try
@@ -632,7 +638,7 @@ let try_fun venv pos loc args =
  * Raise an exception.
  *
  * \begin{doc}
- * \subsection{raise}
+ * \form{raise}
  *
  * \begin{verbatim}
  *    raise exn
@@ -659,7 +665,7 @@ let raise_fun venv pos loc args =
  * Exit the program.
  *
  * \begin{doc}
- * \subsection{exit}
+ * \fun{exit}
  *
  * \begin{verbatim}
  *    exit(code)
@@ -699,7 +705,7 @@ let exit_fun venv pos loc args =
  * Check whether a variable is defined.
  *
  * \begin{doc}
- * \subsection{defined}
+ * \fun{defined}
  *
  * \begin{verbatim}
  *    $(defined sequence) : String
@@ -735,7 +741,7 @@ let defined venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{defined-env}
+ * \fun{defined-env}
  *
  * \begin{verbatim}
  *    $(defined-env sequence) : String
@@ -775,7 +781,7 @@ let defined_env venv pos loc args =
  * Get a variable from the environment.
  *
  * \begin{doc}
- * \subsection{getenv}
+ * \fun{getenv}
  *
  * \begin{verbatim}
  *    $(getenv name) : String
@@ -829,7 +835,7 @@ let getenv venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{setenv}
+ * \fun{setenv}
  *
  * \begin{verbatim}
  *    setenv(name, value)
@@ -856,7 +862,7 @@ let setenv venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{get-registry}
+ * \fun{get-registry}
  *
  * \begin{verbatim}
  *    get-registry(hkey, key, field) : String
@@ -939,7 +945,7 @@ let get_registry venv pos loc args =
  * Get a variable from the environment.
  *
  * \begin{doc}
- * \subsection{getvar}
+ * \fun{getvar}
  *
  * \begin{verbatim}
  *    $(getvar name) : String
@@ -970,7 +976,7 @@ let getvar venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{setvar}
+ * \fun{setvar}
  *
  * \begin{verbatim}
  *    setvar(name, value)
@@ -1003,7 +1009,7 @@ let setvar venv pos loc args =
  * \begin{doc}
  * \section{Arrays and sequences}
  *
- * \subsection{array}
+ * \fun{array}
  *
  * \begin{verbatim}
  *     $(array elements) : Array
@@ -1042,7 +1048,7 @@ let array_fun venv pos loc args =
  * Concatenate the strings with a separator.
  *
  * \begin{doc}
- * \subsection{split}
+ * \fun{split}
  *
  * \begin{verbatim}
  *    $(split sep, elements) : Array
@@ -1095,7 +1101,7 @@ let split_fun venv pos loc args =
  * Concatenate the strings with a separator.
  *
  * \begin{doc}
- * \subsection{concat}
+ * \fun{concat}
  *
  * \begin{verbatim}
  *    $(concat sep, elements) : String
@@ -1130,7 +1136,7 @@ let concat_fun venv pos loc args =
  * Length of a list.
  *
  * \begin{doc}
- * \subsection{length}
+ * \fun{length}
  *
  * \begin{verbatim}
  *    $(length sequence) : Int
@@ -1155,7 +1161,7 @@ let length_fun venv pos loc args =
  * Get the nth element of a list.
  *
  * \begin{doc}
- * \subsection{nth}
+ * \fun{nth}
  *
  * \begin{verbatim}
  *    $(nth i, sequence) : value
@@ -1187,7 +1193,7 @@ let nth_fun venv pos loc args =
  * Get a subrange of a list.
  *
  * \begin{doc}
- * \subsection{nth-hd}
+ * \fun{nth-hd}
  *
  * \begin{verbatim}
  *    $(nth-hd i, sequence) : value
@@ -1202,7 +1208,7 @@ let nth_fun venv pos loc args =
  *
  * For example, the expression \verb+$(nth-hd 2, a "b c" d)+ evaluates to \verb+a "b c"+.
  *
- * \subsection{nth-tl}
+ * \fun{nth-tl}
  *
  * \begin{verbatim}
  *    $(nth-tl i, sequence) : value
@@ -1217,21 +1223,21 @@ let nth_fun venv pos loc args =
  *
  * For example, the expression \verb+$(nth-tl 1, a "b c" d)+ evaluates to \verb+"b c" d+.
  *
- * \subsection{sub}
+ * \fun{subrange}
  *
  * \begin{verbatim}
- *    $(sub off, len, sequent) : value
+ *    $(subrange off, len, sequent) : value
  *       off : Int
  *       len : Int
  *       sequence : Sequence
  *    raises RuntimeException
  * \end{verbatim}
  *
- * The \verb+sub+ function returns a subrange of the sequence.
+ * The \verb+subrange+ function returns a subrange of the sequence.
  * Counting starts at 0.  An exception is raised if the specified
  * range is not in bounds.
  *
- * For example, the expression \verb+$(sub 1, 2, a "b c" d e)+ evaluates to \verb+"b c" d+.
+ * For example, the expression \verb+$(subrange 1, 2, a "b c" d e)+ evaluates to \verb+"b c" d+.
  * \end{doc}
  *)
 let rec nth_hd l_rev l i =
@@ -1301,7 +1307,7 @@ let subrange_fun venv pos loc args =
  * Reverse a list.
  *
  * \begin{doc}
- * \subsection{rev}
+ * \fun{rev}
  *
  * \begin{verbatim}
  *     $(rev sequence) : Sequence
@@ -1323,7 +1329,7 @@ let rev_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{string}
+ * \fun{string}
  *
  * \begin{verbatim}
  *    $(string sequence) : String
@@ -1348,7 +1354,7 @@ let string venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{quote}
+ * \fun{quote}
  *
  * \begin{verbatim}
  *    $(quote sequence) : String
@@ -1376,7 +1382,7 @@ let quote venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{quote-argv}
+ * \fun{quote-argv}
  *
  * \begin{verbatim}
  *    $(quote-argv sequence) : String
@@ -1400,7 +1406,7 @@ let quote_argv venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{html-string}
+ * \fun{html-string}
  *
  * \begin{verbatim}
  *    $(html-string sequence) : String
@@ -1429,7 +1435,7 @@ let html_string venv pos loc args =
  * Add a suffix.
  *
  * \begin{doc}
- * \subsection{addsuffix}
+ * \fun{addsuffix}
  *
  * \begin{verbatim}
  *    $(addsuffix suffix, sequence) : Array
@@ -1458,7 +1464,7 @@ let addsuffix venv pos loc args =
  * Add a suffix.
  *
  * \begin{doc}
- * \subsection{mapsuffix}
+ * \fun{mapsuffix}
  *
  * \begin{verbatim}
  *    $(mapsuffix suffix, sequence) : Array
@@ -1488,7 +1494,7 @@ let mapsuffix venv pos loc args =
  * Add all suffixes.
  *
  * \begin{doc}
- * \subsection{addsuffixes}
+ * \fun{addsuffixes}
  *
  * \begin{verbatim}
  *    $(addsuffixes suffixes, sequence) : Array
@@ -1518,7 +1524,7 @@ let addsuffixes venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{removeprefix}
+ * \fun{removeprefix}
  *
  * \begin{verbatim}
  *    $(removeprefix prefix, sequence) : Array
@@ -1552,7 +1558,7 @@ let removeprefix venv pos loc args =
  * Remove suffixes.
  *
  * \begin{doc}
- * \subsection{removesuffix}
+ * \fun{removesuffix}
  *
  * \begin{verbatim}
  *    $(removesuffix sequence) : Array
@@ -1593,7 +1599,7 @@ let removesuffix venv pos loc args =
  * Replace suffixes.
  *
  * \begin{doc}
- * \subsection{replacesuffixes}
+ * \fun{replacesuffixes}
  *
  * \begin{verbatim}
  *    $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
@@ -1643,7 +1649,7 @@ let replacesuffixes venv pos loc args =
  * Add a prefix.
  *
  * \begin{doc}
- * \subsection{addprefix}
+ * \fun{addprefix}
  *
  * \begin{verbatim}
  *    $(addprefix prefix, sequence) : Array
@@ -1672,7 +1678,7 @@ let addprefix venv pos loc args =
  * Add a prefix.
  *
  * \begin{doc}
- * \subsection{mapprefix}
+ * \fun{mapprefix}
  *
  * \begin{verbatim}
  *    $(mapprefix prefix, sequence) : Array
@@ -1702,7 +1708,7 @@ let mapprefix venv pos loc args =
  * Add both prefix and suffix.
  *
  * \begin{doc}
- * \subsection{add-wrapper}
+ * \fun{add-wrapper}
  *
  * \begin{verbatim}
  *    $(add-wrapper prefix, suffix, sequence) : Array
@@ -1731,7 +1737,7 @@ let add_wrapper venv pos loc args =
  * Eliminate duplicates.
  *
  * \begin{doc}
- * \subsection{set}
+ * \fun{set}
  *
  * \begin{verbatim}
  *    $(set sequence) : Array
@@ -1758,7 +1764,7 @@ let set venv pos loc args =
  * Set membership.
  *
  * \begin{doc}
- * \subsection{mem}
+ * \fun{mem}
  *
  * \begin{verbatim}
  *    $(mem elem, sequence) : Boolean
@@ -1789,7 +1795,7 @@ let mem venv pos loc args =
  * Set intersection.
  *
  * \begin{doc}
- * \subsection{intersection}
+ * \fun{intersection}
  *
  * \begin{verbatim}
  *    $(intersection sequence1, sequence2) : Array
@@ -1828,7 +1834,7 @@ let intersection venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{intersects}
+ * \fun{intersects}
  *
  * \begin{verbatim}
  *    $(intersects sequence1, sequence2) : Boolean
@@ -1867,7 +1873,7 @@ let intersects venv pos loc args =
  * Set subtraction.
  *
  * \begin{doc}
- * \subsection{set-diff}
+ * \fun{set-diff}
  *
  * \begin{verbatim}
  *    $(set-diff sequence1, sequence2) : Array
@@ -1909,7 +1915,7 @@ let set_diff venv pos loc args =
  * Include all files that do not match the pattern.
  *
  * \begin{doc}
- * \subsection{filter}
+ * \fun{filter}
  *
  * \begin{verbatim}
  *    $(filter patterns, sequence) : Array
@@ -1953,7 +1959,7 @@ let filter venv pos loc args =
  * Include all files that do not match the pattern.
  *
  * \begin{doc}
- * \subsection{filter-out}
+ * \fun{filter-out}
  *
  * \begin{verbatim}
  *    $(filter-out patterns, sequence) : Array
@@ -1983,7 +1989,7 @@ let filter_out venv pos loc args =
  * Capitalize some words.
  *
  * \begin{doc}
- * \subsection{capitalize}
+ * \fun{capitalize}
  *
  * \begin{verbatim}
  *    $(capitalize sequence) : Array
@@ -2009,7 +2015,7 @@ let capitalize venv pos loc args =
  * Uncapitalize some words.
  *
  * \begin{doc}
- * \subsection{uncapitalize}
+ * \fun{uncapitalize}
  *
  * \begin{verbatim}
  *    $(uncapitalize sequence) : Array
@@ -2036,7 +2042,7 @@ let uncapitalize venv pos loc args =
  * Capitalize some words.
  *
  * \begin{doc}
- * \subsection{uppercase}
+ * \fun{uppercase}
  *
  * \begin{verbatim}
  *    $(uppercase sequence) : Array
@@ -2062,7 +2068,7 @@ let uppercase venv pos loc args =
  * Uncapitalize some words.
  *
  * \begin{doc}
- * \subsection{lowercase}
+ * \fun{lowercase}
  *
  * \begin{verbatim}
  *    $(lowercase sequence) : Array
@@ -2087,7 +2093,7 @@ let lowercase venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{system}
+ * \fun{system}
  *
  * \begin{verbatim}
  *    system(s)
@@ -2119,7 +2125,7 @@ let system venv pos loc args =
  * Shell command.
  *
  * \begin{doc}
- * \subsection{shell}
+ * \fun{shell}
  *
  * \begin{verbatim}
  *    $(shell command) : Array
@@ -2229,7 +2235,7 @@ let export venv pos loc args =
  * Loop.
  * \begin{doc}
  * \hypertarget{while}{}
- * \subsection{while}
+ * \fun{while}
  *
  * \begin{verbatim}
  *    while <test>

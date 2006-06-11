@@ -1,8 +1,10 @@
-(*x
+(*
  * Builtin shell operations.
  *
  * \begin{doc}
- * \section{Shell functions}
+ * \chapter{Shell functions}
+ * \label{chapter:shell}
+ * \cutname{omake-shell.html}
  * \end{doc}
  *
  * ----------------------------------------------------------------
@@ -96,7 +98,7 @@ let signal_of_string pos s =
  * Print some text.
  *
  * \begin{doc}
- * \subsection{echo}
+ * \fun{echo}
  *
  * The \verb+echo+ function prints a string.
  *
@@ -127,7 +129,7 @@ let echo_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{jobs}
+ * \fun{jobs}
  *
  * The \verb+jobs+ function prints a list of jobs.
  *
@@ -141,7 +143,7 @@ let jobs_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{cd}
+ * \fun{cd}
  *
  * The \verb+cd+ function changes the current directory.
  *
@@ -269,7 +271,7 @@ let cd_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{bg}
+ * \fun{bg}
  *
  * The \verb+bg+ function places a job in the background.
  *
@@ -293,7 +295,7 @@ let bg_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{fg}
+ * \fun{fg}
  *
  * The \verb+fg+ function brings a job to the foreground.
  *
@@ -307,7 +309,7 @@ let fg_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{stop}
+ * \fun{stop}
  *
  * The \verb+stop+ function suspends a job.
  *
@@ -321,7 +323,7 @@ let stop_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{wait}
+ * \fun{wait}
  *
  * The \verb+wait+ function waits for a job to finish.
  * If no process identifiers are given, the shell waits for
@@ -337,7 +339,7 @@ let wait_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{kill}
+ * \fun{kill}
  *
  * The \verb+kill+ function signals a job.
  *
@@ -367,7 +369,7 @@ let kill_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{history}
+ * \fun{history}
  *
  * \begin{verbatim}
  *     $(history-index) : Int

@@ -3,6 +3,7 @@
  * \section{Higher-level IO functions}
  *
  * \subsection{Regular expressions}
+ * \index{regular expressions}
  *
  * Many of the higher-level functions use regular expressions.
  * Regular expressions are defined by strings with syntax nearly identical
@@ -137,7 +138,7 @@ let debug_parsing =
  * Concatenate files into a string.
  *
  * \begin{doc}
- * \subsection{cat}
+ * \fun{cat}
  *
  * \begin{verbatim}
  *     cat(files) : Sequence
@@ -184,7 +185,7 @@ let cat venv pos loc args =
  * Grep takes some flags.
  *
  * \begin{doc}
- * \subsection{grep}
+ * \fun{grep}
  *
  * \begin{verbatim}
  *    grep(pattern) : String  # input from stdin, default options
@@ -346,7 +347,7 @@ let builtin_grep venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{scan}
+ * \fun{scan}
  *
  * \begin{verbatim}
  *    scan(input-files)
@@ -407,7 +408,7 @@ let builtin_grep venv pos loc args =
  *     ...
  * \end{verbatim}
  *
- * \begin{enumerate}
+ * \begin{description}
  * \item[A] Parse each line as an argument list, where arguments
  *    may be quoted.  For example, the following line has three words,
  *    ``\verb+ls+'', ``\verb+-l+'', ``\verb+Program Files+''.
@@ -422,7 +423,7 @@ let builtin_grep venv pos loc args =
  *    in URL specifiers, so the string ``Program Files'' may be
  *    alternately represented in the form Program%20Files or
  *    Program+Files.
- * \end{enumerate}
+ * \end{description}
  *
  * Note, if you want to redirect the output to a file, the easiest way is to
  * redefine the \verb+stdout+ variable.  The \verb+stdout+ variable is scoped the
@@ -594,7 +595,7 @@ let scan venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{awk}
+ * \fun{awk}
  *
  * \begin{verbatim}
  *    awk(input-files)
@@ -815,7 +816,7 @@ let awk venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{fsubst}
+ * \fun{fsubst}
  *
  * \begin{verbatim}
  *    fsubst(files)
@@ -995,7 +996,7 @@ let fsubst venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Lexer}
+ * \obj{Lexer}
  *
  * The \verb+Lexer+ object defines a facility for lexical analysis, similar to the
  * \Cmd{lex}{1} and \Cmd{flex}{1} programs.

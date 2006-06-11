@@ -1,14 +1,17 @@
 %
 %
 %
-\section{Build examples}
+\chapter{Additional build examples}
+\label{chapter:build-examples}
+\index{build model}
+\cutname{omake-build-examples.html}
 
-Let's explain the OMake build model a bit, especially since it differs significantly from GNU make.
+Let's explain the OMake build model a bit more.
 One issue that dominates this discussion is that OMake is based on global project analysis.  That
 means you define a configuration for the \emph{entire} project, and you run \emph{one} instance of omake.
 
 For single-directory projects this doesn't mean much.  For multi-directory projects it means a lot.
-With GNU make, you would usually invoke the \verb+make+ program recursivelt for each directory in
+With GNU make, you would usually invoke the \verb+make+ program recursively for each directory in
 the project.  For example, suppose you had a project with some project root directory, containing a
 directory of sources \verb+src+, which in turn contains subdirectories \verb+lib+ and \verb+main+.
 So your project looks like this nice piece of ASCII art.
@@ -56,6 +59,8 @@ merely add some Os to the ASCII art.
                `---> source files...
 \end{verbatim}
 
+\index{OMakefile}
+\index{OMakeroot}
 The role of each \verb+<dir>/OMakefile+ plays the same role as each \verb+<dir>/Makefile+: it
 describes how to build the source files in \verb+<dir>+.  The OMakefile retains much of syntax and
 structure of the Makefile, but in most cases it is much simpler.
@@ -66,7 +71,10 @@ invoked from a subdirectory).  The \verb+OMakeroot+ serves as the bootstrap file
 reading this file first.  Otherwise, the syntax and evaluation of \verb+OMakeroot+ is no different
 from any other \verb+OMakefile+.
 
-The \emph{big} difference is that OMake performs a \emph{global} analysis.  Here is what happens when \verb+omake+ starts.
+The \emph{big} difference is that OMake performs a \emph{global} analysis.  Here is what happens
+when \verb+omake+ starts.
+
+\index{.SUBDIRS}
 \begin{enumerate}
 \item omake locates that OMakeroot file, and reads it.
 \item Each OMakefile points to its subdirectory OMakefiles using the .SUBDIRS target.
@@ -99,7 +107,7 @@ restate it entirely).  The disadvantage of course is space, since this is global
 In practice rarely seems to be a concern; omake takes up much less space than your web browser even
 on large projects.
 
-Some notes to the power-GNU-make user.
+Some notes to the GNU/BSD make user.
 \begin{itemize}
 \item OMakefiles are a lot like Makefiles.  The syntax is similar, and there many of the builtin
 functions are similar.  However, the two build systems are not the same.  Some evil features (in the authors'
@@ -116,7 +124,7 @@ false rebuilds based on spurius timestamp changes and mismatches between local t
 time.
 \end{itemize}
 
-\subsection{OMakeroot vs. OMakefile}
+\section{OMakeroot vs. OMakefile}
 
 Before we begin with examples, let's ask the first question, ``What is the difference between the
 project root OMakeroot and OMakefile?''  A short answer is, there is no difference, but you must
@@ -134,7 +142,7 @@ step in your project root directory.
 
 This will create the initial OMakeroot and OMakefile files that you can edit to get started.
 
-\subsection{An example C project}
+\section{An example C project}
 
 To begin, let's start with a simple example.  Let's say that we have a full directory tree,
 containing the following files.
@@ -225,7 +233,7 @@ That is, it defines .SCANNER rules for C source files.
 Variables are inherited down the hierarchy, so for example, the value of CFLAGS in
 src/main/OMakefile is ``\verb+-g -O2+''.
 
-\subsection{An example OCaml project}
+\section{An example OCaml project}
 
 Let's repeat the example, assuming we are using OCaml instead of C.
 This time, the directory tree looks like this.
@@ -313,7 +321,8 @@ In this case, most of the configuration here is defined in the file \verb+build/
 particular configuration, files in \verb+my_project/src/lib+ are compiled aggressively with the
 option \verb+-inline 10+, but files in \verb+my_project/src/lib+ are compiled normally.
 
-\subsection{Handling new languages}
+\section{Handling new languages}
+\index{cats and dogs}
 
 The previous two examples seem to be easy enough, but they rely on the OMake standard library (the
 files \verb+build/C+ and \verb+build/OCaml+) to do all the work.  What happens if we want to write a
@@ -345,12 +354,12 @@ To define a build configuration, we have to do three things.
 
 Initially, these definitions will be placed in the project root \verb+OMakefile+.
 
-\subsubsection{Defining a default compilation rule}
+\subsection{Defining a default compilation rule}
 
 Let's start with part 2, defining a generic compilation rule.  We'll define the build rule as an
 \emph{implicit} rule.  To handle the include path, we'll define a variable \verb+CAT_INCLUDES+ that
 specifies the include path.  This will be an array of directories.  To define the options, we'll use
-a lazy variable (see \href{omake-language-examples.html#lazy}{Lazy Applications}).  In case there
+a lazy variable~\ref{section:lazy}.  In case there
 are any other standard flags, we'll define a \verb+CAT_FLAGS+ variable.
 
 \begin{verbatim}
@@ -375,7 +384,7 @@ The final part is the build rule itself, where we call the \verb+catc+ compiler 
 path, and the \verb+CAT_FLAGS+ that have been defined.  The \verb+$<+ variable represents the source
 file.
 
-\subsubsection{Defining a rule for linking}
+\subsection{Defining a rule for linking}
 
 For linking, we'll define another rule describing how to perform linking.  Instead of defining an
 implicit rule, we'll define a function that describes the linking step.  The function will take two
@@ -412,7 +421,8 @@ and the \verb+CatProgram+ function specifies how to build the executable.
     .DEFAULT: $(CatProgram rover, neko chat)
 \end{verbatim}
 
-\subsubsection{Dependency scanning}
+\subsection{Dependency scanning}
+\index{.SCANNER}
 
 That's it, almost.  The part we left out was automated dependency scanning.  This is one of the
 nicer features of OMake, and one that makes build specifications easier to write and more robust.
@@ -452,12 +462,12 @@ like the following.
     foo.o: fum.h
 \end{verbatim}
 
-Now, returning to the animal world, to compute the dependencies of \verb+neko.woof+, we should scan
-\verb+neko.cat+, line-by-line, looking for lines of the form \verb+open <name>+.  We could do this
-by writing a program, but it is easy enough to do it in \verb+omake+ itself.  We can use the builtin
-\verb+awk+ function to scan the source file.  One slight complication is that the dependencies
-depend on the \verb+INCLUDE+ path.  We'll use the \verb+find-in-path+ function to find them.  Here
-we go.
+\index{awk} Now, returning to the animal world, to compute the dependencies of \verb+neko.woof+, we
+should scan \verb+neko.cat+, line-by-line, looking for lines of the form \verb+open <name>+.  We
+could do this by writing a program, but it is easy enough to do it in \verb+omake+ itself.  We can
+use the builtin \verb+awk+~\ref{fun:awk} function to scan the source file.  One slight complication
+is that the dependencies depend on the \verb+INCLUDE+ path.  We'll use the
+\verb+find-in-path+~\ref{fun:find-in-path} function to find them.  Here we go.
 
 \begin{verbatim}
     .SCANNER: %.woof: %.cat
@@ -492,7 +502,7 @@ actual location of each file in the include path.
 The final step is print the result as the string \verb+$"$@: $(deps)"+ The quotations are added to
 flatten the \verb+deps+ array to a simple string.
 
-\subsubsection{Pulling it all together}
+\subsection{Pulling it all together}
 
 To complete the example, let's pull it all together into a single project, much like our previous
 example.
@@ -617,7 +627,7 @@ libraries and programs.
 These rules and functions are inherited by subdirectories, so the \verb+.SCANNER+ and build rules
 are used automatically in each subdirectory, so you don't need to repeat them.
 
-\subsubsection{Finishing up}
+\subsection{Finishing up}
 
 At this point we are done, but there are a few things we can consider.
 
@@ -631,7 +641,8 @@ the shared copy with an OMAke command \verb+open Cat+.  The share ddirectory sho
 Better yet, if you are happy with your work, consider submitting it as a standard configuration (by
 sending a request to \verb+omake@metaprl.org+) so that others can make use of it too.
 
-\subsection{Collapsing the hierarchy, .SUBDIRS bodies}
+\section{Collapsing the hierarchy, .SUBDIRS bodies}
+\index{.SUBDIRS bodies}
 
 Some projects have many subdirectories that all have the same configuration.  For instance, suppose
 you have a project with many subdirectories, each containing a set of images that are to be composed
@@ -667,13 +678,13 @@ of the subdirectories.  We can see this if we add a statement that prints the cu
     /home/jyh/.../page4
 \end{verbatim}
 
-\subsubsection{Using glob patterns}
+\subsection{Using glob patterns}
 
 Of course, this specification is quite rigid.  In practice, it is likely that each subdirectory will
 have a different set of images, and all should be included in the web page.  One of the easier
-solutions is to use one of the directory-listing functions, like \verb+glob+ or \verb+ls+.  The
-\verb+glob+ function takes a shell pattern, and returns an array of file with matching filenames in
-the current directory.
+solutions is to use one of the directory-listing functions, like \verb+glob+~\ref{fun:glob} or
+\verb+ls+~\ref{fun:ls}.  The \verb+glob+ function takes a shell pattern, and returns an array of
+file with matching filenames in the current directory.
 
 \begin{verbatim}
     .SUBDIRS: page1 page2 page3 page4
@@ -682,7 +693,7 @@ the current directory.
             genhtml $+ > $@
 \end{verbatim}
 
-\subsubsection{Simplified sub-configurations}
+\subsection{Simplified sub-configurations}
 
 Another option is to add a configuration file in each of the subdirectories that defines
 directory-specific information.  For this example, we might define a file \verb+BuildInfo.om+ in
@@ -710,7 +721,7 @@ Where we might have the following configurations.
        IMAGES[] = fee.jpg fi.jpg foo.jpg fum.jpg
 \end{verbatim}
 
-\subsubsection{Computing the subdirectory list}
+\subsection{Computing the subdirectory list}
 
 The other hardcoded specification is the list of subdirectories \verb+page1+, ..., \verb+page4+.
 Rather than editing the project \verb+OMakefile+ each time a directory is added, we could compute it
@@ -780,7 +791,7 @@ Returning to our original example, we modify it as follows.
             genhtml $+ > $@
 \end{verbatim}
 
-\subsubsection{Temporary directories}
+\subsection{Temporary directories}
 
 Sometimes, your project may include temporary directories--directories where you place intermediate
 results.  these deirectories are deleted whenever the project is cleanup up.  This means, in

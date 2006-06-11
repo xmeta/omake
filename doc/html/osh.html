@@ -1,110 +1,86 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<!-- Manual page created with latex2man --
--- Author of latex2man: Juergen.Vollmer@informatik-vollmer.de --
--- NOTE: This file is generated, DO NOT EDIT. -->
-<html>
-<head><title>OSH</title></head>
-<body bgcolor="white">
-<h1 align=center>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+
+
+
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META name="GENERATOR" content="hevea 1.08">
+<LINK rel="stylesheet" type="text/css" href="omake-doc.css">
+<TITLE>
 The OSH shell
-</h1>
-<h4 align=center>Jason Hickey <em>et. al.</em></h4>
-<h4 align=center>April 11, 2006</h4>
-<h4 align=center>Version 0.9.6.9</h4>
-<tt>osh</tt>
-is command interpreter based on the <em>omake</em>(1)
-build system.
-<h3>Table of Contents</h3>
-<ul>
-<li><a href="#section_1">The OSH shell </a>
-<ul>
-<li><a href="#section_2">Startup </a></li>
-<li><a href="#section_3">Aliases </a></li>
-<li><a href="#section_4">Interactive syntax </a></li>
-<li><a href="#section_5">See also </a></li>
-</ul>
-<li><a href="#section_6">References </a>
-<ul>
-<li><a href="#section_7">See Also </a></li>
-<li><a href="#section_8">Version </a></li>
-<li><a href="#section_9">License and Copyright </a></li>
-<li><a href="#section_10">Author </a></li>
-</ul>
-</li>
-</ul>
-<p>
-<h2><a name="section_1">The OSH shell</a></h2>
+</TITLE>
+</HEAD>
+<BODY >
+<A HREF="omake-rule.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-options.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<HR>
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
 
-<p>
-OMake also includes a standalone command-line interpreter <tt>osh</tt>
-that can be used as an
+<H1 CLASS="chapter"><A NAME="htoc123">Chapter&nbsp;12</A>&nbsp;&nbsp;The OSH shell</H1>
+<A NAME="chapter:osh"></A>
+<BR>
+<BR>
+OMake also includes a standalone command-line interpreter <TT>osh</TT> that can be used as an
 interactive shell. The shell uses the same syntax, and provides the same features on all platforms
-<tt>omake</tt>
-supports, including Win32.
-<p>
-<h4><a name="section_2">Startup</a></h4>
-
-<p>
-On startup, <tt>osh</tt>
-reads the file <tt>~/.oshrc</tt> if it exists. The syntax of this file is the
-same as an <tt>OMakefile</tt>.
-The following additional variables are significant.
-<p>
-<dl compact>
-<dt>prompt</dt>
-<dd> The <tt>prompt</tt> variable specifies the command-line prompt.
+<TT>omake</TT> supports, including Win32.<BR>
+<BR>
+<A NAME="toc78"></A>
+<H2 CLASS="section"><A NAME="htoc124">12.1</A>&nbsp;&nbsp;Startup</H2>
+On startup, <TT>osh</TT> reads the file <CODE>~/.oshrc</CODE> if it exists. The syntax of this file is the
+same as an <TT>OMakefile</TT>. The following additional variables are significant.<BR>
+<BR>
+<A NAME="@default368"></A><A NAME="@var86"></A><A NAME="var:prompt"></A>
+<H4 CLASS="subsubsection">prompt</H4> The <CODE>prompt</CODE> variable specifies the command-line prompt.
 It can be a simple string.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     prompt = osh&gt;
-</pre>
-<p>
+</PRE>
 Or you may choose to define it as a function of no arguments.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     prompt() =
         return $"&lt;$(USER):$(HOST) $(homename $(CWD))&gt;"
-</pre>
-<p>
+</PRE>
 An example of the latter prompt is as follows.
-<p>
-<pre>
+<PRE CLASS="verbatim">
     &lt;jyh:kenai.yapper.org ~&gt;cd links/omake
     &lt;jyh:kenai.yapper.org ~/links/omake&gt;
-</pre>
-<p>
-</dd>
-<dt>ignoreeof</dt>
-<dd>
-If the <tt>ignoreeof</tt> is <tt>true</tt>, then <tt>osh</tt> will not exit on
-a terminal end-of-file (usually <tt>^D</tt> on Unix systems).
-</dd>
-</dl>
-<p>
-<h4><a name="section_3">Aliases</a></h4>
-
-<p>
-Command aliases are defined by adding functions to the <tt>Shell.</tt> object. The following alias
-adds the <tt>-AF</tt> option to the <tt>ls</tt> command.
-<p>
-<pre>
+</PRE>
+<A NAME="@default369"></A><A NAME="@var87"></A><A NAME="var:ignoreeof"></A>
+<H4 CLASS="subsubsection">ignoreeof</H4>
+ If the <CODE>ignoreeof</CODE> is <CODE>true</CODE>, then <CODE>osh</CODE> will not exit on
+ a terminal end-of-file (usually <CODE>^D</CODE> on Unix systems).<BR>
+<BR>
+<A NAME="toc79"></A>
+<H2 CLASS="section"><A NAME="htoc125">12.2</A>&nbsp;&nbsp;Aliases</H2>
+<A NAME="@default370"></A>
+Command aliases are defined by adding functions to the <CODE>Shell.</CODE> object. The following alias
+adds the <CODE>-AF</CODE> option to the <CODE>ls</CODE> command.
+<PRE CLASS="verbatim">
     Shell. +=
        ls(argv) =
           "ls" -AF $(argv)
-</pre>
-<p>
-Quoted commands do not undergo alias expansion. The quotation <tt>"ls"</tt> prevents the alias from
-being recursive.
-<p>
-<h4><a name="section_4">Interactive syntax</a></h4>
-
-<p>
-The interactive syntax in <tt>osh</tt> is the same as the syntax of an <tt>OMakefile</tt>, with one
+</PRE>
+Quoted commands do not undergo alias expansion. The quotation <CODE>"ls"</CODE> prevents the alias from
+being recursive.<BR>
+<BR>
+<A NAME="toc80"></A>
+<H2 CLASS="section"><A NAME="htoc126">12.3</A>&nbsp;&nbsp;Interactive syntax</H2>
+The interactive syntax in <CODE>osh</CODE> is the same as the syntax of an <CODE>OMakefile</CODE>, with one
 exception in regard to indentation. The line before an indented block must have a colon at the end
-of the line. A block is terminated with a <tt>.</tt> on a line by itself, or <tt>^D</tt>. In the
-following example, the first line <tt>if true</tt> has no body, because there is no colon.
-<p>
-<pre>
+of the line. A block is terminated with a <CODE>.</CODE> on a line by itself, or <CODE>^D</CODE>. In the
+following example, the first line <CODE>if true</CODE> has no body, because there is no colon.
+<PRE CLASS="verbatim">
    # The following if has no body
    osh&gt;if true
    # The following if has a body
@@ -113,76 +89,25 @@ following example, the first line <tt>if true</tt> has no body, because there is
    if&gt;          println(Hello world)
    if&gt;          .
    Hello world
-</pre>
-<p>
-Note that <tt>osh</tt> makes some effort to modify the prompt while in an indented body, and it
-auto-indents the text.
-<p>
-The colon signifier is also allowed in files, although it is not required.
-<p>
-<h4><a name="section_5">See also</a></h4>
+</PRE>
+Note that <CODE>osh</CODE> makes some effort to modify the prompt while in an indented body, and it
+auto-indents the text.<BR>
+<BR>
+The colon signifier is also allowed in files, although it is not required.<BR>
+<BR>
 
-<p>
-See Section <a href="omake-shell.html">omake-shell</a>
-for more information on the shell language,
-and Section <a href="omake-system.html">omake-system</a>
-for more information on job control.
-<p>
-<h2><a name="section_6">References</a></h2>
-
-<p>
-<h4><a name="section_7">See Also</a></h4>
-
-<p>
-<a href="omake.html">omake(1)</a>,
-<a href="omake-quickstart.html">omake-quickstart(1)</a>,
-<a href="omake-options.html">omake-options(1)</a>,
-<a href="omake-root.html">omake-root(1)</a>,
-<a href="omake-language.html">omake-language(1)</a>,
-<a href="omake-shell.html">omake-shell(1)</a>,
-<a href="omake-rules.html">omake-rules(1)</a>,
-<a href="omake-base.html">omake-base(1)</a>,
-<a href="omake-system.html">omake-system(1)</a>,
-<a href="omake-pervasives.html">omake-pervasives(1)</a>,
-<a href="osh.html">osh(1)</a>,
-<em>make</em>(1)
-<p>
-<h4><a name="section_8">Version</a></h4>
-
-<p>
-Version: 0.9.6.9 of April 11, 2006.
-<p>
-<h4><a name="section_9">License and Copyright</a></h4>
-
-<p>
-&copy;2003-2006, Mojave Group, Caltech
-<p>
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-<p>
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-<p>
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-<p>
-<h4><a name="section_10">Author</a></h4>
-
-<p>
-Jason Hickey <em>et. al.</em><br>
-Caltech 256-80 <br>
-
-Pasadena, CA 91125, USA <br>
-
-Email: <a href ="mailto:omake-devel@metaprl.org"><tt>omake-devel@metaprl.org</tt></a>
-<br>
-WWW: <a href ="http://www.cs.caltech.edu/~jyh"><tt>http://www.cs.caltech.edu/~jyh</tt></a>
-<p>
-</body>
-</html>
-<!-- NOTE: This file is generated, DO NOT EDIT. -->
+<A HREF="http://omake.metaprl.org/">OMake Home</A>
+<A HREF="index.html">Table of contents</A>
+<A HREF="omake-index.html">Guide</A>
+<A HREF="omake-options.html">Options</A>
+<A HREF="omake-all-index.html">Index</A>
+<A HREF="omake-var-index.html">Variables</A>
+<A HREF="omake-fun-index.html">Functions</A>
+<A HREF="omake-obj-index.html">Objects</A>
+<A HREF="omake-target-index.html">Targets</A>
+<HR>
+<A HREF="omake-rule.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Up"></A>
+<A HREF="omake-options.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+</BODY>
+</HTML>

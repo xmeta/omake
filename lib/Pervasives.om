@@ -53,12 +53,16 @@ last(array) =
 ########################################################################
 # \begin{doc}
 #
-# \section{Pervasives}
+# \chapter{Pervasives}
+# \label{chapter:pervasives}
+# \cutname{omake-pervasives.html}
 #
 # \verb+Pervasives+ defines the objects that are defined in all
 # programs.  The following objects are defined.
 #
-# \subsection{Object}
+# \section{Pervasives objects}
+#
+# \obj{Object}
 #
 # Parent objects: none.
 #
@@ -139,7 +143,7 @@ extends $(Object)
 
 #
 # \begin{doc}
-# \subsection{Map}
+# \obj{Map}
 #
 # Parent objects: \verb+Object+.
 #
@@ -225,7 +229,7 @@ Map. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Number}
+# \obj{Number}
 #
 # Parent objects: \verb+Object+.
 #
@@ -239,7 +243,7 @@ Number. +=
 
 #
 # \begin{doc}
-# \subsection{Int}
+# \obj{Int}
 #
 # Parent objects: \verb+Number+.
 #
@@ -252,7 +256,7 @@ Int. +=
 
 #
 # \begin{doc}
-# \subsection{Float}
+# \obj{Float}
 #
 # Parent objects: \verb+Number+.
 #
@@ -265,7 +269,7 @@ Float. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Sequence}
+# \obj{Sequence}
 #
 # Parent objects: \verb+Object+.
 #
@@ -330,7 +334,7 @@ Sequence. +=
 
 #
 # \begin{doc}
-# \subsection{Array}
+# \obj{Array}
 #
 # Parent objects: \verb+Sequence+.
 #
@@ -350,7 +354,7 @@ Array. +=
 
 #
 # \begin{doc}
-# \subsection{String}
+# \obj{String}
 #
 # Parent objects: \verb+Array+.
 # \end{doc}
@@ -361,7 +365,7 @@ String. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Fun}
+# \obj{Fun}
 #
 # Parent objects: \verb+Object+.
 #
@@ -380,7 +384,7 @@ Fun. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Rule}
+# \obj{Rule}
 #
 # Parent objects: \verb+Object+.
 #
@@ -394,7 +398,7 @@ Rule. +=
 
 #
 # \begin{doc}
-# \subsection{Target}
+# \obj{Target}
 #
 # Parent object: \verb+Object+.
 #
@@ -455,7 +459,7 @@ Target. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Node}
+# \obj{Node}
 #
 # Parent objects: \verb+Object+.
 #
@@ -523,7 +527,7 @@ Node. +=
 
 #
 # \begin{doc}
-# \subsection{File}
+# \obj{File}
 #
 # Parent objects: \verb+Node+.
 #
@@ -536,7 +540,7 @@ File. +=
 
 #
 # \begin{doc}
-# \subsection{Dir}
+# \obj{Dir}
 #
 # Parent objects: \verb+Node+.
 #
@@ -549,7 +553,7 @@ Dir. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Channel}
+# \obj{Channel}
 #
 # Parent objects: \verb+Object+.
 #
@@ -576,7 +580,7 @@ Channel. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{InChannel}
+# \obj{InChannel}
 #
 # Parent objects: \verb+Channel+.
 #
@@ -606,7 +610,7 @@ InChannel. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{OutChannel}
+# \obj{OutChannel}
 #
 # Parent object: \verb+Channel+.
 #
@@ -670,7 +674,7 @@ OutChannel. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Location}
+# \obj{Location}
 #
 # Parent objects: \verb+Location+.
 #
@@ -683,7 +687,7 @@ Location. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Position}
+# \obj{Position}
 #
 # Parent objects: \verb+Position+.
 #
@@ -696,7 +700,7 @@ Position. +=
 
 ########################################################################
 # \begin{doc}
-# \subsection{Exception}
+# \obj{Exception}
 #
 # Parent objects: \verb+Object+.
 #
@@ -710,7 +714,7 @@ Exception. +=
 
 #
 # \begin{doc}
-# \subsection{RuntimeException}
+# \obj{RuntimeException}
 #
 # Parent objects: \verb+Exception+.
 #
@@ -750,7 +754,7 @@ Stat. +=
 # The shell object.
 #
 # \begin{doc}
-# \subsection{Shell}
+# \obj{Shell}
 #
 # Parent objects: \verb+Object+.
 #
@@ -995,11 +999,11 @@ Shell. +=
        # must be a directory, and the source files are copied
        # into the directory.
        #
-       # \begin{itemize}
+       # \begin{description}
        # \item[-f] Copy files forcibly, do not prompt.
        # \item[-i] Prompt before removing destination files.
        # \item[-v] Explain what is happening.
-       # \end{itemize}
+       # \end{description}
        # \end{doc}
        #
        cp = $(cp)
@@ -1019,12 +1023,12 @@ Shell. +=
        # they cannot be removed.
        #
        # Options:
-       # \begin{itemize}
+       # \begin{description}
        # \item[-f] Forcibly remove files, do not prompt.
        # \item[-i] Prompt before removal.
        # \item[-v] Explain what is happening.
        # \item[-r] Remove contents of directories recursively.
-       # \end{itemize}
+       # \end{description}
        # \end{doc}
        #
        rm = $(rm)
@@ -1045,11 +1049,11 @@ Shell. +=
        # See the man page for \verb+chmod+ for details.
        #
        # Options:
-       # \begin{itemize}
+       # \begin{description}
        # \item[-r] Change permissions of all files in a directory recursively.
        # \item[-v] Explain what is happening.
        # \item[-f] Continue on errors.
-       # \end{itemize}
+       # \end{description}
        # \end{doc}
        #
        chmod = $(chmod)

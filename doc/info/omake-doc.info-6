@@ -1,0 +1,959 @@
+This file has been translated from LaTeX by HeVeA.
+
+Node: Section B-3,	Next: Appendix C,	Prev: Section B-2,	Up: Appendix B
+  
+
+B.3   Dollar modifiers
+*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Inline applications have a function and zero-or-more arguments.
+Evaluation is normally strict: when an application is evaluated, the
+function identifier is evaluated to a function, the arguments are then
+evaluated and the function is called with the evaluated arguments.
+  The additional ``dollar'' sequences specify additional control over
+evaluation. The token `$`' defines a ``lazy'' application, where
+evaluation is delayed until a value is required. The `$,' sequence
+performs an ``eager'' application within a lazy context.
+  To illustrate, consider the expression `$(addsuffix .c, $(FILES))'.
+The `addsuffix' function appends its first argument to each value in its
+second argument. The following `osh' interaction demonstrates the normal
+bahavior.
+<<
+  osh> FILES[] = a b c
+  - : <array a b c>
+  osh> X = $(addsuffix .c, $(FILES))
+  - : <array ...>
+  osh> FILES[] = 1 2 3 # redefine FILES
+  - : <array 1 2 3>
+  osh> println($"$X")  # force the evaluation and print
+  a.c b.c c.c
+>>
+  
+  When the lazy operator `$`' is used instead, evaluation is delayed
+until it is printed. In the following sample, the value for `X' has
+changed to the `$(apply ..)' form, but otherwise the result is unchanged
+because it it printed immediately.
+<<
+  osh> FILES[] = a b c
+  - : <array a b c>
+  osh> SUF = .c
+  - : ".c"
+  osh> X = $`(addsuffix $(SUF), $(FILES))
+  - : $(apply global.addsuffix ...)
+  osh> println($"$X")  # force the evaluation and print
+  a.c b.c c.c
+>>
+  
+  However, consider what happens if we redefine the `FILES' variable
+after the definition for `X'. In the following sample, the result
+changes because evaluation occurs after the values for `FILES' has been
+redefined.
+<<
+  osh> FILES[] = a b c
+  - : <array a b c>
+  osh> SUF = .c
+  - : ".c"
+  osh> X = $`(addsuffix $(SUF), $(FILES))
+  - : $(apply global.addsuffix ...)
+  osh> SUF = .x
+  osh> FILES[] = 1 2 3
+  osh> println($"$X")  # force the evaluation and print
+  1.x 2.x 3.x
+>>
+  
+  In some cases, more explicit control is desired over evaluation. For
+example, we may wish to evaluate `SUF' early, but allow for changes to
+the `FILES' variable. The `$,(SUF)' expression forces early evaluation.
+<<
+  osh> FILES[] = a b c
+  - : <array a b c>
+  osh> SUF = .c
+  - : ".c"
+  osh> X = $`(addsuffix $,(SUF), $(FILES))
+  - : $(apply global.addsuffix ...)
+  osh> SUF = .x
+  osh> FILES[] = 1 2 3
+  osh> println($"$X")  # force the evaluation and print
+  1.c 2.c 3.c
+>>
+  
+
+Node: Appendix C,	Next: Appendix D,	Prev: Appendix B,	Up: Top
+  
+
+Appendix C     Index
+********************
+  
+  
+ - .DEFAULT, 6.9.1*Note Subsection 6-9-1:: 
+ - .INCLUDE, 6.9.3*Note Subsection 6-9-3:: 
+ - .SCANNER, 3.4.3*Note Subsection 3-4-3::, 6.6*Note Section 6-6:: 
+ - .SUBDIRS, 3*Note Chapter 3:: 
+ - .SUBDIRS bodies, 3.5*Note Section 3-5:: 
+ 
+ - :effects:, 6.5.2*Note Subsection 6-5-2:: 
+ - :exists:, 6.5.1*Note Subsection 6-5-1:: 
+ - :scanner:, 6.7*Note Section 6-7:: 
+ - :value:, 6.5.3*Note Subsection 6-5-3:: 
+ 
+ - ABORT_ON_COMMAND_ERROR, 11.5.1*Note Subsection 11-5-1:: 
+ - ABORT_ON_DEPENDENCY_ERRORS, 11.7.3*Note Subsection 11-7-3:: 
+ - AR, 11.6.1*Note Subsection 11-6-1:: 
+ - AROUT, 11.6.1*Note Subsection 11-6-1:: 
+ - Array, 10.1*Note Section 10-1:: 
+ - AS, 11.6.1*Note Subsection 11-6-1:: 
+ - ASFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ - absname, 8*Note Chapter 8:: 
+ - accept, 8.1.1*Note Subsection 8-1-1:: 
+ - add, 7.4.1*Note Subsection 7-4-1:: 
+ - add-project-directories, 8*Note Chapter 8:: 
+ - add-wrapper, 7.3*Note Section 7-3:: 
+ - addprefix, 7.3*Note Section 7-3:: 
+ - addsuffix, 7.3*Note Section 7-3:: 
+ - addsuffixes, 7.3*Note Section 7-3:: 
+ - aliases, 12.2*Note Section 12-2:: 
+ - and, 7.2*Note Section 7-2:: 
+ - apply, 7.5*Note Section 7-5:: 
+ - applya, 7.5*Note Section 7-5:: 
+ - array, 7.3*Note Section 7-3:: 
+ - arrays, 4.3*Note Section 4-3:: 
+ - asr, 7.4.1*Note Subsection 7-4-1:: 
+ - awk, 3.4.3*Note Subsection 3-4-3::, 8.4.1*Note Subsection 8-4-1:: 
+ 
+ - BIBTEX, 11.8.1*Note Subsection 11-8-1:: 
+ - BYTE_ENABLED, 11.7.1*Note Subsection 11-7-1:: 
+ - basename, 8*Note Chapter 8:: 
+ - bg, 9*Note Chapter 9:: 
+ - bind, 8.1.1*Note Subsection 8-1-1:: 
+ - build model, 3*Note Chapter 3:: 
+ 
+ - CAMLP4, 11.7.1*Note Subsection 11-7-1:: 
+ - CC, 11.6.1*Note Subsection 11-6-1:: 
+ - CFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ - CGeneratedFiles, 11.6.1*Note Subsection 11-6-1:: 
+ - Channel, 10.1*Note Section 10-1:: 
+ - CPP, 11.6.1*Note Subsection 11-6-1:: 
+ - CProgram, 11.6.1*Note Subsection 11-6-1:: 
+ - CProgramCopy, 11.6.1*Note Subsection 11-6-1:: 
+ - CProgramInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - CWD, 11.5.1*Note Subsection 11-5-1:: 
+ - CXX, 11.6.1*Note Subsection 11-6-1:: 
+ - CXXFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ - CXXProgram, 11.6.1*Note Subsection 11-6-1:: 
+ - CXXProgramInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - capitalize, 7.3*Note Section 7-3:: 
+ - cat, 8.4.1*Note Subsection 8-4-1:: 
+ - cats and dogs, 3.4*Note Section 3-4:: 
+ - cd, 9*Note Chapter 9:: 
+ - chmod, 8*Note Chapter 8:: 
+ - chown, 8*Note Chapter 8:: 
+ - classes, 4.12*Note Section 4-12:: 
+ - close, 8.1.1*Note Subsection 8-1-1:: 
+ - concat, 7.3*Note Section 7-3:: 
+ - conditionals, 4.9*Note Section 4-9:: 
+ - connect, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - DIRSEP, 11.5.2*Note Subsection 11-5-2:: 
+ - Dir, 10.1*Note Section 10-1:: 
+ - DVIPDFM, 11.8.1*Note Subsection 11-8-1:: 
+ - DVIPDFMFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - DVIPS, 11.8.1*Note Subsection 11-8-1:: 
+ - DVIPSFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - defined, 7.2*Note Section 7-2:: 
+ - defined-env, 7.2*Note Section 7-2:: 
+ - dependencies, 11.9*Note Section 11-9:: 
+ - dependencies-all, 11.9*Note Section 11-9:: 
+ - digest, 8*Note Chapter 8:: 
+ - digest-path, 8*Note Chapter 8:: 
+ - dir, 8*Note Chapter 8:: 
+ - dirof, 8*Note Chapter 8:: 
+ - div, 7.4.1*Note Subsection 7-4-1:: 
+ - dup, 8.1.1*Note Subsection 8-1-1:: 
+ - dup2, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - EMPTY, 11.5.1*Note Subsection 11-5-1:: 
+ - EXE, 11.5.2*Note Subsection 11-5-2:: 
+ - EXT_ASM, 11.5.2*Note Subsection 11-5-2:: 
+ - EXT_LIB, 11.5.2*Note Subsection 11-5-2:: 
+ - EXT_OBJ, 11.5.2*Note Subsection 11-5-2:: 
+ - Exception, 10.1*Note Section 10-1:: 
+ - echo, 9*Note Chapter 9:: 
+ - eprint, 8.2*Note Section 8-2:: 
+ - eprintln, 8.2*Note Section 8-2:: 
+ - eprintv, 8.3*Note Section 8-3:: 
+ - eprintvln, 8.3*Note Section 8-3:: 
+ - eq, 7.4.2*Note Subsection 7-4-2:: 
+ - equal, 7.2*Note Section 7-2:: 
+ - exists-in-path, 8*Note Chapter 8:: 
+ - exit, 7.2*Note Section 7-2:: 
+ 
+ - File, 10.1*Note Section 10-1:: 
+ - Float, 10.1*Note Section 10-1:: 
+ - Fun, 10.1*Note Section 10-1:: 
+ - fg, 9*Note Chapter 9:: 
+ - fgets, 8.1.1*Note Subsection 8-1-1:: 
+ - file, 8*Note Chapter 8:: 
+ - file-check-sort, 8*Note Chapter 8:: 
+ - file-exists, 8*Note Chapter 8:: 
+ - file-sort, 8*Note Chapter 8:: 
+ - filter, 7.3*Note Section 7-3:: 
+ - filter-exists, 8*Note Chapter 8:: 
+ - filter-out, 7.3*Note Section 7-3:: 
+ - filter-proper-targets, 8*Note Chapter 8:: 
+ - filter-targets, 8*Note Chapter 8:: 
+ - find-in-path, 8*Note Chapter 8:: 
+ - float, 7.4*Note Section 7-4:: 
+ - flush, 8.1.1*Note Subsection 8-1-1:: 
+ - fopen, 8.1.1*Note Subsection 8-1-1:: 
+ - foreach, 7.6*Note Section 7-6:: 
+ - fprint, 8.2*Note Section 8-2:: 
+ - fprintln, 8.2*Note Section 8-2:: 
+ - fprintv, 8.3*Note Section 8-3:: 
+ - fprintvln, 8.3*Note Section 8-3:: 
+ - fsubst, 8.4.1*Note Subsection 8-4-1:: 
+ - fullname, 8*Note Chapter 8:: 
+ - fun, 7.5*Note Section 7-5:: 
+ - functions, 4.5*Note Section 4-5:: 
+ 
+ - ge, 7.4.2*Note Subsection 7-4-2:: 
+ - get-registry, 7.2*Note Section 7-2:: 
+ - getchar, 8.1.1*Note Subsection 8-1-1:: 
+ - getenv, 7.2*Note Section 7-2:: 
+ - gethostbyname, 8.1.1*Note Subsection 8-1-1:: 
+ - getprotobyname, 8.1.1*Note Subsection 8-1-1:: 
+ - gets, 8.1.1*Note Subsection 8-1-1:: 
+ - getservbyname, 8.1.1*Note Subsection 8-1-1:: 
+ - gettimeofday, 8.4.8*Note Subsection 8-4-8:: 
+ - getvar, 7.2*Note Section 7-2:: 
+ - glob, 8*Note Chapter 8:: 
+ - grep, 8.4.1*Note Subsection 8-4-1:: 
+ - gt, 7.4.2*Note Subsection 7-4-2:: 
+ 
+ - HOME, 7.1*Note Section 7-1:: 
+ - HOST, 7.1*Note Section 7-1:: 
+ - Host, 8.1.1*Note Subsection 8-1-1:: 
+ - history, 9*Note Chapter 9:: 
+ - homename, 8*Note Chapter 8:: 
+ - html-string, 7.3*Note Section 7-3:: 
+ 
+ - INCLUDES, 11.6.1*Note Subsection 11-6-1:: 
+ - INSTALL, 11.5.2*Note Subsection 11-5-2:: 
+ - InChannel, 10.1*Note Section 10-1:: 
+ - InetAddr, 8.1.1*Note Subsection 8-1-1:: 
+ - Int, 10.1*Note Section 10-1:: 
+ - if, 4.9*Note Section 4-9::, 7.2*Note Section 7-2:: 
+ - ignoreeof, 12.1*Note Section 12-1:: 
+ - in, 8*Note Chapter 8:: 
+ - include, 4.7*Note Section 4-7:: 
+ - inheritance, 4.13*Note Section 4-13:: 
+ - int, 7.4*Note Section 7-4:: 
+ - intersection, 7.3*Note Section 7-3:: 
+ - intersects, 7.3*Note Section 7-3:: 
+ 
+ - jobs, 9*Note Chapter 9:: 
+ 
+ - kill, 9*Note Chapter 9:: 
+ 
+ - LATEX, 11.8.1*Note Subsection 11-8-1:: 
+ - LATEXFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - LaTeXDocument, 11.8.1*Note Subsection 11-8-1:: 
+ - LaTeXDocumentCopy, 11.8.1*Note Subsection 11-8-1:: 
+ - LaTeXDocumentInstall, 11.8.1*Note Subsection 11-8-1:: 
+ - LD, 11.6.1*Note Subsection 11-6-1:: 
+ - LDFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ - LEX, 11.6.1*Note Subsection 11-6-1:: 
+ - Lexer, 8.4.1*Note Subsection 8-4-1:: 
+ - LIBS, 11.6.1*Note Subsection 11-6-1:: 
+ - LocalCGeneratedFiles, 11.6.1*Note Subsection 11-6-1:: 
+ - LocalOCamlGeneratedFiles, 11.7.3*Note Subsection 11-7-3:: 
+ - LocalTeXGeneratedFiles, 11.8.1*Note Subsection 11-8-1:: 
+ - Location, 10.1*Note Section 10-1:: 
+ - land, 7.4.1*Note Subsection 7-4-1:: 
+ - le, 7.4.2*Note Subsection 7-4-2:: 
+ - length, 7.3*Note Section 7-3:: 
+ - link, 8*Note Chapter 8:: 
+ - link-order sorting, 8*Note Chapter 8:: 
+ - listen, 8.1.1*Note Subsection 8-1-1:: 
+ - lnot, 7.4.1*Note Subsection 7-4-1:: 
+ - lockf, 8.1.1*Note Subsection 8-1-1:: 
+ - lor, 7.4.1*Note Subsection 7-4-1:: 
+ - lowercase, 7.3*Note Section 7-3:: 
+ - ls, 8*Note Chapter 8:: 
+ - lseek, 8.1.1*Note Subsection 8-1-1:: 
+ - lsl, 7.4.1*Note Subsection 7-4-1:: 
+ - lsr, 7.4.1*Note Subsection 7-4-1:: 
+ - lt, 7.4.2*Note Subsection 7-4-2:: 
+ - lxor, 7.4.1*Note Subsection 7-4-1:: 
+ 
+ - MACHINE, 7.1*Note Section 7-1:: 
+ - MAKEINDEX, 11.8.1*Note Subsection 11-8-1:: 
+ - Map, 10.1*Note Section 10-1:: 
+ - mapprefix, 7.3*Note Section 7-3:: 
+ - mapsuffix, 7.3*Note Section 7-3:: 
+ - match, 4.10*Note Section 4-10::, 7.2*Note Section 7-2:: 
+ - mem, 7.3*Note Section 7-3:: 
+ - mkdir, 8*Note Chapter 8:: 
+ - mkfifo, 8.1.1*Note Subsection 8-1-1:: 
+ - mod, 7.4.1*Note Subsection 7-4-1:: 
+ - mul, 7.4.1*Note Subsection 7-4-1:: 
+ 
+ - NATIVE_ENABLED, 11.7.1*Note Subsection 11-7-1:: 
+ - NODENAME, 7.1*Note Section 7-1:: 
+ - Node, 10.1*Note Section 10-1:: 
+ - Number, 10.1*Note Section 10-1:: 
+ - neg, 7.4.1*Note Subsection 7-4-1:: 
+ - not, 7.2*Note Section 7-2:: 
+ - nth, 7.3*Note Section 7-3:: 
+ - nth-hd, 7.3*Note Section 7-3:: 
+ - nth-tl, 7.3*Note Section 7-3:: 
+ 
+ - Object, 10.1*Note Section 10-1:: 
+ - OCAML_BYTE_LINK_FLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAML_CLIBS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAML_LIB_FLAGS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAML_LIBS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAML_LINK_FLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAML_NATIVE_LINK_FLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAML_OTHER_LIBS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAMLC, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLCFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLDEP, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLDEPFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLFIND, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLFINDFLAGS, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLINCLUDES, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLLEX, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLLEXFLAGS, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLLINK, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLMKTOP, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLOPT, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLOPTFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLOPTLINK, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLPACKS, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLPPFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLYACC, 11.7.1*Note Subsection 11-7-1:: 
+ - OCamlGeneratedFiles, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlLibrary, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlLibraryCopy, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlLibraryInstall, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlPackage, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlProgram, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlProgramCopy, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlProgramInstall, 11.7.3*Note Subsection 11-7-3:: 
+ - OMAKE_VERSION, 7.1*Note Section 7-1:: 
+ - OMakefile, 2.7*Note Section 2-7::, 3*Note Chapter 3:: 
+ - OMakeroot, 2.7*Note Section 2-7::, 3*Note Chapter 3::,
+   11.5*Note Section 11-5:: 
+ - OS_VERSION, 7.1*Note Section 7-1:: 
+ - OSTYPE, 7.1*Note Section 7-1:: 
+ - OutChannel, 10.1*Note Section 10-1:: 
+ - objects, 4.11*Note Section 4-11:: 
+ - or, 7.2*Note Section 7-2:: 
+ 
+ - PATHSEP, 11.5.2*Note Subsection 11-5-2:: 
+ - PDFLATEX, 11.8.1*Note Subsection 11-8-1:: 
+ - PDFLATEXFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - PID, 7.1*Note Section 7-1:: 
+ - Position, 10.1*Note Section 10-1:: 
+ - Protocol, 8.1.1*Note Subsection 8-1-1:: 
+ - pipe, 8.1.1*Note Subsection 8-1-1:: 
+ - print, 8.2*Note Section 8-2:: 
+ - println, 8.2*Note Section 8-2:: 
+ - printv, 8.3*Note Section 8-3:: 
+ - printvln, 8.3*Note Section 8-3:: 
+ - private., 4.15*Note Section 4-15:: 
+ - prompt, 12.1*Note Section 12-1:: 
+ - protected., 4.16*Note Section 4-16:: 
+ - public., 4.17*Note Section 4-17:: 
+ 
+ - quotations, 4.4*Note Section 4-4:: 
+ - quote, 7.3*Note Section 7-3:: 
+ - quote-argv, 7.3*Note Section 7-3:: 
+ 
+ - ROOT, 11.5.1*Note Subsection 11-5-1:: 
+ - Rule, 10.1*Note Section 10-1:: 
+ - RuntimeException, 10.1*Note Section 10-1:: 
+ - raise, 7.2*Note Section 7-2:: 
+ - read, 8.1.1*Note Subsection 8-1-1:: 
+ - readlink, 8*Note Chapter 8:: 
+ - regular expressions, 8.4.1*Note Subsection 8-4-1:: 
+ - rehash, 8*Note Chapter 8:: 
+ - remove-project-directories, 8*Note Chapter 8:: 
+ - removeprefix, 7.3*Note Section 7-3:: 
+ - removesuffix, 7.3*Note Section 7-3:: 
+ - rename, 8*Note Chapter 8:: 
+ - replacesuffixes, 7.3*Note Section 7-3:: 
+ - rev, 7.3*Note Section 7-3:: 
+ - rewind, 8.1.1*Note Subsection 8-1-1:: 
+ - rootname, 8*Note Chapter 8:: 
+ - rule, 11.9*Note Section 11-9:: 
+ - rule, options, 6.5*Note Section 6-5:: 
+ - rule, scoping, 6.10*Note Section 6-10:: 
+ - rules, bounded implicit, 6.2*Note Section 6-2:: 
+ - rules, implicit, 6.1*Note Section 6-1:: 
+ 
+ - SCANNER_MODE, 11.5.1*Note Subsection 11-5-1:: 
+ - Sequence, 10.1*Note Section 10-1:: 
+ - Service, 8.1.1*Note Subsection 8-1-1:: 
+ - Shell, 10.1*Note Section 10-1:: 
+ - STDROOT, 11.5.1*Note Subsection 11-5-1:: 
+ - Stat, 8*Note Chapter 8:: 
+ - StaticCLibrary, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCLibraryCopy, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCLibraryInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCObject, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCObjectCopy, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCObjectInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - String, 10.1*Note Section 10-1:: 
+ - SYSNAME, 7.1*Note Section 7-1:: 
+ - scan, 8.4.1*Note Subsection 8-4-1:: 
+ - section, 4.8*Note Section 4-8::, 6.3*Note Section 6-3:: 
+ - section rule, 6.4*Note Section 6-4:: 
+ - select, 8.1.1*Note Subsection 8-1-1:: 
+ - set, 7.3*Note Section 7-3:: 
+ - set-close-on-exec-mode, 8.1.1*Note Subsection 8-1-1:: 
+ - set-diff, 7.3*Note Section 7-3:: 
+ - set-nonblock, 8.1.1*Note Subsection 8-1-1:: 
+ - setenv, 7.2*Note Section 7-2:: 
+ - setvar, 7.2*Note Section 7-2:: 
+ - shell, 7.3*Note Section 7-3:: 
+ - socket, 8.1.1*Note Subsection 8-1-1:: 
+ - sorting (link-order), 8*Note Chapter 8:: 
+ - split, 7.3*Note Section 7-3:: 
+ - stat, 8*Note Chapter 8:: 
+ - stat-reset, 8*Note Chapter 8:: 
+ - static., 4.18*Note Section 4-18:: 
+ - stderr, 8.1.1*Note Subsection 8-1-1:: 
+ - stdin, 8.1.1*Note Subsection 8-1-1:: 
+ - stdout, 8.1.1*Note Subsection 8-1-1:: 
+ - stop, 9*Note Chapter 9:: 
+ - string, 7.3*Note Section 7-3:: 
+ - sub, 7.4.1*Note Subsection 7-4-1:: 
+ - subdirs, 8*Note Chapter 8:: 
+ - subrange, 7.3*Note Section 7-3:: 
+ - suffix, 8*Note Chapter 8:: 
+ - switch, 4.10*Note Section 4-10::, 7.2*Note Section 7-2:: 
+ - symlink, 8*Note Chapter 8:: 
+ - system, 7.3*Note Section 7-3:: 
+ 
+ - Target, 10.1*Note Section 10-1:: 
+ - TETEX2_ENABLED, 11.8.1*Note Subsection 11-8-1:: 
+ - TEXDEPS, 11.8.1*Note Subsection 11-8-1:: 
+ - TEXINPUTS, 11.8.1*Note Subsection 11-8-1:: 
+ - TeXGeneratedFiles, 11.8.1*Note Subsection 11-8-1:: 
+ - target, 11.9*Note Section 11-9:: 
+ - target-exists, 8*Note Chapter 8:: 
+ - target-is-proper, 8*Note Chapter 8:: 
+ - tell, 8.1.1*Note Subsection 8-1-1:: 
+ - test, 8*Note Chapter 8:: 
+ - tmpfile, 8*Note Chapter 8:: 
+ - try, 7.2*Note Section 7-2:: 
+ 
+ - USE_OCAMLFIND, 11.7.1*Note Subsection 11-7-1:: 
+ - USEPDFLATEX, 11.8.1*Note Subsection 11-8-1:: 
+ - USER, 7.1*Note Section 7-1:: 
+ - uge, 7.4.2*Note Subsection 7-4-2:: 
+ - ugt, 7.4.2*Note Subsection 7-4-2:: 
+ - ule, 7.4.2*Note Subsection 7-4-2:: 
+ - ult, 7.4.2*Note Subsection 7-4-2:: 
+ - umask, 8*Note Chapter 8:: 
+ - uncapitalize, 7.3*Note Section 7-3:: 
+ - unlink, 8*Note Chapter 8:: 
+ - uppercase, 7.3*Note Section 7-3:: 
+ 
+ - VERBOSE, 11.5.1*Note Subsection 11-5-1:: 
+ - vmount, 2.8*Note Section 2-8::, 8*Note Chapter 8:: 
+ 
+ - wait, 9*Note Chapter 9:: 
+ - where, 8*Note Chapter 8:: 
+ - which, 8*Note Chapter 8:: 
+ - while, 7.3*Note Section 7-3:: 
+ - write, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - YACC, 11.6.1*Note Subsection 11-6-1:: 
+     
+
+Node: Appendix D,	Next: Appendix E,	Prev: Appendix C,	Up: Top
+  
+
+Appendix D     Index of variables
+*********************************
+  
+  
+ - ABORT_ON_COMMAND_ERROR, 11.5.1*Note Subsection 11-5-1:: 
+ - ABORT_ON_DEPENDENCY_ERRORS, 11.7.3*Note Subsection 11-7-3:: 
+ - AR, 11.6.1*Note Subsection 11-6-1:: 
+ - AROUT, 11.6.1*Note Subsection 11-6-1:: 
+ - AS, 11.6.1*Note Subsection 11-6-1:: 
+ - ASFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ 
+ - BIBTEX, 11.8.1*Note Subsection 11-8-1:: 
+ - BYTE_ENABLED, 11.7.1*Note Subsection 11-7-1:: 
+ 
+ - CAMLP4, 11.7.1*Note Subsection 11-7-1:: 
+ - CC, 11.6.1*Note Subsection 11-6-1:: 
+ - CFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ - CPP, 11.6.1*Note Subsection 11-6-1:: 
+ - CWD, 11.5.1*Note Subsection 11-5-1:: 
+ - CXX, 11.6.1*Note Subsection 11-6-1:: 
+ - CXXFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ 
+ - DIRSEP, 11.5.2*Note Subsection 11-5-2:: 
+ - DVIPDFM, 11.8.1*Note Subsection 11-8-1:: 
+ - DVIPDFMFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - DVIPS, 11.8.1*Note Subsection 11-8-1:: 
+ - DVIPSFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ 
+ - EMPTY, 11.5.1*Note Subsection 11-5-1:: 
+ - EXE, 11.5.2*Note Subsection 11-5-2:: 
+ - EXT_ASM, 11.5.2*Note Subsection 11-5-2:: 
+ - EXT_LIB, 11.5.2*Note Subsection 11-5-2:: 
+ - EXT_OBJ, 11.5.2*Note Subsection 11-5-2:: 
+ 
+ - HOME, 7.1*Note Section 7-1:: 
+ - HOST, 7.1*Note Section 7-1:: 
+ 
+ - INCLUDES, 11.6.1*Note Subsection 11-6-1:: 
+ - INSTALL, 11.5.2*Note Subsection 11-5-2:: 
+ - ignoreeof, 12.1*Note Section 12-1:: 
+ 
+ - LATEX, 11.8.1*Note Subsection 11-8-1:: 
+ - LATEXFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - LD, 11.6.1*Note Subsection 11-6-1:: 
+ - LDFLAGS, 11.6.1*Note Subsection 11-6-1:: 
+ - LEX, 11.6.1*Note Subsection 11-6-1:: 
+ - LIBS, 11.6.1*Note Subsection 11-6-1:: 
+ 
+ - MACHINE, 7.1*Note Section 7-1:: 
+ - MAKEINDEX, 11.8.1*Note Subsection 11-8-1:: 
+ 
+ - NATIVE_ENABLED, 11.7.1*Note Subsection 11-7-1:: 
+ - NODENAME, 7.1*Note Section 7-1:: 
+ 
+ - OCAML_BYTE_LINK_FLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAML_CLIBS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAML_LIB_FLAGS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAML_LIBS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAML_LINK_FLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAML_NATIVE_LINK_FLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAML_OTHER_LIBS, 11.7.3*Note Subsection 11-7-3:: 
+ - OCAMLC, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLCFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLDEP, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLDEPFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLFIND, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLFINDFLAGS, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLINCLUDES, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLLEX, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLLEXFLAGS, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLLINK, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLMKTOP, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLOPT, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLOPTFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLOPTLINK, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLPACKS, 11.7.1*Note Subsection 11-7-1:: 
+ - OCAMLPPFLAGS, 11.7.2*Note Subsection 11-7-2:: 
+ - OCAMLYACC, 11.7.1*Note Subsection 11-7-1:: 
+ - OMAKE_VERSION, 7.1*Note Section 7-1:: 
+ - OS_VERSION, 7.1*Note Section 7-1:: 
+ - OSTYPE, 7.1*Note Section 7-1:: 
+ 
+ - PATHSEP, 11.5.2*Note Subsection 11-5-2:: 
+ - PDFLATEX, 11.8.1*Note Subsection 11-8-1:: 
+ - PDFLATEXFLAGS, 11.8.1*Note Subsection 11-8-1:: 
+ - PID, 7.1*Note Section 7-1:: 
+ - prompt, 12.1*Note Section 12-1:: 
+ 
+ - ROOT, 11.5.1*Note Subsection 11-5-1:: 
+ 
+ - SCANNER_MODE, 11.5.1*Note Subsection 11-5-1:: 
+ - STDROOT, 11.5.1*Note Subsection 11-5-1:: 
+ - SYSNAME, 7.1*Note Section 7-1:: 
+ - stderr, 8.1.1*Note Subsection 8-1-1:: 
+ - stdin, 8.1.1*Note Subsection 8-1-1:: 
+ - stdout, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - TETEX2_ENABLED, 11.8.1*Note Subsection 11-8-1:: 
+ - TEXDEPS, 11.8.1*Note Subsection 11-8-1:: 
+ - TEXINPUTS, 11.8.1*Note Subsection 11-8-1:: 
+ 
+ - USE_OCAMLFIND, 11.7.1*Note Subsection 11-7-1:: 
+ - USEPDFLATEX, 11.8.1*Note Subsection 11-8-1:: 
+ - USER, 7.1*Note Section 7-1:: 
+ 
+ - VERBOSE, 11.5.1*Note Subsection 11-5-1:: 
+ 
+ - YACC, 11.6.1*Note Subsection 11-6-1:: 
+     
+
+Node: Appendix E,	Next: Appendix F,	Prev: Appendix D,	Up: Top
+  
+
+Appendix E     Index of functions and special forms
+***************************************************
+  
+  
+ - absname, 8*Note Chapter 8:: 
+ - accept, 8.1.1*Note Subsection 8-1-1:: 
+ - add, 7.4.1*Note Subsection 7-4-1:: 
+ - add-project-directories, 8*Note Chapter 8:: 
+ - add-wrapper, 7.3*Note Section 7-3:: 
+ - addprefix, 7.3*Note Section 7-3:: 
+ - addsuffix, 7.3*Note Section 7-3:: 
+ - addsuffixes, 7.3*Note Section 7-3:: 
+ - and, 7.2*Note Section 7-2:: 
+ - apply, 7.5*Note Section 7-5:: 
+ - applya, 7.5*Note Section 7-5:: 
+ - array, 7.3*Note Section 7-3:: 
+ - asr, 7.4.1*Note Subsection 7-4-1:: 
+ - awk, 8.4.1*Note Subsection 8-4-1:: 
+ 
+ - basename, 8*Note Chapter 8:: 
+ - bg, 9*Note Chapter 9:: 
+ - bind, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - CGeneratedFiles, 11.6.1*Note Subsection 11-6-1:: 
+ - CProgram, 11.6.1*Note Subsection 11-6-1:: 
+ - CProgramCopy, 11.6.1*Note Subsection 11-6-1:: 
+ - CProgramInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - CXXProgram, 11.6.1*Note Subsection 11-6-1:: 
+ - CXXProgramInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - capitalize, 7.3*Note Section 7-3:: 
+ - cat, 8.4.1*Note Subsection 8-4-1:: 
+ - cd, 9*Note Chapter 9:: 
+ - chmod, 8*Note Chapter 8:: 
+ - chown, 8*Note Chapter 8:: 
+ - close, 8.1.1*Note Subsection 8-1-1:: 
+ - concat, 7.3*Note Section 7-3:: 
+ - connect, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - defined, 7.2*Note Section 7-2:: 
+ - defined-env, 7.2*Note Section 7-2:: 
+ - dependencies, 11.9*Note Section 11-9:: 
+ - dependencies-all, 11.9*Note Section 11-9:: 
+ - digest, 8*Note Chapter 8:: 
+ - digest-path, 8*Note Chapter 8:: 
+ - dir, 8*Note Chapter 8:: 
+ - dirof, 8*Note Chapter 8:: 
+ - div, 7.4.1*Note Subsection 7-4-1:: 
+ - dup, 8.1.1*Note Subsection 8-1-1:: 
+ - dup2, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - echo, 9*Note Chapter 9:: 
+ - eprint, 8.2*Note Section 8-2:: 
+ - eprintln, 8.2*Note Section 8-2:: 
+ - eprintv, 8.3*Note Section 8-3:: 
+ - eprintvln, 8.3*Note Section 8-3:: 
+ - eq, 7.4.2*Note Subsection 7-4-2:: 
+ - equal, 7.2*Note Section 7-2:: 
+ - exists-in-path, 8*Note Chapter 8:: 
+ - exit, 7.2*Note Section 7-2:: 
+ 
+ - fg, 9*Note Chapter 9:: 
+ - fgets, 8.1.1*Note Subsection 8-1-1:: 
+ - file, 8*Note Chapter 8:: 
+ - file-check-sort, 8*Note Chapter 8:: 
+ - file-exists, 8*Note Chapter 8:: 
+ - file-sort, 8*Note Chapter 8:: 
+ - filter, 7.3*Note Section 7-3:: 
+ - filter-exists, 8*Note Chapter 8:: 
+ - filter-out, 7.3*Note Section 7-3:: 
+ - filter-proper-targets, 8*Note Chapter 8:: 
+ - filter-targets, 8*Note Chapter 8:: 
+ - find-in-path, 8*Note Chapter 8:: 
+ - float, 7.4*Note Section 7-4:: 
+ - flush, 8.1.1*Note Subsection 8-1-1:: 
+ - fopen, 8.1.1*Note Subsection 8-1-1:: 
+ - foreach, 7.6*Note Section 7-6:: 
+ - fprint, 8.2*Note Section 8-2:: 
+ - fprintln, 8.2*Note Section 8-2:: 
+ - fprintv, 8.3*Note Section 8-3:: 
+ - fprintvln, 8.3*Note Section 8-3:: 
+ - fsubst, 8.4.1*Note Subsection 8-4-1:: 
+ - fullname, 8*Note Chapter 8:: 
+ - fun, 7.5*Note Section 7-5:: 
+ 
+ - ge, 7.4.2*Note Subsection 7-4-2:: 
+ - get-registry, 7.2*Note Section 7-2:: 
+ - getchar, 8.1.1*Note Subsection 8-1-1:: 
+ - getenv, 7.2*Note Section 7-2:: 
+ - gethostbyname, 8.1.1*Note Subsection 8-1-1:: 
+ - getprotobyname, 8.1.1*Note Subsection 8-1-1:: 
+ - gets, 8.1.1*Note Subsection 8-1-1:: 
+ - getservbyname, 8.1.1*Note Subsection 8-1-1:: 
+ - gettimeofday, 8.4.8*Note Subsection 8-4-8:: 
+ - getvar, 7.2*Note Section 7-2:: 
+ - glob, 8*Note Chapter 8:: 
+ - grep, 8.4.1*Note Subsection 8-4-1:: 
+ - gt, 7.4.2*Note Subsection 7-4-2:: 
+ 
+ - history, 9*Note Chapter 9:: 
+ - homename, 8*Note Chapter 8:: 
+ - html-string, 7.3*Note Section 7-3:: 
+ 
+ - if, 7.2*Note Section 7-2:: 
+ - in, 8*Note Chapter 8:: 
+ - include, 4.7*Note Section 4-7:: 
+ - int, 7.4*Note Section 7-4:: 
+ - intersection, 7.3*Note Section 7-3:: 
+ - intersects, 7.3*Note Section 7-3:: 
+ 
+ - jobs, 9*Note Chapter 9:: 
+ 
+ - kill, 9*Note Chapter 9:: 
+ 
+ - LaTeXDocument, 11.8.1*Note Subsection 11-8-1:: 
+ - LaTeXDocumentCopy, 11.8.1*Note Subsection 11-8-1:: 
+ - LaTeXDocumentInstall, 11.8.1*Note Subsection 11-8-1:: 
+ - LocalCGeneratedFiles, 11.6.1*Note Subsection 11-6-1:: 
+ - LocalOCamlGeneratedFiles, 11.7.3*Note Subsection 11-7-3:: 
+ - LocalTeXGeneratedFiles, 11.8.1*Note Subsection 11-8-1:: 
+ - land, 7.4.1*Note Subsection 7-4-1:: 
+ - le, 7.4.2*Note Subsection 7-4-2:: 
+ - length, 7.3*Note Section 7-3:: 
+ - link, 8*Note Chapter 8:: 
+ - listen, 8.1.1*Note Subsection 8-1-1:: 
+ - lnot, 7.4.1*Note Subsection 7-4-1:: 
+ - lockf, 8.1.1*Note Subsection 8-1-1:: 
+ - lor, 7.4.1*Note Subsection 7-4-1:: 
+ - lowercase, 7.3*Note Section 7-3:: 
+ - ls, 8*Note Chapter 8:: 
+ - lseek, 8.1.1*Note Subsection 8-1-1:: 
+ - lsl, 7.4.1*Note Subsection 7-4-1:: 
+ - lsr, 7.4.1*Note Subsection 7-4-1:: 
+ - lt, 7.4.2*Note Subsection 7-4-2:: 
+ - lxor, 7.4.1*Note Subsection 7-4-1:: 
+ 
+ - mapprefix, 7.3*Note Section 7-3:: 
+ - mapsuffix, 7.3*Note Section 7-3:: 
+ - match, 4.10*Note Section 4-10::, 7.2*Note Section 7-2:: 
+ - mem, 7.3*Note Section 7-3:: 
+ - mkdir, 8*Note Chapter 8:: 
+ - mkfifo, 8.1.1*Note Subsection 8-1-1:: 
+ - mod, 7.4.1*Note Subsection 7-4-1:: 
+ - mul, 7.4.1*Note Subsection 7-4-1:: 
+ 
+ - neg, 7.4.1*Note Subsection 7-4-1:: 
+ - not, 7.2*Note Section 7-2:: 
+ - nth, 7.3*Note Section 7-3:: 
+ - nth-hd, 7.3*Note Section 7-3:: 
+ - nth-tl, 7.3*Note Section 7-3:: 
+ 
+ - OCamlGeneratedFiles, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlLibrary, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlLibraryCopy, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlLibraryInstall, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlPackage, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlProgram, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlProgramCopy, 11.7.3*Note Subsection 11-7-3:: 
+ - OCamlProgramInstall, 11.7.3*Note Subsection 11-7-3:: 
+ - or, 7.2*Note Section 7-2:: 
+ 
+ - pipe, 8.1.1*Note Subsection 8-1-1:: 
+ - print, 8.2*Note Section 8-2:: 
+ - println, 8.2*Note Section 8-2:: 
+ - printv, 8.3*Note Section 8-3:: 
+ - printvln, 8.3*Note Section 8-3:: 
+ 
+ - quote, 7.3*Note Section 7-3:: 
+ - quote-argv, 7.3*Note Section 7-3:: 
+ 
+ - raise, 7.2*Note Section 7-2:: 
+ - read, 8.1.1*Note Subsection 8-1-1:: 
+ - readlink, 8*Note Chapter 8:: 
+ - rehash, 8*Note Chapter 8:: 
+ - remove-project-directories, 8*Note Chapter 8:: 
+ - removeprefix, 7.3*Note Section 7-3:: 
+ - removesuffix, 7.3*Note Section 7-3:: 
+ - rename, 8*Note Chapter 8:: 
+ - replacesuffixes, 7.3*Note Section 7-3:: 
+ - rev, 7.3*Note Section 7-3:: 
+ - rewind, 8.1.1*Note Subsection 8-1-1:: 
+ - rootname, 8*Note Chapter 8:: 
+ - rule, 11.9*Note Section 11-9:: 
+ 
+ - StaticCLibrary, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCLibraryCopy, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCLibraryInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCObject, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCObjectCopy, 11.6.1*Note Subsection 11-6-1:: 
+ - StaticCObjectInstall, 11.6.1*Note Subsection 11-6-1:: 
+ - scan, 8.4.1*Note Subsection 8-4-1:: 
+ - section, 6.3*Note Section 6-3:: 
+ - section rule, 6.4*Note Section 6-4:: 
+ - select, 8.1.1*Note Subsection 8-1-1:: 
+ - set, 7.3*Note Section 7-3:: 
+ - set-close-on-exec-mode, 8.1.1*Note Subsection 8-1-1:: 
+ - set-diff, 7.3*Note Section 7-3:: 
+ - set-nonblock, 8.1.1*Note Subsection 8-1-1:: 
+ - setenv, 7.2*Note Section 7-2:: 
+ - setvar, 7.2*Note Section 7-2:: 
+ - shell, 7.3*Note Section 7-3:: 
+ - socket, 8.1.1*Note Subsection 8-1-1:: 
+ - split, 7.3*Note Section 7-3:: 
+ - stat, 8*Note Chapter 8:: 
+ - stat-reset, 8*Note Chapter 8:: 
+ - stop, 9*Note Chapter 9:: 
+ - string, 7.3*Note Section 7-3:: 
+ - sub, 7.4.1*Note Subsection 7-4-1:: 
+ - subdirs, 8*Note Chapter 8:: 
+ - subrange, 7.3*Note Section 7-3:: 
+ - suffix, 8*Note Chapter 8:: 
+ - switch, 4.10*Note Section 4-10::, 7.2*Note Section 7-2:: 
+ - symlink, 8*Note Chapter 8:: 
+ - system, 7.3*Note Section 7-3:: 
+ 
+ - TeXGeneratedFiles, 11.8.1*Note Subsection 11-8-1:: 
+ - target, 11.9*Note Section 11-9:: 
+ - target-exists, 8*Note Chapter 8:: 
+ - target-is-proper, 8*Note Chapter 8:: 
+ - tell, 8.1.1*Note Subsection 8-1-1:: 
+ - test, 8*Note Chapter 8:: 
+ - tmpfile, 8*Note Chapter 8:: 
+ - try, 7.2*Note Section 7-2:: 
+ 
+ - uge, 7.4.2*Note Subsection 7-4-2:: 
+ - ugt, 7.4.2*Note Subsection 7-4-2:: 
+ - ule, 7.4.2*Note Subsection 7-4-2:: 
+ - ult, 7.4.2*Note Subsection 7-4-2:: 
+ - umask, 8*Note Chapter 8:: 
+ - uncapitalize, 7.3*Note Section 7-3:: 
+ - unlink, 8*Note Chapter 8:: 
+ - uppercase, 7.3*Note Section 7-3:: 
+ 
+ - vmount, 8*Note Chapter 8:: 
+ 
+ - wait, 9*Note Chapter 9:: 
+ - where, 8*Note Chapter 8:: 
+ - which, 8*Note Chapter 8:: 
+ - while, 7.3*Note Section 7-3:: 
+ - write, 8.1.1*Note Subsection 8-1-1:: 
+     
+
+Node: Appendix F,	Next: Appendix G,	Prev: Appendix E,	Up: Top
+  
+
+Appendix F     Index of objects
+*******************************
+  
+  
+ - Array, 10.1*Note Section 10-1:: 
+ 
+ - Channel, 10.1*Note Section 10-1:: 
+ 
+ - Dir, 10.1*Note Section 10-1:: 
+ 
+ - Exception, 10.1*Note Section 10-1:: 
+ 
+ - File, 10.1*Note Section 10-1:: 
+ - Float, 10.1*Note Section 10-1:: 
+ - Fun, 10.1*Note Section 10-1:: 
+ 
+ - Host, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - InChannel, 10.1*Note Section 10-1:: 
+ - InetAddr, 8.1.1*Note Subsection 8-1-1:: 
+ - Int, 10.1*Note Section 10-1:: 
+ 
+ - Lexer, 8.4.1*Note Subsection 8-4-1:: 
+ - Location, 10.1*Note Section 10-1:: 
+ 
+ - Map, 10.1*Note Section 10-1:: 
+ 
+ - Node, 10.1*Note Section 10-1:: 
+ - Number, 10.1*Note Section 10-1:: 
+ 
+ - Object, 10.1*Note Section 10-1:: 
+ - OutChannel, 10.1*Note Section 10-1:: 
+ 
+ - Position, 10.1*Note Section 10-1:: 
+ - Protocol, 8.1.1*Note Subsection 8-1-1:: 
+ 
+ - Rule, 10.1*Note Section 10-1:: 
+ - RuntimeException, 10.1*Note Section 10-1:: 
+ 
+ - Sequence, 10.1*Note Section 10-1:: 
+ - Service, 8.1.1*Note Subsection 8-1-1:: 
+ - Shell, 10.1*Note Section 10-1:: 
+ - Stat, 8*Note Chapter 8:: 
+ - String, 10.1*Note Section 10-1:: 
+ 
+ - Target, 10.1*Note Section 10-1:: 
+     
+
+Node: Appendix G,	Next: Appendix H,	Prev: Appendix F,	Up: Top
+  
+
+Appendix G     Index of special targets
+***************************************
+  
+  
+ - .DEFAULT, 6.9.1*Note Subsection 6-9-1:: 
+ - .INCLUDE, 6.9.3*Note Subsection 6-9-3:: 
+ - .SCANNER, 6.6*Note Section 6-6:: 
+    
+
+Node: Appendix H,	Next: Subsection H-0-1,	Prev: Appendix G,	Up: Top
+  
+
+Appendix H     References
+*************************
+    
+* Menu:
+
+* Subsection H-0-1::	See Also
+* Subsection H-0-2::	Version
+* Subsection H-0-3::	License and Copyright
+* Subsection H-0-4::	Author
+
+
+Node: Subsection H-0-1,	Next: Subsection H-0-2,	Prev: Appendix H,	Up: Appendix H
+  
+
+H.0.1   See Also
+================
+  
+  omake(1) 1*Note Chapter 1::, osh(1)
+12*Note Chapter 12::, make(1)
+
+Node: Subsection H-0-2,	Next: Subsection H-0-3,	Prev: Subsection H-0-1,	Up: Appendix H
+  
+
+H.0.2   Version
+===============
+  
+  Version: 0.9.6.9 of 
+
+Node: Subsection H-0-3,	Next: Subsection H-0-4,	Prev: Subsection H-0-2,	Up: Appendix H
+  
+
+H.0.3   License and Copyright
+=============================
+  
+  © 2003-2006, Mojave Group, Caltech
+  This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+  This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+  You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation,
+Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+Node: Subsection H-0-4,	Prev: Subsection H-0-3,	Up: Appendix H
+  
+
+H.0.4   Author
+==============
+  
+  Jason Hickey et. al.					
+  Caltech 256-80					
+  Pasadena, CA 91125, USA				
+  Email: omake-devel@metaprl.org		
+  WWW: http://www.cs.caltech.edu/~jyh
