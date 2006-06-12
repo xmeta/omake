@@ -10,9 +10,9 @@ Node: Subsection 3-5-1,	Next: Subsection 3-5-2,	Prev: Section 3-5,	Up: Section 3
 likely that each subdirectory will have a different set of images, and
 all should be included in the web page. One of the easier solutions is
 to use one of the directory-listing functions, like `glob'
-8*Note Chapter 8:: or `ls' 8*Note Chapter 8::. The `glob' function
-takes a shell pattern, and returns an array of file with matching
-filenames in the current directory.
+8.4.1*Note Subsection 8-4-1:: or `ls' 8.4.2*Note Subsection 8-4-2::. The `glob'
+function takes a shell pattern, and returns an array of file with
+matching filenames in the current directory.
 <<
       .SUBDIRS: page1 page2 page3 page4
           IMAGES = $(glob *.jpg)
@@ -1454,11 +1454,11 @@ scope (see also the section on Scoping).
 * Section 6-6::	.SCANNER rules
 * Section 6-7::	Named scanners, and the :scanner: target
 * Section 6-8::	Notes
-* Section 6-9::	Other special targets
-* Section 6-10::	Rule scoping
-* Section 6-11::	Scoping of implicit rules
-* Section 6-12::	Scoping of .SCANNER rules
-* Section 6-13::	Scoping for .PHONY targets
+* Section 6-9::	.DEFAULT
+* Section 6-10::	.SUBDIRS
+* Section 6-11::	.INCLUDE
+* Section 6-12::	.PHONY
+* Section 6-13::	Rule scoping
 
 
 Node: Section 6-1,	Next: Section 6-2,	Prev: Chapter 6,	Up: Chapter 6
@@ -1511,11 +1511,7 @@ Node: Section 6-3,	Next: Section 6-4,	Prev: Section 6-2,	Up: Chapter 6
 6.3   section
 *=*=*=*=*=*=*
 
-
-
- section
---------
-
+   
   Frequently, the commands in a rule body are expressions to be
 evaluated by the shell. omake also allows expressions to be evaluated by
 omake itself.
@@ -1531,10 +1527,10 @@ printf("Hello world\n"); }"")
               close($(FP))
 >>
   
-  This example uses the quotation `$""...""' to quote the text being
-printed. These quotes are not included in the output file. The `fopen',
-`fprintln', and `close' functions perform file IO as discussed in the IO
-section.
+  This example uses the quotation `$""...""'
+B.1.6*Note Subsection B-1-6:: to quote the text being printed. These
+quotes are not included in the output file. The `fopen', `fprintln', and
+`close' functions perform file IO as discussed in the IO section.
   In addition, commands that are function calls, or special expressions,
 are interpreted correctly. Since the `fprintln' function can take a file
 directly, the above rule can be abbreviated as follows.
@@ -1551,11 +1547,7 @@ Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
 6.4   section rule
 *=*=*=*=*=*=*=*=*=
 
-
-
- section rule
--------------
-
+   
   Rules can also be computed using the `section rule' form, where a rule
 body is expected instead of an expression. In the following rule, the
 file `a.c' is copied onto the `hello.c' file if it exists, otherwise

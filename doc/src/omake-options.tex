@@ -22,15 +22,17 @@
     \oOpt{-{}-print-status} \oOpt{-{}-no-print-status}
     \oOpt{-{}-print-exit} \oOpt{-{}-no-print-exit}
     \oOpt{-{}-print-dependencies}
-    \oOptArg{-{}-show-dependencies}{\ target}
+    \oOptArg{-{}-show-dependencies}{target}
+    \oOpt{-{}-all-dependencies}
     \oOpt{-{}-force-dotomake}
-    \oOptArg{-{}-dotomake}{\ dir}
+    \oOptArg{-{}-dotomake}{dir}
     \oOpt{-{}-flush-includes}
     \oOpt{-{}-configure}
     \oOpt{-{}-install}
     \oOpt{-{}-install-all}
     \oOpt{-{}-install-force}
     \oOpt{-{}-version}
+    \oOpt{-{}-absname}
     \oArg{filename...}
     \oOpt{var-definition...}
 
@@ -101,7 +103,12 @@ adequate file consistency for this to work.
 
 \item[\Opt{-{}-print-dependencies}] Print dependency information for the targets on the command line.
 
-\item[\OptArg{-{}-show-dependencies}{\ target}] Print dependency information \emph{if} the \verb+target+ is built.
+\item[\OptArg{-{}-show-dependencies}{target}] Print dependency information \emph{if} the \verb+target+ is built.
+
+\item[\Opt{-{}-all-dependencies}] If either of the options \texttt{-{}-print-dependencies} or
+\texttt{-{}-show-dependencies} is in effect, print transitive dependencies.  That is, print all
+dependencies recursively.  If neither option \texttt{-{}-print-dependencies},
+\texttt{-{}-show-dependencies} is specified, this option has no effect.
 
 \item[\Opt{-{}-install}] Install default files \File{OMakefile} and \File{OMakeroot} into the current
   directory.  You would typically do this to start a project in the current directory.
@@ -114,6 +121,9 @@ adequate file consistency for this to work.
 \item[\Opt{-{}-install-force}] Normally, \Prog{omake} will prompt before it overwrites any
   existing \File{OMakefile}.  If this option is given, all files are forcibly overwritten
   without prompting.
+
+\item[\Opt{-{}-absname}] Filenames should expand to absolute pathnames.  [jyh: this option needs to
+be documented in Chapter~\ref{chapter:rules}.  It may become deprecated.]
 
 \item[\Opt{var-definition}] \Prog{omake} variables can also be defined on the command
   line in the form \verb+name=value+.  For example, the \verb+CFLAGS+ variable might be defined

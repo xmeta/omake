@@ -53,6 +53,7 @@ type omake_options =
      opt_flush_dependencies  : bool;
      opt_print_dependencies  : bool;
      opt_show_dependencies   : string list;
+     opt_all_dependencies    : bool;
      opt_cd_root             : bool;
      opt_project             : bool;
      opt_poll                : bool;

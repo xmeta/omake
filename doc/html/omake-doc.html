@@ -6839,7 +6839,8 @@ for the new shift operations.
    $(gettimeofday) : Float
 </PRE>
 The <CODE>gettimeofday</CODE> function returns the time of day in seconds
-since January 1, 1970.
+since January 1, 1970.<BR>
+<BR>
 <!--TOC chapter Shell functions-->
 
 <H1 CLASS="chapter"><A NAME="htoc265">Chapter&nbsp;9</A>&nbsp;&nbsp;Shell functions</H1><!--SEC END -->
@@ -8496,15 +8497,17 @@ The colon signifier is also allowed in files, although it is not required.<BR>
  [<TT>--print-status</TT>] [<TT>--no-print-status</TT>]
  [<TT>--print-exit</TT>] [<TT>--no-print-exit</TT>]
  [<TT>--print-dependencies</TT>]
- [<TT>--show-dependencies &lt; target&gt;</TT>]
+ [<TT>--show-dependencies &lt;target&gt;</TT>]
+ [<TT>--all-dependencies</TT>]
  [<TT>--force-dotomake</TT>]
- [<TT>--dotomake &lt; dir&gt;</TT>]
+ [<TT>--dotomake &lt;dir&gt;</TT>]
  [<TT>--flush-includes</TT>]
  [<TT>--configure</TT>]
  [<TT>--install</TT>]
  [<TT>--install-all</TT>]
  [<TT>--install-force</TT>]
  [<TT>--version</TT>]
+ [<TT>--absname</TT>]
  <TT>filename...</TT>
  [<TT>var-definition...</TT>]<BR>
 <BR>
@@ -8574,7 +8577,12 @@ adequate file consistency for this to work.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>--print-dependencies</TT></B><DD CLASS="dd-description"> Print dependency information for the targets on the command line.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--show-dependencies  target</TT></B><DD CLASS="dd-description"> Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.<BR>
+<DT CLASS="dt-description"><B><TT>--show-dependencies target</TT></B><DD CLASS="dd-description"> Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.<BR>
+<BR>
+<DT CLASS="dt-description"><B><TT>--all-dependencies</TT></B><DD CLASS="dd-description"> If either of the options <TT>--print-dependencies</TT> or
+<TT>--show-dependencies</TT> is in effect, print transitive dependencies. That is, print all
+dependencies recursively. If neither option <TT>--print-dependencies</TT>,
+<TT>--show-dependencies</TT> is specified, this option has no effect.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>--install</TT></B><DD CLASS="dd-description"> Install default files <TT>OMakefile</TT> and <TT>OMakeroot</TT> into the current
  directory. You would typically do this to start a project in the current directory.<BR>
@@ -8587,6 +8595,9 @@ adequate file consistency for this to work.<BR>
 <DT CLASS="dt-description"><B><TT>--install-force</TT></B><DD CLASS="dd-description"> Normally, <TT>omake</TT> will prompt before it overwrites any
  existing <TT>OMakefile</TT>. If this option is given, all files are forcibly overwritten
  without prompting.<BR>
+<BR>
+<DT CLASS="dt-description"><B><TT>--absname</TT></B><DD CLASS="dd-description"> Filenames should expand to absolute pathnames. [jyh: this option needs to
+be documented in Chapter&nbsp;<A HREF="#chapter:rules">6</A>. It may become deprecated.]<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>var-definition</TT></B><DD CLASS="dd-description"> <TT>omake</TT> variables can also be defined on the command
  line in the form <CODE>name=value</CODE>. For example, the <CODE>CFLAGS</CODE> variable might be defined

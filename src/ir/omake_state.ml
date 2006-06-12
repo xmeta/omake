@@ -80,6 +80,7 @@ let default_options =
      opt_flush_dependencies  = false;
      opt_print_dependencies  = false;
      opt_show_dependencies   = [];
+     opt_all_dependencies    = false;
      opt_cd_root             = false;
      opt_project             = false;
      opt_poll                = false;
@@ -201,6 +202,9 @@ let options_spec =
     "--show-dependencies", Lm_arg.StringFold (fun options s ->
           { options with opt_show_dependencies = s :: options.opt_show_dependencies }), (**)
        "Show dependencies if the file is built";
+    "--all-dependencies", Lm_arg.SetFold (fun options b ->
+          { options with opt_all_dependencies = b }), (**)
+       "For --print-dependencies and --show-dependencies, print dependencies recursively";
     "--absname", Lm_arg.SetFold (fun options b -> { options with opt_absname = b }), (**)
        "Filenames are always displayed as absolute paths"]
 

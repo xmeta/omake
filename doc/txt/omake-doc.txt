@@ -141,86 +141,429 @@ Contents
     - 6.6  .SCANNER rules 
     - 6.7  Named scanners, and the :scanner: target 
     - 6.8  Notes 
-    - 6.9  Other special targets 
+    - 6.9  .DEFAULT 
+    - 6.10  .SUBDIRS 
+    - 6.11  .INCLUDE 
+    - 6.12  .PHONY 
+    - 6.13  Rule scoping 
         
-       - 6.9.1  .DEFAULT 
-       - 6.9.2  .SUBDIRS 
-       - 6.9.3  .INCLUDE 
-       - 6.9.4  .PHONY 
+       - 6.13.1  Scoping of implicit rules 
+       - 6.13.2  Scoping of .SCANNER rules 
+       - 6.13.3  Scoping for .PHONY targets 
      
-    - 6.10  Rule scoping 
-    - 6.11  Scoping of implicit rules 
-    - 6.12  Scoping of .SCANNER rules 
-    - 6.13  Scoping for .PHONY targets 
   
  - Chapter 7  Base library 
      
     - 7.1  Builtin variables 
+        
+       - 7.1.1  OSTYPE 
+       - 7.1.2  SYSNAME 
+       - 7.1.3  NODENAME 
+       - 7.1.4  OS_VERSION 
+       - 7.1.5  MACHINE 
+       - 7.1.6  HOST 
+       - 7.1.7  OMAKE_VERSION 
+       - 7.1.8  USER 
+       - 7.1.9  HOME 
+       - 7.1.10  PID 
+     
     - 7.2  Boolean functions and control flow 
+        
+       - 7.2.1  not 
+       - 7.2.2  equal 
+       - 7.2.3  and 
+       - 7.2.4  or 
+       - 7.2.5  if 
+       - 7.2.6  switch 
+       - 7.2.7  match 
+       - 7.2.8  try 
+       - 7.2.9  raise 
+       - 7.2.10  exit 
+       - 7.2.11  defined 
+       - 7.2.12  defined-env 
+       - 7.2.13  getenv 
+       - 7.2.14  setenv 
+       - 7.2.15  get-registry 
+       - 7.2.16  getvar 
+       - 7.2.17  setvar 
+     
     - 7.3  Arrays and sequences 
+        
+       - 7.3.1  array 
+       - 7.3.2  split 
+       - 7.3.3  concat 
+       - 7.3.4  length 
+       - 7.3.5  nth 
+       - 7.3.6  nth-hd 
+       - 7.3.7  nth-tl 
+       - 7.3.8  subrange 
+       - 7.3.9  rev 
+       - 7.3.10  string 
+       - 7.3.11  quote 
+       - 7.3.12  quote-argv 
+       - 7.3.13  html-string 
+       - 7.3.14  addsuffix 
+       - 7.3.15  mapsuffix 
+       - 7.3.16  addsuffixes 
+       - 7.3.17  removeprefix 
+       - 7.3.18  removesuffix 
+       - 7.3.19  replacesuffixes 
+       - 7.3.20  addprefix 
+       - 7.3.21  mapprefix 
+       - 7.3.22  add-wrapper 
+       - 7.3.23  set 
+       - 7.3.24  mem 
+       - 7.3.25  intersection 
+       - 7.3.26  intersects 
+       - 7.3.27  set-diff 
+       - 7.3.28  filter 
+       - 7.3.29  filter-out 
+       - 7.3.30  capitalize 
+       - 7.3.31  uncapitalize 
+       - 7.3.32  uppercase 
+       - 7.3.33  lowercase 
+       - 7.3.34  system 
+       - 7.3.35  shell 
+       - 7.3.36  while 
+     
     - 7.4  Arithmetic 
         
-       - 7.4.1  Basic arithmetic 
-       - 7.4.2  Comparisons 
+       - 7.4.1  int 
+       - 7.4.2  float 
+       - 7.4.3  Basic arithmetic 
+       - 7.4.4  Comparisons 
      
     - 7.5  First-class functions 
+        
+       - 7.5.1  fun 
+       - 7.5.2  apply 
+       - 7.5.3  applya 
+     
     - 7.6  Iteration and mapping 
+        
+       - 7.6.1  foreach 
+     
   
  - Chapter 8  File operations 
      
-    - 8.1  IO functions 
+    - 8.1  File names 
         
-       - 8.1.1  Standard channels 
+       - 8.1.1  file 
+       - 8.1.2  dir 
+       - 8.1.3  tmpfile 
+       - 8.1.4  in 
+       - 8.1.5  basename 
+       - 8.1.6  rootname 
+       - 8.1.7  dirof 
+       - 8.1.8  fullname 
+       - 8.1.9  absname 
+       - 8.1.10  homename 
+       - 8.1.11  suffix 
      
-    - 8.2  Printing functions 
-    - 8.3  Value printing functions 
-    - 8.4  Higher-level IO functions 
+    - 8.2  Path search 
         
-       - 8.4.1  Regular expressions 
-       - 8.4.2  Lexer matching 
-       - 8.4.3  Extending lexer definitions 
-       - 8.4.4  Threading the lexer object 
-       - 8.4.5  Parser 
-       - 8.4.6  Calling the parser 
-       - 8.4.7  Parsing control 
-       - 8.4.8  Extending parsers 
+       - 8.2.1  which 
+       - 8.2.2  where 
+       - 8.2.3  rehash 
+       - 8.2.4  exists-in-path 
+       - 8.2.5  digest 
+       - 8.2.6  find-in-path 
+       - 8.2.7  digest-path 
+     
+    - 8.3  File stats 
+        
+       - 8.3.1  file-exists 
+       - 8.3.2  target-exists 
+       - 8.3.3  target-is-proper 
+       - 8.3.4  stat-reset 
+       - 8.3.5  filter-exists 
+       - 8.3.6  filter-targets 
+       - 8.3.7  filter-proper-targets 
+       - 8.3.8  file-sort 
+       - 8.3.9  file-check-sort 
+     
+    - 8.4  Globbing and file listings 
+        
+       - 8.4.1  glob 
+       - 8.4.2  ls 
+       - 8.4.3  subdirs 
+     
+    - 8.5  Filesystem operations 
+        
+       - 8.5.1  mkdir 
+       - 8.5.2  Stat 
+       - 8.5.3  stat 
+       - 8.5.4  unlink 
+       - 8.5.5  rename 
+       - 8.5.6  link 
+       - 8.5.7  symlink 
+       - 8.5.8  readlink 
+       - 8.5.9  chmod 
+       - 8.5.10  chown 
+       - 8.5.11  umask 
+     
+    - 8.6  vmount 
+        
+       - 8.6.1  vmount 
+       - 8.6.2  add-project-directories 
+       - 8.6.3  remove-project-directories 
+     
+    - 8.7  File predicates 
+        
+       - 8.7.1  test 
+       - 8.7.2  find 
+     
+    - 8.8  IO functions 
+        
+       - 8.8.1  Standard channels 
+       - 8.8.2  stdin 
+       - 8.8.3  stdout 
+       - 8.8.4  stderr 
+       - 8.8.5  fopen 
+       - 8.8.6  close 
+       - 8.8.7  read 
+       - 8.8.8  write 
+       - 8.8.9  lseek 
+       - 8.8.10  rewind 
+       - 8.8.11  tell 
+       - 8.8.12  flush 
+       - 8.8.13  dup 
+       - 8.8.14  dup2 
+       - 8.8.15  set-nonblock 
+       - 8.8.16  set-close-on-exec-mode 
+       - 8.8.17  pipe 
+       - 8.8.18  mkfifo 
+       - 8.8.19  select 
+       - 8.8.20  lockf 
+       - 8.8.21  InetAddr 
+       - 8.8.22  Host 
+       - 8.8.23  gethostbyname 
+       - 8.8.24  Protocol 
+       - 8.8.25  getprotobyname 
+       - 8.8.26  Service 
+       - 8.8.27  getservbyname 
+       - 8.8.28  socket 
+       - 8.8.29  bind 
+       - 8.8.30  listen 
+       - 8.8.31  accept 
+       - 8.8.32  connect 
+       - 8.8.33  getchar 
+       - 8.8.34  gets 
+       - 8.8.35  fgets 
+     
+    - 8.9  Printing functions 
+    - 8.10  Value printing functions 
+    - 8.11  Higher-level IO functions 
+        
+       - 8.11.1  Regular expressions 
+       - 8.11.2  cat 
+       - 8.11.3  grep 
+       - 8.11.4  scan 
+       - 8.11.5  awk 
+       - 8.11.6  fsubst 
+       - 8.11.7  Lexer 
+       - 8.11.8  Lexer matching 
+       - 8.11.9  Extending lexer definitions 
+       - 8.11.10  Threading the lexer object 
+       - 8.11.11  Parser 
+       - 8.11.12  Calling the parser 
+       - 8.11.13  Parsing control 
+       - 8.11.14  Extending parsers 
+       - 8.11.15  gettimeofday 
      
   
  - Chapter 9  Shell functions 
+     
+    - 9.1  Basic functions 
+        
+       - 9.1.1  echo 
+       - 9.1.2  cd 
+     
+    - 9.2  Job control 
+        
+       - 9.2.1  jobs 
+       - 9.2.2  bg 
+       - 9.2.3  fg 
+       - 9.2.4  stop 
+       - 9.2.5  wait 
+       - 9.2.6  kill 
+     
+    - 9.3  Command history 
+        
+       - 9.3.1  history 
+     
+  
  - Chapter 10  Pervasives 
      
     - 10.1  Pervasives objects 
+        
+       - 10.1.1  Object 
+       - 10.1.2  Map 
+       - 10.1.3  Number 
+       - 10.1.4  Int 
+       - 10.1.5  Float 
+       - 10.1.6  Sequence 
+       - 10.1.7  Array 
+       - 10.1.8  String 
+       - 10.1.9  Fun 
+       - 10.1.10  Rule 
+       - 10.1.11  Target 
+       - 10.1.12  Node 
+       - 10.1.13  File 
+       - 10.1.14  Dir 
+       - 10.1.15  Channel 
+       - 10.1.16  InChannel 
+       - 10.1.17  OutChannel 
+       - 10.1.18  Location 
+       - 10.1.19  Position 
+       - 10.1.20  Exception 
+       - 10.1.21  RuntimeException 
+       - 10.1.22  Shell 
+     
   
  - Chapter 11  Build functions 
      
-    - 11.1  OMakeFlags 
-    - 11.2  OMakeVersion 
-    - 11.3  cmp-versions 
-    - 11.4  DefineCommandVars 
-    - 11.5  The OMakeroot file 
+    - 11.1  Options and versioning 
         
-       - 11.5.1  Variables 
-       - 11.5.2  System variables 
+       - 11.1.1  OMakeFlags 
+       - 11.1.2  OMakeVersion 
+       - 11.1.3  cmp-versions 
+       - 11.1.4  DefineCommandVars 
      
-    - 11.6  Building C programs 
+    - 11.2  The OMakeroot file 
         
-       - 11.6.1  C configuration variables 
+       - 11.2.1  Variables 
+       - 11.2.2  ROOT 
+       - 11.2.3  CWD 
+       - 11.2.4  EMPTY 
+       - 11.2.5  STDROOT 
+       - 11.2.6  VERBOSE 
+       - 11.2.7  ABORT_ON_COMMAND_ERROR 
+       - 11.2.8  SCANNER_MODE 
+       - 11.2.9  System variables 
+       - 11.2.10  INSTALL 
+       - 11.2.11  PATHSEP 
+       - 11.2.12  DIRSEP 
+       - 11.2.13  EXT_LIB 
+       - 11.2.14  EXT_OBJ 
+       - 11.2.15  EXT_ASM 
+       - 11.2.16  EXE 
      
-    - 11.7  Building OCaml programs 
+    - 11.3  Building C programs 
         
-       - 11.7.1  Variables for OCaml programs 
-       - 11.7.2  OCaml command flags 
-       - 11.7.3  Library variables 
+       - 11.3.1  C configuration variables 
+       - 11.3.2  CC 
+       - 11.3.3  CXX 
+       - 11.3.4  CPP 
+       - 11.3.5  CFLAGS 
+       - 11.3.6  CXXFLAGS 
+       - 11.3.7  INCLUDES 
+       - 11.3.8  LIBS 
+       - 11.3.9  AS 
+       - 11.3.10  ASFLAGS 
+       - 11.3.11  AR 
+       - 11.3.12  AROUT 
+       - 11.3.13  LD 
+       - 11.3.14  LDFLAGS 
+       - 11.3.15  YACC 
+       - 11.3.16  LEX 
+       - 11.3.17  CGeneratedFiles 
+       - 11.3.18  LocalCGeneratedFiles 
+       - 11.3.19  StaticCLibrary 
+       - 11.3.20  StaticCLibraryCopy 
+       - 11.3.21  StaticCLibraryInstall 
+       - 11.3.22  StaticCObject 
+       - 11.3.23  StaticCObjectCopy 
+       - 11.3.24  StaticCObjectInstall 
+       - 11.3.25  CProgram 
+       - 11.3.26  CProgramCopy 
+       - 11.3.27  CProgramInstall 
+       - 11.3.28  CXXProgram 
+       - 11.3.29  CXXProgramInstall 
      
-    - 11.8  Building LaTeX programs 
+    - 11.4  Building OCaml programs 
         
-       - 11.8.1  Configuration variables 
+       - 11.4.1  Variables for OCaml programs 
+       - 11.4.2  USE_OCAMLFIND 
+       - 11.4.3  OCAMLC 
+       - 11.4.4  OCAMLOPT 
+       - 11.4.5  CAMLP4 
+       - 11.4.6  OCAMLLEX 
+       - 11.4.7  OCAMLLEXFLAGS 
+       - 11.4.8  OCAMLYACC 
+       - 11.4.9  OCAMLDEP 
+       - 11.4.10  OCAMLMKTOP 
+       - 11.4.11  OCAMLLINK 
+       - 11.4.12  OCAMLOPTLINK 
+       - 11.4.13  OCAMLINCLUDES 
+       - 11.4.14  OCAMLFIND 
+       - 11.4.15  OCAMLFINDFLAGS 
+       - 11.4.16  OCAMLPACKS 
+       - 11.4.17  BYTE_ENABLED 
+       - 11.4.18  NATIVE_ENABLED 
+       - 11.4.19  OCaml command flags 
+       - 11.4.20  OCAMLDEPFLAGS 
+       - 11.4.21  OCAMLPPFLAGS 
+       - 11.4.22  OCAMLCFLAGS 
+       - 11.4.23  OCAMLOPTFLAGS 
+       - 11.4.24  OCAMLFLAGS 
+       - 11.4.25  OCAML_BYTE_LINK_FLAGS 
+       - 11.4.26  OCAML_NATIVE_LINK_FLAGS 
+       - 11.4.27  OCAML_LINK_FLAGS 
+       - 11.4.28  Library variables 
+       - 11.4.29  OCAML_LIBS 
+       - 11.4.30  OCAML_OTHER_LIBS 
+       - 11.4.31  OCAML_CLIBS 
+       - 11.4.32  OCAML_LIB_FLAGS 
+       - 11.4.33  OCamlGeneratedFiles 
+       - 11.4.34  LocalOCamlGeneratedFiles 
+       - 11.4.35  OCamlLibrary 
+       - 11.4.36  ABORT_ON_DEPENDENCY_ERRORS 
+       - 11.4.37  OCamlPackage 
+       - 11.4.38  OCamlLibraryCopy 
+       - 11.4.39  OCamlLibraryInstall 
+       - 11.4.40  OCamlProgram 
+       - 11.4.41  OCamlProgramCopy 
+       - 11.4.42  OCamlProgramInstall 
      
-    - 11.9  Examining the dependency graph 
+    - 11.5  Building LaTeX programs 
+        
+       - 11.5.1  Configuration variables 
+       - 11.5.2  LATEX 
+       - 11.5.3  TETEX2_ENABLED 
+       - 11.5.4  LATEXFLAGS 
+       - 11.5.5  BIBTEX 
+       - 11.5.6  MAKEINDEX 
+       - 11.5.7  DVIPS 
+       - 11.5.8  DVIPSFLAGS 
+       - 11.5.9  DVIPDFM 
+       - 11.5.10  DVIPDFMFLAGS 
+       - 11.5.11  PDFLATEX 
+       - 11.5.12  PDFLATEXFLAGS 
+       - 11.5.13  USEPDFLATEX 
+       - 11.5.14  LaTeXDocument 
+       - 11.5.15  TEXINPUTS 
+       - 11.5.16  TEXDEPS 
+       - 11.5.17  TeXGeneratedFiles 
+       - 11.5.18  LocalTeXGeneratedFiles 
+       - 11.5.19  LaTeXDocumentCopy 
+       - 11.5.20  LaTeXDocumentInstall 
+     
+    - 11.6  Examining the dependency graph 
+        
+       - 11.6.1  dependencies 
+       - 11.6.2  dependencies-all 
+       - 11.6.3  target 
+       - 11.6.4  rule 
+     
   
  - Chapter 12  The OSH shell 
      
     - 12.1  Startup 
+        
+       - 12.1.1  prompt 
+       - 12.1.2  ignoreeof 
+     
     - 12.2  Aliases 
     - 12.3  Interactive syntax 
   
@@ -368,14 +711,15 @@ differences to keep in mind when using omake.
   
  - In omake, you are much less likely to define build rules of your own.
     The system provides many standard functions (like `StaticCLibrary'
-   11.6.1 and `CProgram' 11.6.1)  to specify these builds more simply. 
+   11.3.19 and `CProgram' 11.3.25)  to specify these builds more simply.
+   
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
    %.suf1'. 
- - Scoping is significant: you should define variables and `.PHONY'
-   6.9.4 targets before they are used. 
+ - Scoping is significant: you should define variables and `.PHONY' 6.12
+   targets before they are used. 
  - Subdirectories are incorporated into a project using the `.SUBDIRS:'
-   6.9.2.  target. 
+   6.10.  target. 
   
   
 
@@ -411,7 +755,7 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' 11.6.1 function. The OMakefile contains just one line that
+`CProgram' 11.3.25 function. The OMakefile contains just one line that
 specifies that the program `hello' is to be built from the source code
 in the `hello_code.c' file (note that file suffixes are not passed to
 these functions).
@@ -442,7 +786,7 @@ MD5 digests were computed.
 >>
   
   If we want to change the compile options, we can redefine the `CC' and
-`CFLAGS' variables before the `CProgram' 11.6.1 line. In this example,
+`CFLAGS' variables before the `CProgram' 11.3.25 line. In this example,
 we will use the `gcc' compiler with the `-g' option. In addition, we
 will specify a `.DEFAULT' target to be built by default. The `EXE'
 variable is defined to be `.exe' on `Win32' systems; it is empty
@@ -570,7 +914,7 @@ can also place the change in the root OMakefile.
 >>
   
   Note that the way we have specified it, the `CFLAGS' variable also
-contains the `-O3' option for the `CProgram' 11.6.1, and `hello_code.c'
+contains the `-O3' option for the `CProgram' 11.3.25, and `hello_code.c'
 and `hello_helper.c' file will both be compiled with the `-O3' option.
 If we want to make the change truly local to `libbar', we can put the
 `bar' subdirectory in its own scope using the `section' form.
@@ -1387,9 +1731,9 @@ print a line like the following.
 `neko.woof', we should scan `neko.cat', line-by-line, looking for lines
 of the form `open <name>'. We could do this by writing a program, but it
 is easy enough to do it in `omake' itself. We can use the builtin `awk'
-8.4.1 function to scan the source file. One slight complication is that
+8.11.5 function to scan the source file. One slight complication is that
 the dependencies depend on the `INCLUDE' path. We'll use the
-`find-in-path' 8 function to find them. Here we go.
+`find-in-path' 8.2.6 function to find them. Here we go.
 <<
       .SCANNER: %.woof: %.cat
           section
@@ -1621,9 +1965,9 @@ see this if we add a statement that prints the current directory
   Of course, this specification is quite rigid. In practice, it is
 likely that each subdirectory will have a different set of images, and
 all should be included in the web page. One of the easier solutions is
-to use one of the directory-listing functions, like `glob' 8 or `ls' 8.
-The `glob' function takes a shell pattern, and returns an array of file
-with matching filenames in the current directory.
+to use one of the directory-listing functions, like `glob' 8.4.1 or `ls'
+8.4.2. The `glob' function takes a shell pattern, and returns an array
+of file with matching filenames in the current directory.
 <<
       .SUBDIRS: page1 page2 page3 page4
           IMAGES = $(glob *.jpg)
@@ -2996,11 +3340,7 @@ following syntax is used.
 6.3  section
 *=*=*=*=*=*=
 
-
-
-section
--------
-  
+   
   Frequently, the commands in a rule body are expressions to be
 evaluated by the shell. omake also allows expressions to be evaluated by
 omake itself.
@@ -3016,10 +3356,10 @@ printf("Hello world\n"); }"")
               close($(FP))
 >>
   
-  This example uses the quotation `$""...""' to quote the text being
-printed. These quotes are not included in the output file. The `fopen',
-`fprintln', and `close' functions perform file IO as discussed in the IO
-section.
+  This example uses the quotation `$""...""' B.1.6 to quote the text
+being printed. These quotes are not included in the output file. The
+`fopen', `fprintln', and `close' functions perform file IO as discussed
+in the IO section.
   In addition, commands that are function calls, or special expressions,
 are interpreted correctly. Since the `fprintln' function can take a file
 directly, the above rule can be abbreviated as follows.
@@ -3034,11 +3374,7 @@ world\n"); }"")
 6.4  section rule
 *=*=*=*=*=*=*=*=*
 
-
-
-section rule
-------------
-  
+   
   Rules can also be computed using the `section rule' form, where a rule
 body is expected instead of an expression. In the following rule, the
 file `a.c' is copied onto the `hello.c' file if it exists, otherwise
@@ -3249,7 +3585,7 @@ end up being re-scanned.
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' 11.5.1 variable controls the usage of implicit
+  The `SCANNER_MODE' 11.2.8 variable controls the usage of implicit
 scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
@@ -3257,16 +3593,9 @@ idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
 rules and explicit `:scanner:' specifications.
   
 
-6.9  Other special targets
-*=*=*=*=*=*=*=*=*=*=*=*=*=
+6.9  .DEFAULT
+*=*=*=*=*=*=*
 
-  
-  There are several other special targets that define special actions to
-be take by omake.
-  
-
-6.9.1  .DEFAULT
-===============
    
   The `.DEFAULT' target specifies a target to be built by default if
 omake is run without explicit targets. The following rule instructs
@@ -3277,8 +3606,9 @@ omake to build the program `hello' by default
   
   
 
-6.9.2  .SUBDIRS
-===============
+6.10  .SUBDIRS
+*=*=*=*=*=*=*=
+
    
   The `.SUBDIRS' target is used to specify a set of subdirectories that
 are part of the project. Each subdirectory should have its own
@@ -3311,8 +3641,9 @@ includes the file if it exists.
   
   
 
-6.9.3  .INCLUDE
-===============
+6.11  .INCLUDE
+*=*=*=*=*=*=*=
+
    
   The `.INCLUDE' target is like the `include' directive, but it
 specifies a rule to build the file if it does not exist.
@@ -3358,8 +3689,9 @@ already exists.
   
   
 
-6.9.4  .PHONY
-=============
+6.12  .PHONY
+*=*=*=*=*=*=
+
    
   A ``phony'' target is a target that is not a real file, but exists to
 collect a set of dependencies. Phony targets are specified with the
@@ -3376,7 +3708,7 @@ run whenever the `install' target is built (for example, by running
   
   
 
-6.10  Rule scoping
+6.13  Rule scoping
 *=*=*=*=*=*=*=*=*=
 
    
@@ -3443,9 +3775,8 @@ it is compiled using the usual implicit rule for building `.o' files (in
 a context where `CFLAGS=-g -DLIBRARY').
   
 
-6.11  Scoping of implicit rules
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
+6.13.1  Scoping of implicit rules
+=================================
   
   Implicit rules (rules containing wildcard patterns) are not global,
 they follow the normal scoping convention. This allows different parts
@@ -3474,9 +3805,8 @@ implicit rule for building `%.o' files. The implicit rule adds the
 `hello_lib.o'; the target `hello_code.o' is built as normal.
   
 
-6.12  Scoping of .SCANNER rules
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
+6.13.2  Scoping of .SCANNER rules
+=================================
   
   Scanner rules are scoped the same way as normal rules. If the
 `.SCANNER' rule is explicit (containing no wildcard patterns), then the
@@ -3514,9 +3844,8 @@ scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
   
 
-6.13  Scoping for .PHONY targets
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
+6.13.3  Scoping for .PHONY targets
+==================================
   
   Phony targets (targets that do not correspond to files) are defined
 with a `.PHONY:' rule. Phony targets are scoped as usual. The following
@@ -3567,47 +3896,47 @@ Chapter 7    Base library
 
 
 
-OSTYPE
-------
+7.1.1  OSTYPE
+=============
     Set to the machine architecture omake is running on. Possible values
 are  `Unix' (for all Unix versions, including Linux and Mac OS X),
 `Win32'  (for MS-Windows, OMake compiled with MSVC++ or Mingw), and
 `Cygwin' (for  MS-Windows, OMake compiled with Cygwin).
 
-SYSNAME
--------
+7.1.2  SYSNAME
+==============
     The name of the operating system for the current machine.
 
-NODENAME
---------
+7.1.3  NODENAME
+===============
     The hostname of the current machine.
 
-OS_VERSION
-----------
+7.1.4  OS_VERSION
+=================
     The operating system release.
 
-MACHINE
--------
+7.1.5  MACHINE
+==============
     The machine architecture, e.g. `i386', `sparc', etc.
 
-HOST
-----
+7.1.6  HOST
+===========
     Same as `NODENAME'.
 
-OMAKE_VERSION
--------------
+7.1.7  OMAKE_VERSION
+====================
     Version of OMake.
 
-USER
-----
+7.1.8  USER
+===========
     The login name of the user executing the process.
 
-HOME
-----
+7.1.9  HOME
+===========
     The home directory of the user executing the process.
 
-PID
----
+7.1.10  PID
+===========
     The OMake process id.
 
 7.2  Boolean functions and control flow
@@ -3616,8 +3945,8 @@ PID
   
   
 
-not
----
+7.2.1  not
+==========
   
 <<
      $(not e) : String
@@ -3631,8 +3960,8 @@ negates a Boolean value.
   For example, `$(not false)' expands to the string `true', and `$(not
 hello world)' expands to `false'.
 
-equal
------
+7.2.2  equal
+============
   
 <<
      $(equal e1, e2) : String
@@ -3644,8 +3973,8 @@ equal
   For example `$(equal a, b)' expands to `false', and `$(equal hello
 world, hello world)' expands to `true'.
 
-and
----
+7.2.3  and
+==========
   
 <<
       $(and e1, ..., en) : String
@@ -3662,8 +3991,8 @@ and
 >>
   
 
-or
---
+7.2.4  or
+=========
   
 <<
      $(or e1, ..., en) : String
@@ -3680,8 +4009,8 @@ or
 >>
   
 
-if
---
+7.2.5  if
+=========
   
 <<
       $(if e1, e2[, e3]) : value
@@ -3727,12 +4056,12 @@ common idiom for defining the C compiler configuration.
 >>
   
 
-switch
-------
+7.2.6  switch
+=============
 
 
-match
------
+7.2.7  match
+============
   
   The `switch' and `match' functions perform pattern matching.
   `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
@@ -3787,8 +4116,8 @@ function uses regular expression matching.
 >>
   
 
-try
----
+7.2.8  try
+==========
   
 <<
      try
@@ -3823,8 +4152,8 @@ returned as the result.
   There can be any number of `catch' clauses; the `finally' clause is
 optional.
 
-raise
------
+7.2.9  raise
+============
   
 <<
      raise exn
@@ -3835,8 +4164,8 @@ raise
 object. However, the normal convention is to raise an `Exception'
 object.
 
-exit
-----
+7.2.10  exit
+============
   
 <<
      exit(code)
@@ -3848,8 +4177,8 @@ exit
   The `exit' function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination.
 
-defined
--------
+7.2.11  defined
+===============
   
 <<
      $(defined sequence) : String
@@ -3866,8 +4195,8 @@ variable if it is not already defined.
 >>
   
 
-defined-env
------------
+7.2.12  defined-env
+===================
   
 <<
      $(defined-env sequence) : String
@@ -3885,8 +4214,8 @@ environment variable `DEBUG' is defined.
 >>
   
 
-getenv
-------
+7.2.13  getenv
+==============
   
 <<
      $(getenv name) : String
@@ -3913,8 +4242,8 @@ it is defined, and to `/bin /usr/bin' otherwise.
 >>
   
 
-setenv
-------
+7.2.14  setenv
+==============
   
 <<
      setenv(name, value)
@@ -3926,8 +4255,8 @@ setenv
 environment. Environment variables are scoped like normal variables.
   
 
-get-registry
-------------
+7.2.15  get-registry
+====================
   
 <<
      get-registry(hkey, key, field) : String
@@ -3962,8 +4291,8 @@ also use the alternate form.
   
   
 
-getvar
-------
+7.2.16  getvar
+==============
   
 <<
      $(getvar name) : String
@@ -3979,8 +4308,8 @@ getvar
 >>
   
 
-setvar
-------
+7.2.17  setvar
+==============
   
 <<
      setvar(name, value)
@@ -4002,8 +4331,8 @@ following code defines the variable `X' to be the string `abc'.
   
   
 
-array
------
+7.3.1  array
+============
   
 <<
       $(array elements) : Array
@@ -4024,8 +4353,8 @@ elements of the string, respecting quotes.
   In this case, the elements of the array are exactly `<val1>', ...,
 `<valn>', and whitespace is preserved literally.
 
-split
------
+7.3.2  split
+============
   
 <<
      $(split sep, elements) : Array
@@ -4047,8 +4376,8 @@ the array `/bin /usr/bin /usr/local/bin'.
   The `sep' argument may be omitted. In this case `split' breaks its
 arguments along the white space. Quotations are not split.
 
-concat
-------
+7.3.3  concat
+=============
   
 <<
      $(concat sep, elements) : String
@@ -4067,8 +4396,8 @@ the string `foo_x_bar_x_baz'.
 >>
   
 
-length
-------
+7.3.4  length
+=============
   
 <<
      $(length sequence) : Int
@@ -4078,8 +4407,8 @@ length
   The `length' function returns the number of elements in its argument.
   For example, the expression `$(length a  b "c d")' evaluates to 3.
 
-nth
----
+7.3.5  nth
+==========
   
 <<
      $(nth i, sequence) : value
@@ -4094,8 +4423,8 @@ in bounds.
   For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
 c"'.
 
-nth-hd
-------
+7.3.6  nth-hd
+=============
   
 <<
      $(nth-hd i, sequence) : value
@@ -4111,8 +4440,8 @@ long.
 "b c"'.
   
 
-nth-tl
-------
+7.3.7  nth-tl
+=============
   
 <<
      $(nth-tl i, sequence) : value
@@ -4128,8 +4457,8 @@ elements long.
 c" d'.
   
 
-subrange
---------
+7.3.8  subrange
+===============
   
 <<
      $(subrange off, len, sequent) : value
@@ -4145,8 +4474,8 @@ bounds.
   For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
 to `"b c" d'.
 
-rev
----
+7.3.9  rev
+==========
   
 <<
       $(rev sequence) : Sequence
@@ -4157,8 +4486,8 @@ rev
 order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
 c" a'.
 
-string
-------
+7.3.10  string
+==============
   
 <<
      $(string sequence) : String
@@ -4169,8 +4498,8 @@ string
 is similar to the `concat' function, but the elements are separated by
 whitespace. The result is treated as a unit; whitespace is significant.
 
-quote
------
+7.3.11  quote
+=============
   
 <<
      $(quote sequence) : String
@@ -4182,8 +4511,8 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-quote-argv
-----------
+7.3.12  quote-argv
+==================
   
 <<
      $(quote-argv sequence) : String
@@ -4194,8 +4523,8 @@ quote-argv
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-html-string
------------
+7.3.13  html-string
+===================
   
 <<
      $(html-string sequence) : String
@@ -4207,8 +4536,8 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-addsuffix
----------
+7.3.14  addsuffix
+=================
   
 <<
      $(addsuffix suffix, sequence) : Array
@@ -4222,8 +4551,8 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'.
 
-mapsuffix
----------
+7.3.15  mapsuffix
+=================
   
 <<
      $(mapsuffix suffix, sequence) : Array
@@ -4238,8 +4567,8 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'.
 
-addsuffixes
------------
+7.3.16  addsuffixes
+===================
   
 <<
      $(addsuffixes suffixes, sequence) : Array
@@ -4253,8 +4582,8 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-removeprefix
-------------
+7.3.17  removeprefix
+====================
   
 <<
      $(removeprefix prefix, sequence) : Array
@@ -4265,8 +4594,8 @@ removeprefix
   The `removeprefix' function removes a prefix from each component of a
 sequence.
 
-removesuffix
-------------
+7.3.18  removesuffix
+====================
   
 <<
      $(removesuffix sequence) : Array
@@ -4278,8 +4607,8 @@ of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
 
-replacesuffixes
----------------
+7.3.19  replacesuffixes
+=======================
   
 <<
      $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
@@ -4294,8 +4623,8 @@ the same length.
   For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
 to `a.o b.o c.z'.
 
-addprefix
----------
+7.3.20  addprefix
+=================
   
 <<
      $(addprefix prefix, sequence) : Array
@@ -4309,8 +4638,8 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'.
 
-mapprefix
----------
+7.3.21  mapprefix
+=================
   
 <<
      $(mapprefix prefix, sequence) : Array
@@ -4325,8 +4654,8 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'.
 
-add-wrapper
------------
+7.3.22  add-wrapper
+===================
   
 <<
      $(add-wrapper prefix, suffix, sequence) : Array
@@ -4341,8 +4670,8 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence.
 
-set
----
+7.3.23  set
+===========
   
 <<
      $(set sequence) : Array
@@ -4353,8 +4682,8 @@ set
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-mem
----
+7.3.24  mem
+===========
   
 <<
      $(mem elem, sequence) : Boolean
@@ -4366,8 +4695,8 @@ mem
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-intersection
-------------
+7.3.25  intersection
+====================
   
 <<
      $(intersection sequence1, sequence2) : Array
@@ -4382,8 +4711,8 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'.
 
-intersects
-----------
+7.3.26  intersects
+==================
   
 <<
      $(intersects sequence1, sequence2) : Boolean
@@ -4397,8 +4726,8 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-set-diff
---------
+7.3.27  set-diff
+================
   
 <<
      $(set-diff sequence1, sequence2) : Array
@@ -4414,8 +4743,8 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'.
 
-filter
-------
+7.3.28  filter
+==============
   
 <<
      $(filter patterns, sequence) : Array
@@ -4429,8 +4758,8 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-filter-out
-----------
+7.3.29  filter-out
+==================
   
 <<
      $(filter-out patterns, sequence) : Array
@@ -4444,8 +4773,8 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-capitalize
-----------
+7.3.30  capitalize
+==================
   
 <<
      $(capitalize sequence) : Array
@@ -4456,8 +4785,8 @@ capitalize
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-uncapitalize
-------------
+7.3.31  uncapitalize
+====================
   
 <<
      $(uncapitalize sequence) : Array
@@ -4468,8 +4797,8 @@ uncapitalize
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-uppercase
----------
+7.3.32  uppercase
+=================
   
 <<
      $(uppercase sequence) : Array
@@ -4480,8 +4809,8 @@ uppercase
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-lowercase
----------
+7.3.33  lowercase
+=================
   
 <<
      $(lowercase sequence) : Array
@@ -4493,8 +4822,8 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-system
-------
+7.3.34  system
+==============
   
 <<
      system(s)
@@ -4510,8 +4839,8 @@ function is used internally by omake to evaluate shell commands.
 >>
   
 
-shell
------
+7.3.35  shell
+=============
   
 <<
      $(shell command) : Array
@@ -4531,8 +4860,8 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-while
------
+7.3.36  while
+=============
   
 <<
      while <test>
@@ -4594,21 +4923,21 @@ value is printed.
 
 
 
-int
----
+7.4.1  int
+==========
   
   The `int' function can be used to create integers. It returns an `Int'
 object.
   `$(int 17)'.
   
 
-float
------
+7.4.2  float
+============
    The `float' function can be used to create floating-point numbers. It
 returns a `Float' object.
   `$(float 3.1415926)'.
 
-7.4.1  Basic arithmetic
+7.4.3  Basic arithmetic
 =======================
                
   The following functions can be used to perform basic arithmetic.
@@ -4629,7 +4958,7 @@ returns a `Float' object.
  - `$(asr <numbers>)': arithmetic shift right. 
 
 
-7.4.2  Comparisons
+7.4.4  Comparisons
 ==================
            
   The following functions can be used to perform numerical comparisons.
@@ -4651,8 +4980,8 @@ returns a `Float' object.
 
 
 
-fun
----
+7.5.1  fun
+==========
   
   The `fun' form introduces anonymous functions.
   `$(fun <v1>, ..., <vn>, <body>)'
@@ -4671,8 +5000,8 @@ the parameter names.
 >>
   
 
-apply
------
+7.5.2  apply
+============
   
   The `apply' operator is used to apply a function.
   `$(apply <fun>, <args>)'
@@ -4689,8 +5018,8 @@ apply
 >>
   
 
-applya
-------
+7.5.3  applya
+=============
   
   The `applya' operator is used to apply a function to an array of
 arguments.
@@ -4712,8 +5041,8 @@ arguments.
   
   
 
-foreach
--------
+7.6.1  foreach
+==============
   
   The `foreach' function maps a function over a sequence.
 <<
@@ -4749,12 +5078,17 @@ Chapter 8    File operations
 ****************************
 
 
-file
-----
+8.1  File names
+*=*=*=*=*=*=*=*
 
 
-dir
----
+
+8.1.1  file
+===========
+
+
+8.1.2  dir
+==========
   
 <<
      $(file sequence) : File Sequence
@@ -4797,8 +5131,8 @@ of the `bin' directory relative to the command being executed.
 >>
   
 
-tmpfile
--------
+8.1.3  tmpfile
+==============
   
 <<
       $(tmpfile prefix) : File
@@ -4810,8 +5144,8 @@ tmpfile
   The `tmpfile' function returns the name of a fresh temporary file in
 the temporary directory.
 
-in
---
+8.1.4  in
+=========
   
 <<
      $(in dir, exp) : String Array
@@ -4834,8 +5168,101 @@ is relative to the directory where the link is created.
   Note that the `in' function only affects the expansion of `Node'
 (`File' and `Dir') values.
 
-which
------
+8.1.5  basename
+===============
+  
+<<
+     $(basename files) : String Sequence
+        files : String Sequence
+>>
+  
+  The `basename' function returns the base names for a list of files.
+The basename is the filename with any leading directory components
+removed.
+  For example, the expression `$(basename dir1/dir2/a.out
+/etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'.
+
+8.1.6  rootname
+===============
+  
+<<
+     $(rootname files) : String Sequence
+        files : String Sequence
+>>
+  
+  The `rootname' function returns the root name for a list of files. The
+rootname is the filename with the final suffix removed.
+  For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
+/foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'.
+
+8.1.7  dirof
+============
+  
+<<
+     $(dirof files) : Dir Sequence
+        files : File Sequence
+>>
+  
+  The `dirof' function returns the directory for each of the listed
+files.
+  For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
+/foo.ml)' evaluates to the directories `dir1/dir2 /etc /'.
+
+8.1.8  fullname
+===============
+  
+<<
+     $(fullname files) : String Sequence
+        files : File Sequence
+>>
+  
+  The `fullname' function returns the pathname relative to the project
+root for each of the files or directories.
+
+8.1.9  absname
+==============
+  
+<<
+     $(absname files) : String Sequence
+        files : File Sequence
+>>
+  
+  The `absname' function returns the absolute pathname for each of the
+files or directories.
+
+8.1.10  homename
+================
+  
+<<
+     $(homename files) : String Sequence
+        files : File Sequence
+>>
+  
+  The `homename' function returns the name of a file in tilde form, if
+possible. The unexpanded forms are computed lazily: the `homename'
+function will usually evaluate to an absolute pathname until the first
+tilde-expansion for the same directory.
+
+8.1.11  suffix
+==============
+  
+<<
+     $(suffix files) : String Sequence
+        files : StringSequence
+>>
+  
+  The `suffix' function returns the suffixes for a list of files. If a
+file has no suffix, the function returns the empty string.
+  For example, the expression `$(suffix dir1/dir2/a.out /etc/a /foo.ml)'
+evaluates to `.out .ml'.
+
+8.2  Path search
+*=*=*=*=*=*=*=*=
+
+
+
+8.2.1  which
+============
   
 <<
      $(which files) : File Sequence
@@ -4846,8 +5273,8 @@ which
 search path, and returns `file' values for each of the commands. It is
 an error if a command is not found.
 
-where
------
+8.2.2  where
+============
   
   The `where' function is similar to which, except it returns the list
 of all the locations of the given executable (in the order in which the
@@ -4861,8 +5288,17 @@ will describe the command as a built-in function.
 >>
   
 
-exists-in-path
---------------
+8.2.3  rehash
+=============
+  
+<<
+      rehash()
+>>
+  
+  The `rehash' function resets all search paths.
+
+8.2.4  exists-in-path
+=====================
   
 <<
      $(exists-in-path files) : String
@@ -4872,104 +5308,74 @@ exists-in-path
   The `exists-in-path' function tests whether all executables are
 present in the current search path.
 
-basename
---------
+8.2.5  digest
+=============
   
 <<
-     $(basename files) : String Sequence
-        files : String Sequence
+       $(digest files) : String Array
+          file : File Array
+       raises RuntimeException
+  
+       $(digest-optional files) : String Array
+          file : File Array
 >>
   
-  The `basename' function returns the base names for a list of files.
-The basename is the filename with any leading directory components
-removed.
-  For example, the expression `$(basename dir1/dir2/a.out
-/etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'.
+  The `digest' and `digest-optional' functions compute MD5 digests of
+files. The `digest' function raises an exception if a file does no
+exist. The `digest-optional' returns `false' if a file does no exist.
+MD5 digests are cached.
 
-rootname
---------
+8.2.6  find-in-path
+===================
   
 <<
-     $(rootname files) : String Sequence
-        files : String Sequence
+      $(find-in-path path, files) : File Array
+         path : Dir Array
+         files : String Array
+      raises RuntimeException
+  
+      $(find-in-path-optional path, files) : File Array
 >>
   
-  The `rootname' function returns the root name for a list of files. The
-rootname is the filename with the final suffix removed.
-  For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
-/foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'.
+  The `find-in-path' function searches for the files in a search path.
+Only the tail of the filename is significant. The `find-in-path'
+function raises an exception if the file can't be found. The
+`find-in-path-optional' function silently removes files that can't be
+found.
 
-dirof
------
+8.2.7  digest-path
+==================
   
 <<
-     $(dirof files) : Dir Sequence
-        files : File Sequence
+      $(digest-in-path path, files) : String/File Array
+         path : Dir Array
+         files : String Array
+      raises RuntimeException
+  
+      $(digest-in-path-optional path, files) : String/File Array
 >>
   
-  The `dirof' function returns the directory for each of the listed
-files.
-  For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
-/foo.ml)' evaluates to the directories `dir1/dir2 /etc /'.
+  The `digest-in-path' function searches for the files in a search path
+and returns the file and digest for each file. Only the tail of the
+filename is significant. The `digest-in-path' function raises an
+exception if the file can't be found. The `digest-in-path-optional'
+function silently removes elements that can't be found.
 
-fullname
---------
-  
-<<
-     $(fullname files) : String Sequence
-        files : File Sequence
->>
-  
-  The `fullname' function returns the pathname relative to the project
-root for each of the files or directories.
-
-absname
--------
-  
-<<
-     $(absname files) : String Sequence
-        files : File Sequence
->>
-  
-  The `absname' function returns the absolute pathname for each of the
-files or directories.
-
-homename
---------
-  
-<<
-     $(homename files) : String Sequence
-        files : File Sequence
->>
-  
-  The `homename' function returns the name of a file in tilde form, if
-possible. The unexpanded forms are computed lazily: the `homename'
-function will usually evaluate to an absolute pathname until the first
-tilde-expansion for the same directory.
-
-suffix
-------
-  
-<<
-     $(suffix files) : String Sequence
-        files : StringSequence
->>
-  
-  The `suffix' function returns the suffixes for a list of files. If a
-file has no suffix, the function returns the empty string.
-  For example, the expression `$(suffix dir1/dir2/a.out /etc/a /foo.ml)'
-evaluates to `.out .ml'.
-
-file-exists
------------
+8.3  File stats
+*=*=*=*=*=*=*=*
 
 
-target-exists
--------------
+
+8.3.1  file-exists
+==================
 
 
-target-is-proper
-----------------
+8.3.2  target-exists
+====================
+
+
+8.3.3  target-is-proper
+=======================
   
 <<
      $(file-exists files) : String
@@ -4984,8 +5390,8 @@ However, it returns true if the file exists or if it can be built by the
 current project. The `target-is-proper' returns true only if the file
 can be generated in the current project.
 
-stat-reset
-----------
+8.3.4  stat-reset
+=================
   
 <<
      $(stat-reset files) : String
@@ -4996,16 +5402,16 @@ stat-reset
 information for the given files, forcing the `stat' information to be
 recomputed the next time it is requested.
 
-filter-exists
--------------
+8.3.5  filter-exists
+====================
 
 
-filter-targets
---------------
+8.3.6  filter-targets
+=====================
 
 
-filter-proper-targets
----------------------
+8.3.7  filter-proper-targets
+============================
   
 <<
      $(filter-exists files) : File Sequence
@@ -5043,8 +5449,8 @@ removing intermediate files.
 is distributed with `omake'.
   
 
-file-sort
----------
+8.3.8  file-sort
+================
     
 <<
      $(file-sort order, files) : File Sequence
@@ -5078,7 +5484,10 @@ where this matters).
    project. 
  - The sorter will fail if the dependencies are cyclic. 
   
+  
+
 sort rule
+---------
   
   It is possible to further constrain the sorter through the use of sort
 rules. A sort rule is declared in two steps. The target must be listed
@@ -5100,8 +5509,8 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'.
 
-file-check-sort
----------------
+8.3.9  file-check-sort
+======================
   
 <<
      file-check-sort(files)
@@ -5114,8 +5523,13 @@ sort order. If so, the list is returned unchanged. If not, the function
 raises an exception.
   `$(file-check-sort <order>, <files>)'
 
-glob
-----
+8.4  Globbing and file listings
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+
+
+8.4.1  glob
+===========
   
 <<
      $(glob strings) : Node Array
@@ -5152,8 +5566,8 @@ behavior of `glob'.
   
   The returned files are sorted by name.
 
-ls
---
+8.4.2  ls
+=========
   
 <<
      $(ls files) : Node Array
@@ -5174,8 +5588,8 @@ the following.
   The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
 the globbing behavior. The returned files are sorted by name.
 
-subdirs
--------
+8.4.3  subdirs
+==============
   
 <<
      $(subdirs dirs) : Dir Array
@@ -5194,8 +5608,13 @@ directories, recursively.
  P  Include only proper subdirectories. 
 
 
-mkdir
------
+8.5  Filesystem operations
+*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+
+
+8.5.1  mkdir
+============
   
 <<
      mkdir(mode, node...)
@@ -5216,8 +5635,8 @@ following options are supported.
  --  Interpret the remaining names literally. 
 
 
-Stat
-----
+8.5.2  Stat
+===========
   
   The `Stat' object represents the result returned by the `stat' and
 `lstat' functions. It contains the following fields.
@@ -5243,8 +5662,8 @@ have meaning on all architectures.
   
   
 
-stat
-----
+8.5.3  stat
+===========
   
 <<
       $(stat node...) : Stat
@@ -5258,8 +5677,8 @@ stat
 symbolic link, the `stat' function refers to the destination of the
 link; the `lstat' function refers to the link itself.
 
-unlink
-------
+8.5.4  unlink
+=============
   
 <<
      $(unlink file...)
@@ -5282,8 +5701,8 @@ removes a directory.
  --  the rest of the values are interpreted literally. 
 
 
-rename
-------
+8.5.5  rename
+=============
   
 <<
       rename(old, new)
@@ -5313,8 +5732,8 @@ directory. If not, the behavior of `mv' is identical to `rename'. The
  --  Interpret the remaining arguments literally. 
 
 
-link
-----
+8.5.6  link
+===========
   
 <<
      link(src, dst)
@@ -5328,8 +5747,8 @@ directory `src'.
   Hard links are not supported in Win32.
   Normally, only the superuser can create hard links to directories.
 
-symlink
--------
+8.5.7  symlink
+==============
   
 <<
      symlink(src, dst)
@@ -5345,8 +5764,8 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
 -> ../a/b'.
   Symbolic links are not supported in Win32.
 
-readlink
---------
+8.5.8  readlink
+===============
   
 <<
      $(readlink node...) : Node
@@ -5355,8 +5774,8 @@ readlink
   
   The `readlink' function reads the value of a symbolic link.
 
-chmod
------
+8.5.9  chmod
+============
   
 <<
      chmod(mode, dst...)
@@ -5378,8 +5797,8 @@ chmod
  --  Interpret the remaining argument literally. 
 
 
-chown
------
+8.5.10  chown
+=============
   
 <<
      chown(uid, gid, node...)
@@ -5396,8 +5815,8 @@ chown
 `gid' is not specified, it is not changed. If either id is -1, that id
 is not changed.
 
-umask
------
+8.5.11  umask
+=============
   
 <<
       $(umask mode) : Int
@@ -5408,70 +5827,13 @@ umask
   Sets the file mode creation mask. The previous mask is returned. This
 value is not scoped, changes have global effect.
 
-digest
-------
-  
-<<
-       $(digest files) : String Array
-          file : File Array
-       raises RuntimeException
-  
-       $(digest-optional files) : String Array
-          file : File Array
->>
-  
-  The `digest' and `digest-optional' functions compute MD5 digests of
-files. The `digest' function raises an exception if a file does no
-exist. The `digest-optional' returns `false' if a file does no exist.
-MD5 digests are cached.
+8.6  vmount
+*=*=*=*=*=*
 
-find-in-path
-------------
-  
-<<
-      $(find-in-path path, files) : File Array
-         path : Dir Array
-         files : String Array
-      raises RuntimeException
-  
-      $(find-in-path-optional path, files) : File Array
->>
-  
-  The `find-in-path' function searches for the files in a search path.
-Only the tail of the filename is significant. The `find-in-path'
-function raises an exception if the file can't be found. The
-`find-in-path-optional' function silently removes files that can't be
-found.
 
-digest-path
------------
-  
-<<
-      $(digest-in-path path, files) : String/File Array
-         path : Dir Array
-         files : String Array
-      raises RuntimeException
-  
-      $(digest-in-path-optional path, files) : String/File Array
->>
-  
-  The `digest-in-path' function searches for the files in a search path
-and returns the file and digest for each file. Only the tail of the
-filename is significant. The `digest-in-path' function raises an
-exception if the file can't be found. The `digest-in-path-optional'
-function silently removes elements that can't be found.
 
-rehash
-------
-  
-<<
-      rehash()
->>
-  
-  The `rehash' function resets all search paths.
-
-vmount
-------
+8.6.1  vmount
+=============
   
 <<
       vmount(src, dst)
@@ -5495,8 +5857,8 @@ builds with separate configurations or architectures.
   
   Mount operations are scoped.
 
-add-project-directories
------------------------
+8.6.2  add-project-directories
+==============================
   
 <<
       add-project-directories(dirs)
@@ -5507,8 +5869,8 @@ add-project-directories
 be part of the project. This is mainly used to avoid omake complaining
 that the current directory is not part of the project.
 
-remove-project-directories
---------------------------
+8.6.3  remove-project-directories
+=================================
   
 <<
       remove-project-directories(dirs)
@@ -5520,8 +5882,13 @@ considers to be part of the project. This is mainly used to cancel a
 `.SUBDIRS' from including a directory if it is determined that the
 directory does not need to be compiled.
 
-test
-----
+8.7  File predicates
+*=*=*=*=*=*=*=*=*=*=
+
+
+
+8.7.1  test
+===========
   
 <<
      test(exp) : Bool
@@ -5606,8 +5973,8 @@ system, the man page explains more. Here are some examples.
 >>
   
 
-find
-----
+8.7.2  find
+===========
   
 <<
      find(exp) : Node Array
@@ -5634,7 +6001,7 @@ additions.
 The following call is being run from the root of the `omake' source
 directory.
 <<
-      osh> find(. -name fo*)
+      osh> find(. -name fo* )
       - : <array
               /home/jyh/.../omake/mk/.svn/format
               /home/jyh/.../omake/RPM/.svn/format
@@ -5656,19 +6023,19 @@ symbolic links.
 >>
 
 
-8.1  IO functions
+8.8  IO functions
 *=*=*=*=*=*=*=*=*
 
 
 
-8.1.1  Standard channels
+8.8.1  Standard channels
 ========================
   
   The following variables define the standard channels.
   
 
-stdin
------
+8.8.2  stdin
+============
   
 <<
   stdin : InChannel
@@ -5677,8 +6044,8 @@ stdin
   The standard input channel, open for reading.
   
 
-stdout
-------
+8.8.3  stdout
+=============
    
 <<
   stdout : OutChannel
@@ -5687,8 +6054,8 @@ stdout
   The standard output channel, open for writing.
   
 
-stderr
-------
+8.8.4  stderr
+=============
    
 <<
   stderr : OutChannel
@@ -5696,8 +6063,8 @@ stderr
   
   The standard error channel, open for writing.
 
-fopen
------
+8.8.5  fopen
+============
   
   The `fopen' function opens a file for reading or writing.
 <<
@@ -5724,8 +6091,8 @@ combination of the following characters.
   Binary mode is not significant on Unix systems, where text and binary
 modes are equivalent.
 
-close
------
+8.8.6  close
+============
   
 <<
       $(close channel...)
@@ -5735,8 +6102,8 @@ close
   The `close' function closes a file that was previously opened with
 `fopen'.
 
-read
-----
+8.8.7  read
+===========
   
 <<
      $(read channel, amount) : String
@@ -5749,8 +6116,8 @@ read
 and returns the data that was read. If an end-of-file condition is
 reached, the function raises a `RuntimeException' exception.
 
-write
------
+8.8.8  write
+============
   
 <<
      $(write channel, buffer, offset, amount) : String
@@ -5774,8 +6141,8 @@ length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception.
 
-lseek
------
+8.8.9  lseek
+============
   
 <<
       $(lseek channel, offset, whence) : Int
@@ -5797,8 +6164,8 @@ according to the `whence' directive, as follows:
   
   The `lseek' function returns the new position in the file.
 
-rewind
-------
+8.8.10  rewind
+==============
   
 <<
      rewind(channel...)
@@ -5808,8 +6175,8 @@ rewind
   The `rewind' function set the current file position to the beginning
 of the file.
 
-tell
-----
+8.8.11  tell
+============
   
 <<
       $(tell channel...) : Int...
@@ -5819,8 +6186,8 @@ tell
   
   The `tell' function returns the current position of the `channel'.
 
-flush
------
+8.8.12  flush
+=============
   
 <<
      $(flush channel...)
@@ -5830,8 +6197,8 @@ flush
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file.
 
-dup
----
+8.8.13  dup
+===========
   
 <<
       $(dup channel) : Channel
@@ -5842,8 +6209,8 @@ dup
   The `dup' function returns a new channel referencing the same file as
 the argument.
 
-dup2
-----
+8.8.14  dup2
+============
   
 <<
      dup2(channel1, channel2)
@@ -5855,8 +6222,8 @@ dup2
   The `dup2' function causes `channel2' to refer to the same file as
 `channel1'.
 
-set-nonblock
-------------
+8.8.15  set-nonblock
+====================
   
 <<
      set-nonblock-mode(mode, channel...)
@@ -5869,8 +6236,8 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'.
 
-set-close-on-exec-mode
-----------------------
+8.8.16  set-close-on-exec-mode
+==============================
   
 <<
      set-close-on-exec-mode(mode, channel...)
@@ -5883,8 +6250,8 @@ set-close-on-exec-mode
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is.
 
-pipe
-----
+8.8.17  pipe
+============
   
 <<
      $(pipe) : Pipe
@@ -5895,8 +6262,8 @@ pipe
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing.
 
-mkfifo
-------
+8.8.18  mkfifo
+==============
   
 <<
      mkfifo(mode, node...)
@@ -5906,8 +6273,8 @@ mkfifo
   
   The `mkfifo' function creates a named pipe.
 
-select
-------
+8.8.19  select
+==============
   
 <<
      $(select rfd..., wfd..., wfd..., timeout) : Select
@@ -5931,8 +6298,8 @@ the following fields:
  error  An array of channels on which an error has occurred. 
 
 
-lockf
------
+8.8.20  lockf
+=============
   
 <<
       lockf(channel, command, len)
@@ -5954,8 +6321,8 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
 
 
-InetAddr
---------
+8.8.21  InetAddr
+================
   
   The `InetAddr' object describes an Internet address. It contains the
 following fields.
@@ -5966,8 +6333,8 @@ following fields.
   
   
 
-Host
-----
+8.8.22  Host
+============
   
   A `Host' object contains the following fields.
   
@@ -5980,8 +6347,8 @@ Host
   
   
 
-gethostbyname
--------------
+8.8.23  gethostbyname
+=====================
   
 <<
      $(gethostbyname host...) : Host...
@@ -5993,8 +6360,8 @@ gethostbyname
 host. The `host' may specify a domain name or an Internet address.
   
 
-Protocol
---------
+8.8.24  Protocol
+================
   
   The `Protocol' object represents a protocol entry. It has the
 following fields.
@@ -6006,8 +6373,8 @@ following fields.
   
   
 
-getprotobyname
---------------
+8.8.25  getprotobyname
+======================
   
 <<
      $(getprotobyname name...) : Protocol...
@@ -6019,8 +6386,8 @@ getprotobyname
 specified protocol. The `name' may be a protocol name, or a protocol
 number.
 
-Service
--------
+8.8.26  Service
+===============
   
   The `Service' object represents a network service. It has the
 following fields.
@@ -6033,8 +6400,8 @@ following fields.
   
   
 
-getservbyname
--------------
+8.8.27  getservbyname
+=====================
   
 <<
      $(getservbyname service...) : Service...
@@ -6045,8 +6412,8 @@ getservbyname
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number.
 
-socket
-------
+8.8.28  socket
+==============
   
 <<
      $(socket domain, type, protocol) : Channel
@@ -6074,8 +6441,8 @@ socket
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database.
 
-bind
-----
+8.8.29  bind
+============
   
 <<
      bind(socket, host, port)
@@ -6094,8 +6461,8 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address.
 
-listen
-------
+8.8.30  listen
+==============
   
 <<
      listen(socket, requests)
@@ -6107,8 +6474,8 @@ listen
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests.
 
-accept
-------
+8.8.31  accept
+==============
   
 <<
      $(accept socket) : InOutChannel
@@ -6118,8 +6485,8 @@ accept
   
   The `accept' function accepts a connection on a socket.
 
-connect
--------
+8.8.32  connect
+===============
   
 <<
       connect(socket, addr, port)
@@ -6139,8 +6506,8 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket.
 
-getchar
--------
+8.8.33  getchar
+===============
   
 <<
       $(getc) : String
@@ -6153,8 +6520,8 @@ getchar
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'.
 
-gets
-----
+8.8.34  gets
+============
   
 <<
      $(gets) : String
@@ -6167,8 +6534,8 @@ gets
 returns the empty string if the end of file has been reached. The line
 terminator is removed.
 
-fgets
------
+8.8.35  fgets
+=============
   
 <<
      $(fgets) : String
@@ -6182,7 +6549,7 @@ opened for reading with `fopen'. The function returns the empty string
 if the end of file has been reached. The returned string is returned as
 literal data. The line terminator is not removed.
 
-8.2  Printing functions
+8.9  Printing functions
 *=*=*=*=*=*=*=*=*=*=*=*
 
         
@@ -6203,8 +6570,8 @@ with `fopen'. The `print' functions print to the standard output
 channel, and the `eprint' functions print to the standard error channel.
 
 
-8.3  Value printing functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+8.10  Value printing functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
         
   Values can be printed with the `printv' and `printvln' functions. The
@@ -6224,14 +6591,14 @@ opened with `fopen'. The `printv' functions print to the standard output
 channel, and the `eprintv' functions print to the standard error
 channel.
 
-8.4  Higher-level IO functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+8.11  Higher-level IO functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
   
 
-8.4.1  Regular expressions
-==========================
+8.11.1  Regular expressions
+===========================
    
   Many of the higher-level functions use regular expressions. Regular
 expressions are defined by strings with syntax nearly identical to
@@ -6307,8 +6674,8 @@ abstractly. Some of these sequences can change depending on your LOCALE.
  - `[:space:]' Whitespace characters. 
 
 
-cat
----
+8.11.2  cat
+===========
   
 <<
       cat(files) : Sequence
@@ -6318,8 +6685,8 @@ cat
   The `cat' function concatenates the output from multiple files and
 returns it as a string.
 
-grep
-----
+8.11.3  grep
+============
   
 <<
      grep(pattern) : String  # input from stdin, default options
@@ -6345,8 +6712,8 @@ highly-simplified version of grep(1).
   If successful (`grep' found a match), the function returns `true'.
 Otherwise, it returns `false'.
 
-scan
-----
+8.11.4  scan
+============
   
 <<
      scan(input-files)
@@ -6429,8 +6796,8 @@ meaning of `stdout' outside the `calc' function.
 >>
   
 
-awk
----
+8.11.5  awk
+===========
   
 <<
      awk(input-files)
@@ -6499,8 +6866,8 @@ meaning of `stdout' outside the `filter' function.
 >>
   
 
-fsubst
-------
+8.11.6  fsubst
+==============
   
 <<
      fsubst(files)
@@ -6540,8 +6907,8 @@ expression `word.' with its capitalized form.
 >>
   
 
-Lexer
------
+8.11.7  Lexer
+=============
   
   The `Lexer' object defines a facility for lexical analysis, similar to
 the lex(1) and flex(1) programs.
@@ -6618,8 +6985,8 @@ and value.
 argument.
   
 
-8.4.2  Lexer matching
-=====================
+8.11.8  Lexer matching
+======================
   
   During lexical analysis, clauses are selected by longest match. That
 is, the clause that matches the longest sequence of input characters is
@@ -6628,8 +6995,8 @@ chosen for evaluation. If no clause matches, the lexer raises a
 input, the first one is chosen for evaluation.
   
 
-8.4.3  Extending lexer definitions
-==================================
+8.11.9  Extending lexer definitions
+===================================
   
   Suppose we wish to augment the lexer example so that it ignores
 comments. We will define comments as any text that begins with the
@@ -6674,8 +7041,8 @@ this by extending the lexer object `lexer1' that we just created.
 comment is encountered, and continues lexing when that lexer returns.
   
 
-8.4.4  Threading the lexer object
-=================================
+8.11.10  Threading the lexer object
+===================================
   
   Clause bodies may also end with an `export' directive. In this case
 the lexer object itself is used as the returned token. If used with the
@@ -6684,8 +7051,8 @@ the lexer object itself is used as the returned token. If used with the
 lexer, it calls it with the lexer returned from the previous lex
 invocation.
 
-8.4.5  Parser
-=============
+8.11.11  Parser
+===============
   
   The `Parser' object provides a facility for syntactic analysis based
 on context-free grammars.
@@ -6760,8 +7127,8 @@ values associated with each of the variables on the right-hand-side of
 the production.
   
 
-8.4.6  Calling the parser
-=========================
+8.11.12  Calling the parser
+===========================
   
   The parser is called with the `$(parser1.parse-channel start,
 channel)' or `$(parser1.parse-file start, file)' functions. The `start'
@@ -6769,8 +7136,8 @@ argument is the start symbol, and the `channel' or `file' is the input
 to the parser.
   
 
-8.4.7  Parsing control
-======================
+8.11.13  Parsing control
+========================
   
   The parser generator generates a pushdown automation based on LALR(1)
 tables. As usual, if the grammar is ambiguous, this may generate
@@ -6786,8 +7153,8 @@ also prints with parser table together with any conflicts.
 input range for all tokens on the right-hand-side of the production.
   
 
-8.4.8  Extending parsers
-========================
+8.11.14  Extending parsers
+==========================
   
   Parsers may also be extended by inheritance. For example, let's extend
 the grammar so that it also recognizes the `<<' and `>>' shift
@@ -6828,8 +7195,8 @@ accomplishes this.
   In this case, we use the new lexer `lexer2', and we add productions
 for the new shift operations.
 
-gettimeofday
-------------
+8.11.15  gettimeofday
+=====================
   
 <<
      $(gettimeofday) : Float
@@ -6837,25 +7204,26 @@ gettimeofday
   
   The `gettimeofday' function returns the time of day in seconds since
 January 1, 1970.
+  
 
 Chapter 9    Shell functions
 ****************************
+    
+  
+
+9.1  Basic functions
+*=*=*=*=*=*=*=*=*=*=
 
 
-echo
-----
+
+9.1.1  echo
+===========
   
   The `echo' function prints a string.
   `$(echo <args>)' `echo <args>'
 
-jobs
-----
-  
-  The `jobs' function prints a list of jobs.
-  `jobs'
-
-cd
---
+9.1.2  cd
+=========
   
   The `cd' function changes the current directory.
 <<
@@ -6891,39 +7259,55 @@ directory `./foo', `~/dir1/foo', `~/dir2/foo'.
   
   
 
-bg
---
+9.2  Job control
+*=*=*=*=*=*=*=*=
+
+
+
+9.2.1  jobs
+===========
+  
+  The `jobs' function prints a list of jobs.
+  `jobs'
+
+9.2.2  bg
+=========
   
   The `bg' function places a job in the background.
   `bg <pid...>'
 
-fg
---
+9.2.3  fg
+=========
   
   The `fg' function brings a job to the foreground.
   `fg <pid...>'
 
-stop
-----
+9.2.4  stop
+===========
   
   The `stop' function suspends a job.
   `stop <pid...>'
 
-wait
-----
+9.2.5  wait
+===========
   
   The `wait' function waits for a job to finish. If no process
 identifiers are given, the shell waits for all jobs to complete.
   `wait <pid...>'
 
-kill
-----
+9.2.6  kill
+===========
   
   The `kill' function signals a job.
   `kill [signal] <pid...>'
 
-history
--------
+9.3  Command history
+*=*=*=*=*=*=*=*=*=*=
+
+
+
+9.3.1  history
+==============
   
 <<
       $(history-index) : Int
@@ -6957,8 +7341,8 @@ following objects are defined.
   
   
 
-Object
-------
+10.1.1  Object
+==============
   
   Parent objects: none.
   The `Object' object is the root object. Every class is a subclass of
@@ -7007,8 +7391,8 @@ Object
   
   
 
-Map
----
+10.1.2  Map
+===========
   
   Parent objects: `Object'.
   A `Map' object is a dictionary from values to values. The `<key>'
@@ -7067,27 +7451,27 @@ represents lazy evaluation of the key, and `$,|key|' is normal
 evaluation.
   
 
-Number
-------
+10.1.3  Number
+==============
   
   Parent objects: `Object'.
   The `Number' object is the parent object for integers and
 floating-point numbers.
 
-Int
----
+10.1.4  Int
+===========
   
   Parent objects: `Number'.
   The `Int' object represents integer values.
 
-Float
------
+10.1.5  Float
+=============
   
   Parent objects: `Number'.
   The `Float' object represents floating-point numbers.
 
-Sequence
---------
+10.1.6  Sequence
+================
   
   Parent objects: `Object'.
   The `Sequence' object represents a generic object containing
@@ -7127,8 +7511,8 @@ sequential elements. It provides the following methods.
         >>
 
 
-Array
------
+10.1.7  Array
+=============
   
   Parent objects: `Sequence'.
   The `Array' is a random-access sequence. It provides the following
@@ -7140,13 +7524,13 @@ additional methods.
   
   
 
-String
-------
+10.1.8  String
+==============
   
   Parent objects: `Array'.
 
-Fun
----
+10.1.9  Fun
+===========
   
   Parent objects: `Object'.
   The `Fun' object provides the following methods. 
@@ -7154,15 +7538,15 @@ Fun
  - `$(f.arity)': the arity if the function. 
 
 
-Rule
-----
+10.1.10  Rule
+=============
   
   Parent objects: `Object'.
   The `Rule' object represents a build rule. It does not currently have
 any methods.
 
-Target
-------
+10.1.11  Target
+===============
   
   Parent object: `Object'.
   The `Target' object contains information collected for a specific
@@ -7198,8 +7582,8 @@ values in different contexts. The easiest way to make sure that the
 where the rule depends on the target file, or the dependencies of the
 target file.
 
-Node
-----
+10.1.12  Node
+=============
   
   Parent objects: `Object'.
   The `Node' object is the parent object for files and directories. It
@@ -7221,20 +7605,20 @@ supports the following operations.
    file. 
 
 
-File
-----
+10.1.13  File
+=============
   
   Parent objects: `Node'.
   The file object represents the name of a file.
 
-Dir
----
+10.1.14  Dir
+============
   
   Parent objects: `Node'.
   The `Dir' object represents the name of a directory.
 
-Channel
--------
+10.1.15  Channel
+================
   
   Parent objects: `Object'.
   A `Channel' is a generic IO channel. It provides the following
@@ -7243,8 +7627,8 @@ methods.
  - `$(o.close)': close the channel. 
 
 
-InChannel
----------
+10.1.16  InChannel
+==================
   
   Parent objects: `Channel'.
   A `InChannel' is an input channel. The variable `stdin' is the
@@ -7254,8 +7638,8 @@ standard input channel.
  - `$(InChannel.fopen <file>)': open a new input channel. 
 
 
-OutChannel
-----------
+10.1.17  OutChannel
+===================
   
   Parent object: `Channel'.
   A `OutChannel' is an output channel. The variables `stdout' and
@@ -7271,27 +7655,27 @@ OutChannel
    line terminator. 
 
 
-Location
---------
+10.1.18  Location
+=================
   
   Parent objects: `Location'.
   The `Location' object represents a location in a file.
 
-Position
---------
+10.1.19  Position
+=================
   
   Parent objects: `Position'.
   The `Position' object represents a stack trace.
 
-Exception
----------
+10.1.20  Exception
+==================
   
   Parent objects: `Object'.
   The `Exception' object is used as the base object for exceptions. It
 has no fields.
 
-RuntimeException
-----------------
+10.1.21  RuntimeException
+=========================
   
   Parent objects: `Exception'.
   The `RuntimeException' object represents an exception from the runtime
@@ -7303,8 +7687,8 @@ system. It has the following fields.
  - `message': a string containing the exception message. 
 
 
-Shell
------
+10.1.22  Shell
+==============
   
   Parent objects: `Object'.
   The `Shell' object contains the collection of builtin functions
@@ -7471,9 +7855,13 @@ Chapter 11    Build functions
 *****************************
 
 
-11.1  OMakeFlags
-*=*=*=*=*=*=*=*=
+11.1  Options and versioning
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
+
+
+11.1.1  OMakeFlags
+==================
   
 <<
      OMakeFlags(options)
@@ -7492,9 +7880,8 @@ command line.
 >>
   
 
-11.2  OMakeVersion
-*=*=*=*=*=*=*=*=*=
-
+11.1.2  OMakeVersion
+====================
   
 <<
      OMakeVersion(version1)
@@ -7509,9 +7896,8 @@ OMakefiles. It takes one or two arguments.
 version must lie between `version1' and `version2'.
   
 
-11.3  cmp-versions
-*=*=*=*=*=*=*=*=*=
-
+11.1.3  cmp-versions
+====================
    
 <<
      $(cmp-versions version1, version2)
@@ -7523,9 +7909,8 @@ strings. It returns 0 when the two version strings are equal, a negative
 number when the first string represents an earlier version, and a
 positive number otherwise.
 
-11.4  DefineCommandVars
-*=*=*=*=*=*=*=*=*=*=*=*
-
+11.1.4  DefineCommandVars
+=========================
   
 <<
      DefineCommandVars()
@@ -7536,7 +7921,7 @@ commandline. Variables definitions are passed on the command line in the
 form `name=value'. This function is primarily for internal use by omake
 to define these variables for the first time.
 
-11.5  The OMakeroot file
+11.2  The OMakeroot file
 *=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -7544,40 +7929,40 @@ to define these variables for the first time.
 building standard projects.
   
 
-11.5.1  Variables
+11.2.1  Variables
 =================
 
 
-ROOT
-----
+11.2.2  ROOT
+============
    The root directory of the current project.
 
-CWD
----
+11.2.3  CWD
+===========
    The current working directory (the directory is set for each
 OMakefile in the project).
 
-EMPTY
------
+11.2.4  EMPTY
+=============
    The empty string.
 
-STDROOT
--------
+11.2.5  STDROOT
+===============
    The name of the standard installed OMakeroot file.
 
-VERBOSE
--------
+11.2.6  VERBOSE
+===============
    Whether certain commands should be verbose (`false' by default).
 
-ABORT_ON_COMMAND_ERROR
-----------------------
+11.2.7  ABORT_ON_COMMAND_ERROR
+==============================
    If set to true, the construction of a target should  be aborted
 whenever one of the commands to build it fail. This defaults to true, 
 and should normally be left that way.
   
 
-SCANNER_MODE
-------------
+11.2.8  SCANNER_MODE
+====================
    This variable should be defined as one of four values  (defaults to
 `enabled'). 
   
@@ -7592,140 +7977,140 @@ SCANNER_MODE
    `.SCANNER' rule, the build will terminate abnormally. 
 
 
-11.5.2  System variables
+11.2.9  System variables
 ========================
   
   
 
-INSTALL
--------
+11.2.10  INSTALL
+================
    The command to install a program (`install' on `Unix', `cp' on
 `Win32').
 
-PATHSEP
--------
+11.2.11  PATHSEP
+================
    The normal path separator (`:' on `Unix', `;' on `Win32').
 
-DIRSEP
-------
+11.2.12  DIRSEP
+===============
    The normal directory separator (`/' on `Unix', `\' on `Win32').
 
-EXT_LIB
--------
+11.2.13  EXT_LIB
+================
    File suffix for a static library (default is `.a' on `Unix', and
 `.lib' on `Win32').
 
-EXT_OBJ
--------
+11.2.14  EXT_OBJ
+================
    File suffix for an object file (default is `.o' on `Unix', and `.obj'
 on `Win32').
 
-EXT_ASM
--------
+11.2.15  EXT_ASM
+================
    File suffix for an assembly file (default is `.s' on `Unix', and
 `.asm' on `Win32').
 
-EXE
----
+11.2.16  EXE
+============
    File suffix for executables (default is empty for `Unix', and `.exe'
 on `Win32' and `Cygwin').
 
-11.6  Building C programs
+11.3  Building C programs
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
   omake provides extensive support for building C programs.
   
 
-11.6.1  C configuration variables
+11.3.1  C configuration variables
 =================================
   
   The following variables can be redefined in your project.
   
 
-CC
---
+11.3.2  CC
+==========
    The name of the C compiler (on `Unix' it defaults to `gcc' when `gcc'
 is present and  to `cc' otherwise; on `Win32' defaults to `cl /nologo').
 
 
-CXX
----
+11.3.3  CXX
+===========
    The name of the C++ compiler (on `Unix' it defaults to `gcc' when
 `gcc' is present  and to `c'++ otherwise; on `Win32' defaults to `cl
 /nologo').
 
-CPP
----
+11.3.4  CPP
+===========
    The name of the C preprocessor (defaults to `cpp' on `Unix', and `cl
 /E' on `Win32').
 
-CFLAGS
-------
+11.3.5  CFLAGS
+==============
    Compilation flags to pass to the C compiler (default empty on `Unix',
 and `/DWIN32'  on `Win32').
 
-CXXFLAGS
---------
+11.3.6  CXXFLAGS
+================
    Compilation flags to pass to the C++ compiler (default empty on
 `Unix', and `/DWIN32'  on `Win32').
 
-INCLUDES
---------
+11.3.7  INCLUDES
+================
    Additional directories that specify the search path to the C and C++
 compilers (default is `.').  The directories are passed to the C and C++
 compilers with the `-I' option.  The include path with `-I' prefixes is
 defined in the `PREFIXED_INCLUDES' variable.
 
-LIBS
-----
+11.3.8  LIBS
+============
    Additional libraries needed when building a program (default is
 empty).
 
-AS
---
+11.3.9  AS
+==========
    The name of the assembler (defaults to `as' on `Unix', and `ml' on
 `Win32').
 
-ASFLAGS
--------
+11.3.10  ASFLAGS
+================
    Flags to pass to the assembler (default is empty on `Unix', and `/c
 /coff' on `Win32').
 
-AR
---
+11.3.11  AR
+===========
    The name of the program to create static libraries (defaults to `ar
 cq' on `Unix',  and `lib' on `Win32').
 
-AROUT
------
+11.3.12  AROUT
+==============
    The option string that specifies the output file for `AR'.
 
-LD
---
+11.3.13  LD
+===========
    The name of the linker (defaults to `ld' on `Unix', and `cl' on
 `Win32').
 
-LDFLAGS
--------
+11.3.14  LDFLAGS
+================
    Options to pass to the linker (default is empty).
 
-YACC
-----
+11.3.15  YACC
+=============
    The name of the `yacc' parser generator (default is `yacc' on `Unix',
 empty on `Win32').
 
-LEX
----
+11.3.16  LEX
+============
    The name of the `lex' lexer generator (default is `lex' on `Unix',
 empty on `Win32').
 
-CGeneratedFiles
----------------
+11.3.17  CGeneratedFiles
+========================
 
 
-LocalCGeneratedFiles
---------------------
+11.3.18  LocalCGeneratedFiles
+=============================
    
 <<
   CGeneratedFiles(files)
@@ -7746,8 +8131,8 @@ dependencies. The `LocalCGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-StaticCLibrary
---------------
+11.3.19  StaticCLibrary
+=======================
   
   The `StaticCLibrary' builds a static library.
   `StaticCLibrary(<target>, <files>)'
@@ -7764,8 +8149,8 @@ list does not include the object suffix. These are obtained from the
 >>
   
 
-StaticCLibraryCopy
-------------------
+11.3.20  StaticCLibraryCopy
+===========================
   
   The `StaticCLibraryCopy' function copies the static library to an
 install location.
@@ -7784,8 +8169,8 @@ directory.
 >>
   
 
-StaticCLibraryInstall
----------------------
+11.3.21  StaticCLibraryInstall
+==============================
   
   The `StaticCLibraryInstall' function builds a library, and sets the
 install location in one step. It returns the filename of the library in
@@ -7796,23 +8181,23 @@ the target directory.
 >>
   
 
-StaticCObject
--------------
+11.3.22  StaticCObject
+======================
 
 
-StaticCObjectCopy
------------------
+11.3.23  StaticCObjectCopy
+==========================
 
 
-StaticCObjectInstall
---------------------
+11.3.24  StaticCObjectInstall
+=============================
   
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
 
-CProgram
---------
+11.3.25  CProgram
+=================
   
   The `CProgram' function builds a C program from a set of object files
 and libraries.
@@ -7836,8 +8221,8 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 >>
   
 
-CProgramCopy
-------------
+11.3.26  CProgramCopy
+=====================
   
   The `CProgramCopy' function copies a file to an install location.
   `CProgramCopy(<tag>, <dir>, <program>)'
@@ -7846,8 +8231,8 @@ CProgramCopy
 >>
   
 
-CProgramInstall
----------------
+11.3.27  CProgramInstall
+========================
   
   The `CProgramInstall' function specifies a program to build, and a
 location to install, simultaneously.
@@ -7859,175 +8244,175 @@ location to install, simultaneously.
 >>
   
 
-CXXProgram
-----------
+11.3.28  CXXProgram
+===================
 
 
-CXXProgramInstall
------------------
+11.3.29  CXXProgramInstall
+==========================
   
   The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
 their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
 for linking instead of `$(CC)' and `$(CFLAGS)'.
 
-11.7  Building OCaml programs
+11.4  Building OCaml programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
   
 
-11.7.1  Variables for OCaml programs
+11.4.1  Variables for OCaml programs
 ====================================
   
   The following variables can be redefined in your project.
 
-USE_OCAMLFIND
--------------
+11.4.2  USE_OCAMLFIND
+=====================
    Whether to use the `ocamlfind' utility (default `false\')
 
-OCAMLC
-------
+11.4.3  OCAMLC
+==============
    The OCaml bytecode compiler (default `ocamlc.opt' if it exists  and
 `USE_OCAMLFIND' is not set, otherwise `ocamlc').
 
-OCAMLOPT
---------
+11.4.4  OCAMLOPT
+================
    The OCaml native-code compiler (default `ocamlopt.opt' if it  exists
 and `USE_OCAMLFIND' is not set, otherwise `ocamlopt').
 
-CAMLP4
-------
+11.4.5  CAMLP4
+==============
    The `camlp4' preprocessor (default `camlp4').
 
-OCAMLLEX
---------
+11.4.6  OCAMLLEX
+================
    The OCaml lexer generator (default `ocamllex').
 
-OCAMLLEXFLAGS
--------------
+11.4.7  OCAMLLEXFLAGS
+=====================
    The flags to pass to `ocamllex' (default `-q').
 
-OCAMLYACC
----------
+11.4.8  OCAMLYACC
+=================
    The OCaml parser generator (default `ocamlyacc').
 
-OCAMLDEP
---------
+11.4.9  OCAMLDEP
+================
    The OCaml dependency analyzer (default `ocamldep').
 
-OCAMLMKTOP
-----------
+11.4.10  OCAMLMKTOP
+===================
    The OCaml toploop compiler (default `ocamlmktop').
 
-OCAMLLINK
----------
+11.4.11  OCAMLLINK
+==================
    The OCaml bytecode linker (default `$(OCAMLC)').
 
-OCAMLOPTLINK
-------------
+11.4.12  OCAMLOPTLINK
+=====================
    The OCaml native-code linker (default `$(OCAMLOPT)').
 
-OCAMLINCLUDES
--------------
+11.4.13  OCAMLINCLUDES
+======================
    Search path to pass to the OCaml compilers (default `.').  The search
 path with the `-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES' 
 variable.
 
-OCAMLFIND
----------
+11.4.14  OCAMLFIND
+==================
    The `ocamlfind' utility (default `ocamlfind' if  `USE_OCAMLFIND' is
 set, otherwise empty).
 
-OCAMLFINDFLAGS
---------------
+11.4.15  OCAMLFINDFLAGS
+=======================
    The flags to pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must
 be set).
 
-OCAMLPACKS
-----------
+11.4.16  OCAMLPACKS
+===================
    Package names to pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
 
-BYTE_ENABLED
-------------
+11.4.17  BYTE_ENABLED
+=====================
    Flag indicating whether to use the bytecode compiler (default `true',
 when no `ocamlopt' found, `false' otherwise).
 
-NATIVE_ENABLED
---------------
+11.4.18  NATIVE_ENABLED
+=======================
    Flag indicating whether to use the native-code compiler (default
 `true', when ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED'
 and `NATIVE_ENABLED' can be set to true;  at least one should be set to
 true.
 
-11.7.2  OCaml command flags
-===========================
+11.4.19  OCaml command flags
+============================
   
   The following variables specify additional options to be passed to the
 OCaml tools.
 
-OCAMLDEPFLAGS
--------------
+11.4.20  OCAMLDEPFLAGS
+======================
    Flags to pass to `OCAMLDEP'.
 
-OCAMLPPFLAGS
-------------
+11.4.21  OCAMLPPFLAGS
+=====================
    Flags to pass to `CAMLP4'.
 
-OCAMLCFLAGS
------------
+11.4.22  OCAMLCFLAGS
+====================
    Flags to pass to the byte-code compiler (default `-g').
 
-OCAMLOPTFLAGS
--------------
+11.4.23  OCAMLOPTFLAGS
+======================
    Flags to pass to the native-code compiler (default empty).
 
-OCAMLFLAGS
-----------
+11.4.24  OCAMLFLAGS
+===================
    Flags to pass to either compiler (default `-warn-error A').
 
-OCAML_BYTE_LINK_FLAGS
----------------------
+11.4.25  OCAML_BYTE_LINK_FLAGS
+==============================
    Flags to pass to the byte-code linker (default empty).
 
-OCAML_NATIVE_LINK_FLAGS
------------------------
+11.4.26  OCAML_NATIVE_LINK_FLAGS
+================================
    Flags to pass to the native-code linker (default empty).
 
-OCAML_LINK_FLAGS
-----------------
+11.4.27  OCAML_LINK_FLAGS
+=========================
    Flags to pass to either linker.
 
-11.7.3  Library variables
-=========================
+11.4.28  Library variables
+==========================
   
   The following variables are used during linking.
   
 
-OCAML_LIBS
-----------
+11.4.29  OCAML_LIBS
+===================
    Libraries to pass to the linker. These libraries become dependencies 
 of the link step.
 
-OCAML_OTHER_LIBS
-----------------
+11.4.30  OCAML_OTHER_LIBS
+=========================
    Additional libraries to pass to the linker. These libraries are  not
 included as dependencies to the link step. Typical use is for the OCaml 
 standard libraries like `unix' or `str'.
 
-OCAML_CLIBS
------------
+11.4.31  OCAML_CLIBS
+====================
    C libraries to pass to the linker.
 
-OCAML_LIB_FLAGS
----------------
+11.4.32  OCAML_LIB_FLAGS
+========================
    Extra flags for the library.
 
-OCamlGeneratedFiles
--------------------
+11.4.33  OCamlGeneratedFiles
+============================
 
 
-LocalOCamlGeneratedFiles
-------------------------
+11.4.34  LocalOCamlGeneratedFiles
+=================================
    
 <<
   OCamlGeneratedFiles(files)
@@ -8048,16 +8433,16 @@ dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-OCamlLibrary
-------------
+11.4.35  OCamlLibrary
+=====================
   
   The `OCamlLibrary' function builds an OCaml library.
   `OCamlLibrary(<libname>, <files>)'
   The `<libname>' and `<files>' are listed without suffixes.
   
 
-ABORT_ON_DEPENDENCY_ERRORS
---------------------------
+11.4.36  ABORT_ON_DEPENDENCY_ERRORS
+===================================
     The linker requires that the files to be  listed in dependency
 order. If this variable is true, the order of  the files is determined
 by the command line, but omake will  abort with an error message if the
@@ -8073,8 +8458,8 @@ from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
 >>
   
 
-OCamlPackage
-------------
+11.4.37  OCamlPackage
+=====================
   
   The `OCamlPackage' function builds an OCaml package.
   `OCamlPackage(<name>, <files>)'
@@ -8092,8 +8477,8 @@ is set).
 >>
   
 
-OCamlLibraryCopy
-----------------
+11.4.38  OCamlLibraryCopy
+=========================
   
   The `OCamlLibraryCopy' function copies a library to an install
 location.
@@ -8101,15 +8486,15 @@ location.
   The `<interface-files>' specify additional interface files to be
 copied if the `INSTALL_INTERFACES' variable is true.
 
-OCamlLibraryInstall
--------------------
+11.4.39  OCamlLibraryInstall
+============================
   
   The `OCamlLibraryInstall' function builds a library and copies it to
 an install location in one step.
   `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
 
-OCamlProgram
-------------
+11.4.40  OCamlProgram
+=====================
   
   The `OCamlProgram' function builds an OCaml program. It returns the
 array with all the targets for which it have defined the rules
@@ -8118,101 +8503,101 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   `OCamlProgram(<name>, <files>)'
   Additional variables used: 
   
- OCAML_LIBS 11.7.3  Additional libraries passed to the linker, without
+ OCAML_LIBS 11.4.29  Additional libraries passed to the linker, without
    suffix. These files  become dependencies of the target program. 
- OCAML_OTHER_LIBS 11.7.3  Additional libraries passed to the linker,
+ OCAML_OTHER_LIBS 11.4.30  Additional libraries passed to the linker,
    without suffix. These  files do not become dependencies of the target
    program. 
- OCAML_CLIBS 11.7.3  C libraries to pass to the linker. 
- OCAML_BYTE_LINK_FLAGS 11.7.2  Flags to pass to the bytecode linker. 
- OCAML_NATIVE_LINK_FLAGS 11.7.2  Flags to pass to the native code
+ OCAML_CLIBS 11.4.31  C libraries to pass to the linker. 
+ OCAML_BYTE_LINK_FLAGS 11.4.25  Flags to pass to the bytecode linker. 
+ OCAML_NATIVE_LINK_FLAGS 11.4.26  Flags to pass to the native code
    linker. 
- OCAML_LINK_FLAGS 11.7.2  Flags to pass to both linkers. 
+ OCAML_LINK_FLAGS 11.4.27  Flags to pass to both linkers. 
 
 
-OCamlProgramCopy
-----------------
+11.4.41  OCamlProgramCopy
+=========================
   
   The `OCamlProgramCopy' function copies an OCaml program to an install
 location.
   `OCamlProgramCopy(<tag>, <bindir>, <name>)'
   Additional variables used: 
   
- NATIVE_ENABLED  If `NATIVE_ENABLED' 11.7.1 is set, the native-code
+ NATIVE_ENABLED  If `NATIVE_ENABLED' 11.4.18 is set, the native-code
    executable  is copied; otherwise the byte-code executable is copied. 
 
 
-OCamlProgramInstall
--------------------
+11.4.42  OCamlProgramInstall
+============================
   
   The `OCamlProgramInstall' function builds a programs and copies it to
 an install location in one step.
   `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)'
 
-11.8  Building LaTeX programs
+11.5  Building LaTeX programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
   
 
-11.8.1  Configuration variables
+11.5.1  Configuration variables
 ===============================
   
   The following variables can be modified in your project.
 
-LATEX
------
+11.5.2  LATEX
+=============
    The LaTeX command (default `latex').
 
-TETEX2_ENABLED
---------------
+11.5.3  TETEX2_ENABLED
+======================
    Flag indicating whether to use advanced LaTeX options present in
 TeTeX v.2 (default value is determined the first time omake reads
 `LaTeX.src' and depends on the version of LaTeX you have installed).
 
-LATEXFLAGS
-----------
+11.5.4  LATEXFLAGS
+==================
    The LaTeX flags (defaults depend on the `TETEX2_ENABLED' variable)
 
-BIBTEX
-------
+11.5.5  BIBTEX
+==============
    The BibTeX command (default `bibtex').
 
-MAKEINDEX
----------
+11.5.6  MAKEINDEX
+=================
    The command to build an index (default `makeindex').
 
-DVIPS
------
+11.5.7  DVIPS
+=============
    The `.dvi' to PostScript converter (default `dvips').
 
-DVIPSFLAGS
-----------
+11.5.8  DVIPSFLAGS
+==================
    Flags to pass to `dvips' (default `-t letter').
 
-DVIPDFM
--------
+11.5.9  DVIPDFM
+===============
    The `.dvi' to `.pdf' converter (default `dvipdfm').
 
-DVIPDFMFLAGS
-------------
+11.5.10  DVIPDFMFLAGS
+=====================
    Flags to pass to `dvipdfm' (default `-p letter').
 
-PDFLATEX
---------
+11.5.11  PDFLATEX
+=================
    The `.latex' to `.pdf' converter (default `pdflatex').
 
-PDFLATEXFLAGS
--------------
+11.5.12  PDFLATEXFLAGS
+======================
    Flags to pass to pdflatex (default is empty).
 
-USEPDFLATEX
------------
+11.5.13  USEPDFLATEX
+====================
    Flag indicating whether to use pdflatex instead of dvipdfm to
 generate the `.pdf' document (default `false').
 
-LaTeXDocument
--------------
+11.5.14  LaTeXDocument
+======================
   
   The `LaTeXDocument' produces a LaTeX document.
   `LaTeXDocument(<name>, <texfiles>)'
@@ -8221,21 +8606,21 @@ This function returns the filenames for the generated `.ps' and `.pdf'
 files.
   Additional variables used:
 
-TEXINPUTS
----------
+11.5.15  TEXINPUTS
+==================
    The LaTeX search path (an array of directories, default is  taken
 from the `TEXINPUTS' environment variable).
 
-TEXDEPS
--------
+11.5.16  TEXDEPS
+================
    Additional files this document depends on.
 
-TeXGeneratedFiles
------------------
+11.5.17  TeXGeneratedFiles
+==========================
 
 
-LocalTeXGeneratedFiles
-----------------------
+11.5.18  LocalTeXGeneratedFiles
+===============================
    
 <<
   TeXGeneratedFiles(files)
@@ -8256,32 +8641,32 @@ dependencies. The `LocalTeXGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-LaTeXDocumentCopy
------------------
+11.5.19  LaTeXDocumentCopy
+==========================
   
   The `LaTeXDocumentCopy' copies the document to an install location.
   `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
   This function copies just the `.pdf' and `.ps' files.
 
-LaTeXDocumentInstall
---------------------
+11.5.20  LaTeXDocumentInstall
+=============================
   
   The `LaTeXDocumentInstall' builds a document and copies it to an
 install location in one step.
   `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
 <files>)'
 
-11.9  Examining the dependency graph
+11.6  Examining the dependency graph
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
 
 
-dependencies
-------------
+11.6.1  dependencies
+====================
 
 
-dependencies-all
-----------------
+11.6.2  dependencies-all
+========================
   
 <<
      $(dependencies targets) : File Array
@@ -8320,8 +8705,8 @@ For a shorter form, see the `filter-proper-targets' function.
   
   
 
-target
-------
+11.6.3  target
+==============
    
 <<
      $(target targets) : Rule Array
@@ -8332,8 +8717,8 @@ target
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-rule
-----
+11.6.4  rule
+============
   
   The `rule' function is called whenever a build rule is defined. It is
 unlikely that you will need to redefine this function, except in very
@@ -8395,8 +8780,8 @@ this file is the same as an OMakefile. The following additional
 variables are significant.
   
 
-prompt
-------
+12.1.1  prompt
+==============
    The `prompt' variable specifies the command-line prompt. It can be a
 simple string.
 <<
@@ -8417,8 +8802,8 @@ simple string.
   
   
 
-ignoreeof
----------
+12.1.2  ignoreeof
+=================
     If the `ignoreeof' is `true', then `osh' will not exit on  a
 terminal end-of-file (usually `^D' on Unix systems).
   
@@ -8472,10 +8857,11 @@ Appendix A    Synopsis
   omake  [-k]  [-j <count>]  [-n]  [-s] [-S]  [-p]  [-P]  [-w]  [-t] 
 [-u]  [-U]  [-R]  [--project]  [--progress] [--no-progress] 
 [--print-status] [--no-print-status]  [--print-exit] [--no-print-exit] 
-[--print-dependencies]  [--show-dependencies < target>] 
-[--force-dotomake]  [--dotomake < dir>]  [--flush-includes] 
-[--configure]  [--install]  [--install-all]  [--install-force] 
-[--version]  filename...  [var-definition...]
+[--print-dependencies]  [--show-dependencies <target>] 
+[--all-dependencies]  [--force-dotomake]  [--dotomake <dir>] 
+[--flush-includes]  [--configure]  [--install]  [--install-all] 
+[--install-force]  [--version]  [--absname]  filename... 
+[var-definition...]
   
 
 A.1  Command-line options
@@ -8557,8 +8943,14 @@ A.1  Command-line options
  --print-dependencies  Print dependency information for the targets on
    the command line.
  
- --show-dependencies  target  Print dependency information if the
+ --show-dependencies target  Print dependency information if the
    `target' is built.
+ 
+ --all-dependencies  If either of the options --print-dependencies or
+   --show-dependencies is in effect, print transitive dependencies. That
+   is, print all dependencies recursively. If neither option
+   --print-dependencies, --show-dependencies is specified, this option
+   has no effect.
  
  --install  Install default files OMakefile and OMakeroot into the
    current  directory. You would typically do this to start a project in
@@ -8573,6 +8965,10 @@ A.1  Command-line options
  --install-force  Normally, omake will prompt before it overwrites any 
    existing OMakefile. If this option is given, all files are forcibly
    overwritten  without prompting.
+ 
+ --absname  Filenames should expand to absolute pathnames. [jyh: this
+   option needs to be documented in Chapter 6. It may become
+   deprecated.]
  
  var-definition  omake variables can also be defined on the command 
    line in the form `name=value'. For example, the `CFLAGS' variable
@@ -8721,7 +9117,7 @@ is, the two-character sequences `\$' and `$$' are normally equalivalent.
 
 B.1.6  String constants
 =======================
-  
+   
   Literal strings are defined with matching string delimiters. A left
 string delimiter begins with the dollar-sign `$', and a non-zero number
 of single-quote or double-quote characters. The string is terminated
@@ -8869,7 +9265,7 @@ B.2.2  Statements and programs
         
                     -- Variable definitions                             
         
-                 |  pathid +^?= expr                                    
+                 |  pathid {+}= expr                                    
         
                  |  pathid {+}= `<eol>' indented-body                   
         
@@ -8974,10 +9370,10 @@ include `when' clauses that specify additional matching conditions.
          indented-body
 >>
   
-  Exceptions (see the `try' function 7.2). The `try' command introduces
-an exception handler. Each `name' is the name of a class. All cases,
-including `catch', `default', and `finally' are optional. The `catch'
-and `default' clauses contain optional `when' clauses.
+  Exceptions (see the `try' function 7.2.8). The `try' command
+introduces an exception handler. Each `name' is the name of a class. All
+cases, including `catch', `default', and `finally' are optional. The
+`catch' and `default' clauses contain optional `when' clauses.
 <<
       try
           indented-body
@@ -9039,7 +9435,7 @@ specified identifiers.
       export id ... id
 >>
   
-  while (see the `while' description 7.3). The `while' command
+  while (see the `while' description 7.3.36). The `while' command
 introduces a `while' loop.
 <<
       while expr
@@ -9413,10 +9809,11 @@ Index
 *****
   
   
- - .DEFAULT, 6.9.1 
- - .INCLUDE, 6.9.3 
+ - .DEFAULT, 6.9 
+ - .INCLUDE, 6.11 
+ - .PHONY, 6.12 
  - .SCANNER, 3.4.3, 6.6 
- - .SUBDIRS, 3 
+ - .SUBDIRS, 3, 6.10 
  - .SUBDIRS bodies, 3.5 
  
  - :effects:, 6.5.2 
@@ -9424,792 +9821,802 @@ Index
  - :scanner:, 6.7 
  - :value:, 6.5.3 
  
- - ABORT_ON_COMMAND_ERROR, 11.5.1 
- - ABORT_ON_DEPENDENCY_ERRORS, 11.7.3 
- - AR, 11.6.1 
- - AROUT, 11.6.1 
- - Array, 10.1 
- - AS, 11.6.1 
- - ASFLAGS, 11.6.1 
- - absname, 8 
- - accept, 8.1.1 
- - add, 7.4.1 
- - add-project-directories, 8 
- - add-wrapper, 7.3 
- - addprefix, 7.3 
- - addsuffix, 7.3 
- - addsuffixes, 7.3 
+ - ABORT_ON_COMMAND_ERROR, 11.2.7 
+ - ABORT_ON_DEPENDENCY_ERRORS, 11.4.36 
+ - AR, 11.3.11 
+ - AROUT, 11.3.12 
+ - Array, 10.1.7 
+ - AS, 11.3.9 
+ - ASFLAGS, 11.3.10 
+ - absname, 8.1.9 
+ - accept, 8.8.31 
+ - add, 7.4.3 
+ - add-project-directories, 8.6.2 
+ - add-wrapper, 7.3.22 
+ - addprefix, 7.3.20 
+ - addsuffix, 7.3.14 
+ - addsuffixes, 7.3.16 
  - aliases, 12.2 
- - and, 7.2 
- - apply, 7.5 
- - applya, 7.5 
- - array, 7.3 
+ - and, 7.2.3 
+ - apply, 7.5.2 
+ - applya, 7.5.3 
+ - array, 7.3.1 
  - arrays, 4.3 
- - asr, 7.4.1 
- - awk, 3.4.3, 8.4.1 
+ - asr, 7.4.3 
+ - awk, 3.4.3, 8.11.5 
  
- - BIBTEX, 11.8.1 
- - BYTE_ENABLED, 11.7.1 
- - basename, 8 
- - bg, 9 
- - bind, 8.1.1 
+ - BIBTEX, 11.5.5 
+ - BYTE_ENABLED, 11.4.17 
+ - basename, 8.1.5 
+ - bg, 9.2.2 
+ - bind, 8.8.29 
  - build model, 3 
  
- - CAMLP4, 11.7.1 
- - CC, 11.6.1 
- - CFLAGS, 11.6.1 
- - CGeneratedFiles, 11.6.1 
- - Channel, 10.1 
- - CPP, 11.6.1 
- - CProgram, 11.6.1 
- - CProgramCopy, 11.6.1 
- - CProgramInstall, 11.6.1 
- - CWD, 11.5.1 
- - CXX, 11.6.1 
- - CXXFLAGS, 11.6.1 
- - CXXProgram, 11.6.1 
- - CXXProgramInstall, 11.6.1 
- - capitalize, 7.3 
- - cat, 8.4.1 
+ - CAMLP4, 11.4.5 
+ - CC, 11.3.2 
+ - CFLAGS, 11.3.5 
+ - CGeneratedFiles, 11.3.17 
+ - Channel, 10.1.15 
+ - CPP, 11.3.4 
+ - CProgram, 11.3.25 
+ - CProgramCopy, 11.3.26 
+ - CProgramInstall, 11.3.27 
+ - CWD, 11.2.3 
+ - CXX, 11.3.3 
+ - CXXFLAGS, 11.3.6 
+ - CXXProgram, 11.3.28 
+ - CXXProgramInstall, 11.3.29 
+ - capitalize, 7.3.30 
+ - cat, 8.11.2 
  - cats and dogs, 3.4 
- - cd, 9 
- - chmod, 8 
- - chown, 8 
+ - cd, 9.1.2 
+ - chmod, 8.5.9 
+ - chown, 8.5.10 
  - classes, 4.12 
- - close, 8.1.1 
- - concat, 7.3 
+ - close, 8.8.6 
+ - cmp-versions, 11.1.3 
+ - concat, 7.3.3 
  - conditionals, 4.9 
- - connect, 8.1.1 
+ - connect, 8.8.32 
  
- - DIRSEP, 11.5.2 
- - Dir, 10.1 
- - DVIPDFM, 11.8.1 
- - DVIPDFMFLAGS, 11.8.1 
- - DVIPS, 11.8.1 
- - DVIPSFLAGS, 11.8.1 
- - defined, 7.2 
- - defined-env, 7.2 
- - dependencies, 11.9 
- - dependencies-all, 11.9 
- - digest, 8 
- - digest-path, 8 
- - dir, 8 
- - dirof, 8 
- - div, 7.4.1 
- - dup, 8.1.1 
- - dup2, 8.1.1 
+ - DefineCommandVars, 11.1.4 
+ - DIRSEP, 11.2.12 
+ - Dir, 10.1.14 
+ - DVIPDFM, 11.5.9 
+ - DVIPDFMFLAGS, 11.5.10 
+ - DVIPS, 11.5.7 
+ - DVIPSFLAGS, 11.5.8 
+ - defined, 7.2.11 
+ - defined-env, 7.2.12 
+ - dependencies, 11.6.1 
+ - dependencies-all, 11.6.2 
+ - digest, 8.2.5 
+ - digest-path, 8.2.7 
+ - dir, 8.1.2 
+ - dirof, 8.1.7 
+ - div, 7.4.3 
+ - dup, 8.8.13 
+ - dup2, 8.8.14 
  
- - EMPTY, 11.5.1 
- - EXE, 11.5.2 
- - EXT_ASM, 11.5.2 
- - EXT_LIB, 11.5.2 
- - EXT_OBJ, 11.5.2 
- - Exception, 10.1 
- - echo, 9 
- - eprint, 8.2 
- - eprintln, 8.2 
- - eprintv, 8.3 
- - eprintvln, 8.3 
- - eq, 7.4.2 
- - equal, 7.2 
- - exists-in-path, 8 
- - exit, 7.2 
+ - EMPTY, 11.2.4 
+ - EXE, 11.2.16 
+ - EXT_ASM, 11.2.15 
+ - EXT_LIB, 11.2.13 
+ - EXT_OBJ, 11.2.14 
+ - Exception, 10.1.20 
+ - echo, 9.1.1 
+ - eprint, 8.9 
+ - eprintln, 8.9 
+ - eprintv, 8.10 
+ - eprintvln, 8.10 
+ - eq, 7.4.4 
+ - equal, 7.2.2 
+ - exists-in-path, 8.2.4 
+ - exit, 7.2.10 
  
- - File, 10.1 
- - Float, 10.1 
- - Fun, 10.1 
- - fg, 9 
- - fgets, 8.1.1 
- - file, 8 
- - file-check-sort, 8 
- - file-exists, 8 
- - file-sort, 8 
- - filter, 7.3 
- - filter-exists, 8 
- - filter-out, 7.3 
- - filter-proper-targets, 8 
- - filter-targets, 8 
- - find, 8 
- - find-in-path, 8 
- - float, 7.4 
- - flush, 8.1.1 
- - fopen, 8.1.1 
- - foreach, 7.6 
- - fprint, 8.2 
- - fprintln, 8.2 
- - fprintv, 8.3 
- - fprintvln, 8.3 
- - fsubst, 8.4.1 
- - fullname, 8 
- - fun, 7.5 
+ - File, 10.1.13 
+ - Float, 10.1.5 
+ - Fun, 10.1.9 
+ - fg, 9.2.3 
+ - fgets, 8.8.35 
+ - file, 8.1.1 
+ - file-check-sort, 8.3.9 
+ - file-exists, 8.3.1 
+ - file-sort, 8.3.8 
+ - filter, 7.3.28 
+ - filter-exists, 8.3.5 
+ - filter-out, 7.3.29 
+ - filter-proper-targets, 8.3.7 
+ - filter-targets, 8.3.6 
+ - find, 8.7.2 
+ - find-in-path, 8.2.6 
+ - float, 7.4.2 
+ - flush, 8.8.12 
+ - fopen, 8.8.5 
+ - foreach, 7.6.1 
+ - fprint, 8.9 
+ - fprintln, 8.9 
+ - fprintv, 8.10 
+ - fprintvln, 8.10 
+ - fsubst, 8.11.6 
+ - fullname, 8.1.8 
+ - fun, 7.5.1 
  - functions, 4.5 
  
- - ge, 7.4.2 
- - get-registry, 7.2 
- - getchar, 8.1.1 
- - getenv, 7.2 
- - gethostbyname, 8.1.1 
- - getprotobyname, 8.1.1 
- - gets, 8.1.1 
- - getservbyname, 8.1.1 
- - gettimeofday, 8.4.8 
- - getvar, 7.2 
- - glob, 8 
- - grep, 8.4.1 
- - gt, 7.4.2 
+ - ge, 7.4.4 
+ - get-registry, 7.2.15 
+ - getchar, 8.8.33 
+ - getenv, 7.2.13 
+ - gethostbyname, 8.8.23 
+ - getprotobyname, 8.8.25 
+ - gets, 8.8.34 
+ - getservbyname, 8.8.27 
+ - gettimeofday, 8.11.15 
+ - getvar, 7.2.16 
+ - glob, 8.4.1 
+ - grep, 8.11.3 
+ - gt, 7.4.4 
  
- - HOME, 7.1 
- - HOST, 7.1 
- - Host, 8.1.1 
- - history, 9 
- - homename, 8 
- - html-string, 7.3 
+ - HOME, 7.1.9 
+ - HOST, 7.1.6 
+ - Host, 8.8.22 
+ - history, 9.3.1 
+ - homename, 8.1.10 
+ - html-string, 7.3.13 
  
- - INCLUDES, 11.6.1 
- - INSTALL, 11.5.2 
- - InChannel, 10.1 
- - InetAddr, 8.1.1 
- - Int, 10.1 
- - if, 4.9, 7.2 
- - ignoreeof, 12.1 
- - in, 8 
+ - INCLUDES, 11.3.7 
+ - INSTALL, 11.2.10 
+ - InChannel, 10.1.16 
+ - InetAddr, 8.8.21 
+ - Int, 10.1.4 
+ - if, 4.9, 7.2.5 
+ - ignoreeof, 12.1.2 
+ - in, 8.1.4 
  - include, 4.7 
  - inheritance, 4.13 
- - int, 7.4 
- - intersection, 7.3 
- - intersects, 7.3 
+ - int, 7.4.1 
+ - intersection, 7.3.25 
+ - intersects, 7.3.26 
  
- - jobs, 9 
+ - jobs, 9.2.1 
  
- - kill, 9 
+ - kill, 9.2.6 
  
- - LATEX, 11.8.1 
- - LATEXFLAGS, 11.8.1 
- - LaTeXDocument, 11.8.1 
- - LaTeXDocumentCopy, 11.8.1 
- - LaTeXDocumentInstall, 11.8.1 
- - LD, 11.6.1 
- - LDFLAGS, 11.6.1 
- - LEX, 11.6.1 
- - Lexer, 8.4.1 
- - LIBS, 11.6.1 
- - LocalCGeneratedFiles, 11.6.1 
- - LocalOCamlGeneratedFiles, 11.7.3 
- - LocalTeXGeneratedFiles, 11.8.1 
- - Location, 10.1 
- - land, 7.4.1 
- - le, 7.4.2 
- - length, 7.3 
- - link, 8 
- - link-order sorting, 8 
- - listen, 8.1.1 
- - lnot, 7.4.1 
- - lockf, 8.1.1 
- - lor, 7.4.1 
- - lowercase, 7.3 
- - ls, 8 
- - lseek, 8.1.1 
- - lsl, 7.4.1 
- - lsr, 7.4.1 
- - lt, 7.4.2 
- - lxor, 7.4.1 
+ - LATEX, 11.5.2 
+ - LATEXFLAGS, 11.5.4 
+ - LaTeXDocument, 11.5.14 
+ - LaTeXDocumentCopy, 11.5.19 
+ - LaTeXDocumentInstall, 11.5.20 
+ - LD, 11.3.13 
+ - LDFLAGS, 11.3.14 
+ - LEX, 11.3.16 
+ - Lexer, 8.11.7 
+ - LIBS, 11.3.8 
+ - LocalCGeneratedFiles, 11.3.18 
+ - LocalOCamlGeneratedFiles, 11.4.34 
+ - LocalTeXGeneratedFiles, 11.5.18 
+ - Location, 10.1.18 
+ - land, 7.4.3 
+ - le, 7.4.4 
+ - length, 7.3.4 
+ - link, 8.5.6 
+ - link-order sorting, 8.3.8 
+ - listen, 8.8.30 
+ - lnot, 7.4.3 
+ - lockf, 8.8.20 
+ - lor, 7.4.3 
+ - lowercase, 7.3.33 
+ - ls, 8.4.2 
+ - lseek, 8.8.9 
+ - lsl, 7.4.3 
+ - lsr, 7.4.3 
+ - lt, 7.4.4 
+ - lxor, 7.4.3 
  
- - MACHINE, 7.1 
- - MAKEINDEX, 11.8.1 
- - Map, 10.1 
- - mapprefix, 7.3 
- - mapsuffix, 7.3 
- - match, 4.10, 7.2 
- - mem, 7.3 
- - mkdir, 8 
- - mkfifo, 8.1.1 
- - mod, 7.4.1 
- - mul, 7.4.1 
+ - MACHINE, 7.1.5 
+ - MAKEINDEX, 11.5.6 
+ - Map, 10.1.2 
+ - mapprefix, 7.3.21 
+ - mapsuffix, 7.3.15 
+ - match, 4.10, 7.2.7 
+ - mem, 7.3.24 
+ - mkdir, 8.5.1 
+ - mkfifo, 8.8.18 
+ - mod, 7.4.3 
+ - mul, 7.4.3 
  
- - NATIVE_ENABLED, 11.7.1 
- - NODENAME, 7.1 
- - Node, 10.1 
- - Number, 10.1 
- - neg, 7.4.1 
- - not, 7.2 
- - nth, 7.3 
- - nth-hd, 7.3 
- - nth-tl, 7.3 
+ - NATIVE_ENABLED, 11.4.18 
+ - NODENAME, 7.1.3 
+ - Node, 10.1.12 
+ - Number, 10.1.3 
+ - neg, 7.4.3 
+ - not, 7.2.1 
+ - nth, 7.3.5 
+ - nth-hd, 7.3.6 
+ - nth-tl, 7.3.7 
  
- - Object, 10.1 
- - OCAML_BYTE_LINK_FLAGS, 11.7.2 
- - OCAML_CLIBS, 11.7.3 
- - OCAML_LIB_FLAGS, 11.7.3 
- - OCAML_LIBS, 11.7.3 
- - OCAML_LINK_FLAGS, 11.7.2 
- - OCAML_NATIVE_LINK_FLAGS, 11.7.2 
- - OCAML_OTHER_LIBS, 11.7.3 
- - OCAMLC, 11.7.1 
- - OCAMLCFLAGS, 11.7.2 
- - OCAMLDEP, 11.7.1 
- - OCAMLDEPFLAGS, 11.7.2 
- - OCAMLFIND, 11.7.1 
- - OCAMLFINDFLAGS, 11.7.1 
- - OCAMLFLAGS, 11.7.2 
- - OCAMLINCLUDES, 11.7.1 
- - OCAMLLEX, 11.7.1 
- - OCAMLLEXFLAGS, 11.7.1 
- - OCAMLLINK, 11.7.1 
- - OCAMLMKTOP, 11.7.1 
- - OCAMLOPT, 11.7.1 
- - OCAMLOPTFLAGS, 11.7.2 
- - OCAMLOPTLINK, 11.7.1 
- - OCAMLPACKS, 11.7.1 
- - OCAMLPPFLAGS, 11.7.2 
- - OCAMLYACC, 11.7.1 
- - OCamlGeneratedFiles, 11.7.3 
- - OCamlLibrary, 11.7.3 
- - OCamlLibraryCopy, 11.7.3 
- - OCamlLibraryInstall, 11.7.3 
- - OCamlPackage, 11.7.3 
- - OCamlProgram, 11.7.3 
- - OCamlProgramCopy, 11.7.3 
- - OCamlProgramInstall, 11.7.3 
- - OMAKE_VERSION, 7.1 
+ - Object, 10.1.1 
+ - OCAML_BYTE_LINK_FLAGS, 11.4.25 
+ - OCAML_CLIBS, 11.4.31 
+ - OCAML_LIB_FLAGS, 11.4.32 
+ - OCAML_LIBS, 11.4.29 
+ - OCAML_LINK_FLAGS, 11.4.27 
+ - OCAML_NATIVE_LINK_FLAGS, 11.4.26 
+ - OCAML_OTHER_LIBS, 11.4.30 
+ - OCAMLC, 11.4.3 
+ - OCAMLCFLAGS, 11.4.22 
+ - OCAMLDEP, 11.4.9 
+ - OCAMLDEPFLAGS, 11.4.20 
+ - OCAMLFIND, 11.4.14 
+ - OCAMLFINDFLAGS, 11.4.15 
+ - OCAMLFLAGS, 11.4.24 
+ - OCAMLINCLUDES, 11.4.13 
+ - OCAMLLEX, 11.4.6 
+ - OCAMLLEXFLAGS, 11.4.7 
+ - OCAMLLINK, 11.4.11 
+ - OCAMLMKTOP, 11.4.10 
+ - OCAMLOPT, 11.4.4 
+ - OCAMLOPTFLAGS, 11.4.23 
+ - OCAMLOPTLINK, 11.4.12 
+ - OCAMLPACKS, 11.4.16 
+ - OCAMLPPFLAGS, 11.4.21 
+ - OCAMLYACC, 11.4.8 
+ - OCamlGeneratedFiles, 11.4.33 
+ - OCamlLibrary, 11.4.35 
+ - OCamlLibraryCopy, 11.4.38 
+ - OCamlLibraryInstall, 11.4.39 
+ - OCamlPackage, 11.4.37 
+ - OCamlProgram, 11.4.40 
+ - OCamlProgramCopy, 11.4.41 
+ - OCamlProgramInstall, 11.4.42 
+ - OMAKE_VERSION, 7.1.7 
+ - OMakeFlags, 11.1.1 
  - OMakefile, 2.7, 3 
- - OMakeroot, 2.7, 3, 11.5 
- - OS_VERSION, 7.1 
- - OSTYPE, 7.1 
- - OutChannel, 10.1 
+ - OMakeroot, 2.7, 3, 11.2 
+ - OMakeVersion, 11.1.2 
+ - OS_VERSION, 7.1.4 
+ - OSTYPE, 7.1.1 
+ - OutChannel, 10.1.17 
  - objects, 4.11 
- - or, 7.2 
+ - or, 7.2.4 
  
- - PATHSEP, 11.5.2 
- - PDFLATEX, 11.8.1 
- - PDFLATEXFLAGS, 11.8.1 
- - PID, 7.1 
- - Position, 10.1 
- - Protocol, 8.1.1 
- - pipe, 8.1.1 
- - print, 8.2 
- - println, 8.2 
- - printv, 8.3 
- - printvln, 8.3 
+ - PATHSEP, 11.2.11 
+ - PDFLATEX, 11.5.11 
+ - PDFLATEXFLAGS, 11.5.12 
+ - PID, 7.1.10 
+ - Position, 10.1.19 
+ - Protocol, 8.8.24 
+ - pipe, 8.8.17 
+ - print, 8.9 
+ - println, 8.9 
+ - printv, 8.10 
+ - printvln, 8.10 
  - private., 4.15 
- - prompt, 12.1 
+ - prompt, 12.1.1 
  - protected., 4.16 
  - public., 4.17 
  
  - quotations, 4.4 
- - quote, 7.3 
- - quote-argv, 7.3 
+ - quote, 7.3.11 
+ - quote-argv, 7.3.12 
  
- - ROOT, 11.5.1 
- - Rule, 10.1 
- - RuntimeException, 10.1 
- - raise, 7.2 
- - read, 8.1.1 
- - readlink, 8 
- - regular expressions, 8.4.1 
- - rehash, 8 
- - remove-project-directories, 8 
- - removeprefix, 7.3 
- - removesuffix, 7.3 
- - rename, 8 
- - replacesuffixes, 7.3 
- - rev, 7.3 
- - rewind, 8.1.1 
- - rootname, 8 
- - rule, 11.9 
+ - ROOT, 11.2.2 
+ - Rule, 10.1.10 
+ - RuntimeException, 10.1.21 
+ - raise, 7.2.9 
+ - read, 8.8.7 
+ - readlink, 8.5.8 
+ - regular expressions, 8.11.1 
+ - rehash, 8.2.3 
+ - remove-project-directories, 8.6.3 
+ - removeprefix, 7.3.17 
+ - removesuffix, 7.3.18 
+ - rename, 8.5.5 
+ - replacesuffixes, 7.3.19 
+ - rev, 7.3.9 
+ - rewind, 8.8.10 
+ - rootname, 8.1.6 
+ - rule, 11.6.4 
  - rule, options, 6.5 
- - rule, scoping, 6.10 
+ - rule, scoping, 6.13 
  - rules, bounded implicit, 6.2 
  - rules, implicit, 6.1 
  
- - SCANNER_MODE, 11.5.1 
- - Sequence, 10.1 
- - Service, 8.1.1 
- - Shell, 10.1 
- - STDROOT, 11.5.1 
- - Stat, 8 
- - StaticCLibrary, 11.6.1 
- - StaticCLibraryCopy, 11.6.1 
- - StaticCLibraryInstall, 11.6.1 
- - StaticCObject, 11.6.1 
- - StaticCObjectCopy, 11.6.1 
- - StaticCObjectInstall, 11.6.1 
- - String, 10.1 
- - SYSNAME, 7.1 
- - scan, 8.4.1 
+ - SCANNER_MODE, 11.2.8 
+ - Sequence, 10.1.6 
+ - Service, 8.8.26 
+ - Shell, 10.1.22 
+ - STDROOT, 11.2.5 
+ - Stat, 8.5.2 
+ - StaticCLibrary, 11.3.19 
+ - StaticCLibraryCopy, 11.3.20 
+ - StaticCLibraryInstall, 11.3.21 
+ - StaticCObject, 11.3.22 
+ - StaticCObjectCopy, 11.3.23 
+ - StaticCObjectInstall, 11.3.24 
+ - String, 10.1.8 
+ - SYSNAME, 7.1.2 
+ - scan, 8.11.4 
  - section, 4.8, 6.3 
  - section rule, 6.4 
- - select, 8.1.1 
- - set, 7.3 
- - set-close-on-exec-mode, 8.1.1 
- - set-diff, 7.3 
- - set-nonblock, 8.1.1 
- - setenv, 7.2 
- - setvar, 7.2 
- - shell, 7.3 
- - socket, 8.1.1 
- - sorting (link-order), 8 
- - split, 7.3 
- - stat, 8 
- - stat-reset, 8 
+ - select, 8.8.19 
+ - set, 7.3.23 
+ - set-close-on-exec-mode, 8.8.16 
+ - set-diff, 7.3.27 
+ - set-nonblock, 8.8.15 
+ - setenv, 7.2.14 
+ - setvar, 7.2.17 
+ - shell, 7.3.35 
+ - socket, 8.8.28 
+ - sorting (link-order), 8.3.8 
+ - split, 7.3.2 
+ - stat, 8.5.3 
+ - stat-reset, 8.3.4 
  - static., 4.18 
- - stderr, 8.1.1 
- - stdin, 8.1.1 
- - stdout, 8.1.1 
- - stop, 9 
- - string, 7.3 
- - sub, 7.4.1 
- - subdirs, 8 
- - subrange, 7.3 
- - suffix, 8 
- - switch, 4.10, 7.2 
- - symlink, 8 
- - system, 7.3 
+ - stderr, 8.8.4 
+ - stdin, 8.8.2 
+ - stdout, 8.8.3 
+ - stop, 9.2.4 
+ - string, 7.3.10 
+ - sub, 7.4.3 
+ - subdirs, 8.4.3 
+ - subrange, 7.3.8 
+ - suffix, 8.1.11 
+ - switch, 4.10, 7.2.6 
+ - symlink, 8.5.7 
+ - system, 7.3.34 
  
- - Target, 10.1 
- - TETEX2_ENABLED, 11.8.1 
- - TEXDEPS, 11.8.1 
- - TEXINPUTS, 11.8.1 
- - TeXGeneratedFiles, 11.8.1 
- - target, 11.9 
- - target-exists, 8 
- - target-is-proper, 8 
- - tell, 8.1.1 
- - test, 8 
- - tmpfile, 8 
- - try, 7.2 
+ - Target, 10.1.11 
+ - TETEX2_ENABLED, 11.5.3 
+ - TEXDEPS, 11.5.16 
+ - TEXINPUTS, 11.5.15 
+ - TeXGeneratedFiles, 11.5.17 
+ - target, 11.6.3 
+ - target-exists, 8.3.2 
+ - target-is-proper, 8.3.3 
+ - tell, 8.8.11 
+ - test, 8.7.1 
+ - tmpfile, 8.1.3 
+ - try, 7.2.8 
  
- - USE_OCAMLFIND, 11.7.1 
- - USEPDFLATEX, 11.8.1 
- - USER, 7.1 
- - uge, 7.4.2 
- - ugt, 7.4.2 
- - ule, 7.4.2 
- - ult, 7.4.2 
- - umask, 8 
- - uncapitalize, 7.3 
- - unlink, 8 
- - uppercase, 7.3 
+ - USE_OCAMLFIND, 11.4.2 
+ - USEPDFLATEX, 11.5.13 
+ - USER, 7.1.8 
+ - uge, 7.4.4 
+ - ugt, 7.4.4 
+ - ule, 7.4.4 
+ - ult, 7.4.4 
+ - umask, 8.5.11 
+ - uncapitalize, 7.3.31 
+ - unlink, 8.5.4 
+ - uppercase, 7.3.32 
  
- - VERBOSE, 11.5.1 
- - vmount, 2.8, 8 
+ - VERBOSE, 11.2.6 
+ - vmount, 2.8, 8.6.1 
  
- - wait, 9 
- - where, 8 
- - which, 8 
- - while, 7.3 
- - write, 8.1.1 
+ - wait, 9.2.5 
+ - where, 8.2.2 
+ - which, 8.2.1 
+ - while, 7.3.36 
+ - write, 8.8.8 
  
- - YACC, 11.6.1 
+ - YACC, 11.3.15 
 
 
 Index of variables
 ******************
   
   
- - ABORT_ON_COMMAND_ERROR, 11.5.1 
- - ABORT_ON_DEPENDENCY_ERRORS, 11.7.3 
- - AR, 11.6.1 
- - AROUT, 11.6.1 
- - AS, 11.6.1 
- - ASFLAGS, 11.6.1 
+ - ABORT_ON_COMMAND_ERROR, 11.2.7 
+ - ABORT_ON_DEPENDENCY_ERRORS, 11.4.36 
+ - AR, 11.3.11 
+ - AROUT, 11.3.12 
+ - AS, 11.3.9 
+ - ASFLAGS, 11.3.10 
  
- - BIBTEX, 11.8.1 
- - BYTE_ENABLED, 11.7.1 
+ - BIBTEX, 11.5.5 
+ - BYTE_ENABLED, 11.4.17 
  
- - CAMLP4, 11.7.1 
- - CC, 11.6.1 
- - CFLAGS, 11.6.1 
- - CPP, 11.6.1 
- - CWD, 11.5.1 
- - CXX, 11.6.1 
- - CXXFLAGS, 11.6.1 
+ - CAMLP4, 11.4.5 
+ - CC, 11.3.2 
+ - CFLAGS, 11.3.5 
+ - CPP, 11.3.4 
+ - CWD, 11.2.3 
+ - CXX, 11.3.3 
+ - CXXFLAGS, 11.3.6 
  
- - DIRSEP, 11.5.2 
- - DVIPDFM, 11.8.1 
- - DVIPDFMFLAGS, 11.8.1 
- - DVIPS, 11.8.1 
- - DVIPSFLAGS, 11.8.1 
+ - DIRSEP, 11.2.12 
+ - DVIPDFM, 11.5.9 
+ - DVIPDFMFLAGS, 11.5.10 
+ - DVIPS, 11.5.7 
+ - DVIPSFLAGS, 11.5.8 
  
- - EMPTY, 11.5.1 
- - EXE, 11.5.2 
- - EXT_ASM, 11.5.2 
- - EXT_LIB, 11.5.2 
- - EXT_OBJ, 11.5.2 
+ - EMPTY, 11.2.4 
+ - EXE, 11.2.16 
+ - EXT_ASM, 11.2.15 
+ - EXT_LIB, 11.2.13 
+ - EXT_OBJ, 11.2.14 
  
- - HOME, 7.1 
- - HOST, 7.1 
+ - HOME, 7.1.9 
+ - HOST, 7.1.6 
  
- - INCLUDES, 11.6.1 
- - INSTALL, 11.5.2 
- - ignoreeof, 12.1 
+ - INCLUDES, 11.3.7 
+ - INSTALL, 11.2.10 
+ - ignoreeof, 12.1.2 
  
- - LATEX, 11.8.1 
- - LATEXFLAGS, 11.8.1 
- - LD, 11.6.1 
- - LDFLAGS, 11.6.1 
- - LEX, 11.6.1 
- - LIBS, 11.6.1 
+ - LATEX, 11.5.2 
+ - LATEXFLAGS, 11.5.4 
+ - LD, 11.3.13 
+ - LDFLAGS, 11.3.14 
+ - LEX, 11.3.16 
+ - LIBS, 11.3.8 
  
- - MACHINE, 7.1 
- - MAKEINDEX, 11.8.1 
+ - MACHINE, 7.1.5 
+ - MAKEINDEX, 11.5.6 
  
- - NATIVE_ENABLED, 11.7.1 
- - NODENAME, 7.1 
+ - NATIVE_ENABLED, 11.4.18 
+ - NODENAME, 7.1.3 
  
- - OCAML_BYTE_LINK_FLAGS, 11.7.2 
- - OCAML_CLIBS, 11.7.3 
- - OCAML_LIB_FLAGS, 11.7.3 
- - OCAML_LIBS, 11.7.3 
- - OCAML_LINK_FLAGS, 11.7.2 
- - OCAML_NATIVE_LINK_FLAGS, 11.7.2 
- - OCAML_OTHER_LIBS, 11.7.3 
- - OCAMLC, 11.7.1 
- - OCAMLCFLAGS, 11.7.2 
- - OCAMLDEP, 11.7.1 
- - OCAMLDEPFLAGS, 11.7.2 
- - OCAMLFIND, 11.7.1 
- - OCAMLFINDFLAGS, 11.7.1 
- - OCAMLFLAGS, 11.7.2 
- - OCAMLINCLUDES, 11.7.1 
- - OCAMLLEX, 11.7.1 
- - OCAMLLEXFLAGS, 11.7.1 
- - OCAMLLINK, 11.7.1 
- - OCAMLMKTOP, 11.7.1 
- - OCAMLOPT, 11.7.1 
- - OCAMLOPTFLAGS, 11.7.2 
- - OCAMLOPTLINK, 11.7.1 
- - OCAMLPACKS, 11.7.1 
- - OCAMLPPFLAGS, 11.7.2 
- - OCAMLYACC, 11.7.1 
- - OMAKE_VERSION, 7.1 
- - OS_VERSION, 7.1 
- - OSTYPE, 7.1 
+ - OCAML_BYTE_LINK_FLAGS, 11.4.25 
+ - OCAML_CLIBS, 11.4.31 
+ - OCAML_LIB_FLAGS, 11.4.32 
+ - OCAML_LIBS, 11.4.29 
+ - OCAML_LINK_FLAGS, 11.4.27 
+ - OCAML_NATIVE_LINK_FLAGS, 11.4.26 
+ - OCAML_OTHER_LIBS, 11.4.30 
+ - OCAMLC, 11.4.3 
+ - OCAMLCFLAGS, 11.4.22 
+ - OCAMLDEP, 11.4.9 
+ - OCAMLDEPFLAGS, 11.4.20 
+ - OCAMLFIND, 11.4.14 
+ - OCAMLFINDFLAGS, 11.4.15 
+ - OCAMLFLAGS, 11.4.24 
+ - OCAMLINCLUDES, 11.4.13 
+ - OCAMLLEX, 11.4.6 
+ - OCAMLLEXFLAGS, 11.4.7 
+ - OCAMLLINK, 11.4.11 
+ - OCAMLMKTOP, 11.4.10 
+ - OCAMLOPT, 11.4.4 
+ - OCAMLOPTFLAGS, 11.4.23 
+ - OCAMLOPTLINK, 11.4.12 
+ - OCAMLPACKS, 11.4.16 
+ - OCAMLPPFLAGS, 11.4.21 
+ - OCAMLYACC, 11.4.8 
+ - OMAKE_VERSION, 7.1.7 
+ - OS_VERSION, 7.1.4 
+ - OSTYPE, 7.1.1 
  
- - PATHSEP, 11.5.2 
- - PDFLATEX, 11.8.1 
- - PDFLATEXFLAGS, 11.8.1 
- - PID, 7.1 
- - prompt, 12.1 
+ - PATHSEP, 11.2.11 
+ - PDFLATEX, 11.5.11 
+ - PDFLATEXFLAGS, 11.5.12 
+ - PID, 7.1.10 
+ - prompt, 12.1.1 
  
- - ROOT, 11.5.1 
+ - ROOT, 11.2.2 
  
- - SCANNER_MODE, 11.5.1 
- - STDROOT, 11.5.1 
- - SYSNAME, 7.1 
- - stderr, 8.1.1 
- - stdin, 8.1.1 
- - stdout, 8.1.1 
+ - SCANNER_MODE, 11.2.8 
+ - STDROOT, 11.2.5 
+ - SYSNAME, 7.1.2 
+ - stderr, 8.8.4 
+ - stdin, 8.8.2 
+ - stdout, 8.8.3 
  
- - TETEX2_ENABLED, 11.8.1 
- - TEXDEPS, 11.8.1 
- - TEXINPUTS, 11.8.1 
+ - TETEX2_ENABLED, 11.5.3 
+ - TEXDEPS, 11.5.16 
+ - TEXINPUTS, 11.5.15 
  
- - USE_OCAMLFIND, 11.7.1 
- - USEPDFLATEX, 11.8.1 
- - USER, 7.1 
+ - USE_OCAMLFIND, 11.4.2 
+ - USEPDFLATEX, 11.5.13 
+ - USER, 7.1.8 
  
- - VERBOSE, 11.5.1 
+ - VERBOSE, 11.2.6 
  
- - YACC, 11.6.1 
+ - YACC, 11.3.15 
 
 
 Index of functions and special forms
 ************************************
   
   
- - absname, 8 
- - accept, 8.1.1 
- - add, 7.4.1 
- - add-project-directories, 8 
- - add-wrapper, 7.3 
- - addprefix, 7.3 
- - addsuffix, 7.3 
- - addsuffixes, 7.3 
- - and, 7.2 
- - apply, 7.5 
- - applya, 7.5 
- - array, 7.3 
- - asr, 7.4.1 
- - awk, 8.4.1 
+ - absname, 8.1.9 
+ - accept, 8.8.31 
+ - add, 7.4.3 
+ - add-project-directories, 8.6.2 
+ - add-wrapper, 7.3.22 
+ - addprefix, 7.3.20 
+ - addsuffix, 7.3.14 
+ - addsuffixes, 7.3.16 
+ - and, 7.2.3 
+ - apply, 7.5.2 
+ - applya, 7.5.3 
+ - array, 7.3.1 
+ - asr, 7.4.3 
+ - awk, 8.11.5 
  
- - basename, 8 
- - bg, 9 
- - bind, 8.1.1 
+ - basename, 8.1.5 
+ - bg, 9.2.2 
+ - bind, 8.8.29 
  
- - CGeneratedFiles, 11.6.1 
- - CProgram, 11.6.1 
- - CProgramCopy, 11.6.1 
- - CProgramInstall, 11.6.1 
- - CXXProgram, 11.6.1 
- - CXXProgramInstall, 11.6.1 
- - capitalize, 7.3 
- - cat, 8.4.1 
- - cd, 9 
- - chmod, 8 
- - chown, 8 
- - close, 8.1.1 
- - concat, 7.3 
- - connect, 8.1.1 
+ - CGeneratedFiles, 11.3.17 
+ - CProgram, 11.3.25 
+ - CProgramCopy, 11.3.26 
+ - CProgramInstall, 11.3.27 
+ - CXXProgram, 11.3.28 
+ - CXXProgramInstall, 11.3.29 
+ - capitalize, 7.3.30 
+ - cat, 8.11.2 
+ - cd, 9.1.2 
+ - chmod, 8.5.9 
+ - chown, 8.5.10 
+ - close, 8.8.6 
+ - cmp-versions, 11.1.3 
+ - concat, 7.3.3 
+ - connect, 8.8.32 
  
- - defined, 7.2 
- - defined-env, 7.2 
- - dependencies, 11.9 
- - dependencies-all, 11.9 
- - digest, 8 
- - digest-path, 8 
- - dir, 8 
- - dirof, 8 
- - div, 7.4.1 
- - dup, 8.1.1 
- - dup2, 8.1.1 
+ - DefineCommandVars, 11.1.4 
+ - defined, 7.2.11 
+ - defined-env, 7.2.12 
+ - dependencies, 11.6.1 
+ - dependencies-all, 11.6.2 
+ - digest, 8.2.5 
+ - digest-path, 8.2.7 
+ - dir, 8.1.2 
+ - dirof, 8.1.7 
+ - div, 7.4.3 
+ - dup, 8.8.13 
+ - dup2, 8.8.14 
  
- - echo, 9 
- - eprint, 8.2 
- - eprintln, 8.2 
- - eprintv, 8.3 
- - eprintvln, 8.3 
- - eq, 7.4.2 
- - equal, 7.2 
- - exists-in-path, 8 
- - exit, 7.2 
+ - echo, 9.1.1 
+ - eprint, 8.9 
+ - eprintln, 8.9 
+ - eprintv, 8.10 
+ - eprintvln, 8.10 
+ - eq, 7.4.4 
+ - equal, 7.2.2 
+ - exists-in-path, 8.2.4 
+ - exit, 7.2.10 
  
- - fg, 9 
- - fgets, 8.1.1 
- - file, 8 
- - file-check-sort, 8 
- - file-exists, 8 
- - file-sort, 8 
- - filter, 7.3 
- - filter-exists, 8 
- - filter-out, 7.3 
- - filter-proper-targets, 8 
- - filter-targets, 8 
- - find, 8 
- - find-in-path, 8 
- - float, 7.4 
- - flush, 8.1.1 
- - fopen, 8.1.1 
- - foreach, 7.6 
- - fprint, 8.2 
- - fprintln, 8.2 
- - fprintv, 8.3 
- - fprintvln, 8.3 
- - fsubst, 8.4.1 
- - fullname, 8 
- - fun, 7.5 
+ - fg, 9.2.3 
+ - fgets, 8.8.35 
+ - file, 8.1.1 
+ - file-check-sort, 8.3.9 
+ - file-exists, 8.3.1 
+ - file-sort, 8.3.8 
+ - filter, 7.3.28 
+ - filter-exists, 8.3.5 
+ - filter-out, 7.3.29 
+ - filter-proper-targets, 8.3.7 
+ - filter-targets, 8.3.6 
+ - find, 8.7.2 
+ - find-in-path, 8.2.6 
+ - float, 7.4.2 
+ - flush, 8.8.12 
+ - fopen, 8.8.5 
+ - foreach, 7.6.1 
+ - fprint, 8.9 
+ - fprintln, 8.9 
+ - fprintv, 8.10 
+ - fprintvln, 8.10 
+ - fsubst, 8.11.6 
+ - fullname, 8.1.8 
+ - fun, 7.5.1 
  
- - ge, 7.4.2 
- - get-registry, 7.2 
- - getchar, 8.1.1 
- - getenv, 7.2 
- - gethostbyname, 8.1.1 
- - getprotobyname, 8.1.1 
- - gets, 8.1.1 
- - getservbyname, 8.1.1 
- - gettimeofday, 8.4.8 
- - getvar, 7.2 
- - glob, 8 
- - grep, 8.4.1 
- - gt, 7.4.2 
+ - ge, 7.4.4 
+ - get-registry, 7.2.15 
+ - getchar, 8.8.33 
+ - getenv, 7.2.13 
+ - gethostbyname, 8.8.23 
+ - getprotobyname, 8.8.25 
+ - gets, 8.8.34 
+ - getservbyname, 8.8.27 
+ - gettimeofday, 8.11.15 
+ - getvar, 7.2.16 
+ - glob, 8.4.1 
+ - grep, 8.11.3 
+ - gt, 7.4.4 
  
- - history, 9 
- - homename, 8 
- - html-string, 7.3 
+ - history, 9.3.1 
+ - homename, 8.1.10 
+ - html-string, 7.3.13 
  
- - if, 7.2 
- - in, 8 
+ - if, 7.2.5 
+ - in, 8.1.4 
  - include, 4.7 
- - int, 7.4 
- - intersection, 7.3 
- - intersects, 7.3 
+ - int, 7.4.1 
+ - intersection, 7.3.25 
+ - intersects, 7.3.26 
  
- - jobs, 9 
+ - jobs, 9.2.1 
  
- - kill, 9 
+ - kill, 9.2.6 
  
- - LaTeXDocument, 11.8.1 
- - LaTeXDocumentCopy, 11.8.1 
- - LaTeXDocumentInstall, 11.8.1 
- - LocalCGeneratedFiles, 11.6.1 
- - LocalOCamlGeneratedFiles, 11.7.3 
- - LocalTeXGeneratedFiles, 11.8.1 
- - land, 7.4.1 
- - le, 7.4.2 
- - length, 7.3 
- - link, 8 
- - listen, 8.1.1 
- - lnot, 7.4.1 
- - lockf, 8.1.1 
- - lor, 7.4.1 
- - lowercase, 7.3 
- - ls, 8 
- - lseek, 8.1.1 
- - lsl, 7.4.1 
- - lsr, 7.4.1 
- - lt, 7.4.2 
- - lxor, 7.4.1 
+ - LaTeXDocument, 11.5.14 
+ - LaTeXDocumentCopy, 11.5.19 
+ - LaTeXDocumentInstall, 11.5.20 
+ - LocalCGeneratedFiles, 11.3.18 
+ - LocalOCamlGeneratedFiles, 11.4.34 
+ - LocalTeXGeneratedFiles, 11.5.18 
+ - land, 7.4.3 
+ - le, 7.4.4 
+ - length, 7.3.4 
+ - link, 8.5.6 
+ - listen, 8.8.30 
+ - lnot, 7.4.3 
+ - lockf, 8.8.20 
+ - lor, 7.4.3 
+ - lowercase, 7.3.33 
+ - ls, 8.4.2 
+ - lseek, 8.8.9 
+ - lsl, 7.4.3 
+ - lsr, 7.4.3 
+ - lt, 7.4.4 
+ - lxor, 7.4.3 
  
- - mapprefix, 7.3 
- - mapsuffix, 7.3 
- - match, 4.10, 7.2 
- - mem, 7.3 
- - mkdir, 8 
- - mkfifo, 8.1.1 
- - mod, 7.4.1 
- - mul, 7.4.1 
+ - mapprefix, 7.3.21 
+ - mapsuffix, 7.3.15 
+ - match, 4.10, 7.2.7 
+ - mem, 7.3.24 
+ - mkdir, 8.5.1 
+ - mkfifo, 8.8.18 
+ - mod, 7.4.3 
+ - mul, 7.4.3 
  
- - neg, 7.4.1 
- - not, 7.2 
- - nth, 7.3 
- - nth-hd, 7.3 
- - nth-tl, 7.3 
+ - neg, 7.4.3 
+ - not, 7.2.1 
+ - nth, 7.3.5 
+ - nth-hd, 7.3.6 
+ - nth-tl, 7.3.7 
  
- - OCamlGeneratedFiles, 11.7.3 
- - OCamlLibrary, 11.7.3 
- - OCamlLibraryCopy, 11.7.3 
- - OCamlLibraryInstall, 11.7.3 
- - OCamlPackage, 11.7.3 
- - OCamlProgram, 11.7.3 
- - OCamlProgramCopy, 11.7.3 
- - OCamlProgramInstall, 11.7.3 
- - or, 7.2 
+ - OCamlGeneratedFiles, 11.4.33 
+ - OCamlLibrary, 11.4.35 
+ - OCamlLibraryCopy, 11.4.38 
+ - OCamlLibraryInstall, 11.4.39 
+ - OCamlPackage, 11.4.37 
+ - OCamlProgram, 11.4.40 
+ - OCamlProgramCopy, 11.4.41 
+ - OCamlProgramInstall, 11.4.42 
+ - OMakeFlags, 11.1.1 
+ - OMakeVersion, 11.1.2 
+ - or, 7.2.4 
  
- - pipe, 8.1.1 
- - print, 8.2 
- - println, 8.2 
- - printv, 8.3 
- - printvln, 8.3 
+ - pipe, 8.8.17 
+ - print, 8.9 
+ - println, 8.9 
+ - printv, 8.10 
+ - printvln, 8.10 
  
- - quote, 7.3 
- - quote-argv, 7.3 
+ - quote, 7.3.11 
+ - quote-argv, 7.3.12 
  
- - raise, 7.2 
- - read, 8.1.1 
- - readlink, 8 
- - rehash, 8 
- - remove-project-directories, 8 
- - removeprefix, 7.3 
- - removesuffix, 7.3 
- - rename, 8 
- - replacesuffixes, 7.3 
- - rev, 7.3 
- - rewind, 8.1.1 
- - rootname, 8 
- - rule, 11.9 
+ - raise, 7.2.9 
+ - read, 8.8.7 
+ - readlink, 8.5.8 
+ - rehash, 8.2.3 
+ - remove-project-directories, 8.6.3 
+ - removeprefix, 7.3.17 
+ - removesuffix, 7.3.18 
+ - rename, 8.5.5 
+ - replacesuffixes, 7.3.19 
+ - rev, 7.3.9 
+ - rewind, 8.8.10 
+ - rootname, 8.1.6 
+ - rule, 11.6.4 
  
- - StaticCLibrary, 11.6.1 
- - StaticCLibraryCopy, 11.6.1 
- - StaticCLibraryInstall, 11.6.1 
- - StaticCObject, 11.6.1 
- - StaticCObjectCopy, 11.6.1 
- - StaticCObjectInstall, 11.6.1 
- - scan, 8.4.1 
+ - StaticCLibrary, 11.3.19 
+ - StaticCLibraryCopy, 11.3.20 
+ - StaticCLibraryInstall, 11.3.21 
+ - StaticCObject, 11.3.22 
+ - StaticCObjectCopy, 11.3.23 
+ - StaticCObjectInstall, 11.3.24 
+ - scan, 8.11.4 
  - section, 6.3 
  - section rule, 6.4 
- - select, 8.1.1 
- - set, 7.3 
- - set-close-on-exec-mode, 8.1.1 
- - set-diff, 7.3 
- - set-nonblock, 8.1.1 
- - setenv, 7.2 
- - setvar, 7.2 
- - shell, 7.3 
- - socket, 8.1.1 
- - split, 7.3 
- - stat, 8 
- - stat-reset, 8 
- - stop, 9 
- - string, 7.3 
- - sub, 7.4.1 
- - subdirs, 8 
- - subrange, 7.3 
- - suffix, 8 
- - switch, 4.10, 7.2 
- - symlink, 8 
- - system, 7.3 
+ - select, 8.8.19 
+ - set, 7.3.23 
+ - set-close-on-exec-mode, 8.8.16 
+ - set-diff, 7.3.27 
+ - set-nonblock, 8.8.15 
+ - setenv, 7.2.14 
+ - setvar, 7.2.17 
+ - shell, 7.3.35 
+ - socket, 8.8.28 
+ - split, 7.3.2 
+ - stat, 8.5.3 
+ - stat-reset, 8.3.4 
+ - stop, 9.2.4 
+ - string, 7.3.10 
+ - sub, 7.4.3 
+ - subdirs, 8.4.3 
+ - subrange, 7.3.8 
+ - suffix, 8.1.11 
+ - switch, 4.10, 7.2.6 
+ - symlink, 8.5.7 
+ - system, 7.3.34 
  
- - TeXGeneratedFiles, 11.8.1 
- - target, 11.9 
- - target-exists, 8 
- - target-is-proper, 8 
- - tell, 8.1.1 
- - test, 8 
- - tmpfile, 8 
- - try, 7.2 
+ - TeXGeneratedFiles, 11.5.17 
+ - target, 11.6.3 
+ - target-exists, 8.3.2 
+ - target-is-proper, 8.3.3 
+ - tell, 8.8.11 
+ - test, 8.7.1 
+ - tmpfile, 8.1.3 
+ - try, 7.2.8 
  
- - uge, 7.4.2 
- - ugt, 7.4.2 
- - ule, 7.4.2 
- - ult, 7.4.2 
- - umask, 8 
- - uncapitalize, 7.3 
- - unlink, 8 
- - uppercase, 7.3 
+ - uge, 7.4.4 
+ - ugt, 7.4.4 
+ - ule, 7.4.4 
+ - ult, 7.4.4 
+ - umask, 8.5.11 
+ - uncapitalize, 7.3.31 
+ - unlink, 8.5.4 
+ - uppercase, 7.3.32 
  
- - vmount, 8 
+ - vmount, 8.6.1 
  
- - wait, 9 
- - where, 8 
- - which, 8 
- - while, 7.3 
- - write, 8.1.1 
+ - wait, 9.2.5 
+ - where, 8.2.2 
+ - which, 8.2.1 
+ - while, 7.3.36 
+ - write, 8.8.8 
 
 
 Index of objects
 ****************
   
   
- - Array, 10.1 
+ - Array, 10.1.7 
  
- - Channel, 10.1 
+ - Channel, 10.1.15 
  
- - Dir, 10.1 
+ - Dir, 10.1.14 
  
- - Exception, 10.1 
+ - Exception, 10.1.20 
  
- - File, 10.1 
- - Float, 10.1 
- - Fun, 10.1 
+ - File, 10.1.13 
+ - Float, 10.1.5 
+ - Fun, 10.1.9 
  
- - Host, 8.1.1 
+ - Host, 8.8.22 
  
- - InChannel, 10.1 
- - InetAddr, 8.1.1 
- - Int, 10.1 
+ - InChannel, 10.1.16 
+ - InetAddr, 8.8.21 
+ - Int, 10.1.4 
  
- - Lexer, 8.4.1 
- - Location, 10.1 
+ - Lexer, 8.11.7 
+ - Location, 10.1.18 
  
- - Map, 10.1 
+ - Map, 10.1.2 
  
- - Node, 10.1 
- - Number, 10.1 
+ - Node, 10.1.12 
+ - Number, 10.1.3 
  
- - Object, 10.1 
- - OutChannel, 10.1 
+ - Object, 10.1.1 
+ - OutChannel, 10.1.17 
  
- - Position, 10.1 
- - Protocol, 8.1.1 
+ - Position, 10.1.19 
+ - Protocol, 8.8.24 
  
- - Rule, 10.1 
- - RuntimeException, 10.1 
+ - Rule, 10.1.10 
+ - RuntimeException, 10.1.21 
  
- - Sequence, 10.1 
- - Service, 8.1.1 
- - Shell, 10.1 
- - Stat, 8 
- - String, 10.1 
+ - Sequence, 10.1.6 
+ - Service, 8.8.26 
+ - Shell, 10.1.22 
+ - Stat, 8.5.2 
+ - String, 10.1.8 
  
- - Target, 10.1 
+ - Target, 10.1.11 
 
 
 Index of special targets
 ************************
   
   
- - .DEFAULT, 6.9.1 
- - .INCLUDE, 6.9.3 
+ - .DEFAULT, 6.9 
+ - .INCLUDE, 6.11 
+ - .PHONY, 6.12 
  - .SCANNER, 6.6 
+ - .SUBDIRS, 6.10 
     
   
 

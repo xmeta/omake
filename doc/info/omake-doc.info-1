@@ -237,16 +237,16 @@ differences to keep in mind when using omake.
   
  - In omake, you are much less likely to define build rules of your own.
     The system provides many standard functions (like `StaticCLibrary'
-   11.6.1*Note Subsection 11-6-1:: and `CProgram'
-   11.6.1*Note Subsection 11-6-1::)  to specify these builds more
+   11.3.19*Note Subsection 11-3-19:: and `CProgram'
+   11.3.25*Note Subsection 11-3-25::)  to specify these builds more
    simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
    %.suf1'. 
  - Scoping is significant: you should define variables and `.PHONY'
-   6.9.4*Note Subsection 6-9-4:: targets before they are used. 
+   6.12*Note Section 6-12:: targets before they are used. 
  - Subdirectories are incorporated into a project using the `.SUBDIRS:'
-   6.9.2*Note Subsection 6-9-2::.  target. 
+   6.10*Note Section 6-10::.  target. 
   
 
 Node: Section 2-2,	Next: Section 2-3,	Prev: Section 2-1,	Up: Chapter 2
@@ -284,7 +284,7 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' 11.6.1*Note Subsection 11-6-1:: function. The OMakefile
+`CProgram' 11.3.25*Note Subsection 11-3-25:: function. The OMakefile
 contains just one line that specifies that the program `hello' is to be
 built from the source code in the `hello_code.c' file (note that file
 suffixes are not passed to these functions).
@@ -315,11 +315,11 @@ MD5 digests were computed.
 >>
   
   If we want to change the compile options, we can redefine the `CC' and
-`CFLAGS' variables before the `CProgram' 11.6.1*Note Subsection 11-6-1::
-line. In this example, we will use the `gcc' compiler with the `-g'
-option. In addition, we will specify a `.DEFAULT' target to be built by
-default. The `EXE' variable is defined to be `.exe' on `Win32' systems;
-it is empty otherwise.
+`CFLAGS' variables before the `CProgram'
+11.3.25*Note Subsection 11-3-25:: line. In this example, we will use the
+`gcc' compiler with the `-g' option. In addition, we will specify a
+`.DEFAULT' target to be built by default. The `EXE' variable is defined
+to be `.exe' on `Win32' systems; it is empty otherwise.
 <<
       CC = gcc
       CFLAGS += -g
@@ -448,10 +448,10 @@ can also place the change in the root OMakefile.
   
   Note that the way we have specified it, the `CFLAGS' variable also
 contains the `-O3' option for the `CProgram'
-11.6.1*Note Subsection 11-6-1::, and `hello_code.c' and `hello_helper.c'
-file will both be compiled with the `-O3' option. If we want to make the
-change truly local to `libbar', we can put the `bar' subdirectory in its
-own scope using the `section' form.
+11.3.25*Note Subsection 11-3-25::, and `hello_code.c' and
+`hello_helper.c' file will both be compiled with the `-O3' option. If we
+want to make the change truly local to `libbar', we can put the `bar'
+subdirectory in its own scope using the `section' form.
 <<
       # Default project configuration
       CC = gcc
@@ -1308,10 +1308,10 @@ print a line like the following.
 dependencies of `neko.woof', we should scan `neko.cat', line-by-line,
 looking for lines of the form `open <name>'. We could do this by writing
 a program, but it is easy enough to do it in `omake' itself. We can use
-the builtin `awk' 8.4.1*Note Subsection 8-4-1:: function to scan the source
+the builtin `awk' 8.11.5*Note Subsection 8-11-5:: function to scan the source
 file. One slight complication is that the dependencies depend on the
 `INCLUDE' path. We'll use the `find-in-path'
-8*Note Chapter 8:: function to find them. Here we go.
+8.2.6*Note Subsection 8-2-6:: function to find them. Here we go.
 <<
       .SCANNER: %.woof: %.cat
           section

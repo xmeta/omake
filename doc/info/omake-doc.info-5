@@ -1,6 +1,1570 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Chapter 11,	Next: Section 11-1,	Prev: Chapter 10,	Up: Top
+Node: Subsection 8-8-34,	Next: Subsection 8-8-35,	Prev: Subsection 8-8-33,	Up: Section 8-8
+  
+
+8.8.34   gets
+=============
+
+<<
+     $(gets) : String
+     $(gets channel) : String
+        channel : InChannel or File
+     raises RuntimeException
+>>
+  
+  The `gets' function returns the next line from a file. The function
+returns the empty string if the end of file has been reached. The line
+terminator is removed. 
+
+Node: Subsection 8-8-35,	Next: Section 8-9,	Prev: Subsection 8-8-34,	Up: Section 8-8
+  
+
+8.8.35   fgets
+==============
+
+<<
+     $(fgets) : String
+     $(fgets channel) : String
+        channel : InChannel or File
+     raises RuntimeException
+>>
+  
+  The `fgets' function returns the next line from a file that has been
+opened for reading with `fopen'. The function returns the empty string
+if the end of file has been reached. The returned string is returned as
+literal data. The line terminator is not removed. 
+
+Node: Section 8-9,	Next: Section 8-10,	Prev: Section 8-8,	Up: Chapter 8
+  
+
+8.9   Printing functions
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+
+
+
+
+
+  Output is printed with the `print' and `println' functions. The
+`println' function adds a terminating newline to the value being
+printed, the `print' function does not.
+<<
+      fprint(<file>, <string>)
+      print(<string>)
+      eprint(<string>)
+      fprintln(<file>, <string>)
+      println(<string>)
+      eprintln(<string>)
+>>
+  
+  The `fprint' functions print to a file that has been previously opened
+with `fopen'. The `print' functions print to the standard output
+channel, and the `eprint' functions print to the standard error channel.
+
+Node: Section 8-10,	Next: Section 8-11,	Prev: Section 8-9,	Up: Chapter 8
+  
+
+8.10   Value printing functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+
+
+
+
+
+  Values can be printed with the `printv' and `printvln' functions. The
+`printvln' function adds a terminating newline to the value being
+printed, the `printv' function does not.
+<<
+      fprintv(<file>, <string>)
+      printv(<string>)
+      eprintv(<string>)
+      fprintvln(<file>, <string>)
+      printvln(<string>)
+      eprintvln(<string>)
+>>
+  
+  The `fprintv' functions print to a file that has been previously
+opened with `fopen'. The `printv' functions print to the standard output
+channel, and the `eprintv' functions print to the standard error
+channel. 
+
+Node: Section 8-11,	Next: Subsection 8-11-1,	Prev: Section 8-10,	Up: Chapter 8
+  
+
+8.11   Higher-level IO functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+* Menu:
+
+* Subsection 8-11-1::	Regular expressions
+* Subsection 8-11-2::	cat
+* Subsection 8-11-3::	grep
+* Subsection 8-11-4::	scan
+* Subsection 8-11-5::	awk
+* Subsection 8-11-6::	fsubst
+* Subsection 8-11-7::	Lexer
+* Subsection 8-11-8::	Lexer matching
+* Subsection 8-11-9::	Extending lexer definitions
+* Subsection 8-11-10::	Threading the lexer object
+* Subsection 8-11-11::	Parser
+* Subsection 8-11-12::	Calling the parser
+* Subsection 8-11-13::	Parsing control
+* Subsection 8-11-14::	Extending parsers
+* Subsection 8-11-15::	gettimeofday
+
+
+Node: Subsection 8-11-1,	Next: Subsection 8-11-2,	Prev: Section 8-11,	Up: Section 8-11
+  
+
+8.11.1   Regular expressions
+============================
+   
+  Many of the higher-level functions use regular expressions. Regular
+expressions are defined by strings with syntax nearly identical to
+awk(1).
+  Strings may contain the following character constants.
+  
+  
+ - `\\' : a literal backslash. 
+ - `\a' : the alert character `^G'. 
+ - `\b' : the backspace character `^H'. 
+ - `\f' : the formfeed character `^L'. 
+ - `\n' : the newline character `^J'. 
+ - `\r' : the carriage return character `^M'. 
+ - `\t' : the tab character `^I'. 
+ - `\v' : the vertical tab character. 
+ - `\xhh...' : the character represented by the string  of hexadecimal
+   digits `h'. All valid hexadecimal digits  following the sequence are
+   considered to be part of the sequence. 
+ - `\ddd' : the character represented by 1, 2, or 3 octal  digits. 
+  
+  Regular expressions are defined using the special characters
+`.\^$[(){}*?'+.
+  
+  
+ - `c' : matches the literal character `c' if `c' is not  a special
+   character. 
+ - `\c' : matches the literal character `c', even if `c'  is a special
+   character. 
+ - `.' : matches any character, including newline. 
+ - `^' : matches the beginning of a line. 
+ - `$' : matches the end of line. 
+ - `[abc...]' : matches any of the characters `abc...' 
+ - `[^abc...]' : matches any character except `abc...' 
+ - `r1|r2' : matches either `r1' or `r2'. 
+ - `r1r2' : matches `r1' and then `r2'. 
+ - `r'+ : matches one or more occurrences of `r'. 
+ - `r*' : matches zero or more occurrences of `r'. 
+ - `r?' : matches zero or one occurrence of `r'. 
+ - `(r)' : parentheses are used for grouping; matches `r'. 
+ - `\(r\)' : also defines grouping, but the expression matched  within
+   the parentheses is available to the output processor  through one of
+   the variables `$1', `$2', ... 
+ - `r{n}' : matches exactly `n' occurrences of `r'. 
+ - `r{n,}' : matches `n' or more occurrences of `r'. 
+ - `r{n,m}' : matches at least `n' occurrences of `r',  and no more than
+   `m' occurrences. 
+ - `\y': matches the empty string at either the beginning or  end of a
+   word. 
+ - `\B': matches the empty string within a word. 
+ - `\<': matches the empty string at the beginning of a word. 
+ - `\>': matches the empty string at the end of a word. 
+ - `\w': matches any character in a word. 
+ - `\W': matches any character that does not occur within a word. 
+ - `\`': matches the empty string at the beginning of a file. 
+ - `\'': matches the empty string at the end of a file. 
+  
+  Character classes can be used to specify character sequences
+abstractly. Some of these sequences can change depending on your LOCALE.
+  
+  
+ - `[:alnum:]' Alphanumeric characters. 
+ - `[:alpha:]' Alphabetic characters. 
+ - `[:lower:]' Lowercase alphabetic characters. 
+ - `[:upper:]' Uppercase alphabetic characters. 
+ - `[:cntrl:]' Control characters. 
+ - `[:digit:]' Numeric characters. 
+ - `[:xdigit:]' Numeric and hexadecimal characters. 
+ - `[:graph:]' Characters that are printable and visible. 
+ - `[:print:]' Characters that are printable, whether they are visible
+   or not. 
+ - `[:punct:]' Punctuation characters. 
+ - `[:blank:]' Space or tab characters. 
+ - `[:space:]' Whitespace characters. 
+   
+
+Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: Section 8-11
+  
+
+8.11.2   cat
+============
+
+<<
+      cat(files) : Sequence
+         files : File or InChannel Sequence
+>>
+  
+  The `cat' function concatenates the output from multiple files and
+returns it as a string. 
+
+Node: Subsection 8-11-3,	Next: Subsection 8-11-4,	Prev: Subsection 8-11-2,	Up: Section 8-11
+  
+
+8.11.3   grep
+=============
+
+<<
+     grep(pattern) : String  # input from stdin, default options
+        pattern : String
+     grep(pattern, files) : String  # default options
+        pattern : String
+        files   : File Sequence
+     grep(options, pattern, files) : String
+       options : String
+       pattern : String
+       files   : File Sequence
+>>
+  
+  The `grep' function searches for occurrences of a regular expression
+`pattern' in a set of files, and prints lines that match. This is like a
+highly-simplified version of grep(1).
+  The options are: 
+  
+ q  If specified, the output from `grep' is not displayed. 
+ n  If specified, output lines include the filename. 
+  
+  The `pattern' is a regular expression.
+  If successful (`grep' found a match), the function returns `true'.
+Otherwise, it returns `false'. 
+
+Node: Subsection 8-11-4,	Next: Subsection 8-11-5,	Prev: Subsection 8-11-3,	Up: Section 8-11
+  
+
+8.11.4   scan
+=============
+
+<<
+     scan(input-files)
+     case string1
+        body1
+     case string2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `scan' function provides input processing in command-line form.
+The function takes file/filename arguments. If called with no arguments,
+the input is taken from `stdin'. If arguments are provided, each
+specifies an `InChannel', or the name of a file for input. Output is
+always to `stdout'.
+  The `scan' function operates by reading the input one line at a time,
+and processing it according to the following algorithm.
+  For each line, the record is first split into fields, and the fields
+are bound to the variables `$1, $2, ...'. The variable `$0' is defined
+to be the entire line, and `$*' is an array of all the field values. The
+`$(NF)' variable is defined to be the number of fields.
+  Next, a case expression is selected. If `string_i' matches the token
+`$1', then `body_i' is evaluated. If the body ends in an `export', the
+state is passed to the next clause. Otherwise the value is discarded.
+  For example, here is an `scan' function that acts as a simple command
+processor.
+<<
+      calc() =
+         i = 0
+         scan(script.in)
+         case print
+            println($i)
+         case inc
+            i = $(add $i, 1)
+            export
+         case dec
+            i = $(sub $i, 1)
+            export
+         case addconst
+            i = $(add $i, $2)
+            export
+         default
+            eprintln($"Unknown command: $1")
+>>
+  
+  The `scan' function also supports several options.
+<<
+      scan(options, files)
+      ...
+>>
+  
+  
+  
+ A  Parse each line as an argument list, where arguments  may be quoted.
+   For example, the following line has three words,  ```ls''', ```-l''',
+   ```Program Files'''.
+   <<
+            ls -l "Program Files"
+        >>
+ 
+ O  Parse each line using white space as the separator, using the  usual
+   OMake algorithm for string parsing. This is the default. 
+ x  Once each line is split, reduce each word using the  hex
+   representation. This is the usual hex representation used  in URL
+   specifiers, so the string ``Program Files'' may be  alternately
+   represented in the form ProgramProgram+Files. 
+  
+  Note, if you want to redirect the output to a file, the easiest way is
+to redefine the `stdout' variable. The `stdout' variable is scoped the
+same way as other variables, so this definition does not affect the
+meaning of `stdout' outside the `calc' function.
+<<
+      calc() =
+          stdout = $(fopen script.out, w)
+          scan(script.in)
+             ...
+          close(stdout)
+>>
+
+Node: Subsection 8-11-5,	Next: Subsection 8-11-6,	Prev: Subsection 8-11-4,	Up: Section 8-11
+  
+
+8.11.5   awk
+============
+
+<<
+     awk(input-files)
+     case pattern1:
+        body1
+     case pattern2:
+        body2
+     ...
+     default:
+        bodyd
+>>
+  
+  The `awk' function provides input processing similar to awk(1), but
+more limited. The function takes filename arguments. If called with no
+arguments, the input is taken from `stdin'. If arguments are provided,
+each specifies an `InChannel', or the name of a file for input. Output
+is always to `stdout'.
+  The variables `RS' and `FS' define record and field separators as
+regular expressions. The default value of `RS' is the regular expression
+`\r|\n|\r\n'. The default value of `FS' is the regular expression `[
+\t]'+.
+  The `awk' function operates by reading the input one record at a time,
+and processing it according to the following algorithm.
+  For each line, the record is first split into fields using the field
+separator `FS', and the fields are bound to the variables `$1, $2, ...'.
+The variable `$0' is defined to be the entire line, and `$*' is an array
+of all the field values. The `$(NF)' variable is defined to be the
+number of fields.
+  Next, the cases are evaluated in order. For each case, if the regular
+expression `pattern_i' matches the record `$0', then `body_i' is
+evaluated. If the body ends in an `export', the state is passed to the
+next clause. Otherwise the value is discarded. If the regular expression
+contains `\(r\)' expression, those expression override the fields `$1,
+$2, ...'.
+  For example, here is an `awk' function to print the text between two
+delimiters `\begin{<name>}' and `\end{<name>}', where the `<name>' must
+belong to a set passed as an argument to the `filter' function.
+<<
+      filter(names) =
+         print = false
+  
+         awk(Awk.in)
+         case $"^\\end\{\([:alpha:]+\)\}"
+            if $(mem $1, $(names))
+               print = false
+               export
+            export
+         default
+            if $(print)
+               println($0)
+         case $"^\\begin\{\([:alpha:]+\)\}"
+            print = $(mem $1, $(names))
+            export
+>>
+  
+  Note, if you want to redirect the output to a file, the easiest way is
+to redefine the `stdout' variable. The `stdout' variable is scoped the
+same way as other variables, so this definition does not affect the
+meaning of `stdout' outside the `filter' function.
+<<
+      filter(names) =
+          stdout = $(fopen file.out, w)
+          awk(Awk.in)
+             ...
+          close(stdout)
+>>
+
+Node: Subsection 8-11-6,	Next: Subsection 8-11-7,	Prev: Subsection 8-11-5,	Up: Section 8-11
+  
+
+8.11.6   fsubst
+===============
+
+<<
+     fsubst(files)
+     case pattern1 [options]
+        body1
+     case pattern2 [options]
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `fsubst' function provides a sed(1)-like substitution function.
+Similar to `awk', if `fsubst' is called with no arguments, the input is
+taken from `stdin'. If arguments are provided, each specifies an
+`InChannel', or the name of a file for input.
+  The `RS' variable defines a regular expression that determines a
+record separator, The default value of `RS' is the regular expression
+`\r|\n|\r\n'.
+  The `fsubst' function reads the file one record at a time.
+  For each record, the cases are evaluated in order. Each case defines a
+substitution from a substring matching the `pattern' to replacement text
+defined by the body.
+  Currently, there is only one option: `g'. If specified, each clause
+specifies a global replacement, and all instances of the pattern define
+a substitution. Otherwise, the substitution is applied only once.
+  Output can be redirected by redefining the `stdout' variable.
+  For example, the following program replaces all occurrences of an
+expression `word.' with its capitalized form.
+<<
+      section
+         stdout = $(fopen Subst.out, w)
+         fsubst(Subst.in)
+         case $"\<\([[:alnum:]]+\)\." g
+            value $(capitalize $1).
+         close(stdout)
+>>
+
+Node: Subsection 8-11-7,	Next: Subsection 8-11-8,	Prev: Subsection 8-11-6,	Up: Section 8-11
+  
+
+8.11.7   Lexer
+==============
+
+  The `Lexer' object defines a facility for lexical analysis, similar to
+the lex(1) and flex(1) programs.
+  In omake, lexical analyzers can be constructed dynamically by
+extending the `Lexer' class. A lexer definition consists of a set of
+directives specified with method calls, and set of clauses specified as
+rules.
+  For example, consider the following lexer definition, which is
+intended for lexical analysis of simple arithmetic expressions for a
+desktop calculator.
+<<
+     lexer1. =
+        extends $(Lexer)
+  
+        other: .
+           eprintln(Illegal character: $* )
+           lex()
+  
+        white: $"[[:space:]]+"
+           lex()
+  
+        op: $"[-+*/()]"
+           switch $*
+           case +
+              Token.unit($(loc), plus)
+           case -
+              Token.unit($(loc), minus)
+           case *
+              Token.unit($(loc), mul)
+           case /
+              Token.unit($(loc), div)
+           case $"("
+              Token.unit($(loc), lparen)
+           case $")"
+              Token.unit($(loc), rparen)
+  
+        number: $"[[:digit:]]+"
+           Token.pair($(loc), exp, $(int $* ))
+  
+        eof: $"\'"
+           Token.unit($(loc), eof)
+>>
+  
+  This program defines an object `lexer1' the extends the `Lexer'
+object, which defines lexing environment.
+  The remainder of the definition consists of a set of clauses, each
+with a method name before the colon; a regular expression after the
+colon; and in this case, a body. The body is optional, if it is not
+specified, the method with the given name should already exist in the
+lexer definition.
+  NB The clause that matches the longest prefix of the input is
+selected. If two clauses match the same input prefix, then the last one
+is selected. This is unlike most standard lexers, but makes more sense
+for extensible grammars.
+  The first clause matches any input that is not matched by the other
+clauses. In this case, an error message is printed for any unknown
+character, and the input is skipped. Note that this clause is selected
+only if no other clause matches.
+  The second clause is responsible for ignoring white space. If
+whitespace is found, it is ignored, and the lexer is called recursively.
+  The third clause is responsible for the arithmetic operators. It makes
+use of the `Token' object, which defines three fields: a `loc' field
+that represents the source location; a `name'; and a `value'.
+  The lexer defines the `loc' variable to be the location of the current
+lexeme in each of the method bodies, so we can use that value to create
+the tokens.
+  The `Token.unit($(loc), name)' method constructs a new `Token' object
+with the given name, and a default value.
+  The `number' clause matches nonnegative integer constants. The
+`Token.pair($(loc), name, value)' constructs a token with the given name
+and value.
+  Lexer object operate on `InChannel' objects. The method
+`lexer1.lex-channel(channel)' reads the next token from the channel
+argument.
+
+Node: Subsection 8-11-8,	Next: Subsection 8-11-9,	Prev: Subsection 8-11-7,	Up: Section 8-11
+  
+
+8.11.8   Lexer matching
+=======================
+  
+  During lexical analysis, clauses are selected by longest match. That
+is, the clause that matches the longest sequence of input characters is
+chosen for evaluation. If no clause matches, the lexer raises a
+`RuntimeException'. If more than one clause matches the same amount of
+input, the first one is chosen for evaluation.
+
+Node: Subsection 8-11-9,	Next: Subsection 8-11-10,	Prev: Subsection 8-11-8,	Up: Section 8-11
+  
+
+8.11.9   Extending lexer definitions
+====================================
+  
+  Suppose we wish to augment the lexer example so that it ignores
+comments. We will define comments as any text that begins with the
+string `(*', ends with `*)', and comments may be nested.
+  One convenient way to do this is to define a separate lexer just to
+skip comments.
+<<
+     lex-comment. =
+        extends $(Lexer)
+  
+        level = 0
+  
+        other: .
+           lex()
+  
+        term: $"[*][)]"
+           if $(not $(eq $(level), 0))
+              level = $(sub $(level), 1)
+              lex()
+  
+        next: $"[(][*]"
+           level = $(add $(level), 1)
+           lex()
+  
+        eof: $"\'"
+           eprintln(Unterminated comment)
+>>
+  
+  This lexer contains a field `level' that keeps track of the nesting
+level. On encountering a `(*' string, it increments the level, and for
+`*)', it decrements the level if nonzero, and continues.
+  Next, we need to modify our previous lexer to skip comments. We can do
+this by extending the lexer object `lexer1' that we just created.
+<<
+     lexer1. +=
+        comment: $"[(][*]"
+           lex-comment.lex-channel($(channel))
+           lex()
+>>
+  
+  The body for the comment clause calls the `lex-comment' lexer when a
+comment is encountered, and continues lexing when that lexer returns.
+
+Node: Subsection 8-11-10,	Next: Subsection 8-11-11,	Prev: Subsection 8-11-9,	Up: Section 8-11
+  
+
+8.11.10   Threading the lexer object
+====================================
+  
+  Clause bodies may also end with an `export' directive. In this case
+the lexer object itself is used as the returned token. If used with the
+`Parser' object below, the lexer should define the `loc', `name' and
+`value' fields in each `export' clause. Each time the `Parser' calls the
+lexer, it calls it with the lexer returned from the previous lex
+invocation. 
+
+Node: Subsection 8-11-11,	Next: Subsection 8-11-12,	Prev: Subsection 8-11-10,	Up: Section 8-11
+  
+
+8.11.11   Parser
+================
+  
+  The `Parser' object provides a facility for syntactic analysis based
+on context-free grammars.
+  `Parser' objects are specified as a sequence of directives, specified
+with method calls; and productions, specified as rules.
+  For example, let's finish building the desktop calculator started in
+the `Lexer' example.
+<<
+     parser1. =
+        extends $(Parser)
+  
+        #
+        # Use the main lexer
+        #
+        lexer = $(lexer1)
+  
+        #
+        # Precedences, in ascending order
+        #
+        left(plus minus)
+        left(mul div)
+        right(uminus)
+  
+        #
+        # A program
+        #
+        start(prog)
+  
+        prog: exp eof
+           return $1
+  
+        #
+        # Simple arithmetic expressions
+        #
+        exp: minus exp :prec: uminus
+           neg($2)
+  
+        exp: exp plus exp
+           add($1, $3)
+  
+        exp: exp minus exp
+           sub($1, $3)
+  
+        exp: exp mul exp
+           mul($1, $3)
+  
+        exp: exp div exp
+           div($1, $3)
+  
+        exp: lparen exp rparen
+           return $2
+>>
+  
+  Parsers are defined as extensions of the `Parser' class. A `Parser'
+object must have a `lexer' field. The `lexer' is not required to be a
+`Lexer' object, but it must provide a `lexer.lex()' method that returns
+a token object with `name' and `value' fields. For this example, we use
+the `lexer1' object that we defined previously.
+  The next step is to define precedences for the terminal symbols. The
+precedences are defined with the `left', `right', and `nonassoc' methods
+in order of increasing precedence.
+  The grammar must have at least one start symbol, declared with the
+`start' method.
+  Next, the productions in the grammar are listed as rules. The name of
+the production is listed before the colon, and a sequence of variables
+is listed to the right of the colon. The body is a semantic action to be
+evaluated when the production is recognized as part of the input.
+  In this example, these are the productions for the arithmetic
+expressions recognized by the desktop calculator. The semantic action
+performs the calculation. The variables `$1, $2, ...' correspond to the
+values associated with each of the variables on the right-hand-side of
+the production.
+
+Node: Subsection 8-11-12,	Next: Subsection 8-11-13,	Prev: Subsection 8-11-11,	Up: Section 8-11
+  
+
+8.11.12   Calling the parser
+============================
+  
+  The parser is called with the `$(parser1.parse-channel start,
+channel)' or `$(parser1.parse-file start, file)' functions. The `start'
+argument is the start symbol, and the `channel' or `file' is the input
+to the parser.
+
+Node: Subsection 8-11-13,	Next: Subsection 8-11-14,	Prev: Subsection 8-11-12,	Up: Section 8-11
+  
+
+8.11.13   Parsing control
+=========================
+  
+  The parser generator generates a pushdown automation based on LALR(1)
+tables. As usual, if the grammar is ambiguous, this may generate
+shift/reduce or reduce/reduce conflicts. These conflicts are printed to
+standard output when the automaton is generated.
+  By default, the automaton is not constructed until the parser is first
+used.
+  The `build(debug)' method forces the construction of the automaton.
+While not required, it is wise to finish each complete parser with a
+call to the `build(debug)' method. If the `debug' variable is set, this
+also prints with parser table together with any conflicts.
+  The `loc' variable is defined within action bodies, and represents the
+input range for all tokens on the right-hand-side of the production.
+
+Node: Subsection 8-11-14,	Next: Subsection 8-11-15,	Prev: Subsection 8-11-13,	Up: Section 8-11
+  
+
+8.11.14   Extending parsers
+===========================
+  
+  Parsers may also be extended by inheritance. For example, let's extend
+the grammar so that it also recognizes the `<<' and `>>' shift
+operations.
+  First, we extend the lexer so that it recognizes these tokens. This
+time, we choose to leave `lexer1' intact, instead of using the +=
+operator.
+<<
+     lexer2. =
+        extends $(lexer1)
+  
+        lsl: $"<<"
+           Token.unit($(loc), lsl)
+  
+        asr: $">>"
+           Token.unit($(loc), asr)
+>>
+  
+  Next, we extend the parser to handle these new operators. We intend
+that the bitwise operators have lower precedence than the other
+arithmetic operators. The two-argument form of the `left' method
+accomplishes this.
+<<
+     parser2. =
+        extends $(parser1)
+  
+        left(plus, lsl lsr asr)
+  
+        lexer = $(lexer2)
+  
+        exp: exp lsl exp
+           lsl($1, $3)
+  
+        exp: exp asr exp
+           asr($1, $3)
+>>
+  
+  In this case, we use the new lexer `lexer2', and we add productions
+for the new shift operations. 
+
+Node: Subsection 8-11-15,	Next: Chapter 9,	Prev: Subsection 8-11-14,	Up: Section 8-11
+  
+
+8.11.15   gettimeofday
+======================
+
+<<
+     $(gettimeofday) : Float
+>>
+  
+  The `gettimeofday' function returns the time of day in seconds since
+January 1, 1970.
+
+Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-11,	Up: Top
+  
+
+Chapter 9     Shell functions
+*****************************
+    
+* Menu:
+
+* Section 9-1::	Basic functions
+* Section 9-2::	Job control
+* Section 9-3::	Command history
+
+
+Node: Section 9-1,	Next: Subsection 9-1-1,	Prev: Chapter 9,	Up: Chapter 9
+  
+
+9.1   Basic functions
+*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 9-1-1::	echo
+* Subsection 9-1-2::	cd
+
+
+Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9-1
+  
+
+9.1.1   echo
+============
+
+  The `echo' function prints a string.
+  `$(echo <args>)' `echo <args>' 
+
+Node: Subsection 9-1-2,	Next: Section 9-2,	Prev: Subsection 9-1-1,	Up: Section 9-1
+  
+
+9.1.2   cd
+==========
+
+  The `cd' function changes the current directory.
+<<
+      cd(dir)
+         dir : Dir
+>>
+  
+  The `cd' function also supports a 2-argument form:
+<<
+      $(cd dir, e)
+         dir : Dir
+         e : expression
+>>
+  
+  In the two-argument form, expression `e' is evaluated in the directory
+`dir'. The current directory is not changed otherwise.
+  The behavior of the `cd' function can be changed with the `CDPATH'
+variable, which specifies a search path for directories. This is
+normally useful only in the osh command interpreter.
+<<
+      CDPATH : Dir Sequence
+>>
+  
+  For example, the following will change directory to the first
+directory `./foo', `~/dir1/foo', `~/dir2/foo'.
+<<
+      CDPATH[] =
+         .
+         $(HOME)/dir1
+         $(HOME)/dir2
+      cd foo
+>>
+  
+
+Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
+  
+
+9.2   Job control
+*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 9-2-1::	jobs
+* Subsection 9-2-2::	bg
+* Subsection 9-2-3::	fg
+* Subsection 9-2-4::	stop
+* Subsection 9-2-5::	wait
+* Subsection 9-2-6::	kill
+
+
+Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9-2
+  
+
+9.2.1   jobs
+============
+
+  The `jobs' function prints a list of jobs.
+  `jobs' 
+
+Node: Subsection 9-2-2,	Next: Subsection 9-2-3,	Prev: Subsection 9-2-1,	Up: Section 9-2
+  
+
+9.2.2   bg
+==========
+
+  The `bg' function places a job in the background.
+  `bg <pid...>' 
+
+Node: Subsection 9-2-3,	Next: Subsection 9-2-4,	Prev: Subsection 9-2-2,	Up: Section 9-2
+  
+
+9.2.3   fg
+==========
+
+  The `fg' function brings a job to the foreground.
+  `fg <pid...>' 
+
+Node: Subsection 9-2-4,	Next: Subsection 9-2-5,	Prev: Subsection 9-2-3,	Up: Section 9-2
+  
+
+9.2.4   stop
+============
+
+  The `stop' function suspends a job.
+  `stop <pid...>' 
+
+Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Section 9-2
+  
+
+9.2.5   wait
+============
+
+  The `wait' function waits for a job to finish. If no process
+identifiers are given, the shell waits for all jobs to complete.
+  `wait <pid...>' 
+
+Node: Subsection 9-2-6,	Next: Section 9-3,	Prev: Subsection 9-2-5,	Up: Section 9-2
+  
+
+9.2.6   kill
+============
+
+  The `kill' function signals a job.
+  `kill [signal] <pid...>' 
+
+Node: Section 9-3,	Next: Subsection 9-3-1,	Prev: Section 9-2,	Up: Chapter 9
+  
+
+9.3   Command history
+*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 9-3-1::	history
+
+
+Node: Subsection 9-3-1,	Next: Chapter 10,	Prev: Section 9-3,	Up: Section 9-3
+  
+
+9.3.1   history
+===============
+
+<<
+      $(history-index) : Int
+      $(history) : String Sequence
+      history-file : File
+      history-length : Int
+>>
+  
+  The history variables manage the command-line history in osh. They
+have no effect in omake.
+  The `history-index' variable is the current index into the
+command-line history. The `history' variable is the current command-line
+history.
+  The `history-file' variable can be redefined if you want the
+command-line history to be saved. The default value is
+`~/.omake/osh_history'.
+  The `history-length' variable can be redefined to specify the maximum
+number of lines in the history that you want saved. The default value is
+`100'.   
+
+Node: Chapter 10,	Next: Section 10-1,	Prev: Section 9-3,	Up: Top
+  
+
+Chapter 10     Pervasives
+*************************
+    
+  `Pervasives' defines the objects that are defined in all programs. The
+following objects are defined.
+* Menu:
+
+* Section 10-1::	Pervasives objects
+
+
+Node: Section 10-1,	Next: Subsection 10-1-1,	Prev: Chapter 10,	Up: Chapter 10
+  
+
+10.1   Pervasives objects
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection 10-1-1::	Object
+* Subsection 10-1-2::	Map
+* Subsection 10-1-3::	Number
+* Subsection 10-1-4::	Int
+* Subsection 10-1-5::	Float
+* Subsection 10-1-6::	Sequence
+* Subsection 10-1-7::	Array
+* Subsection 10-1-8::	String
+* Subsection 10-1-9::	Fun
+* Subsection 10-1-10::	Rule
+* Subsection 10-1-11::	Target
+* Subsection 10-1-12::	Node
+* Subsection 10-1-13::	File
+* Subsection 10-1-14::	Dir
+* Subsection 10-1-15::	Channel
+* Subsection 10-1-16::	InChannel
+* Subsection 10-1-17::	OutChannel
+* Subsection 10-1-18::	Location
+* Subsection 10-1-19::	Position
+* Subsection 10-1-20::	Exception
+* Subsection 10-1-21::	RuntimeException
+* Subsection 10-1-22::	Shell
+
+
+Node: Subsection 10-1-1,	Next: Subsection 10-1-2,	Prev: Section 10-1,	Up: Section 10-1
+  
+
+10.1.1   Object
+===============
+
+  Parent objects: none.
+  The `Object' object is the root object. Every class is a subclass of
+`Object'.
+  It provides the following fields:
+  
+  
+ - `$(o.object-length)': the number of fields and methods in the object.
+   
+ - `$(o.object-mem <var>)': returns `true' iff the `<var>' is a field 
+   or method of the object. 
+ - `$(o.object-add <var>, <value>)': adds the field to the object, 
+   returning a new object. 
+ - `$(o.object-find <var>)': fetches the field or method from the
+   object;  it is equivalent to `$(o.<var>)', but the variable can be
+   non-constant. 
+ - `$(o.object-map <fun>)': maps a function over the object. The
+   function  should take two arguments; the first is a field name, the
+   second is the  value of that field. The result is a new object
+   constructed from the  values returned by the function. 
+ - `o.object-foreach': the `foreach' form is equivalent to `map',  but
+   with altered syntax.
+   <<
+        o.foreach(<var1>, <var2>)
+           <body>
+        >>
+ 
+  For example, the following function prints all the fields of an 
+   object `o'.
+   <<
+        PrintObject(o) =
+           o.foreach(v, x)
+              println($(v) = $(x))
+        >>
+ 
+  The `export' form is valid in a `foreach' body. The following 
+   function collects just the field names of an object.
+   <<
+        FieldNames(o) =
+           names =
+           o.foreach(v, x)
+              names += $(v)
+              export
+           return $(names)
+        >>
+  
+
+Node: Subsection 10-1-2,	Next: Subsection 10-1-3,	Prev: Subsection 10-1-1,	Up: Section 10-1
+  
+
+10.1.2   Map
+============
+
+  Parent objects: `Object'.
+  A `Map' object is a dictionary from values to values. The `<key>'
+values are restricted to simple values: integers, floating-point
+numbers, strings, files, directories, and arrays of simple values.
+  The Map object provides the following methods.
+  
+  
+ - `$(o.mem <key>)': returns `true' iff the `<key>' is defined  in the
+   map. 
+ - `$(o.add <key>, <value>)': adds the field to the map,  returning a
+   new map. 
+ - `$(o.find <key>)': fetches the field from the map. 
+ - `$(o.map <fun>)': maps a function over the map. The function  should
+   take two arguments; the first is a field name, the second is the 
+   value of that field. The result is a new object constructed from the 
+   values returned by the function. 
+ - `o.foreach': the `foreach' form is equivalent to `map',  but with
+   altered syntax.
+   <<
+        o.foreach(<var1>, <var2>)
+           <body>
+        >>
+ 
+  For example, the following function prints all the fields of an 
+   object `o'.
+   <<
+        PrintObject(o) =
+           o.foreach(v, x)
+              println($(v) = $(x))
+        >>
+ 
+  The `export' form is valid in a `foreach' body. The following 
+   function collects just the field names of the map.
+   <<
+        FieldNames(o) =
+           names =
+           o.foreach(v, x)
+              names += $(v)
+              export
+           return $(names)
+        >>
+  
+  There is also simpler syntax when the key is a string. The table can
+be defined using definitions with the form `$|key|' (the number of pipe
+symbols `|' is allowed to vary).
+<<
+      $|key 1| = value1
+      $||key1|key2|| = value2    # The key is key1|key2
+      X = $|key 1|               # Define X to be the value of field
+$|key 1|
+>>
+  
+  The usual modifiers are also allowed. The expression `$`|key|'
+represents lazy evaluation of the key, and `$,|key|' is normal
+evaluation.
+
+Node: Subsection 10-1-3,	Next: Subsection 10-1-4,	Prev: Subsection 10-1-2,	Up: Section 10-1
+  
+
+10.1.3   Number
+===============
+
+  Parent objects: `Object'.
+  The `Number' object is the parent object for integers and
+floating-point numbers. 
+
+Node: Subsection 10-1-4,	Next: Subsection 10-1-5,	Prev: Subsection 10-1-3,	Up: Section 10-1
+  
+
+10.1.4   Int
+============
+
+  Parent objects: `Number'.
+  The `Int' object represents integer values. 
+
+Node: Subsection 10-1-5,	Next: Subsection 10-1-6,	Prev: Subsection 10-1-4,	Up: Section 10-1
+  
+
+10.1.5   Float
+==============
+
+  Parent objects: `Number'.
+  The `Float' object represents floating-point numbers. 
+
+Node: Subsection 10-1-6,	Next: Subsection 10-1-7,	Prev: Subsection 10-1-5,	Up: Section 10-1
+  
+
+10.1.6   Sequence
+=================
+
+  Parent objects: `Object'.
+  The `Sequence' object represents a generic object containing
+sequential elements. It provides the following methods.
+  
+  
+ - `$(s.length)': the number of elements in the sequence. 
+ - `$(s.map <fun>)': maps a function over the fields in the sequence. 
+   The function should take one argument. The result is a new sequence 
+   constructed from the values returned by the function. 
+ - `s.foreach': the `foreach' form is equivalent to `map',  but with
+   altered syntax.
+   <<
+        s.foreach(<var>)
+           <body>
+        >>
+ 
+  For example, the following function prints all the elements of the
+   sequence.
+   <<
+        PrintSequence(s) =
+           s.foreach(x)
+              println(Elem = $(x))
+        >>
+ 
+  The `export' form is valid in a `foreach' body. The following 
+   function counts the number of zeros in the sequence.
+   <<
+        Zeros(s) =
+           count = $(int 0)
+           s.foreach(v)
+              if $(equal $(v), 0)
+                 count = $(add $(count), 1)
+                 export
+              export
+           return $(count)
+        >>
+   
+
+Node: Subsection 10-1-7,	Next: Subsection 10-1-8,	Prev: Subsection 10-1-6,	Up: Section 10-1
+  
+
+10.1.7   Array
+==============
+
+  Parent objects: `Sequence'.
+  The `Array' is a random-access sequence. It provides the following
+additional methods.
+  
+  
+ - `$(s.nth <i>)': returns element `i' of the sequence. 
+ - `$(s.rev <i>)': returns the reversed sequence. 
+  
+
+Node: Subsection 10-1-8,	Next: Subsection 10-1-9,	Prev: Subsection 10-1-7,	Up: Section 10-1
+  
+
+10.1.8   String
+===============
+
+  Parent objects: `Array'. 
+
+Node: Subsection 10-1-9,	Next: Subsection 10-1-10,	Prev: Subsection 10-1-8,	Up: Section 10-1
+  
+
+10.1.9   Fun
+============
+
+  Parent objects: `Object'.
+  The `Fun' object provides the following methods. 
+  
+ - `$(f.arity)': the arity if the function. 
+   
+
+Node: Subsection 10-1-10,	Next: Subsection 10-1-11,	Prev: Subsection 10-1-9,	Up: Section 10-1
+  
+
+10.1.10   Rule
+==============
+
+  Parent objects: `Object'.
+  The `Rule' object represents a build rule. It does not currently have
+any methods. 
+
+Node: Subsection 10-1-11,	Next: Subsection 10-1-12,	Prev: Subsection 10-1-10,	Up: Section 10-1
+  
+
+10.1.11   Target
+================
+
+  Parent object: `Object'.
+  The `Target' object contains information collected for a specific
+target file.
+  
+  
+ - `target': the target file. 
+ - `effects': the files that may be modified by a  side-effect when this
+   target is built. 
+ - `scanner_deps': static dependencies that must be built  before this
+   target can be scanned. 
+ - `static-deps': statically-defined build dependencies  of this target.
+   
+ - `build-deps': all the build dependencies for the target,  including
+   static and scanned dependencies. 
+ - `build-values': all the value dependencies associated  with the
+   build. 
+ - `build-commands': the commands to build the target. 
+  
+  The object supports the following methods.
+  
+  
+ - `find(file)': returns a Target object for the given file.  Raises a
+   `RuntimeException' if the specified target is  not part of the
+   project. 
+ - `find-optional(file)': returns a `Target' object  for the given file,
+   or `false' if the file is not  part of the project. 
+  
+  NOTE: the information for a target is constructed dynamically, so it
+is possible that the `Target' object for a node will contain different
+values in different contexts. The easiest way to make sure that the
+`Target' information is complete is to compute it within a rule body,
+where the rule depends on the target file, or the dependencies of the
+target file. 
+
+Node: Subsection 10-1-12,	Next: Subsection 10-1-13,	Prev: Subsection 10-1-11,	Up: Section 10-1
+  
+
+10.1.12   Node
+==============
+
+  Parent objects: `Object'.
+  The `Node' object is the parent object for files and directories. It
+supports the following operations. 
+  
+ - `$(node.stat)': returns a `stat' object for the file. If the file is
+   a symbolic link, the `stat' information is for the destination of the
+   link, not the link itself.
+ 
+ - `$(node.lstat)': returns a `stat' object for the file or symbolic
+   link. 
+ - `$(node.unlink)': removes the file. 
+ - `$(node.rename <file>)': renames the file. 
+ - `$(node.link <file>)': creates a hard link `<dst>' to this file. 
+ - `$(node.symlink <file>)': create a symbolic link `<dst>' to this
+   file. 
+ - `$(node.chmod <perm>)': change the permission of this file. 
+ - `$(node.chown <uid>, <gid>)': change the owner and group id of this
+   file. 
+   
+
+Node: Subsection 10-1-13,	Next: Subsection 10-1-14,	Prev: Subsection 10-1-12,	Up: Section 10-1
+  
+
+10.1.13   File
+==============
+
+  Parent objects: `Node'.
+  The file object represents the name of a file. 
+
+Node: Subsection 10-1-14,	Next: Subsection 10-1-15,	Prev: Subsection 10-1-13,	Up: Section 10-1
+  
+
+10.1.14   Dir
+=============
+
+  Parent objects: `Node'.
+  The `Dir' object represents the name of a directory. 
+
+Node: Subsection 10-1-15,	Next: Subsection 10-1-16,	Prev: Subsection 10-1-14,	Up: Section 10-1
+  
+
+10.1.15   Channel
+=================
+
+  Parent objects: `Object'.
+  A `Channel' is a generic IO channel. It provides the following
+methods. 
+  
+ - `$(o.close)': close the channel. 
+   
+
+Node: Subsection 10-1-16,	Next: Subsection 10-1-17,	Prev: Subsection 10-1-15,	Up: Section 10-1
+  
+
+10.1.16   InChannel
+===================
+
+  Parent objects: `Channel'.
+  A `InChannel' is an input channel. The variable `stdin' is the
+standard input channel.
+  It provides the following methods. 
+  
+ - `$(InChannel.fopen <file>)': open a new input channel. 
+   
+
+Node: Subsection 10-1-17,	Next: Subsection 10-1-18,	Prev: Subsection 10-1-16,	Up: Section 10-1
+  
+
+10.1.17   OutChannel
+====================
+
+  Parent object: `Channel'.
+  A `OutChannel' is an output channel. The variables `stdout' and
+`stderr' are the standard output and error channels.
+  It provides the following methods. 
+  
+ - `$(OutChannel.fopen <file>)': open a new output channel. 
+ - `$(OutChannel.append <file>)': opens a new output channel, appending
+   to the file. 
+ - `$(c.flush)': flush the output channel. 
+ - `$(c.print <string>)': print a string to the channel. 
+ - `$(c.println <string>)': print a string to the channel, followed by a
+   line terminator. 
+   
+
+Node: Subsection 10-1-18,	Next: Subsection 10-1-19,	Prev: Subsection 10-1-17,	Up: Section 10-1
+  
+
+10.1.18   Location
+==================
+
+  Parent objects: `Location'.
+  The `Location' object represents a location in a file. 
+
+Node: Subsection 10-1-19,	Next: Subsection 10-1-20,	Prev: Subsection 10-1-18,	Up: Section 10-1
+  
+
+10.1.19   Position
+==================
+
+  Parent objects: `Position'.
+  The `Position' object represents a stack trace. 
+
+Node: Subsection 10-1-20,	Next: Subsection 10-1-21,	Prev: Subsection 10-1-19,	Up: Section 10-1
+  
+
+10.1.20   Exception
+===================
+
+  Parent objects: `Object'.
+  The `Exception' object is used as the base object for exceptions. It
+has no fields. 
+
+Node: Subsection 10-1-21,	Next: Subsection 10-1-22,	Prev: Subsection 10-1-20,	Up: Section 10-1
+  
+
+10.1.21   RuntimeException
+==========================
+
+  Parent objects: `Exception'.
+  The `RuntimeException' object represents an exception from the runtime
+system. It has the following fields.
+  
+  
+ - `position': a string representing the location where the  exception
+   was raised. 
+ - `message': a string containing the exception message. 
+   
+
+Node: Subsection 10-1-22,	Next: Chapter 11,	Prev: Subsection 10-1-21,	Up: Section 10-1
+  
+
+10.1.22   Shell
+===============
+
+  Parent objects: `Object'.
+  The `Shell' object contains the collection of builtin functions
+available as shell commands.
+  You can define aliases by extending this object with additional
+methods. All methods in this class are called with one argument: a
+single array containing an argument list.
+  
+  
+ - `echo'
+ The `echo' function prints its arguments to the standard output
+   channel. 
+ - `jobs'
+ The `jobs' method prints the status of currently running commands. 
+ - `cd'
+ The `cd' function changes the current directory. Note that the current
+   directory follows the usual scoping rules. For example, the following
+   program lists the files in the `foo' directory, but the current
+   directory is not changed.
+   <<
+        section
+           echo Listing files in the foo directory...
+           cd foo
+           ls
+     
+        echo Listing files in the current directory...
+        ls
+   >>
+ 
+ - `bg'
+ The `bg' method places a job in the background. The job is resumed if
+   it has been suspended. 
+ - `fg'
+ The `fg' method brings a job to the foreground. The job is resumed if
+   it has been suspended. 
+ - `stop'
+ The `stop' method suspends a running job. 
+ - `wait'
+ The `wait' function waits for a running job to terminate. It is not
+   possible to wait for a suspended job.
+ The job is not brought to the foreground. If the `wait' is interrupted,
+   the job continues to run in the background. 
+ - `kill'
+ The `kill' function signal a job.
+ `kill [signal] <pid...>'.
+ The signals are either numeric, or symbolic. The symbolic signals are
+   named as follows.
+ ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2, CHLD, STOP,
+   TSTP, TTIN, TTOU, VTALRM, PROF. 
+ - `exit'
+ The `exit' function terminates the current session. 
+ - `which', `where'
+ See the documentation for the corresponding functions. 
+ - `rehash'
+ Reset the search path. 
+ - `history'
+ Print the current command-line history. 
+ - Win32 functions.
+ Win32 doesn't provide very many programs for scripting, except  for the
+   functions that are builtin to the DOS `cmd.exe'.  The following
+   functions are defined on Win32 and only on Win32.  On other systems,
+   it is expected that these programs already  exist.
+ 
+     
+    - `grep'
+      <<
+           grep [-q] [-n] pattern files...
+      >>
+    
+    The `grep' function calls the omake `grep' function. 
+  By default, omake uses internal versions of the following commands:
+   `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
+   really want to use the standard system versions of these commands,
+   set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
+   `OMakeroot' file.
+ 
+     
+    - `mkdir'
+      <<
+            mkdir [-m <mode>] [-p] files
+      >>
+    
+    The `mkdir' function is used to create directories. The -verb+-m+
+      option can be used to specify the permission mode of the created
+      directory. If the `-p' option is specified, the full path is
+      created. 
+    - `cp' 
+    - `mv'
+      <<
+            cp [-f] [-i] [-v] src dst
+            cp [-f] [-i] [-v] files dst
+            mv [-f] [-i] [-v] src dst
+            mv [-f] [-i] [-v] files dst
+      >>
+    
+    The `cp' function copies a `src' file to a `dst' file, overwriting
+      it if it already exists. If more than one source file is
+      specified, the final file must be a directory, and the source
+      files are copied into the directory.
+    
+        
+       -f  Copy files forcibly, do not prompt. 
+       -i  Prompt before removing destination files. 
+       -v  Explain what is happening. 
+     
+    - `rm'
+      <<
+           rm [-f] [-i] [-v] [-r] files
+           rmdir [-f] [-i] [-v] [-r] dirs
+      >>
+    
+    The `rm' function removes a set of files. No warnings are issued if
+      the files do not exist, or if they cannot be removed.
+    Options: 
+        
+       -f  Forcibly remove files, do not prompt. 
+       -i  Prompt before removal. 
+       -v  Explain what is happening. 
+       -r  Remove contents of directories recursively. 
+     
+    - `chmod'
+      <<
+            chmod [-r] [-v] [-f] mode files
+      >>
+    
+    The `chmod' function changes the permissions on a set of files or
+      directories. This function does nothing on Win32. The `mode' may
+      be specified as an octal number, or in symbolic form
+      `[ugoa]*['-=][rwxXstugo]+. See the man page for `chmod' for
+      details.
+    Options: 
+        
+       -r  Change permissions of all files in a directory recursively. 
+       -v  Explain what is happening. 
+       -f  Continue on errors. 
+     
+    - `cat'
+      <<
+           cat files...
+      >>
+    
+    The `cat' function prints the contents of the files to stdout 
+    - `test'
+      <<
+           test \emph{expression}
+           \verb+[+ \emph{expression} +]+
+           \verb+[ --help+
+           \verb+[ --version+
+      >>
+    
+    See the documentation for the `test' function.
+    
+    - `find'
+      <<
+           find \emph{expression}
+      >>
+    
+    See the documentation for the `find' function.
+ 
+  
+    
+
+Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-1,	Up: Top
   
 
 Chapter 11     Build functions
@@ -8,24 +1572,35 @@ Chapter 11     Build functions
      
 * Menu:
 
-* Section 11-1::	OMakeFlags
-* Section 11-2::	OMakeVersion
-* Section 11-3::	cmp-versions
-* Section 11-4::	DefineCommandVars
-* Section 11-5::	The OMakeroot file
-* Section 11-6::	Building C programs
-* Section 11-7::	Building OCaml programs
-* Section 11-8::	Building LaTeX programs
-* Section 11-9::	Examining the dependency graph
+* Section 11-1::	Options and versioning
+* Section 11-2::	The OMakeroot file
+* Section 11-3::	Building C programs
+* Section 11-4::	Building OCaml programs
+* Section 11-5::	Building LaTeX programs
+* Section 11-6::	Examining the dependency graph
 
 
-Node: Section 11-1,	Next: Section 11-2,	Prev: Chapter 11,	Up: Chapter 11
+Node: Section 11-1,	Next: Subsection 11-1-1,	Prev: Chapter 11,	Up: Chapter 11
   
 
-11.1   OMakeFlags
-*=*=*=*=*=*=*=*=*
+11.1   Options and versioning
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
+   
+* Menu:
+
+* Subsection 11-1-1::	OMakeFlags
+* Subsection 11-1-2::	OMakeVersion
+* Subsection 11-1-3::	cmp-versions
+* Subsection 11-1-4::	DefineCommandVars
+
+
+Node: Subsection 11-1-1,	Next: Subsection 11-1-2,	Prev: Section 11-1,	Up: Section 11-1
   
+
+11.1.1   OMakeFlags
+===================
+
 <<
      OMakeFlags(options)
         options : String
@@ -42,13 +1617,12 @@ command line.
           export
 >>
 
-Node: Section 11-2,	Next: Section 11-3,	Prev: Section 11-1,	Up: Chapter 11
+Node: Subsection 11-1-2,	Next: Subsection 11-1-3,	Prev: Subsection 11-1-1,	Up: Section 11-1
   
 
-11.2   OMakeVersion
-*=*=*=*=*=*=*=*=*=*
+11.1.2   OMakeVersion
+=====================
 
-  
 <<
      OMakeVersion(version1)
      OMakeVersion(version1, version2)
@@ -61,13 +1635,12 @@ OMakefiles. It takes one or two arguments.
 `<version1>', then an exception is raised. In the two argument form, the
 version must lie between `version1' and `version2'.
 
-Node: Section 11-3,	Next: Section 11-4,	Prev: Section 11-2,	Up: Chapter 11
+Node: Subsection 11-1-3,	Next: Subsection 11-1-4,	Prev: Subsection 11-1-2,	Up: Section 11-1
   
 
-11.3   cmp-versions
-*=*=*=*=*=*=*=*=*=*
-
-   
+11.1.3   cmp-versions
+=====================
+ 
 <<
      $(cmp-versions version1, version2)
         version1, version2 : String
@@ -78,13 +1651,12 @@ strings. It returns 0 when the two version strings are equal, a negative
 number when the first string represents an earlier version, and a
 positive number otherwise. 
 
-Node: Section 11-4,	Next: Section 11-5,	Prev: Section 11-3,	Up: Chapter 11
+Node: Subsection 11-1-4,	Next: Section 11-2,	Prev: Subsection 11-1-3,	Up: Section 11-1
   
 
-11.4   DefineCommandVars
-*=*=*=*=*=*=*=*=*=*=*=*=
+11.1.4   DefineCommandVars
+==========================
 
-  
 <<
      DefineCommandVars()
 >>
@@ -94,10 +1666,10 @@ commandline. Variables definitions are passed on the command line in the
 form `name=value'. This function is primarily for internal use by omake
 to define these variables for the first time. 
 
-Node: Section 11-5,	Next: Subsection 11-5-1,	Prev: Section 11-4,	Up: Chapter 11
+Node: Section 11-2,	Next: Subsection 11-2-1,	Prev: Section 11-1,	Up: Chapter 11
   
 
-11.5   The OMakeroot file
+11.2   The OMakeroot file
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
    
@@ -105,1974 +1677,20 @@ Node: Section 11-5,	Next: Subsection 11-5-1,	Prev: Section 11-4,	Up: Chapter 11
 building standard projects.
 * Menu:
 
-* Subsection 11-5-1::	Variables
-* Subsection 11-5-2::	System variables
+* Subsection 11-2-1::	Variables
+* Subsection 11-2-2::	ROOT
+* Subsection 11-2-3::	CWD
+* Subsection 11-2-4::	EMPTY
+* Subsection 11-2-5::	STDROOT
+* Subsection 11-2-6::	VERBOSE
+* Subsection 11-2-7::	ABORT_ON_COMMAND_ERROR
+* Subsection 11-2-8::	SCANNER_MODE
+* Subsection 11-2-9::	System variables
+* Subsection 11-2-10::	INSTALL
+* Subsection 11-2-11::	PATHSEP
+* Subsection 11-2-12::	DIRSEP
+* Subsection 11-2-13::	EXT_LIB
+* Subsection 11-2-14::	EXT_OBJ
+* Subsection 11-2-15::	EXT_ASM
+* Subsection 11-2-16::	EXE
 
-
-Node: Subsection 11-5-1,	Next: Subsection 11-5-2,	Prev: Section 11-5,	Up: Section 11-5
-  
-
-11.5.1   Variables
-==================
-
-
- ROOT
------
- The root directory of
-the current project.
-
- CWD
-----
- The current working
-directory (the directory is set for each OMakefile in the project).
-
- EMPTY
-------
- The empty string.
-
- STDROOT
---------
- The name of the
-standard installed OMakeroot file.
-
- VERBOSE
---------
- Whether certain
-commands should be verbose (`false' by default).
-
- ABORT_ON_COMMAND_ERROR
------------------------
- If
-set to true, the construction of a target should  be aborted whenever
-one of the commands to build it fail. This defaults to true,  and should
-normally be left that way.
-  
-
- SCANNER_MODE
--------------
- This variable
-should be defined as one of four values  (defaults to `enabled'). 
-  
- enabled  Allow the use of default `.SCANNER' rules. Whenever a rule
-   does  not specify a `:scanner:' dependency explicitly, try to find a 
-   `.SCANNER' with the same target name. 
- disabled  Never use default `.SCANNER' rules. 
- warning  Allow the use of default `.SCANNER' rules, but print a warning
-    whenever one is selected. 
- error  Do not allow the use of default `.SCANNER' rules. If a rule 
-   does not specify a `:scanner:' dependency, and there is a default 
-   `.SCANNER' rule, the build will terminate abnormally. 
-   
-
-Node: Subsection 11-5-2,	Next: Section 11-6,	Prev: Subsection 11-5-1,	Up: Section 11-5
-  
-
-11.5.2   System variables
-=========================
-  
-  
-
- INSTALL
---------
- The command to
-install a program (`install' on `Unix', `cp' on `Win32').
-
- PATHSEP
---------
- The normal path
-separator (`:' on `Unix', `;' on `Win32').
-
- DIRSEP
--------
- The normal directory
-separator (`/' on `Unix', `\' on `Win32').
-
- EXT_LIB
---------
- File suffix for a
-static library (default is `.a' on `Unix', and `.lib' on `Win32').
-
- EXT_OBJ
---------
- File suffix for an
-object file (default is `.o' on `Unix', and `.obj' on `Win32').
-
- EXT_ASM
---------
- File suffix for an
-assembly file (default is `.s' on `Unix', and `.asm' on `Win32').
-
- EXE
-----
- File suffix for
-executables (default is empty for `Unix', and `.exe' on `Win32' and
-`Cygwin'). 
-
-Node: Section 11-6,	Next: Subsection 11-6-1,	Prev: Section 11-5,	Up: Chapter 11
-  
-
-11.6   Building C programs
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  omake provides extensive support for building C programs.
-* Menu:
-
-* Subsection 11-6-1::	C configuration variables
-
-
-Node: Subsection 11-6-1,	Next: Section 11-7,	Prev: Section 11-6,	Up: Section 11-6
-  
-
-11.6.1   C configuration variables
-==================================
-  
-  The following variables can be redefined in your project.
-  
-
- CC
----
- The name of the C
-compiler (on `Unix' it defaults to `gcc' when `gcc' is present and  to
-`cc' otherwise; on `Win32' defaults to `cl /nologo').
-
- CXX
-----
- The name of the C++
-compiler (on `Unix' it defaults to `gcc' when `gcc' is present  and to
-`c'++ otherwise; on `Win32' defaults to `cl /nologo').
-
- CPP
-----
- The name of the C
-preprocessor (defaults to `cpp' on `Unix', and `cl /E' on `Win32').
-
- CFLAGS
--------
- Compilation flags to
-pass to the C compiler (default empty on `Unix', and `/DWIN32'  on
-`Win32').
-
- CXXFLAGS
----------
- Compilation flags
-to pass to the C++ compiler (default empty on `Unix', and `/DWIN32'  on
-`Win32').
-
- INCLUDES
----------
- Additional
-directories that specify the search path to the C and C++ compilers
-(default is `.').  The directories are passed to the C and C++ compilers
-with the `-I' option.  The include path with `-I' prefixes is defined in
-the `PREFIXED_INCLUDES' variable.
-
- LIBS
------
- Additional libraries
-needed when building a program (default is empty).
-
- AS
----
- The name of the
-assembler (defaults to `as' on `Unix', and `ml' on `Win32').
-
- ASFLAGS
---------
- Flags to pass to
-the assembler (default is empty on `Unix', and `/c /coff' on `Win32').
-
- AR
----
- The name of the program
-to create static libraries (defaults to `ar cq' on `Unix',  and `lib' on
-`Win32').
-
- AROUT
-------
- The option string
-that specifies the output file for `AR'.
-
- LD
----
- The name of the linker
-(defaults to `ld' on `Unix', and `cl' on `Win32').
-
- LDFLAGS
---------
- Options to pass to
-the linker (default is empty).
-
- YACC
------
- The name of the `yacc'
-parser generator (default is `yacc' on `Unix', empty on `Win32').
-
- LEX
-----
- The name of the `lex'
-lexer generator (default is `lex' on `Unix', empty on `Win32').
-
- CGeneratedFiles
-----------------
-
-
- LocalCGeneratedFiles
----------------------
- 
-<<
-  CGeneratedFiles(files)
-  LocalCGeneratedFiles(files)
->>
-  
-  The `CGeneratedFiles' and `LocalCGeneratedFiles' functions specify
-files that need to be generated before any C files are scanned for
-dependencies. For example, if `config.h' and `inputs.h' are both
-generated files, specify: 
-<<
-  CGeneratedFiles(config.h inputs.h)
->>
-  
-  The `CGeneratedFiles' function is global --- its arguments will be
-generated before any C files anywhere in the project are scanned for
-dependencies. The `LocalCGeneratedFiles' function follows the normal
-scoping rules of OMake.
-  
-
- StaticCLibrary
----------------
-
-  The `StaticCLibrary' builds a static library.
-  `StaticCLibrary(<target>, <files>)'
-  The `<target>' does not include the library suffix, and The `<files>'
-list does not include the object suffix. These are obtained from the
-`EXT_LIB' and `EXT_OBJ' variables.
-  This function returns the library filename.
-  The following command builds the library `libfoo.a' from the files
-`a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
-`a.obj b.obj c.obj' on `Win32'.
-<<
-  StaticCLibrary(libfoo, a b c)
-  .DEFAULT: $(StaticCLibrary libbar, a b c d)
->>
-  
-
- StaticCLibraryCopy
--------------------
-
-  The `StaticCLibraryCopy' function copies the static library to an
-install location.
-  `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
-  The `<tag>' is the name of a target (typically a `.PHONY' target); the
-`<dir>' is the installation directory, and `<lib>' is the library to be
-copied (without the library suffix).
-  This function returns the filename of the library in the target
-directory.
-  For example, the following code copies the library `libfoo.a' to the
-`/usr/lib' directory.
-<<
-  .PHONY: install
-  
-  StaticCLibraryCopy(install, /usr/lib, libfoo)
->>
-  
-
- StaticCLibraryInstall
-----------------------
-
-  The `StaticCLibraryInstall' function builds a library, and sets the
-install location in one step. It returns the filename of the library in
-the target directory.
-  `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
-<<
-  StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
->>
-  
-
- StaticCObject
---------------
-
-
- StaticCObjectCopy
-------------------
-
-
- StaticCObjectInstall
----------------------
-
-  These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
-`StaticCLibraryInstall' functions, but they build an object file (a `.o'
-file on `Unix', and a `.obj' file on `Win32').
-
- CProgram
----------
-
-  The `CProgram' function builds a C program from a set of object files
-and libraries.
-  `CProgram(<name>, <files>)'
-  The `<name>' argument specifies the name of the program to be built;
-the `<files>' argument specifies the files to be linked. The function
-returns the filename of the executable.
-  Additional options can be passed through the following variables. 
-  
- CFLAGS  Flags used by the C compiler during the link step. 
- LDFLAGS  Flags to pass to the loader. 
- LIBS  Additional libraries to be linked. 
-  
-  For example, the following code specifies that the program `foo' is to
-be produced by linking the files `bar.o' and `baz.o' and libraries
-`libfoo.a'.
-<<
-  section
-     LIBS = libfoo$(EXT_LIB)
-     CProgram(foo, bar baz)
->>
-  
-
- CProgramCopy
--------------
-
-  The `CProgramCopy' function copies a file to an install location.
-  `CProgramCopy(<tag>, <dir>, <program>)'
-<<
-  CProgramCopy(install, /usr/bin, foo)
->>
-  
-
- CProgramInstall
-----------------
-
-  The `CProgramInstall' function specifies a program to build, and a
-location to install, simultaneously.
-  `CProgramInstall(<tag>, <dir>, <name>, <files>)'
-<<
-  section
-     LIBS = libfoo$(EXT_LIB)
-     CProgramInstall(install, /usr/bin, foo, bar baz)
->>
-  
-
- CXXProgram
------------
-
-
- CXXProgramInstall
-------------------
-
-  The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
-their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
-for linking instead of `$(CC)' and `$(CFLAGS)'. 
-
-Node: Section 11-7,	Next: Subsection 11-7-1,	Prev: Section 11-6,	Up: Chapter 11
-  
-
-11.7   Building OCaml programs
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 11-7-1::	Variables for OCaml programs
-* Subsection 11-7-2::	OCaml command flags
-* Subsection 11-7-3::	Library variables
-
-
-Node: Subsection 11-7-1,	Next: Subsection 11-7-2,	Prev: Section 11-7,	Up: Section 11-7
-  
-
-11.7.1   Variables for OCaml programs
-=====================================
-  
-  The following variables can be redefined in your project.
-
- USE_OCAMLFIND
---------------
- Whether to
-use the `ocamlfind' utility (default `false\')
-
- OCAMLC
--------
- The OCaml bytecode
-compiler (default `ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not
-set, otherwise `ocamlc').
-
- OCAMLOPT
----------
- The OCaml
-native-code compiler (default `ocamlopt.opt' if it  exists and
-`USE_OCAMLFIND' is not set, otherwise `ocamlopt').
-
- CAMLP4
--------
- The `camlp4'
-preprocessor (default `camlp4').
-
- OCAMLLEX
----------
- The OCaml lexer
-generator (default `ocamllex').
-
- OCAMLLEXFLAGS
---------------
- The flags to
-pass to `ocamllex' (default `-q').
-
- OCAMLYACC
-----------
- The OCaml parser
-generator (default `ocamlyacc').
-
- OCAMLDEP
----------
- The OCaml
-dependency analyzer (default `ocamldep').
-
- OCAMLMKTOP
------------
- The OCaml
-toploop compiler (default `ocamlmktop').
-
- OCAMLLINK
-----------
- The OCaml
-bytecode linker (default `$(OCAMLC)').
-
- OCAMLOPTLINK
--------------
- The OCaml
-native-code linker (default `$(OCAMLOPT)').
-
- OCAMLINCLUDES
---------------
- Search path
-to pass to the OCaml compilers (default `.').  The search path with the
-`-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES'  variable.
-
- OCAMLFIND
-----------
- The `ocamlfind'
-utility (default `ocamlfind' if  `USE_OCAMLFIND' is set, otherwise
-empty).
-
- OCAMLFINDFLAGS
----------------
- The flags to
-pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must be set).
-
- OCAMLPACKS
------------
- Package names to
-pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
-
- BYTE_ENABLED
--------------
- Flag
-indicating whether to use the bytecode compiler (default `true', when no
-`ocamlopt' found, `false' otherwise).
-
- NATIVE_ENABLED
----------------
- Flag
-indicating whether to use the native-code compiler (default `true', when
-ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED' and
-`NATIVE_ENABLED' can be set to true;  at least one should be set to
-true. 
-
-Node: Subsection 11-7-2,	Next: Subsection 11-7-3,	Prev: Subsection 11-7-1,	Up: Section 11-7
-  
-
-11.7.2   OCaml command flags
-============================
-  
-  The following variables specify additional options to be passed to the
-OCaml tools.
-
- OCAMLDEPFLAGS
---------------
- Flags to pass
-to `OCAMLDEP'.
-
- OCAMLPPFLAGS
--------------
- Flags to pass
-to `CAMLP4'.
-
- OCAMLCFLAGS
-------------
- Flags to pass
-to the byte-code compiler (default `-g').
-
- OCAMLOPTFLAGS
---------------
- Flags to pass
-to the native-code compiler (default empty).
-
- OCAMLFLAGS
------------
- Flags to pass to
-either compiler (default `-warn-error A').
-
- OCAML_BYTE_LINK_FLAGS
-----------------------
- Flags
-to pass to the byte-code linker (default empty).
-
- OCAML_NATIVE_LINK_FLAGS
-------------------------
-
-Flags to pass to the native-code linker (default empty).
-
- OCAML_LINK_FLAGS
------------------
- Flags to
-pass to either linker. 
-
-Node: Subsection 11-7-3,	Next: Section 11-8,	Prev: Subsection 11-7-2,	Up: Section 11-7
-  
-
-11.7.3   Library variables
-==========================
-  
-  The following variables are used during linking.
-  
-
- OCAML_LIBS
------------
- Libraries to
-pass to the linker. These libraries become dependencies  of the link
-step.
-
- OCAML_OTHER_LIBS
------------------
- Additional
-libraries to pass to the linker. These libraries are  not included as
-dependencies to the link step. Typical use is for the OCaml  standard
-libraries like `unix' or `str'.
-
- OCAML_CLIBS
-------------
- C libraries to
-pass to the linker.
-
- OCAML_LIB_FLAGS
-----------------
- Extra flags
-for the library.
-
- OCamlGeneratedFiles
---------------------
-
-
- LocalOCamlGeneratedFiles
--------------------------
- 
-<<
-  OCamlGeneratedFiles(files)
-  LocalOCamlGeneratedFiles(files)
->>
-  
-  The `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles' functions
-specify files that need to be generated before any OCaml files are
-scanned for dependencies. For example, if `parser.ml' and `lexer.ml' are
-both generated files, specify: 
-<<
-  OCamlGeneratedFiles(parser.ml lexer.ml)
->>
-  
-  The `OCamlGeneratedFiles' function is global --- its arguments will be
-generated before any OCaml files anywhere in the project are scanned for
-dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
-scoping rules of OMake.
-  
-
- OCamlLibrary
--------------
-
-  The `OCamlLibrary' function builds an OCaml library.
-  `OCamlLibrary(<libname>, <files>)'
-  The `<libname>' and `<files>' are listed without suffixes.
-  
-
- ABORT_ON_DEPENDENCY_ERRORS
----------------------------
- 
-The linker requires that the files to be  listed in dependency order. If
-this variable is true, the order of  the files is determined by the
-command line, but omake will  abort with an error message if the order
-is illegal. Otherwise,  the files are sorted automatically.
-  This function returns the list of all the targets that it defines the
-rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
-is set).
-  The following code builds the `libfoo.cmxa' library from the files
-`foo.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and `libfoo.cma'
-from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
-<<
-  OCamlLibrary(libfoo, foo bar)
->>
-  
-
- OCamlPackage
--------------
-
-  The `OCamlPackage' function builds an OCaml package.
-  `OCamlPackage(<name>, <files>)'
-  The `<name>' and `<files>' are listed without suffixes. The `<files>'
-must have been compiled with the `-for-pack <ident>' flag to the OCaml
-compiler.
-  This function returns the list of all the targets that it defines the
-rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
-is set).
-  The following code builds the `libfoo.cmx' package from the files
-`package.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and
-`package.cmo' from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
-<<
-  OCamlPackage(package, foo bar)
->>
-  
-
- OCamlLibraryCopy
------------------
-
-  The `OCamlLibraryCopy' function copies a library to an install
-location.
-  `OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)'
-  The `<interface-files>' specify additional interface files to be
-copied if the `INSTALL_INTERFACES' variable is true.
-
- OCamlLibraryInstall
---------------------
-
-  The `OCamlLibraryInstall' function builds a library and copies it to
-an install location in one step.
-  `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
-
- OCamlProgram
--------------
-
-  The `OCamlProgram' function builds an OCaml program. It returns the
-array with all the targets for which it have defined the rules
-(`$(name)$(EXE)' and `$(name).run' and/or `$(name).opt', depending on
-the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
-  `OCamlProgram(<name>, <files>)'
-  Additional variables used: 
-  
- OCAML_LIBS 11.7.3*Note Subsection 11-7-3::  Additional libraries
-   passed to the linker, without suffix. These files  become
-   dependencies of the target program. 
- OCAML_OTHER_LIBS 11.7.3*Note Subsection 11-7-3::  Additional
-   libraries passed to the linker, without suffix. These  files do not
-   become dependencies of the target program. 
- OCAML_CLIBS 11.7.3*Note Subsection 11-7-3::  C libraries to pass to
-   the linker. 
- OCAML_BYTE_LINK_FLAGS 11.7.2*Note Subsection 11-7-2:: 
-   Flags to pass to the bytecode linker. 
- OCAML_NATIVE_LINK_FLAGS 11.7.2*Note Subsection 11-7-2:: 
-   Flags to pass to the native code linker. 
- OCAML_LINK_FLAGS 11.7.2*Note Subsection 11-7-2::  Flags to pass
-   to both linkers. 
-
-
- OCamlProgramCopy
------------------
-
-  The `OCamlProgramCopy' function copies an OCaml program to an install
-location.
-  `OCamlProgramCopy(<tag>, <bindir>, <name>)'
-  Additional variables used: 
-  
- NATIVE_ENABLED  If `NATIVE_ENABLED'
-   11.7.1*Note Subsection 11-7-1:: is set, the native-code
-   executable  is copied; otherwise the byte-code executable is copied. 
-
-
- OCamlProgramInstall
---------------------
-
-  The `OCamlProgramInstall' function builds a programs and copies it to
-an install location in one step.
-  `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
-
-Node: Section 11-8,	Next: Subsection 11-8-1,	Prev: Section 11-7,	Up: Chapter 11
-  
-
-11.8   Building LaTeX programs
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 11-8-1::	Configuration variables
-
-
-Node: Subsection 11-8-1,	Next: Section 11-9,	Prev: Section 11-8,	Up: Section 11-8
-  
-
-11.8.1   Configuration variables
-================================
-  
-  The following variables can be modified in your project.
-
- LATEX
-------
- The LaTeX command
-(default `latex').
-
- TETEX2_ENABLED
----------------
- Flag
-indicating whether to use advanced LaTeX options present in TeTeX v.2
-(default value is determined the first time omake reads `LaTeX.src' and
-depends on the version of LaTeX you have installed).
-
- LATEXFLAGS
------------
- The LaTeX flags
-(defaults depend on the `TETEX2_ENABLED' variable)
-
- BIBTEX
--------
- The BibTeX command
-(default `bibtex').
-
- MAKEINDEX
-----------
- The command to
-build an index (default `makeindex').
-
- DVIPS
-------
- The `.dvi' to
-PostScript converter (default `dvips').
-
- DVIPSFLAGS
------------
- Flags to pass to
-`dvips' (default `-t letter').
-
- DVIPDFM
---------
- The `.dvi' to
-`.pdf' converter (default `dvipdfm').
-
- DVIPDFMFLAGS
--------------
- Flags to pass
-to `dvipdfm' (default `-p letter').
-
- PDFLATEX
----------
- The `.latex' to
-`.pdf' converter (default `pdflatex').
-
- PDFLATEXFLAGS
---------------
- Flags to pass
-to pdflatex (default is empty).
-
- USEPDFLATEX
-------------
- Flag indicating
-whether to use pdflatex instead of dvipdfm to generate the `.pdf'
-document (default `false').
-
- LaTeXDocument
---------------
-
-  The `LaTeXDocument' produces a LaTeX document.
-  `LaTeXDocument(<name>, <texfiles>)'
-  The document `<name>' and `<texfiles>' are listed without suffixes.
-This function returns the filenames for the generated `.ps' and `.pdf'
-files.
-  Additional variables used:
-
- TEXINPUTS
-----------
- The LaTeX search
-path (an array of directories, default is  taken from the `TEXINPUTS'
-environment variable).
-
- TEXDEPS
---------
- Additional files
-this document depends on.
-
- TeXGeneratedFiles
-------------------
-
-
- LocalTeXGeneratedFiles
------------------------
- 
-<<
-  TeXGeneratedFiles(files)
-  LocalTeXGeneratedFiles(files)
->>
-  
-  The `TeXGeneratedFiles' and `LocalTeXGeneratedFiles' functions specify
-files that need to be generated before any LaTeXfiles are scanned for
-dependencies. For example, if `config.tex' and `inputs.tex' are both
-generated files, specify: 
-<<
-      TeXGeneratedFiles(config.tex inputs.tex)
->>
-  
-  The `TeXGeneratedFiles' function is global --- its arguments will be
-generated before any TeX files anywhere in the project are scanned for
-dependencies. The `LocalTeXGeneratedFiles' function follows the normal
-scoping rules of OMake.
-  
-
- LaTeXDocumentCopy
-------------------
-
-  The `LaTeXDocumentCopy' copies the document to an install location.
-  `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
-  This function copies just the `.pdf' and `.ps' files.
-
- LaTeXDocumentInstall
----------------------
-
-  The `LaTeXDocumentInstall' builds a document and copies it to an
-install location in one step.
-  `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
-<files>)' 
-
-Node: Section 11-9,	Next: Chapter 12,	Prev: Section 11-8,	Up: Chapter 11
-  
-
-11.9   Examining the dependency graph
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-
-
- dependencies
--------------
-
-
- dependencies-all
------------------
-
-<<
-     $(dependencies targets) : File Array
-     $(dependencies-all targets) : File Array
-     $(dependencies-proper targets) : File Array
-        targets : File Array
-     raises RuntimeException
->>
-  
-  The `dependencies' function returns the set of immediate dependencies
-of the given targets. This function can only be used within a rule body
-and all the arguments to the `dependency' function must also be
-dependencies of this rule. This restriction ensures that all the
-dependencies are known when this function is executed.
-  The `dependencies-all' function is similar, but it expands the
-dependencies recursively, returning all of the dependencies of a target,
-not just the immediate ones.
-  The `dependencies-proper' function returns all recursive dependencies,
-except the dependencies that are leaf targets. A leaf target is a target
-that has no dependencies and no build commands; a leaf target
-corresponds to a source file in the current project.
-  In all three functions, files that are not part of the current project
-are silently discarded.
-  One purpose of the `dependencies-proper' function is for ``clean''
-targets. For example, one way to delete all intermediate files in a
-build is with a rule that uses the `dependencies-proper'. Note however,
-that the rule requires building the project before it can be deleted.
-For a shorter form, see the `filter-proper-targets' function.
-<<
-      .PHONY: clean
-  
-      APP = ...     # the name of the target application
-      clean: $(APP)
-         rm $(dependencies-proper $(APP))
->>
-  
-  
-
- target
--------
- 
-<<
-     $(target targets) : Rule Array
-        targets : File Sequence
-     raises RuntimeException
->>
-  
-  The `target' function returns the Target object associated with each
-of the targets. See the `Target' object for more information.
-
- rule
------
-
-  The `rule' function is called whenever a build rule is defined. It is
-unlikely that you will need to redefine this function, except in very
-exceptional cases.
-<<
-     rule(multiple, target, pattern, sources, options, body) : Rule
-        multiple : String
-        target   : Sequence
-        pattern  : Sequence
-        sources  : Sequence
-        options  : Array
-        body     : Body
->>
-  
-  The `rule' function is called when a rule is evaluated.
-  
-  
- multiple  A Boolean value indicating whether the rule was defined  with
-   a double colon `::'. 
- target  The sequence of target names. 
- pattern  The sequence of patterns. This sequence will be empty  for
-   two-part rules. 
- sources  The sequence of dependencies. 
- options  An array of options. Each option is represented  as a
-   two-element array with an option name, and the option value. 
- body  The body expression of the rule. 
-  
-  Consider the following rule.
-<<
-     target: pattern: sources :name1: option1 :name2: option2
-        expr1
-        expr2
->>
-  
-  This expression represents the following function call, where square
-brackets are used to indicate arrays.
-<<
-     rule(false, target, pattern, sources,
-          [[:name1:, option1], [:name2:, option2]]
-          [expr1; expr2])
->>
-   
-
-Node: Chapter 12,	Next: Section 12-1,	Prev: Chapter 11,	Up: Top
-  
-
-Chapter 12     The OSH shell
-****************************
-    
-  OMake also includes a standalone command-line interpreter osh that can
-be used as an interactive shell. The shell uses the same syntax, and
-provides the same features on all platforms omake supports, including
-Win32.
-* Menu:
-
-* Section 12-1::	Startup
-* Section 12-2::	Aliases
-* Section 12-3::	Interactive syntax
-
-
-Node: Section 12-1,	Next: Section 12-2,	Prev: Chapter 12,	Up: Chapter 12
-  
-
-12.1   Startup
-*=*=*=*=*=*=*=
-
-  
-  On startup, osh reads the file `~/.oshrc' if it exists. The syntax of
-this file is the same as an OMakefile. The following additional
-variables are significant.
-  
-
- prompt
--------
- The `prompt'
-variable specifies the command-line prompt. It can be a simple string.
-<<
-      prompt = osh>
->>
-  
-  Or you may choose to define it as a function of no arguments.
-<<
-      prompt() =
-          return $"<$(USER):$(HOST) $(homename $(CWD))>"
->>
-  
-  An example of the latter prompt is as follows.
-<<
-      <jyh:kenai.yapper.org ~>cd links/omake
-      <jyh:kenai.yapper.org ~/links/omake>
->>
-  
-  
-
- ignoreeof
-----------
-  If the
-`ignoreeof' is `true', then `osh' will not exit on  a terminal
-end-of-file (usually `^D' on Unix systems).
-
-Node: Section 12-2,	Next: Section 12-3,	Prev: Section 12-1,	Up: Chapter 12
-  
-
-12.2   Aliases
-*=*=*=*=*=*=*=
-
-   
-  Command aliases are defined by adding functions to the `Shell.'
-object. The following alias adds the `-AF' option to the `ls' command.
-<<
-      Shell. +=
-         ls(argv) =
-            "ls" -AF $(argv)
->>
-  
-  Quoted commands do not undergo alias expansion. The quotation `"ls"'
-prevents the alias from being recursive.
-
-Node: Section 12-3,	Next: Appendix A,	Prev: Section 12-2,	Up: Chapter 12
-  
-
-12.3   Interactive syntax
-*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The interactive syntax in `osh' is the same as the syntax of an
-`OMakefile', with one exception in regard to indentation. The line
-before an indented block must have a colon at the end of the line. A
-block is terminated with a `.' on a line by itself, or `^D'. In the
-following example, the first line `if true' has no body, because there
-is no colon.
-<<
-     # The following if has no body
-     osh>if true
-     # The following if has a body
-     osh>if true:
-     if>       if true:
-     if>          println(Hello world)
-     if>          .
-     Hello world
->>
-  
-  Note that `osh' makes some effort to modify the prompt while in an
-indented body, and it auto-indents the text.
-  The colon signifier is also allowed in files, although it is not
-required.
-   
-
-Node: Appendix A,	Next: Section A-1,	Prev: Chapter 12,	Up: Top
-  
-
-Appendix A     Synopsis
-***********************
-    
-  omake  [-k]  [-j <count>]  [-n]  [-s] [-S]  [-p]  [-P]  [-w]  [-t] 
-[-u]  [-U]  [-R]  [--project]  [--progress] [--no-progress] 
-[--print-status] [--no-print-status]  [--print-exit] [--no-print-exit] 
-[--print-dependencies]  [--show-dependencies < target>] 
-[--force-dotomake]  [--dotomake < dir>]  [--flush-includes] 
-[--configure]  [--install]  [--install-all]  [--install-force] 
-[--version]  filename...  [var-definition...]
-* Menu:
-
-* Section A-1::	Command-line options
-
-
-Node: Section A-1,	Next: Appendix B,	Prev: Appendix A,	Up: Appendix A
-  
-
-A.1   Command-line options
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  
-  
- -k  Do not abort when a build command fails; continue to build as much
-   of the project as possible.
- 
- -n  Print the commands that would be executed, but do no execute them.
-   This can be used to see what would happen if the project were to be
-   built.
- 
- -s  Do not print commands as they are executed (be ``silent'').
- 
- -S  Do not print commands as they are executed unless they produce
-   output.
- 
- --progress  Print a progress indicator. This is normally used with the
-   -s or -S options.
- 
- --no-progress  Do not print a progress indicator (default).
- 
- --print-exit  Print termination codes when commands complete.
- 
- --no-print-exit  Do not print termination codes when commands complete
-   (default).
- 
- -w  Print directory information in make format as commands are
-   executed. This is mainly useful for editors that expect make-style
-   directory information for determining the location of errors.
- 
- -p  Watch the filesystem for changes, and continue the build until it
-   succeeds. If this option is specified, omake will restart the build
-   whenever source files are modified.
- 
- -P  Watch the filesystem for changes forever. If this option is
-   specified, omake will restart the build whenever source files are
-   modified.
- 
- -R  Ignore the current directory and build the project from its root
-   directory. When omake is run in a subdirectory of a project, it
-   normally builds files within the current directory and its
-   subdirectories. If the -R option is specified, the build is performed
-   as if omake were run in the project root.
- 
- -t  Update the omake database to force the project to be considered
-   up-to-date.
- 
- -U  Do not trust cached build information. This will force the entire
-   project to be rebuilt.
- 
- --depend  Do not trust cached dependency information. This will force
-   files to be rescanned for dependency information.
- 
- --configure  Re-run `static.\' sections of the included omake files,
-   instead of trusting the cached results.
- 
- [--force-dotomake]  Always use the `$HOME/.omake' for the `.omc' cache
-   files.
- 
- [--dotomake < dir>]  Use the specified directory instead of the
-   `$HOME/.omake' for the placement of the `.omc' cache files.
- 
- -j count  Run multiple build commands in parallel. The count specifies
-   a bound on the number of commands to run simultaneously. In addition,
-   the count may specify servers for remote execution of commands in the
-   form `server=count'. For example, the option `-j
-   2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs
-   can be executed locally, 1 on the server `small.host.org' and 4 on
-   `large.host.org'. Each remote server must use the same filesystem
-   location for the project.
- Remote execution is currently an experimental feature. Remote
-   filesystems like NFS do not provide adequate file consistency for
-   this to work.
- 
- --print-dependencies  Print dependency information for the targets on
-   the command line.
- 
- --show-dependencies  target  Print dependency information if the
-   `target' is built.
- 
- --install  Install default files OMakefile and OMakeroot into the
-   current  directory. You would typically do this to start a project in
-   the current directory.
- 
- --install-all  In addition to installing files OMakefile and OMakeroot,
-    install default OMakefiles into each subdirectory of the current
-   directory.  cvs(1) rules are used for filtering the subdirectory
-   list. For example, OMakefiles  are not copied into directories called
-   `CVS', `RCCS', etc.
- 
- --install-force  Normally, omake will prompt before it overwrites any 
-   existing OMakefile. If this option is given, all files are forcibly
-   overwritten  without prompting.
- 
- var-definition  omake variables can also be defined on the command 
-   line in the form `name=value'. For example, the `CFLAGS' variable
-   might be defined  on the command line with the argument
-   `CFLAGS="-Wall -g"'. 
-  
-  In addition, omake supports a number of debugging flags on the command
-line. Run `omake --help' to get a summary of these flags.
-   
-
-Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
-  
-
-Appendix B     OMake grammar
-****************************
-    
-* Menu:
-
-* Section B-1::	OMake lexical conventions
-* Section B-2::	The OMake grammar
-* Section B-3::	Dollar modifiers
-
-
-Node: Section B-1,	Next: Subsection B-1-1,	Prev: Appendix B,	Up: Appendix B
-  
-
-B.1   OMake lexical conventions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The OMake language is based on the language for GNU/BSD make, where
-there are few lexical conventions. Strictly speaking, there are no
-keywords, and few special symbols.
-* Menu:
-
-* Subsection B-1-1::	Comments
-* Subsection B-1-2::	Special characters
-* Subsection B-1-3::	Identifiers
-* Subsection B-1-4::	Command identifiers
-* Subsection B-1-5::	Variable references
-* Subsection B-1-6::	String constants
-
-
-Node: Subsection B-1-1,	Next: Subsection B-1-2,	Prev: Section B-1,	Up: Section B-1
-  
-
-B.1.1   Comments
-================
-  
-  Comments begin with the `#' character and continue to the end-of-line.
-Text within a comment is unrestricted.
-  Examples.
-<<
-     # This is a comment
-     # This $comment contains a quote " character
->>
-  
-
-Node: Subsection B-1-2,	Next: Subsection B-1-3,	Prev: Subsection B-1-1,	Up: Section B-1
-  
-
-B.1.2   Special characters
-==========================
-  
-  The following characters are special in some contexts.
-<<
-     $    (    )    ,    .   =    :    "    '    `    \    #
->>
-  
-  
-  
- - `$' is used to denote a variable reference, or function application. 
- - Parentheses `)', `(' are argument deliminters. 
- - The command `,' is an argument separator. 
- - The period symbol `.' is a name separator. 
- - The equality symbol `=' denotes a definition. 
- - The colon symbol `:' is used to denote rules, and (optionally) to
-   indicate  that an expression is followed by an indented body. 
- - The quotation symbols `"' and `'' delimit character strings. 
- - The symbol `#' is the first character of a constant. 
- - The escape symbol `\' is special only when followed by another
-   special  character. In this case, the special status of the second
-   character is removed,  and the sequence denotes the second character.
-   Otherwise, the `\' is not special.
- Examples:
- 
-      
-    - `\$': the `$' character (as a normal character).  
-    - `\#': the `#' character (as a normal character).  
-    - `\\': the `\' character (as a normal character).  
-    - `c\:\Windows\moo\#boo': the string `c:\Windows\moo#boo'.  
-  
-  
-
-Node: Subsection B-1-3,	Next: Subsection B-1-4,	Prev: Subsection B-1-2,	Up: Section B-1
-  
-
-B.1.3   Identifiers
-===================
-  
-  Identifiers (variable names) are drawn from the ASCII alphanumeric
-characters as well as `_', `-', `~', `@'. Case is significant; the
-following identifiers are distinct: `FOO', `Foo', `foo'. The identifier
-may begin with any of the valid characters, including digits.
-  Using `egrep' notation, the regular expression for identifiers is
-defined as follows.
-<<
-      identifier ::= [-@~_A-Za-z0-9]+
->>
-  
-  The following are legal identifiers.
-<<
-      Xyz    hello_world    seventy@nine
-      79-32  Gnus~Gnats     CFLAGS
->>
-  
-  The following are not legal identifiers.
-<<
-      x+y    hello&world
->>
-  
-
-Node: Subsection B-1-4,	Next: Subsection B-1-5,	Prev: Subsection B-1-3,	Up: Section B-1
-  
-
-B.1.4   Command identifiers
-===========================
-  
-  The following words have special significance when they occur as the
-first word of a program line. They are not otherwise special.
-<<
-      case     catch  class    declare    default
-      do       else   elseif   export     extends
-      finally  if     import   include    match
-      open     raise  return   section    switch
-      try      value  when     while
->>
-  
-
-Node: Subsection B-1-5,	Next: Subsection B-1-6,	Prev: Subsection B-1-4,	Up: Section B-1
-  
-
-B.1.5   Variable references
-===========================
-  
-  A variable reference is denoted with the `$' special character
-followed by an identifier. If the identifier name has more than one
-character, it must be enclosed in parentheses. The parenthesized version
-is most common. The following are legal variable references.
-<<
-      $(Xyz)    $(hello_world)   $(seventy@nine)
-      $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
->>
-  
-  Single-character references also include several additional
-identifiers, including `&*<^?]['. The following are legal
-single-character references.
-<<
-     $@   $&   $*   $<   $^   $+   $?   $[   $]
-     $A   $_   $a   $b   $x   $1   $2   $3
->>
-  
-  Note that a non-parenthesized variable reference is limited to a
-single character, even if it is followed by additional legal identifier
-charqcters. Suppose the value of the `$x' variable is 17. The following
-examples illustrate evaluation.
-<<
-      $x           evaluates to    17
-      foo$xbar     evaluates to    foo17bar
-      foo$(x)bar   evaluates to    foo17bar
->>
-  
-  The special sequence `$$' represents the character literal `$'. That
-is, the two-character sequences `\$' and `$$' are normally equalivalent.
-
-Node: Subsection B-1-6,	Next: Section B-2,	Prev: Subsection B-1-5,	Up: Section B-1
-  
-
-B.1.6   String constants
-========================
-  
-  Literal strings are defined with matching string delimiters. A left
-string delimiter begins with the dollar-sign `$', and a non-zero number
-of single-quote or double-quote characters. The string is terminated
-with a matching sequence of quotation symbols. The delimiter quotation
-may not be mixed; it must contain only single-quote characters, or
-double-quote characters. The following are legal strings.
-<<
-      $'Hello world'
-      $"""printf("Hello world\n")"""
-      $''''
-  Large "block" of
-  text # spanning ''multiple'' lines''''
->>
-  
-  The string delimiters are not included in the string constant. In the
-single-quote form, the contents of the string are interpreted
-verbatim--there are no special characters.
-  The double-quote form permits expression evaluation within the string,
-denoted with the `$' symbol. The following are some examples.
-<<
-      X = Hello
-      Y = $""$X world""             # Hello world
-      Z = $'''$X world'''           # $X world
-      I = 3
-      W = $"6 > $(add $I, 2)"       # 6 > 5
->>
-  
-  Note that quotation symbols without a leading `$' are not treated
-specially by OMake. The quotation symbols is included in the sequence.
-<<
-      osh>println('Hello world')
-      'Hello world'
-      osh>println($'Hello world')
-      Hello world
-      osh>X = Hello
-      - : "Hello" : Sequence
-      osh>println('$X world')
-      Hello world
->>
-  
-
-Node: Section B-2,	Next: Subsection B-2-1,	Prev: Section B-1,	Up: Appendix B
-  
-
-B.2   The OMake grammar
-*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  OMake programs are constructed from expressions and statements.
-Generally, an input program consists of a sequence of statements, each
-of which consists of one or more lines. Indentation is significant--if a
-statement consists of more than one line, the second and remaining lines
-(called the body) are usually indented relative to the first line.
-* Menu:
-
-* Subsection B-2-1::	Expressions
-* Subsection B-2-2::	Statements and programs
-
-
-Node: Subsection B-2-1,	Next: Subsection B-2-2,	Prev: Section B-2,	Up: Section B-2
-  
-
-B.2.1   Expressions
-===================
-  
-  The following table lists the syntax for expressions.
-   expr ::=                                             
-            (empty)                                     
-            -- Text (see note)                          
-         |  text                                        
-         |  string-literal                              
-            -- Applications                             
-         |  dollar `<char>'                             
-         |  dollar `(' pathid args `)'                  
-            -- Concatenation                            
-         |  expr expr                                   
-                                                        
- dollar ::= `$' | `$`' | `$,'                           
- pathid ::=                                             
-            id                                          
-         |  pathid `.' id                               
-                                                        
-    arg ::= expr -- excluding special characters `)(,') 
-   args ::= (empty) | arg, ..., arg                     
-  
-  An expression is a sequence composed of text, string-literals,
-variables references and function applications. Text is any sequence of
-non-special characters.
-  
-
- Inline applications
---------------------
-  
-  An application is the application of a function to zero-or-more
-arguments. Inline applications begin with one of the ``dollar''
-sequences `$', `$`', or `$,'. The application itself is specified as a
-single character (in which case it is a variable reference), or it is a
-parenthesized list including a function identifier pathid, and
-zero-or-more comma-separated arguments args. The arguments are
-themselves a variant of the expressions where the special character
-`)(,' are not allowed (though any of these may be made non-special with
-the `\' escape character). The following are some examples of valid
-expressions.
-  
-  
- - `xyz abc'
- The text sequence ```xyz abc'''
- 
- - `xyz$wabc'
- A text sequence containing a reference to the variable `w'.
- 
- - `$(addsuffix .c, $(FILES))'
- An application of the function `addsuffix', with first argument `.c',
-   and second argument `$(FILES)'.
- 
- - `$(a.b.c 12)'
- This is a method call. The variable `a' must evaluate to an object with
-   a field `b', which must be an object with a method `c'. This method
-   is called with argument `12'. 
-  
-  The additional dollar sequences specify evaluation order, `$`' (lazy)
-and `$,' (eager), as discussed in the section on dollar modifiers
-B.3*Note Section B-3::.
-
-Node: Subsection B-2-2,	Next: Section B-3,	Prev: Subsection B-2-1,	Up: Section B-2
-  
-
-B.2.2   Statements and programs
-===============================
-  
-  The following table lists the syntax of statements and programs.
-         params ::= (empty) | id, ..., id                               
-        
-                                                                        
-        
-         target ::= expr -- excluding special character `:'             
-        
-                                                                        
-        
-        program ::= stmt `<eol>' ... `<eol>' stmt                       
-        
-                                                                        
-        
-           stmt ::=                                                     
-        
-                    -- Special forms                                    
-        
-                 |  command expr optcolon-body                          
-        
-                 |  command ( args ) optcolon-body                      
-        
-                 |  catch id ( id ) optcolon-body                       
-        
-                 |  class id ... id                                     
-        
-                                                                        
-        
-                    -- Variable definitions                             
-        
-                 |  pathid +^?= expr                                    
-        
-                 |  pathid {+}= `<eol>' indented-body                   
-        
-                 |  pathid`[]' {+}= expr                                
-        
-                 |  pathid`[]' {+}= `<eol>' indented-exprs              
-        
-                                                                        
-        
-                    -- Functions                                        
-        
-                 |  pathid(args) optcolon-body                          
-        
-                 |  pathid(params) = `<eol>' indented-body              
-        
-                                                                        
-        
-                    -- Objects                                          
-        
-                 |  pathid `.' {+}= `<eol>' indented-body               
-        
-                                                                        
-        
-                    -- Rules                                            
-        
-                 |  target : target rule-options `<eol>' indented-body  
-        
-                 |  target :: target rule-options `<eol>' indented-body 
-        
-                 |  target : target : target rule-options `<eol>'
-indented-body  
-                 |  target :: target : target rule-options `<eol>'
-indented-body 
-                                                                        
-        
-                    -- Shell commands                                   
-        
-                 |  expr                                                
-        
-                                                                        
-        
-  indented-body ::= (empty)                                             
-        
-                 |  indented-stmt `<eol>' ... `<eol>' indented-stmt     
-        
-                                                                        
-        
- indented-exprs ::= (empty)                                             
-        
-                 |  indented-expr `<eol>' ... `<eol>' indented-expr     
-        
-                                                                        
-        
-  optcolon-body ::= (empty)                                             
-        
-                 |  `<eol>' indented-body                               
-        
-                 |  : `<eol>' indented-body                             
-        
-                                                                        
-        
-    rule-option ::= :id: target                                         
-        
-   rule-options ::= (empty)                                             
-        
-                 |  rule-options rule-option                            
-        
-  
-  
-
- Special forms
---------------
-  
-  The special forms include the following.
-  Conditionals (see the section on conditionals
-4.9*Note Section 4-9::). The `if' command should be
-followed by an expression that represents the condition, and an indented
-body. The conditional may be followed by `elseif' and `else' blocks.
-<<
-      if expr
-          indented-body
-      elseif expr
-          indented-body
-      ...
-      else
-          indented-body
->>
-  
-  matching (see the section on matching 4.10*Note Section 4-10::).
-The `switch' and `match' commands perform pattern-matching. All cases
-are optional. Each case may include `when' clauses that specify
-additional matching conditions.
-<<
-      match(expr)
-      case expr
-         indented-body
-      when expr
-         indented-body
-      ...
-      case expr
-         indented-body
-      default
-         indented-body
->>
-  
-  Exceptions (see the `try' function 7.2*Note Section 7-2::). The `try'
-command introduces an exception handler. Each `name' is the name of a
-class. All cases, including `catch', `default', and `finally' are
-optional. The `catch' and `default' clauses contain optional `when'
-clauses.
-<<
-      try
-          indented-body
-      catch name1(id1)
-          indented-body
-      when expr
-          indented-body
-      ...
-      catch nameN(idN)
-          indented-body
-      default
-          indented-body
-      finally
-          indented-body
->>
-  
-  The `raise' command is used to raise an exception.
-<<
-      raise expr
->>
-  
-  section (see the `section' description
-4.8*Note Section 4-8::). The `section' command introduces a new
-scope.
-<<
-      section
-          indented-body
->>
-  
-  include, open (see the `include' description
-4.7*Note Section 4-7::). The `include' command performs file
-inclusion. The expression should evaluate to a file name.
-  The `open' form is like include, but it performs the inclusion only if
-the inclusion has not already been performed. The `open' form is usually
-used to include library files. [jyh-- this behavior will change in
-subsequent revisions.]
-<<
-      include expr
-      open expr
->>
-  
-  return (see the description of functions
-4.5*Note Section 4-5::). The `return' command terminates
-execution and returns a value from a function.
-<<
-      return expr
->>
-  
-  value (see the description of functions
-4.5*Note Section 4-5::). The `value' command is an identity.
-Syntactically, it is used to coerce a n expression to a statement.
-<<
-      value expr
->>
-  
-  export (see the section on scoping 4.8*Note Section 4-8::).
-The `export' command exports a environment from a nested block. If no
-identifiers are specified, the entire environment is exported.
-Otherwise, the export is limited to the specified identifiers.
-<<
-      export id ... id
->>
-  
-  while (see the `while' description 7.3*Note Section 7-3::). The
-`while' command introduces a `while' loop.
-<<
-      while expr
-          indented-body
->>
-  
-  class, extends (see the section on objects
-4.11*Note Section 4-11::). The `class' command specifies an
-identifier for an object. The `extends' command specifies a parent
-object.
-<<
-      class id
-      extends expr
->>
-  
-  
-
- Variable definitions
----------------------
-  
-  See the section on variables 4.1*Note Section 4-1::. The
-simplest variable definition has the following syntax. The `=' form is a
-new definition. The += form appends the value to an existing definition.
-<<
-      id = expr
-      id += expr
-  
-      osh> X = 1
-      - : "1" : Sequence
-      osh> X += 7
-      - : "1" " " "7" : Sequence
->>
-  
-  A multi-line form is allowed, where the value is computed by an
-indented body.
-<<
-      id {+}=
-          indented-body
-  
-      osh> X =
-               Y = HOME
-               println(Y is $Y)
-               getenv($Y)
-      Y is HOME
-      - : "/home/jyh" : Sequence
->>
-  
-  The name may be qualified qith one of the `public', `prtected', or
-`private' modifiers. Public variables are dynamically scoped. Protected
-variables are fields in the current object. Private variables are
-statically scoped.
-  [jyh: revision 0.9.9 introduces modular namespaces; the meaning of
-these qualifiers is slightly changed.]
-<<
-      public.X = $(addsuffix .c, 1 2 3)
-      protected.Y = $(getenv HOME)
-      private.Z = $"Hello world"
->>
-  
-  
-
- Applications and function definitions
---------------------------------------
-  
-  See the section on functions 4.5*Note Section 4-5::. A
-function-application statement is specified as a function name, followed
-a parenthesized list of comma-separated arguments.
-<<
-      osh> println($"Hello world")
-  
-      osh> FILES = 1 2 3
-      - : 1 2 3
-      osh> addsuffix(.c, $(FILES))
-      - : 1.c 2.c 3.c
-  
-      # The following forms are equivalent
-      osh> value $(println $"Hello world")
-      osh> value $(addsuffix .c, $(FILES))
-      - : 1.c 2.c 3.c
->>
-  
-  If the function application has a body, the body is passed (lazily) to
-the function as its first argument. [jyh: in revision 0.9.8 support is
-incomplete.] When using `osh', the application must be followed by a
-colon `:' to indicate that the application has a body.
-<<
-      # In its 3-argument form, the foreach function takes
-      # a body, a variable, and an array.  The body is evaluated
-      # for each element of the array, with the variable bound to
-      # the element value.
-      #
-      # The colon is required only for interactive sessions.
-      osh> foreach(x, 1 2 3):
-              add($x, 1)
-      - : 2 3 4
->>
-  
-  Functions are defined in a similar form, where the parameter list is
-specified as a comma-separated list of identifiers, and the body of the
-function is indented.
-<<
-      osh> f(i, j) =
-              add($i, $j)
-      - : <fun 2>
-      osh> f(3, 7)
-      - : 10 : Int
->>
-  
-  
-
- Objects
---------
-  
-  See the section on objects 4.11*Note Section 4-11::. Objects
-are defined as an identifier with a terminal period. The body of the
-object is indented.
-<<
-      Obj. =
-          class Obj
-  
-          X = 1
-          Y = $(sub $X, 12)
-          new(i, j) =
-             X = $i
-             Y = $j
-             value $(this)
-          F() =
-             add($X, $Y)
-          println($Y)
->>
-  
-  The body of the object has the usual form of an indented body, but new
-variable definitions are added to the object, not the global
-environment. The object definition above defines an object with (at
-least) the fields `X' and `Y', and methods `new' and `F'. The name of
-the object is defined with the `class' command as `Obj'.
-  The `Obj' itself has fields `X = 1' and `Y = -11'. The `new' method
-has the typical form of a constructor-style method, where the fields of
-the object are initialized to new values, and the new object returned
-(`$(this)' refers to the current object).
-  The `F' method returns the sum of the two fields `X' and `Y'.
-  When used in an object definition, the += form adds the new
-definitions to an existing object.
-<<
-     pair. =
-        x = 1
-        y = 2
-  
-     pair. +=
-        y = $(add $y, 3)
-     # pair now has fields (x = 1, and y = 5)
->>
-  
-  The `extends' form specifies inheritance. Multiple inheritance is
-allowed. At evaluation time, the `extends' directive performs inclusion
-of the entire parent object.
-<<
-     pair. =
-        x = 1
-        y = 2
-  
-     depth. =
-        z = 3
-        zoom(dz) =
-           z = $(add $z, $(dz))
-           return $(this)
-  
-     triple. =
-        extends $(pair)
-        extends $(depth)
-  
-        crazy() =
-           zoom($(mul $x, $y))
->>
-  
-  In this example, the `triple' object has three fields x, y, and z; and
-two methods `zoom' and `crazy'.
-  
-
- Rules
-------
-  
-  See the chapter on rules 6*Note Chapter 6::. A rule has the
-following parts. 
-  
- 1. A sequence of targets; 
- 2. one or two colons; 
- 3. a sequence of dependencies and rule options; 
- 4. and an indented body. 
-  
-  The targets are the files to be built, and the dependencies are the
-files it depends on. If two colons are specified, it indicates that
-there may be multiple rules to build the given targets; otherwise only
-one rule is allowed.
-  If the target contains a `%' character, the rule is called implicit,
-and is considered whenever a file matching that pattern is to be built.
-For example, the following rule specifies a default rule for compiling
-OCaml files.
-<<
-      %.cmo: %.ml %.mli
-         $(OCAMLC) -c $<
->>
-  
-  This rule would be consulted as a default way of building any file
-with a `.cmo' suffix. The dependencies list is also constructed based on
-the pattern match. For example, if this rule were used to build a file
-`foo.cmo', then the dependency list would be `foo.ml foo.mli'.
-  There is also a three-part version of a rule, where the rule
-specification has three parts.
-<<
-      targets : pattern : dependencies rule-options
-         indented-body
->>
-  
-  In this case, the pattern must contain a single `%' character. However
-this is considered to be a sequence of explicit rules, where each target
-is matched against the pattern, and a new rule is computed based on the
-pattern match. For example, the following rule specifies how to build
-the explicit targets `a.cmo' and `b.cmo'.
-<<
-      a.cmo b.cmo: %.cmo: %.ml %.mli
-         $(OCAMLC) -c $<
->>
-  
-  This example is equivalent to the following two-rule sequence.
-<<
-      a.cmo: a.ml a.mli
-         $(OCAMLC) -c $<
-      b.cmo: b.ml b.mli
-         $(OCAMLC) -c $<
->>
-  
-  There are several special targets, including the following.
-  
-  
- - `.PHONY' : declare a ``phony'' target. That is, the target does not
-   correspond to a file. 
- - `.ORDER' : declare a rule for dependency ordering. 
- - `.INCLUDE' : define a rule to generate a file for textual inclusion. 
- - `.SUBDIRS' : specify subdirectories that are part of the project. 
- - `.SCANNER' : define a rule for dependency scanning. 
-  
-  There are several rule options.
-  
-  
- - `:optional: dependencies' the subsequent dependencies are optional,
-   it is acceptable if they do not exist. 
- - `:exists: dependencies' the subsequent dependencies must exist, but
-   changes to not affect whether this rule is considered out-of-date. 
- - `:effects: targets' the subsequent files are side-effects of the
-   rule. That is, they may be created and/or modified while the rule is
-   executing. Rules with overlapping side-effects are never executed in
-   parallel. 
- - `:scanner: name' the subsequent name is the name of the `.SCANNER'
-   rule for the target to be built. 
- - `:value: expr' the `expr' is a ``value'' dependency. The rule is
-   considered out-of-date whenever the value of the `expr' changes. 
-  
-  Several variables are defined during rule evaluation.
-  
-  
- - `$*' : the name of the target with the outermost suffix removed. 
- - `$>' : the name of the target with all suffixes removed. 
- - `$@' : the name of the target. 
- - `$^' : the explicit file dependencies, sorted alphabetically, with
-   duplicates removed. 
- - `$'+ : all explicit file dependencies, with order preserved. 
- - `$<' : the first explicit file dependency. 
- - `$&' : the free values of the rule (often used in `:value:'
-   dependencies). 
-  
-  
-
- Shell commands
----------------
-  
-  See the chapter on shell commands 9*Note Chapter 9::.
-  While it is possible to give a precise specification of shell
-commands, the informal description is simpler. Any non-empty statement
-where each prefix is not one of the other statements, is considered to
-be a shell command. Here are some examples.
-<<
-      ls                                 -- shell command
-      echo Hello world > /dev/null       -- shell command
-      echo(Hello world)                  -- function application
-      echo(Hello world) > /dev/null      -- syntax error
-      echo Hello: world                  -- rule
-      X=1 getenv X                       -- variable definition
-      env X=1 getenv X                   -- shell command
-      if true                            -- special form
-      \if true                           -- shell command
-      "if" true                          -- shell command
->>
-  

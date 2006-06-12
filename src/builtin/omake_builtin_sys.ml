@@ -49,6 +49,7 @@ open Pos
  *
  * The \verb+gettimeofday+ function returns the time of day in seconds
  * since January 1, 1970.
+ *
  * \end{doc}
  *)
 let gettimeofday venv pos loc args =

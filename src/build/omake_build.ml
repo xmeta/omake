@@ -245,6 +245,42 @@ let pp_print_node_states env buf nodes =
                pp_print_node buf target) nodes
 
 (*
+ * Compute all of the dependencies.
+ *)
+let all_dependencies dependencies_of env nodes =
+   let commands = env.env_commands in
+   let rec find_deps found examined unexamined =
+      if NodeSet.is_empty unexamined then
+         found
+      else
+         let node = NodeSet.choose unexamined in
+         let unexamined = NodeSet.remove unexamined node in
+            if NodeSet.mem examined node then
+               find_deps found examined unexamined
+            else
+               let examined = NodeSet.add examined node in
+               let found, deps =
+                  try
+                     let command = NodeTable.find commands node in
+                     let deps = dependencies_of command in
+                     let found = NodeSet.add found node in
+                        found, deps
+                  with
+                     Not_found ->
+                        found, NodeSet.empty
+               in
+               let unexamined = NodeSet.union unexamined deps in
+                  find_deps found examined unexamined
+   in
+      find_deps NodeSet.empty NodeSet.empty nodes
+
+let all_build_dependencies =
+   all_dependencies (fun command -> command.command_build_deps)
+
+let all_scanner_dependencies =
+   all_dependencies (fun command -> command.command_scanner_deps)
+
+(*
  * Print the dependency information.
  *)
 let pp_print_dependencies env buf command =
@@ -263,10 +299,18 @@ let pp_print_dependencies env buf command =
          Not_found ->
             NodeSet.empty
    in
-      fprintf buf "@[<v 0>target: %a@ @[<b 3>scanner dependencies:%a@]@ @[<b 3>static dependencies:%a@]@ @[<b 3>total dependencies:%a@]@ @[<b 3>dependencies are merged from:%a@]@ @[<b 3>targets that depend on this node at this point:%a@]@]" (**)
+   let total, build_deps, scanner_deps =
+      if (venv_options env.env_venv).opt_all_dependencies then
+         "all transitive ", all_build_dependencies env build_deps, all_scanner_dependencies env scanner_deps
+      else
+         "", build_deps, scanner_deps
+   in
+      fprintf buf "@[<v 0>target: %a@ @[<b 3>%sscanner dependencies:%a@]@ @[<b 3>static dependencies:%a@]@ @[<b 3>%sbuild dependencies:%a@]@ @[<b 3>dependencies are merged from:%a@]@ @[<b 3>targets that depend on this node at this point:%a@]@]" (**)
          pp_print_node target
+         total
          pp_print_node_set scanner_deps
          pp_print_node_set static_deps
+         total
          pp_print_node_set build_deps
          pp_print_node_set effects
          pp_print_node_set inverse
