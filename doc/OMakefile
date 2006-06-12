@@ -71,24 +71,6 @@ Shell. +=
    extract-docs(argv) =
       extract-doc-text $(argv) | remove-leading-comment-text
 
-   #
-   # Fix up output from latex2man so that it does
-   # not have trailing whitespace.
-   #
-   remove-trailing-whitespace(argv) =
-      fsubst($(argv))
-      case $'[ \t]+$'
-         value
-
-   #
-   # Latex2Man puts a timestamp into every file. This makes CVS think that the file
-   # has changed...
-   #
-   remove-latex2man-date(argv) =
-      fsubst($(argv))
-      case $'\(Manual page created with latex2man\) on .* [2-9][0-9][0-9][0-9]'
-         value $1
-
 #
 # Extract the documentation from the src files.
 #

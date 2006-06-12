@@ -34,26 +34,6 @@ else
     CFLAGS += -g -O2 -Wall -Werror -Wno-unused
 
     #
-    # Try to build man pages on Unix
-    #
-    MAN_ENABLED = false
-    static. =
-        if $(CheckProg latex2man)
-            print($'--- Checking whether latex2man version >= 1.18.1... ')
-            VERSION = unknown
-            TMP = $(tmpfile latex2man)
-            ABORT_ON_COMMAND_ERROR = false
-            latex2man -h >& $(TMP) || true
-            awk($(TMP))
-            case $'Version \([0-9][-0-9a-zA-Z.]*\),'
-                VERSION = $1
-                export
-            rm $(TMP)
-            MAN_ENABLED = $(and $(not $(equal $(VERSION), unknown)), $(ge $(cmp-versions $(VERSION), 1.18.1), 0))
-            println($'(Version '$(VERSION) $(if $(MAN_ENABLED), $'OK)', $'TOO OLD)'))
-            export MAN_ENABLED
-
-    #
     # We never need threads on Unix
     #
     THREADS_ENABLED = false
