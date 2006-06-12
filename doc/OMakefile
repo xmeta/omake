@@ -111,8 +111,21 @@ TEX_FILES = $(file $(addsuffixes .tex, $(TEX_FILES)))
 HEVEA = hevea
 HACHA = hacha
 HEVEA_OK = false
+HEVEA_DIR =
 static. =
     HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
+    if $(HEVEA_OK)
+        print($"--- Looking for $(HEVEA) configs... ")
+        HEVEA_DIR = $(last $(shell $(HEVEA) -version))
+        println($(HEVEA_DIR))
+        print($"--- Checking if $(HEVEA_DIR) exists... ")
+        if $(test -d $(HEVEA_DIR))
+            println($"(yes)")
+        else
+            println($"(no)")
+            HEVEA_OK = false
+            export
+        export
 
 HEVEA_OPTIONS = -I $(dir src) -I $(dir tex)
 HACHA_OPTIONS = -tocter
@@ -137,7 +150,7 @@ if $(HEVEA_OK)
             $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
 
     .SUBDIRS: ps
-        TEXINPUTS[] += ../src ../tex
+        TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))
 
         omake-doc.tex: ../src/omake-doc.tex
             $(symlink $<, $@)
