@@ -64,31 +64,32 @@ let set_job_count options s =
  * Default options.
  *)
 let default_options =
-   { opt_job_count           = 1;
-     opt_remote_servers      = [];
-     opt_terminate_on_error  = true;
-     opt_dry_run             = false;
-     opt_print_command       = EvalEager;
-     opt_print_dir           = false;
-     opt_print_file          = true;
-     opt_print_status        = true;
-     opt_print_exit          = false;
-     opt_print_progress      = false;
-     opt_touch_only          = false;
-     opt_flush_cache         = false;
-     opt_flush_env           = true;
-     opt_flush_dependencies  = false;
-     opt_print_dependencies  = false;
-     opt_show_dependencies   = [];
-     opt_all_dependencies    = false;
-     opt_cd_root             = false;
-     opt_project             = false;
-     opt_poll                = false;
-     opt_poll_on_done        = false;
-     opt_flush_include       = false;
-     opt_flush_static        = false;
-     opt_allow_exceptions    = false;
-     opt_absname             = false
+   { opt_job_count            = 1;
+     opt_remote_servers       = [];
+     opt_terminate_on_error   = true;
+     opt_dry_run              = false;
+     opt_print_command        = EvalEager;
+     opt_print_dir            = false;
+     opt_print_file           = true;
+     opt_print_status         = true;
+     opt_print_exit           = false;
+     opt_print_progress       = false;
+     opt_touch_only           = false;
+     opt_flush_cache          = false;
+     opt_flush_env            = true;
+     opt_flush_dependencies   = false;
+     opt_print_dependencies   = false;
+     opt_show_dependencies    = [];
+     opt_all_dependencies     = false;
+     opt_verbose_dependencies = false;
+     opt_cd_root              = false;
+     opt_project              = false;
+     opt_poll                 = false;
+     opt_poll_on_done         = false;
+     opt_flush_include        = false;
+     opt_flush_static         = false;
+     opt_allow_exceptions     = false;
+     opt_absname              = false
    }
 
 (*
@@ -205,6 +206,9 @@ let options_spec =
     "--all-dependencies", Lm_arg.SetFold (fun options b ->
           { options with opt_all_dependencies = b }), (**)
        "For --print-dependencies and --show-dependencies, print dependencies recursively";
+    "--verbose-dependencies", Lm_arg.SetFold (fun options b ->
+          { options with opt_verbose_dependencies = b }), (**)
+       "For --print-dependencies and --show-dependencies, print all dependencies too";
     "--absname", Lm_arg.SetFold (fun options b -> { options with opt_absname = b }), (**)
        "Filenames are always displayed as absolute paths"]
 

@@ -37,31 +37,32 @@ type eval_flag =
  * The basic make flags.
  *)
 type omake_options =
-   { opt_job_count           : int;
-     opt_remote_servers      : (string * int) list;
-     opt_terminate_on_error  : bool;
-     opt_dry_run             : bool;
-     opt_print_command       : eval_flag;
-     opt_print_dir           : bool;
-     opt_print_file          : bool;
-     opt_print_status        : bool;
-     opt_print_exit          : bool;
-     opt_print_progress      : bool;
-     opt_touch_only          : bool;
-     opt_flush_cache         : bool;
-     opt_flush_env           : bool;
-     opt_flush_dependencies  : bool;
-     opt_print_dependencies  : bool;
-     opt_show_dependencies   : string list;
-     opt_all_dependencies    : bool;
-     opt_cd_root             : bool;
-     opt_project             : bool;
-     opt_poll                : bool;
-     opt_poll_on_done        : bool;
-     opt_flush_include       : bool;
-     opt_flush_static        : bool;
-     opt_allow_exceptions    : bool;
-     opt_absname             : bool;
+   { opt_job_count            : int;
+     opt_remote_servers       : (string * int) list;
+     opt_terminate_on_error   : bool;
+     opt_dry_run              : bool;
+     opt_print_command        : eval_flag;
+     opt_print_dir            : bool;
+     opt_print_file           : bool;
+     opt_print_status         : bool;
+     opt_print_exit           : bool;
+     opt_print_progress       : bool;
+     opt_touch_only           : bool;
+     opt_flush_cache          : bool;
+     opt_flush_env            : bool;
+     opt_flush_dependencies   : bool;
+     opt_print_dependencies   : bool;
+     opt_show_dependencies    : string list;
+     opt_all_dependencies     : bool;
+     opt_verbose_dependencies : bool;
+     opt_cd_root              : bool;
+     opt_project              : bool;
+     opt_poll                 : bool;
+     opt_poll_on_done         : bool;
+     opt_flush_include        : bool;
+     opt_flush_static         : bool;
+     opt_allow_exceptions     : bool;
+     opt_absname              : bool;
    }
 
 (*!

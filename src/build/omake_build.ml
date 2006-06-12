@@ -283,7 +283,7 @@ let all_scanner_dependencies =
 (*
  * Print the dependency information.
  *)
-let pp_print_dependencies env buf command =
+let rec pp_print_dependencies_aux show_all env buf command =
    let { command_target       = target;
          command_effects      = effects;
          command_scanner_deps = scanner_deps;
@@ -299,13 +299,14 @@ let pp_print_dependencies env buf command =
          Not_found ->
             NodeSet.empty
    in
+   let options = venv_options env.env_venv in
    let total, build_deps, scanner_deps =
-      if (venv_options env.env_venv).opt_all_dependencies then
+      if show_all && options.opt_all_dependencies then
          "all transitive ", all_build_dependencies env build_deps, all_scanner_dependencies env scanner_deps
       else
          "", build_deps, scanner_deps
    in
-      fprintf buf "@[<v 0>target: %a@ @[<b 3>%sscanner dependencies:%a@]@ @[<b 3>static dependencies:%a@]@ @[<b 3>%sbuild dependencies:%a@]@ @[<b 3>dependencies are merged from:%a@]@ @[<b 3>targets that depend on this node at this point:%a@]@]" (**)
+      fprintf buf "@[<v 3>target: %a@ @[<b 3>%sscanner dependencies:%a@]@ @[<b 3>static dependencies:%a@]@ @[<b 3>%sbuild dependencies:%a@]@ @[<b 3>dependencies are merged from:%a@]@ @[<b 3>targets that depend on this node at this point:%a@]@]" (**)
          pp_print_node target
          total
          pp_print_node_set scanner_deps
@@ -313,7 +314,17 @@ let pp_print_dependencies env buf command =
          total
          pp_print_node_set build_deps
          pp_print_node_set effects
-         pp_print_node_set inverse
+         pp_print_node_set inverse;
+
+      if show_all && options.opt_verbose_dependencies then
+         let nodes = NodeSet.union scanner_deps build_deps in
+            fprintf buf "@ @ --- Complete dependency listing ---@ ";
+            NodeSet.iter (fun node ->
+                  let command = NodeTable.find env.env_commands node in
+                     fprintf buf "@ %a" (pp_print_dependencies_aux false env) command) nodes
+
+let pp_print_dependencies =
+   pp_print_dependencies_aux true
 
 (************************************************************************
  * Command queues.
