@@ -84,7 +84,7 @@ ExtractManDocument(omake-pervasives, $(MAN_PERVASIVES_FILES))
 ExtractManDocument(omake-root,       $(MAN_ROOT_FILES))
 
 #
-# Generating the TeX files.
+# All the TeX files - both generated and the source ones.
 #
 TEX_FILES[] =
     src/omake-doc
@@ -103,11 +103,41 @@ TEX_FILES[] =
     src/osh
     src/omake-grammar
 
-TEX_FILES = $(file $(addsuffixes .tex, $(TEX_FILES)))
+TEX_FILES = $(file $(addsuffix .tex, $(TEX_FILES)))
 
 #
-# HTML files
+# HTML files that will be generated out of the ocaml-doc one
 #
+HTML_FILES[] =
+    omake-doc.css
+    omake-contents.html
+    omake.html
+    omake-quickstart.html
+    omake-build-examples.html
+    omake-language.html
+    omake-language-examples.html
+    omake-rules.html
+    omake-base.html
+    omake-system.html
+    omake-shell.html
+    omake-pervasives.html
+    omake-rule.html
+    osh.html
+    omake-options.html
+    omake-grammar.html
+    omake-all-index.html
+    omake-var-index.html
+    omake-fun-index.html
+    omake-obj-index.html
+    omake-target-index.html
+    omake-references.html
+    omake-toc.html
+    previous_motif.gif
+    next_motif.gif
+    contents_motif.gif
+
+HTML_FILES = $(file $(addprefix html/, $(HTML_FILES)))
+
 HEVEA = hevea
 HACHA = hacha
 HEVEA_OK = false
@@ -135,8 +165,8 @@ if $(HEVEA_OK)
         omake-doc.html: $(TEX_FILES)
             $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
-        omake-toc.html: omake-doc.html
-            $(HACHA) $(HACHA_OPTIONS) -o $@ $<
+        $(HTML_FILES): omake-doc.html
+            $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
 
     .SUBDIRS: txt
         omake-doc.txt: $(TEX_FILES)
@@ -157,7 +187,7 @@ if $(HEVEA_OK)
 
         LaTeXDocument(omake-doc, omake-doc)
 
-html: html/omake-doc.html html/omake-toc.html
+html: html/omake-doc.html $(HTML_FILES)
 tex: ps/omake-doc.ps ps/omake-doc.pdf
 txt: txt/omake-doc.txt
 info: info/omake-doc.info
