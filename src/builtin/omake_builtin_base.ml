@@ -83,6 +83,15 @@ open Pos
  *    The home directory of the user executing the process.
  * \var{PID}
  *    The OMake process id.
+ * \var{TARGETS}
+ *    The command-line targets.  For example, if \verb+omake+ is invoked with the
+ *    following command line,
+ *
+ * \begin{verbatim}
+ *       omake CFLAGS=1 foo bar.c
+ * \end{verbatim}
+ *
+ *    then \verb+TARGETS+ is defined as \verb+foo bar.c+.
  * \end{doc}
  *)
 
