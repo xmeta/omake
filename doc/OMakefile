@@ -127,13 +127,12 @@ static. =
             export
         export
 
-HEVEA_OPTIONS = -I $(dir src) -I $(dir tex)
+HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex)
 HACHA_OPTIONS = -tocter
 
 if $(HEVEA_OK)
     .SUBDIRS: html
         omake-doc.html: $(TEX_FILES)
-            $(HEVEA) $(HEVEA_OPTIONS) omake-doc
             $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
         omake-toc.html: omake-doc.html
@@ -142,12 +141,10 @@ if $(HEVEA_OK)
     .SUBDIRS: txt
         omake-doc.txt: $(TEX_FILES)
             $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
-            $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
 
     .SUBDIRS: info
         $(addprefix omake-doc.info, $(EMPTY) -1 -2 -3 -4 -5 -6 -7 -8): $(TEX_FILES)
             rm -f omake-doc.info*
-            $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
             $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
 
     .SUBDIRS: ps
@@ -160,13 +157,11 @@ if $(HEVEA_OK)
 
         LaTeXDocument(omake-doc, omake-doc)
 
-#
-# Install man pages too
-#
 html: html/omake-doc.html html/omake-toc.html
 tex: ps/omake-doc.ps ps/omake-doc.pdf
 txt: txt/omake-doc.txt
 info: info/omake-doc.info
 
 clean:
-    $(CLEAN) ps/*.aux ps/*.fls ps/*.log ps/*.tex ps/*.out tex/*.tex
+    rm -f {txt,html,info}/*.{hind,hoind,hfind,htoc,haux,htind,hvind}
+    rm -f ps/*.aux ps/*.fls ps/*.log ps/*.out tex/*.tex
