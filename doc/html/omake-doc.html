@@ -22,7 +22,7 @@ BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
 </HEAD>
 
 <BODY >
-<!--HEVEA command line is: /cs/prl/prl/godi/godi-3.09/bin/hevea -fix -I ../src -I ../tex omake-doc -->
+<!--HEVEA command line is: /cs/prl/prl/godi/godi-3.09/bin/hevea -fix -I ../src -I ../tex -s omake-doc -->
 <!--HTMLHEAD-->
 <A HREF="http://omake.metaprl.org/">OMake Home</A>
 <A HREF="omake-toc.html">Table of contents</A>
@@ -6316,7 +6316,11 @@ This is like a highly-simplified version of <TT>grep</TT>(1).<BR>
 The options are:
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
 <B>q</B><DD CLASS="dd-description"> If specified, the output from <CODE>grep</CODE> is not displayed.
-<DT CLASS="dt-description"><B>n</B><DD CLASS="dd-description"> If specified, output lines include the filename.
+<DT CLASS="dt-description"><B>h</B><DD CLASS="dd-description"> If specified, output lines will not include the filename (default, when only one input
+ file is given).
+<DT CLASS="dt-description"><B>n</B><DD CLASS="dd-description"> If specified, output lines include the filename (default, when more than one input file
+ is given).
+<DT CLASS="dt-description"><B>v</B><DD CLASS="dd-description"> If specified, search for lines without a match instead of lines with a match,
 </DL>
 The <CODE>pattern</CODE> is a regular expression.<BR>
 <BR>
@@ -8525,7 +8529,8 @@ This can be used to see what would happen if the project were to be built.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>-s</TT></B><DD CLASS="dd-description"> Do not print commands as they are executed (be &#8220;silent&#8221;).<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-S</TT></B><DD CLASS="dd-description"> Do not print commands as they are executed <EM>unless</EM> they produce output.<BR>
+<DT CLASS="dt-description"><B><TT>-S</TT></B><DD CLASS="dd-description"> Do not print commands as they are executed <EM>unless</EM> they produce output and/or
+fail.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>--progress</TT></B><DD CLASS="dd-description"> Print a progress indicator.
 This is normally used with the <TT>-s</TT> or <TT>-S</TT> options.<BR>
@@ -8541,10 +8546,12 @@ This is mainly useful for editors that expect <TT>make</TT>-style
 directory information for determining the location of errors.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>-p</TT></B><DD CLASS="dd-description"> Watch the filesystem for changes, and continue the build until it succeeds. If this
-option is specified, <TT>omake</TT> will restart the build whenever source files are modified.<BR>
+option is specified, <TT>omake</TT> will restart the build whenever source files are modified. Implies
+<TT>-k</TT>.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>-P</TT></B><DD CLASS="dd-description"> Watch the filesystem for changes forever. If this option is specified, <TT>omake</TT>
-will restart the build whenever source files are modified.<BR>
+will restart the build whenever source files are modified. Implies
+<TT>-k</TT>.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>-R</TT></B><DD CLASS="dd-description"> Ignore the current directory and build the project from its root directory. When
 <TT>omake</TT> is run in a subdirectory of a project, it normally builds files within the current
@@ -8561,12 +8568,12 @@ for dependency information.<BR>
 <DT CLASS="dt-description"><B><TT>--configure</TT></B><DD CLASS="dd-description"> Re-run <CODE>static.\</CODE> sections of the included omake files, instead of
 trusting the cached results.<BR>
 <BR>
-<DT CLASS="dt-description"><B>[<TT>--force-dotomake</TT></B><B>]</B><DD CLASS="dd-description"> Always use the <CODE>$HOME/.omake</CODE> for the <CODE>.omc</CODE> cache files.<BR>
+<DT CLASS="dt-description"><B><TT>--force-dotomake</TT></B><DD CLASS="dd-description"> Always use the <CODE>$HOME/.omake</CODE> for the <CODE>.omc</CODE> cache files.<BR>
 <BR>
-<DT CLASS="dt-description"><B>[<TT>--dotomake &lt; dir&gt;</TT></B><B>]</B><DD CLASS="dd-description"> Use the specified directory instead of the <CODE>$HOME/.omake</CODE>
+<DT CLASS="dt-description"><B><TT>--dotomake &lt;dir&gt;</TT></B><DD CLASS="dd-description"> Use the specified directory instead of the <CODE>$HOME/.omake</CODE>
 for the placement of the <CODE>.omc</CODE> cache files.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-j count</TT></B><DD CLASS="dd-description"> Run multiple build commands in parallel. The <TT>count</TT> specifies a
+<DT CLASS="dt-description"><B><TT>-j &lt;count&gt;</TT></B><DD CLASS="dd-description"> Run multiple build commands in parallel. The <TT>count</TT> specifies a
 bound on the number of commands to run simultaneously. In addition, the count may specify servers
 for remote execution of commands in the form <CODE>server=count</CODE>. For example, the option
 <CODE>-j 2:small.host.org=1:large.host.org=4</CODE> would specify that up to 2 jobs can be executed
@@ -8578,7 +8585,7 @@ adequate file consistency for this to work.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>--print-dependencies</TT></B><DD CLASS="dd-description"> Print dependency information for the targets on the command line.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--show-dependencies target</TT></B><DD CLASS="dd-description"> Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.<BR>
+<DT CLASS="dt-description"><B><TT>--show-dependencies &lt;target&gt;</TT></B><DD CLASS="dd-description"> Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.<BR>
 <BR>
 <DT CLASS="dt-description"><B><TT>--all-dependencies</TT></B><DD CLASS="dd-description"> If either of the options <TT>--print-dependencies</TT> or
 <TT>--show-dependencies</TT> is in effect, print transitive dependencies. That is, print all

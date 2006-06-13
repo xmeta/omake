@@ -51,7 +51,8 @@ This can be used to see what would happen if the project were to be built.
 
 \item[\Opt{-s}] Do not print commands as they are executed (be ``silent'').
 
-\item[\Opt{-S}] Do not print commands as they are executed \emph{unless} they produce output.
+\item[\Opt{-S}] Do not print commands as they are executed \emph{unless} they produce output and/or
+fail.
 
 \item[\Opt{-{}-progress}] Print a progress indicator.
 This is normally used with the \Opt{-s} or \Opt{-S} options.
@@ -67,10 +68,12 @@ This is mainly useful for editors that expect \Prog{make}-style
 directory information for determining the location of errors.
 
 \item[\Opt{-p}] Watch the filesystem for changes, and continue the build until it succeeds.  If this
-option is specified, \Prog{omake} will restart the build whenever source files are modified.
+option is specified, \Prog{omake} will restart the build whenever source files are modified. Implies
+\texttt{-k}.
 
 \item[\Opt{-P}] Watch the filesystem for changes forever.  If this option is specified, \Prog{omake}
-will restart the build whenever source files are modified.
+will restart the build whenever source files are modified. Implies
+\texttt{-k}.
 
 \item[\Opt{-R}] Ignore the current directory and build the project from its root directory.  When
 \Prog{omake} is run in a subdirectory of a project, it normally builds files within the current
@@ -87,9 +90,9 @@ for dependency information.
 \item[\Opt{-{}-configure}] Re-run \verb+static.\+ sections of the included omake files, instead of
 trusting the cached results.
 
-\item[\oOpt{-{}-force-dotomake}] Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
+\item[\Opt{-{}-force-dotomake}] Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
 
-\item[\oOptArg{-{}-dotomake}{\ dir}] Use the specified directory instead of the \verb+$HOME/.omake+
+\item[\OptArg{-{}-dotomake}{dir}] Use the specified directory instead of the \verb+$HOME/.omake+
 for the placement of the \verb+.omc+ cache files.
 
 \item[\OptArg{-j}{count}] Run multiple build commands in parallel.  The \Arg{count} specifies a

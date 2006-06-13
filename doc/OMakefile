@@ -160,6 +160,10 @@ static. =
 HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex)
 HACHA_OPTIONS = -tocter
 
+if $(not $(VERBOSE))
+    HEVEA_OPTIONS += -s
+    export
+
 if $(HEVEA_OK)
     .SUBDIRS: html
         omake-doc.html: $(TEX_FILES)

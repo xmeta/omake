@@ -1,4 +1,4 @@
-  
+
                                      
                The OMake user guide and reference manual
                *****************************************
@@ -6706,7 +6706,12 @@ highly-simplified version of grep(1).
   The options are: 
   
  q  If specified, the output from `grep' is not displayed. 
- n  If specified, output lines include the filename. 
+ h  If specified, output lines will not include the filename (default,
+   when only one input  file is given). 
+ n  If specified, output lines include the filename (default, when more
+   than one input file  is given). 
+ v  If specified, search for lines without a match instead of lines with
+   a match, 
   
   The `pattern' is a regular expression.
   If successful (`grep' found a match), the function returns `true'.
@@ -8880,7 +8885,7 @@ A.1  Command-line options
  -s  Do not print commands as they are executed (be ``silent'').
  
  -S  Do not print commands as they are executed unless they produce
-   output.
+   output and/or fail.
  
  --progress  Print a progress indicator. This is normally used with the
    -s or -S options.
@@ -8898,11 +8903,11 @@ A.1  Command-line options
  
  -p  Watch the filesystem for changes, and continue the build until it
    succeeds. If this option is specified, omake will restart the build
-   whenever source files are modified.
+   whenever source files are modified. Implies -k.
  
  -P  Watch the filesystem for changes forever. If this option is
    specified, omake will restart the build whenever source files are
-   modified.
+   modified. Implies -k.
  
  -R  Ignore the current directory and build the project from its root
    directory. When omake is run in a subdirectory of a project, it
@@ -8922,16 +8927,16 @@ A.1  Command-line options
  --configure  Re-run `static.\' sections of the included omake files,
    instead of trusting the cached results.
  
- [--force-dotomake]  Always use the `$HOME/.omake' for the `.omc' cache
+ --force-dotomake  Always use the `$HOME/.omake' for the `.omc' cache
    files.
  
- [--dotomake < dir>]  Use the specified directory instead of the
+ --dotomake <dir>  Use the specified directory instead of the
    `$HOME/.omake' for the placement of the `.omc' cache files.
  
- -j count  Run multiple build commands in parallel. The count specifies
-   a bound on the number of commands to run simultaneously. In addition,
-   the count may specify servers for remote execution of commands in the
-   form `server=count'. For example, the option `-j
+ -j <count>  Run multiple build commands in parallel. The count
+   specifies a bound on the number of commands to run simultaneously. In
+   addition, the count may specify servers for remote execution of
+   commands in the form `server=count'. For example, the option `-j
    2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs
    can be executed locally, 1 on the server `small.host.org' and 4 on
    `large.host.org'. Each remote server must use the same filesystem
@@ -8943,7 +8948,7 @@ A.1  Command-line options
  --print-dependencies  Print dependency information for the targets on
    the command line.
  
- --show-dependencies target  Print dependency information if the
+ --show-dependencies <target>  Print dependency information if the
    `target' is built.
  
  --all-dependencies  If either of the options --print-dependencies or

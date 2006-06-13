@@ -1,7 +1,7 @@
 ########################################################################
 # Building LaTeX documents.
 #
-# Copyright (C) 2003-2005 Jason Hickey and Mojave Group
+# Copyright (C) 2003-2006 Jason Hickey and Mojave Group
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this file, to deal in the File without
@@ -56,7 +56,7 @@ open build/Common
 BIBTEX = bibtex
 MAKEINDEX = makeindex
 DVIPS = dvips
-DVIPSFLAGS = -t letter
+DVIPSFLAGS = -t letter $`(if $(VERBOSE), $(EMPTY), -q)
 DVIPDFM = dvipdfm
 DVIPDFMFLAGS = -p letter
 PDFLATEX = pdflatex
@@ -260,6 +260,29 @@ LocalTeXGeneratedFiles(files) =
     .SCANNER: scan-tex-%: $(files)
     export
 
+Shell. +=
+    drop-dvips-junk(argv) =
+        private.print = true
+        awk()
+        case $'dvips: Could not find figure file pdf:[a-z]*; continuing':
+            print = false
+            export
+        case $'dvips: Unknown keyword [(].*[)] in \\special will be ignored':
+            print = false
+            export
+        case $"dvips: more errors in special, being ignored":
+            print = false
+            export
+        case $"dvips: [(]perhaps dvips doesn't support your macro package[?][)]":
+            print = false
+            export
+        default
+            if $(print)
+                println($0)
+            print = true
+            export
+        return true
+
 LaTeXDocument(name, texfiles) =
     name = $(file $(name))
     #
@@ -316,8 +339,12 @@ LaTeXDocument(name, texfiles) =
        $(name).pdf: $(name).dvi
            $(DVIPDFM) $(DVIPDFMFLAGS) -o $@ $(name).dvi
 
-    $(name).ps: $(name).dvi
-        $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi
+    if $(VERBOSE)
+        $(name).ps: $(name).dvi
+            $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi
+    else
+        $(name).ps: $(name).dvi
+            $(DVIPS) $(DVIPSFLAGS) -o $@ $(name).dvi |& drop-dvips-junk
 
     return $(file $(name).ps $(name).pdf)
 
