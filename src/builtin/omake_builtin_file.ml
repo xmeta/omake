@@ -908,6 +908,8 @@ let filter_proper_targets venv pos loc args =
  *       files : File Sequence
  * \end{verbatim}
  *
+ * \targetref{.ORDER}%
+ * \targetref{.BUILDORDER}%
  * The \verb+file-sort+ function sorts a list of filenames by
  * build order augmented by a set of sort rules.  Sort
  * rules are declared using the \verb+.ORDER+ target.

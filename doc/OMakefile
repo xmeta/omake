@@ -138,6 +138,13 @@ HTML_FILES[] =
 
 HTML_FILES = $(file $(addprefix html/, $(HTML_FILES)))
 
+#
+# Generated info files.
+#
+# XXX: HACK: we do not know how many pieces we'd have. For now we hardcode the number.
+#
+INFO_FILES = $(file $(addprefix info/omake-doc.info, $(EMPTY) -1 -2 -3 -4 -5 -6 -7 -8))
+
 HEVEA = hevea
 HACHA = hacha
 HEVEA_OK = false
@@ -177,7 +184,7 @@ if $(HEVEA_OK)
             $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
 
     .SUBDIRS: info
-        $(addprefix omake-doc.info, $(EMPTY) -1 -2 -3 -4 -5 -6 -7 -8): $(TEX_FILES)
+        $(INFO_FILES): $(TEX_FILES)
             rm -f omake-doc.info*
             $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
 
@@ -194,7 +201,7 @@ if $(HEVEA_OK)
 html: html/omake-doc.html $(HTML_FILES)
 tex: ps/omake-doc.ps ps/omake-doc.pdf
 txt: txt/omake-doc.txt
-info: info/omake-doc.info
+info: $(INFO_FILES)
 
 clean:
     rm -f {txt,html,info}/*.{hind,h{t,o,f,v}ind,htoc,haux}
