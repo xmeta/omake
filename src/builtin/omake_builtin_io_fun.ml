@@ -206,7 +206,11 @@ let cat venv pos loc args =
  * The options are:
  * \begin{description}
  * \item[q] If specified, the output from \verb+grep+ is not displayed.
- * \item[n] If specified, output lines include the filename.
+ * \item[h] If specified, output lines will not include the filename (default, when only one input
+ *          file is given).
+ * \item[n] If specified, output lines include the filename (default, when more than one input file
+ *          is given).
+ * \item[v] If specified, search for lines without a match instead of lines with a match,
  * \end{description}
  *
  * The \verb+pattern+ is a regular expression.
@@ -215,8 +219,11 @@ let cat venv pos loc args =
  * Otherwise, it returns \verb+false+.
  * \end{doc}
  *)
-let grep_quiet_flag = 1
-let grep_print_flag = 2
+type grep_flag =
+   GrepQuiet
+ | GrepPrint
+ | GrepNoPrint
+ | GrepNoMatch
 
 let grep_flags pos loc s =
    let len = String.length s in
@@ -227,15 +234,19 @@ let grep_flags pos loc s =
          let flag =
             match s.[i] with
                'q' | 'Q' ->
-                  grep_quiet_flag
-             | 'n' ->
-                  grep_print_flag
+                  GrepQuiet
+             | 'n' | 'N' ->
+                  GrepPrint
+             | 'v' | 'V' ->
+                  GrepNoMatch
+             | 'h' | 'H' ->
+                  GrepNoPrint
              | c ->
                   raise (OmakeException (loc_pos loc pos, StringStringError ("illegal grep option", String.make 1 c)))
          in
-            collect (flags lor flag) (succ i)
+            collect (flag::flags) (succ i)
    in
-      collect 0 0
+      collect [] 0
 
 let grep venv pos loc args =
    let pos = string_pos "grep" pos in
@@ -267,16 +278,19 @@ let grep venv pos loc args =
             flags, [venv_find_var venv ScopeGlobal pos loc stdin_sym]
        | [_] ->
             flags, files
-       | _ ->
-            flags lor grep_print_flag, files
+       | _::_::_ ->
+            (if List.mem GrepNoPrint flags then flags else GrepPrint :: flags), files
    in
+   let verbose = not (List.mem GrepQuiet flags) in
+   let print = List.mem GrepPrint flags in
+   let matches = not (List.mem GrepNoMatch flags) in
 
    (* Grep against a single line *)
    let grep_line file found line =
-      let b = lexer_matches pattern line in
-         if b && (flags land grep_quiet_flag) = 0 then
+      let b = ((lexer_matches pattern line) == matches) in
+         if b && verbose then
             begin
-               if (flags land grep_print_flag) <> 0 then
+               if print then
                   begin
                      Lm_channel.output_string outx file;
                      Lm_channel.output_char outx ':'
