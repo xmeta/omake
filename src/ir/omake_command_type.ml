@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Mojave Group, Caltech
+ * Copyright (C) 2005-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,14 +20,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
 open Lm_location
 
 open Omake_node
+open Omake_ir_print
 
 (*
  * Individual command arguments have three forms:
@@ -157,10 +158,10 @@ struct
       match inst with
          CommandPipe argv ->
             pp_print_argv buf argv
-       | CommandEval _ ->
-            pp_print_string buf "<exp>"
-       | CommandValues _ ->
-            pp_print_string buf "<values>"
+       | CommandEval exp ->
+            pp_print_exp_simple buf exp
+       | CommandValues values ->
+            fprintf buf "<compute %i value dependencies>" (List.length values)
 
    let pp_print_command_line buf line =
       pp_print_command_inst buf line.command_inst
@@ -169,12 +170,9 @@ struct
       List.iter (fun line -> fprintf buf "@ %a" pp_print_command_line line) lines
 end;;
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
