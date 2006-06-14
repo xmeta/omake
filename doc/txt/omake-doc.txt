@@ -168,7 +168,7 @@ Contents
        - 7.1.10  PID 
        - 7.1.11  TARGETS 
      
-    - 7.2  Boolean functions and control flow 
+    - 7.2  Logic, Boolean functions, and control flow 
         
        - 7.2.1  not 
        - 7.2.2  equal 
@@ -2403,11 +2403,14 @@ scope in the current directory.
 >>
   
   The `<test>' expression is evaluated, and if it evaluates to a true
-value (see the Logic section), the code for the `<true-clause>' is
+value (see the Logic section 7.2), the code for the `<true-clause>' is
 evaluated; otherwise the remaining clauses are evaluated. There may be
 multiple `elseif' clauses; both the `elseif' and `else' clauses are
 optional. Note that the clauses are indented, so they introduce new
 scopes.
+  When viewed as a predicate, a value corresponds to the Boolean falseE,
+if its string representation is the empty string, or one of the strings
+`false', `no', `nil', `undefined', or `0'. All other values are true.
   The following example illustrates a typical use of a conditional. The
 `OSTYPE' variable is the current machine architecture.
 <<
@@ -3942,18 +3945,22 @@ are  `Unix' (for all Unix versions, including Linux and Mac OS X),
 
 7.1.11  TARGETS
 ===============
-    The command-line targets. For example, if `omake' is invoked with
-the  following command line,
+    The command-line target strings. For example, if `omake' is invoked
+with the  following command line,
 <<
         omake CFLAGS=1 foo bar.c
 >>
   
    then `TARGETS' is defined as `foo bar.c'.
-
-7.2  Boolean functions and control flow
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
   
+
+7.2  Logic, Boolean functions, and control flow
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+  Boolean values in omake are represented by case-insensitive strings.
+The false value can be represented by the strings `false', `no', `nil',
+`undefined' or `0', and everything else is true.
   
 
 7.2.1  not
@@ -3964,10 +3971,7 @@ the  following command line,
         e : String
 >>
   
-  Boolean values in omake are represented by case-insensitive strings.
-The false value can be represented by the strings `false', `no', `nil',
-`undefined' or `0', and everything else is true. The `not' function
-negates a Boolean value.
+  The `not' function negates a Boolean value.
   For example, `$(not false)' expands to the string `true', and `$(not
 hello world)' expands to `false'.
 

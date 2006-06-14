@@ -168,7 +168,7 @@ BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
 <LI CLASS="li-toc"><A HREF="#htoc90">7.1.10&nbsp;&nbsp;PID</A>
 <LI CLASS="li-toc"><A HREF="#htoc91">7.1.11&nbsp;&nbsp;TARGETS</A>
 </UL>
-<LI CLASS="li-toc"><A HREF="#htoc92">7.2&nbsp;&nbsp;Boolean functions and control flow</A>
+<LI CLASS="li-toc"><A HREF="#htoc92">7.2&nbsp;&nbsp;Logic, Boolean functions, and control flow</A>
 <UL CLASS="toc"><LI CLASS="li-toc">
 <A HREF="#htoc93">7.2.1&nbsp;&nbsp;not</A>
 <LI CLASS="li-toc"><A HREF="#htoc94">7.2.2&nbsp;&nbsp;equal</A>
@@ -2246,12 +2246,16 @@ Top level conditionals have the following form.
        &lt;else-clause&gt;
 </PRE>
 The <CODE>&lt;test&gt;</CODE> expression is evaluated, and if it evaluates to a
-<EM>true</EM> value (see the Logic section), the code for the
+<EM>true</EM> value (see the Logic section&nbsp;<A HREF="#section:logic">7.2</A>), the code for the
 <CODE>&lt;true-clause&gt;</CODE> is evaluated; otherwise the remaining clauses
 are evaluated. There may be multiple <CODE>elseif</CODE> clauses;
 both the <CODE>elseif</CODE> and <CODE>else</CODE> clauses are optional.
 Note that the clauses are indented, so they introduce new
 scopes.<BR>
+<BR>
+When viewed as a predicate, a value corresponds to the Boolean <EM>false</EM>E, if its string
+representation is the empty string, or one of the strings <CODE>false</CODE>, <CODE>no</CODE>, <CODE>nil</CODE>,
+<CODE>undefined</CODE>, or <CODE>0</CODE>. All other values are <EM>true</EM>.<BR>
 <BR>
 The following example illustrates a typical use of a conditional. The
 <CODE>OSTYPE</CODE> variable is the current machine architecture.
@@ -3635,16 +3639,22 @@ from the project root.
 
 <H3 CLASS="subsection"><A NAME="htoc91">7.1.11</A>&nbsp;&nbsp;TARGETS</H3><!--SEC END -->
 <A NAME="@default52"></A><A NAME="@var10"></A><A NAME="var:TARGETS"></A>
- The command-line targets. For example, if <CODE>omake</CODE> is invoked with the
+ The command-line target strings. For example, if <CODE>omake</CODE> is invoked with the
  following command line,
 <PRE CLASS="verbatim">
       omake CFLAGS=1 foo bar.c
 </PRE>
- then <CODE>TARGETS</CODE> is defined as <CODE>foo bar.c</CODE>.
-<!--TOC section Boolean functions and control flow-->
+ then <CODE>TARGETS</CODE> is defined as <CODE>foo bar.c</CODE>.<BR>
+<BR>
+<!--TOC section Logic, Boolean functions, and control flow-->
 
-<H2 CLASS="section"><A NAME="htoc92">7.2</A>&nbsp;&nbsp;Boolean functions and control flow</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc92">7.2</A>&nbsp;&nbsp;Logic, Boolean functions, and control flow</H2><!--SEC END -->
 
+<A NAME="section:logic"></A>
+Boolean values in omake are represented by case-insensitive strings. The
+<EM>false</EM> value can be represented by the strings <CODE>false</CODE>, <CODE>no</CODE>,
+<CODE>nil</CODE>, <CODE>undefined</CODE> or <CODE>0</CODE>, and everything else is true.<BR>
+<BR>
 <!--TOC subsection not-->
 
 <H3 CLASS="subsection"><A NAME="htoc93">7.2.1</A>&nbsp;&nbsp;not</H3><!--SEC END -->
@@ -3653,12 +3663,10 @@ from the project root.
    $(not e) : String
       e : String
 </PRE>
-Boolean values in omake are represented by case-insensitive strings. The
-<EM>false</EM> value can be represented by the strings <CODE>false</CODE>, <CODE>no</CODE>,
-<CODE>nil</CODE>, <CODE>undefined</CODE> or <CODE>0</CODE>, and everything else is true. The
-<CODE>not</CODE> function negates a Boolean value.<BR>
+The <CODE>not</CODE> function negates a Boolean value.<BR>
 <BR>
-For example, <CODE>$(not false)</CODE> expands to the string <CODE>true</CODE>, and <CODE>$(not hello world)</CODE> expands to <CODE>false</CODE>.
+For example, <CODE>$(not false)</CODE> expands to the string <CODE>true</CODE>, and
+<CODE>$(not hello world)</CODE> expands to <CODE>false</CODE>.
 <!--TOC subsection equal-->
 
 <H3 CLASS="subsection"><A NAME="htoc94">7.2.2</A>&nbsp;&nbsp;equal</H3><!--SEC END -->

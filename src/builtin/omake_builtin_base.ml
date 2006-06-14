@@ -84,7 +84,7 @@ open Pos
  * \var{PID}
  *    The OMake process id.
  * \var{TARGETS}
- *    The command-line targets.  For example, if \verb+omake+ is invoked with the
+ *    The command-line target strings.  For example, if \verb+omake+ is invoked with the
  *    following command line,
  *
  * \begin{verbatim}
@@ -92,6 +92,7 @@ open Pos
  * \end{verbatim}
  *
  *    then \verb+TARGETS+ is defined as \verb+foo bar.c+.
+ *
  * \end{doc}
  *)
 
@@ -99,7 +100,12 @@ open Pos
  * Negate a boolean.
  *
  * \begin{doc}
- * \section{Boolean functions and control flow}
+ * \section{Logic, Boolean functions, and control flow}
+ * \label{section:logic}
+ *
+ * Boolean values in omake are represented by case-insensitive strings.  The
+ * \emph{false} value can be represented by the strings \verb+false+, \verb+no+,
+ * \verb+nil+, \verb+undefined+ or \verb+0+, and everything else is true.
  *
  * \fun{not}
  *
@@ -108,12 +114,10 @@ open Pos
  *       e : String
  * \end{verbatim}
  *
- * Boolean values in omake are represented by case-insensitive strings.  The
- * \emph{false} value can be represented by the strings \verb+false+, \verb+no+,
- * \verb+nil+, \verb+undefined+ or \verb+0+, and everything else is true.  The
- * \verb+not+ function negates a Boolean value.
+ * The \verb+not+ function negates a Boolean value.
  *
- * For example, \verb+$(not false)+ expands to the string \verb+true+, and \verb+$(not hello world)+ expands to \verb+false+.
+ * For example, \verb+$(not false)+ expands to the string \verb+true+, and
+ * \verb+$(not hello world)+ expands to \verb+false+.
  * \end{doc}
  *)
 let not_fun venv pos loc args =

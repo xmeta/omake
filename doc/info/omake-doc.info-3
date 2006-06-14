@@ -394,7 +394,7 @@ Chapter 7     Base library
 * Menu:
 
 * Section 7-1::	Builtin variables
-* Section 7-2::	Boolean functions and control flow
+* Section 7-2::	Logic, Boolean functions, and control flow
 * Section 7-3::	Arrays and sequences
 * Section 7-4::	Arithmetic
 * Section 7-5::	First-class functions
@@ -510,21 +510,24 @@ Node: Subsection 7-1-11,	Next: Section 7-2,	Prev: Subsection 7-1-10,	Up: Section
 7.1.11   TARGETS
 ================
   The command-line
-targets. For example, if `omake' is invoked with the  following command
-line,
+target strings. For example, if `omake' is invoked with the  following
+command line,
 <<
         omake CFLAGS=1 foo bar.c
 >>
   
-   then `TARGETS' is defined as `foo bar.c'. 
+   then `TARGETS' is defined as `foo bar.c'.
 
 Node: Section 7-2,	Next: Subsection 7-2-1,	Prev: Section 7-1,	Up: Chapter 7
   
 
-7.2   Boolean functions and control flow
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+7.2   Logic, Boolean functions, and control flow
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
-  
+   
+  Boolean values in omake are represented by case-insensitive strings.
+The false value can be represented by the strings `false', `no', `nil',
+`undefined' or `0', and everything else is true.
 * Menu:
 
 * Subsection 7-2-1::	not
@@ -557,10 +560,7 @@ Node: Subsection 7-2-1,	Next: Subsection 7-2-2,	Prev: Section 7-2,	Up: Section 7
         e : String
 >>
   
-  Boolean values in omake are represented by case-insensitive strings.
-The false value can be represented by the strings `false', `no', `nil',
-`undefined' or `0', and everything else is true. The `not' function
-negates a Boolean value.
+  The `not' function negates a Boolean value.
   For example, `$(not false)' expands to the string `true', and `$(not
 hello world)' expands to `false'. 
 

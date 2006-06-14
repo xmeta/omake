@@ -29,7 +29,7 @@ Base library
 
 <H1 CLASS="chapter"><A NAME="htoc79">Chapter&nbsp;7</A>&nbsp;&nbsp;Base library</H1><UL>
 <LI><A HREF="omake-base.html#toc58">Builtin variables</A>
-<LI><A HREF="omake-base.html#toc59">Boolean functions and control flow</A>
+<LI><A HREF="omake-base.html#toc59">Logic, Boolean functions, and control flow</A>
 <LI><A HREF="omake-base.html#toc60">Arrays and sequences</A>
 <LI><A HREF="omake-base.html#toc61">Arithmetic</A>
 <LI><A HREF="omake-base.html#toc62">First-class functions</A>
@@ -75,26 +75,30 @@ Base library
  The OMake process id.
 
 <H3 CLASS="subsection"><A NAME="htoc91">7.1.11</A>&nbsp;&nbsp;TARGETS</H3><A NAME="@default52"></A><A NAME="@var10"></A><A NAME="var:TARGETS"></A>
- The command-line targets. For example, if <CODE>omake</CODE> is invoked with the
+ The command-line target strings. For example, if <CODE>omake</CODE> is invoked with the
  following command line,
 <PRE CLASS="verbatim">
       omake CFLAGS=1 foo bar.c
 </PRE>
- then <CODE>TARGETS</CODE> is defined as <CODE>foo bar.c</CODE>.
+ then <CODE>TARGETS</CODE> is defined as <CODE>foo bar.c</CODE>.<BR>
+<BR>
 <A NAME="toc59"></A>
-<H2 CLASS="section"><A NAME="htoc92">7.2</A>&nbsp;&nbsp;Boolean functions and control flow</H2>
+<H2 CLASS="section"><A NAME="htoc92">7.2</A>&nbsp;&nbsp;Logic, Boolean functions, and control flow</H2>
+<A NAME="section:logic"></A>
+Boolean values in omake are represented by case-insensitive strings. The
+<EM>false</EM> value can be represented by the strings <CODE>false</CODE>, <CODE>no</CODE>,
+<CODE>nil</CODE>, <CODE>undefined</CODE> or <CODE>0</CODE>, and everything else is true.<BR>
+<BR>
 
 <H3 CLASS="subsection"><A NAME="htoc93">7.2.1</A>&nbsp;&nbsp;not</H3><A NAME="@default53"></A><A NAME="@fun5"></A><A NAME="fun:not"></A>
 <PRE CLASS="verbatim">
    $(not e) : String
       e : String
 </PRE>
-Boolean values in omake are represented by case-insensitive strings. The
-<EM>false</EM> value can be represented by the strings <CODE>false</CODE>, <CODE>no</CODE>,
-<CODE>nil</CODE>, <CODE>undefined</CODE> or <CODE>0</CODE>, and everything else is true. The
-<CODE>not</CODE> function negates a Boolean value.<BR>
+The <CODE>not</CODE> function negates a Boolean value.<BR>
 <BR>
-For example, <CODE>$(not false)</CODE> expands to the string <CODE>true</CODE>, and <CODE>$(not hello world)</CODE> expands to <CODE>false</CODE>.
+For example, <CODE>$(not false)</CODE> expands to the string <CODE>true</CODE>, and
+<CODE>$(not hello world)</CODE> expands to <CODE>false</CODE>.
 
 <H3 CLASS="subsection"><A NAME="htoc94">7.2.2</A>&nbsp;&nbsp;equal</H3><A NAME="@default54"></A><A NAME="@fun6"></A><A NAME="fun:equal"></A>
 <PRE CLASS="verbatim">
