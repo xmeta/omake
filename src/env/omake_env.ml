@@ -2253,9 +2253,9 @@ let venv_save_explicit_rules venv loc erules =
                let () =
                   if rules = [] then
                      let print_error buf =
-                        fprintf buf "@[<b 3>Computed rule for %a produced no useful rules:" pp_print_node target;
+                        fprintf buf "@[<b 3>Computed rule for `%a' produced no useful rules:" pp_print_node target;
                         List.iter (fun erule ->
-                              fprintf buf "@ %a" pp_print_node erule.rule_target) erules;
+                              fprintf buf "@ `%a'" pp_print_node erule.rule_target) erules;
                         fprintf buf "@]"
                      in
                         raise (OmakeException (loc_exp_pos loc, LazyError print_error))
@@ -2293,8 +2293,8 @@ let venv_add_explicit_dep venv loc target source =
 (*
  * Add the wild target.
  *)
-let venv_add_wild_match venv name =
-   venv_add_var_tmp venv wild_sym (ValString name)
+let venv_add_wild_match venv v =
+   venv_add_var_tmp venv wild_sym v
 
 (*
  * This is the standard way to add results of a pattern match.
@@ -2431,7 +2431,7 @@ let create options dir exec cache =
    let venv = venv_add_var_dynamic venv stdlib_sym (ValDir Dir.lib) in
    let venv = venv_add_var_dynamic venv stdroot_sym (ValNode (Node.intern mount PhonyProhibited Dir.lib "OMakeroot")) in
    let venv = venv_add_var_dynamic venv ostype_sym (ValString Sys.os_type) in
-   let venv = venv_add_wild_match venv wild_string in
+   let venv = venv_add_wild_match venv (ValData wild_string) in
    let omakepath =
       try
          let path = Lm_string_util.split pathsep (SymbolTable.find env omakepath_sym) in

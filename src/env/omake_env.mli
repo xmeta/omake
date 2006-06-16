@@ -344,7 +344,7 @@ val venv_add_phony   : venv -> loc -> target list -> venv
 
 val venv_add_args_hack : venv -> pos -> loc -> env -> var list -> value list -> venv
 
-val venv_add_wild_match  : venv -> string -> venv
+val venv_add_wild_match  : venv -> value -> venv
 val venv_add_match_args  : venv -> string list -> venv
 val venv_add_match       : venv -> string -> string list -> venv
 val venv_explicit_target : venv -> Node.t -> venv

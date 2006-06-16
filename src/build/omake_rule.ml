@@ -82,10 +82,10 @@ sig
    type resume
 
    (* Create a buffer *)
-   val create : venv -> Node.t -> string -> NodeSet.t -> NodeSet.t -> NodeSet.t -> NodeSet.t -> t
+   val create : venv -> Node.t -> value -> NodeSet.t -> NodeSet.t -> NodeSet.t -> NodeSet.t -> t
 
    (* Projections *)
-   val target : t -> Node.t * string
+   val target : t -> Node.t * value
 
    (* Adding to the buffer *)
    val add_command  : t -> command -> t
@@ -109,7 +109,7 @@ struct
     *)
    type t =
       { buf_target   : Node.t;
-        buf_core     : string;
+        buf_core     : value;
         buf_locks    : NodeSet.t;
         buf_effects  : NodeSet.t;
         buf_deps     : NodeSet.t;
@@ -378,9 +378,9 @@ let expand_rule erule =
          let core =
             match core with
                Some s ->
-                  s
+                  ValData s
              | None ->
-                  venv_nodename venv target
+                  ValNode target
          in
          let pos = string_pos "expand_rule" (loc_exp_pos loc) in
          let buf = Command.create venv target core locks effects deps scanners in
