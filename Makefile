@@ -29,7 +29,7 @@ boot/Makefile: src/Makefile
 all: boot
 	touch .config
 	OMAKEFLAGS= ./omake-boot --dotomake .omake --force-dotomake -j2 -S --progress main
-	OMAKEFLAGS= src/main/omake --dotomake .omake --force-dotomake -j2 -S --progress all doc
+	OMAKEFLAGS= src/main/omake --dotomake .omake --force-dotomake -j2 -S --progress all
 
 install: all
 	OMAKEFLAGS= src/main/omake --dotomake .omake --force-dotomake -j2 install
