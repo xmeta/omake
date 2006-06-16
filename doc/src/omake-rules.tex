@@ -613,6 +613,74 @@ from the project root.
     .SUBDIRS: src lib clib
 \end{verbatim}
 
+\section{Pathnames in rules}
+
+In rules, the targets and dependencies are first translated to \emph{file} values (as in the
+\verb+file+ function~\ref{fun:file}).  They are then translated to strings for the command line.
+This can cause some unexpected behavior.  In the following example, the \verb+absname+
+function~\ref{fun:absname} is the absolute pathname for the file \verb+a+, but the rule still prints
+the relative pathname.
+
+\begin{verbatim}
+    .PHONY: demo
+    demo: $(absname a)
+        echo $<
+
+    # omake demo
+    a
+\end{verbatim}
+
+There is arguably a good reason for this.  On Win32 systems, the \verb+/+ character is viewed as an
+``option specifier.''  The pathname separator is the \verb+\+ character.  OMake translates the
+filenames automatically so that things work as expected on both systems.
+
+\begin{verbatim}
+   demo: a/b
+       echo $<
+
+   # omake demo (on a Unix system)
+   a/b
+   # omake demo (on a Win32 system)
+   a\b
+\end{verbatim}
+
+Sometimes you may wish that target strings to be passed literally to the commands in the rule.
+One way to do this is to specify them literally.
+
+\begin{verbatim}
+    SRC = a/b $(absname c/d)
+    demo: $(SRC)
+        echo $(SRC)
+
+    # omake demo (on a Win32 system)
+    a/b c:\...\c\d
+\end{verbatim}
+
+Alternately, you might wish that filenames be automatically expanded to absolute pathnames.  For
+example, this might be useful when parsing the OMake output to look for errors.  For this, you can
+use the \verb+--absname+~\ref{option:--absname} option.  If you call \verb+omake+ with the
+\verb+--absname+ option, all filenames will be exapnded to absolute names.
+
+\begin{verbatim}
+    # omake --absname demo (on a Unix system)
+    /home/.../a/b /home/.../c/d
+\end{verbatim}
+
+Alternately, the \verb+--absname+ option is scoped.  If you want to use it for only a few rules, you
+can use the \verb+OMakeFlags+ function~\ref{fun:OMakeFlags} to control how it is applied.
+    
+\begin{verbatim}
+   section
+      OMakeFlags(--absname)
+      demo: a
+          echo $<
+
+   # omake demo
+   /home/.../a
+\end{verbatim}
+
+\textbf{N.B.} The \verb+--absname+ option is currently an experimental feature.
+
 % -*-
 % Local Variables:
 % Mode: LaTeX

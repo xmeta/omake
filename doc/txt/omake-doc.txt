@@ -156,6 +156,7 @@ Contents
        - 6.13.2  Scoping of .SCANNER rules 
        - 6.13.3  Scoping for .PHONY targets 
      
+    - 6.14  Pathnames in rules 
   
  - Chapter 7  Base library 
      
@@ -3894,6 +3895,77 @@ project root.
       .SUBDIRS: src lib clib
 >>
   
+  
+
+6.14  Pathnames in rules
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  In rules, the targets and dependencies are first translated to file
+values (as in the `file' function 8.1.1). They are then translated to
+strings for the command line. This can cause some unexpected behavior.
+In the following example, the `absname' function 8.1.9 is the absolute
+pathname for the file `a', but the rule still prints the relative
+pathname.
+<<
+      .PHONY: demo
+      demo: $(absname a)
+          echo $<
+  
+      # omake demo
+      a
+>>
+  
+  There is arguably a good reason for this. On Win32 systems, the `/'
+character is viewed as an ``option specifier.'' The pathname separator
+is the `\' character. OMake translates the filenames automatically so
+that things work as expected on both systems.
+<<
+     demo: a/b
+         echo $<
+  
+     # omake demo (on a Unix system)
+     a/b
+     # omake demo (on a Win32 system)
+     a\b
+>>
+  
+  Sometimes you may wish that target strings to be passed literally to
+the commands in the rule. One way to do this is to specify them
+literally.
+<<
+      SRC = a/b $(absname c/d)
+      demo: $(SRC)
+          echo $(SRC)
+  
+      # omake demo (on a Win32 system)
+      a/b c:\...\c\d
+>>
+  
+  Alternately, you might wish that filenames be automatically expanded
+to absolute pathnames. For example, this might be useful when parsing
+the OMake output to look for errors. For this, you can use the
+`--absname' A.1 option. If you call `omake' with the `--absname' option,
+all filenames will be exapnded to absolute names.
+<<
+      # omake --absname demo (on a Unix system)
+      /home/.../a/b /home/.../c/d
+>>
+  
+  Alternately, the `--absname' option is scoped. If you want to use it
+for only a few rules, you can use the `OMakeFlags' function 11.1.1 to
+control how it is applied.
+<<
+     section
+        OMakeFlags(--absname)
+        demo: a
+            echo $<
+  
+     # omake demo
+     /home/.../a
+>>
+  
+  N.B. The `--absname' option is currently an experimental feature.
 
 
 Chapter 7    Base library
@@ -8997,7 +9069,7 @@ A.1  Command-line options
    existing OMakefile. If this option is given, all files are forcibly
    overwritten  without prompting.
  
- --absname  Filenames should expand to absolute pathnames. [jyh: this
+ --absname   Filenames should expand to absolute pathnames. [jyh: this
    option needs to be documented in Chapter 6. It may become
    deprecated.]
  

@@ -1,5 +1,125 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 7-4-1,	Next: Subsection 7-4-2,	Prev: Section 7-4,	Up: Section 7-4
+  
+
+7.4.1   int
+===========
+
+  The `int' function can be used to create integers. It returns an `Int'
+object.
+  `$(int 17)'.
+
+Node: Subsection 7-4-2,	Next: Subsection 7-4-3,	Prev: Subsection 7-4-1,	Up: Section 7-4
+  
+
+7.4.2   float
+=============
+ The `float' function
+can be used to create floating-point numbers. It returns a `Float'
+object.
+  `$(float 3.1415926)'. 
+
+Node: Subsection 7-4-3,	Next: Subsection 7-4-4,	Prev: Subsection 7-4-2,	Up: Section 7-4
+  
+
+7.4.3   Basic arithmetic
+========================
+   
+
+
+
+
+
+
+
+
+
+
+
+
+  The following functions can be used to perform basic arithmetic.
+  
+  
+ - `$(neg <numbers>)': arithmetic inverse 
+ - `$(add <numbers>)': addition. 
+ - `$(sub <numbers>)': subtraction. 
+ - `$(mul <numbers>)': multiplication. 
+ - `$(div <numbers>)': division. 
+ - `$(mod <numbers>)': remainder. 
+ - `$(lnot <numbers>)': bitwise inverse. 
+ - `$(land <numbers>)': bitwise and. 
+ - `$(lor <numbers>)': bitwise or. 
+ - `$(lxor <numbers>)': bitwise exclusive-or. 
+ - `$(lsl <numbers>)': logical shift left. 
+ - `$(lsr <numbers>)': logical shift right. 
+ - `$(asr <numbers>)': arithmetic shift right. 
+   
+
+Node: Subsection 7-4-4,	Next: Section 7-5,	Prev: Subsection 7-4-3,	Up: Section 7-4
+  
+
+7.4.4   Comparisons
+===================
+   
+
+
+
+
+
+
+
+
+  The following functions can be used to perform numerical comparisons.
+  
+  
+ - `$(lt <numbers>)': less then. 
+ - `$(le <numbers>)': no more than. 
+ - `$(eq <numbers>)': equal. 
+ - `$(ge <numbers>)': no less than. 
+ - `$(gt <numbers>)': greater than. 
+ - `$(ult <numbers>)': unsigned less than. 
+ - `$(ule <numbers>)': unsigned greater than. 
+ - `$(uge <numbers>)': unsigned greater than or equal. 
+ - `$(ugt <numbers>)': unsigned greater than. 
+   
+
+Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
+  
+
+7.5   First-class functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 7-5-1::	fun
+* Subsection 7-5-2::	apply
+* Subsection 7-5-3::	applya
+
+
+Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
+  
+
+7.5.1   fun
+===========
+
+  The `fun' form introduces anonymous functions.
+  `$(fun <v1>, ..., <vn>, <body>)'
+  The last argument is the body of the function. The other arguments are
+the parameter names.
+  The three following definitions are equivalent.
+<<
+      F(X, Y) =
+         return($(addsuffix $(Y), $(X)))
+  
+      F = $(fun X, Y, $(addsuffix $(Y), $(X)))
+  
+      F =
+         fun(X, Y)
+            value $(addsuffix $(Y), $(X))
+>>
+
 Node: Subsection 7-5-2,	Next: Subsection 7-5-3,	Prev: Subsection 7-5-1,	Up: Section 7-5
   
 
@@ -1809,97 +1929,3 @@ Node: Subsection 8-8-28,	Next: Subsection 8-8-29,	Prev: Subsection 8-8-27,	Up: S
   
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database. 
-
-Node: Subsection 8-8-29,	Next: Subsection 8-8-30,	Prev: Subsection 8-8-28,	Up: Section 8-8
-  
-
-8.8.29   bind
-=============
-
-<<
-     bind(socket, host, port)
-        socket : InOutChannel
-        host : String
-        port : Int
-     bind(socket, file)
-        socket : InOutChannel
-        file : File
-     raise RuntimeException
->>
-  
-  The `bind' function binds a socket to an address.
-  The 3-argument form specifies an Internet connection, the `host'
-specifies a host name or IP address, and the `port' is a port number.
-  The 2-argument form is for `Unix' sockets. The `file' specifies the
-filename for the address. 
-
-Node: Subsection 8-8-30,	Next: Subsection 8-8-31,	Prev: Subsection 8-8-29,	Up: Section 8-8
-  
-
-8.8.30   listen
-===============
-
-<<
-     listen(socket, requests)
-        socket : InOutChannel
-        requests : Int
-     raises RuntimeException
->>
-  
-  The `listen' function sets up the socket for receiving up to
-`requests' number of pending connection requests. 
-
-Node: Subsection 8-8-31,	Next: Subsection 8-8-32,	Prev: Subsection 8-8-30,	Up: Section 8-8
-  
-
-8.8.31   accept
-===============
-
-<<
-     $(accept socket) : InOutChannel
-        socket : InOutChannel
-     raises RuntimeException
->>
-  
-  The `accept' function accepts a connection on a socket. 
-
-Node: Subsection 8-8-32,	Next: Subsection 8-8-33,	Prev: Subsection 8-8-31,	Up: Section 8-8
-  
-
-8.8.32   connect
-================
-
-<<
-      connect(socket, addr, port)
-         socket : InOutChannel
-         addr : String
-         port : int
-      connect(socket, name)
-         socket : InOutChannel
-         name : File
-      raise RuntimeException
->>
-  
-  The `connect' function connects a socket to a remote address.
-  The 3-argument form specifies an Internet connection. The `addr'
-argument is the Internet address of the remote host, specified as a
-domain name or IP address. The `port' argument is the port number.
-  The 2-argument form is for Unix sockets. The `name' argument is the
-filename of the socket. 
-
-Node: Subsection 8-8-33,	Next: Subsection 8-8-34,	Prev: Subsection 8-8-32,	Up: Section 8-8
-  
-
-8.8.33   getchar
-================
-
-<<
-      $(getc) : String
-      $(getc file) : String
-         file : InChannel or File
-      raises RuntimeException
->>
-  
-  The `getc' function returns the next character of a file. If the
-argument is not specified, `stdin' is used as input. If the end of file
-has been reached, the function returns `false'. 

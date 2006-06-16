@@ -1035,9 +1035,7 @@ and eval_commands venv loc target sloppy_deps commands : arg_command_line list =
                   Omake_env.command_body    = body
                 } = command
             in
-            let target_arg = venv_nodename venv target in
-            let source_args = List.map (venv_nodename venv) sources in
-            let lines = eval_rule venv loc target_arg source_args sloppy_deps values body in
+            let lines = eval_rule venv loc target sources sloppy_deps values body in
             let commands' = List.rev_append lines commands' in
                collect commands' commands
        | [] ->
@@ -1057,24 +1055,26 @@ and eval_commands venv loc target sloppy_deps commands : arg_command_line list =
  *   $&: the scanner dependencies from the last run
  *)
 and eval_rule venv loc target sources sloppy_deps values commands =
-   let pos        = string_pos "eval_rule" (loc_exp_pos loc) in
-   let root       = Lm_filename_util.root target in
-   let root'      = Lm_filename_util.strip_suffixes target in
-   let venv       = venv_add_var venv ScopeGlobal pos star_sym (ValString root) in
-   let venv       = venv_add_var venv ScopeGlobal pos gt_sym   (ValString root') in
-   let venv       = venv_add_var venv ScopeGlobal pos at_sym   (ValString target) in
-   let source_all = String.concat " " sources in
-   let source_set = List.fold_left StringSet.add StringSet.empty sources in
-   let source_set = StringSet.to_list source_set in
-   let source_set = String.concat " " source_set in
+   let pos          = string_pos "eval_rule" (loc_exp_pos loc) in
+   let target_name  = venv_nodename venv target in
+   let root         = Lm_filename_util.root target_name in
+   let root'        = Lm_filename_util.strip_suffixes target_name in
+   let venv         = venv_add_var venv ScopeGlobal pos star_sym (ValData root) in
+   let venv         = venv_add_var venv ScopeGlobal pos gt_sym   (ValData root') in
+   let venv         = venv_add_var venv ScopeGlobal pos at_sym   (ValNode target) in
+   let source_all   = ValArray (List.map (fun v -> ValNode v) sources) in
+   let source_names = List.map (venv_nodename venv) sources in
+   let source_set   = List.fold_left StringSet.add StringSet.empty source_names in
+   let source_set   = StringSet.to_list source_set in
+   let source_set   = ValArray (List.map (fun s -> ValData s) source_set) in
    let source =
       match sources with
-         source :: _ -> source
-       | [] -> ""
+         source :: _ -> ValNode source
+       | [] -> ValNone
    in
-   let venv = venv_add_var venv ScopeGlobal pos plus_sym (ValString source_all) in
-   let venv = venv_add_var venv ScopeGlobal pos hat_sym  (ValString source_set) in
-   let venv = venv_add_var venv ScopeGlobal pos lt_sym   (ValString source) in
+   let venv = venv_add_var venv ScopeGlobal pos plus_sym source_all in
+   let venv = venv_add_var venv ScopeGlobal pos hat_sym  source_set in
+   let venv = venv_add_var venv ScopeGlobal pos lt_sym   source in
    let sloppy_deps = List.map (fun v -> ValNode v) (NodeSet.to_list sloppy_deps) in
    let venv = venv_add_var venv ScopeGlobal pos amp_sym  (ValArray sloppy_deps) in
    let options = Lm_glob.create_options (glob_options_of_env venv pos) in
@@ -1108,7 +1108,6 @@ and eval_rule venv loc target sources sloppy_deps values commands =
       else
          ([], CommandValues (List.map (eval_prim_value venv pos) values)) :: commands
    in
-   let target = venv_intern venv PhonyOK target in
    let dir = venv_dir venv in
       parse_commands venv dir target loc commands
 

@@ -48,6 +48,7 @@ Rules
 <LI><A HREF="omake-rules.html#toc55">.INCLUDE</A>
 <LI><A HREF="omake-rules.html#toc56">.PHONY</A>
 <LI><A HREF="omake-rules.html#toc57">Rule scoping</A>
+<LI><A HREF="omake-rules.html#toc58">Pathnames in rules</A>
 </UL>
 
 <A NAME="chapter:rules"></A>
@@ -578,6 +579,64 @@ from the project root.
 
     .SUBDIRS: src lib clib
 </PRE>
+<A NAME="toc58"></A>
+<H2 CLASS="section"><A NAME="htoc79">6.14</A>&nbsp;&nbsp;Pathnames in rules</H2>
+In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
+<CODE>file</CODE> function&nbsp;<A HREF="omake-system.html#fun:file">8.1.1</A>). They are then translated to strings for the command line.
+This can cause some unexpected behavior. In the following example, the <CODE>absname</CODE>
+function&nbsp;<A HREF="omake-system.html#fun:absname">8.1.9</A> is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
+the relative pathname.
+<PRE CLASS="verbatim">
+    .PHONY: demo
+    demo: $(absname a)
+        echo $&lt;
+
+    # omake demo
+    a
+</PRE>
+There is arguably a good reason for this. On Win32 systems, the <CODE>/</CODE> character is viewed as an
+&#8220;option specifier.&#8221; The pathname separator is the <CODE>\</CODE> character. OMake translates the
+filenames automatically so that things work as expected on both systems.
+<PRE CLASS="verbatim">
+   demo: a/b
+       echo $&lt;
+
+   # omake demo (on a Unix system)
+   a/b
+   # omake demo (on a Win32 system)
+   a\b
+</PRE>
+Sometimes you may wish that target strings to be passed literally to the commands in the rule.
+One way to do this is to specify them literally.
+<PRE CLASS="verbatim">
+    SRC = a/b $(absname c/d)
+    demo: $(SRC)
+        echo $(SRC)
+
+    # omake demo (on a Win32 system)
+    a/b c:\...\c\d
+</PRE>
+Alternately, you might wish that filenames be automatically expanded to absolute pathnames. For
+example, this might be useful when parsing the OMake output to look for errors. For this, you can
+use the <CODE>--absname</CODE>&nbsp;<A HREF="omake-options.html#option:--absname">A.1</A> option. If you call <CODE>omake</CODE> with the
+<CODE>--absname</CODE> option, all filenames will be exapnded to absolute names.
+<PRE CLASS="verbatim">
+    # omake --absname demo (on a Unix system)
+    /home/.../a/b /home/.../c/d
+</PRE>
+Alternately, the <CODE>--absname</CODE> option is scoped. If you want to use it for only a few rules, you
+can use the <CODE>OMakeFlags</CODE> function&nbsp;<A HREF="omake-rule.html#fun:OMakeFlags">11.1.1</A> to control how it is applied.
+<PRE CLASS="verbatim">
+   section
+      OMakeFlags(--absname)
+      demo: a
+          echo $&lt;
+
+   # omake demo
+   /home/.../a
+</PRE>
+<B>N.B.</B> The <CODE>--absname</CODE> option is currently an experimental feature.<BR>
+<BR>
 
 
 <TABLE CELLSPACING=2 CELLPADDING=0>

@@ -1,5 +1,120 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 11-1,	Next: Subsection 11-1-1,	Prev: Chapter 11,	Up: Chapter 11
+  
+
+11.1   Options and versioning
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 11-1-1::	OMakeFlags
+* Subsection 11-1-2::	OMakeVersion
+* Subsection 11-1-3::	cmp-versions
+* Subsection 11-1-4::	DefineCommandVars
+
+
+Node: Subsection 11-1-1,	Next: Subsection 11-1-2,	Prev: Section 11-1,	Up: Section 11-1
+  
+
+11.1.1   OMakeFlags
+===================
+
+<<
+     OMakeFlags(options)
+        options : String
+>>
+  
+  The `OMakeFlags' function is used to set `omake' options from within
+OMakefiles. The options have exactly the same format as options on the
+command line.
+  For example, the following code displays the progress bar unless the
+`VERBOSE' environment variable is defined.
+<<
+      if $(not $(defined-env VERBOSE))
+          OMakeFlags(-S --progress)
+          export
+>>
+
+Node: Subsection 11-1-2,	Next: Subsection 11-1-3,	Prev: Subsection 11-1-1,	Up: Section 11-1
+  
+
+11.1.2   OMakeVersion
+=====================
+
+<<
+     OMakeVersion(version1)
+     OMakeVersion(version1, version2)
+        version1, version2 : String
+>>
+  
+  The `OMakeVersion' function is used for version checking in
+OMakefiles. It takes one or two arguments.
+  In the one argument form, if the omake version number is less than
+`<version1>', then an exception is raised. In the two argument form, the
+version must lie between `version1' and `version2'.
+
+Node: Subsection 11-1-3,	Next: Subsection 11-1-4,	Prev: Subsection 11-1-2,	Up: Section 11-1
+  
+
+11.1.3   cmp-versions
+=====================
+ 
+<<
+     $(cmp-versions version1, version2)
+        version1, version2 : String
+>>
+  
+  The `cmp-versions\' functions can be used to compare arbitrary version
+strings. It returns 0 when the two version strings are equal, a negative
+number when the first string represents an earlier version, and a
+positive number otherwise. 
+
+Node: Subsection 11-1-4,	Next: Section 11-2,	Prev: Subsection 11-1-3,	Up: Section 11-1
+  
+
+11.1.4   DefineCommandVars
+==========================
+
+<<
+     DefineCommandVars()
+>>
+  
+  The `DefineCommandVars' function redefines the variables passed on the
+commandline. Variables definitions are passed on the command line in the
+form `name=value'. This function is primarily for internal use by omake
+to define these variables for the first time. 
+
+Node: Section 11-2,	Next: Subsection 11-2-1,	Prev: Section 11-1,	Up: Chapter 11
+  
+
+11.2   The OMakeroot file
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+  The standard OMakeroot file defines the functions are rules for
+building standard projects.
+* Menu:
+
+* Subsection 11-2-1::	Variables
+* Subsection 11-2-2::	ROOT
+* Subsection 11-2-3::	CWD
+* Subsection 11-2-4::	EMPTY
+* Subsection 11-2-5::	STDROOT
+* Subsection 11-2-6::	VERBOSE
+* Subsection 11-2-7::	ABORT_ON_COMMAND_ERROR
+* Subsection 11-2-8::	SCANNER_MODE
+* Subsection 11-2-9::	System variables
+* Subsection 11-2-10::	INSTALL
+* Subsection 11-2-11::	PATHSEP
+* Subsection 11-2-12::	DIRSEP
+* Subsection 11-2-13::	EXT_LIB
+* Subsection 11-2-14::	EXT_OBJ
+* Subsection 11-2-15::	EXT_ASM
+* Subsection 11-2-16::	EXE
+
+
 Node: Subsection 11-2-1,	Next: Subsection 11-2-2,	Prev: Section 11-2,	Up: Section 11-2
   
 
@@ -1569,9 +1684,9 @@ A.1   Command-line options
    existing OMakefile. If this option is given, all files are forcibly
    overwritten  without prompting.
  
- --absname  Filenames should expand to absolute pathnames. [jyh: this
-   option needs to be documented in Chapter 6*Note Chapter 6::.
-   It may become deprecated.]
+ --absname   Filenames should expand to absolute
+   pathnames. [jyh: this option needs to be documented in Chapter
+   6*Note Chapter 6::. It may become deprecated.]
  
  var-definition  omake variables can also be defined on the command 
    line in the form `name=value'. For example, the `CFLAGS' variable
@@ -1581,115 +1696,3 @@ A.1   Command-line options
   In addition, omake supports a number of debugging flags on the command
 line. Run `omake --help' to get a summary of these flags.
    
-
-Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
-  
-
-Appendix B     OMake grammar
-****************************
-    
-* Menu:
-
-* Section B-1::	OMake lexical conventions
-* Section B-2::	The OMake grammar
-* Section B-3::	Dollar modifiers
-
-
-Node: Section B-1,	Next: Subsection B-1-1,	Prev: Appendix B,	Up: Appendix B
-  
-
-B.1   OMake lexical conventions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The OMake language is based on the language for GNU/BSD make, where
-there are few lexical conventions. Strictly speaking, there are no
-keywords, and few special symbols.
-* Menu:
-
-* Subsection B-1-1::	Comments
-* Subsection B-1-2::	Special characters
-* Subsection B-1-3::	Identifiers
-* Subsection B-1-4::	Command identifiers
-* Subsection B-1-5::	Variable references
-* Subsection B-1-6::	String constants
-
-
-Node: Subsection B-1-1,	Next: Subsection B-1-2,	Prev: Section B-1,	Up: Section B-1
-  
-
-B.1.1   Comments
-================
-  
-  Comments begin with the `#' character and continue to the end-of-line.
-Text within a comment is unrestricted.
-  Examples.
-<<
-     # This is a comment
-     # This $comment contains a quote " character
->>
-  
-
-Node: Subsection B-1-2,	Next: Subsection B-1-3,	Prev: Subsection B-1-1,	Up: Section B-1
-  
-
-B.1.2   Special characters
-==========================
-  
-  The following characters are special in some contexts.
-<<
-     $    (    )    ,    .   =    :    "    '    `    \    #
->>
-  
-  
-  
- - `$' is used to denote a variable reference, or function application. 
- - Parentheses `)', `(' are argument deliminters. 
- - The command `,' is an argument separator. 
- - The period symbol `.' is a name separator. 
- - The equality symbol `=' denotes a definition. 
- - The colon symbol `:' is used to denote rules, and (optionally) to
-   indicate  that an expression is followed by an indented body. 
- - The quotation symbols `"' and `'' delimit character strings. 
- - The symbol `#' is the first character of a constant. 
- - The escape symbol `\' is special only when followed by another
-   special  character. In this case, the special status of the second
-   character is removed,  and the sequence denotes the second character.
-   Otherwise, the `\' is not special.
- Examples:
- 
-      
-    - `\$': the `$' character (as a normal character).  
-    - `\#': the `#' character (as a normal character).  
-    - `\\': the `\' character (as a normal character).  
-    - `c\:\Windows\moo\#boo': the string `c:\Windows\moo#boo'.  
-  
-  
-
-Node: Subsection B-1-3,	Next: Subsection B-1-4,	Prev: Subsection B-1-2,	Up: Section B-1
-  
-
-B.1.3   Identifiers
-===================
-  
-  Identifiers (variable names) are drawn from the ASCII alphanumeric
-characters as well as `_', `-', `~', `@'. Case is significant; the
-following identifiers are distinct: `FOO', `Foo', `foo'. The identifier
-may begin with any of the valid characters, including digits.
-  Using `egrep' notation, the regular expression for identifiers is
-defined as follows.
-<<
-      identifier ::= [-@~_A-Za-z0-9]+
->>
-  
-  The following are legal identifiers.
-<<
-      Xyz    hello_world    seventy@nine
-      79-32  Gnus~Gnats     CFLAGS
->>
-  
-  The following are not legal identifiers.
-<<
-      x+y    hello&world
->>
-  

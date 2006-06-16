@@ -339,7 +339,7 @@ write a complicated configuration like this! In this case, the
 scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
 
-Node: Subsection 6-13-3,	Next: Chapter 7,	Prev: Subsection 6-13-2,	Up: Section 6-13
+Node: Subsection 6-13-3,	Next: Section 6-14,	Prev: Subsection 6-13-2,	Up: Section 6-13
   
 
 6.13.3   Scoping for .PHONY targets
@@ -383,9 +383,83 @@ project root.
       .SUBDIRS: src lib clib
 >>
   
+
+Node: Section 6-14,	Next: Chapter 7,	Prev: Section 6-13,	Up: Chapter 6
+  
+
+6.14   Pathnames in rules
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  In rules, the targets and dependencies are first translated to file
+values (as in the `file' function 8.1.1*Note Subsection 8-1-1::). They are
+then translated to strings for the command line. This can cause some
+unexpected behavior. In the following example, the `absname' function
+8.1.9*Note Subsection 8-1-9:: is the absolute pathname for the file `a',
+but the rule still prints the relative pathname.
+<<
+      .PHONY: demo
+      demo: $(absname a)
+          echo $<
+  
+      # omake demo
+      a
+>>
+  
+  There is arguably a good reason for this. On Win32 systems, the `/'
+character is viewed as an ``option specifier.'' The pathname separator
+is the `\' character. OMake translates the filenames automatically so
+that things work as expected on both systems.
+<<
+     demo: a/b
+         echo $<
+  
+     # omake demo (on a Unix system)
+     a/b
+     # omake demo (on a Win32 system)
+     a\b
+>>
+  
+  Sometimes you may wish that target strings to be passed literally to
+the commands in the rule. One way to do this is to specify them
+literally.
+<<
+      SRC = a/b $(absname c/d)
+      demo: $(SRC)
+          echo $(SRC)
+  
+      # omake demo (on a Win32 system)
+      a/b c:\...\c\d
+>>
+  
+  Alternately, you might wish that filenames be automatically expanded
+to absolute pathnames. For example, this might be useful when parsing
+the OMake output to look for errors. For this, you can use the
+`--absname' A.1*Note Section A-1:: option. If you call `omake'
+with the `--absname' option, all filenames will be exapnded to absolute
+names.
+<<
+      # omake --absname demo (on a Unix system)
+      /home/.../a/b /home/.../c/d
+>>
+  
+  Alternately, the `--absname' option is scoped. If you want to use it
+for only a few rules, you can use the `OMakeFlags' function
+11.1.1*Note Subsection 11-1-1:: to control how it is applied.
+<<
+     section
+        OMakeFlags(--absname)
+        demo: a
+            echo $<
+  
+     # omake demo
+     /home/.../a
+>>
+  
+  N.B. The `--absname' option is currently an experimental feature.
    
 
-Node: Chapter 7,	Next: Section 7-1,	Prev: Section 6-13,	Up: Top
+Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
   
 
 Chapter 7     Base library
@@ -1716,123 +1790,3 @@ Node: Section 7-4,	Next: Subsection 7-4-1,	Prev: Section 7-3,	Up: Chapter 7
 * Subsection 7-4-3::	Basic arithmetic
 * Subsection 7-4-4::	Comparisons
 
-
-Node: Subsection 7-4-1,	Next: Subsection 7-4-2,	Prev: Section 7-4,	Up: Section 7-4
-  
-
-7.4.1   int
-===========
-
-  The `int' function can be used to create integers. It returns an `Int'
-object.
-  `$(int 17)'.
-
-Node: Subsection 7-4-2,	Next: Subsection 7-4-3,	Prev: Subsection 7-4-1,	Up: Section 7-4
-  
-
-7.4.2   float
-=============
- The `float' function
-can be used to create floating-point numbers. It returns a `Float'
-object.
-  `$(float 3.1415926)'. 
-
-Node: Subsection 7-4-3,	Next: Subsection 7-4-4,	Prev: Subsection 7-4-2,	Up: Section 7-4
-  
-
-7.4.3   Basic arithmetic
-========================
-   
-
-
-
-
-
-
-
-
-
-
-
-
-  The following functions can be used to perform basic arithmetic.
-  
-  
- - `$(neg <numbers>)': arithmetic inverse 
- - `$(add <numbers>)': addition. 
- - `$(sub <numbers>)': subtraction. 
- - `$(mul <numbers>)': multiplication. 
- - `$(div <numbers>)': division. 
- - `$(mod <numbers>)': remainder. 
- - `$(lnot <numbers>)': bitwise inverse. 
- - `$(land <numbers>)': bitwise and. 
- - `$(lor <numbers>)': bitwise or. 
- - `$(lxor <numbers>)': bitwise exclusive-or. 
- - `$(lsl <numbers>)': logical shift left. 
- - `$(lsr <numbers>)': logical shift right. 
- - `$(asr <numbers>)': arithmetic shift right. 
-   
-
-Node: Subsection 7-4-4,	Next: Section 7-5,	Prev: Subsection 7-4-3,	Up: Section 7-4
-  
-
-7.4.4   Comparisons
-===================
-   
-
-
-
-
-
-
-
-
-  The following functions can be used to perform numerical comparisons.
-  
-  
- - `$(lt <numbers>)': less then. 
- - `$(le <numbers>)': no more than. 
- - `$(eq <numbers>)': equal. 
- - `$(ge <numbers>)': no less than. 
- - `$(gt <numbers>)': greater than. 
- - `$(ult <numbers>)': unsigned less than. 
- - `$(ule <numbers>)': unsigned greater than. 
- - `$(uge <numbers>)': unsigned greater than or equal. 
- - `$(ugt <numbers>)': unsigned greater than. 
-   
-
-Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
-  
-
-7.5   First-class functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 7-5-1::	fun
-* Subsection 7-5-2::	apply
-* Subsection 7-5-3::	applya
-
-
-Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
-  
-
-7.5.1   fun
-===========
-
-  The `fun' form introduces anonymous functions.
-  `$(fun <v1>, ..., <vn>, <body>)'
-  The last argument is the body of the function. The other arguments are
-the parameter names.
-  The three following definitions are equivalent.
-<<
-      F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
-  
-      F = $(fun X, Y, $(addsuffix $(Y), $(X)))
-  
-      F =
-         fun(X, Y)
-            value $(addsuffix $(Y), $(X))
->>
