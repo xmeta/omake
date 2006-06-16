@@ -224,7 +224,7 @@ let or_fun venv pos loc args =
          val_false
 
 (*
- * Conditional.
+ * Conditionals.
  * The values are computed lazily.
  *
  * \begin{doc}
@@ -1367,6 +1367,86 @@ let string venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{string-escaped}
+ *
+ * \begin{verbatim}
+ *    $(string-escaped sequence) : String Array
+ *       sequence : Array
+ * \end{verbatim}
+ *
+ * The \verb+string-escaped+ function converts each element of its
+ * argument to a string, escaping characters that are special to omake.
+ * The special characters include \verb+:)(,+ and shitespace.
+ *
+ * \begin{verbatim}
+ *     string-escaped($"a b" $"y:z")
+ *     a\ b y\:z
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let is_escape c =
+   match c with
+      ' '
+    | '\t'
+    | '\n'
+    | ':'
+    | ')'
+    | '('
+    | ',' ->
+         true
+    | _ ->
+         false
+
+let escape_length s =
+   let len = String.length s in
+   let rec collect amount i =
+      if i = len then
+         amount
+      else if is_escape s.[i] then
+         collect (amount + 2) (i + 1)
+      else
+         collect (amount + 1) (i + 1)
+   in
+      collect 0 0
+
+let copy_string esc_length src_length s =
+   let esc_string = String.create esc_length in
+   let rec copy esc_index src_index =
+      if src_index <> src_length then
+         let c = s.[src_index] in
+            if is_escape c then begin
+               esc_string.[esc_index] <- '\\';
+               esc_string.[esc_index + 1] <- c;
+               copy (esc_index + 2) (src_index + 1)
+            end
+            else begin
+               esc_string.[esc_index] <- c;
+               copy (esc_index + 1) (src_index + 1)
+            end
+   in
+      copy 0 0;
+      esc_string
+
+let single_escaped s =
+   let src_length = String.length s in
+   let esc_length = escape_length s in
+      if esc_length = src_length then
+         s
+      else
+         copy_string esc_length src_length s
+
+let string_escaped venv pos loc args =
+   let pos = string_pos "string-escaped" pos in
+      match args with
+         [arg] ->
+            let args = strings_of_value venv pos arg in
+            let args = List.map (fun s -> ValData (single_escaped s)) args in
+               ValArray args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
  * \fun{quote}
  *
  * \begin{verbatim}
@@ -2377,6 +2457,7 @@ let () =
 
        (* String operations *)
        true,  "string",                string,              ArityExact 1;
+       true,  "string-escaped",        string_escaped,      ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
        true,  "quote-argv",            quote_argv,          ArityExact 1;
        true,  "html-string",           html_string,         ArityExact 1;

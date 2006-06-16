@@ -895,6 +895,88 @@ let filter_proper_targets venv pos loc args =
    filter_nodes target_is_buildable_proper venv pos loc args
 
 (*
+ * \begin{doc}
+ * \fun{find-targets-in-path}
+ * \fun{find-targets-in-path-optional}
+ *
+ * \begin{verbatim}
+ *     $(find-targets-in-path path files) : File Array
+ *     $(find-targets-in-path-optional path, files) : File Array
+ *         path : Dir Array
+ *         files : File Sequence
+ * \end{verbatim}
+ *
+ * The \verb+find-target-in-path+ function searches for targets in the
+ * search path.  For each file \verb+file+ in the file list, the path is
+ * searched sequentially for a directory \verb+dir+ such that the target
+ * \verb+dir/file+ exists.  If so, the file \verb+dir/file+ is returned.
+ *
+ * For example, suppose you are building a C project, and project
+ * contains a subdirectory \verb+src/+ containing only the files
+ * \verb+fee.c+ and \verb+foo.c+.  The following expression
+ * evaluates to the files \verb+src/fee.o+ \verb+src/foo.o+ even
+ * if the files have not already been built.
+ *
+ * \begin{verbatim}
+ *     $(find-targets-in-path lib src, fee.o foo.o)
+ *
+ *     # Evaluates to
+ *     src/fee.o src/foo.o
+ * \end{verbatim}
+ *
+ * The \verb+find-targets-in-path+
+ * function raises an exception if the file can't be found.
+ * The \verb+find-targets-in-path-optional+ function silently removes
+ * targets that can't be found.
+ *
+ * \begin{verbatim}
+ *     $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+ *
+ *     # Evaluates to
+ *     src/fee.o src/foo.o
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let rec search_target_in_path_aux venv cache path name =
+   match path with
+      dir :: path ->
+         let node = venv_intern_cd venv PhonyOK dir name in
+            if target_is_buildable cache venv node then
+               ValNode node
+            else
+               search_target_in_path_aux venv cache path name
+    | [] ->
+         raise Not_found
+
+let search_target_path_aux fail venv pos loc args =
+   let pos = string_pos "search-target-path" pos in
+      match args with
+         [dirs; arg] ->
+            (* List the path *)
+            let path = values_of_value venv pos dirs in
+            let path = Omake_eval.path_of_values venv pos path "." in
+            let path = List.rev (List.fold_left (fun path (_, entry) -> List.rev_append entry path) [] path) in
+            let cache = venv_cache venv in
+
+            (* Find each file *)
+            let files = strings_of_value venv pos arg in
+            let files =
+               List.fold_left (fun files name ->
+                     try search_target_in_path_aux venv cache path name :: files with
+                        Not_found ->
+                           if fail then
+                              raise (OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
+                           else
+                              files) [] files
+            in
+               concat_array (List.rev files)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let find_targets_in_path = search_target_path_aux true
+let find_targets_in_path_optional = search_target_path_aux false
+
+(*
  * Get the file from a string.
  *
  * \begin{doc}
@@ -2519,6 +2601,8 @@ let () =
        true, "digest-in-path",          digest_in_path,           ArityExact 2;
        true, "digest-in-path-optional", digest_in_path_optional,  ArityExact 2;
        true, "rehash",                  rehash,                   ArityExact 0;
+       true, "find-targets-in-path",     find_targets_in_path,      ArityExact 2;
+       true, "find-targets-in-path-optional", find_targets_in_path_optional, ArityExact 2;
 
        true, "vmount",                  vmount,                   ArityRange (2, 3);
        true, "add-project-directories", add_project_directories,  ArityExact 1;
