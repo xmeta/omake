@@ -2845,14 +2845,34 @@ let venv_explicit_exists venv target =
    venv_explicit_flush venv;
    NodeSet.mem venv.venv_inner.venv_globals.venv_explicit_targets target
 
-let multiple_rules_err pos target buf =
-   fprintf buf "%a@ @[<hv3>Previous rule:@ %a@]" (**)
-      pp_print_exn (StringNodeError ("multiple ways to build", target)) pp_print_pos pos
+let multiple_add_error errors target loc1 loc2 =
+   let table = !errors in
+   let table =
+      if NodeMTable.mem table target then
+         table
+      else
+         NodeMTable.add table target loc1
+   in
+      errors := NodeMTable.add table target loc2
+
+let multiple_print_error errors buf =
+   fprintf buf "@[<v 3>Multiple ways to build the following targets";
+   NodeMTable.iter_all (fun target locs ->
+      let locs = List.sort Lm_location.compare locs in
+         fprintf buf "@ @[<v 3>%a:" pp_print_node target;
+         List.iter (fun loc -> fprintf buf "@ %a" pp_print_location loc) locs;
+         fprintf buf "@]") errors;
+   fprintf buf "@]"
+
+let raise_multiple_error errors =
+   let _, loc = NodeMTable.choose errors in
+      raise (OmakeException (loc_exp_pos loc, LazyError (multiple_print_error errors)))
 
 (*
  * Get the explicit rules.  Build a table indexed by target.
  *)
 let venv_explicit_rules venv =
+   let errors = ref NodeMTable.empty in
    let add_target table target erule =
       NodeTable.filter_add table target (fun entry ->
             match entry with
@@ -2869,9 +2889,10 @@ let venv_explicit_rules venv =
                             && (commands_are_trivial erule.rule_commands || commands_are_trivial erule'.rule_commands))
                      then
                         { erule with rule_commands = erule'.rule_commands @ erule.rule_commands }
-                     else
-                        raise (OmakeException (loc_exp_pos erule.rule_loc, (**)
-                           LazyError (multiple_rules_err (loc_exp_pos erule'.rule_loc) target)))
+                     else begin
+                        multiple_add_error errors target erule'.rule_loc erule.rule_loc;
+                        erule'
+                     end
              | None ->
                   erule)
    in
@@ -2889,6 +2910,7 @@ let venv_explicit_rules venv =
         explicit_directories  = venv_directories venv
       }
    in
+   let rules =
       venv_explicit_flush venv;
       List.fold_left (fun info erule ->
             let { explicit_targets          = target_table;
@@ -2907,6 +2929,11 @@ let venv_explicit_rules venv =
                { info with explicit_targets  = target_table;
                            explicit_deps     = dep_table
                }) info (List.rev venv.venv_inner.venv_globals.venv_explicit_rules)
+   in
+      if NodeMTable.is_empty !errors then
+         rules
+      else
+         raise_multiple_error !errors
 
 (*
  * Find all the explicit dependencies listed through null

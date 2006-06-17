@@ -299,6 +299,7 @@ end
 
 module NodeSet = Lm_set.LmMake (NodeCompare)
 module NodeTable = Lm_map.LmMake (NodeCompare)
+module NodeMTable = Lm_map.LmMakeList (NodeCompare)
 
 (*
  * Hashing.

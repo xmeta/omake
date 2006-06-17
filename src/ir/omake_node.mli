@@ -38,6 +38,7 @@ module Node : NodeSig with type dir = Dir.t
 module NodeCompare : CompareSig with type t = Node.t
 module NodeSet : Lm_set_sig.LmSet with type elt = Node.t
 module NodeTable : Lm_map_sig.LmMap with type key = Node.t
+module NodeMTable : Lm_map_sig.LmMapList with type key = Node.t
 
 module Mount : MountSig with type dir = Dir.t and type node = Node.t and type t = Node.mount;;
 
