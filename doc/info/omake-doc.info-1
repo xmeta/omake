@@ -18,7 +18,7 @@ Contents
     
 * Menu:
 
-* Chapter 1::	Description
+* Chapter 1::	Guide
 * Chapter 2::	OMake quickstart guide
 * Chapter 3::	Additional build examples
 * Chapter 4::	OMake concepts and syntax
@@ -90,71 +90,12 @@ Node: Notes 0
 
 (1) omake-doc.html
 
-Node: Chapter 1,	Next: Section 1-1,	Prev: Top,	Up: Top
+Node: Chapter 1,	Next: Chapter 2,	Prev: Top,	Up: Top
   
 
-Chapter 1     Description
-*************************
-    
-  omake is designed for building projects that might have source files
-in several directories. Projects are normally specified using an
-OMakefile in each of the project directories, and an OMakeroot file in
-the root directory of the project. The OMakeroot file specifies general
-build rules, and the OMakefiles specify the build parameters specific to
-each of the subdirectories. When omake runs, it walks the configuration
-tree, evaluating rules from all of the OMakefiles. The project is then
-built from the entire collection of build rules.
-* Menu:
-
-* Section 1-1::	Automatic dependency analysis
-* Section 1-2::	Content-based dependency analysis
-* Section 1-3::	Guide
-
-
-Node: Section 1-1,	Next: Section 1-2,	Prev: Chapter 1,	Up: Chapter 1
-  
-
-1.1   Automatic dependency analysis
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  Dependency analysis has always been problematic with the make(1)
-program. omake addresses this by adding the `.SCANNER' target, which
-specifies a command to produce dependencies. For example, the following
-rule
-<<
-      .SCANNER: %.o: %.c
-          $(CC) $(INCLUDE) -MM $<
->>
-  
-  is the standard way to generate dependencies for `.c' files. omake
-will automatically run the scanner when it needs to determine
-dependencies for a file.
-
-Node: Section 1-2,	Next: Section 1-3,	Prev: Section 1-1,	Up: Chapter 1
-  
-
-1.2   Content-based dependency analysis
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  Dependency analysis in omake uses MD5 digests to determine whether
-files have changed. After each run, omake stores the dependency
-information in a file called .omakedb in the project root directory.
-When a rule is considered for execution, the command is not executed if
-the target, dependencies, and command sequence are unchanged since the
-last run of omake. As an optimization, omake does not recompute the
-digest for a file that has an unchanged modification time, size, and
-inode number.
-  See the following manual pages for more information.
-
-Node: Section 1-3,	Next: Chapter 2,	Prev: Section 1-2,	Up: Chapter 1
-  
-
-1.3   Guide
-*=*=*=*=*=*
-
-   
+Chapter 1     Guide
+*******************
+     
   If you are new to OMake, you the omake-quickstart
 (1*Note Notes 1::) presents a short introduction that describes how
 to set up a project. The omake-build-examples (2*Note Notes 1::)
@@ -170,8 +111,8 @@ gives larger examples of build projects, and omake-language-examples
    including a description of objects, expressions, and values. 
  Language examples 5*Note Chapter 5::  Advanced
    language examples. 
- Build rules 6*Note Chapter 6::  Using omake rules to build
-   program. 
+ Build rules 6*Note Chapter 6::  Defining and using rules to
+   build programs. 
  Base builtin functions 7*Note Chapter 7::  Functions and
    variables in the core standard library. 
  System functions 8*Note Chapter 8::  Functions on files,
@@ -180,8 +121,9 @@ gives larger examples of build projects, and omake-language-examples
    command-line interpretation. 
  The standard objects Pervasives.om 10*Note Chapter 10:: 
    Pervasives defines the built-in objects. 
- Standard build functions 11*Note Chapter 11::  The standard
-   build library. 
+ Standard build definitions 11*Note Chapter 11::  The build
+   specifications for programming languages in the OMake standard
+   library. 
  The interactive command interpreter 12*Note Chapter 12::  The osh
    command-line interpreter. 
  Appendices  
@@ -218,21 +160,77 @@ Chapter 2     OMake quickstart guide
     
 * Menu:
 
-* Section 2-1::	For users already familiar with make
-* Section 2-2::	Building a small C program
-* Section 2-3::	Larger projects
-* Section 2-4::	Subdirectories
-* Section 2-5::	Other things to consider
-* Section 2-6::	Building OCaml programs
-* Section 2-7::	The OMakefile and OMakeroot files
-* Section 2-8::	Multiple version support
-* Section 2-9::	Notes
+* Section 2-1::	Description
+* Section 2-2::	For users already familiar with make
+* Section 2-3::	Building a small C program
+* Section 2-4::	Larger projects
+* Section 2-5::	Subdirectories
+* Section 2-6::	Other things to consider
+* Section 2-7::	Building OCaml programs
+* Section 2-8::	The OMakefile and OMakeroot files
+* Section 2-9::	Multiple version support
+* Section 2-10::	Notes
 
 
-Node: Section 2-1,	Next: Section 2-2,	Prev: Chapter 2,	Up: Chapter 2
+Node: Section 2-1,	Next: Subsection 2-1-1,	Prev: Chapter 2,	Up: Chapter 2
   
 
-2.1   For users already familiar with make
+2.1   Description
+*=*=*=*=*=*=*=*=*
+
+  
+  omake is designed for building projects that might have source files
+in several directories. Projects are normally specified using an
+OMakefile in each of the project directories, and an OMakeroot file in
+the root directory of the project. The OMakeroot file specifies general
+build rules, and the OMakefiles specify the build parameters specific to
+each of the subdirectories. When omake runs, it walks the configuration
+tree, evaluating rules from all of the OMakefiles. The project is then
+built from the entire collection of build rules.
+* Menu:
+
+* Subsection 2-1-1::	Automatic dependency analysis
+* Subsection 2-1-2::	Content-based dependency analysis
+
+
+Node: Subsection 2-1-1,	Next: Subsection 2-1-2,	Prev: Section 2-1,	Up: Section 2-1
+  
+
+2.1.1   Automatic dependency analysis
+=====================================
+  
+  Dependency analysis has always been problematic with the make(1)
+program. omake addresses this by adding the `.SCANNER' target, which
+specifies a command to produce dependencies. For example, the following
+rule
+<<
+      .SCANNER: %.o: %.c
+          $(CC) $(INCLUDE) -MM $<
+>>
+  
+  is the standard way to generate dependencies for `.c' files. omake
+will automatically run the scanner when it needs to determine
+dependencies for a file.
+
+Node: Subsection 2-1-2,	Next: Section 2-2,	Prev: Subsection 2-1-1,	Up: Section 2-1
+  
+
+2.1.2   Content-based dependency analysis
+=========================================
+  
+  Dependency analysis in omake uses MD5 digests to determine whether
+files have changed. After each run, omake stores the dependency
+information in a file called .omakedb in the project root directory.
+When a rule is considered for execution, the command is not executed if
+the target, dependencies, and command sequence are unchanged since the
+last run of omake. As an optimization, omake does not recompute the
+digest for a file that has an unchanged modification time, size, and
+inode number.
+
+Node: Section 2-2,	Next: Section 2-3,	Prev: Section 2-1,	Up: Chapter 2
+  
+
+2.2   For users already familiar with make
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -254,10 +252,10 @@ differences to keep in mind when using omake.
    6.10*Note Section 6-10::.  target. 
   
 
-Node: Section 2-2,	Next: Section 2-3,	Prev: Section 2-1,	Up: Chapter 2
+Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
   
 
-2.2   Building a small C program
+2.3   Building a small C program
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -357,10 +355,10 @@ as follows.
 >>
   
 
-Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
+Node: Section 2-4,	Next: Section 2-5,	Prev: Section 2-3,	Up: Chapter 2
   
 
-2.3   Larger projects
+2.4   Larger projects
 *=*=*=*=*=*=*=*=*=*=*
 
   
@@ -385,10 +383,10 @@ Here is an example of an OMakefile with two libraries.
 >>
   
 
-Node: Section 2-4,	Next: Section 2-5,	Prev: Section 2-3,	Up: Chapter 2
+Node: Section 2-5,	Next: Section 2-6,	Prev: Section 2-4,	Up: Chapter 2
   
 
-2.4   Subdirectories
+2.5   Subdirectories
 *=*=*=*=*=*=*=*=*=*=
 
   
@@ -588,10 +586,10 @@ follows.
 string `.. . ../bar ../win32'. In the `bar' directory, it would be `..
 ../foo . ../win32'. In the root directory it would be `. foo bar win32'.
 
-Node: Section 2-5,	Next: Section 2-6,	Prev: Section 2-4,	Up: Chapter 2
+Node: Section 2-6,	Next: Section 2-7,	Prev: Section 2-5,	Up: Chapter 2
   
 
-2.5   Other things to consider
+2.6   Other things to consider
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -600,10 +598,10 @@ Node: Section 2-5,	Next: Section 2-6,	Prev: Section 2-4,	Up: Chapter 2
 foo/OMakefile would then contain its own `.SUBDIRS' target, and each of
 its subdirectories would contain its own `OMakefile'.
 
-Node: Section 2-6,	Next: Section 2-7,	Prev: Section 2-5,	Up: Chapter 2
+Node: Section 2-7,	Next: Section 2-8,	Prev: Section 2-6,	Up: Chapter 2
   
 
-2.6   Building OCaml programs
+2.7   Building OCaml programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -682,10 +680,10 @@ and we need to use the standard OCaml `Unix' module.
 >>
   
 
-Node: Section 2-7,	Next: Section 2-8,	Prev: Section 2-6,	Up: Chapter 2
+Node: Section 2-8,	Next: Section 2-9,	Prev: Section 2-7,	Up: Chapter 2
   
 
-2.7   The OMakefile and OMakeroot files
+2.8   The OMakefile and OMakeroot files
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
      
@@ -725,10 +723,10 @@ project (so the `OMakefile' should be read).
 project-independent. Any project-specific configuration should be placed
 in the `OMakefiles' of the project.
 
-Node: Section 2-8,	Next: Section 2-9,	Prev: Section 2-7,	Up: Chapter 2
+Node: Section 2-9,	Next: Section 2-10,	Prev: Section 2-8,	Up: Chapter 2
   
 
-2.8   Multiple version support
+2.9   Multiple version support
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -772,11 +770,11 @@ from the `src' directory if it exists. For example, when the file
 written as if referring to files in the `src/' directory---they need not
 be aware of mounting. However, there are a few points to keep in mind.
 
-Node: Section 2-9,	Next: Chapter 3,	Prev: Section 2-8,	Up: Chapter 2
+Node: Section 2-10,	Next: Chapter 3,	Prev: Section 2-9,	Up: Chapter 2
   
 
-2.9   Notes
-*=*=*=*=*=*
+2.10   Notes
+*=*=*=*=*=*=
 
   
   

@@ -1,5 +1,84 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-8-25,	Next: Subsection 8-8-26,	Prev: Subsection 8-8-24,	Up: Section 8-8
+  
+
+8.8.25   getprotobyname
+=======================
+
+<<
+     $(getprotobyname name...) : Protocol...
+        name : Int or String
+     raises RuntimeException
+>>
+  
+  The `getprotobyname' function returns a `Protocol' object for the
+specified protocol. The `name' may be a protocol name, or a protocol
+number. 
+
+Node: Subsection 8-8-26,	Next: Subsection 8-8-27,	Prev: Subsection 8-8-25,	Up: Section 8-8
+  
+
+8.8.26   Service
+================
+
+  The `Service' object represents a network service. It has the
+following fields.
+  
+  
+ name  `String': the name of the service. 
+ aliases  `String Array': aliases for the service. 
+ port  `Int': the port number of the service. 
+ proto  `Protocol': the protocol for the service. 
+  
+
+Node: Subsection 8-8-27,	Next: Subsection 8-8-28,	Prev: Subsection 8-8-26,	Up: Section 8-8
+  
+
+8.8.27   getservbyname
+======================
+
+<<
+     $(getservbyname service...) : Service...
+        service : String or Int
+     raises RuntimeException
+>>
+  
+  The `getservbyname' function gets the information for a network
+service. The `service' may be specified as a service name or number. 
+
+Node: Subsection 8-8-28,	Next: Subsection 8-8-29,	Prev: Subsection 8-8-27,	Up: Section 8-8
+  
+
+8.8.28   socket
+===============
+
+<<
+     $(socket domain, type, protocol) : Channel
+        domain : String
+        type : String
+        protocol : String
+     raises RuntimeException
+>>
+  
+  The `socket' function creates an unbound socket.
+  The possible values for the arguments are as follows.
+  The `domain' may have the following values. 
+  
+ PF_UNIX or unix  Unix domain, available only on Unix systems. 
+ PF_INET or inet  Internet domain, IPv4. 
+ PF_INET6 or inet6  Internet domain, IPv6. 
+  
+  The `type' may have the following values. 
+  
+ SOCK_STREAM or stream  Stream socket. 
+ SOCK_DGRAM or dgram  Datagram socket. 
+ SOCK_RAW or raw  Raw socket. 
+ SOCK_SEQPACKET or seqpacket  Sequenced packets socket 
+  
+  The `protocol' is an `Int' or `String' that specifies a protocol in
+the protocols database. 
+
 Node: Subsection 8-8-29,	Next: Subsection 8-8-30,	Prev: Subsection 8-8-28,	Up: Section 8-8
   
 
@@ -1662,19 +1741,3 @@ single array containing an argument list.
  
   
     
-
-Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-1,	Up: Top
-  
-
-Chapter 11     Build functions
-******************************
-     
-* Menu:
-
-* Section 11-1::	Options and versioning
-* Section 11-2::	The OMakeroot file
-* Section 11-3::	Building C programs
-* Section 11-4::	Building OCaml programs
-* Section 11-5::	Building LaTeX programs
-* Section 11-6::	Examining the dependency graph
-

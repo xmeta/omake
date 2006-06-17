@@ -5,6 +5,38 @@
 \label{chapter:quickstart}
 \cutname{omake-quickstart.html}
 
+\section{Description}
+
+\Prog{omake} is designed for building projects that might have source files in several directories.
+Projects are normally specified using an \File{OMakefile} in each of the project directories, and an
+\File{OMakeroot} file in the root directory of the project.  The \File{OMakeroot} file specifies
+general build rules, and the \File{OMakefile}s specify the build parameters specific to each of the
+subdirectories.  When \Prog{omake} runs, it walks the configuration tree, evaluating rules from all
+of the \File{OMakefile}s.  The project is then built from the entire collection of build rules.
+
+\subsection{Automatic dependency analysis}
+
+Dependency analysis has always been problematic with the \Cmd{make}{1} program.  \Prog{omake}
+addresses this by adding the \verb+.SCANNER+ target, which specifies a command to produce
+dependencies.  For example, the following rule
+
+\begin{verbatim}
+    .SCANNER: %.o: %.c
+        $(CC) $(INCLUDE) -MM $<
+\end{verbatim}
+
+is the standard way to generate dependencies for \verb+.c+ files.  \Prog{omake} will automatically
+run the scanner when it needs to determine dependencies for a file.
+
+\subsection{Content-based dependency analysis}
+
+Dependency analysis in omake uses MD5 digests to determine whether files have changed.  After each
+run, \Prog{omake} stores the dependency information in a file called \File{.omakedb} in the project
+root directory.  When a rule is considered for execution, the command is not executed if the target,
+dependencies, and command sequence are unchanged since the last run of \Prog{omake}.  As an
+optimization, \Prog{omake} does not recompute the digest for a file that has an unchanged
+modification time, size, and inode number.
+
 \section{For users already familiar with make}
 
 For users already familiar with the \Cmd{make}{1} command, here is a list of

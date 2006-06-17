@@ -35,13 +35,13 @@ Additional language examples
 </TR></TABLE>
 
 <H1 CLASS="chapter"><A NAME="htoc51">Chapter&nbsp;5</A>&nbsp;&nbsp;Additional language examples</H1><UL>
-<LI><A HREF="omake-language-examples.html#toc38">Strings and arrays</A>
-<LI><A HREF="omake-language-examples.html#toc39">Files and directories</A>
-<LI><A HREF="omake-language-examples.html#toc40">Iteration, mapping, and foreach</A>
-<LI><A HREF="omake-language-examples.html#toc41">Lazy expressions</A>
-<LI><A HREF="omake-language-examples.html#toc42">Scoping and exports</A>
-<LI><A HREF="omake-language-examples.html#toc43">Shell aliases</A>
-<LI><A HREF="omake-language-examples.html#toc44">Input/output redirection on the cheap</A>
+<LI><A HREF="omake-language-examples.html#toc36">Strings and arrays</A>
+<LI><A HREF="omake-language-examples.html#toc37">Files and directories</A>
+<LI><A HREF="omake-language-examples.html#toc38">Iteration, mapping, and foreach</A>
+<LI><A HREF="omake-language-examples.html#toc39">Lazy expressions</A>
+<LI><A HREF="omake-language-examples.html#toc40">Scoping and exports</A>
+<LI><A HREF="omake-language-examples.html#toc41">Shell aliases</A>
+<LI><A HREF="omake-language-examples.html#toc42">Input/output redirection on the cheap</A>
 </UL>
 
 <A NAME="chapter:language-examples"></A>
@@ -53,7 +53,7 @@ system are the topic of the Chapter&nbsp;<A HREF="omake-build-examples.html#chap
 For most of these examples, we'll use the <CODE>osh</CODE> command interpreter. For simplicity, the
 values printed by <CODE>osh</CODE> have been abbreviated.<BR>
 <BR>
-<A NAME="toc38"></A>
+<A NAME="toc36"></A>
 <H2 CLASS="section"><A NAME="htoc52">5.1</A>&nbsp;&nbsp;Strings and arrays</H2>
 The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
 values separated by whitespace; the sequences are split on demand by functions that expect arrays.
@@ -84,7 +84,7 @@ useful, especially for filenames that contain whitespace.
     osh&gt; ls -Q
     "fee"  "fi"  "foo"  "fum"  "Hello world"
 </PRE>
-<A NAME="toc39"></A>
+<A NAME="toc37"></A>
 <H2 CLASS="section"><A NAME="htoc53">5.2</A>&nbsp;&nbsp;Files and directories</H2>
 OMake projects usually span multiple directories, and different parts of the project execute
 commands in different directories. There is a need to define a location-independent name for a file
@@ -116,7 +116,7 @@ file.
     BIN  = $(dir bin)
     ...
 </PRE>
-<A NAME="toc40"></A>
+<A NAME="toc38"></A>
 <H2 CLASS="section"><A NAME="htoc54">5.3</A>&nbsp;&nbsp;Iteration, mapping, and foreach</H2>
 Most builtin functions operate transparently on arrays.
 <PRE CLASS="verbatim">
@@ -180,7 +180,7 @@ properties of function abstraction give us the usual benefits. The code is less 
 there is a single location (the <CODE>my-special-rule</CODE> function) that defines the build rule.
 Later, if we want to modify/update the rule, we need do so in only one location.<BR>
 <BR>
-<A NAME="toc41"></A>
+<A NAME="toc39"></A>
 <H2 CLASS="section"><A NAME="htoc55">5.4</A>&nbsp;&nbsp;Lazy expressions</H2>
 <A NAME="section:lazy"></A>
 Lazy expressions are expressions that are not evaluated until their result is needed. Some people,
@@ -242,7 +242,7 @@ could equivalently define <CODE>PREFIXED_INCLUDES</CODE> as a function with zero
     PREFIXED_INCLUDES() =
         addprefix(-I, $(INCLUDES))
 </PRE>
-<A NAME="toc42"></A>
+<A NAME="toc40"></A>
 <H2 CLASS="section"><A NAME="htoc56">5.5</A>&nbsp;&nbsp;Scoping and exports</H2>
 The OMake language is functional (apart from IO and shell commands). This comes in two parts:
 functions are first-class, and variables are immutable (there is no assignment operator). The
@@ -305,7 +305,7 @@ A <CODE>while</CODE> loop is another form of loop, with an auto-export.
     osh&gt;println($(total))
     45
 </PRE>
-<A NAME="toc43"></A>
+<A NAME="toc41"></A>
 <H2 CLASS="section"><A NAME="htoc57">5.6</A>&nbsp;&nbsp;Shell aliases</H2>
 Sometimes you may want to define an <EM>alias</EM>, an OMake command that masquerades as a real shell
 command. You can do this by adding your function as a method to the <CODE>Shell</CODE> object.<BR>
@@ -337,7 +337,7 @@ To add it as an alias, add the method (using += to preserve the existing entries
 A shell command is passed an array of arguments <CODE>argv</CODE>. This does <EM>not</EM> include the name
 of the alias.<BR>
 <BR>
-<A NAME="toc44"></A>
+<A NAME="toc42"></A>
 <H2 CLASS="section"><A NAME="htoc58">5.7</A>&nbsp;&nbsp;Input/output redirection on the cheap</H2>
 As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
 have already written a lot of code that prints to the standard output channel, but now you decide

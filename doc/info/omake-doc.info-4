@@ -1,5 +1,20 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 7-4,	Next: Subsection 7-4-1,	Prev: Section 7-3,	Up: Chapter 7
+  
+
+7.4   Arithmetic
+*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 7-4-1::	int
+* Subsection 7-4-2::	float
+* Subsection 7-4-3::	Basic arithmetic
+* Subsection 7-4-4::	Comparisons
+
+
 Node: Subsection 7-4-1,	Next: Subsection 7-4-2,	Prev: Section 7-4,	Up: Section 7-4
   
 
@@ -608,8 +623,10 @@ Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
 * Subsection 8-3-5::	filter-exists
 * Subsection 8-3-6::	filter-targets
 * Subsection 8-3-7::	filter-proper-targets
-* Subsection 8-3-8::	file-sort
-* Subsection 8-3-9::	file-check-sort
+* Subsection 8-3-8::	find-targets-in-path
+* Subsection 8-3-9::	find-targets-in-path-optional
+* Subsection 8-3-10::	file-sort
+* Subsection 8-3-11::	file-check-sort
 
 
 Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
@@ -718,8 +735,53 @@ is distributed with `omake'.
 Node: Subsection 8-3-8,	Next: Subsection 8-3-9,	Prev: Subsection 8-3-7,	Up: Section 8-3
   
 
-8.3.8   file-sort
-=================
+8.3.8   find-targets-in-path
+============================
+ 
+
+Node: Subsection 8-3-9,	Next: Subsection 8-3-10,	Prev: Subsection 8-3-8,	Up: Section 8-3
+  
+
+8.3.9   find-targets-in-path-optional
+=====================================
+
+<<
+      $(find-targets-in-path path files) : File Array
+      $(find-targets-in-path-optional path, files) : File Array
+          path : Dir Array
+          files : File Sequence
+>>
+  
+  The `find-target-in-path' function searches for targets in the search
+path. For each file `file' in the file list, the path is searched
+sequentially for a directory `dir' such that the target `dir/file'
+exists. If so, the file `dir/file' is returned.
+  For example, suppose you are building a C project, and project
+contains a subdirectory `src/' containing only the files `fee.c' and
+`foo.c'. The following expression evaluates to the files `src/fee.o'
+`src/foo.o' even if the files have not already been built.
+<<
+      $(find-targets-in-path lib src, fee.o foo.o)
+  
+      # Evaluates to
+      src/fee.o src/foo.o
+>>
+  
+  The `find-targets-in-path' function raises an exception if the file
+can't be found. The `find-targets-in-path-optional' function silently
+removes targets that can't be found.
+<<
+      $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+  
+      # Evaluates to
+      src/fee.o src/foo.o
+>>
+
+Node: Subsection 8-3-10,	Next: Subsection 8-3-11,	Prev: Subsection 8-3-9,	Up: Section 8-3
+  
+
+8.3.10   file-sort
+==================
 
  
 <<
@@ -780,11 +842,11 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
 
-Node: Subsection 8-3-9,	Next: Section 8-4,	Prev: Subsection 8-3-8,	Up: Section 8-3
+Node: Subsection 8-3-11,	Next: Section 8-4,	Prev: Subsection 8-3-10,	Up: Section 8-3
   
 
-8.3.9   file-check-sort
-=======================
+8.3.11   file-check-sort
+========================
 
 <<
      file-check-sort(files)
@@ -1850,82 +1912,3 @@ following fields.
  aliases  `String Array': aliases for the protocol. 
  proto  `Int': the protocol number. 
   
-
-Node: Subsection 8-8-25,	Next: Subsection 8-8-26,	Prev: Subsection 8-8-24,	Up: Section 8-8
-  
-
-8.8.25   getprotobyname
-=======================
-
-<<
-     $(getprotobyname name...) : Protocol...
-        name : Int or String
-     raises RuntimeException
->>
-  
-  The `getprotobyname' function returns a `Protocol' object for the
-specified protocol. The `name' may be a protocol name, or a protocol
-number. 
-
-Node: Subsection 8-8-26,	Next: Subsection 8-8-27,	Prev: Subsection 8-8-25,	Up: Section 8-8
-  
-
-8.8.26   Service
-================
-
-  The `Service' object represents a network service. It has the
-following fields.
-  
-  
- name  `String': the name of the service. 
- aliases  `String Array': aliases for the service. 
- port  `Int': the port number of the service. 
- proto  `Protocol': the protocol for the service. 
-  
-
-Node: Subsection 8-8-27,	Next: Subsection 8-8-28,	Prev: Subsection 8-8-26,	Up: Section 8-8
-  
-
-8.8.27   getservbyname
-======================
-
-<<
-     $(getservbyname service...) : Service...
-        service : String or Int
-     raises RuntimeException
->>
-  
-  The `getservbyname' function gets the information for a network
-service. The `service' may be specified as a service name or number. 
-
-Node: Subsection 8-8-28,	Next: Subsection 8-8-29,	Prev: Subsection 8-8-27,	Up: Section 8-8
-  
-
-8.8.28   socket
-===============
-
-<<
-     $(socket domain, type, protocol) : Channel
-        domain : String
-        type : String
-        protocol : String
-     raises RuntimeException
->>
-  
-  The `socket' function creates an unbound socket.
-  The possible values for the arguments are as follows.
-  The `domain' may have the following values. 
-  
- PF_UNIX or unix  Unix domain, available only on Unix systems. 
- PF_INET or inet  Internet domain, IPv4. 
- PF_INET6 or inet6  Internet domain, IPv6. 
-  
-  The `type' may have the following values. 
-  
- SOCK_STREAM or stream  Stream socket. 
- SOCK_DGRAM or dgram  Datagram socket. 
- SOCK_RAW or raw  Raw socket. 
- SOCK_SEQPACKET or seqpacket  Sequenced packets socket 
-  
-  The `protocol' is an `Int' or `String' that specifies a protocol in
-the protocols database. 

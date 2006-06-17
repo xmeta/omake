@@ -59,23 +59,23 @@ Contents
 ********
    
   
- - Chapter 1  Description 
-     
-    - 1.1  Automatic dependency analysis 
-    - 1.2  Content-based dependency analysis 
-    - 1.3  Guide 
-  
+ - Chapter 1  Guide 
  - Chapter 2  OMake quickstart guide 
      
-    - 2.1  For users already familiar with make 
-    - 2.2  Building a small C program 
-    - 2.3  Larger projects 
-    - 2.4  Subdirectories 
-    - 2.5  Other things to consider 
-    - 2.6  Building OCaml programs 
-    - 2.7  The OMakefile and OMakeroot files 
-    - 2.8  Multiple version support 
-    - 2.9  Notes 
+    - 2.1  Description 
+        
+       - 2.1.1  Automatic dependency analysis 
+       - 2.1.2  Content-based dependency analysis 
+     
+    - 2.2  For users already familiar with make 
+    - 2.3  Building a small C program 
+    - 2.4  Larger projects 
+    - 2.5  Subdirectories 
+    - 2.6  Other things to consider 
+    - 2.7  Building OCaml programs 
+    - 2.8  The OMakefile and OMakeroot files 
+    - 2.9  Multiple version support 
+    - 2.10  Notes 
   
  - Chapter 3  Additional build examples 
      
@@ -206,32 +206,33 @@ Contents
        - 7.3.8  subrange 
        - 7.3.9  rev 
        - 7.3.10  string 
-       - 7.3.11  quote 
-       - 7.3.12  quote-argv 
-       - 7.3.13  html-string 
-       - 7.3.14  addsuffix 
-       - 7.3.15  mapsuffix 
-       - 7.3.16  addsuffixes 
-       - 7.3.17  removeprefix 
-       - 7.3.18  removesuffix 
-       - 7.3.19  replacesuffixes 
-       - 7.3.20  addprefix 
-       - 7.3.21  mapprefix 
-       - 7.3.22  add-wrapper 
-       - 7.3.23  set 
-       - 7.3.24  mem 
-       - 7.3.25  intersection 
-       - 7.3.26  intersects 
-       - 7.3.27  set-diff 
-       - 7.3.28  filter 
-       - 7.3.29  filter-out 
-       - 7.3.30  capitalize 
-       - 7.3.31  uncapitalize 
-       - 7.3.32  uppercase 
-       - 7.3.33  lowercase 
-       - 7.3.34  system 
-       - 7.3.35  shell 
-       - 7.3.36  while 
+       - 7.3.11  string-escaped 
+       - 7.3.12  quote 
+       - 7.3.13  quote-argv 
+       - 7.3.14  html-string 
+       - 7.3.15  addsuffix 
+       - 7.3.16  mapsuffix 
+       - 7.3.17  addsuffixes 
+       - 7.3.18  removeprefix 
+       - 7.3.19  removesuffix 
+       - 7.3.20  replacesuffixes 
+       - 7.3.21  addprefix 
+       - 7.3.22  mapprefix 
+       - 7.3.23  add-wrapper 
+       - 7.3.24  set 
+       - 7.3.25  mem 
+       - 7.3.26  intersection 
+       - 7.3.27  intersects 
+       - 7.3.28  set-diff 
+       - 7.3.29  filter 
+       - 7.3.30  filter-out 
+       - 7.3.31  capitalize 
+       - 7.3.32  uncapitalize 
+       - 7.3.33  uppercase 
+       - 7.3.34  lowercase 
+       - 7.3.35  system 
+       - 7.3.36  shell 
+       - 7.3.37  while 
      
     - 7.4  Arithmetic 
         
@@ -286,8 +287,10 @@ Contents
        - 8.3.5  filter-exists 
        - 8.3.6  filter-targets 
        - 8.3.7  filter-proper-targets 
-       - 8.3.8  file-sort 
-       - 8.3.9  file-check-sort 
+       - 8.3.8  find-targets-in-path 
+       - 8.3.9  find-targets-in-path-optional 
+       - 8.3.10  file-sort 
+       - 8.3.11  file-check-sort 
      
     - 8.4  Globbing and file listings 
         
@@ -608,56 +611,9 @@ Contents
     
   
 
-Chapter 1    Description
-************************
-    
-  omake is designed for building projects that might have source files
-in several directories. Projects are normally specified using an
-OMakefile in each of the project directories, and an OMakeroot file in
-the root directory of the project. The OMakeroot file specifies general
-build rules, and the OMakefiles specify the build parameters specific to
-each of the subdirectories. When omake runs, it walks the configuration
-tree, evaluating rules from all of the OMakefiles. The project is then
-built from the entire collection of build rules.
-  
-
-1.1  Automatic dependency analysis
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  Dependency analysis has always been problematic with the make(1)
-program. omake addresses this by adding the `.SCANNER' target, which
-specifies a command to produce dependencies. For example, the following
-rule
-<<
-      .SCANNER: %.o: %.c
-          $(CC) $(INCLUDE) -MM $<
->>
-  
-  is the standard way to generate dependencies for `.c' files. omake
-will automatically run the scanner when it needs to determine
-dependencies for a file.
-  
-
-1.2  Content-based dependency analysis
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  Dependency analysis in omake uses MD5 digests to determine whether
-files have changed. After each run, omake stores the dependency
-information in a file called .omakedb in the project root directory.
-When a rule is considered for execution, the command is not executed if
-the target, dependencies, and command sequence are unchanged since the
-last run of omake. As an optimization, omake does not recompute the
-digest for a file that has an unchanged modification time, size, and
-inode number.
-  See the following manual pages for more information.
-  
-
-1.3  Guide
-*=*=*=*=*=
-
-   
+Chapter 1    Guide
+******************
+     
   If you are new to OMake, you the omake-quickstart (1) presents a short
 introduction that describes how to set up a project. The
 omake-build-examples (2) gives larger examples of build projects, and
@@ -669,7 +625,7 @@ omake-language-examples (3) presents programming examples.
  The OMake language 4  The omake language, including a description of
    objects, expressions, and values. 
  Language examples 5  Advanced language examples. 
- Build rules 6  Using omake rules to build program. 
+ Build rules 6  Defining and using rules to build programs. 
  Base builtin functions 7  Functions and variables in the core standard
    library. 
  System functions 8  Functions on files, input/output, and system
@@ -678,7 +634,8 @@ omake-language-examples (3) presents programming examples.
    interpretation. 
  The standard objects Pervasives.om 10  Pervasives defines the built-in
    objects. 
- Standard build functions 11  The standard build library. 
+ Standard build definitions 11  The build specifications for programming
+   languages in the OMake standard library. 
  The interactive command interpreter 12  The osh command-line
    interpreter. 
  Appendices  
@@ -708,7 +665,51 @@ Chapter 2    OMake quickstart guide
     
   
 
-2.1  For users already familiar with make
+2.1  Description
+*=*=*=*=*=*=*=*=
+
+  
+  omake is designed for building projects that might have source files
+in several directories. Projects are normally specified using an
+OMakefile in each of the project directories, and an OMakeroot file in
+the root directory of the project. The OMakeroot file specifies general
+build rules, and the OMakefiles specify the build parameters specific to
+each of the subdirectories. When omake runs, it walks the configuration
+tree, evaluating rules from all of the OMakefiles. The project is then
+built from the entire collection of build rules.
+  
+
+2.1.1  Automatic dependency analysis
+====================================
+  
+  Dependency analysis has always been problematic with the make(1)
+program. omake addresses this by adding the `.SCANNER' target, which
+specifies a command to produce dependencies. For example, the following
+rule
+<<
+      .SCANNER: %.o: %.c
+          $(CC) $(INCLUDE) -MM $<
+>>
+  
+  is the standard way to generate dependencies for `.c' files. omake
+will automatically run the scanner when it needs to determine
+dependencies for a file.
+  
+
+2.1.2  Content-based dependency analysis
+========================================
+  
+  Dependency analysis in omake uses MD5 digests to determine whether
+files have changed. After each run, omake stores the dependency
+information in a file called .omakedb in the project root directory.
+When a rule is considered for execution, the command is not executed if
+the target, dependencies, and command sequence are unchanged since the
+last run of omake. As an optimization, omake does not recompute the
+digest for a file that has an unchanged modification time, size, and
+inode number.
+  
+
+2.2  For users already familiar with make
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -730,7 +731,7 @@ differences to keep in mind when using omake.
   
   
 
-2.2  Building a small C program
+2.3  Building a small C program
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -831,7 +832,7 @@ as follows.
   
   
 
-2.3  Larger projects
+2.4  Larger projects
 *=*=*=*=*=*=*=*=*=*=
 
   
@@ -857,7 +858,7 @@ Here is an example of an OMakefile with two libraries.
   
   
 
-2.4  Subdirectories
+2.5  Subdirectories
 *=*=*=*=*=*=*=*=*=*
 
   
@@ -1057,7 +1058,7 @@ string `.. . ../bar ../win32'. In the `bar' directory, it would be `..
 ../foo . ../win32'. In the root directory it would be `. foo bar win32'.
   
 
-2.5  Other things to consider
+2.6  Other things to consider
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1067,7 +1068,7 @@ foo/OMakefile would then contain its own `.SUBDIRS' target, and each of
 its subdirectories would contain its own `OMakefile'.
   
 
-2.6  Building OCaml programs
+2.7  Building OCaml programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -1147,7 +1148,7 @@ and we need to use the standard OCaml `Unix' module.
   
   
 
-2.7  The OMakefile and OMakeroot files
+2.8  The OMakefile and OMakeroot files
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
      
@@ -1188,7 +1189,7 @@ project-independent. Any project-specific configuration should be placed
 in the `OMakefiles' of the project.
   
 
-2.8  Multiple version support
+2.9  Multiple version support
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
@@ -1233,8 +1234,8 @@ written as if referring to files in the `src/' directory---they need not
 be aware of mounting. However, there are a few points to keep in mind.
   
 
-2.9  Notes
-*=*=*=*=*=
+2.10  Notes
+*=*=*=*=*=*
 
   
   
@@ -2414,7 +2415,7 @@ Boolean functions), the code for the `<true-clause>' is evaluated;
 otherwise the remaining clauses are evaluated. There may be multiple
 `elseif' clauses; both the `elseif' and `else' clauses are optional.
 Note that the clauses are indented, so they introduce new scopes.
-  When viewed as a predicate, a value corresponds to the Boolean falseE,
+  When viewed as a predicate, a value corresponds to the Boolean false,
 if its string representation is the empty string, or one of the strings
 `false', `no', `nil', `undefined', or `0'. All other values are true.
   The following example illustrates a typical use of a conditional. The
@@ -4590,7 +4591,24 @@ c" a'.
 is similar to the `concat' function, but the elements are separated by
 whitespace. The result is treated as a unit; whitespace is significant.
 
-7.3.11  quote
+7.3.11  string-escaped
+======================
+  
+<<
+     $(string-escaped sequence) : String Array
+        sequence : Array
+>>
+  
+  The `string-escaped' function converts each element of its argument to
+a string, escaping characters that are special to omake. The special
+characters include `:)(,' and shitespace.
+<<
+      string-escaped($"a b" $"y:z")
+      a\ b y\:z
+>>
+  
+
+7.3.12  quote
 =============
   
 <<
@@ -4603,7 +4621,7 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-7.3.12  quote-argv
+7.3.13  quote-argv
 ==================
   
 <<
@@ -4615,7 +4633,7 @@ c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-7.3.13  html-string
+7.3.14  html-string
 ===================
   
 <<
@@ -4628,7 +4646,7 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-7.3.14  addsuffix
+7.3.15  addsuffix
 =================
   
 <<
@@ -4643,7 +4661,7 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'.
 
-7.3.15  mapsuffix
+7.3.16  mapsuffix
 =================
   
 <<
@@ -4659,7 +4677,7 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'.
 
-7.3.16  addsuffixes
+7.3.17  addsuffixes
 ===================
   
 <<
@@ -4674,7 +4692,7 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-7.3.17  removeprefix
+7.3.18  removeprefix
 ====================
   
 <<
@@ -4686,7 +4704,7 @@ to `a.c a.o b.c b.o c.o c.a'.
   The `removeprefix' function removes a prefix from each component of a
 sequence.
 
-7.3.18  removesuffix
+7.3.19  removesuffix
 ====================
   
 <<
@@ -4699,7 +4717,7 @@ of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
 
-7.3.19  replacesuffixes
+7.3.20  replacesuffixes
 =======================
   
 <<
@@ -4715,7 +4733,7 @@ the same length.
   For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
 to `a.o b.o c.z'.
 
-7.3.20  addprefix
+7.3.21  addprefix
 =================
   
 <<
@@ -4730,7 +4748,7 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'.
 
-7.3.21  mapprefix
+7.3.22  mapprefix
 =================
   
 <<
@@ -4746,7 +4764,7 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'.
 
-7.3.22  add-wrapper
+7.3.23  add-wrapper
 ===================
   
 <<
@@ -4762,7 +4780,7 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence.
 
-7.3.23  set
+7.3.24  set
 ===========
   
 <<
@@ -4774,7 +4792,7 @@ sequence.
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-7.3.24  mem
+7.3.25  mem
 ===========
   
 <<
@@ -4787,7 +4805,7 @@ duplicates.
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-7.3.25  intersection
+7.3.26  intersection
 ====================
   
 <<
@@ -4803,7 +4821,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'.
 
-7.3.26  intersects
+7.3.27  intersects
 ==================
   
 <<
@@ -4818,7 +4836,7 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-7.3.27  set-diff
+7.3.28  set-diff
 ================
   
 <<
@@ -4835,7 +4853,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'.
 
-7.3.28  filter
+7.3.29  filter
 ==============
   
 <<
@@ -4850,7 +4868,7 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-7.3.29  filter-out
+7.3.30  filter-out
 ==================
   
 <<
@@ -4865,7 +4883,7 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-7.3.30  capitalize
+7.3.31  capitalize
 ==================
   
 <<
@@ -4877,7 +4895,7 @@ evaluates to `x.o y.o'.
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-7.3.31  uncapitalize
+7.3.32  uncapitalize
 ====================
   
 <<
@@ -4889,7 +4907,7 @@ The Looking Glass'.
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-7.3.32  uppercase
+7.3.33  uppercase
 =================
   
 <<
@@ -4901,7 +4919,7 @@ The Looking Glass'.
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-7.3.33  lowercase
+7.3.34  lowercase
 =================
   
 <<
@@ -4914,7 +4932,7 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-7.3.34  system
+7.3.35  system
 ==============
   
 <<
@@ -4931,7 +4949,7 @@ function is used internally by omake to evaluate shell commands.
 >>
   
 
-7.3.35  shell
+7.3.36  shell
 =============
   
 <<
@@ -4952,7 +4970,7 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-7.3.36  while
+7.3.37  while
 =============
   
 <<
@@ -5541,8 +5559,48 @@ removing intermediate files.
 is distributed with `omake'.
   
 
-8.3.8  file-sort
-================
+8.3.8  find-targets-in-path
+===========================
+
+
+8.3.9  find-targets-in-path-optional
+====================================
+  
+<<
+      $(find-targets-in-path path files) : File Array
+      $(find-targets-in-path-optional path, files) : File Array
+          path : Dir Array
+          files : File Sequence
+>>
+  
+  The `find-target-in-path' function searches for targets in the search
+path. For each file `file' in the file list, the path is searched
+sequentially for a directory `dir' such that the target `dir/file'
+exists. If so, the file `dir/file' is returned.
+  For example, suppose you are building a C project, and project
+contains a subdirectory `src/' containing only the files `fee.c' and
+`foo.c'. The following expression evaluates to the files `src/fee.o'
+`src/foo.o' even if the files have not already been built.
+<<
+      $(find-targets-in-path lib src, fee.o foo.o)
+  
+      # Evaluates to
+      src/fee.o src/foo.o
+>>
+  
+  The `find-targets-in-path' function raises an exception if the file
+can't be found. The `find-targets-in-path-optional' function silently
+removes targets that can't be found.
+<<
+      $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+  
+      # Evaluates to
+      src/fee.o src/foo.o
+>>
+  
+
+8.3.10  file-sort
+=================
     
 <<
      $(file-sort order, files) : File Sequence
@@ -5601,8 +5659,8 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'.
 
-8.3.9  file-check-sort
-======================
+8.3.11  file-check-sort
+=======================
   
 <<
      file-check-sort(files)
@@ -9537,7 +9595,7 @@ specified identifiers.
       export id ... id
 >>
   
-  while (see the `while' description 7.3.36). The `while' command
+  while (see the `while' description 7.3.37). The `while' command
 introduces a `while' loop.
 <<
       while expr
@@ -9911,10 +9969,10 @@ Index
 *****
   
   
- - .BUILDORDER, 8.3.8 
+ - .BUILDORDER, 8.3.10 
  - .DEFAULT, 6.9 
  - .INCLUDE, 6.11 
- - .ORDER, 8.3.8 
+ - .ORDER, 8.3.10 
  - .PHONY, 6.12 
  - .SCANNER, 3.4.3, 6.6 
  - .SUBDIRS, 3, 6.10 
@@ -9936,10 +9994,10 @@ Index
  - accept, 8.8.31 
  - add, 7.4.3 
  - add-project-directories, 8.6.2 
- - add-wrapper, 7.3.22 
- - addprefix, 7.3.20 
- - addsuffix, 7.3.14 
- - addsuffixes, 7.3.16 
+ - add-wrapper, 7.3.23 
+ - addprefix, 7.3.21 
+ - addsuffix, 7.3.15 
+ - addsuffixes, 7.3.17 
  - aliases, 12.2 
  - and, 7.2.3 
  - apply, 7.5.2 
@@ -9970,7 +10028,7 @@ Index
  - CXXFLAGS, 11.3.6 
  - CXXProgram, 11.3.28 
  - CXXProgramInstall, 11.3.29 
- - capitalize, 7.3.30 
+ - capitalize, 7.3.31 
  - cat, 8.11.2 
  - cats and dogs, 3.4 
  - cd, 9.1.2 
@@ -10024,16 +10082,18 @@ Index
  - fg, 9.2.3 
  - fgets, 8.8.35 
  - file, 8.1.1 
- - file-check-sort, 8.3.9 
+ - file-check-sort, 8.3.11 
  - file-exists, 8.3.1 
- - file-sort, 8.3.8 
- - filter, 7.3.28 
+ - file-sort, 8.3.10 
+ - filter, 7.3.29 
  - filter-exists, 8.3.5 
- - filter-out, 7.3.29 
+ - filter-out, 7.3.30 
  - filter-proper-targets, 8.3.7 
  - filter-targets, 8.3.6 
  - find, 8.7.2 
  - find-in-path, 8.2.6 
+ - find-targets-in-path, 8.3.8 
+ - find-targets-in-path-optional, 8.3.9 
  - float, 7.4.2 
  - flush, 8.8.12 
  - fopen, 8.8.5 
@@ -10066,7 +10126,7 @@ Index
  - Host, 8.8.22 
  - history, 9.3.1 
  - homename, 8.1.10 
- - html-string, 7.3.13 
+ - html-string, 7.3.14 
  
  - INCLUDES, 11.3.7 
  - INSTALL, 11.2.10 
@@ -10079,8 +10139,8 @@ Index
  - include, 4.7 
  - inheritance, 4.13 
  - int, 7.4.1 
- - intersection, 7.3.25 
- - intersects, 7.3.26 
+ - intersection, 7.3.26 
+ - intersects, 7.3.27 
  
  - jobs, 9.2.1 
  
@@ -10104,12 +10164,12 @@ Index
  - le, 7.4.4 
  - length, 7.3.4 
  - link, 8.5.6 
- - link-order sorting, 8.3.8 
+ - link-order sorting, 8.3.10 
  - listen, 8.8.30 
  - lnot, 7.4.3 
  - lockf, 8.8.20 
  - lor, 7.4.3 
- - lowercase, 7.3.33 
+ - lowercase, 7.3.34 
  - ls, 8.4.2 
  - lseek, 8.8.9 
  - lsl, 7.4.3 
@@ -10120,10 +10180,10 @@ Index
  - MACHINE, 7.1.5 
  - MAKEINDEX, 11.5.6 
  - Map, 10.1.2 
- - mapprefix, 7.3.21 
- - mapsuffix, 7.3.15 
+ - mapprefix, 7.3.22 
+ - mapsuffix, 7.3.16 
  - match, 4.10, 7.2.7 
- - mem, 7.3.24 
+ - mem, 7.3.25 
  - mkdir, 8.5.1 
  - mkfifo, 8.8.18 
  - mod, 7.4.3 
@@ -10175,8 +10235,8 @@ Index
  - OCamlProgramInstall, 11.4.42 
  - OMAKE_VERSION, 7.1.7 
  - OMakeFlags, 11.1.1 
- - OMakefile, 2.7, 3 
- - OMakeroot, 2.7, 3, 11.2 
+ - OMakefile, 2.8, 3 
+ - OMakeroot, 2.8, 3, 11.2 
  - OMakeVersion, 11.1.2 
  - OS_VERSION, 7.1.4 
  - OSTYPE, 7.1.1 
@@ -10201,8 +10261,8 @@ Index
  - public., 4.17 
  
  - quotations, 4.4 
- - quote, 7.3.11 
- - quote-argv, 7.3.12 
+ - quote, 7.3.12 
+ - quote-argv, 7.3.13 
  
  - ROOT, 11.2.2 
  - Rule, 10.1.10 
@@ -10213,10 +10273,10 @@ Index
  - regular expressions, 8.11.1 
  - rehash, 8.2.3 
  - remove-project-directories, 8.6.3 
- - removeprefix, 7.3.17 
- - removesuffix, 7.3.18 
+ - removeprefix, 7.3.18 
+ - removesuffix, 7.3.19 
  - rename, 8.5.5 
- - replacesuffixes, 7.3.19 
+ - replacesuffixes, 7.3.20 
  - rev, 7.3.9 
  - rewind, 8.8.10 
  - rootname, 8.1.6 
@@ -10244,15 +10304,15 @@ Index
  - section, 4.8, 6.3 
  - section rule, 6.4 
  - select, 8.8.19 
- - set, 7.3.23 
+ - set, 7.3.24 
  - set-close-on-exec-mode, 8.8.16 
- - set-diff, 7.3.27 
+ - set-diff, 7.3.28 
  - set-nonblock, 8.8.15 
  - setenv, 7.2.14 
  - setvar, 7.2.17 
- - shell, 7.3.35 
+ - shell, 7.3.36 
  - socket, 8.8.28 
- - sorting (link-order), 8.3.8 
+ - sorting (link-order), 8.3.10 
  - split, 7.3.2 
  - stat, 8.5.3 
  - stat-reset, 8.3.4 
@@ -10262,13 +10322,14 @@ Index
  - stdout, 8.8.3 
  - stop, 9.2.4 
  - string, 7.3.10 
+ - string-escaped, 7.3.11 
  - sub, 7.4.3 
  - subdirs, 8.4.3 
  - subrange, 7.3.8 
  - suffix, 8.1.11 
  - switch, 4.10, 7.2.6 
  - symlink, 8.5.7 
- - system, 7.3.34 
+ - system, 7.3.35 
  
  - TARGETS, 7.1.11 
  - Target, 10.1.11 
@@ -10292,17 +10353,17 @@ Index
  - ule, 7.4.4 
  - ult, 7.4.4 
  - umask, 8.5.11 
- - uncapitalize, 7.3.31 
+ - uncapitalize, 7.3.32 
  - unlink, 8.5.4 
- - uppercase, 7.3.32 
+ - uppercase, 7.3.33 
  
  - VERBOSE, 11.2.6 
- - vmount, 2.8, 8.6.1 
+ - vmount, 2.9, 8.6.1 
  
  - wait, 9.2.5 
  - where, 8.2.2 
  - which, 8.2.1 
- - while, 7.3.36 
+ - while, 7.3.37 
  - write, 8.8.8 
  
  - YACC, 11.3.15 
@@ -10428,10 +10489,10 @@ Index of functions and special forms
  - accept, 8.8.31 
  - add, 7.4.3 
  - add-project-directories, 8.6.2 
- - add-wrapper, 7.3.22 
- - addprefix, 7.3.20 
- - addsuffix, 7.3.14 
- - addsuffixes, 7.3.16 
+ - add-wrapper, 7.3.23 
+ - addprefix, 7.3.21 
+ - addsuffix, 7.3.15 
+ - addsuffixes, 7.3.17 
  - and, 7.2.3 
  - apply, 7.5.2 
  - applya, 7.5.3 
@@ -10449,7 +10510,7 @@ Index of functions and special forms
  - CProgramInstall, 11.3.27 
  - CXXProgram, 11.3.28 
  - CXXProgramInstall, 11.3.29 
- - capitalize, 7.3.30 
+ - capitalize, 7.3.31 
  - cat, 8.11.2 
  - cd, 9.1.2 
  - chmod, 8.5.9 
@@ -10485,16 +10546,18 @@ Index of functions and special forms
  - fg, 9.2.3 
  - fgets, 8.8.35 
  - file, 8.1.1 
- - file-check-sort, 8.3.9 
+ - file-check-sort, 8.3.11 
  - file-exists, 8.3.1 
- - file-sort, 8.3.8 
- - filter, 7.3.28 
+ - file-sort, 8.3.10 
+ - filter, 7.3.29 
  - filter-exists, 8.3.5 
- - filter-out, 7.3.29 
+ - filter-out, 7.3.30 
  - filter-proper-targets, 8.3.7 
  - filter-targets, 8.3.6 
  - find, 8.7.2 
  - find-in-path, 8.2.6 
+ - find-targets-in-path, 8.3.8 
+ - find-targets-in-path-optional, 8.3.9 
  - float, 7.4.2 
  - flush, 8.8.12 
  - fopen, 8.8.5 
@@ -10523,14 +10586,14 @@ Index of functions and special forms
  
  - history, 9.3.1 
  - homename, 8.1.10 
- - html-string, 7.3.13 
+ - html-string, 7.3.14 
  
  - if, 7.2.5 
  - in, 8.1.4 
  - include, 4.7 
  - int, 7.4.1 
- - intersection, 7.3.25 
- - intersects, 7.3.26 
+ - intersection, 7.3.26 
+ - intersects, 7.3.27 
  
  - jobs, 9.2.1 
  
@@ -10550,7 +10613,7 @@ Index of functions and special forms
  - lnot, 7.4.3 
  - lockf, 8.8.20 
  - lor, 7.4.3 
- - lowercase, 7.3.33 
+ - lowercase, 7.3.34 
  - ls, 8.4.2 
  - lseek, 8.8.9 
  - lsl, 7.4.3 
@@ -10558,10 +10621,10 @@ Index of functions and special forms
  - lt, 7.4.4 
  - lxor, 7.4.3 
  
- - mapprefix, 7.3.21 
- - mapsuffix, 7.3.15 
+ - mapprefix, 7.3.22 
+ - mapsuffix, 7.3.16 
  - match, 4.10, 7.2.7 
- - mem, 7.3.24 
+ - mem, 7.3.25 
  - mkdir, 8.5.1 
  - mkfifo, 8.8.18 
  - mod, 7.4.3 
@@ -10591,18 +10654,18 @@ Index of functions and special forms
  - printv, 8.10 
  - printvln, 8.10 
  
- - quote, 7.3.11 
- - quote-argv, 7.3.12 
+ - quote, 7.3.12 
+ - quote-argv, 7.3.13 
  
  - raise, 7.2.9 
  - read, 8.8.7 
  - readlink, 8.5.8 
  - rehash, 8.2.3 
  - remove-project-directories, 8.6.3 
- - removeprefix, 7.3.17 
- - removesuffix, 7.3.18 
+ - removeprefix, 7.3.18 
+ - removesuffix, 7.3.19 
  - rename, 8.5.5 
- - replacesuffixes, 7.3.19 
+ - replacesuffixes, 7.3.20 
  - rev, 7.3.9 
  - rewind, 8.8.10 
  - rootname, 8.1.6 
@@ -10618,26 +10681,27 @@ Index of functions and special forms
  - section, 6.3 
  - section rule, 6.4 
  - select, 8.8.19 
- - set, 7.3.23 
+ - set, 7.3.24 
  - set-close-on-exec-mode, 8.8.16 
- - set-diff, 7.3.27 
+ - set-diff, 7.3.28 
  - set-nonblock, 8.8.15 
  - setenv, 7.2.14 
  - setvar, 7.2.17 
- - shell, 7.3.35 
+ - shell, 7.3.36 
  - socket, 8.8.28 
  - split, 7.3.2 
  - stat, 8.5.3 
  - stat-reset, 8.3.4 
  - stop, 9.2.4 
  - string, 7.3.10 
+ - string-escaped, 7.3.11 
  - sub, 7.4.3 
  - subdirs, 8.4.3 
  - subrange, 7.3.8 
  - suffix, 8.1.11 
  - switch, 4.10, 7.2.6 
  - symlink, 8.5.7 
- - system, 7.3.34 
+ - system, 7.3.35 
  
  - TeXGeneratedFiles, 11.5.17 
  - target, 11.6.3 
@@ -10653,16 +10717,16 @@ Index of functions and special forms
  - ule, 7.4.4 
  - ult, 7.4.4 
  - umask, 8.5.11 
- - uncapitalize, 7.3.31 
+ - uncapitalize, 7.3.32 
  - unlink, 8.5.4 
- - uppercase, 7.3.32 
+ - uppercase, 7.3.33 
  
  - vmount, 8.6.1 
  
  - wait, 9.2.5 
  - where, 8.2.2 
  - which, 8.2.1 
- - while, 7.3.36 
+ - while, 7.3.37 
  - write, 8.8.8 
 
 
@@ -10718,10 +10782,10 @@ Index of special targets
 ************************
   
   
- - .BUILDORDER, 8.3.8 
+ - .BUILDORDER, 8.3.10 
  - .DEFAULT, 6.9 
  - .INCLUDE, 6.11 
- - .ORDER, 8.3.8 
+ - .ORDER, 8.3.10 
  - .PHONY, 6.12, 6.13.3 
  - .SCANNER, 6.6, 6.13.2 
  - .SUBDIRS, 6.10 

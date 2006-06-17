@@ -35,11 +35,11 @@ Additional build examples
 </TR></TABLE>
 
 <H1 CLASS="chapter"><A NAME="htoc15">Chapter&nbsp;3</A>&nbsp;&nbsp;Additional build examples</H1><UL>
-<LI><A HREF="omake-build-examples.html#toc13">OMakeroot vs. OMakefile</A>
-<LI><A HREF="omake-build-examples.html#toc14">An example C project</A>
-<LI><A HREF="omake-build-examples.html#toc15">An example OCaml project</A>
-<LI><A HREF="omake-build-examples.html#toc16">Handling new languages</A>
-<LI><A HREF="omake-build-examples.html#toc17">Collapsing the hierarchy, .SUBDIRS bodies</A>
+<LI><A HREF="omake-build-examples.html#toc11">OMakeroot vs. OMakefile</A>
+<LI><A HREF="omake-build-examples.html#toc12">An example C project</A>
+<LI><A HREF="omake-build-examples.html#toc13">An example OCaml project</A>
+<LI><A HREF="omake-build-examples.html#toc14">Handling new languages</A>
+<LI><A HREF="omake-build-examples.html#toc15">Collapsing the hierarchy, .SUBDIRS bodies</A>
 </UL>
 
 <A NAME="chapter:build-examples"></A>
@@ -154,7 +154,7 @@ dependencies are based on file <EM>contents</EM>, not file <EM>modification time
 false rebuilds based on spurius timestamp changes and mismatches between local time and fileserver
 time.
 </UL>
-<A NAME="toc13"></A>
+<A NAME="toc11"></A>
 <H2 CLASS="section"><A NAME="htoc16">3.1</A>&nbsp;&nbsp;OMakeroot vs. OMakefile</H2>
 Before we begin with examples, let's ask the first question, &#8220;What is the difference between the
 project root OMakeroot and OMakefile?&#8221; A short answer is, there is no difference, but you must
@@ -170,7 +170,7 @@ Run <CODE>omake --install</CODE> in your project root.
 </UL>
 This will create the initial OMakeroot and OMakefile files that you can edit to get started.<BR>
 <BR>
-<A NAME="toc14"></A>
+<A NAME="toc12"></A>
 <H2 CLASS="section"><A NAME="htoc17">3.2</A>&nbsp;&nbsp;An example C project</H2>
 To begin, let's start with a simple example. Let's say that we have a full directory tree,
 containing the following files.
@@ -256,7 +256,7 @@ That is, it defines .SCANNER rules for C source files.
 Variables are inherited down the hierarchy, so for example, the value of CFLAGS in
 src/main/OMakefile is &#8220;<CODE>-g -O2</CODE>&#8221;.<BR>
 <BR>
-<A NAME="toc15"></A>
+<A NAME="toc13"></A>
 <H2 CLASS="section"><A NAME="htoc18">3.3</A>&nbsp;&nbsp;An example OCaml project</H2>
 Let's repeat the example, assuming we are using OCaml instead of C.
 This time, the directory tree looks like this.
@@ -340,7 +340,7 @@ In this case, most of the configuration here is defined in the file <CODE>build/
 particular configuration, files in <CODE>my_project/src/lib</CODE> are compiled aggressively with the
 option <CODE>-inline 10</CODE>, but files in <CODE>my_project/src/lib</CODE> are compiled normally.<BR>
 <BR>
-<A NAME="toc16"></A>
+<A NAME="toc14"></A>
 <H2 CLASS="section"><A NAME="htoc19">3.4</A>&nbsp;&nbsp;Handling new languages</H2>
 <A NAME="@default7"></A>
 The previous two examples seem to be easy enough, but they rely on the OMake standard library (the
@@ -639,7 +639,7 @@ the shared copy with an OMAke command <CODE>open Cat</CODE>. The share ddirector
 Better yet, if you are happy with your work, consider submitting it as a standard configuration (by
 sending a request to <CODE>omake@metaprl.org</CODE>) so that others can make use of it too.<BR>
 <BR>
-<A NAME="toc17"></A>
+<A NAME="toc15"></A>
 <H2 CLASS="section"><A NAME="htoc25">3.5</A>&nbsp;&nbsp;Collapsing the hierarchy, .SUBDIRS bodies</H2>
 <A NAME="@default10"></A>
 Some projects have many subdirectories that all have the same configuration. For instance, suppose
