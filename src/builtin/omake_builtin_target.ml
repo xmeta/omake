@@ -333,7 +333,8 @@ let project_directories venv pos loc args =
  *   for two-part rules.
  * \item[sources] The sequence of dependencies.
  * \item[options] An array of options.  Each option is represented
- *   as a two-element array with an option name, and the option value.
+ *   as a \verb+Map+~\ref{object:Map} associating each specified option with
+ *   a value.
  * \item[body] The body expression of the rule.
  * \end{description}
  *
@@ -346,11 +347,12 @@ let project_directories venv pos loc args =
  * \end{verbatim}
  *
  * This expression represents the following function call, where
- * square brackets are used to indicate arrays.
+ * square brackets are used to indicate arrays, and the curly
+ * brackets represent a \verb+Map+~\ref{object:Map}.
  *
  * \begin{verbatim}
  *    rule(false, target, pattern, sources,
- *         [[:name1:, option1], [:name2:, option2]]
+ *         { $|:name1:| = option1; $|:name2:| = option2 }
  *         [expr1; expr2])
  * \end{verbatim}
  * \end{doc}
@@ -379,7 +381,7 @@ let () =
        true,  "project-directories",  project_directories, ArityExact 0;
 
        (* Rule definition *)
-       false, "rule",                 rule_fun,            ArityExact 6]
+       true,  "rule",                 rule_fun,            ArityExact 6]
    in
    let pervasives_objects =
       ["Target"]

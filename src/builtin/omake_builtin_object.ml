@@ -325,6 +325,54 @@ let map_map venv pos loc args =
       else
          ValEnv (venv', ExportAll)
 
+(*
+ * \begin{doc}
+ * \fun{create-map}
+ * \fun{create-lazy-map}
+ *
+ * The \verb+create-map+ is a simplified form for creating \verb+Map+ objects.
+ * The \verb+create-map+ function takes an even number of arguments that specify
+ * key/value pairs.  For example, the following values are equivalent.
+ *
+ * \begin{verbatim}
+ *     X = $(create-map name1, xxx, name2, yyy)
+ *
+ *     X. =
+ *         extends $(Map)
+ *         $|name1| = xxx
+ *         $|name2| = yyy
+ * \end{verbatim}
+ *
+ * The \verb+create-lazy-map+ function is similar, but the values are computed
+ * lazily.  The following two definitions are equivalent.
+ *
+ * \begin{verbatim}
+ *     Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
+ *
+ *     Y. =
+ *         extends $(Map)
+ *         $|name1| = $`(xxx)
+ *         $|name2| = $`(yyy)
+ * \end{verbatim}
+ *
+ * The \verb+create-lazy-map+ function is used in rule construction~\ref{fun:rule}.
+ * \end{doc}
+ *)
+let create_map venv pos loc args =
+   let pos = string_pos "create-map" pos in
+   let rec collect map args =
+      match args with
+         key :: value :: args ->
+            let key = ValData (string_of_value venv pos key) in
+            let map = venv_map_add map pos key value in
+               collect map args
+       | [_] ->
+            raise (OmakeException (loc_pos loc pos, StringError ("create-map requires an even number of arguments")))
+       | [] ->
+            map
+   in
+      ValMap (collect venv_map_empty args)
+
 (************************************************************************
  * Generic sequence operations.
  *)
@@ -636,7 +684,13 @@ let () =
        true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
        true, "sequence-length",      sequence_length,     ArityExact 1;
        true, "sequence-nth",         sequence_nth,        ArityExact 1;
-       true, "sequence-rev",         sequence_rev,        ArityExact 1]
+       true, "sequence-rev",         sequence_rev,        ArityExact 1;
+       true,  "create-map",          create_map,          ArityAny;
+       false, "create-lazy-map",     create_map,          ArityAny]
+   in
+
+   let builtin_vars =
+      ["empty-map",        (fun _ -> ValMap venv_map_empty)]
    in
 
    let builtin_objects =
@@ -674,6 +728,7 @@ let () =
    in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs;
+                           builtin_vars = builtin_vars;
                            builtin_objects = builtin_objects;
                            pervasives_objects = pervasives_objects
       }

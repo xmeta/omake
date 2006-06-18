@@ -988,12 +988,16 @@ and build_rule_exp senv multiple target pattern sources body pos loc =
             if Lm_symbol.eq v normal_sym then
                options
             else
-               let option =
-                  ArrayString (loc, [ConstString (loc, Lm_symbol.to_string v); build_string senv source pos])
-               in
-                  option :: options) [] sources
+               let key = ConstString (loc, Lm_symbol.to_string v) in
+               let value = build_string senv source pos in
+                  key :: value :: options) [] sources
    in
-   let options = ArrayString (loc, options) in
+   let create_map_sym =
+      match options with
+         [] -> empty_map_sym
+       | _ -> create_lazy_map_sym
+   in
+   let options = ApplyString (loc, EagerApply, ScopeProtected, create_map_sym, options) in
 
    (* Add the sources *)
    let source =

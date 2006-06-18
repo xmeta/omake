@@ -691,6 +691,16 @@ let target_of_value venv pos v =
 let targets_of_value venv pos v =
    List.map (target_of_value venv pos) (values_of_value venv pos v)
 
+let pp_print_target buf target =
+   match target with
+      TargetNode node ->
+         fprintf buf "TargetNode %a" pp_print_node node
+    | TargetString s ->
+         fprintf buf "TargetString %s" s
+
+let pp_print_targets buf targets =
+   List.iter (fun target -> fprintf buf " %a" pp_print_target target) targets
+
 (*
  * From Omake_cache.
  *)
@@ -704,43 +714,34 @@ let add_sources sources kind sources' =
          (kind, source) :: sources) sources sources'
 
 let sources_of_options venv pos loc sources options =
-   let options =
-      match eval_value venv pos options with
-         ValArray options ->
-            options
-       | v ->
-            raise (OmakeException (loc_pos loc pos, StringValueError ("unknown option argument", v)))
-   in
+   let options = map_of_value venv pos options in
    let effects, sources, scanners, values =
-      List.fold_left (fun (effects, sources, scanners, values) option ->
-            match option with
-               ValArray [optname; optval] ->
-                  let s = string_of_value venv pos optname in
-                  let v = Lm_symbol.add s in
-                     if Lm_symbol.eq v normal_sym then
-                        let files = targets_of_value venv pos optval in
-                           effects, add_sources sources NodeNormal files, scanners, values
-                     else if Lm_symbol.eq v optional_sym then
-                        let files = targets_of_value venv pos optval in
-                           effects, add_sources sources NodeOptional files, scanners, values
-                     else if Lm_symbol.eq v exists_sym then
-                        let files = targets_of_value venv pos optval in
-                           effects, add_sources sources NodeExists files, scanners, values
-                     else if Lm_symbol.eq v squash_sym then
-                        let files = targets_of_value venv pos optval in
-                           effects, add_sources sources NodeSquashed files, scanners, values
-                     else if Lm_symbol.eq v scanner_sym then
-                        let files = targets_of_value venv pos optval in
-                           effects, sources, add_sources scanners NodeScanner files, values
-                     else if Lm_symbol.eq v effects_sym then
-                        let files = targets_of_value venv pos optval in
-                           add_sources effects NodeNormal files, sources, scanners, values
-                     else if Lm_symbol.eq v values_sym then
-                        effects, sources, scanners, optval :: values
-                     else
-                        raise (OmakeException (loc_pos loc pos, StringVarError ("unknown rule option", v)))
-             | _ ->
-                  raise (OmakeException (loc_pos loc pos, StringValueError ("unknown option value", option)))) ([], sources, [], []) options
+      venv_map_fold (fun (effects, sources, scanners, values) optname optval ->
+            let s = string_of_value venv pos optname in
+            let v = Lm_symbol.add s in
+               if Lm_symbol.eq v normal_sym then
+                  let files = targets_of_value venv pos optval in
+                     effects, add_sources sources NodeNormal files, scanners, values
+               else if Lm_symbol.eq v optional_sym then
+                  let files = targets_of_value venv pos optval in
+                     effects, add_sources sources NodeOptional files, scanners, values
+               else if Lm_symbol.eq v exists_sym then
+                  let files = targets_of_value venv pos optval in
+                     effects, add_sources sources NodeExists files, scanners, values
+               else if Lm_symbol.eq v squash_sym then
+                  let files = targets_of_value venv pos optval in
+                     effects, add_sources sources NodeSquashed files, scanners, values
+               else if Lm_symbol.eq v scanner_sym then
+                  let files = targets_of_value venv pos optval in
+                     effects, sources, add_sources scanners NodeScanner files, values
+               else if Lm_symbol.eq v effects_sym then
+                  let files = targets_of_value venv pos optval in
+                     add_sources effects NodeNormal files, sources, scanners, values
+               else if Lm_symbol.eq v values_sym then
+                  effects, sources, scanners, optval :: values
+               else
+                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown rule option", v)))) (**)
+         ([], sources, [], []) options
    in
       List.rev effects, List.rev sources, List.rev scanners, List.rev values
 
@@ -1102,11 +1103,16 @@ and eval_rule venv loc target sources sloppy_deps values commands =
       free_vars_fold (fun values v kind ->
             ValImplicit (loc, kind, v) :: values) values fv
    in
+   let values =
+      List.fold_left (fun values v ->
+            List.rev_append (values_of_value venv pos v) values) [] values
+   in
+   let values = List.map (eval_prim_value venv pos) values in
    let commands =
       if values = [] then
          commands
       else
-         ([], CommandValues (List.map (eval_prim_value venv pos) values)) :: commands
+         ([], CommandValues values) :: commands
    in
    let dir = venv_dir venv in
       parse_commands venv dir target loc commands

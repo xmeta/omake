@@ -163,6 +163,10 @@ let return_sym    = Lm_symbol.add "return"
 let export_sym    = Lm_symbol.add "export"
 let value_sym     = Lm_symbol.add "value"
 
+let empty_map_sym       = Lm_symbol.add "empty-map"
+let create_map_sym      = Lm_symbol.add "create-map"
+let create_lazy_map_sym = Lm_symbol.add "create-lazy-map"
+
 (*
  * Awk values.
  *)

@@ -133,6 +133,16 @@ let number_of_value venv pos v =
                            raise (OmakeException (pos, StringStringError ("not a number", s)))
 
 (*
+ * Maps.
+ *)
+let map_of_value venv pos v =
+   match eval_prim_value venv pos v with
+      ValMap map ->
+         map
+    | v ->
+         raise (OmakeException (pos, StringValueError ("not a map", v)))
+
+(*
  * Values that can be used as keys.
  *)
 let rec key_of_value venv pos v =

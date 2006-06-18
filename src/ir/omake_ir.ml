@@ -32,6 +32,7 @@ open Omake_node_sig
 open Omake_node
 
 (* %%MAGICBEGIN%% *)
+(* Revision 9341: changed the generated IR *)
 type var = symbol
 
 (*

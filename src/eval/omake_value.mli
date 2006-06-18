@@ -71,6 +71,7 @@ val int_of_value        : venv -> pos -> value -> int
 val float_of_value      : venv -> pos -> value -> float
 val number_of_value     : venv -> pos -> value -> value
 val key_of_value        : venv -> pos -> value -> value
+val map_of_value        : venv -> pos -> value -> map
 
 val dir_of_value        : venv -> pos -> value -> Dir.t
 val file_of_value       : venv -> pos -> value -> Node.t
