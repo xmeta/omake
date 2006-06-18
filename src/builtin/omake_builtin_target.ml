@@ -333,7 +333,7 @@ let project_directories venv pos loc args =
  *   for two-part rules.
  * \item[sources] The sequence of dependencies.
  * \item[options] An array of options.  Each option is represented
- *   as a \verb+Map+~\ref{object:Map} associating each specified option with
+ *   as a \verb+Map+~\ref{obj:Map} associating each specified option with
  *   a value.
  * \item[body] The body expression of the rule.
  * \end{description}
@@ -348,7 +348,7 @@ let project_directories venv pos loc args =
  *
  * This expression represents the following function call, where
  * square brackets are used to indicate arrays, and the curly
- * brackets represent a \verb+Map+~\ref{object:Map}.
+ * brackets represent a \verb+Map+~\ref{obj:Map}.
  *
  * \begin{verbatim}
  *    rule(false, target, pattern, sources,

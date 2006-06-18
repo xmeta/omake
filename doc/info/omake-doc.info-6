@@ -1436,8 +1436,9 @@ exceptional cases.
  pattern  The sequence of patterns. This sequence will be empty  for
    two-part rules. 
  sources  The sequence of dependencies. 
- options  An array of options. Each option is represented  as a
-   two-element array with an option name, and the option value. 
+ options  An array of options. Each option is represented  as a `Map'
+   10.1.2*Note Subsection 10-1-2:: associating each specified option with  a
+   value. 
  body  The body expression of the rule. 
   
   Consider the following rule.
@@ -1448,10 +1449,11 @@ exceptional cases.
 >>
   
   This expression represents the following function call, where square
-brackets are used to indicate arrays.
+brackets are used to indicate arrays, and the curly brackets represent a
+`Map' 10.1.2*Note Subsection 10-1-2::.
 <<
      rule(false, target, pattern, sources,
-          [[:name1:, option1], [:name2:, option2]]
+          { $|:name1:| = option1; $|:name2:| = option2 }
           [expr1; expr2])
 >>
    

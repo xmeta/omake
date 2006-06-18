@@ -111,6 +111,8 @@ Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
 * Subsection 7-5-1::	fun
 * Subsection 7-5-2::	apply
 * Subsection 7-5-3::	applya
+* Subsection 7-5-4::	create-map
+* Subsection 7-5-5::	create-lazy-map
 
 
 Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
@@ -155,7 +157,7 @@ Node: Subsection 7-5-2,	Next: Subsection 7-5-3,	Prev: Subsection 7-5-1,	Up: Sect
       X = $(apply $(F), a b c, .c)
 >>
 
-Node: Subsection 7-5-3,	Next: Section 7-6,	Prev: Subsection 7-5-2,	Up: Section 7-5
+Node: Subsection 7-5-3,	Next: Subsection 7-5-4,	Prev: Subsection 7-5-2,	Up: Section 7-5
   
 
 7.5.3   applya
@@ -173,6 +175,45 @@ arguments.
          .c
       Z = $(applya $(F), $(args))
 >>
+
+Node: Subsection 7-5-4,	Next: Subsection 7-5-5,	Prev: Subsection 7-5-3,	Up: Section 7-5
+  
+
+7.5.4   create-map
+==================
+ 
+
+Node: Subsection 7-5-5,	Next: Section 7-6,	Prev: Subsection 7-5-4,	Up: Section 7-5
+  
+
+7.5.5   create-lazy-map
+=======================
+
+  The `create-map' is a simplified form for creating `Map' objects. The
+`create-map' function takes an even number of arguments that specify
+key/value pairs. For example, the following values are equivalent.
+<<
+      X = $(create-map name1, xxx, name2, yyy)
+  
+      X. =
+          extends $(Map)
+          $|name1| = xxx
+          $|name2| = yyy
+>>
+  
+  The `create-lazy-map' function is similar, but the values are computed
+lazily. The following two definitions are equivalent.
+<<
+      Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
+  
+      Y. =
+          extends $(Map)
+          $|name1| = $`(xxx)
+          $|name2| = $`(yyy)
+>>
+  
+  The `create-lazy-map' function is used in rule construction
+11.6.4*Note Subsection 11-6-4::. 
 
 Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
   
@@ -1881,34 +1922,4 @@ Node: Subsection 8-8-22,	Next: Subsection 8-8-23,	Prev: Subsection 8-8-21,	Up: S
  addrtype  `String': the preferred socket domain. 
  addrs  `InetAddr Array': an array of Internet addresses belonging to
    the host. 
-  
-
-Node: Subsection 8-8-23,	Next: Subsection 8-8-24,	Prev: Subsection 8-8-22,	Up: Section 8-8
-  
-
-8.8.23   gethostbyname
-======================
-
-<<
-     $(gethostbyname host...) : Host...
-        host : String
-     raises RuntimeException
->>
-  
-  The `gethostbyname' function returns a `Host' object for the specified
-host. The `host' may specify a domain name or an Internet address.
-
-Node: Subsection 8-8-24,	Next: Subsection 8-8-25,	Prev: Subsection 8-8-23,	Up: Section 8-8
-  
-
-8.8.24   Protocol
-=================
-
-  The `Protocol' object represents a protocol entry. It has the
-following fields.
-  
-  
- name  `String': the canonical name of the protocol. 
- aliases  `String Array': aliases for the protocol. 
- proto  `Int': the protocol number. 
   

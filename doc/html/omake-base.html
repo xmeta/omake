@@ -1057,10 +1057,36 @@ of <CODE>Z</CODE> is <CODE>file.c</CODE>.
        file
        .c
     Z = $(applya $(F), $(args))
-</PRE><A NAME="toc62"></A>
-<H2 CLASS="section"><A NAME="htoc158">7.6</A>&nbsp;&nbsp;Iteration and mapping</H2>
+</PRE>
+<H3 CLASS="subsection"><A NAME="htoc158">7.5.4</A>&nbsp;&nbsp;create-map</H3><A NAME="@default134"></A><A NAME="@fun86"></A><A NAME="fun:create-map"></A>
 
-<H3 CLASS="subsection"><A NAME="htoc159">7.6.1</A>&nbsp;&nbsp;foreach</H3><A NAME="@default134"></A><A NAME="@fun86"></A><A NAME="fun:foreach"></A>
+<H3 CLASS="subsection"><A NAME="htoc159">7.5.5</A>&nbsp;&nbsp;create-lazy-map</H3><A NAME="@default135"></A><A NAME="@fun87"></A><A NAME="fun:create-lazy-map"></A>
+The <CODE>create-map</CODE> is a simplified form for creating <CODE>Map</CODE> objects.
+The <CODE>create-map</CODE> function takes an even number of arguments that specify
+key/value pairs. For example, the following values are equivalent.
+<PRE CLASS="verbatim">
+    X = $(create-map name1, xxx, name2, yyy)
+
+    X. =
+        extends $(Map)
+        $|name1| = xxx
+        $|name2| = yyy
+</PRE>
+The <CODE>create-lazy-map</CODE> function is similar, but the values are computed
+lazily. The following two definitions are equivalent.
+<PRE CLASS="verbatim">
+    Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
+
+    Y. =
+        extends $(Map)
+        $|name1| = $`(xxx)
+        $|name2| = $`(yyy)
+</PRE>
+The <CODE>create-lazy-map</CODE> function is used in rule construction&nbsp;<A HREF="omake-rule.html#fun:rule">11.6.4</A>.
+<A NAME="toc62"></A>
+<H2 CLASS="section"><A NAME="htoc160">7.6</A>&nbsp;&nbsp;Iteration and mapping</H2>
+
+<H3 CLASS="subsection"><A NAME="htoc161">7.6.1</A>&nbsp;&nbsp;foreach</H3><A NAME="@default136"></A><A NAME="@fun88"></A><A NAME="fun:foreach"></A>
 The <CODE>foreach</CODE> function maps a function over a sequence.
 <PRE CLASS="verbatim">
     $(foreach &lt;fun&gt;, &lt;args&gt;)
