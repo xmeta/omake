@@ -298,8 +298,7 @@ let if_fun venv pos loc args =
  * Match command.
  *
  * \begin{doc}
- * \fun{switch}
- * \fun{match}
+ * \twofuns{switch}{match}
  *
  * The \verb+switch+ and \verb+match+ functions perform pattern matching.
  *

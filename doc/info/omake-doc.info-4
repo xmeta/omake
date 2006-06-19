@@ -111,8 +111,7 @@ Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
 * Subsection 7-5-1::	fun
 * Subsection 7-5-2::	apply
 * Subsection 7-5-3::	applya
-* Subsection 7-5-4::	create-map
-* Subsection 7-5-5::	create-lazy-map
+* Subsection 7-5-4::	create-map, create-lazy-map
 
 
 Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
@@ -176,18 +175,11 @@ arguments.
       Z = $(applya $(F), $(args))
 >>
 
-Node: Subsection 7-5-4,	Next: Subsection 7-5-5,	Prev: Subsection 7-5-3,	Up: Section 7-5
+Node: Subsection 7-5-4,	Next: Section 7-6,	Prev: Subsection 7-5-3,	Up: Section 7-5
   
 
-7.5.4   create-map
-==================
- 
-
-Node: Subsection 7-5-5,	Next: Section 7-6,	Prev: Subsection 7-5-4,	Up: Section 7-5
-  
-
-7.5.5   create-lazy-map
-=======================
+7.5.4   create-map, create-lazy-map
+===================================
 
   The `create-map' is a simplified form for creating `Map' objects. The
 `create-map' function takes an even number of arguments that specify
@@ -213,7 +205,7 @@ lazily. The following two definitions are equivalent.
 >>
   
   The `create-lazy-map' function is used in rule construction
-11.6.4*Note Subsection 11-6-4::. 
+11.6.0.9*Note Section 11-6::. 
 
 Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
   
@@ -292,32 +284,25 @@ Node: Section 8-1,	Next: Subsection 8-1-1,	Prev: Chapter 8,	Up: Chapter 8
    
 * Menu:
 
-* Subsection 8-1-1::	file
-* Subsection 8-1-2::	dir
-* Subsection 8-1-3::	tmpfile
-* Subsection 8-1-4::	in
-* Subsection 8-1-5::	basename
-* Subsection 8-1-6::	rootname
-* Subsection 8-1-7::	dirof
-* Subsection 8-1-8::	fullname
-* Subsection 8-1-9::	absname
-* Subsection 8-1-10::	homename
-* Subsection 8-1-11::	suffix
+* Subsection 8-1-1::	file, dir
+* Subsection 8-1-2::	tmpfile
+* Subsection 8-1-3::	in
+* Subsection 8-1-4::	basename
+* Subsection 8-1-5::	rootname
+* Subsection 8-1-6::	dirof
+* Subsection 8-1-7::	fullname
+* Subsection 8-1-8::	absname
+* Subsection 8-1-9::	homename
+* Subsection 8-1-10::	suffix
 
 
 Node: Subsection 8-1-1,	Next: Subsection 8-1-2,	Prev: Section 8-1,	Up: Section 8-1
   
 
-8.1.1   file
-============
- 
-
-Node: Subsection 8-1-2,	Next: Subsection 8-1-3,	Prev: Subsection 8-1-1,	Up: Section 8-1
-  
-
-8.1.2   dir
-===========
-
+8.1.1   file, dir
+=================
+\@na
+me{@fun90}
 <<
      $(file sequence) : File Sequence
         sequence : Sequence
@@ -358,10 +343,10 @@ of the `bin' directory relative to the command being executed.
    cp hello $(BIN)
 >>
 
-Node: Subsection 8-1-3,	Next: Subsection 8-1-4,	Prev: Subsection 8-1-2,	Up: Section 8-1
+Node: Subsection 8-1-2,	Next: Subsection 8-1-3,	Prev: Subsection 8-1-1,	Up: Section 8-1
   
 
-8.1.3   tmpfile
+8.1.2   tmpfile
 ===============
 
 <<
@@ -374,10 +359,10 @@ Node: Subsection 8-1-3,	Next: Subsection 8-1-4,	Prev: Subsection 8-1-2,	Up: Sect
   The `tmpfile' function returns the name of a fresh temporary file in
 the temporary directory. 
 
-Node: Subsection 8-1-4,	Next: Subsection 8-1-5,	Prev: Subsection 8-1-3,	Up: Section 8-1
+Node: Subsection 8-1-3,	Next: Subsection 8-1-4,	Prev: Subsection 8-1-2,	Up: Section 8-1
   
 
-8.1.4   in
+8.1.3   in
 ==========
 
 <<
@@ -401,10 +386,10 @@ is relative to the directory where the link is created.
   Note that the `in' function only affects the expansion of `Node'
 (`File' and `Dir') values. 
 
-Node: Subsection 8-1-5,	Next: Subsection 8-1-6,	Prev: Subsection 8-1-4,	Up: Section 8-1
+Node: Subsection 8-1-4,	Next: Subsection 8-1-5,	Prev: Subsection 8-1-3,	Up: Section 8-1
   
 
-8.1.5   basename
+8.1.4   basename
 ================
 
 <<
@@ -418,10 +403,10 @@ removed.
   For example, the expression `$(basename dir1/dir2/a.out
 /etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'. 
 
-Node: Subsection 8-1-6,	Next: Subsection 8-1-7,	Prev: Subsection 8-1-5,	Up: Section 8-1
+Node: Subsection 8-1-5,	Next: Subsection 8-1-6,	Prev: Subsection 8-1-4,	Up: Section 8-1
   
 
-8.1.6   rootname
+8.1.5   rootname
 ================
 
 <<
@@ -434,10 +419,10 @@ rootname is the filename with the final suffix removed.
   For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
 /foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'. 
 
-Node: Subsection 8-1-7,	Next: Subsection 8-1-8,	Prev: Subsection 8-1-6,	Up: Section 8-1
+Node: Subsection 8-1-6,	Next: Subsection 8-1-7,	Prev: Subsection 8-1-5,	Up: Section 8-1
   
 
-8.1.7   dirof
+8.1.6   dirof
 =============
 
 <<
@@ -450,10 +435,10 @@ files.
   For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
 /foo.ml)' evaluates to the directories `dir1/dir2 /etc /'. 
 
-Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Section 8-1
+Node: Subsection 8-1-7,	Next: Subsection 8-1-8,	Prev: Subsection 8-1-6,	Up: Section 8-1
   
 
-8.1.8   fullname
+8.1.7   fullname
 ================
 
 <<
@@ -464,10 +449,10 @@ Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Sect
   The `fullname' function returns the pathname relative to the project
 root for each of the files or directories. 
 
-Node: Subsection 8-1-9,	Next: Subsection 8-1-10,	Prev: Subsection 8-1-8,	Up: Section 8-1
+Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Section 8-1
   
 
-8.1.9   absname
+8.1.8   absname
 ===============
 
 <<
@@ -478,11 +463,11 @@ Node: Subsection 8-1-9,	Next: Subsection 8-1-10,	Prev: Subsection 8-1-8,	Up: Sec
   The `absname' function returns the absolute pathname for each of the
 files or directories. 
 
-Node: Subsection 8-1-10,	Next: Subsection 8-1-11,	Prev: Subsection 8-1-9,	Up: Section 8-1
+Node: Subsection 8-1-9,	Next: Subsection 8-1-10,	Prev: Subsection 8-1-8,	Up: Section 8-1
   
 
-8.1.10   homename
-=================
+8.1.9   homename
+================
 
 <<
      $(homename files) : String Sequence
@@ -494,10 +479,10 @@ possible. The unexpanded forms are computed lazily: the `homename'
 function will usually evaluate to an absolute pathname until the first
 tilde-expansion for the same directory. 
 
-Node: Subsection 8-1-11,	Next: Section 8-2,	Prev: Subsection 8-1-10,	Up: Section 8-1
+Node: Subsection 8-1-10,	Next: Section 8-2,	Prev: Subsection 8-1-9,	Up: Section 8-1
   
 
-8.1.11   suffix
+8.1.10   suffix
 ===============
 
 <<
@@ -657,38 +642,19 @@ Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
    
 * Menu:
 
-* Subsection 8-3-1::	file-exists
-* Subsection 8-3-2::	target-exists
-* Subsection 8-3-3::	target-is-proper
-* Subsection 8-3-4::	stat-reset
-* Subsection 8-3-5::	filter-exists
-* Subsection 8-3-6::	filter-targets
-* Subsection 8-3-7::	filter-proper-targets
-* Subsection 8-3-8::	find-targets-in-path
-* Subsection 8-3-9::	find-targets-in-path-optional
-* Subsection 8-3-10::	file-sort
-* Subsection 8-3-11::	file-check-sort
+* Subsection 8-3-1::	file-exists, target-exists, target-is-proper
+* Subsection 8-3-2::	stat-reset
+* Subsection 8-3-3::	filter-exists, filter-targets, filter-proper-targets
+* Subsection 8-3-4::	find-targets-in-path, find-targets-in-path-optional
+* Subsection 8-3-5::	file-sort
+* Subsection 8-3-6::	file-check-sort
 
 
 Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
   
 
-8.3.1   file-exists
-===================
- 
-
-Node: Subsection 8-3-2,	Next: Subsection 8-3-3,	Prev: Subsection 8-3-1,	Up: Section 8-3
-  
-
-8.3.2   target-exists
-=====================
- 
-
-Node: Subsection 8-3-3,	Next: Subsection 8-3-4,	Prev: Subsection 8-3-2,	Up: Section 8-3
-  
-
-8.3.3   target-is-proper
-========================
+8.3.1   file-exists, target-exists, target-is-proper
+====================================================
 
 <<
      $(file-exists files) : String
@@ -703,10 +669,10 @@ However, it returns true if the file exists or if it can be built by the
 current project. The `target-is-proper' returns true only if the file
 can be generated in the current project. 
 
-Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Section 8-3
+Node: Subsection 8-3-2,	Next: Subsection 8-3-3,	Prev: Subsection 8-3-1,	Up: Section 8-3
   
 
-8.3.4   stat-reset
+8.3.2   stat-reset
 ==================
 
 <<
@@ -718,26 +684,13 @@ Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Sect
 information for the given files, forcing the `stat' information to be
 recomputed the next time it is requested. 
 
-Node: Subsection 8-3-5,	Next: Subsection 8-3-6,	Prev: Subsection 8-3-4,	Up: Section 8-3
+Node: Subsection 8-3-3,	Next: Subsection 8-3-4,	Prev: Subsection 8-3-2,	Up: Section 8-3
   
 
-8.3.5   filter-exists
-=====================
- 
-
-Node: Subsection 8-3-6,	Next: Subsection 8-3-7,	Prev: Subsection 8-3-5,	Up: Section 8-3
-  
-
-8.3.6   filter-targets
-======================
- 
-
-Node: Subsection 8-3-7,	Next: Subsection 8-3-8,	Prev: Subsection 8-3-6,	Up: Section 8-3
-  
-
-8.3.7   filter-proper-targets
-=============================
-
+8.3.3   filter-exists, filter-targets, filter-proper-targets
+============================================================
+\@name
+{@fun113}
 <<
      $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
@@ -773,19 +726,13 @@ removing intermediate files.
   If you use CVS, you may wish to use the `cvs_realclean' program that
 is distributed with `omake'.
 
-Node: Subsection 8-3-8,	Next: Subsection 8-3-9,	Prev: Subsection 8-3-7,	Up: Section 8-3
+Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Section 8-3
   
 
-8.3.8   find-targets-in-path
-============================
- 
-
-Node: Subsection 8-3-9,	Next: Subsection 8-3-10,	Prev: Subsection 8-3-8,	Up: Section 8-3
-  
-
-8.3.9   find-targets-in-path-optional
-=====================================
-
+8.3.4   find-targets-in-path, find-targets-in-path-optional
+===========================================================
+\@name
+{@default163}
 <<
       $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array
@@ -818,11 +765,11 @@ removes targets that can't be found.
       src/fee.o src/foo.o
 >>
 
-Node: Subsection 8-3-10,	Next: Subsection 8-3-11,	Prev: Subsection 8-3-9,	Up: Section 8-3
+Node: Subsection 8-3-5,	Next: Subsection 8-3-6,	Prev: Subsection 8-3-4,	Up: Section 8-3
   
 
-8.3.10   file-sort
-==================
+8.3.5   file-sort
+=================
 
  
 <<
@@ -860,8 +807,8 @@ where this matters).
   
   
 
- sort rule
-----------
+8.3.5.1   sort rule
+-------------------
   
   It is possible to further constrain the sorter through the use of sort
 rules. A sort rule is declared in two steps. The target must be listed
@@ -883,11 +830,11 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
 
-Node: Subsection 8-3-11,	Next: Section 8-4,	Prev: Subsection 8-3-10,	Up: Section 8-3
+Node: Subsection 8-3-6,	Next: Section 8-4,	Prev: Subsection 8-3-5,	Up: Section 8-3
   
 
-8.3.11   file-check-sort
-========================
+8.3.6   file-check-sort
+=======================
 
 <<
      file-check-sort(files)
@@ -1922,4 +1869,34 @@ Node: Subsection 8-8-22,	Next: Subsection 8-8-23,	Prev: Subsection 8-8-21,	Up: S
  addrtype  `String': the preferred socket domain. 
  addrs  `InetAddr Array': an array of Internet addresses belonging to
    the host. 
+  
+
+Node: Subsection 8-8-23,	Next: Subsection 8-8-24,	Prev: Subsection 8-8-22,	Up: Section 8-8
+  
+
+8.8.23   gethostbyname
+======================
+
+<<
+     $(gethostbyname host...) : Host...
+        host : String
+     raises RuntimeException
+>>
+  
+  The `gethostbyname' function returns a `Host' object for the specified
+host. The `host' may specify a domain name or an Internet address.
+
+Node: Subsection 8-8-24,	Next: Subsection 8-8-25,	Prev: Subsection 8-8-23,	Up: Section 8-8
+  
+
+8.8.24   Protocol
+=================
+
+  The `Protocol' object represents a protocol entry. It has the
+following fields.
+  
+  
+ name  `String': the canonical name of the protocol. 
+ aliases  `String Array': aliases for the protocol. 
+ proto  `Int': the protocol number. 
   

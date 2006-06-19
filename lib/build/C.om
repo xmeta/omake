@@ -150,8 +150,10 @@ foreach(CXX_EXT, $(CXX_EXTS))
 # Make sure generated files are built before scanning
 #
 # \begin{doc}
-# \fun{CGeneratedFiles}
-# \fun{LocalCGeneratedFiles}
+# \subsection{Generated C files}
+# Because the C scanners do not normally know anything about generated source files (such as
+# generated header files), these files may need to be created before running the scanner.
+# \twofuns{CGeneratedFiles}{LocalCGeneratedFiles}
 # \begin{verbatim}
 # CGeneratedFiles(files)
 # LocalCGeneratedFiles(files)
@@ -249,6 +251,7 @@ else
 # Define a function to build a C-library
 #
 # \begin{doc}
+# \subsection{Building C programs and Libraries}
 # \fun{StaticCLibrary}
 #
 # The \verb+StaticCLibrary+ builds a static library.
@@ -370,9 +373,7 @@ StaticCLibraryInstall(tag, lib, name, files) =
 # but use the linker instead.
 #
 # \begin{doc}
-# \fun{StaticCObject}
-# \fun{StaticCObjectCopy}
-# \fun{StaticCObjectInstall}
+# \threefuns{StaticCObject}{StaticCObjectCopy}{StaticCObjectInstall}
 #
 # These functions mirror the \verb+StaticCLibrary+, \verb+StaticCLibraryCopy+,
 # and \verb+StaticCLibraryInstall+ functions, but they build an \emph{object}
@@ -531,8 +532,7 @@ CProgramInstall(tag, bin, name, files) =
 # The C++ versions.
 #
 # \begin{doc}
-# \fun{CXXProgram}
-# \fun{CXXProgramInstall}
+# \twofuns{CXXProgram}{CXXProgramInstall}
 #
 # The \verb+CXXProgram+ and \verb+CXXProgramInstall+ functions are
 # equivalent to their C counterparts, except that would use \verb+$(CXX)+ and \verb+$(CXXFLAGS)+

@@ -245,8 +245,8 @@ differences to keep in mind when using omake.
   
  - In omake, you are much less likely to define build rules of your own.
     The system provides many standard functions (like `StaticCLibrary'
-   11.3.19*Note Subsection 11-3-19:: and `CProgram'
-   11.3.25*Note Subsection 11-3-25::)  to specify these builds more
+   11.3.3.1*Note Subsection 11-3-3:: and `CProgram'
+   11.3.3.5*Note Subsection 11-3-3::)  to specify these builds more
    simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
@@ -292,7 +292,7 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' 11.3.25*Note Subsection 11-3-25:: function. The OMakefile
+`CProgram' 11.3.3.5*Note Subsection 11-3-3:: function. The OMakefile
 contains just one line that specifies that the program `hello' is to be
 built from the source code in the `hello_code.c' file (note that file
 suffixes are not passed to these functions).
@@ -324,7 +324,7 @@ MD5 digests were computed.
   
   If we want to change the compile options, we can redefine the `CC' and
 `CFLAGS' variables before the `CProgram'
-11.3.25*Note Subsection 11-3-25:: line. In this example, we will use the
+11.3.3.5*Note Subsection 11-3-3:: line. In this example, we will use the
 `gcc' compiler with the `-g' option. In addition, we will specify a
 `.DEFAULT' target to be built by default. The `EXE' variable is defined
 to be `.exe' on `Win32' systems; it is empty otherwise.
@@ -456,7 +456,7 @@ can also place the change in the root OMakefile.
   
   Note that the way we have specified it, the `CFLAGS' variable also
 contains the `-O3' option for the `CProgram'
-11.3.25*Note Subsection 11-3-25::, and `hello_code.c' and
+11.3.3.5*Note Subsection 11-3-3::, and `hello_code.c' and
 `hello_helper.c' file will both be compiled with the `-O3' option. If we
 want to make the change truly local to `libbar', we can put the `bar'
 subdirectory in its own scope using the `section' form.

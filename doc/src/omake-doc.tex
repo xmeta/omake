@@ -8,6 +8,9 @@
 \usepackage{index}
 \usepackage{hyperref}
 
+\addtocounter{tocdepth}{1}
+\addtocounter{secnumdepth}{1}
+
 \newcommand{\authors}{Jason Hickey \emph{et. al.}}
 
 \title{The OMake user guide and reference manual}
@@ -32,18 +35,21 @@
 %
 % Identifiers.
 %
-\newcommand\var[1]{\subsection{#1}\index{#1}\index[var]{#1}\label{var:#1}}
-\newcommand\varlabel[2]{\subsection{#2}\index{#2}\index[var]{#2}\label{var:#1}}
+\newcommand\idsection[1]{\subsection{#1}}
+\newcommand\var[1]{\idsection{#1}\index{#1}\index[var]{#1}\label{var:#1}}
+\newcommand\varlabel[2]{\idsection{#2}\index{#2}\index[var]{#2}\label{var:#1}}
 \newcommand\funref[1]{\index{#1}\index[fun]{#1}\label{fun:#1}}
-\newcommand\fun[1]{\subsection{#1}\funref{#1}}
+\newcommand\fun[1]{\idsection{#1}\funref{#1}}
+\newcommand\twofuns[2]{\idsection{{#1}, {#2}}\funref{#1}\funref{#2}}
+\newcommand\threefuns[3]{\idsection{{#1}, {#2}, {#3}}\funref{#1}\funref{#2}\funref{#3}}
 \newcommand\formref[1]{\funref{#1}}
-\newcommand\form[1]{\subsection{#1}\funref{#1}}
+\newcommand\form[1]{\idsection{#1}\funref{#1}}
 \newcommand\objref[1]{\index{#1}\index[obj]{#1}\label{obj:#1}}
-\newcommand\obj[1]{\subsection{#1}\objref{#1}}
+\newcommand\obj[1]{\idsection{#1}\objref{#1}}
 \newcommand\targetref[1]{\index{#1}\index[target]{#1}\label{target:#1}}
-\newcommand\target[1]{\subsection{#1}\targetref{#1}}
+\newcommand\target[1]{\idsection{#1}\targetref{#1}}
 \newcommand\optionref[1]{\index{#1}\index[opt]{#1}\label{option:#1}}
-\newcommand\option[1]{\subsection{\texttt{#1}}\optionref{#1}}
+\newcommand\option[1]{\idsection{\texttt{#1}}\optionref{#1}}
 
 \newindex{default}{idx}{ind}{Index}
 \newindex{var}{vidx}{vind}{Index of variables}
@@ -101,7 +107,7 @@ Index:&\ahref{omake-all-index.html}{All}
 \input{../tex/omake-base}
 \input{../tex/omake-system}
 \input{../tex/omake-pervasives}
-\input{../tex/omake-root}
+{\renewcommand\idsection[1]{\subsubsection{#1}}\input{../tex/omake-root}}
 \input{osh}
 \appendix
 \input{omake-options}

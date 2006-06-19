@@ -61,7 +61,7 @@ Node: Section 6-8,	Next: Section 6-9,	Prev: Section 6-7,	Up: Chapter 6
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' 11.2.8*Note Subsection 11-2-8:: variable
+  The `SCANNER_MODE' 11.2.1.7*Note Subsection 11-2-1:: variable
 controls the usage of implicit scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
@@ -395,7 +395,7 @@ Node: Section 6-14,	Next: Chapter 7,	Prev: Section 6-13,	Up: Chapter 6
 values (as in the `file' function 8.1.1*Note Subsection 8-1-1::). They are
 then translated to strings for the command line. This can cause some
 unexpected behavior. In the following example, the `absname' function
-8.1.9*Note Subsection 8-1-9:: is the absolute pathname for the file `a',
+8.1.8*Note Subsection 8-1-8:: is the absolute pathname for the file `a',
 but the rule still prints the relative pathname.
 <<
       .PHONY: demo
@@ -445,7 +445,7 @@ absolute names.
   
   Alternately, the `--absname' option is scoped. If you want to use it
 for only a few rules, you can use the `OMakeFlags' function
-11.1.1*Note Subsection 11-1-1:: to control how it is applied.
+11.1.0.1*Note Section 11-1:: to control how it is applied.
 <<
      section
         OMakeFlags(--absname)
@@ -609,18 +609,17 @@ The false value can be represented by the strings `false', `no', `nil',
 * Subsection 7-2-3::	and
 * Subsection 7-2-4::	or
 * Subsection 7-2-5::	if
-* Subsection 7-2-6::	switch
-* Subsection 7-2-7::	match
-* Subsection 7-2-8::	try
-* Subsection 7-2-9::	raise
-* Subsection 7-2-10::	exit
-* Subsection 7-2-11::	defined
-* Subsection 7-2-12::	defined-env
-* Subsection 7-2-13::	getenv
-* Subsection 7-2-14::	setenv
-* Subsection 7-2-15::	get-registry
-* Subsection 7-2-16::	getvar
-* Subsection 7-2-17::	setvar
+* Subsection 7-2-6::	switch, match
+* Subsection 7-2-7::	try
+* Subsection 7-2-8::	raise
+* Subsection 7-2-9::	exit
+* Subsection 7-2-10::	defined
+* Subsection 7-2-11::	defined-env
+* Subsection 7-2-12::	getenv
+* Subsection 7-2-13::	setenv
+* Subsection 7-2-14::	get-registry
+* Subsection 7-2-15::	getvar
+* Subsection 7-2-16::	setvar
 
 
 Node: Subsection 7-2-1,	Next: Subsection 7-2-2,	Prev: Section 7-2,	Up: Section 7-2
@@ -746,16 +745,10 @@ common idiom for defining the C compiler configuration.
 Node: Subsection 7-2-6,	Next: Subsection 7-2-7,	Prev: Subsection 7-2-5,	Up: Section 7-2
   
 
-7.2.6   switch
-==============
- 
-
-Node: Subsection 7-2-7,	Next: Subsection 7-2-8,	Prev: Subsection 7-2-6,	Up: Section 7-2
-  
-
-7.2.7   match
-=============
-
+7.2.6   switch, match
+=====================
+\@na
+me{@fun11}
   The `switch' and `match' functions perform pattern matching.
   `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
 `$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
@@ -808,10 +801,10 @@ function uses regular expression matching.
         println(The string $(FILE) has no suffix)
 >>
 
-Node: Subsection 7-2-8,	Next: Subsection 7-2-9,	Prev: Subsection 7-2-7,	Up: Section 7-2
+Node: Subsection 7-2-7,	Next: Subsection 7-2-8,	Prev: Subsection 7-2-6,	Up: Section 7-2
   
 
-7.2.8   try
+7.2.7   try
 ===========
 
 <<
@@ -847,10 +840,10 @@ returned as the result.
   There can be any number of `catch' clauses; the `finally' clause is
 optional. 
 
-Node: Subsection 7-2-9,	Next: Subsection 7-2-10,	Prev: Subsection 7-2-8,	Up: Section 7-2
+Node: Subsection 7-2-8,	Next: Subsection 7-2-9,	Prev: Subsection 7-2-7,	Up: Section 7-2
   
 
-7.2.9   raise
+7.2.8   raise
 =============
 
 <<
@@ -862,11 +855,11 @@ Node: Subsection 7-2-9,	Next: Subsection 7-2-10,	Prev: Subsection 7-2-8,	Up: Sec
 object. However, the normal convention is to raise an `Exception'
 object. 
 
-Node: Subsection 7-2-10,	Next: Subsection 7-2-11,	Prev: Subsection 7-2-9,	Up: Section 7-2
+Node: Subsection 7-2-9,	Next: Subsection 7-2-10,	Prev: Subsection 7-2-8,	Up: Section 7-2
   
 
-7.2.10   exit
-=============
+7.2.9   exit
+============
 
 <<
      exit(code)
@@ -878,10 +871,10 @@ Node: Subsection 7-2-10,	Next: Subsection 7-2-11,	Prev: Subsection 7-2-9,	Up: Se
   The `exit' function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination. 
 
-Node: Subsection 7-2-11,	Next: Subsection 7-2-12,	Prev: Subsection 7-2-10,	Up: Section 7-2
+Node: Subsection 7-2-10,	Next: Subsection 7-2-11,	Prev: Subsection 7-2-9,	Up: Section 7-2
   
 
-7.2.11   defined
+7.2.10   defined
 ================
 
 <<
@@ -898,10 +891,10 @@ variable if it is not already defined.
          export
 >>
 
-Node: Subsection 7-2-12,	Next: Subsection 7-2-13,	Prev: Subsection 7-2-11,	Up: Section 7-2
+Node: Subsection 7-2-11,	Next: Subsection 7-2-12,	Prev: Subsection 7-2-10,	Up: Section 7-2
   
 
-7.2.12   defined-env
+7.2.11   defined-env
 ====================
 
 <<
@@ -919,10 +912,10 @@ environment variable `DEBUG' is defined.
       export
 >>
 
-Node: Subsection 7-2-13,	Next: Subsection 7-2-14,	Prev: Subsection 7-2-12,	Up: Section 7-2
+Node: Subsection 7-2-12,	Next: Subsection 7-2-13,	Prev: Subsection 7-2-11,	Up: Section 7-2
   
 
-7.2.13   getenv
+7.2.12   getenv
 ===============
 
 <<
@@ -949,10 +942,10 @@ it is defined, and to `/bin /usr/bin' otherwise.
            default
 >>
 
-Node: Subsection 7-2-14,	Next: Subsection 7-2-15,	Prev: Subsection 7-2-13,	Up: Section 7-2
+Node: Subsection 7-2-13,	Next: Subsection 7-2-14,	Prev: Subsection 7-2-12,	Up: Section 7-2
   
 
-7.2.14   setenv
+7.2.13   setenv
 ===============
 
 <<
@@ -964,10 +957,10 @@ Node: Subsection 7-2-14,	Next: Subsection 7-2-15,	Prev: Subsection 7-2-13,	Up: S
   The `setenv' function sets the value of a variable in the process
 environment. Environment variables are scoped like normal variables.
 
-Node: Subsection 7-2-15,	Next: Subsection 7-2-16,	Prev: Subsection 7-2-14,	Up: Section 7-2
+Node: Subsection 7-2-14,	Next: Subsection 7-2-15,	Prev: Subsection 7-2-13,	Up: Section 7-2
   
 
-7.2.15   get-registry
+7.2.14   get-registry
 =====================
 
 <<
@@ -1002,10 +995,10 @@ also use the alternate form.
 >>
   
 
-Node: Subsection 7-2-16,	Next: Subsection 7-2-17,	Prev: Subsection 7-2-15,	Up: Section 7-2
+Node: Subsection 7-2-15,	Next: Subsection 7-2-16,	Prev: Subsection 7-2-14,	Up: Section 7-2
   
 
-7.2.16   getvar
+7.2.15   getvar
 ===============
 
 <<
@@ -1021,10 +1014,10 @@ Node: Subsection 7-2-16,	Next: Subsection 7-2-17,	Prev: Subsection 7-2-15,	Up: S
       X = $(getvar $(NAME)_1)
 >>
 
-Node: Subsection 7-2-17,	Next: Section 7-3,	Prev: Subsection 7-2-16,	Up: Section 7-2
+Node: Subsection 7-2-16,	Next: Section 7-3,	Prev: Subsection 7-2-15,	Up: Section 7-2
   
 
-7.2.17   setvar
+7.2.16   setvar
 ===============
 
 <<

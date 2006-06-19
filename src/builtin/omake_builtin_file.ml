@@ -26,8 +26,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_arg
@@ -68,8 +68,7 @@ let is_dir dir =
  *
  * \begin{doc}
  * \section{File names}
- * \fun{file}
- * \fun{dir}
+ * \twofuns{file}{dir}
  *
  * \begin{verbatim}
  *    $(file sequence) : File Sequence
@@ -752,9 +751,7 @@ let digest_in_path_optional = digest_path_aux false
  *
  * \begin{doc}
  * \section{File stats}
- * \fun{file-exists}
- * \fun{target-exists}
- * \fun{target-is-proper}
+ * \threefuns{file-exists}{target-exists}{target-is-proper}
  *
  * \begin{verbatim}
  *    $(file-exists files) : String
@@ -816,9 +813,7 @@ let stat_reset venv pos loc args =
  * Filter out the files that don't exist.
  *
  * \begin{doc}
- * \fun{filter-exists}
- * \fun{filter-targets}
- * \fun{filter-proper-targets}
+ * \threefuns{filter-exists}{filter-targets}{filter-proper-targets}
  *
  * \begin{verbatim}
  *    $(filter-exists files) : File Sequence
@@ -896,8 +891,7 @@ let filter_proper_targets venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{find-targets-in-path}
- * \fun{find-targets-in-path-optional}
+ * \twofuns{find-targets-in-path}{find-targets-in-path-optional}
  *
  * \begin{verbatim}
  *     $(find-targets-in-path path files) : File Array
@@ -2613,12 +2607,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

@@ -60,8 +60,7 @@ open Pos
  * Find dependencies of a target.
  *
  * \begin{doc}
- * \fun{dependencies}
- * \fun{dependencies-all}
+ * \twofuns{dependencies}{dependencies-all}
  *
  * \begin{verbatim}
  *    $(dependencies targets) : File Array

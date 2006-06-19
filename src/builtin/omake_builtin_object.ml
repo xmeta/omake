@@ -327,8 +327,7 @@ let map_map venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{create-map}
- * \fun{create-lazy-map}
+ * \twofuns{create-map}{create-lazy-map}
  *
  * The \verb+create-map+ is a simplified form for creating \verb+Map+ objects.
  * The \verb+create-map+ function takes an even number of arguments that specify
