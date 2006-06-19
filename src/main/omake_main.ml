@@ -93,6 +93,8 @@ let spec =
    Lm_arg.StrictOptions, (**)
       ["Make flags", (**)
           options_spec;
+       "Output flags", (**)
+          output_spec;
        "Cache management", (**)
           ["--save-interval", Lm_arg.Float (fun f -> Omake_build.save_interval := f), (**)
               (sprintf "Save the build DB (\".omakedb\") every x seconds (0 disables, default: %F)" (**)

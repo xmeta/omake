@@ -69,6 +69,7 @@ val set_omake_dir : string -> unit
  * Argument specifier.
  *)
 val options_spec : (string * omake_options Lm_arg.poly_spec * string) list
+val output_spec  : (string * omake_options Lm_arg.poly_spec * string) list
 
 (*
  * Files.

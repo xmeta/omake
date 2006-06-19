@@ -31,6 +31,7 @@ open Omake_ir
 open Omake_env
 open Omake_node
 open Omake_exec
+open Omake_exec_util
 open Omake_cache_type
 open Omake_command_type
 
@@ -153,6 +154,9 @@ type command =
      mutable command_blocked            : Node.t list;
      mutable command_lines              : command_body;
 
+     (* Output tees *)
+     mutable command_tee                : tee;
+
      (* Linked list *)
      mutable command_pred               : command option ref;
      command_succ                       : command option ref
@@ -204,6 +208,10 @@ type env =
      env_running_wl                 : command option ref;
      env_succeeded_wl               : command option ref;
      env_failed_wl                  : command option ref;
+
+     (* Output files *)
+     mutable env_success_tees       : string list;
+     mutable env_failed_tees        : string list;
 
      (* Statistics *)
      mutable env_succeeded_count    : int;

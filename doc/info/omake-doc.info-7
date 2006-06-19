@@ -1,5 +1,281 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection A-1-13,	Next: Section A-2,	Prev: Subsection A-1-12,	Up: Section A-1
+  
+
+A.1.13   --no-divert-only
+=========================
+
+`--no-divert-only'
+  The `--divert-only' option does not work well with interactive
+commands because you cant't see the output from the command that is
+prompting you for input. If you want this option to apply only to
+specific rules/commands, see the `OMakeFlags' function
+11.1.1*Note Subsection 11-1-1::.
+
+Node: Section A-2,	Next: Subsection A-2-1,	Prev: Section A-1,	Up: Appendix A
+  
+
+A.2   Build options
+*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-2-1::	-k
+* Subsection A-2-2::	-n
+* Subsection A-2-3::	-p
+* Subsection A-2-4::	-P
+* Subsection A-2-5::	-R
+* Subsection A-2-6::	-t
+* Subsection A-2-7::	-U
+* Subsection A-2-8::	--depend
+* Subsection A-2-9::	--configure
+* Subsection A-2-10::	--force-dotomake
+* Subsection A-2-11::	--dotomake
+* Subsection A-2-12::	-j
+* Subsection A-2-13::	--print-dependencies
+* Subsection A-2-14::	--show-dependencies
+* Subsection A-2-15::	--all-dependencies
+* Subsection A-2-16::	--verbose-dependencies
+* Subsection A-2-17::	--install
+* Subsection A-2-18::	--install-all
+* Subsection A-2-19::	--install-force
+* Subsection A-2-20::	--absname
+* Subsection A-2-21::	variable definition
+
+
+Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
+  
+
+A.2.1   -k
+==========
+ `-k'
+  Do not abort when a build command fails; continue to build as much of
+the project as possible.
+
+Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
+  
+
+A.2.2   -n
+==========
+ `-n'
+  This can be used to see what would happen if the project were to be
+built.
+
+Node: Subsection A-2-3,	Next: Subsection A-2-4,	Prev: Subsection A-2-2,	Up: Section A-2
+  
+
+A.2.3   -p
+==========
+ `-p'
+  Watch the filesystem for changes, and continue the build until it
+succeeds. If this option is specified, omake will restart the build
+whenever source files are modified. Implies -k.
+
+Node: Subsection A-2-4,	Next: Subsection A-2-5,	Prev: Subsection A-2-3,	Up: Section A-2
+  
+
+A.2.4   -P
+==========
+ `-P'
+  Watch the filesystem for changes forever. If this option is specified,
+omake will restart the build whenever source files are modified. Implies
+-k.
+
+Node: Subsection A-2-5,	Next: Subsection A-2-6,	Prev: Subsection A-2-4,	Up: Section A-2
+  
+
+A.2.5   -R
+==========
+ `-R'
+  Ignore the current directory and build the project from its root
+directory. When omake is run in a subdirectory of a project, it normally
+builds files within the current directory and its subdirectories. If the
+-R option is specified, the build is performed as if omake were run in
+the project root.
+
+Node: Subsection A-2-6,	Next: Subsection A-2-7,	Prev: Subsection A-2-5,	Up: Section A-2
+  
+
+A.2.6   -t
+==========
+ `-t'
+  Update the omake database to force the project to be considered
+up-to-date.
+
+Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
+  
+
+A.2.7   -U
+==========
+ `-U'
+  Do not trust cached build information. This will force the entire
+project to be rebuilt.
+
+Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
+  
+
+A.2.8   --depend
+================
+ `--depend'
+  Do not trust cached dependency information. This will force files to
+be rescanned for dependency information.
+
+Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
+  
+
+A.2.9   --configure
+===================
+
+`--configure'
+  Re-run `static.\' sections of the included omake files, instead of
+trusting the cached results.
+
+Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
+  
+
+A.2.10   --force-dotomake
+=========================
+
+`--force-dotomake'
+  Always use the `$HOME/.omake' for the `.omc' cache files.
+
+Node: Subsection A-2-11,	Next: Subsection A-2-12,	Prev: Subsection A-2-10,	Up: Section A-2
+  
+
+A.2.11   --dotomake
+===================
+ `--dotomake
+<dir>'
+  Use the specified directory instead of the `$HOME/.omake' for the
+placement of the `.omc' cache files.
+
+Node: Subsection A-2-12,	Next: Subsection A-2-13,	Prev: Subsection A-2-11,	Up: Section A-2
+  
+
+A.2.12   -j
+===========
+ `-j <count>'
+  Run multiple build commands in parallel. The count specifies a bound
+on the number of commands to run simultaneously. In addition, the count
+may specify servers for remote execution of commands in the form
+`server=count'. For example, the option `-j
+2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs can
+be executed locally, 1 on the server `small.host.org' and 4 on
+`large.host.org'. Each remote server must use the same filesystem
+location for the project.
+  Remote execution is currently an experimental feature. Remote
+filesystems like NFS do not provide adequate file consistency for this
+to work.
+
+Node: Subsection A-2-13,	Next: Subsection A-2-14,	Prev: Subsection A-2-12,	Up: Section A-2
+  
+
+A.2.13   --print-dependencies
+=============================
+
+`--print-dependencies'
+  Print dependency information for the targets on the command line.
+
+Node: Subsection A-2-14,	Next: Subsection A-2-15,	Prev: Subsection A-2-13,	Up: Section A-2
+  
+
+A.2.14   --show-dependencies
+============================
+
+`--show-dependencies <target>'
+  Print dependency information if the `target' is built.
+
+Node: Subsection A-2-15,	Next: Subsection A-2-16,	Prev: Subsection A-2-14,	Up: Section A-2
+  
+
+A.2.15   --all-dependencies
+===========================
+
+`--all-dependencies'
+  If either of the options --print-dependencies or --show-dependencies
+is in effect, print transitive dependencies. That is, print all
+dependencies recursively. If neither option --print-dependencies,
+--show-dependencies is specified, this option has no effect.
+
+Node: Subsection A-2-16,	Next: Subsection A-2-17,	Prev: Subsection A-2-15,	Up: Section A-2
+  
+
+A.2.16   --verbose-dependencies
+===============================
+
+`--verbose-dependencies'
+  If either of the options --print-dependencies or --show-dependencies
+is in effect, also print listings for each dependency. The output is
+very verbose, consider redirecting to a file. If neither option
+--print-dependencies, --show-dependencies is specified, this option has
+no effect.
+
+Node: Subsection A-2-17,	Next: Subsection A-2-18,	Prev: Subsection A-2-16,	Up: Section A-2
+  
+
+A.2.17   --install
+==================
+ `--install'
+  Install default files OMakefile and OMakeroot into the current
+directory. You would typically do this to start a project in the current
+directory.
+
+Node: Subsection A-2-18,	Next: Subsection A-2-19,	Prev: Subsection A-2-17,	Up: Section A-2
+  
+
+A.2.18   --install-all
+======================
+
+`--install-all'
+  In addition to installing files OMakefile and OMakeroot, install
+default OMakefiles into each subdirectory of the current directory.
+cvs(1) rules are used for filtering the subdirectory list. For example,
+OMakefiles are not copied into directories called `CVS', `RCCS', etc.
+
+Node: Subsection A-2-19,	Next: Subsection A-2-20,	Prev: Subsection A-2-18,	Up: Section A-2
+  
+
+A.2.19   --install-force
+========================
+
+`--install-force'
+  Normally, omake will prompt before it overwrites any existing
+OMakefile. If this option is given, all files are forcibly overwritten
+without prompting.
+
+Node: Subsection A-2-20,	Next: Subsection A-2-21,	Prev: Subsection A-2-19,	Up: Section A-2
+  
+
+A.2.20   --absname
+==================
+ `--absname'
+  Filenames should expand to absolute pathnames.
+  N.B. This is an experimental option. It may become deprecated.
+
+Node: Subsection A-2-21,	Next: Section A-3,	Prev: Subsection A-2-20,	Up: Section A-2
+  
+
+A.2.21   variable definition
+============================
+
+`name=[value]'
+  omake variables can also be defined on the command line in the form
+`name=value'. For example, the `CFLAGS' variable might be defined on the
+command line with the argument `CFLAGS="-Wall -g"'.
+
+Node: Section A-3,	Next: Appendix B,	Prev: Section A-2,	Up: Appendix A
+  
+
+A.3   Additional options
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  In addition, omake supports a number of debugging flags on the command
+line. Run `omake --help' to get a summary of these flags.
+   
+
 Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
   
 
@@ -886,6 +1162,40 @@ Appendix C     Index
 ********************
   
   
+ - --absname, A.2.20*Note Subsection A-2-20:: 
+ - --all-dependencies, A.2.15*Note Subsection A-2-15:: 
+ - --configure, A.2.9*Note Subsection A-2-9:: 
+ - --depend, A.2.8*Note Subsection A-2-8:: 
+ - --divert, A.1.10*Note Subsection A-1-10:: 
+ - --divert-only, A.1.12*Note Subsection A-1-12:: 
+ - --divert-repeat, A.1.11*Note Subsection A-1-11:: 
+ - --dotomake, A.2.11*Note Subsection A-2-11:: 
+ - --force-dotomake, A.2.10*Note Subsection A-2-10:: 
+ - --install, A.2.17*Note Subsection A-2-17:: 
+ - --install-all, A.2.18*Note Subsection A-2-18:: 
+ - --install-force, A.2.19*Note Subsection A-2-19:: 
+ - --no-divert-only, A.1.13*Note Subsection A-1-13:: 
+ - --no-print-exit, A.1.9*Note Subsection A-1-9:: 
+ - --no-print-status, A.1.7*Note Subsection A-1-7:: 
+ - --no-progress, A.1.5*Note Subsection A-1-5:: 
+ - --print-dependencies, A.2.13*Note Subsection A-2-13:: 
+ - --print-exit, A.1.8*Note Subsection A-1-8:: 
+ - --print-status, A.1.6*Note Subsection A-1-6:: 
+ - --progress, A.1.4*Note Subsection A-1-4:: 
+ - --show-dependencies, A.2.14*Note Subsection A-2-14:: 
+ - --verbose-dependencies, A.2.16*Note Subsection A-2-16:: 
+ - -j, A.2.12*Note Subsection A-2-12:: 
+ - -k, A.2.1*Note Subsection A-2-1:: 
+ - -n, A.2.2*Note Subsection A-2-2:: 
+ - -P, A.2.4*Note Subsection A-2-4:: 
+ - -p, A.2.3*Note Subsection A-2-3:: 
+ - -R, A.2.5*Note Subsection A-2-5:: 
+ - -S, A.1.2*Note Subsection A-1-2:: 
+ - -s, A.1.1*Note Subsection A-1-1:: 
+ - -t, A.2.6*Note Subsection A-2-6:: 
+ - -U, A.2.7*Note Subsection A-2-7:: 
+ - -w, A.1.3*Note Subsection A-1-3:: 
+ 
  - .BUILDORDER, 8.3.10*Note Subsection 8-3-10:: 
  - .DEFAULT, 6.9*Note Section 6-9:: 
  - .INCLUDE, 6.11*Note Section 6-11:: 
@@ -1278,6 +1588,7 @@ Appendix C     Index
  - uppercase, 7.3.33*Note Subsection 7-3-33:: 
  
  - VERBOSE, 11.2.6*Note Subsection 11-2-6:: 
+ - variable definition, A.2.21*Note Subsection A-2-21:: 
  - vmount, 2.9*Note Section 2-9::, 8.6.1*Note Subsection 8-6-1:: 
  
  - wait, 9.2.5*Note Subsection 9-2-5:: 
@@ -1285,121 +1596,6 @@ Appendix C     Index
  - which, 8.2.1*Note Subsection 8-2-1:: 
  - while, 7.3.37*Note Subsection 7-3-37:: 
  - write, 8.8.8*Note Subsection 8-8-8:: 
- 
- - YACC, 11.3.15*Note Subsection 11-3-15:: 
-     
-
-Node: Appendix D,	Next: Appendix E,	Prev: Appendix C,	Up: Top
-  
-
-Appendix D     Index of variables
-*********************************
-  
-  
- - ABORT_ON_COMMAND_ERROR, 11.2.7*Note Subsection 11-2-7:: 
- - ABORT_ON_DEPENDENCY_ERRORS, 11.4.36*Note Subsection 11-4-36:: 
- - AR, 11.3.11*Note Subsection 11-3-11:: 
- - AROUT, 11.3.12*Note Subsection 11-3-12:: 
- - AS, 11.3.9*Note Subsection 11-3-9:: 
- - ASFLAGS, 11.3.10*Note Subsection 11-3-10:: 
- 
- - BIBTEX, 11.5.5*Note Subsection 11-5-5:: 
- - BYTE_ENABLED, 11.4.17*Note Subsection 11-4-17:: 
- 
- - CAMLP4, 11.4.5*Note Subsection 11-4-5:: 
- - CC, 11.3.2*Note Subsection 11-3-2:: 
- - CFLAGS, 11.3.5*Note Subsection 11-3-5:: 
- - CPP, 11.3.4*Note Subsection 11-3-4:: 
- - CWD, 11.2.3*Note Subsection 11-2-3:: 
- - CXX, 11.3.3*Note Subsection 11-3-3:: 
- - CXXFLAGS, 11.3.6*Note Subsection 11-3-6:: 
- 
- - DIRSEP, 11.2.12*Note Subsection 11-2-12:: 
- - DVIPDFM, 11.5.9*Note Subsection 11-5-9:: 
- - DVIPDFMFLAGS, 11.5.10*Note Subsection 11-5-10:: 
- - DVIPS, 11.5.7*Note Subsection 11-5-7:: 
- - DVIPSFLAGS, 11.5.8*Note Subsection 11-5-8:: 
- 
- - EMPTY, 11.2.4*Note Subsection 11-2-4:: 
- - EXE, 11.2.16*Note Subsection 11-2-16:: 
- - EXT_ASM, 11.2.15*Note Subsection 11-2-15:: 
- - EXT_LIB, 11.2.13*Note Subsection 11-2-13:: 
- - EXT_OBJ, 11.2.14*Note Subsection 11-2-14:: 
- 
- - HOME, 7.1.9*Note Subsection 7-1-9:: 
- - HOST, 7.1.6*Note Subsection 7-1-6:: 
- 
- - INCLUDES, 11.3.7*Note Subsection 11-3-7:: 
- - INSTALL, 11.2.10*Note Subsection 11-2-10:: 
- - ignoreeof, 12.1.2*Note Subsection 12-1-2:: 
- 
- - LATEX, 11.5.2*Note Subsection 11-5-2:: 
- - LATEXFLAGS, 11.5.4*Note Subsection 11-5-4:: 
- - LD, 11.3.13*Note Subsection 11-3-13:: 
- - LDFLAGS, 11.3.14*Note Subsection 11-3-14:: 
- - LEX, 11.3.16*Note Subsection 11-3-16:: 
- - LIBS, 11.3.8*Note Subsection 11-3-8:: 
- 
- - MACHINE, 7.1.5*Note Subsection 7-1-5:: 
- - MAKEINDEX, 11.5.6*Note Subsection 11-5-6:: 
- 
- - NATIVE_ENABLED, 11.4.18*Note Subsection 11-4-18:: 
- - NODENAME, 7.1.3*Note Subsection 7-1-3:: 
- 
- - OCAML_BYTE_LINK_FLAGS, 11.4.25*Note Subsection 11-4-25:: 
- - OCAML_CLIBS, 11.4.31*Note Subsection 11-4-31:: 
- - OCAML_LIB_FLAGS, 11.4.32*Note Subsection 11-4-32:: 
- - OCAML_LIBS, 11.4.29*Note Subsection 11-4-29:: 
- - OCAML_LINK_FLAGS, 11.4.27*Note Subsection 11-4-27:: 
- - OCAML_NATIVE_LINK_FLAGS, 11.4.26*Note Subsection 11-4-26:: 
- - OCAML_OTHER_LIBS, 11.4.30*Note Subsection 11-4-30:: 
- - OCAMLC, 11.4.3*Note Subsection 11-4-3:: 
- - OCAMLCFLAGS, 11.4.22*Note Subsection 11-4-22:: 
- - OCAMLDEP, 11.4.9*Note Subsection 11-4-9:: 
- - OCAMLDEPFLAGS, 11.4.20*Note Subsection 11-4-20:: 
- - OCAMLFIND, 11.4.14*Note Subsection 11-4-14:: 
- - OCAMLFINDFLAGS, 11.4.15*Note Subsection 11-4-15:: 
- - OCAMLFLAGS, 11.4.24*Note Subsection 11-4-24:: 
- - OCAMLINCLUDES, 11.4.13*Note Subsection 11-4-13:: 
- - OCAMLLEX, 11.4.6*Note Subsection 11-4-6:: 
- - OCAMLLEXFLAGS, 11.4.7*Note Subsection 11-4-7:: 
- - OCAMLLINK, 11.4.11*Note Subsection 11-4-11:: 
- - OCAMLMKTOP, 11.4.10*Note Subsection 11-4-10:: 
- - OCAMLOPT, 11.4.4*Note Subsection 11-4-4:: 
- - OCAMLOPTFLAGS, 11.4.23*Note Subsection 11-4-23:: 
- - OCAMLOPTLINK, 11.4.12*Note Subsection 11-4-12:: 
- - OCAMLPACKS, 11.4.16*Note Subsection 11-4-16:: 
- - OCAMLPPFLAGS, 11.4.21*Note Subsection 11-4-21:: 
- - OCAMLYACC, 11.4.8*Note Subsection 11-4-8:: 
- - OMAKE_VERSION, 7.1.7*Note Subsection 7-1-7:: 
- - OS_VERSION, 7.1.4*Note Subsection 7-1-4:: 
- - OSTYPE, 7.1.1*Note Subsection 7-1-1:: 
- 
- - PATHSEP, 11.2.11*Note Subsection 11-2-11:: 
- - PDFLATEX, 11.5.11*Note Subsection 11-5-11:: 
- - PDFLATEXFLAGS, 11.5.12*Note Subsection 11-5-12:: 
- - PID, 7.1.10*Note Subsection 7-1-10:: 
- - prompt, 12.1.1*Note Subsection 12-1-1:: 
- 
- - ROOT, 11.2.2*Note Subsection 11-2-2:: 
- 
- - SCANNER_MODE, 11.2.8*Note Subsection 11-2-8:: 
- - STDROOT, 11.2.5*Note Subsection 11-2-5:: 
- - SYSNAME, 7.1.2*Note Subsection 7-1-2:: 
- - stderr, 8.8.4*Note Subsection 8-8-4:: 
- - stdin, 8.8.2*Note Subsection 8-8-2:: 
- - stdout, 8.8.3*Note Subsection 8-8-3:: 
- 
- - TARGETS, 7.1.11*Note Subsection 7-1-11:: 
- - TETEX2_ENABLED, 11.5.3*Note Subsection 11-5-3:: 
- - TEXDEPS, 11.5.16*Note Subsection 11-5-16:: 
- - TEXINPUTS, 11.5.15*Note Subsection 11-5-15:: 
- 
- - USE_OCAMLFIND, 11.4.2*Note Subsection 11-4-2:: 
- - USEPDFLATEX, 11.5.13*Note Subsection 11-5-13:: 
- - USER, 7.1.8*Note Subsection 7-1-8:: 
- 
- - VERBOSE, 11.2.6*Note Subsection 11-2-6:: 
  
  - YACC, 11.3.15*Note Subsection 11-3-15:: 
      

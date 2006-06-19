@@ -34,6 +34,14 @@ type eval_flag =
  | EvalEager
 
 (*
+ * Diversion control.
+ *)
+type divert_flag =
+   Divert
+ | DivertRepeat
+ | DivertOnly
+
+(*
  * The basic make flags.
  *)
 type omake_options =
@@ -63,6 +71,7 @@ type omake_options =
      opt_flush_static         : bool;
      opt_allow_exceptions     : bool;
      opt_absname              : bool;
+     opt_divert               : divert_flag list;
    }
 
 (*!

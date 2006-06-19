@@ -163,6 +163,7 @@ sig
       ('exp, 'pid, 'value) t ->                 (* Current state *)
       ('exp, 'pid, 'value) shell ->             (* Evaluate a shell command *)
       omake_options ->                          (* Current options in effect *)
+      tee ->                                    (* Output diversion *)
       output_fun ->                             (* Function to handle output from stdout *)
       output_fun ->                             (* Function to handle output from stderr *)
       string ->                                 (* Name of this command *)

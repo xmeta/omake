@@ -26,6 +26,7 @@
  *)
 open Omake_node
 open Omake_exec_id
+open Omake_exec_util
 open Omake_exec_type
 open Omake_cache_type
 open Omake_options_type
@@ -55,6 +56,7 @@ val print_leaving_current_directory  : omake_options -> unit
  * Print a status line.
  *)
 val print_status :
+   tee ->                               (* Diversion *)
    omake_options ->                     (* Options currently in effect *)
    ('exp, 'pid, 'value) shell ->        (* The context *)
    string option ->                     (* Remote host name *)

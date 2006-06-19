@@ -89,7 +89,8 @@ let default_options =
      opt_flush_include        = false;
      opt_flush_static         = false;
      opt_allow_exceptions     = false;
-     opt_absname              = false
+     opt_absname              = false;
+     opt_divert               = [];
    }
 
 (*
@@ -157,31 +158,8 @@ let options_spec =
        "Poll filesystem for changes (keep polling \"forever\"); implies -k";
     "-n", Lm_arg.SetFold (fun options b -> { options with opt_dry_run = b }), (**)
        "Print commands, but do not execute them";
-    "-s", Lm_arg.UnitFold (fun options ->
-          { options with opt_print_status = false;
-                         opt_print_dir  = false;
-                         opt_print_file = false;
-                         opt_print_exit = false;
-                         opt_print_command = EvalNever }), (**)
-       "Do not print commands as they are executed";
-    "-S", Lm_arg.UnitFold (fun options -> { options with opt_print_command = EvalLazy }), (**)
-       "Print command only if the command prints output";
     "--project", Lm_arg.SetFold (fun options b -> { options with opt_project = b }), (**)
        "Ignore the current directory and build the project";
-    "--progress", Lm_arg.SetFold (fun options b -> { options with opt_print_progress = b }), (**)
-       "Print a progress indicator";
-    "--no-progress", Lm_arg.ClearFold (fun options b -> { options with opt_print_progress = b }), (**)
-       "Do not print a progress indicator";
-    "--print-status", Lm_arg.SetFold (fun options b -> { options with opt_print_status = b }), (**)
-       "Print status lines";
-    "--no-print-status", Lm_arg.ClearFold (fun options b -> { options with opt_print_file = b }), (**)
-       "Do not print status lines";
-    "-w", Lm_arg.SetFold (fun options b -> { options with opt_print_dir = b }), (**)
-       "Print the directory in \"make format\" as commands are executed";
-    "--no-print-exit", Lm_arg.ClearFold (fun options b -> { options with opt_print_exit = b }), (**)
-       "Do not print exit codes";
-    "--print-exit", Lm_arg.SetFold (fun options b -> { options with opt_print_exit = b }), (**)
-       "Print the exit codes of commands";
     "-t", Lm_arg.SetFold (fun options b -> { options with opt_touch_only = b }), (**)
        "Update database to force files to be up-to-date";
     "--depend", Lm_arg.SetFold (fun options b -> { options with opt_flush_dependencies = b }), (**)
@@ -212,6 +190,54 @@ let options_spec =
     "--absname", Lm_arg.SetFold (fun options b -> { options with opt_absname = b }), (**)
        "Filenames are always displayed as absolute paths"]
 
+(*
+ * Output control.
+ *)
+let divert flag options b =
+   let divert = options.opt_divert in
+   let divert =
+      if b then
+         if List.mem flag divert then
+            divert
+         else
+            flag :: divert
+      else
+         Lm_list_util.remove flag divert
+   in
+      { options with opt_divert = divert }
+
+let output_spec =
+   ["-s", Lm_arg.UnitFold (fun options ->
+          { options with opt_print_status  = false;
+                         opt_print_dir     = false;
+                         opt_print_file    = false;
+                         opt_print_exit    = false;
+                         opt_print_command = EvalNever }), (**)
+       "Do not print commands as they are executed";
+    "-S", Lm_arg.UnitFold (fun options -> { options with opt_print_command = EvalLazy }), (**)
+       "Print command only if the command prints output";
+    "--progress", Lm_arg.SetFold (fun options b -> { options with opt_print_progress = b }), (**)
+       "Print a progress indicator";
+    "--no-progress", Lm_arg.ClearFold (fun options b -> { options with opt_print_progress = b }), (**)
+       "Do not print a progress indicator";
+    "--print-status", Lm_arg.SetFold (fun options b -> { options with opt_print_status = b }), (**)
+       "Print status lines";
+    "--no-print-status", Lm_arg.ClearFold (fun options b -> { options with opt_print_file = b }), (**)
+       "Do not print status lines";
+    "-w", Lm_arg.SetFold (fun options b -> { options with opt_print_dir = b }), (**)
+       "Print the directory in \"make format\" as commands are executed";
+    "--no-print-exit", Lm_arg.ClearFold (fun options b -> { options with opt_print_exit = b }), (**)
+       "Do not print exit codes";
+    "--print-exit", Lm_arg.SetFold (fun options b -> { options with opt_print_exit = b }), (**)
+       "Print the exit codes of commands";
+    "--divert", Lm_arg.SetFold (divert Divert), (**)
+       "Divert command output; the final summary will re-print errors";
+    "--divert-repeat", Lm_arg.SetFold (divert DivertRepeat), (**)
+       "Re-print command output when a rule terminates";
+    "--divert-only", Lm_arg.SetFold (divert DivertOnly), (**)
+       "Print only diversions -- be silent otherwise";
+    "--no-divert-only", Lm_arg.ClearFold (divert DivertOnly), (**)
+       "Turn off --divert-only"]
 
 (*
  * Directories.

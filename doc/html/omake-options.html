@@ -31,11 +31,14 @@ Synopsis
 &bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
 &bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
 &bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A></TD>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD>
 </TR></TABLE>
 
 <H1 CLASS="chapter"><A NAME="htoc437">Appendix&nbsp;A</A>&nbsp;&nbsp;Synopsis</H1><UL>
-<LI><A HREF="omake-options.html#toc87">Command-line options</A>
+<LI><A HREF="omake-options.html#toc87">Output control</A>
+<LI><A HREF="omake-options.html#toc88">Build options</A>
+<LI><A HREF="omake-options.html#toc89">Additional options</A>
 </UL>
 
 <A NAME="chapter:options"></A>
@@ -70,65 +73,169 @@ Synopsis
  [<TT>--install-force</TT>]
  [<TT>--version</TT>]
  [<TT>--absname</TT>]
+ [<TT>--divert</TT>]
+ [<TT>--divert-repeat</TT>]
+ [<TT>--divert-only</TT>]
  <TT>filename...</TT>
  [<TT>var-definition...</TT>]<BR>
 <BR>
 <A NAME="toc87"></A>
-<H2 CLASS="section"><A NAME="htoc438">A.1</A>&nbsp;&nbsp;Command-line options</H2>
-<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B><TT>-k</TT></B><DD CLASS="dd-description"> Do not abort when a build command fails;
-continue to build as much of the project as possible.<BR>
+<H2 CLASS="section"><A NAME="htoc438">A.1</A>&nbsp;&nbsp;Output control</H2>
+
+<H3 CLASS="subsection"><A NAME="htoc439">A.1.1</A>&nbsp;&nbsp;<TT>-s</TT></H3><A NAME="@default386"></A><A NAME="@opt0"></A><A NAME="option:-s"></A> <CODE>-s</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-n</TT></B><DD CLASS="dd-description"> Print the commands that would be executed, but do no execute them.
-This can be used to see what would happen if the project were to be built.<BR>
+Do not print commands as they are executed (be &#8220;silent&#8221;).<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-s</TT></B><DD CLASS="dd-description"> Do not print commands as they are executed (be &#8220;silent&#8221;).<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc440">A.1.2</A>&nbsp;&nbsp;<TT>-S</TT></H3><A NAME="@default387"></A><A NAME="@opt1"></A><A NAME="option:-S"></A> <CODE>-S</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-S</TT></B><DD CLASS="dd-description"> Do not print commands as they are executed <EM>unless</EM> they produce output and/or
+Do not print commands as they are executed <EM>unless</EM> they produce output and/or
 fail.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--progress</TT></B><DD CLASS="dd-description"> Print a progress indicator.
-This is normally used with the <TT>-s</TT> or <TT>-S</TT> options.<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc441">A.1.3</A>&nbsp;&nbsp;<TT>-w</TT></H3><A NAME="@default388"></A><A NAME="@opt2"></A><A NAME="option:-w"></A> <CODE>-w</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--no-progress</TT></B><DD CLASS="dd-description"> Do not print a progress indicator (default).<BR>
-<BR>
-<DT CLASS="dt-description"><B><TT>--print-exit</TT></B><DD CLASS="dd-description"> Print termination codes when commands complete.<BR>
-<BR>
-<DT CLASS="dt-description"><B><TT>--no-print-exit</TT></B><DD CLASS="dd-description"> Do not print termination codes when commands complete (default).<BR>
-<BR>
-<DT CLASS="dt-description"><B><TT>-w</TT></B><DD CLASS="dd-description"> Print directory information in <TT>make</TT> format as commands are executed.
+Print directory information in <TT>make</TT> format as commands are executed.
 This is mainly useful for editors that expect <TT>make</TT>-style
 directory information for determining the location of errors.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-p</TT></B><DD CLASS="dd-description"> Watch the filesystem for changes, and continue the build until it succeeds. If this
+
+<H3 CLASS="subsection"><A NAME="htoc442">A.1.4</A>&nbsp;&nbsp;<TT>&ndash;progress</TT></H3><A NAME="@default389"></A><A NAME="@opt3"></A><A NAME="option:--progress"></A> <CODE>--progress</CODE><BR>
+<BR>
+Print a progress indicator.
+This is normally used with the <TT>-s</TT> or <TT>-S</TT> options.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc443">A.1.5</A>&nbsp;&nbsp;<TT>&ndash;no-progress</TT></H3><A NAME="@default390"></A><A NAME="@opt4"></A><A NAME="option:--no-progress"></A> <CODE>--no-progress</CODE><BR>
+<BR>
+Do not print a progress indicator (default).<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc444">A.1.6</A>&nbsp;&nbsp;<TT>&ndash;print-status</TT></H3><A NAME="@default391"></A><A NAME="@opt5"></A><A NAME="option:--print-status"></A> <CODE>--print-status</CODE><BR>
+<BR>
+Print status lines (the <CODE>+</CODE> and <CODE>-</CODE> lines).<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc445">A.1.7</A>&nbsp;&nbsp;<TT>&ndash;no-print-status</TT></H3><A NAME="@default392"></A><A NAME="@opt6"></A><A NAME="option:--no-print-status"></A> <CODE>--no-print-status</CODE><BR>
+<BR>
+Do not print status lines (the <CODE>+</CODE> and <CODE>-</CODE> lines).<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc446">A.1.8</A>&nbsp;&nbsp;<TT>&ndash;print-exit</TT></H3><A NAME="@default393"></A><A NAME="@opt7"></A><A NAME="option:--print-exit"></A> <CODE>--print-exit</CODE><BR>
+<BR>
+Print termination codes when commands complete.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc447">A.1.9</A>&nbsp;&nbsp;<TT>&ndash;no-print-exit</TT></H3><A NAME="@default394"></A><A NAME="@opt8"></A><A NAME="option:--no-print-exit"></A> <CODE>--no-print-exit</CODE><BR>
+<BR>
+Do not print termination codes when commands complete (default).<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc448">A.1.10</A>&nbsp;&nbsp;<TT>&ndash;divert</TT></H3><A NAME="@default395"></A><A NAME="@opt9"></A><A NAME="option:--divert"></A> <CODE>--divert</CODE><BR>
+<BR>
+&#8220;Divert&#8221; command output. The effect of this option by itself is to save the
+output of any commands so that it can be printed later. If any rules/commands fail, then OMake will
+re-print the output of the failed commands when it finishes the build. Off by default.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc449">A.1.11</A>&nbsp;&nbsp;<TT>&ndash;divert-repeat</TT></H3><A NAME="@default396"></A><A NAME="@opt10"></A><A NAME="option:--divert-repeat"></A> <CODE>--divert-repeat</CODE><BR>
+<BR>
+When a rule finishes, print the output as a single block. This is useful
+in combination <CODE>-j</CODE> option&nbsp;<A HREF="#option:-j">A.2.12</A>, where the output of multiple subprocesses can be
+garbled. The diversion is printed as a single coherent unit. Implies <CODE>--divert</CODE>.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc450">A.1.12</A>&nbsp;&nbsp;<TT>&ndash;divert-only</TT></H3><A NAME="@default397"></A><A NAME="@opt11"></A><A NAME="option:--divert-only"></A> <CODE>--divert-only</CODE> <BR>
+<BR>
+Print diversions <EM>only</EM>. This forces OMake to be much more quiet,
+printing output only when a command produces output. With this option alone, the output from
+successful commands is echoed immediately, and the output from failed commands is delayed until the
+build completes and the summary is printed. May be used in combination with <CODE>--divert-repeat</CODE>
+(output from failed commands will be printed twice). Implies <CODE>--divert</CODE>.<BR>
+<BR>
+You might also consider using the <CODE>--progress</CODE> flag&nbsp;<A HREF="#option:--progress">A.1.4</A> so that you can see
+when the build is active.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc451">A.1.13</A>&nbsp;&nbsp;<TT>&ndash;no-divert-only</TT></H3><A NAME="@default398"></A><A NAME="@opt12"></A><A NAME="option:--no-divert-only"></A> <CODE>--no-divert-only</CODE><BR>
+<BR>
+The <CODE>--divert-only</CODE> option does not work well with interactive
+commands because you cant't see the output from the command that is prompting you for input. If
+you want this option to apply only to specific rules/commands, see the <CODE>OMakeFlags</CODE>
+function&nbsp;<A HREF="omake-rule.html#fun:OMakeFlags">11.1.1</A>.<BR>
+<BR>
+<A NAME="toc88"></A>
+<H2 CLASS="section"><A NAME="htoc452">A.2</A>&nbsp;&nbsp;Build options</H2>
+
+<H3 CLASS="subsection"><A NAME="htoc453">A.2.1</A>&nbsp;&nbsp;<TT>-k</TT></H3><A NAME="@default399"></A><A NAME="@opt13"></A><A NAME="option:-k"></A> <CODE>-k</CODE><BR>
+<BR>
+Do not abort when a build command fails;
+continue to build as much of the project as possible.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc454">A.2.2</A>&nbsp;&nbsp;<TT>-n</TT></H3><A NAME="@default400"></A><A NAME="@opt14"></A><A NAME="option:-n"></A> <CODE>-n</CODE><BR>
+<BR>
+This can be used to see what would happen if the project were to be built.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc455">A.2.3</A>&nbsp;&nbsp;<TT>-p</TT></H3><A NAME="@default401"></A><A NAME="@opt15"></A><A NAME="option:-p"></A> <CODE>-p</CODE><BR>
+<BR>
+Watch the filesystem for changes, and continue the build until it succeeds. If this
 option is specified, <TT>omake</TT> will restart the build whenever source files are modified. Implies
 <TT>-k</TT>.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-P</TT></B><DD CLASS="dd-description"> Watch the filesystem for changes forever. If this option is specified, <TT>omake</TT>
+
+<H3 CLASS="subsection"><A NAME="htoc456">A.2.4</A>&nbsp;&nbsp;<TT>-P</TT></H3><A NAME="@default402"></A><A NAME="@opt16"></A><A NAME="option:-P"></A> <CODE>-P</CODE><BR>
+<BR>
+Watch the filesystem for changes forever. If this option is specified, <TT>omake</TT>
 will restart the build whenever source files are modified. Implies
 <TT>-k</TT>.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-R</TT></B><DD CLASS="dd-description"> Ignore the current directory and build the project from its root directory. When
+
+<H3 CLASS="subsection"><A NAME="htoc457">A.2.5</A>&nbsp;&nbsp;<TT>-R</TT></H3><A NAME="@default403"></A><A NAME="@opt17"></A><A NAME="option:-R"></A> <CODE>-R</CODE><BR>
+<BR>
+Ignore the current directory and build the project from its root directory. When
 <TT>omake</TT> is run in a subdirectory of a project, it normally builds files within the current
 directory and its subdirectories. If the <TT>-R</TT> option is specified, the build is performed as if
 <TT>omake</TT> were run in the project root.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-t</TT></B><DD CLASS="dd-description"> Update the <TT>omake</TT> database to force the project to be considered up-to-date.<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc458">A.2.6</A>&nbsp;&nbsp;<TT>-t</TT></H3><A NAME="@default404"></A><A NAME="@opt18"></A><A NAME="option:-t"></A> <CODE>-t</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-U</TT></B><DD CLASS="dd-description"> Do not trust cached build information. This will force the entire project to be rebuilt.<BR>
+Update the <TT>omake</TT> database to force the project to be considered up-to-date.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--depend</TT></B><DD CLASS="dd-description"> Do not trust cached dependency information. This will force files to be rescanned
+
+<H3 CLASS="subsection"><A NAME="htoc459">A.2.7</A>&nbsp;&nbsp;<TT>-U</TT></H3><A NAME="@default405"></A><A NAME="@opt19"></A><A NAME="option:-U"></A> <CODE>-U</CODE><BR>
+<BR>
+Do not trust cached build information. This will force the entire project to be rebuilt.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc460">A.2.8</A>&nbsp;&nbsp;<TT>&ndash;depend</TT></H3><A NAME="@default406"></A><A NAME="@opt20"></A><A NAME="option:--depend"></A> <CODE>--depend</CODE><BR>
+<BR>
+Do not trust cached dependency information. This will force files to be rescanned
 for dependency information.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--configure</TT></B><DD CLASS="dd-description"> Re-run <CODE>static.\</CODE> sections of the included omake files, instead of
+
+<H3 CLASS="subsection"><A NAME="htoc461">A.2.9</A>&nbsp;&nbsp;<TT>&ndash;configure</TT></H3><A NAME="@default407"></A><A NAME="@opt21"></A><A NAME="option:--configure"></A> <CODE>--configure</CODE><BR>
+<BR>
+Re-run <CODE>static.\</CODE> sections of the included omake files, instead of
 trusting the cached results.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--force-dotomake</TT></B><DD CLASS="dd-description"> Always use the <CODE>$HOME/.omake</CODE> for the <CODE>.omc</CODE> cache files.<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc462">A.2.10</A>&nbsp;&nbsp;<TT>&ndash;force-dotomake</TT></H3><A NAME="@default408"></A><A NAME="@opt22"></A><A NAME="option:--force-dotomake"></A> <CODE>--force-dotomake</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--dotomake &lt;dir&gt;</TT></B><DD CLASS="dd-description"> Use the specified directory instead of the <CODE>$HOME/.omake</CODE>
+Always use the <CODE>$HOME/.omake</CODE> for the <CODE>.omc</CODE> cache files.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc463">A.2.11</A>&nbsp;&nbsp;<TT>&ndash;dotomake</TT></H3><A NAME="@default409"></A><A NAME="@opt23"></A><A NAME="option:--dotomake"></A> <CODE>--dotomake &lt;dir&gt;</CODE><BR>
+<BR>
+Use the specified directory instead of the <CODE>$HOME/.omake</CODE>
 for the placement of the <CODE>.omc</CODE> cache files.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>-j &lt;count&gt;</TT></B><DD CLASS="dd-description"> Run multiple build commands in parallel. The <TT>count</TT> specifies a
+
+<H3 CLASS="subsection"><A NAME="htoc464">A.2.12</A>&nbsp;&nbsp;<TT>-j</TT></H3><A NAME="@default410"></A><A NAME="@opt24"></A><A NAME="option:-j"></A> <CODE>-j &lt;count&gt;</CODE><BR>
+<BR>
+Run multiple build commands in parallel. The <TT>count</TT> specifies a
 bound on the number of commands to run simultaneously. In addition, the count may specify servers
 for remote execution of commands in the form <CODE>server=count</CODE>. For example, the option
 <CODE>-j 2:small.host.org=1:large.host.org=4</CODE> would specify that up to 2 jobs can be executed
@@ -138,41 +245,68 @@ must use the same filesystem location for the project.<BR>
 Remote execution is currently an experimental feature. Remote filesystems like NFS do not provide
 adequate file consistency for this to work.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--print-dependencies</TT></B><DD CLASS="dd-description"> Print dependency information for the targets on the command line.<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc465">A.2.13</A>&nbsp;&nbsp;<TT>&ndash;print-dependencies</TT></H3><A NAME="@default411"></A><A NAME="@opt25"></A><A NAME="option:--print-dependencies"></A> <CODE>--print-dependencies</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--show-dependencies &lt;target&gt;</TT></B><DD CLASS="dd-description"> Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.<BR>
+Print dependency information for the targets on the command line.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--all-dependencies</TT></B><DD CLASS="dd-description"> If either of the options <TT>--print-dependencies</TT> or
+
+<H3 CLASS="subsection"><A NAME="htoc466">A.2.14</A>&nbsp;&nbsp;<TT>&ndash;show-dependencies</TT></H3><A NAME="@default412"></A><A NAME="@opt26"></A><A NAME="option:--show-dependencies"></A> <CODE>--show-dependencies &lt;target&gt;</CODE><BR>
+<BR>
+Print dependency information <EM>if</EM> the <CODE>target</CODE> is built.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc467">A.2.15</A>&nbsp;&nbsp;<TT>&ndash;all-dependencies</TT></H3><A NAME="@default413"></A><A NAME="@opt27"></A><A NAME="option:--all-dependencies"></A> <CODE>--all-dependencies</CODE><BR>
+<BR>
+If either of the options <TT>--print-dependencies</TT> or
 <TT>--show-dependencies</TT> is in effect, print transitive dependencies. That is, print all
 dependencies recursively. If neither option <TT>--print-dependencies</TT>,
 <TT>--show-dependencies</TT> is specified, this option has no effect.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--verbose-dependencies</TT></B><DD CLASS="dd-description"> If either of the options <TT>--print-dependencies</TT> or
+
+<H3 CLASS="subsection"><A NAME="htoc468">A.2.16</A>&nbsp;&nbsp;<TT>&ndash;verbose-dependencies</TT></H3><A NAME="@default414"></A><A NAME="@opt28"></A><A NAME="option:--verbose-dependencies"></A> <CODE>--verbose-dependencies</CODE><BR>
+<BR>
+If either of the options <TT>--print-dependencies</TT> or
 <TT>--show-dependencies</TT> is in effect, also print listings for each dependency. The output is
 very verbose, consider redirecting to a file. If neither option <TT>--print-dependencies</TT>,
 <TT>--show-dependencies</TT> is specified, this option has no effect.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--install</TT></B><DD CLASS="dd-description"> Install default files <TT>OMakefile</TT> and <TT>OMakeroot</TT> into the current
- directory. You would typically do this to start a project in the current directory.<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc469">A.2.17</A>&nbsp;&nbsp;<TT>&ndash;install</TT></H3><A NAME="@default415"></A><A NAME="@opt29"></A><A NAME="option:--install"></A> <CODE>--install</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--install-all</TT></B><DD CLASS="dd-description"> In addition to installing files <TT>OMakefile</TT> and <TT>OMakeroot</TT>,
- install default <TT>OMakefile</TT>s into each subdirectory of the current directory.
- <TT>cvs</TT>(1) rules are used for filtering the subdirectory list. For example, <TT>OMakefile</TT>s
- are not copied into directories called <CODE>CVS</CODE>, <CODE>RCCS</CODE>, etc.<BR>
+Install default files <TT>OMakefile</TT> and <TT>OMakeroot</TT> into the current directory. You would
+typically do this to start a project in the current directory.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--install-force</TT></B><DD CLASS="dd-description"> Normally, <TT>omake</TT> will prompt before it overwrites any
- existing <TT>OMakefile</TT>. If this option is given, all files are forcibly overwritten
- without prompting.<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc470">A.2.18</A>&nbsp;&nbsp;<TT>&ndash;install-all</TT></H3><A NAME="@default416"></A><A NAME="@opt30"></A><A NAME="option:--install-all"></A> <CODE>--install-all</CODE><BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>--absname</TT></B><DD CLASS="dd-description">
-<A NAME="option:--absname"></A>
+In addition to installing files <TT>OMakefile</TT> and <TT>OMakeroot</TT>, install default
+<TT>OMakefile</TT>s into each subdirectory of the current directory. <TT>cvs</TT>(1) rules are used for
+filtering the subdirectory list. For example, <TT>OMakefile</TT>s are not copied into directories
+called <CODE>CVS</CODE>, <CODE>RCCS</CODE>, etc.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc471">A.2.19</A>&nbsp;&nbsp;<TT>&ndash;install-force</TT></H3><A NAME="@default417"></A><A NAME="@opt31"></A><A NAME="option:--install-force"></A> <CODE>--install-force</CODE><BR>
+<BR>
+Normally, <TT>omake</TT> will prompt before it overwrites any existing <TT>OMakefile</TT>. If this
+option is given, all files are forcibly overwritten without prompting.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc472">A.2.20</A>&nbsp;&nbsp;<TT>&ndash;absname</TT></H3><A NAME="@default418"></A><A NAME="@opt32"></A><A NAME="option:--absname"></A> <CODE>--absname</CODE><BR>
+<BR>
 Filenames should expand to absolute pathnames.<BR>
+<BR>
 <B>N.B.</B> This is an experimental option. It may become deprecated.<BR>
 <BR>
-<DT CLASS="dt-description"><B><TT>var-definition</TT></B><DD CLASS="dd-description"> <TT>omake</TT> variables can also be defined on the command
- line in the form <CODE>name=value</CODE>. For example, the <CODE>CFLAGS</CODE> variable might be defined
- on the command line with the argument <CODE>CFLAGS="-Wall -g"</CODE>.
-</DL>
+
+<H3 CLASS="subsection"><A NAME="htoc473">A.2.21</A>&nbsp;&nbsp;<TT>variable definition</TT></H3><A NAME="@default419"></A><A NAME="@opt33"></A><A NAME="option:variable definition"></A> <CODE>name=[value]</CODE><BR>
+<BR>
+<TT>omake</TT> variables can also be defined on the command line in the form <CODE>name=value</CODE>. For
+example, the <CODE>CFLAGS</CODE> variable might be defined on the command line with the argument
+<CODE>CFLAGS="-Wall -g"</CODE>.<BR>
+<BR>
+<A NAME="toc89"></A>
+<H2 CLASS="section"><A NAME="htoc474">A.3</A>&nbsp;&nbsp;Additional options</H2>
 In addition, <TT>omake</TT> supports a number of debugging flags on the command line. Run
 <CODE>omake --help</CODE> to get a summary of these flags.<BR>
 <BR>
@@ -193,7 +327,8 @@ In addition, <TT>omake</TT> supports a number of debugging flags on the command 
 &bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
 &bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
 &bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
-&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A></TD>
+&bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD>
 </TR></TABLE>
 </BODY>
 </HTML>

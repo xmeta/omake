@@ -34,68 +34,147 @@
     \oOpt{-{}-install-force}
     \oOpt{-{}-version}
     \oOpt{-{}-absname}
+    \oOpt{-{}-divert}
+    \oOpt{-{}-divert-repeat}
+    \oOpt{-{}-divert-only}
     \oArg{filename...}
     \oOpt{var-definition...}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Options
 %
-\section{Command-line options}
+\section{Output control}
 
-\begin{description}\setlength{\itemsep}{0cm}
-\item[\Opt{-k}] Do not abort when a build command fails;
-continue to build as much of the project as possible.
+\option{-s} \verb+-s+
 
-\item[\Opt{-n}] Print the commands that would be executed, but do no execute them.
-This can be used to see what would happen if the project were to be built.
+Do not print commands as they are executed (be ``silent'').
 
-\item[\Opt{-s}] Do not print commands as they are executed (be ``silent'').
+\option{-S} \verb+-S+
 
-\item[\Opt{-S}] Do not print commands as they are executed \emph{unless} they produce output and/or
+Do not print commands as they are executed \emph{unless} they produce output and/or
 fail.
 
-\item[\Opt{-{}-progress}] Print a progress indicator.
-This is normally used with the \Opt{-s} or \Opt{-S} options.
+\option{-w} \verb+-w+
 
-\item[\Opt{-{}-no-progress}] Do not print a progress indicator (default).
-
-\item[\Opt{-{}-print-exit}] Print termination codes when commands complete.
-
-\item[\Opt{-{}-no-print-exit}] Do not print termination codes when commands complete (default).
-
-\item[\Opt{-w}] Print directory information in \Prog{make} format as commands are executed.
+Print directory information in \Prog{make} format as commands are executed.
 This is mainly useful for editors that expect \Prog{make}-style
 directory information for determining the location of errors.
 
-\item[\Opt{-p}] Watch the filesystem for changes, and continue the build until it succeeds.  If this
+\option{--progress} \verb+--progress+
+
+Print a progress indicator.
+This is normally used with the \Opt{-s} or \Opt{-S} options.
+
+\option{--no-progress} \verb+--no-progress+
+
+Do not print a progress indicator (default).
+
+\option{--print-status} \verb+--print-status+
+
+Print status lines (the \verb/+/ and \verb/-/ lines).
+
+\option{--no-print-status} \verb+--no-print-status+
+
+Do not print status lines (the \verb/+/ and \verb/-/ lines).
+
+\option{--print-exit} \verb+--print-exit+
+
+Print termination codes when commands complete.
+
+\option{--no-print-exit} \verb+--no-print-exit+
+
+Do not print termination codes when commands complete (default).
+
+\option{--divert} \verb+--divert+
+
+``Divert'' command output.  The effect of this option by itself is to save the
+output of any commands so that it can be printed later.  If any rules/commands fail, then OMake will
+re-print the output of the failed commands when it finishes the build.  Off by default.
+
+\option{--divert-repeat} \verb+--divert-repeat+
+
+When a rule finishes, print the output as a single block.  This is useful
+in combination \verb+-j+ option~\ref{option:-j}, where the output of multiple subprocesses can be
+garbled.  The diversion is printed as a single coherent unit.  Implies \verb+--divert+.
+
+\option{--divert-only} \verb+--divert-only+ 
+
+Print diversions \emph{only}.  This forces OMake to be much more quiet,
+printing output only when a command produces output.  With this option alone, the output from
+successful commands is echoed immediately, and the output from failed commands is delayed until the
+build completes and the summary is printed.  May be used in combination with \verb+--divert-repeat+
+(output from failed commands will be printed twice).  Implies \verb+--divert+.
+
+You might also consider using the \verb+--progress+ flag~\ref{option:--progress} so that you can see
+when the build is active.
+
+\option{--no-divert-only} \verb+--no-divert-only+
+
+The \verb+--divert-only+ option does not work well with interactive
+commands because you cant't see the output from the command that is prompting you for input.  If
+you want this option to apply only to specific rules/commands, see the \verb+OMakeFlags+
+function~\ref{fun:OMakeFlags}.
+
+\section{Build options}
+
+\option{-k} \verb+-k+
+
+Do not abort when a build command fails;
+continue to build as much of the project as possible.
+
+\option{-n} \verb+-n+
+
+This can be used to see what would happen if the project were to be built.
+
+\option{-p} \verb+-p+
+
+Watch the filesystem for changes, and continue the build until it succeeds.  If this
 option is specified, \Prog{omake} will restart the build whenever source files are modified. Implies
 \texttt{-k}.
 
-\item[\Opt{-P}] Watch the filesystem for changes forever.  If this option is specified, \Prog{omake}
+\option{-P} \verb+-P+
+
+Watch the filesystem for changes forever.  If this option is specified, \Prog{omake}
 will restart the build whenever source files are modified. Implies
 \texttt{-k}.
 
-\item[\Opt{-R}] Ignore the current directory and build the project from its root directory.  When
+\option{-R} \verb+-R+
+
+Ignore the current directory and build the project from its root directory.  When
 \Prog{omake} is run in a subdirectory of a project, it normally builds files within the current
 directory and its subdirectories.  If the \Opt{-R} option is specified, the build is performed as if
 \Prog{omake} were run in the project root.
 
-\item[\Opt{-t}] Update the \Prog{omake} database to force the project to be considered up-to-date.
+\option{-t} \verb+-t+
 
-\item[\Opt{-U}] Do not trust cached build information.  This will force the entire project to be rebuilt.
+Update the \Prog{omake} database to force the project to be considered up-to-date.
 
-\item[\Opt{-{}-depend}] Do not trust cached dependency information.  This will force files to be rescanned
+\option{-U} \verb+-U+
+
+Do not trust cached build information.  This will force the entire project to be rebuilt.
+
+\option{--depend} \verb+--depend+
+
+Do not trust cached dependency information.  This will force files to be rescanned
 for dependency information.
 
-\item[\Opt{-{}-configure}] Re-run \verb+static.\+ sections of the included omake files, instead of
+\option{--configure} \verb+--configure+
+
+Re-run \verb+static.\+ sections of the included omake files, instead of
 trusting the cached results.
 
-\item[\Opt{-{}-force-dotomake}] Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
+\option{--force-dotomake} \verb+--force-dotomake+
 
-\item[\OptArg{-{}-dotomake}{dir}] Use the specified directory instead of the \verb+$HOME/.omake+
+Always use the \verb+$HOME/.omake+ for the \verb+.omc+ cache files.
+
+\option{--dotomake} \verb+--dotomake <dir>+
+
+Use the specified directory instead of the \verb+$HOME/.omake+
 for the placement of the \verb+.omc+ cache files.
 
-\item[\OptArg{-j}{count}] Run multiple build commands in parallel.  The \Arg{count} specifies a
+\option{-j} \verb+-j <count>+
+
+Run multiple build commands in parallel.  The \Arg{count} specifies a
 bound on the number of commands to run simultaneously.  In addition, the count may specify servers
 for remote execution of commands in the form \verb+server=count+.  For example, the option
 \verb+-j 2:small.host.org=1:large.host.org=4+ would specify that up to 2 jobs can be executed
@@ -105,41 +184,58 @@ must use the same filesystem location for the project.
 Remote execution is currently an experimental feature.  Remote filesystems like NFS do not provide
 adequate file consistency for this to work.
 
-\item[\Opt{-{}-print-dependencies}] Print dependency information for the targets on the command line.
+\option{--print-dependencies} \verb+--print-dependencies+
 
-\item[\OptArg{-{}-show-dependencies}{target}] Print dependency information \emph{if} the \verb+target+ is built.
+Print dependency information for the targets on the command line.
 
-\item[\Opt{-{}-all-dependencies}] If either of the options \texttt{-{}-print-dependencies} or
+\option{--show-dependencies} \verb+--show-dependencies <target>+
+
+Print dependency information \emph{if} the \verb+target+ is built.
+
+\option{--all-dependencies} \verb+--all-dependencies+
+
+If either of the options \texttt{-{}-print-dependencies} or
 \texttt{-{}-show-dependencies} is in effect, print transitive dependencies.  That is, print all
 dependencies recursively.  If neither option \texttt{-{}-print-dependencies},
 \texttt{-{}-show-dependencies} is specified, this option has no effect.
 
-\item[\Opt{-{}-verbose-dependencies}] If either of the options \texttt{-{}-print-dependencies} or
+\option{--verbose-dependencies} \verb+--verbose-dependencies+
+
+If either of the options \texttt{-{}-print-dependencies} or
 \texttt{-{}-show-dependencies} is in effect, also print listings for each dependency.  The output is
 very verbose, consider redirecting to a file.  If neither option \texttt{-{}-print-dependencies},
 \texttt{-{}-show-dependencies} is specified, this option has no effect.
 
-\item[\Opt{-{}-install}] Install default files \File{OMakefile} and \File{OMakeroot} into the current
-  directory.  You would typically do this to start a project in the current directory.
+\option{--install} \verb+--install+
 
-\item[\Opt{-{}-install-all}] In addition to installing files \File{OMakefile} and \File{OMakeroot},
-  install default \File{OMakefile}s into each subdirectory of the current directory.
-  \Cmd{cvs}{1} rules are used for filtering the subdirectory list.  For example, \File{OMakefile}s
-  are not copied into directories called \verb+CVS+, \verb+RCCS+, etc.
+Install default files \File{OMakefile} and \File{OMakeroot} into the current directory.  You would
+typically do this to start a project in the current directory.
 
-\item[\Opt{-{}-install-force}] Normally, \Prog{omake} will prompt before it overwrites any
-  existing \File{OMakefile}.  If this option is given, all files are forcibly overwritten
-  without prompting.
+\option{--install-all} \verb+--install-all+
 
-\item[\Opt{-{}-absname}]
-\label{option:--absname}
-Filenames should expand to absolute pathnames.\\
+In addition to installing files \File{OMakefile} and \File{OMakeroot}, install default
+\File{OMakefile}s into each subdirectory of the current directory.  \Cmd{cvs}{1} rules are used for
+filtering the subdirectory list.  For example, \File{OMakefile}s are not copied into directories
+called \verb+CVS+, \verb+RCCS+, etc.
+
+\option{--install-force} \verb+--install-force+
+
+Normally, \Prog{omake} will prompt before it overwrites any existing \File{OMakefile}.  If this
+option is given, all files are forcibly overwritten without prompting.
+
+\option{--absname} \verb+--absname+
+
+Filenames should expand to absolute pathnames.
+
 \textbf{N.B.} This is an experimental option. It may become deprecated.
 
-\item[\Opt{var-definition}] \Prog{omake} variables can also be defined on the command
-  line in the form \verb+name=value+.  For example, the \verb+CFLAGS+ variable might be defined
-  on the command line with the argument \verb+CFLAGS="-Wall -g"+.
-\end{description}
+\option{variable definition} \verb+name=[value]+
+
+\Prog{omake} variables can also be defined on the command line in the form \verb+name=value+.  For
+example, the \verb+CFLAGS+ variable might be defined on the command line with the argument
+\verb+CFLAGS="-Wall -g"+.
+
+\section{Additional options}
 
 In addition, \Prog{omake} supports a number of debugging flags on the command line. Run
 \verb+omake --help+ to get a summary of these flags.

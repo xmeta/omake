@@ -109,6 +109,69 @@ let copy_file name =
    in
       copy
 
+(*
+ * Tee the output to a file if any occurs.
+ * The files are created only if there is output.
+ *)
+type tee_info =
+   TeeChannel of string * Pervasives.out_channel
+ | TeeFile of string
+ | TeeMaybe
+ | TeeNever
+
+type tee = tee_info ref
+
+let tee_file tee =
+   match !tee with
+      TeeChannel (name, _)
+    | TeeFile name ->
+         Some name
+    | TeeMaybe
+    | TeeNever ->
+         None
+
+let tee_channel tee =
+   match !tee with
+      TeeChannel (_, outx) ->
+         Some outx
+    | TeeMaybe ->
+         let filename, outx = Filename.open_temp_file ~mode:[Open_binary] "omake" ".divert" in
+            tee := TeeChannel (filename, outx);
+            Some outx
+    | TeeFile _
+    | TeeNever ->
+         None
+
+let tee_close tee =
+   match !tee with
+      TeeChannel (name, outx) ->
+         Pervasives.close_out outx;
+         tee := TeeFile name
+    | TeeFile _
+    | TeeMaybe
+    | TeeNever ->
+         ()
+
+let tee_none = ref TeeNever
+
+let tee_create b =
+   if b then
+      ref TeeMaybe
+   else
+      tee_none
+
+let tee_copy fd tee tee_only id buf off len =
+   if not tee_only then
+      write_all fd id buf off len;
+   match tee_channel tee with
+      Some outx ->
+         Pervasives.output outx buf off len
+    | None ->
+         ()
+
+let tee_stdout = tee_copy Unix.stdout
+let tee_stderr = tee_copy Unix.stderr
+
 (*!
  * @docoff
  *

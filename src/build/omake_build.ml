@@ -56,6 +56,7 @@ open Omake_exec_util
 open Omake_exec_print
 open Omake_exec_remote
 open Omake_cache_type
+open Omake_build_tee
 open Omake_build_type
 open Omake_builtin_util
 open Omake_options_type
@@ -591,6 +592,7 @@ let create_exists_command env pos loc target =
         command_blocked            = [];
         command_loc                = loc;
         command_lines              = CommandNone;
+        command_tee                = tee_none;
         command_pred               = l;
         command_succ               = succ
       }
@@ -629,6 +631,7 @@ let create_squashed_command env pos loc target =
         command_blocked            = [];
         command_loc                = loc;
         command_lines              = CommandNone;
+        command_tee                = tee_none;
         command_pred               = l;
         command_succ               = succ
       }
@@ -676,6 +679,7 @@ let create_command env venv target effects lock_deps static_deps scanner_deps lo
         command_blocked            = [];
         command_loc                = loc;
         command_lines              = commands;
+        command_tee                = tee_none;
         command_pred               = l;
         command_succ               = succ
       }
@@ -1412,7 +1416,7 @@ let execute_scanner env command =
    let handle_out = copy_file tmpfile in
    let shell = eval_shell venv pos in
       env.env_scan_exec_count <- succ env.env_scan_exec_count;
-      match Exec.spawn env.env_exec shell (venv_options venv) handle_out copy_stderr "scan" target scanner with
+      match Exec.spawn env.env_exec shell (venv_options venv) tee_none handle_out copy_stderr "scan" target scanner with
          ProcessFailed ->
             (* The fork failed *)
             abort_command env command fork_error_code
@@ -1556,6 +1560,9 @@ let save_and_finish_rule_success env command =
       if not (NodeSet.is_empty effects) then
          Omake_cache.add cache rule_fun target effects build_deps commands_digest MemoSuccess;
 
+      (* Remove the tees *)
+      env_close_success_tee env command;
+
       (* Now tell parents that this job succeeded *)
       finish_rule_success env command
 
@@ -1571,6 +1578,7 @@ let save_and_finish_rule_failed env command code =
    in
    let cache = env.env_cache in
    let commands, commands_digest = command_lines command in
+      env_close_failed_tee env command;
       Omake_cache.add cache rule_fun target effects build_deps commands_digest (MemoFailure code);
       abort_commands env effects code
 
@@ -1578,17 +1586,27 @@ let save_and_finish_rule_failed env command code =
  * Run the command.
  *)
 let run_rule env command =
-   let { command_loc = loc;
-         command_target = target;
+   let { command_loc     = loc;
+         command_target  = target;
          command_effects = effects;
-         command_venv = venv
+         command_venv    = venv;
+         command_tee     = tee
        } = command
    in
    let pos = string_pos "run_rule" (loc_exp_pos loc) in
    let commands, _ = command_lines command in
    let shell = eval_shell venv pos in
+
+   (* Set up the tee *)
+   let options = venv_options venv in
+   let () = unlink_tee command in
+   let tee = tee_create (options.opt_divert <> []) in
+   let divert_only = List.mem DivertOnly options.opt_divert in
+   let copy_stdout = tee_stdout tee divert_only in
+   let copy_stderr = tee_stderr tee divert_only in
+      command.command_tee <- tee;
       env.env_rule_exec_count <- succ env.env_rule_exec_count;
-      match Exec.spawn env.env_exec shell (venv_options venv) copy_stdout copy_stderr "build" target commands with
+      match Exec.spawn env.env_exec shell (venv_options venv) tee copy_stdout copy_stderr "build" target commands with
          ProcessFailed ->
             (* The fork failed *)
             abort_command env command fork_error_code
@@ -1729,6 +1747,9 @@ let empty_env venv cache exec deps targets dirs includes =
         env_succeeded_wl       = ref None;
         env_failed_wl          = ref None;
 
+        env_success_tees       = [];
+        env_failed_tees        = [];
+
         env_optional_count   = 0;
         env_succeeded_count  = 0;
         env_scan_count       = 0;
@@ -1858,6 +1879,7 @@ let save env =
  * Close the environment.
  *)
 let close env =
+   NodeTable.iter (fun _ command -> unlink_tee command) env.env_commands;
    Exec.close env.env_exec
 
 (************************************************************************
@@ -2074,21 +2096,22 @@ and invalidate_event_core env event =
       && Omake_cache.stat_changed cache node
    in
       (* If it really changed, perform the invalidation *)
-      if changed_flag then
-         begin
+      if changed_flag then begin
+         let verbose = (venv_options venv).opt_print_status in
             print_flush ();
-            eprintf "*** omake: file %s changed@." (Node.fullname node);
+            if verbose then
+               eprintf "*** omake: file %s changed@." (Node.fullname node);
 
             (* If this is an OMakefile, abort and restart *)
-            if NodeTable.mem env.env_includes node then
-               begin
+            if NodeTable.mem env.env_includes node then begin
+               if verbose then
                   eprintf "*** omake: waiting for all jobs to finish@.";
-                  wait_all env;
-                  raise Restart
-               end
+               wait_all env;
+               raise Restart
+            end
             else
                invalidate (NodeSet.singleton node)
-         end;
+      end;
       changed_flag
 
 (*
@@ -2191,15 +2214,17 @@ let print_stats env message start_time =
    let total_time = Unix.gettimeofday () -. start_time in
    let options = venv_options venv in
       print_leaving_current_directory options;
-      if (message <> "done") then begin
-         let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
-            printf "*** omake: %i/%i targets are up to date@." env.env_succeeded_count total
-      end;
-      printf "*** omake: %s (%.1f sec, %d/%d scans, %d/%d rules, %d/%d digests)@." (**)
-         message total_time
-         scan_exec_count scan_count
-         rule_exec_count rule_count
-         digest_count stat_count
+      if options.opt_print_status then begin
+         if message <> "done" then begin
+            let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
+               printf "*** omake: %i/%i targets are up to date@." env.env_succeeded_count total
+         end;
+         printf "*** omake: %s (%.1f sec, %d/%d scans, %d/%d rules, %d/%d digests)@." (**)
+            message total_time
+            scan_exec_count scan_count
+            rule_exec_count rule_count
+            digest_count stat_count
+      end
 
 (*
  * All of the commands in the Blocked queue are deadlocked.
@@ -2296,14 +2321,17 @@ let print_deadlock env state =
  * Print the failed commands.
  *)
 let print_failed_targets env =
-   eprintf "@[<v 3>*** omake: targets were not rebuilt because of errors:";
-   command_iter env CommandFailedTag (fun command ->
-         eprintf "@ @[<v 3>%a" pp_print_node command.command_target;
-         NodeSet.iter (fun dep ->
-               if Node.is_real dep && is_leaf_node env dep then
-                  eprintf "@ depends on: %a" pp_print_node dep) command.command_static_deps;
-         eprintf "@]");
-   eprintf "@]@."
+   if (venv_options env.env_venv).opt_print_status then begin
+      eprintf "@[<v 3>*** omake: targets were not rebuilt because of errors:";
+      command_iter env CommandFailedTag (fun command ->
+            eprintf "@ @[<v 3>%a" pp_print_node command.command_target;
+            NodeSet.iter (fun dep ->
+                  if Node.is_real dep && is_leaf_node env dep then
+                     eprintf "@ depends on: %a" pp_print_node dep) command.command_static_deps;
+            eprintf "@]");
+      eprintf "@]@."
+   end;
+   command_iter env CommandFailedTag eprint_tee
 
 let print_failed env state =
    if not (command_list_is_empty env CommandFailedTag) then
@@ -2334,11 +2362,15 @@ let create_env exec options cache targets =
    let _ =
       if options.opt_print_dir then
          printf "make[0]: Entering directory `%s'@." (Dir.absname (venv_dir venv));
-      printf "*** omake: reading %ss@." makefile_name;
+      if options.opt_print_status then
+         printf "*** omake: reading %ss@." makefile_name;
       Omake_eval.compile venv
    in
    let now' = Unix.gettimeofday () in
-   let () = printf "*** omake: finished reading %ss (%.1f sec)@." makefile_name (now' -. now) in
+   let () =
+      if options.opt_print_status then
+         printf "*** omake: finished reading %ss (%.1f sec)@." makefile_name (now' -. now)
+   in
    let env = create exec venv cache in
       Omake_builtin_util.set_env env;
       env
@@ -2543,16 +2575,19 @@ let make env =
  * Wait for notifications.
  *)
 let notify_wait env =
-   let { env_exec = exec } = env in
+   let { env_exec = exec;
+         env_venv = venv
+       } = env
+   in
    let rec loop found =
       if not found || Exec.pending exec then
          let event = Exec.next_event exec in
          let changed = invalidate_event env event in
             loop (changed || found)
    in
-      eprintf "*** omake: Polling for filesystem changes@.";
+      eprintf "*** omake: done: polling for filesystem changes@.";
       loop false;
-      eprintf "*** omake: Rebuilding@."
+      eprintf "*** omake: rebuilding@."
 
 (*
  * Build command line targets.
@@ -2586,7 +2621,7 @@ let rec build_targets env save_flag start_time parallel print targets =
                save env;
             print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
             eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-            Exec.close env.env_exec;
+            close env;
             exit exn_error_code
    in
       (* Save database before exiting *)
@@ -2678,6 +2713,9 @@ let rec build_time start_time options dir_name targets =
             close env;
             save env;
             build_time start_time options dir_name targets
+       | Sys.Break ->
+            close env;
+            save env
 
 (*
  * Start the core build.
@@ -2713,7 +2751,8 @@ and build_core env dir_name dir start_time options targets =
          if not Lm_notify.enabled then
             eprintf "*** omake: Polling is not enabled@."
          else
-            notify_loop env options targets
+            notify_loop env options targets;
+      close env
 
 let build options dir_name targets =
    Omake_shell_sys.set_interactive false;

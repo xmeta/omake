@@ -1584,133 +1584,157 @@ Appendix A     Synopsis
 [--print-dependencies]  [--show-dependencies <target>] 
 [--all-dependencies]  [--verbose-dependencies]  [--force-dotomake] 
 [--dotomake <dir>]  [--flush-includes]  [--configure]  [--install] 
-[--install-all]  [--install-force]  [--version]  [--absname] 
-filename...  [var-definition...]
+[--install-all]  [--install-force]  [--version]  [--absname]  [--divert]
+ [--divert-repeat]  [--divert-only]  filename...  [var-definition...]
 * Menu:
 
-* Section A-1::	Command-line options
+* Section A-1::	Output control
+* Section A-2::	Build options
+* Section A-3::	Additional options
 
 
-Node: Section A-1,	Next: Appendix B,	Prev: Appendix A,	Up: Appendix A
+Node: Section A-1,	Next: Subsection A-1-1,	Prev: Appendix A,	Up: Appendix A
   
 
-A.1   Command-line options
-*=*=*=*=*=*=*=*=*=*=*=*=*=
+A.1   Output control
+*=*=*=*=*=*=*=*=*=*=
 
   
+* Menu:
+
+* Subsection A-1-1::	-s
+* Subsection A-1-2::	-S
+* Subsection A-1-3::	-w
+* Subsection A-1-4::	--progress
+* Subsection A-1-5::	--no-progress
+* Subsection A-1-6::	--print-status
+* Subsection A-1-7::	--no-print-status
+* Subsection A-1-8::	--print-exit
+* Subsection A-1-9::	--no-print-exit
+* Subsection A-1-10::	--divert
+* Subsection A-1-11::	--divert-repeat
+* Subsection A-1-12::	--divert-only
+* Subsection A-1-13::	--no-divert-only
+
+
+Node: Subsection A-1-1,	Next: Subsection A-1-2,	Prev: Section A-1,	Up: Section A-1
   
+
+A.1.1   -s
+==========
+ `-s'
+  Do not print commands as they are executed (be ``silent'').
+
+Node: Subsection A-1-2,	Next: Subsection A-1-3,	Prev: Subsection A-1-1,	Up: Section A-1
   
- -k  Do not abort when a build command fails; continue to build as much
-   of the project as possible.
- 
- -n  Print the commands that would be executed, but do no execute them.
-   This can be used to see what would happen if the project were to be
-   built.
- 
- -s  Do not print commands as they are executed (be ``silent'').
- 
- -S  Do not print commands as they are executed unless they produce
-   output and/or fail.
- 
- --progress  Print a progress indicator. This is normally used with the
-   -s or -S options.
- 
- --no-progress  Do not print a progress indicator (default).
- 
- --print-exit  Print termination codes when commands complete.
- 
- --no-print-exit  Do not print termination codes when commands complete
-   (default).
- 
- -w  Print directory information in make format as commands are
-   executed. This is mainly useful for editors that expect make-style
-   directory information for determining the location of errors.
- 
- -p  Watch the filesystem for changes, and continue the build until it
-   succeeds. If this option is specified, omake will restart the build
-   whenever source files are modified. Implies -k.
- 
- -P  Watch the filesystem for changes forever. If this option is
-   specified, omake will restart the build whenever source files are
-   modified. Implies -k.
- 
- -R  Ignore the current directory and build the project from its root
-   directory. When omake is run in a subdirectory of a project, it
-   normally builds files within the current directory and its
-   subdirectories. If the -R option is specified, the build is performed
-   as if omake were run in the project root.
- 
- -t  Update the omake database to force the project to be considered
-   up-to-date.
- 
- -U  Do not trust cached build information. This will force the entire
-   project to be rebuilt.
- 
- --depend  Do not trust cached dependency information. This will force
-   files to be rescanned for dependency information.
- 
- --configure  Re-run `static.\' sections of the included omake files,
-   instead of trusting the cached results.
- 
- --force-dotomake  Always use the `$HOME/.omake' for the `.omc' cache
-   files.
- 
- --dotomake <dir>  Use the specified directory instead of the
-   `$HOME/.omake' for the placement of the `.omc' cache files.
- 
- -j <count>  Run multiple build commands in parallel. The count
-   specifies a bound on the number of commands to run simultaneously. In
-   addition, the count may specify servers for remote execution of
-   commands in the form `server=count'. For example, the option `-j
-   2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs
-   can be executed locally, 1 on the server `small.host.org' and 4 on
-   `large.host.org'. Each remote server must use the same filesystem
-   location for the project.
- Remote execution is currently an experimental feature. Remote
-   filesystems like NFS do not provide adequate file consistency for
-   this to work.
- 
- --print-dependencies  Print dependency information for the targets on
-   the command line.
- 
- --show-dependencies <target>  Print dependency information if the
-   `target' is built.
- 
- --all-dependencies  If either of the options --print-dependencies or
-   --show-dependencies is in effect, print transitive dependencies. That
-   is, print all dependencies recursively. If neither option
-   --print-dependencies, --show-dependencies is specified, this option
-   has no effect.
- 
- --verbose-dependencies  If either of the options --print-dependencies
-   or --show-dependencies is in effect, also print listings for each
-   dependency. The output is very verbose, consider redirecting to a
-   file. If neither option --print-dependencies, --show-dependencies is
-   specified, this option has no effect.
- 
- --install  Install default files OMakefile and OMakeroot into the
-   current  directory. You would typically do this to start a project in
-   the current directory.
- 
- --install-all  In addition to installing files OMakefile and OMakeroot,
-    install default OMakefiles into each subdirectory of the current
-   directory.  cvs(1) rules are used for filtering the subdirectory
-   list. For example, OMakefiles  are not copied into directories called
-   `CVS', `RCCS', etc.
- 
- --install-force  Normally, omake will prompt before it overwrites any 
-   existing OMakefile. If this option is given, all files are forcibly
-   overwritten  without prompting.
- 
- --absname   Filenames should expand to absolute
-   pathnames.
- N.B. This is an experimental option. It may become deprecated.
- 
- var-definition  omake variables can also be defined on the command 
-   line in the form `name=value'. For example, the `CFLAGS' variable
-   might be defined  on the command line with the argument
-   `CFLAGS="-Wall -g"'. 
+
+A.1.2   -S
+==========
+ `-S'
+  Do not print commands as they are executed unless they produce output
+and/or fail.
+
+Node: Subsection A-1-3,	Next: Subsection A-1-4,	Prev: Subsection A-1-2,	Up: Section A-1
   
-  In addition, omake supports a number of debugging flags on the command
-line. Run `omake --help' to get a summary of these flags.
-   
+
+A.1.3   -w
+==========
+ `-w'
+  Print directory information in make format as commands are executed.
+This is mainly useful for editors that expect make-style directory
+information for determining the location of errors.
+
+Node: Subsection A-1-4,	Next: Subsection A-1-5,	Prev: Subsection A-1-3,	Up: Section A-1
+  
+
+A.1.4   --progress
+==================
+ `--progress'
+  Print a progress indicator. This is normally used with the -s or -S
+options.
+
+Node: Subsection A-1-5,	Next: Subsection A-1-6,	Prev: Subsection A-1-4,	Up: Section A-1
+  
+
+A.1.5   --no-progress
+=====================
+
+`--no-progress'
+  Do not print a progress indicator (default).
+
+Node: Subsection A-1-6,	Next: Subsection A-1-7,	Prev: Subsection A-1-5,	Up: Section A-1
+  
+
+A.1.6   --print-status
+======================
+
+`--print-status'
+  Print status lines (the `+' and `-' lines).
+
+Node: Subsection A-1-7,	Next: Subsection A-1-8,	Prev: Subsection A-1-6,	Up: Section A-1
+  
+
+A.1.7   --no-print-status
+=========================
+
+`--no-print-status'
+  Do not print status lines (the `+' and `-' lines).
+
+Node: Subsection A-1-8,	Next: Subsection A-1-9,	Prev: Subsection A-1-7,	Up: Section A-1
+  
+
+A.1.8   --print-exit
+====================
+
+`--print-exit'
+  Print termination codes when commands complete.
+
+Node: Subsection A-1-9,	Next: Subsection A-1-10,	Prev: Subsection A-1-8,	Up: Section A-1
+  
+
+A.1.9   --no-print-exit
+=======================
+
+`--no-print-exit'
+  Do not print termination codes when commands complete (default).
+
+Node: Subsection A-1-10,	Next: Subsection A-1-11,	Prev: Subsection A-1-9,	Up: Section A-1
+  
+
+A.1.10   --divert
+=================
+ `--divert'
+  ``Divert'' command output. The effect of this option by itself is to
+save the output of any commands so that it can be printed later. If any
+rules/commands fail, then OMake will re-print the output of the failed
+commands when it finishes the build. Off by default.
+
+Node: Subsection A-1-11,	Next: Subsection A-1-12,	Prev: Subsection A-1-10,	Up: Section A-1
+  
+
+A.1.11   --divert-repeat
+========================
+
+`--divert-repeat'
+  When a rule finishes, print the output as a single block. This is
+useful in combination `-j' option A.2.12*Note Subsection A-2-12::, where
+the output of multiple subprocesses can be garbled. The diversion is
+printed as a single coherent unit. Implies `--divert'.
+
+Node: Subsection A-1-12,	Next: Subsection A-1-13,	Prev: Subsection A-1-11,	Up: Section A-1
+  
+
+A.1.12   --divert-only
+======================
+
+`--divert-only' 
+  Print diversions only. This forces OMake to be much more quiet,
+printing output only when a command produces output. With this option
+alone, the output from successful commands is echoed immediately, and
+the output from failed commands is delayed until the build completes and
+the summary is printed. May be used in combination with
+`--divert-repeat' (output from failed commands will be printed twice).
+Implies `--divert'.
+  You might also consider using the `--progress' flag
+A.1.4*Note Subsection A-1-4:: so that you can see when the build
+is active.

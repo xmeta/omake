@@ -29,6 +29,7 @@ open Omake_node
 open Omake_state
 open Omake_command
 open Omake_exec_type
+open Omake_exec_util
 open Omake_options_type
 open Omake_command_type
 
@@ -115,8 +116,7 @@ let print_entering_current_directory options dir =
    if options.opt_print_dir then
       match !current_dir with
          Some cwd ->
-            if not (Dir.equal dir cwd) then
-               begin
+            if not (Dir.equal dir cwd) then begin
                   printf "make[1]: Leaving directory `%s'@." (Dir.absname cwd);
                   current_dir := Some dir;
                   printf "make[1]: Entering directory `%s'@." (Dir.absname dir)
@@ -148,7 +148,7 @@ let should_print options flags flag =
      | _ ->
           false
 
-let print_status options shell remote name flag =
+let print_status_stdout options shell remote name flag =
    let pp_print_host buf =
       match remote with
          Some host ->
@@ -166,15 +166,45 @@ let print_status options shell remote name flag =
                      print_entering_current_directory options dir;
                      if options.opt_print_file then
                         printf "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
-                     if (not (List.mem QuietFlag flags)) then printf "+%t %a@." pp_print_host shell.shell_print_exp exp
+                     if not (List.mem QuietFlag flags) then
+                        printf "+%t %a@." pp_print_host shell.shell_print_exp exp
        | PrintExit (exp, code, _) ->
             let flags, dir, target = shell.shell_info exp in
             let dirname = Dir.fullname dir in
-               if should_print options flags flag && options.opt_print_file then
-                  begin
-                     print_flush ();
-                     printf "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
-                  end
+               if should_print options flags flag && options.opt_print_file then begin
+                  print_flush ();
+                  printf "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
+               end
+
+let print_status_tee tee shell remote name exp =
+   let pp_print_host buf =
+      match remote with
+         Some host ->
+            fprintf buf "[%s]" host
+       | None ->
+            ()
+   in
+   let tee = formatter_of_out_channel tee in
+   let flags, dir, target = shell.shell_info exp in
+   let dirname = Dir.fullname dir in
+      fprintf tee "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
+      fprintf tee "+%t %a@." pp_print_host shell.shell_print_exp exp
+
+let print_status tee options shell remote name flag =
+   let () =
+      match flag with
+         PrintLazy exp ->
+            (match tee_channel tee with
+                Some tee ->
+                   print_status_tee tee shell remote name exp
+              | None ->
+                   ())
+       | PrintEager _
+       | PrintExit _ ->
+            ()
+   in
+      if not (List.mem DivertOnly options.opt_divert) then
+         print_status_stdout options shell remote name flag
 
 (*
  * Print a list of lines.
