@@ -2163,7 +2163,9 @@ let venv_set_options venv loc pos options =
       raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
    in
    let options_spec =
-      Lm_arg.StrictOptions, ["Make options", options_spec]
+      Lm_arg.StrictOptions, (**)
+         ["Make options", options_spec;
+          "Output options", output_spec]
    in
    let options =
       try Lm_arg.fold_argv argv options_spec venv.venv_inner.venv_options add_unknown "Generic system builder" with
