@@ -206,6 +206,58 @@ let divert flag options b =
    in
       { options with opt_divert = divert }
 
+let divert_code_char options c =
+   match c with
+      '0' ->
+         (* -s --divert-only --divert-discard-success *)
+         { options with opt_print_status   = false;
+                        opt_print_dir      = false;
+                        opt_print_file     = false;
+                        opt_print_exit     = false;
+                        opt_print_command  = EvalNever;
+                        opt_divert         = [DivertOnly; DivertDiscardSuccess]
+         }
+    | '1' ->
+         (* -S --progress --divert-only --divert-repeat --divert-discard-success *)
+         { options with opt_print_command = EvalLazy;
+                        opt_print_progress = true;
+                        opt_divert = [DivertOnly; DivertRepeat; DivertDiscardSuccess]
+         }
+    | '2' ->
+         (* --progress --divert-only --divert-repeat *)
+         { options with opt_print_progress = true;
+                        opt_divert = [DivertOnly; DivertRepeat]
+         }
+    | 'W' ->
+         { options with opt_print_dir = true }
+    | 'w' ->
+         { options with opt_print_dir = false }
+    | 'P' ->
+         { options with opt_print_progress = true }
+    | 'p' ->
+         { options with opt_print_progress = false }
+    | 'X' ->
+         { options with opt_print_exit = true }
+    | 'x' ->
+         { options with opt_print_exit = false }
+    | 'S' ->
+         { options with opt_print_status = true }
+    | 's' ->
+         { options with opt_print_status = false }
+    | _ ->
+         (* Ignore, for forward compatibility *)
+         options
+
+let divert_code options s =
+   let len = String.length s in
+   let rec loop options i =
+      if i = len then
+         options
+      else
+         loop (divert_code_char options s.[i]) (succ i)
+   in
+      loop options 0
+
 let output_spec =
    ["-s", Lm_arg.UnitFold (fun options ->
           { options with opt_print_status  = false;
@@ -214,30 +266,26 @@ let output_spec =
                          opt_print_exit    = false;
                          opt_print_command = EvalNever }), (**)
        "Do not print commands as they are executed";
-    "-S", Lm_arg.UnitFold (fun options -> { options with opt_print_command = EvalLazy }), (**)
+    "-S", Lm_arg.SetFold (fun options b -> { options with opt_print_command = if b then EvalLazy else EvalEager }), (**)
        "Print command only if the command prints output";
     "--progress", Lm_arg.SetFold (fun options b -> { options with opt_print_progress = b }), (**)
        "Print a progress indicator";
-    "--no-progress", Lm_arg.ClearFold (fun options b -> { options with opt_print_progress = b }), (**)
-       "Do not print a progress indicator";
     "--print-status", Lm_arg.SetFold (fun options b -> { options with opt_print_status = b }), (**)
        "Print status lines";
-    "--no-print-status", Lm_arg.ClearFold (fun options b -> { options with opt_print_file = b }), (**)
-       "Do not print status lines";
     "-w", Lm_arg.SetFold (fun options b -> { options with opt_print_dir = b }), (**)
        "Print the directory in \"make format\" as commands are executed";
-    "--no-print-exit", Lm_arg.ClearFold (fun options b -> { options with opt_print_exit = b }), (**)
-       "Do not print exit codes";
     "--print-exit", Lm_arg.SetFold (fun options b -> { options with opt_print_exit = b }), (**)
        "Print the exit codes of commands";
-    "--divert", Lm_arg.SetFold (divert Divert), (**)
-       "Divert command output; the final summary will re-print errors";
+    "--divert-errors", Lm_arg.SetFold (divert DivertErrors), (**)
+       "The final summary will re-print errors";
     "--divert-repeat", Lm_arg.SetFold (divert DivertRepeat), (**)
        "Re-print command output when a rule terminates";
     "--divert-only", Lm_arg.SetFold (divert DivertOnly), (**)
        "Print only diversions -- be silent otherwise";
-    "--no-divert-only", Lm_arg.ClearFold (divert DivertOnly), (**)
-       "Turn off --divert-only"]
+    "--divert-discard-success", Lm_arg.SetFold (divert DivertDiscardSuccess), (**)
+       "Do not print diverted output from commands that are successful";
+    "-o", Lm_arg.StringFold divert_code, (**)
+       "Short diversion options [01jwWpPxXsS] (see the manual)"]
 
 (*
  * Directories.

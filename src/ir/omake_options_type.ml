@@ -37,9 +37,10 @@ type eval_flag =
  * Diversion control.
  *)
 type divert_flag =
-   Divert
+   DivertErrors
  | DivertRepeat
  | DivertOnly
+ | DivertDiscardSuccess
 
 (*
  * The basic make flags.

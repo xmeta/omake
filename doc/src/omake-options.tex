@@ -18,9 +18,9 @@
     \oOpt{-U}
     \oOpt{-R}
     \oOpt{-{}-project}
-    \oOpt{-{}-progress} \oOpt{-{}-no-progress}
-    \oOpt{-{}-print-status} \oOpt{-{}-no-print-status}
-    \oOpt{-{}-print-exit} \oOpt{-{}-no-print-exit}
+    \oOpt{-{}-progress}
+    \oOpt{-{}-print-status}
+    \oOpt{-{}-print-exit}
     \oOpt{-{}-print-dependencies}
     \oOptArg{-{}-show-dependencies}{target}
     \oOpt{-{}-all-dependencies}
@@ -34,7 +34,7 @@
     \oOpt{-{}-install-force}
     \oOpt{-{}-version}
     \oOpt{-{}-absname}
-    \oOpt{-{}-divert}
+    \oOpt{-{}-divert-errors}
     \oOpt{-{}-divert-repeat}
     \oOpt{-{}-divert-only}
     \oArg{filename...}
@@ -43,6 +43,20 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Options
 %
+\section{General usage}
+
+For Boolean options (for example, \verb+-s+, \verb+--progress+, etc.) the option can include a
+prefix \verb+--no-+, which inverts the usual sense of the option.  For example, the option
+\verb+--progress+ means ``print a progress bar,''  while the option \verb+--no-progress+ means
+``do not print a progress bar.''
+
+If multiple instances of an option are specified, the final option determines the behavior of OMake.
+In the following command line, the final \verb+--no-S+ cancels the earlier \verb+-S+.
+
+\begin{verbatim}
+    % omake -S --progress --no-S
+\end{verbatim}
+
 \section{Output control}
 
 \option{-s} \verb+-s+
@@ -65,37 +79,25 @@ directory information for determining the location of errors.
 Print a progress indicator.
 This is normally used with the \Opt{-s} or \Opt{-S} options.
 
-\option{--no-progress} \verb+--no-progress+
-
-Do not print a progress indicator (default).
-
 \option{--print-status} \verb+--print-status+
 
 Print status lines (the \verb/+/ and \verb/-/ lines).
-
-\option{--no-print-status} \verb+--no-print-status+
-
-Do not print status lines (the \verb/+/ and \verb/-/ lines).
 
 \option{--print-exit} \verb+--print-exit+
 
 Print termination codes when commands complete.
 
-\option{--no-print-exit} \verb+--no-print-exit+
+\option{--divert-errors} \verb+--divert-errors+
 
-Do not print termination codes when commands complete (default).
-
-\option{--divert} \verb+--divert+
-
-``Divert'' command output.  The effect of this option by itself is to save the
-output of any commands so that it can be printed later.  If any rules/commands fail, then OMake will
-re-print the output of the failed commands when it finishes the build.  Off by default.
+``Divert'' command output.  The effect of this option to save the output of any commands so that it
+can be printed at the end of the build.  If any rules/commands fail, then OMake will re-print the
+output of the failed commands when it finishes the build.  Off by default.
 
 \option{--divert-repeat} \verb+--divert-repeat+
 
 When a rule finishes, print the output as a single block.  This is useful
 in combination \verb+-j+ option~\ref{option:-j}, where the output of multiple subprocesses can be
-garbled.  The diversion is printed as a single coherent unit.  Implies \verb+--divert+.
+garbled.  The diversion is printed as a single coherent unit.  Implies \verb+--divert-errors+.
 
 \option{--divert-only} \verb+--divert-only+ 
 
@@ -103,17 +105,53 @@ Print diversions \emph{only}.  This forces OMake to be much more quiet,
 printing output only when a command produces output.  With this option alone, the output from
 successful commands is echoed immediately, and the output from failed commands is delayed until the
 build completes and the summary is printed.  May be used in combination with \verb+--divert-repeat+
-(output from failed commands will be printed twice).  Implies \verb+--divert+.
+(output from failed commands will be printed twice).  Implies \verb+--divert-errors+.
 
 You might also consider using the \verb+--progress+ flag~\ref{option:--progress} so that you can see
 when the build is active.
 
-\option{--no-divert-only} \verb+--no-divert-only+
+\option{--divert-discard-success} \verb+--divert-discard-success+
 
-The \verb+--divert-only+ option does not work well with interactive
-commands because you cant't see the output from the command that is prompting you for input.  If
-you want this option to apply only to specific rules/commands, see the \verb+OMakeFlags+
-function~\ref{fun:OMakeFlags}.
+Discard the output from commands that were successful.  This can be useful in reducing
+unwanted output so that you can concentrate on any errors.
+
+\option{-d} \verb+-d [01jwWpPxXsS]+
+
+For brevity, the \verb+-o+ option is also provided to duplicate the above output options.  The
+\verb+-o+ option takes a argument consisting of a sequence of characters.  The characters are read
+from left-to-right; each specifies a set of output options.  In general, an uppercase character turns
+the option \emph{on}; a lowercase character turns the option \emph{off}.
+
+\begin{description}
+\item[0] Equivalent to \verb+-s --divert-only --divert-discard-success+
+
+This option specifies that \verb+omake+ should be as quiet as possible.  If any errors occur
+during the build, the output is delayed until the build terminates.  Output from successful commands
+is discarded.
+
+\item[1] Equivalent to \verb+-S --progress --divert-only --divert-repeat --divert-discard-success+
+
+This is a slightly more relaxed version of ``quiet'' output.  The output from successful commands is
+discarded.  The output from failed commands is printed immediately after the command complete.  The
+output from failed commands is displayed twice: once immediately after the command completes, and
+again when the build completes.  A progress bar is displayed so that you know when the build is
+active.  Include the `\verb+p+' option if you want to turn off the progress bar (for example
+\verb+omake -o 1p+).
+
+\item[2] Equivalent to \verb+--progress --divert-only --divert-repeat+
+
+The is even more relaxed, output from successful commands is printed.
+This is often useful for deinterleaving the output when using \verb+-j+.
+
+\item[W] Equivalent to \verb+-w+
+\item[w] Equivalent to \verb+--no-w+
+\item[P] Equivalent to \verb+--progress+
+\item[p] Equivalent to \verb+--no-progress+
+\item[X] Equivalent to \verb+--print-exit+
+\item[x] Equivalent to \verb+--no-print-exit+
+\item[S] Equivalent to \verb+-S+
+\item[s] Equivalent to \verb+--no-S+
+\end{description}
 
 \section{Build options}
 
@@ -160,7 +198,7 @@ for dependency information.
 
 \option{--configure} \verb+--configure+
 
-Re-run \verb+static.\+ sections of the included omake files, instead of
+Re-run \verb+static.+ sections of the included omake files, instead of
 trusting the cached results.
 
 \option{--force-dotomake} \verb+--force-dotomake+
@@ -239,6 +277,63 @@ example, the \verb+CFLAGS+ variable might be defined on the command line with th
 
 In addition, \Prog{omake} supports a number of debugging flags on the command line. Run
 \verb+omake --help+ to get a summary of these flags.
+
+\section{Environment variables}
+
+\subsection{\texttt{OMAKEFLAGS}}
+\index{OMAKEFLAGS}
+
+If defines, the \verb+OMAKEFLAGS+ should specify a set of options exactly as they are specified on
+the command line.
+
+\subsection{\texttt{OMAKELIB}}
+\index{OMAKELIB}
+
+If defined, the \verb+OMAKELIB+ environment variable should refer to the installed location of the
+OMake standard library.  This is the directory that contains \verb+Pervasives.om+ etc.  On a Unix
+system, this is often \verb+/usr/lib/omake+ or \verb+/usr/local/lib/omake+, and on Win32 systems it
+is often \verb+c:\Program Files\OMake\lib+.
+
+If not defined, \verb+omake+ uses the default configured location.  You should normally leave this
+unset.
+
+\section{Functions}
+
+\subsection{\texttt{OMakeFlags}~\ref{fun:OMakeFlags}}
+
+The \verb+OMakeFlags+ function~\ref{fun:OMakeFlags} can be used within an \verb+OMakefile+ to modify
+the set of options.  The options should be specified exactly as they are on the command line.  For
+example, if you want some specific project to be silent and display a progress bar, you can add the
+following line to your \verb+OMakefile+.
+
+\begin{verbatim}
+    OMakeFlags(-S --progress)
+\end{verbatim}
+
+For options where it makes sense, the options are scoped like variables.  For example, if you want
+OMake to be silent for a single rule (instead of for the entire project), you can use scoping the
+restrict the range of the option.
+
+\begin{verbatim}
+    section
+        # Do not display command output when foo is constructed
+        OMakeFlags(-S)
+
+        foo: fee
+           echo "This is a generated file" > foo
+           cat fee >> foo
+           chmod 555 foo
+\end{verbatim}
+
+\section{Option processing}
+
+When \verb+omake+ is invoked, the options are processed in the following order.
+
+\begin{enumerate}
+\item All options specified by the \verb+OMAKEFLAGS+ environment variable are defined globally.
+\item All options from the command line are defined globally.
+\item Any individual calls the the \verb+OMakeFlags+ function modify the options locally.
+\end{enumerate}
 
 % -*-
 % Local Variables:

@@ -88,7 +88,9 @@ let env_close_success_tee env command =
       match tee_file tee with
          Some name ->
             tee_close tee;
-            if List.mem DivertRepeat options || List.mem DivertOnly options then begin
+            if not (List.mem DivertDiscardSuccess options)
+               && (List.mem DivertRepeat options || List.mem DivertOnly options) then
+            begin
                print_flush ();
                eprint_file name
             end;

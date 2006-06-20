@@ -1,5 +1,91 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-8-20,	Next: Subsection 8-8-21,	Prev: Subsection 8-8-19,	Up: Section 8-8
+  
+
+8.8.20   lockf
+==============
+
+<<
+      lockf(channel, command, len)
+         channel : Channel
+         command : String
+         len : Int
+      raises RuntimeException
+>>
+  
+  The `lockf' function places a lock on a region of the channel. The
+region starts at the current position and extends for `len' bytes.
+  The possible values for `command' are the following. 
+  
+ F_ULOCK  Unlock a region. 
+ F_LOCK  Lock a region for writing; block if already locked. 
+ F_TLOCK  Lock a region for writing; fail if already locked. 
+ F_TEST  Test a region for other locks. 
+ F_RLOCK  Lock a region for reading; block if already locked. 
+ F_TRLOCK  Lock a region for reading; fail is already locked. 
+   
+
+Node: Subsection 8-8-21,	Next: Subsection 8-8-22,	Prev: Subsection 8-8-20,	Up: Section 8-8
+  
+
+8.8.21   InetAddr
+=================
+
+  The `InetAddr' object describes an Internet address. It contains the
+following fields.
+  
+  
+ addr  `String': the Internet address. 
+ port  `Int': the port number. 
+  
+
+Node: Subsection 8-8-22,	Next: Subsection 8-8-23,	Prev: Subsection 8-8-21,	Up: Section 8-8
+  
+
+8.8.22   Host
+=============
+
+  A `Host' object contains the following fields.
+  
+  
+ name  `String': the name of the host. 
+ aliases  `String Array': other names by which the host is known. 
+ addrtype  `String': the preferred socket domain. 
+ addrs  `InetAddr Array': an array of Internet addresses belonging to
+   the host. 
+  
+
+Node: Subsection 8-8-23,	Next: Subsection 8-8-24,	Prev: Subsection 8-8-22,	Up: Section 8-8
+  
+
+8.8.23   gethostbyname
+======================
+
+<<
+     $(gethostbyname host...) : Host...
+        host : String
+     raises RuntimeException
+>>
+  
+  The `gethostbyname' function returns a `Host' object for the specified
+host. The `host' may specify a domain name or an Internet address.
+
+Node: Subsection 8-8-24,	Next: Subsection 8-8-25,	Prev: Subsection 8-8-23,	Up: Section 8-8
+  
+
+8.8.24   Protocol
+=================
+
+  The `Protocol' object represents a protocol entry. It has the
+following fields.
+  
+  
+ name  `String': the canonical name of the protocol. 
+ aliases  `String Array': aliases for the protocol. 
+ proto  `Int': the protocol number. 
+  
+
 Node: Subsection 8-8-25,	Next: Subsection 8-8-26,	Prev: Subsection 8-8-24,	Up: Section 8-8
   
 

@@ -1,5 +1,124 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 7-3-34,	Next: Subsection 7-3-35,	Prev: Subsection 7-3-33,	Up: Section 7-3
+  
+
+7.3.34   lowercase
+==================
+
+<<
+     $(lowercase sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `lowercase' function reduces each word in its argument to
+lowercase.
+  For example, `$(lowercase through tHe looking Glass)' evaluates to
+`through the looking glass'. 
+
+Node: Subsection 7-3-35,	Next: Subsection 7-3-36,	Prev: Subsection 7-3-34,	Up: Section 7-3
+  
+
+7.3.35   system
+===============
+
+<<
+     system(s)
+        s : Sequence
+>>
+  
+  The `system' function is used to evaluate a shell expression. This
+function is used internally by omake to evaluate shell commands.
+  For example, the following program is equivalent to the expression
+`system(ls foo)'.
+<<
+     ls foo
+>>
+
+Node: Subsection 7-3-36,	Next: Subsection 7-3-37,	Prev: Subsection 7-3-35,	Up: Section 7-3
+  
+
+7.3.36   shell
+==============
+
+<<
+     $(shell command) : Array
+     $(shella command) : Array
+     $(shell-code command) : Int
+        command : Sequence
+>>
+  
+  The `shell' function evaluates a command using the command shell, and
+returns the whitespace-separated words of the standard output as the
+result.
+  The `shella' function acts similarly, but it returns the lines as
+separate items in the array.
+  The `shell-code' function returns the exit code. The output is not
+diverted.
+  For example, if the current directory contains the files `OMakeroot',
+`OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
+OMakefile OMakeroot' (on a Unix system).  
+
+Node: Subsection 7-3-37,	Next: Section 7-4,	Prev: Subsection 7-3-36,	Up: Section 7-3
+  
+
+7.3.37   while
+==============
+
+<<
+     while <test>
+        <body>
+>>
+  
+  --or--
+<<
+      while <test>
+      case <test1>
+         <body1>
+      ...
+      case <testn>
+         <bodyn>
+      default
+         <bodyd>
+>>
+  
+  The loop is executed while the test is true. In the first form, the
+`<body>' is executed on every loop iteration. In the second form, the
+body `<bodyI>' is selected, as the first case where the test `<testI>'
+is true. If none apply, the optional default case is evaluated. If no
+cases are true, the loop exits. The environment is automatically
+exported.
+  Examples.
+  Iterate for `i' from `0' to `9'.
+<<
+      i = 0
+      while $(lt $i, 10)
+         echo $i
+         i = $(add $i, 1)
+>>
+  
+  The following example is equivalent.
+<<
+     i = 0
+     while true
+     case $(lt $i, 10)
+        echo $i
+        i = $(add $i, 1)
+>>
+  
+  The following example is similar, but some special cases are printed.
+value is printed.
+<<
+      i = 0
+      while $(lt $i, 10)
+      case $(equal $i, 0)
+         echo zero
+      case $(equal $i, 1)
+         echo one
+      default
+         echo $i
+>>
+
 Node: Section 7-4,	Next: Subsection 7-4-1,	Prev: Section 7-3,	Up: Chapter 7
   
 
@@ -1814,89 +1933,3 @@ the following fields:
  write  An array of channels available for writing. 
  error  An array of channels on which an error has occurred. 
    
-
-Node: Subsection 8-8-20,	Next: Subsection 8-8-21,	Prev: Subsection 8-8-19,	Up: Section 8-8
-  
-
-8.8.20   lockf
-==============
-
-<<
-      lockf(channel, command, len)
-         channel : Channel
-         command : String
-         len : Int
-      raises RuntimeException
->>
-  
-  The `lockf' function places a lock on a region of the channel. The
-region starts at the current position and extends for `len' bytes.
-  The possible values for `command' are the following. 
-  
- F_ULOCK  Unlock a region. 
- F_LOCK  Lock a region for writing; block if already locked. 
- F_TLOCK  Lock a region for writing; fail if already locked. 
- F_TEST  Test a region for other locks. 
- F_RLOCK  Lock a region for reading; block if already locked. 
- F_TRLOCK  Lock a region for reading; fail is already locked. 
-   
-
-Node: Subsection 8-8-21,	Next: Subsection 8-8-22,	Prev: Subsection 8-8-20,	Up: Section 8-8
-  
-
-8.8.21   InetAddr
-=================
-
-  The `InetAddr' object describes an Internet address. It contains the
-following fields.
-  
-  
- addr  `String': the Internet address. 
- port  `Int': the port number. 
-  
-
-Node: Subsection 8-8-22,	Next: Subsection 8-8-23,	Prev: Subsection 8-8-21,	Up: Section 8-8
-  
-
-8.8.22   Host
-=============
-
-  A `Host' object contains the following fields.
-  
-  
- name  `String': the name of the host. 
- aliases  `String Array': other names by which the host is known. 
- addrtype  `String': the preferred socket domain. 
- addrs  `InetAddr Array': an array of Internet addresses belonging to
-   the host. 
-  
-
-Node: Subsection 8-8-23,	Next: Subsection 8-8-24,	Prev: Subsection 8-8-22,	Up: Section 8-8
-  
-
-8.8.23   gethostbyname
-======================
-
-<<
-     $(gethostbyname host...) : Host...
-        host : String
-     raises RuntimeException
->>
-  
-  The `gethostbyname' function returns a `Host' object for the specified
-host. The `host' may specify a domain name or an Internet address.
-
-Node: Subsection 8-8-24,	Next: Subsection 8-8-25,	Prev: Subsection 8-8-23,	Up: Section 8-8
-  
-
-8.8.24   Protocol
-=================
-
-  The `Protocol' object represents a protocol entry. It has the
-following fields.
-  
-  
- name  `String': the canonical name of the protocol. 
- aliases  `String Array': aliases for the protocol. 
- proto  `Int': the protocol number. 
-  

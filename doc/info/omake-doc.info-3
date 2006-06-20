@@ -1,5 +1,75 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
+  
+
+6.6   .SCANNER rules
+*=*=*=*=*=*=*=*=*=*=
+
+   
+  Scanner rules define a way to specify automatic dependency scanning. A
+`.SCANNER' rule has the following form.
+<<
+      .SCANNER: target: dependencies
+          commands
+>>
+  
+  The rule is used to compute additional dependencies that might be
+defined in the source files for the specified target. The scanner
+produces dependencies for the specified target (which may be a pattern)
+by running the commands, which must produce output that is compatible
+with omake. For example, on GNU systems the `gcc -MM foo.c' produces
+dependencies for the file `foo.c' (based on `#include' information).
+  We can use this to specify a scanner for C files that adds the scanned
+dependencies for the `.o' file. The following scanner specifies that
+dependencies for a file, say `foo.o' can be computed by running `gcc -MM
+foo.c'. Furthermore, `foo.c' is a dependency, so the scanner should be
+recomputed whenever the `foo.c' file changes.
+<<
+      .SCANNER: %.o: %.c
+          gcc -MM $<
+>>
+  
+  Let's suppose that the command `gcc -MM foo.c' prints the following
+line.
+<<
+      foo.o: foo.h /usr/include/stdio.h
+>>
+  
+  The result is that the files `foo.h' and `/usr/include/stdio.h' are
+considered to be dependencies of `foo.o'---that is, `foo.o' should be
+rebuilt if either of these files changes.
+  This works, to an extent. One nice feature is that the scanner will be
+re-run whenever the `foo.c' file changes. However, one problem is that
+dependencies in C are recursive. That is, if the file `foo.h' is
+modified, it might include other files, establishing further
+dependencies. What we need is to re-run the scanner if `foo.h' changes
+too.
+  We can do this with a value dependency. The variable `$&' is defined
+as the dependency results from any previous scan. We can add these as
+dependencies using the `digest' function, which computes an MD5 digest
+of the files.
+<<
+      .SCANNER: %.o: %.c :value: $(digest $&)
+          gcc -MM $<
+>>
+  
+  Now, when the file `foo.h' changes, its digest will also change, and
+the scanner will be re-run because of the value dependency (since `$&'
+will include `foo.h').
+  This still is not quite right. The problem is that the C compiler uses
+a search-path for include files. There may be several versions of the
+file `foo.h', and the one that is chosen depends on the include path.
+What we need is to base the dependencies on the search path.
+  The `$(digest-in-path-optional ...)' function computes the digest
+based on a search path, giving us a solution that works.
+<<
+      .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES),
+$&)
+         gcc -MM $(addprefix -I, $(INCLUDES)) $<
+>>
+  
+
 Node: Section 6-7,	Next: Section 6-8,	Prev: Section 6-6,	Up: Chapter 6
   
 
@@ -435,7 +505,7 @@ literally.
   Alternately, you might wish that filenames be automatically expanded
 to absolute pathnames. For example, this might be useful when parsing
 the OMake output to look for errors. For this, you can use the
-`--absname' A.2.20*Note Subsection A-2-20:: option. If you call
+`--absname' A.3.20*Note Subsection A-3-20:: option. If you call
 `omake' with the `--absname' option, all filenames will be exapnded to
 absolute names.
 <<
@@ -1669,122 +1739,3 @@ Node: Subsection 7-3-33,	Next: Subsection 7-3-34,	Prev: Subsection 7-3-32,	Up: S
   The `uppercase' function converts each word in a sequence to
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'. 
-
-Node: Subsection 7-3-34,	Next: Subsection 7-3-35,	Prev: Subsection 7-3-33,	Up: Section 7-3
-  
-
-7.3.34   lowercase
-==================
-
-<<
-     $(lowercase sequence) : Array
-        sequence : Sequence
->>
-  
-  The `lowercase' function reduces each word in its argument to
-lowercase.
-  For example, `$(lowercase through tHe looking Glass)' evaluates to
-`through the looking glass'. 
-
-Node: Subsection 7-3-35,	Next: Subsection 7-3-36,	Prev: Subsection 7-3-34,	Up: Section 7-3
-  
-
-7.3.35   system
-===============
-
-<<
-     system(s)
-        s : Sequence
->>
-  
-  The `system' function is used to evaluate a shell expression. This
-function is used internally by omake to evaluate shell commands.
-  For example, the following program is equivalent to the expression
-`system(ls foo)'.
-<<
-     ls foo
->>
-
-Node: Subsection 7-3-36,	Next: Subsection 7-3-37,	Prev: Subsection 7-3-35,	Up: Section 7-3
-  
-
-7.3.36   shell
-==============
-
-<<
-     $(shell command) : Array
-     $(shella command) : Array
-     $(shell-code command) : Int
-        command : Sequence
->>
-  
-  The `shell' function evaluates a command using the command shell, and
-returns the whitespace-separated words of the standard output as the
-result.
-  The `shella' function acts similarly, but it returns the lines as
-separate items in the array.
-  The `shell-code' function returns the exit code. The output is not
-diverted.
-  For example, if the current directory contains the files `OMakeroot',
-`OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
-OMakefile OMakeroot' (on a Unix system).  
-
-Node: Subsection 7-3-37,	Next: Section 7-4,	Prev: Subsection 7-3-36,	Up: Section 7-3
-  
-
-7.3.37   while
-==============
-
-<<
-     while <test>
-        <body>
->>
-  
-  --or--
-<<
-      while <test>
-      case <test1>
-         <body1>
-      ...
-      case <testn>
-         <bodyn>
-      default
-         <bodyd>
->>
-  
-  The loop is executed while the test is true. In the first form, the
-`<body>' is executed on every loop iteration. In the second form, the
-body `<bodyI>' is selected, as the first case where the test `<testI>'
-is true. If none apply, the optional default case is evaluated. If no
-cases are true, the loop exits. The environment is automatically
-exported.
-  Examples.
-  Iterate for `i' from `0' to `9'.
-<<
-      i = 0
-      while $(lt $i, 10)
-         echo $i
-         i = $(add $i, 1)
->>
-  
-  The following example is equivalent.
-<<
-     i = 0
-     while true
-     case $(lt $i, 10)
-        echo $i
-        i = $(add $i, 1)
->>
-  
-  The following example is similar, but some special cases are printed.
-value is printed.
-<<
-      i = 0
-      while $(lt $i, 10)
-      case $(equal $i, 0)
-         echo zero
-      case $(equal $i, 1)
-         echo one
-      default
-         echo $i
->>

@@ -1159,153 +1159,149 @@ Appendix A     Synopsis
 ***********************
     
   omake  [-k]  [-j <count>]  [-n]  [-s] [-S]  [-p]  [-P]  [-w]  [-t] 
-[-u]  [-U]  [-R]  [--project]  [--progress] [--no-progress] 
-[--print-status] [--no-print-status]  [--print-exit] [--no-print-exit] 
-[--print-dependencies]  [--show-dependencies <target>] 
+[-u]  [-U]  [-R]  [--project]  [--progress]  [--print-status] 
+[--print-exit]  [--print-dependencies]  [--show-dependencies <target>] 
 [--all-dependencies]  [--verbose-dependencies]  [--force-dotomake] 
 [--dotomake <dir>]  [--flush-includes]  [--configure]  [--install] 
-[--install-all]  [--install-force]  [--version]  [--absname]  [--divert]
- [--divert-repeat]  [--divert-only]  filename...  [var-definition...]
+[--install-all]  [--install-force]  [--version]  [--absname] 
+[--divert-errors]  [--divert-repeat]  [--divert-only]  filename... 
+[var-definition...]
 * Menu:
 
-* Section A-1::	Output control
-* Section A-2::	Build options
-* Section A-3::	Additional options
+* Section A-1::	General usage
+* Section A-2::	Output control
+* Section A-3::	Build options
+* Section A-4::	Additional options
+* Section A-5::	Environment variables
+* Section A-6::	Functions
+* Section A-7::	Option processing
 
 
-Node: Section A-1,	Next: Subsection A-1-1,	Prev: Appendix A,	Up: Appendix A
+Node: Section A-1,	Next: Section A-2,	Prev: Appendix A,	Up: Appendix A
   
 
-A.1   Output control
+A.1   General usage
+*=*=*=*=*=*=*=*=*=*
+
+  
+  For Boolean options (for example, `-s', `--progress', etc.) the option
+can include a prefix `--no-', which inverts the usual sense of the
+option. For example, the option `--progress' means ``print a progress
+bar,'' while the option `--no-progress' means ``do not print a progress
+bar.''
+  If multiple instances of an option are specified, the final option
+determines the behavior of OMake. In the following command line, the
+final `--no-S' cancels the earlier `-S'.
+<<
+      % omake -S --progress --no-S
+>>
+  
+
+Node: Section A-2,	Next: Subsection A-2-1,	Prev: Section A-1,	Up: Appendix A
+  
+
+A.2   Output control
 *=*=*=*=*=*=*=*=*=*=
 
   
 * Menu:
 
-* Subsection A-1-1::	-s
-* Subsection A-1-2::	-S
-* Subsection A-1-3::	-w
-* Subsection A-1-4::	--progress
-* Subsection A-1-5::	--no-progress
-* Subsection A-1-6::	--print-status
-* Subsection A-1-7::	--no-print-status
-* Subsection A-1-8::	--print-exit
-* Subsection A-1-9::	--no-print-exit
-* Subsection A-1-10::	--divert
-* Subsection A-1-11::	--divert-repeat
-* Subsection A-1-12::	--divert-only
-* Subsection A-1-13::	--no-divert-only
+* Subsection A-2-1::	-s
+* Subsection A-2-2::	-S
+* Subsection A-2-3::	-w
+* Subsection A-2-4::	--progress
+* Subsection A-2-5::	--print-status
+* Subsection A-2-6::	--print-exit
+* Subsection A-2-7::	--divert-errors
+* Subsection A-2-8::	--divert-repeat
+* Subsection A-2-9::	--divert-only
+* Subsection A-2-10::	--divert-discard-success
+* Subsection A-2-11::	-d
 
 
-Node: Subsection A-1-1,	Next: Subsection A-1-2,	Prev: Section A-1,	Up: Section A-1
+Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
   
 
-A.1.1   -s
+A.2.1   -s
 ==========
  `-s'
   Do not print commands as they are executed (be ``silent'').
 
-Node: Subsection A-1-2,	Next: Subsection A-1-3,	Prev: Subsection A-1-1,	Up: Section A-1
+Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
   
 
-A.1.2   -S
+A.2.2   -S
 ==========
  `-S'
   Do not print commands as they are executed unless they produce output
 and/or fail.
 
-Node: Subsection A-1-3,	Next: Subsection A-1-4,	Prev: Subsection A-1-2,	Up: Section A-1
+Node: Subsection A-2-3,	Next: Subsection A-2-4,	Prev: Subsection A-2-2,	Up: Section A-2
   
 
-A.1.3   -w
+A.2.3   -w
 ==========
  `-w'
   Print directory information in make format as commands are executed.
 This is mainly useful for editors that expect make-style directory
 information for determining the location of errors.
 
-Node: Subsection A-1-4,	Next: Subsection A-1-5,	Prev: Subsection A-1-3,	Up: Section A-1
+Node: Subsection A-2-4,	Next: Subsection A-2-5,	Prev: Subsection A-2-3,	Up: Section A-2
   
 
-A.1.4   --progress
+A.2.4   --progress
 ==================
  `--progress'
   Print a progress indicator. This is normally used with the -s or -S
 options.
 
-Node: Subsection A-1-5,	Next: Subsection A-1-6,	Prev: Subsection A-1-4,	Up: Section A-1
+Node: Subsection A-2-5,	Next: Subsection A-2-6,	Prev: Subsection A-2-4,	Up: Section A-2
   
 
-A.1.5   --no-progress
-=====================
-
-`--no-progress'
-  Do not print a progress indicator (default).
-
-Node: Subsection A-1-6,	Next: Subsection A-1-7,	Prev: Subsection A-1-5,	Up: Section A-1
-  
-
-A.1.6   --print-status
+A.2.5   --print-status
 ======================
 
 `--print-status'
   Print status lines (the `+' and `-' lines).
 
-Node: Subsection A-1-7,	Next: Subsection A-1-8,	Prev: Subsection A-1-6,	Up: Section A-1
+Node: Subsection A-2-6,	Next: Subsection A-2-7,	Prev: Subsection A-2-5,	Up: Section A-2
   
 
-A.1.7   --no-print-status
-=========================
-
-`--no-print-status'
-  Do not print status lines (the `+' and `-' lines).
-
-Node: Subsection A-1-8,	Next: Subsection A-1-9,	Prev: Subsection A-1-7,	Up: Section A-1
-  
-
-A.1.8   --print-exit
+A.2.6   --print-exit
 ====================
 
 `--print-exit'
   Print termination codes when commands complete.
 
-Node: Subsection A-1-9,	Next: Subsection A-1-10,	Prev: Subsection A-1-8,	Up: Section A-1
+Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
   
 
-A.1.9   --no-print-exit
+A.2.7   --divert-errors
 =======================
 
-`--no-print-exit'
-  Do not print termination codes when commands complete (default).
+`--divert-errors'
+  ``Divert'' command output. The effect of this option to save the
+output of any commands so that it can be printed at the end of the
+build. If any rules/commands fail, then OMake will re-print the output
+of the failed commands when it finishes the build. Off by default.
 
-Node: Subsection A-1-10,	Next: Subsection A-1-11,	Prev: Subsection A-1-9,	Up: Section A-1
+Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
   
 
-A.1.10   --divert
-=================
- `--divert'
-  ``Divert'' command output. The effect of this option by itself is to
-save the output of any commands so that it can be printed later. If any
-rules/commands fail, then OMake will re-print the output of the failed
-commands when it finishes the build. Off by default.
-
-Node: Subsection A-1-11,	Next: Subsection A-1-12,	Prev: Subsection A-1-10,	Up: Section A-1
-  
-
-A.1.11   --divert-repeat
-========================
+A.2.8   --divert-repeat
+=======================
 
 `--divert-repeat'
   When a rule finishes, print the output as a single block. This is
-useful in combination `-j' option A.2.12*Note Subsection A-2-12::, where
+useful in combination `-j' option A.3.12*Note Subsection A-3-12::, where
 the output of multiple subprocesses can be garbled. The diversion is
-printed as a single coherent unit. Implies `--divert'.
+printed as a single coherent unit. Implies `--divert-errors'.
 
-Node: Subsection A-1-12,	Next: Subsection A-1-13,	Prev: Subsection A-1-11,	Up: Section A-1
+Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
   
 
-A.1.12   --divert-only
-======================
+A.2.9   --divert-only
+=====================
 
 `--divert-only' 
   Print diversions only. This forces OMake to be much more quiet,
@@ -1314,98 +1310,139 @@ alone, the output from successful commands is echoed immediately, and
 the output from failed commands is delayed until the build completes and
 the summary is printed. May be used in combination with
 `--divert-repeat' (output from failed commands will be printed twice).
-Implies `--divert'.
+Implies `--divert-errors'.
   You might also consider using the `--progress' flag
-A.1.4*Note Subsection A-1-4:: so that you can see when the build
+A.2.4*Note Subsection A-2-4:: so that you can see when the build
 is active.
 
-Node: Subsection A-1-13,	Next: Section A-2,	Prev: Subsection A-1-12,	Up: Section A-1
+Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
   
 
-A.1.13   --no-divert-only
-=========================
+A.2.10   --divert-discard-success
+=================================
 
-`--no-divert-only'
-  The `--divert-only' option does not work well with interactive
-commands because you cant't see the output from the command that is
-prompting you for input. If you want this option to apply only to
-specific rules/commands, see the `OMakeFlags' function
-11.1.0.1*Note Section 11-1::.
+`--divert-discard-success'
+  Discard the output from commands that were successful. This can be
+useful in reducing unwanted output so that you can concentrate on any
+errors.
 
-Node: Section A-2,	Next: Subsection A-2-1,	Prev: Section A-1,	Up: Appendix A
+Node: Subsection A-2-11,	Next: Section A-3,	Prev: Subsection A-2-10,	Up: Section A-2
   
 
-A.2   Build options
+A.2.11   -d
+===========
+ `-d [01jwWpPxXsS]'
+  For brevity, the `-o' option is also provided to duplicate the above
+output options. The `-o' option takes a argument consisting of a
+sequence of characters. The characters are read from left-to-right; each
+specifies a set of output options. In general, an uppercase character
+turns the option on; a lowercase character turns the option off.
+  
+  
+ 0  Equivalent to `-s --divert-only --divert-discard-success'
+ This option specifies that `omake' should be as quiet as possible. If
+   any errors occur during the build, the output is delayed until the
+   build terminates. Output from successful commands is discarded.
+ 
+ 1  Equivalent to `-S --progress --divert-only --divert-repeat
+   --divert-discard-success'
+ This is a slightly more relaxed version of ``quiet'' output. The output
+   from successful commands is discarded. The output from failed
+   commands is printed immediately after the command complete. The
+   output from failed commands is displayed twice: once immediately
+   after the command completes, and again when the build completes. A
+   progress bar is displayed so that you know when the build is active.
+   Include the ``p'' option if you want to turn off the progress bar
+   (for example `omake -o 1p').
+ 
+ 2  Equivalent to `--progress --divert-only --divert-repeat'
+ The is even more relaxed, output from successful commands is printed.
+   This is often useful for deinterleaving the output when using `-j'.
+ 
+ W  Equivalent to `-w' 
+ w  Equivalent to `--no-w' 
+ P  Equivalent to `--progress' 
+ p  Equivalent to `--no-progress' 
+ X  Equivalent to `--print-exit' 
+ x  Equivalent to `--no-print-exit' 
+ S  Equivalent to `-S' 
+ s  Equivalent to `--no-S' 
+  
+
+Node: Section A-3,	Next: Subsection A-3-1,	Prev: Section A-2,	Up: Appendix A
+  
+
+A.3   Build options
 *=*=*=*=*=*=*=*=*=*
 
   
 * Menu:
 
-* Subsection A-2-1::	-k
-* Subsection A-2-2::	-n
-* Subsection A-2-3::	-p
-* Subsection A-2-4::	-P
-* Subsection A-2-5::	-R
-* Subsection A-2-6::	-t
-* Subsection A-2-7::	-U
-* Subsection A-2-8::	--depend
-* Subsection A-2-9::	--configure
-* Subsection A-2-10::	--force-dotomake
-* Subsection A-2-11::	--dotomake
-* Subsection A-2-12::	-j
-* Subsection A-2-13::	--print-dependencies
-* Subsection A-2-14::	--show-dependencies
-* Subsection A-2-15::	--all-dependencies
-* Subsection A-2-16::	--verbose-dependencies
-* Subsection A-2-17::	--install
-* Subsection A-2-18::	--install-all
-* Subsection A-2-19::	--install-force
-* Subsection A-2-20::	--absname
-* Subsection A-2-21::	variable definition
+* Subsection A-3-1::	-k
+* Subsection A-3-2::	-n
+* Subsection A-3-3::	-p
+* Subsection A-3-4::	-P
+* Subsection A-3-5::	-R
+* Subsection A-3-6::	-t
+* Subsection A-3-7::	-U
+* Subsection A-3-8::	--depend
+* Subsection A-3-9::	--configure
+* Subsection A-3-10::	--force-dotomake
+* Subsection A-3-11::	--dotomake
+* Subsection A-3-12::	-j
+* Subsection A-3-13::	--print-dependencies
+* Subsection A-3-14::	--show-dependencies
+* Subsection A-3-15::	--all-dependencies
+* Subsection A-3-16::	--verbose-dependencies
+* Subsection A-3-17::	--install
+* Subsection A-3-18::	--install-all
+* Subsection A-3-19::	--install-force
+* Subsection A-3-20::	--absname
+* Subsection A-3-21::	variable definition
 
 
-Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
+Node: Subsection A-3-1,	Next: Subsection A-3-2,	Prev: Section A-3,	Up: Section A-3
   
 
-A.2.1   -k
+A.3.1   -k
 ==========
  `-k'
   Do not abort when a build command fails; continue to build as much of
 the project as possible.
 
-Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
+Node: Subsection A-3-2,	Next: Subsection A-3-3,	Prev: Subsection A-3-1,	Up: Section A-3
   
 
-A.2.2   -n
+A.3.2   -n
 ==========
  `-n'
   This can be used to see what would happen if the project were to be
 built.
 
-Node: Subsection A-2-3,	Next: Subsection A-2-4,	Prev: Subsection A-2-2,	Up: Section A-2
+Node: Subsection A-3-3,	Next: Subsection A-3-4,	Prev: Subsection A-3-2,	Up: Section A-3
   
 
-A.2.3   -p
+A.3.3   -p
 ==========
  `-p'
   Watch the filesystem for changes, and continue the build until it
 succeeds. If this option is specified, omake will restart the build
 whenever source files are modified. Implies -k.
 
-Node: Subsection A-2-4,	Next: Subsection A-2-5,	Prev: Subsection A-2-3,	Up: Section A-2
+Node: Subsection A-3-4,	Next: Subsection A-3-5,	Prev: Subsection A-3-3,	Up: Section A-3
   
 
-A.2.4   -P
+A.3.4   -P
 ==========
  `-P'
   Watch the filesystem for changes forever. If this option is specified,
 omake will restart the build whenever source files are modified. Implies
 -k.
 
-Node: Subsection A-2-5,	Next: Subsection A-2-6,	Prev: Subsection A-2-4,	Up: Section A-2
+Node: Subsection A-3-5,	Next: Subsection A-3-6,	Prev: Subsection A-3-4,	Up: Section A-3
   
 
-A.2.5   -R
+A.3.5   -R
 ==========
  `-R'
   Ignore the current directory and build the project from its root
@@ -1414,66 +1451,66 @@ builds files within the current directory and its subdirectories. If the
 -R option is specified, the build is performed as if omake were run in
 the project root.
 
-Node: Subsection A-2-6,	Next: Subsection A-2-7,	Prev: Subsection A-2-5,	Up: Section A-2
+Node: Subsection A-3-6,	Next: Subsection A-3-7,	Prev: Subsection A-3-5,	Up: Section A-3
   
 
-A.2.6   -t
+A.3.6   -t
 ==========
  `-t'
   Update the omake database to force the project to be considered
 up-to-date.
 
-Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
+Node: Subsection A-3-7,	Next: Subsection A-3-8,	Prev: Subsection A-3-6,	Up: Section A-3
   
 
-A.2.7   -U
+A.3.7   -U
 ==========
  `-U'
   Do not trust cached build information. This will force the entire
 project to be rebuilt.
 
-Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
+Node: Subsection A-3-8,	Next: Subsection A-3-9,	Prev: Subsection A-3-7,	Up: Section A-3
   
 
-A.2.8   --depend
+A.3.8   --depend
 ================
  `--depend'
   Do not trust cached dependency information. This will force files to
 be rescanned for dependency information.
 
-Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
+Node: Subsection A-3-9,	Next: Subsection A-3-10,	Prev: Subsection A-3-8,	Up: Section A-3
   
 
-A.2.9   --configure
+A.3.9   --configure
 ===================
 
 `--configure'
-  Re-run `static.\' sections of the included omake files, instead of
+  Re-run `static.' sections of the included omake files, instead of
 trusting the cached results.
 
-Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
+Node: Subsection A-3-10,	Next: Subsection A-3-11,	Prev: Subsection A-3-9,	Up: Section A-3
   
 
-A.2.10   --force-dotomake
+A.3.10   --force-dotomake
 =========================
 
 `--force-dotomake'
   Always use the `$HOME/.omake' for the `.omc' cache files.
 
-Node: Subsection A-2-11,	Next: Subsection A-2-12,	Prev: Subsection A-2-10,	Up: Section A-2
+Node: Subsection A-3-11,	Next: Subsection A-3-12,	Prev: Subsection A-3-10,	Up: Section A-3
   
 
-A.2.11   --dotomake
+A.3.11   --dotomake
 ===================
  `--dotomake
 <dir>'
   Use the specified directory instead of the `$HOME/.omake' for the
 placement of the `.omc' cache files.
 
-Node: Subsection A-2-12,	Next: Subsection A-2-13,	Prev: Subsection A-2-11,	Up: Section A-2
+Node: Subsection A-3-12,	Next: Subsection A-3-13,	Prev: Subsection A-3-11,	Up: Section A-3
   
 
-A.2.12   -j
+A.3.12   -j
 ===========
  `-j <count>'
   Run multiple build commands in parallel. The count specifies a bound
@@ -1488,28 +1525,28 @@ location for the project.
 filesystems like NFS do not provide adequate file consistency for this
 to work.
 
-Node: Subsection A-2-13,	Next: Subsection A-2-14,	Prev: Subsection A-2-12,	Up: Section A-2
+Node: Subsection A-3-13,	Next: Subsection A-3-14,	Prev: Subsection A-3-12,	Up: Section A-3
   
 
-A.2.13   --print-dependencies
+A.3.13   --print-dependencies
 =============================
 
 `--print-dependencies'
   Print dependency information for the targets on the command line.
 
-Node: Subsection A-2-14,	Next: Subsection A-2-15,	Prev: Subsection A-2-13,	Up: Section A-2
+Node: Subsection A-3-14,	Next: Subsection A-3-15,	Prev: Subsection A-3-13,	Up: Section A-3
   
 
-A.2.14   --show-dependencies
+A.3.14   --show-dependencies
 ============================
 
 `--show-dependencies <target>'
   Print dependency information if the `target' is built.
 
-Node: Subsection A-2-15,	Next: Subsection A-2-16,	Prev: Subsection A-2-14,	Up: Section A-2
+Node: Subsection A-3-15,	Next: Subsection A-3-16,	Prev: Subsection A-3-14,	Up: Section A-3
   
 
-A.2.15   --all-dependencies
+A.3.15   --all-dependencies
 ===========================
 
 `--all-dependencies'
@@ -1518,10 +1555,10 @@ is in effect, print transitive dependencies. That is, print all
 dependencies recursively. If neither option --print-dependencies,
 --show-dependencies is specified, this option has no effect.
 
-Node: Subsection A-2-16,	Next: Subsection A-2-17,	Prev: Subsection A-2-15,	Up: Section A-2
+Node: Subsection A-3-16,	Next: Subsection A-3-17,	Prev: Subsection A-3-15,	Up: Section A-3
   
 
-A.2.16   --verbose-dependencies
+A.3.16   --verbose-dependencies
 ===============================
 
 `--verbose-dependencies'
@@ -1531,20 +1568,20 @@ very verbose, consider redirecting to a file. If neither option
 --print-dependencies, --show-dependencies is specified, this option has
 no effect.
 
-Node: Subsection A-2-17,	Next: Subsection A-2-18,	Prev: Subsection A-2-16,	Up: Section A-2
+Node: Subsection A-3-17,	Next: Subsection A-3-18,	Prev: Subsection A-3-16,	Up: Section A-3
   
 
-A.2.17   --install
+A.3.17   --install
 ==================
  `--install'
   Install default files OMakefile and OMakeroot into the current
 directory. You would typically do this to start a project in the current
 directory.
 
-Node: Subsection A-2-18,	Next: Subsection A-2-19,	Prev: Subsection A-2-17,	Up: Section A-2
+Node: Subsection A-3-18,	Next: Subsection A-3-19,	Prev: Subsection A-3-17,	Up: Section A-3
   
 
-A.2.18   --install-all
+A.3.18   --install-all
 ======================
 
 `--install-all'
@@ -1553,10 +1590,10 @@ default OMakefiles into each subdirectory of the current directory.
 cvs(1) rules are used for filtering the subdirectory list. For example,
 OMakefiles are not copied into directories called `CVS', `RCCS', etc.
 
-Node: Subsection A-2-19,	Next: Subsection A-2-20,	Prev: Subsection A-2-18,	Up: Section A-2
+Node: Subsection A-3-19,	Next: Subsection A-3-20,	Prev: Subsection A-3-18,	Up: Section A-3
   
 
-A.2.19   --install-force
+A.3.19   --install-force
 ========================
 
 `--install-force'
@@ -1564,19 +1601,19 @@ A.2.19   --install-force
 OMakefile. If this option is given, all files are forcibly overwritten
 without prompting.
 
-Node: Subsection A-2-20,	Next: Subsection A-2-21,	Prev: Subsection A-2-19,	Up: Section A-2
+Node: Subsection A-3-20,	Next: Subsection A-3-21,	Prev: Subsection A-3-19,	Up: Section A-3
   
 
-A.2.20   --absname
+A.3.20   --absname
 ==================
  `--absname'
   Filenames should expand to absolute pathnames.
   N.B. This is an experimental option. It may become deprecated.
 
-Node: Subsection A-2-21,	Next: Section A-3,	Prev: Subsection A-2-20,	Up: Section A-2
+Node: Subsection A-3-21,	Next: Section A-4,	Prev: Subsection A-3-20,	Up: Section A-3
   
 
-A.2.21   variable definition
+A.3.21   variable definition
 ============================
 
 `name=[value]'
@@ -1584,15 +1621,112 @@ A.2.21   variable definition
 `name=value'. For example, the `CFLAGS' variable might be defined on the
 command line with the argument `CFLAGS="-Wall -g"'.
 
-Node: Section A-3,	Next: Appendix B,	Prev: Section A-2,	Up: Appendix A
+Node: Section A-4,	Next: Section A-5,	Prev: Section A-3,	Up: Appendix A
   
 
-A.3   Additional options
+A.4   Additional options
 *=*=*=*=*=*=*=*=*=*=*=*=
 
   
   In addition, omake supports a number of debugging flags on the command
 line. Run `omake --help' to get a summary of these flags.
+
+Node: Section A-5,	Next: Subsection A-5-1,	Prev: Section A-4,	Up: Appendix A
+  
+
+A.5   Environment variables
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-5-1::	OMAKEFLAGS
+* Subsection A-5-2::	OMAKELIB
+
+
+Node: Subsection A-5-1,	Next: Subsection A-5-2,	Prev: Section A-5,	Up: Section A-5
+  
+
+A.5.1   OMAKEFLAGS
+==================
+   
+  If defines, the `OMAKEFLAGS' should specify a set of options exactly
+as they are specified on the command line.
+
+Node: Subsection A-5-2,	Next: Section A-6,	Prev: Subsection A-5-1,	Up: Section A-5
+  
+
+A.5.2   OMAKELIB
+================
+   
+  If defined, the `OMAKELIB' environment variable should refer to the
+installed location of the OMake standard library. This is the directory
+that contains `Pervasives.om' etc. On a Unix system, this is often
+`/usr/lib/omake' or `/usr/local/lib/omake', and on Win32 systems it is
+often `c:\Program Files\OMake\lib'.
+  If not defined, `omake' uses the default configured location. You
+should normally leave this unset.
+
+Node: Section A-6,	Next: Subsection A-6-1,	Prev: Section A-5,	Up: Appendix A
+  
+
+A.6   Functions
+*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-6-1::	OMakeFlags 11.1.0.1
+
+
+Node: Subsection A-6-1,	Next: Section A-7,	Prev: Section A-6,	Up: Section A-6
+  
+
+A.6.1   OMakeFlags 11.1.0.1*Note Section 11-1::
+======================================================
+  
+  The `OMakeFlags' function 11.1.0.1*Note Section 11-1:: can be
+used within an `OMakefile' to modify the set of options. The options
+should be specified exactly as they are on the command line. For
+example, if you want some specific project to be silent and display a
+progress bar, you can add the following line to your `OMakefile'.
+<<
+      OMakeFlags(-S --progress)
+>>
+  
+  For options where it makes sense, the options are scoped like
+variables. For example, if you want OMake to be silent for a single rule
+(instead of for the entire project), you can use scoping the restrict
+the range of the option.
+<<
+      section
+          # Do not display command output when foo is constructed
+          OMakeFlags(-S)
+  
+          foo: fee
+             echo "This is a generated file" > foo
+             cat fee >> foo
+             chmod 555 foo
+>>
+  
+
+Node: Section A-7,	Next: Appendix B,	Prev: Section A-6,	Up: Appendix A
+  
+
+A.7   Option processing
+*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  When `omake' is invoked, the options are processed in the following
+order.
+  
+  
+ 1. All options specified by the `OMAKEFLAGS' environment variable are
+   defined globally. 
+ 2. All options from the command line are defined globally. 
+ 3. Any individual calls the the `OMakeFlags' function modify the
+   options locally. 
+  
    
 
 Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
@@ -1640,169 +1774,5 @@ Text within a comment is unrestricted.
 <<
      # This is a comment
      # This $comment contains a quote " character
->>
-  
-
-Node: Subsection B-1-2,	Next: Subsection B-1-3,	Prev: Subsection B-1-1,	Up: Section B-1
-  
-
-B.1.2   Special characters
-==========================
-  
-  The following characters are special in some contexts.
-<<
-     $    (    )    ,    .   =    :    "    '    `    \    #
->>
-  
-  
-  
- - `$' is used to denote a variable reference, or function application. 
- - Parentheses `)', `(' are argument deliminters. 
- - The command `,' is an argument separator. 
- - The period symbol `.' is a name separator. 
- - The equality symbol `=' denotes a definition. 
- - The colon symbol `:' is used to denote rules, and (optionally) to
-   indicate  that an expression is followed by an indented body. 
- - The quotation symbols `"' and `'' delimit character strings. 
- - The symbol `#' is the first character of a constant. 
- - The escape symbol `\' is special only when followed by another
-   special  character. In this case, the special status of the second
-   character is removed,  and the sequence denotes the second character.
-   Otherwise, the `\' is not special.
- Examples:
- 
-      
-    - `\$': the `$' character (as a normal character).  
-    - `\#': the `#' character (as a normal character).  
-    - `\\': the `\' character (as a normal character).  
-    - `c\:\Windows\moo\#boo': the string `c:\Windows\moo#boo'.  
-  
-  
-
-Node: Subsection B-1-3,	Next: Subsection B-1-4,	Prev: Subsection B-1-2,	Up: Section B-1
-  
-
-B.1.3   Identifiers
-===================
-  
-  Identifiers (variable names) are drawn from the ASCII alphanumeric
-characters as well as `_', `-', `~', `@'. Case is significant; the
-following identifiers are distinct: `FOO', `Foo', `foo'. The identifier
-may begin with any of the valid characters, including digits.
-  Using `egrep' notation, the regular expression for identifiers is
-defined as follows.
-<<
-      identifier ::= [-@~_A-Za-z0-9]+
->>
-  
-  The following are legal identifiers.
-<<
-      Xyz    hello_world    seventy@nine
-      79-32  Gnus~Gnats     CFLAGS
->>
-  
-  The following are not legal identifiers.
-<<
-      x+y    hello&world
->>
-  
-
-Node: Subsection B-1-4,	Next: Subsection B-1-5,	Prev: Subsection B-1-3,	Up: Section B-1
-  
-
-B.1.4   Command identifiers
-===========================
-  
-  The following words have special significance when they occur as the
-first word of a program line. They are not otherwise special.
-<<
-      case     catch  class    declare    default
-      do       else   elseif   export     extends
-      finally  if     import   include    match
-      open     raise  return   section    switch
-      try      value  when     while
->>
-  
-
-Node: Subsection B-1-5,	Next: Subsection B-1-6,	Prev: Subsection B-1-4,	Up: Section B-1
-  
-
-B.1.5   Variable references
-===========================
-  
-  A variable reference is denoted with the `$' special character
-followed by an identifier. If the identifier name has more than one
-character, it must be enclosed in parentheses. The parenthesized version
-is most common. The following are legal variable references.
-<<
-      $(Xyz)    $(hello_world)   $(seventy@nine)
-      $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
->>
-  
-  Single-character references also include several additional
-identifiers, including `&*<^?]['. The following are legal
-single-character references.
-<<
-     $@   $&   $*   $<   $^   $+   $?   $[   $]
-     $A   $_   $a   $b   $x   $1   $2   $3
->>
-  
-  Note that a non-parenthesized variable reference is limited to a
-single character, even if it is followed by additional legal identifier
-charqcters. Suppose the value of the `$x' variable is 17. The following
-examples illustrate evaluation.
-<<
-      $x           evaluates to    17
-      foo$xbar     evaluates to    foo17bar
-      foo$(x)bar   evaluates to    foo17bar
->>
-  
-  The special sequence `$$' represents the character literal `$'. That
-is, the two-character sequences `\$' and `$$' are normally equalivalent.
-
-Node: Subsection B-1-6,	Next: Section B-2,	Prev: Subsection B-1-5,	Up: Section B-1
-  
-
-B.1.6   String constants
-========================
-   
-  Literal strings are defined with matching string delimiters. A left
-string delimiter begins with the dollar-sign `$', and a non-zero number
-of single-quote or double-quote characters. The string is terminated
-with a matching sequence of quotation symbols. The delimiter quotation
-may not be mixed; it must contain only single-quote characters, or
-double-quote characters. The following are legal strings.
-<<
-      $'Hello world'
-      $"""printf("Hello world\n")"""
-      $''''
-  Large "block" of
-  text # spanning ''multiple'' lines''''
->>
-  
-  The string delimiters are not included in the string constant. In the
-single-quote form, the contents of the string are interpreted
-verbatim--there are no special characters.
-  The double-quote form permits expression evaluation within the string,
-denoted with the `$' symbol. The following are some examples.
-<<
-      X = Hello
-      Y = $""$X world""             # Hello world
-      Z = $'''$X world'''           # $X world
-      I = 3
-      W = $"6 > $(add $I, 2)"       # 6 > 5
->>
-  
-  Note that quotation symbols without a leading `$' are not treated
-specially by OMake. The quotation symbols is included in the sequence.
-<<
-      osh>println('Hello world')
-      'Hello world'
-      osh>println($'Hello world')
-      Hello world
-      osh>X = Hello
-      - : "Hello" : Sequence
-      osh>println('$X world')
-      Hello world
 >>
   
