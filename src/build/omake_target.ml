@@ -115,20 +115,25 @@ and search_irules bound cache venv pos target irules =
 (*
  * Outer wrappers.
  *)
-let venv_find_buildable_implicit_rule cache venv pos target =
+let check_build_phase pos =
    if not (is_build_phase ()) then
-      raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
+      raise (OmakeException (pos, StringError "this command can only be executed in a rule body"))
+
+(* XXX: JYH: temporarily disable it *)
+let check_build_phase _pos =
+   ()
+
+let venv_find_buildable_implicit_rule cache venv pos target =
+   check_build_phase pos;
    venv_find_buildable_implicit_rule_bound NodeSet.empty cache venv pos target
 
 let target_is_buildable cache venv pos target =
-   if not (is_build_phase ()) then
-      raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
+   check_build_phase pos;
    target_is_buildable_bound NodeSet.empty cache venv pos target
 
 let target_is_buildable_proper cache venv pos target =
    let target = Node.unsquash target in
-      if not (is_build_phase ()) then
-         raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
+      check_build_phase pos;
       try venv_find_target_is_buildable_proper_exn venv target with
          Not_found ->
             let flag =
