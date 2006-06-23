@@ -2644,6 +2644,15 @@ let venv_remove_explicit_dir venv dir =
    let globals = venv.venv_inner.venv_globals in
       globals.venv_excluded_directories <- DirSet.add globals.venv_excluded_directories dir
 
+let venv_find_target_dir_opt venv target =
+   let target_dir = Node.dir target in
+      if Dir.equal venv.venv_inner.venv_dir target_dir then
+         Some venv
+      else
+         try Some (DirTable.find venv.venv_inner.venv_globals.venv_directories target_dir) with
+            Not_found ->
+               None
+
 (*
  * When a file is read, remember it as a configuration file.
  *)
@@ -2992,10 +3001,11 @@ let venv_find_implicit_deps_inner venv target =
          (NodeSet.empty, NodeSet.empty, NodeSet.empty, []) venv.venv_inner.venv_implicit_deps
 
 let venv_find_implicit_deps venv target =
-   if Dir.equal venv.venv_inner.venv_dir (Node.dir target) then
-      venv_find_implicit_deps_inner venv target
-   else
-      NodeSet.empty, NodeSet.empty, NodeSet.empty, []
+   match venv_find_target_dir_opt venv target with
+      Some venv ->
+         venv_find_implicit_deps_inner venv target
+    | None ->
+         NodeSet.empty, NodeSet.empty, NodeSet.empty, []
 
 (*
  * Find the commands from implicit rules.
@@ -3086,10 +3096,11 @@ let venv_find_implicit_rules_inner venv target =
       collect [] venv.venv_inner.venv_implicit_rules
 
 let venv_find_implicit_rules venv target =
-   if Dir.equal venv.venv_inner.venv_dir (Node.dir target) then
-      venv_find_implicit_rules_inner venv target
-   else
-      []
+   match venv_find_target_dir_opt venv target with
+      Some venv ->
+         venv_find_implicit_rules_inner venv target
+    | None ->
+         []
 
 (************************************************************************
  * Ordering rules.

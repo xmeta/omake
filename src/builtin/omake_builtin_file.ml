@@ -775,7 +775,7 @@ let node_exists node_exists venv pos loc args =
             let args = values_of_value venv pos arg in
             let b =
                List.for_all (fun arg ->
-                     node_exists cache venv (file_of_value venv pos arg)) args
+                     node_exists cache venv pos (file_of_value venv pos arg)) args
             in
                if b then
                   val_true
@@ -862,20 +862,20 @@ let filter_nodes node_exists venv pos loc args =
             let cache = venv_cache venv in
             let args  = values_of_value venv pos arg in
             let nodes = List.map (file_of_value venv pos) args in
-            let nodes = List.filter (node_exists cache venv) nodes in
+            let nodes = List.filter (node_exists cache venv pos) nodes in
             let nodes = List.map (fun v -> ValNode v) nodes in
                ValArray nodes
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 let file_exists venv pos loc args =
-   node_exists (fun cache venv node -> Omake_cache.exists cache node) venv pos loc args
+   node_exists (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
 
 let file_exists_force venv pos loc args =
-   node_exists (fun cache venv node -> Omake_cache.exists cache node) venv pos loc args
+   node_exists (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
 
 let filter_exists venv pos loc args =
-   filter_nodes (fun cache venv node -> Omake_cache.exists cache node) venv pos loc args
+   filter_nodes (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
 
 let target_exists venv pos loc args =
    node_exists target_is_buildable venv pos loc args
@@ -931,14 +931,14 @@ let filter_proper_targets venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let rec search_target_in_path_aux venv cache path name =
+let rec search_target_in_path_aux venv cache pos path name =
    match path with
       dir :: path ->
          let node = venv_intern_cd venv PhonyOK dir name in
-            if target_is_buildable cache venv node then
+            if target_is_buildable cache venv pos node then
                ValNode node
             else
-               search_target_in_path_aux venv cache path name
+               search_target_in_path_aux venv cache pos path name
     | [] ->
          raise Not_found
 
@@ -956,7 +956,7 @@ let search_target_path_aux fail venv pos loc args =
             let files = strings_of_value venv pos arg in
             let files =
                List.fold_left (fun files name ->
-                     try search_target_in_path_aux venv cache path name :: files with
+                     try search_target_in_path_aux venv cache pos path name :: files with
                         Not_found ->
                            if fail then
                               raise (OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))

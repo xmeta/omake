@@ -78,7 +78,7 @@ MakeStaticCLibrary(name, files) =
 
     private. =
         cfiles = $(addsuffix .c, $(files))
-        hfiles = $(filter-targets $(addsuffix .h, $(files)))
+        hfiles = $(filter-exists $(addsuffix .h, $(files)))
         ofiles = $(addsuffix $(ext_obj), $(files))
     MAKEFILE_LINK += $(cfiles) $(hfiles)
     MAKEFILE_TEXT += $"""
@@ -102,7 +102,7 @@ MakeOCamlProgram(name, files) =
 
     private. =
         mlfiles = $(addsuffix .ml, $(files))
-        mlifiles = $(filter-targets $(addsuffix .mli, $(files)))
+        mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
         cmofiles = $(addsuffix .cmo, $(files))
         ocaml_libs = $(addsuffix .cma, $(basename $(public.OCAML_LIBS)))
         ocaml_other_libs = $(addsuffix .cma, $(public.OCAML_OTHER_LIBS))
@@ -130,7 +130,7 @@ MakeOCamlLibrary(name, files) =
 
     private. =
         mlfiles = $(addsuffix .ml, $(files))
-        mlifiles = $(filter-targets $(addsuffix .mli, $(files)))
+        mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
         cmofiles = $(addsuffix .cmo, $(files))
     MAKEFILE_LINK += $(mlfiles) $(mlifiles)
     MAKEFILE_TEXT += $"""
@@ -147,7 +147,7 @@ $(name).cma: $$(CMOFILES_$(name))
 #
 MakeOCamlDepend(files, deps) =
     private. =
-        mlifiles = $(filter-targets $(addsuffix .mli, $(files)))
+        mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
         cmofiles = $(addsuffix .cmo, $(files))
         cmifiles = $(addsuffix .cmi, $(removesuffix $(mlifiles)))
     MAKEFILE_TEXT += $"""

@@ -724,7 +724,7 @@ let build_any_command env pos loc venv target effects locks sources scanners com
                scanner_deps
             else
                let scanner_target = Node.escape NodeScanner target in
-                  if target_is_buildable env venv scanner_target then
+                  if target_is_buildable env venv pos scanner_target then
                      match scanner_mode with
                         DefaultScannerIsWarning ->
                            eprintf "*** omake: warning: using default scanner %a@." pp_print_node scanner_target;
@@ -822,7 +822,7 @@ let build_explicit_command env pos loc target effects locks venv sources scanner
  *)
 let build_implicit_command env pos loc target venv =
    let pos = string_pos "build_implicit_command" pos in
-      match Omake_target.venv_find_buildable_implicit_rule env.env_cache venv target with
+      match Omake_target.venv_find_buildable_implicit_rule env.env_cache venv pos target with
          Some { rule_loc      = loc;
                 rule_effects  = effects;
                 rule_locks    = locks;

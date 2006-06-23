@@ -29,9 +29,9 @@ open Lm_location
 open Omake_env
 open Omake_node
 
-val target_is_buildable : Omake_cache.t -> venv -> Node.t -> bool
-val target_is_buildable_proper : Omake_cache.t -> venv -> Node.t -> bool
-val venv_find_buildable_implicit_rule : Omake_cache.t -> venv -> Node.t -> erule option
+val target_is_buildable : Omake_cache.t -> venv -> pos -> Node.t -> bool
+val target_is_buildable_proper : Omake_cache.t -> venv -> pos -> Node.t -> bool
+val venv_find_buildable_implicit_rule : Omake_cache.t -> venv -> pos -> Node.t -> erule option
 
 (*!
  * @docoff

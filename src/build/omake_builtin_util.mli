@@ -63,6 +63,7 @@ val val_false : value
  *)
 val set_env : env -> unit
 val get_env : pos -> loc -> env
+val is_build_phase : unit -> bool
 
 (*
  * A node is a leaf if it has no dependencies and no commands.

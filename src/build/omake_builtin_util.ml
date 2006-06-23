@@ -37,7 +37,6 @@ open Omake_wild
 open Omake_node
 open Omake_value
 open Omake_state
-open Omake_target
 open Omake_node_sig
 open Omake_build_type
 
@@ -115,6 +114,9 @@ let get_env pos loc =
          env
     | None ->
          raise (OmakeException (loc_pos loc pos, StringError "this function can be called only in rule bodies"))
+
+let is_build_phase () =
+   !saved_env <> None
 
 (*
  * Check whether a node is a leaf node.
