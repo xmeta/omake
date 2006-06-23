@@ -65,21 +65,70 @@ let target_exists_or_is_phony_or_is_explicit cache venv target =
  * if there is an implicit rule whose dependencies
  * are all buildable.
  *)
-let rec target_is_buildable cache venv pos target =
+let rec target_is_buildable_bound bound cache venv pos target =
    let target = Node.unsquash target in
       try venv_find_target_is_buildable_exn venv target with
          Not_found ->
             let flag =
-               if target_exists_or_is_phony_or_is_explicit cache venv target then
-                  true
-               else
-                  venv_find_buildable_implicit_rule cache venv pos target <> None
+               (* Check for loops *)
+               not (NodeSet.mem bound target)
+               && (target_exists_or_is_phony_or_is_explicit cache venv target
+                   || venv_find_buildable_implicit_rule_bound (NodeSet.add bound target) cache venv pos target <> None)
             in
                venv_add_target_is_buildable venv target flag;
                flag
 
-and target_is_buildable_proper cache venv pos target =
+(* Find an applicable implicit rule with buildable sources *)
+and venv_find_buildable_implicit_rule_bound bound cache venv pos target =
+   let irules = venv_find_implicit_rules venv target in
+      if debug debug_implicit then
+         eprintf "venv_find_buildable_implicit_rule %a %a: %d commands to consider@." (**)
+            pp_print_dir (venv_dir venv)
+            pp_print_node target
+            (List.length irules);
+      search_irules bound cache venv pos target irules
+
+and search_irules bound cache venv pos target irules =
+   match irules with
+      irule :: irules ->
+         let sources = irule.rule_sources in
+            if debug debug_implicit then
+               eprintf "@[<b 3>venv_find_buildable_implicit_rule: considering implicit rule %a:%a@]@." (**)
+                  pp_print_node target
+                  pp_print_node_set sources;
+            if NodeSet.for_all (target_is_buildable_bound bound cache venv pos) sources then
+               let irule' = expand_rule irule in
+                  if irule == irule' || NodeSet.for_all (target_is_buildable_bound bound cache venv pos) (NodeSet.diff irule'.rule_sources sources) then begin
+                     if debug debug_implicit then
+                        eprintf "@[<b 3>venv_find_buildable_implicit_rule: accepted implicit rule %a:%a@]@." (**)
+                           pp_print_node target
+                           pp_print_node_set irule'.rule_sources;
+                     Some irule'
+                  end
+                  else
+                     search_irules bound cache venv pos target irules
+            else
+               search_irules bound cache venv pos target irules
+    | [] ->
+         None
+
+(*
+ * Outer wrappers.
+ *)
+let venv_find_buildable_implicit_rule cache venv pos target =
+   if not (is_build_phase ()) then
+      raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
+   venv_find_buildable_implicit_rule_bound NodeSet.empty cache venv pos target
+
+let target_is_buildable cache venv pos target =
+   if not (is_build_phase ()) then
+      raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
+   target_is_buildable_bound NodeSet.empty cache venv pos target
+
+let target_is_buildable_proper cache venv pos target =
    let target = Node.unsquash target in
+      if not (is_build_phase ()) then
+         raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
       try venv_find_target_is_buildable_proper_exn venv target with
          Not_found ->
             let flag =
@@ -90,42 +139,6 @@ and target_is_buildable_proper cache venv pos target =
             in
                venv_add_target_is_buildable_proper venv target flag;
                flag
-
-(* Find an applicable implicit rule with buildable sources *)
-and venv_find_buildable_implicit_rule cache venv pos target =
-   if not (is_build_phase ()) then
-      raise (OmakeException (pos, StringError "this command can only be executed in a rule body"));
-   let irules = venv_find_implicit_rules venv target in
-      if debug debug_implicit then
-         eprintf "venv_find_buildable_implicit_rule %a %a: %d commands to consider@." (**)
-            pp_print_dir (venv_dir venv)
-            pp_print_node target
-            (List.length irules);
-      search_irules cache venv pos target irules
-
-and search_irules cache venv pos target irules =
-   match irules with
-      irule :: irules ->
-         let sources = irule.rule_sources in
-            if debug debug_implicit then
-               eprintf "@[<b 3>venv_find_buildable_implicit_rule: considering implicit rule %a:%a@]@." (**)
-                  pp_print_node target
-                  pp_print_node_set sources;
-            if NodeSet.for_all (target_is_buildable cache venv pos) sources then
-               let irule' = expand_rule irule in
-                  if irule == irule' || NodeSet.for_all (target_is_buildable cache venv pos) (NodeSet.diff irule'.rule_sources sources) then begin
-                     if debug debug_implicit then
-                        eprintf "@[<b 3>venv_find_buildable_implicit_rule: accepted implicit rule %a:%a@]@." (**)
-                           pp_print_node target
-                           pp_print_node_set irule'.rule_sources;
-                     Some irule'
-                  end
-                  else
-                     search_irules cache venv pos target irules
-            else
-               search_irules cache venv pos target irules
-    | [] ->
-         None
 
 (*!
  * @docoff
