@@ -4,6 +4,17 @@
 ABORT_ON_DEPENDENCY_ERRORS = true
 
 #
+# Makefile.tmp care about the generated files.
+#
+.PHONY: MakefileDeps
+Makefile.tmp%: OCamlGeneratedFilesTarget MakefileDeps
+OldLocalOCamlGeneratedFiles = $(LocalOCamlGeneratedFiles)
+LocalOCamlGeneratedFiles(files) =
+    MakefileDeps: $(files)
+    OldLocalOCamlGeneratedFiles($(files))
+    export
+
+#
 # Subdirectories
 #
 .SUBDIRS: clib libmojave util magic
