@@ -1126,6 +1126,108 @@ let sort_val_nodes nodes =
 (*
  * \begin{doc}
  * \section{Globbing and file listings}
+ *
+ * OMake commands are ``glob-expanded'' before being executed.  That is,
+ * names may contain \emph{patterns} that are expanded to sequences of
+ * file and directory names.  The syntax follows the standard bash(1), csh(1),
+ * syntax, with the following rules.
+ *
+ * \begin{itemize}
+ * \item A \emph{pathname} is a sequence of directory and file names separated by
+ * one of the \verb+/+ or \verb+\+ characters.  For example, the following pathnames
+ * refer to the same file: \verb+/home/jyh/OMakefile+ and \verb+/home\jyh/OMakefile+.
+ *
+ * \item Glob-expansion is performed on the components of a path.  If a path contains
+ * occurrences of special characters (listed below), the path is viewed as a pattern
+ * to be matched against the actual files in the system.  The expansion produces a
+ * sequence of all file/directory names that match.
+ *
+ * For the following examples, suppose that a directory \verb+/dir+ contains files
+ * named \verb+a+, \verb+-a+, \verb+a.b+, and \verb+b.c+.
+ *
+ * \begin{description}
+ * \item[\texttt{*}] Matches any sequence of zero-or-more characters.  For example,
+ * the pattern \verb+/dir/a*+ expands to \verb+/dir/a /dir/aa /dir/a.b+.
+ *
+ * \item[\texttt{?}] Matches exactly one character.  The pattern \verb+/dir/?a+ expands
+ * the filename \verb+/dir/-a+.
+ *
+ * \item[\texttt{[...]}]  Square brackets denote character sets and ranges
+ * in the ASCII character set.  The pattern may contain individual characters $c$
+ * or character ranges \texttt{$c_1$-$c_2$}.  The pattern matches any of the
+ * individual characters specified, or any characters in the range.  A leading ``hat''
+ * inverts the send of the pattern.  To specify a pattern that contains the
+ * literal characters \verb+-+, the \verb+-+ should occur as the first character in
+ * the range.
+ *
+ * \begin{center}
+ * \begin{tabular}{ll}
+ * Pattern & Expansion\\
+ * \hline
+ * \verb+/dir/[a-b]*+ & \verb+/dir/a /dir/a.b /dir/b.c+\\
+ * \verb+/dir/[-a-b]*+ & \verb+/dir/a /dir/-a /dir/a.b /dir/b.c+\\
+ * \verb+/dir/[-a]*+   & \verb+/dir/a /dir/-a /dir/a.b+\\
+ * \end{tabular}
+ * \end{center}
+ *
+ * \item[\texttt{\{s1,...,sN\}}]  Braces indicate brace-expansion.
+ * The braces delimit a sequence of strings separated by commas.
+ * Given $N$ strings, the result produces $N$ copies of the pattern,
+ * one for each of the strings $s_i$.
+ *
+ * \begin{center}
+ * \begin{tabular}{ll}
+ * Pattern & Expansion\\
+ * \hline
+ * \verb+a{b,c,d}+ & \verb+ab ac ad+\\
+ * \verb+a{b{c,d},e}+ & \verb+abc abd ae+\\
+ * \verb+a{?{[A-Z],d},*}+ & \verb+a?[A-Z] a?d a*+
+ * \end{tabular}
+ * \end{center}
+ *
+ * \item[\texttt{~}]  The tilde is used to specify home directories.
+ * Depending on your system, these might be possible expandsions.
+ *
+ * \begin{center}
+ * \begin{tabular}{ll}
+ * Pattern & Expansion\\
+ * \hline
+ * \verb+~jyh+ & \verb+/home/jyh+\\
+ * \verb+~bob/*.c+ & \verb+c:\Documents and Settings\users\bob+
+ * \end{tabular}
+ * \end{center}
+ *
+ * \item[\\]  The \verb+\+ character is both a pathname separator
+ * and an escape character.  If followed by a special glob character,
+ * the \verb+\+ changes the sense of the following character to non-special
+ * status.  Otherwise, \verb+\+ is viewed as a pathname separator.
+ *
+ * \begin{center}
+ * \begin{tabular}{ll}
+ * Pattern & Expansion\\
+ * \hline
+ * \verb+~jyh/\*+  & \verb+~jyh/*+ (\verb+*+ is literal)\\
+ * \verb+/dir/\[a-z?+ & \verb+/dir/[a-z?+ (\verb+[+ is literal, \verb+?+ is a pattern).\\
+ * \verb+c:\Program Files\[A-z]+ & \verb+c:\Program Files[A-z]*+
+ * \end{tabular}
+ * \end{center}
+ *
+ * Note that the final case might be considered to be ambiguous (where \verb+\+ should
+ * be viewed as a pathname separator, not as an escape for the subsequent \verb+[+
+ * character.  If you want to avoid this ambiguity on Win32, you should use the
+ * forward slash \verb+/+ even for Win32 pathnames (the \verb+/+ is translated
+ * to \verb+\+ in the output).
+ *
+ * \begin{center}
+ * \begin{tabular}{ll}
+ * Pattern & Expansion\\
+ * \hline
+ * \verb+c:/Program Files/[A-z]*+ & \verb+c:\Program Files\WindowsUpdate ...+
+ * \end{tabular}
+ * \end{center}
+ * \end{description}
+ * \end{itemize}
+ *
  * \fun{glob}
  *
  * \begin{verbatim}

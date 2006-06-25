@@ -435,6 +435,139 @@ If not, the function raises an exception.<BR>
 <CODE>$(file-check-sort &lt;order&gt;, &lt;files&gt;)</CODE>
 <A NAME="toc66"></A>
 <H2 CLASS="section"><A NAME="htoc189">8.4</A>&nbsp;&nbsp;Globbing and file listings</H2>
+OMake commands are &#8220;glob-expanded&#8221; before being executed. That is,
+names may contain <EM>patterns</EM> that are expanded to sequences of
+file and directory names. The syntax follows the standard bash(1), csh(1),
+syntax, with the following rules.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+A <EM>pathname</EM> is a sequence of directory and file names separated by
+one of the <CODE>/</CODE> or <CODE>\</CODE> characters. For example, the following pathnames
+refer to the same file: <CODE>/home/jyh/OMakefile</CODE> and <CODE>/home\jyh/OMakefile</CODE>.<BR>
+<BR>
+<LI CLASS="li-itemize">Glob-expansion is performed on the components of a path. If a path contains
+occurrences of special characters (listed below), the path is viewed as a pattern
+to be matched against the actual files in the system. The expansion produces a
+sequence of all file/directory names that match.<BR>
+<BR>
+For the following examples, suppose that a directory <CODE>/dir</CODE> contains files
+named <CODE>a</CODE>, <CODE>-a</CODE>, <CODE>a.b</CODE>, and <CODE>b.c</CODE>.
+<DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
+<B><TT>*</TT></B><DD CLASS="dd-description"> Matches any sequence of zero-or-more characters. For example,
+the pattern <CODE>/dir/a*</CODE> expands to <CODE>/dir/a /dir/aa /dir/a.b</CODE>.<BR>
+<BR>
+<DT CLASS="dt-description"><B><TT>?</TT></B><DD CLASS="dd-description"> Matches exactly one character. The pattern <CODE>/dir/?a</CODE> expands
+the filename <CODE>/dir/-a</CODE>.<BR>
+<BR>
+<DT CLASS="dt-description"><B><TT>[...]</TT></B><DD CLASS="dd-description"> Square brackets denote character sets and ranges
+in the ASCII character set. The pattern may contain individual characters <I>c</I>
+or character ranges <TT><I>c</I></TT><SUB><TT>1</TT></SUB><TT>-<I>c</I></TT><SUB><TT>2</TT></SUB>. The pattern matches any of the
+individual characters specified, or any characters in the range. A leading &#8220;hat&#8221;
+inverts the send of the pattern. To specify a pattern that contains the
+literal characters <CODE>-</CODE>, the <CODE>-</CODE> should occur as the first character in
+the range.<BR>
+<BR>
+<DIV CLASS="center">
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>Pattern</TD>
+<TD ALIGN=left NOWRAP>Expansion</TD>
+</TR>
+<TR><TD BGCOLOR=black COLSPAN=2><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/[a-b]*</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>/dir/a /dir/a.b /dir/b.c</CODE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/[-a-b]*</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>/dir/a /dir/-a /dir/a.b /dir/b.c</CODE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/[-a]*</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>/dir/a /dir/-a /dir/a.b</CODE></TD>
+</TR></TABLE>
+</DIV><BR>
+<BR>
+<DT CLASS="dt-description"><B><TT>{s1,...,sN}</TT></B><DD CLASS="dd-description"> Braces indicate brace-expansion.
+The braces delimit a sequence of strings separated by commas.
+Given <I>N</I> strings, the result produces <I>N</I> copies of the pattern,
+one for each of the strings <I>s</I><SUB><I>i</I></SUB>.<BR>
+<BR>
+<DIV CLASS="center">
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>Pattern</TD>
+<TD ALIGN=left NOWRAP>Expansion</TD>
+</TR>
+<TR><TD BGCOLOR=black COLSPAN=2><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>a{b,c,d}</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>ab ac ad</CODE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>a{b{c,d},e}</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>abc abd ae</CODE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>a{?{[A-Z],d},*}</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>a?[A-Z] a?d a*</CODE></TD>
+</TR></TABLE>
+</DIV><BR>
+<BR>
+<DT CLASS="dt-description"><B><TT>&nbsp;</TT></B><DD CLASS="dd-description"> The tilde is used to specify home directories.
+Depending on your system, these might be possible expandsions.<BR>
+<BR>
+<DIV CLASS="center">
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>Pattern</TD>
+<TD ALIGN=left NOWRAP>Expansion</TD>
+</TR>
+<TR><TD BGCOLOR=black COLSPAN=2><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>~jyh</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>/home/jyh</CODE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>~bob/*.c</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>c:\Documents and Settings\users\bob</CODE></TD>
+</TR></TABLE>
+</DIV><BR>
+<BR>
+<DT CLASS="dt-description"><B><BR>
+</B><DD CLASS="dd-description"> The <CODE>\</CODE> character is both a pathname separator
+and an escape character. If followed by a special glob character,
+the <CODE>\</CODE> changes the sense of the following character to non-special
+status. Otherwise, <CODE>\</CODE> is viewed as a pathname separator.<BR>
+<BR>
+<DIV CLASS="center">
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>Pattern</TD>
+<TD ALIGN=left NOWRAP>Expansion</TD>
+</TR>
+<TR><TD BGCOLOR=black COLSPAN=2><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>~jyh/\*</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>~jyh/*</CODE> (<CODE>*</CODE> is literal)</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>/dir/\[a-z?</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>/dir/[a-z?</CODE> (<CODE>[</CODE> is literal, <CODE>?</CODE> is a pattern).</TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>c:\Program Files\[A-z]</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>c:\Program Files[A-z]*</CODE></TD>
+</TR></TABLE>
+</DIV><BR>
+<BR>
+Note that the final case might be considered to be ambiguous (where <CODE>\</CODE> should
+be viewed as a pathname separator, not as an escape for the subsequent <CODE>[</CODE>
+character. If you want to avoid this ambiguity on Win32, you should use the
+forward slash <CODE>/</CODE> even for Win32 pathnames (the <CODE>/</CODE> is translated
+to <CODE>\</CODE> in the output).<BR>
+<BR>
+<DIV CLASS="center">
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD ALIGN=left NOWRAP>Pattern</TD>
+<TD ALIGN=left NOWRAP>Expansion</TD>
+</TR>
+<TR><TD BGCOLOR=black COLSPAN=2><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+</TR>
+<TR><TD ALIGN=left NOWRAP><CODE>c:/Program Files/[A-z]*</CODE></TD>
+<TD ALIGN=left NOWRAP><CODE>c:\Program Files\WindowsUpdate ...</CODE></TD>
+</TR></TABLE>
+</DIV>
+</DL>
+</UL>
 
 <H3 CLASS="subsection"><A NAME="htoc190">8.4.1</A>&nbsp;&nbsp;glob</H3><A NAME="@default171"></A><A NAME="@fun118"></A><A NAME="fun:glob"></A>
 <PRE CLASS="verbatim">

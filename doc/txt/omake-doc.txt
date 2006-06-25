@@ -587,7 +587,7 @@ Contents
            
           - 11.7.0.7  dependencies, dependencies-all 
           - 11.7.0.8  target 
-          - 11.7.0.9  build-targets 
+          - 11.7.0.9  find-build-targets 
           - 11.7.0.10  project-directories 
           - 11.7.0.11  rule 
         
@@ -5782,7 +5782,104 @@ raises an exception.
 8.4  Globbing and file listings
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
-
+  
+  OMake commands are ``glob-expanded'' before being executed. That is,
+names may contain patterns that are expanded to sequences of file and
+directory names. The syntax follows the standard bash(1), csh(1),
+syntax, with the following rules.
+  
+  
+ - A pathname is a sequence of directory and file names separated by one
+   of the `/' or `\' characters. For example, the following pathnames
+   refer to the same file: `/home/jyh/OMakefile' and
+   `/home\jyh/OMakefile'.
+ 
+ - Glob-expansion is performed on the components of a path. If a path
+   contains occurrences of special characters (listed below), the path
+   is viewed as a pattern to be matched against the actual files in the
+   system. The expansion produces a sequence of all file/directory names
+   that match.
+ For the following examples, suppose that a directory `/dir' contains
+   files named `a', `-a', `a.b', and `b.c'.
+ 
+     
+    *  Matches any sequence of zero-or-more characters. For example, the
+      pattern `/dir/a*' expands to `/dir/a /dir/aa /dir/a.b'.
+    
+    ?  Matches exactly one character. The pattern `/dir/?a' expands the
+      filename `/dir/-a'.
+    
+    [...]  Square brackets denote character sets and ranges in the ASCII
+      character set. The pattern may contain individual characters c or
+      character ranges c_1-c_2. The pattern matches any of the
+      individual characters specified, or any characters in the range. A
+      leading ``hat'' inverts the send of the pattern. To specify a
+      pattern that contains the literal characters `-', the `-' should
+      occur as the first character in the range.
+                                        
+              Pattern        Expansion                          
+             ---------------------------------------------------
+              `/dir/[a-b]*'  `/dir/a /dir/a.b /dir/b.c'         
+              `/dir/[-a-b]*' `/dir/a /dir/-a /dir/a.b /dir/b.c' 
+              `/dir/[-a]*'   `/dir/a /dir/-a /dir/a.b'          
+                                        
+    
+    
+    {s1,...,sN}  Braces indicate brace-expansion. The braces delimit a
+      sequence of strings separated by commas. Given N strings, the
+      result produces N copies of the pattern, one for each of the
+      strings s_i.
+                                        
+                      Pattern           Expansion        
+                     ------------------------------------
+                      `a{b,c,d}'        `ab ac ad'       
+                      `a{b{c,d},e}'     `abc abd ae'     
+                      `a{?{[A-Z],d},*}' `a?[A-Z] a?d a*' 
+                                        
+    
+    
+       The tilde is used to specify home directories. Depending on your
+      system, these might be possible expandsions.
+                                        
+               Pattern    Expansion                             
+              --------------------------------------------------
+               `~jyh'     `/home/jyh'                           
+               `~bob/*.c' `c:\Documents and Settings\users\bob' 
+                                        
+    
+    
+    
+      The `\' character is both a pathname separator and an escape
+      character. If followed by a special glob character, the `\'
+      changes the sense of the following character to non-special
+      status. Otherwise, `\' is viewed as a pathname separator.
+                                        
+       Pattern                  Expansion                               
+                                           
+      ------------------------------------------------------------------
+                                  ---------
+       `~jyh/\*'                `~jyh/*' (`*' is literal)               
+                                           
+        `/dir/\[a-z?'            `/dir/[a-z?' (`[' is literal, `?' is a
+                                  pattern). 
+       `c:\Program Files\[A-z]' `c:\Program Files[A-z]*'                
+                                           
+                                        
+    
+    Note that the final case might be considered to be ambiguous (where
+      `\' should be viewed as a pathname separator, not as an escape for
+      the subsequent `[' character. If you want to avoid this ambiguity
+      on Win32, you should use the forward slash `/' even for Win32
+      pathnames (the `/' is translated to `\' in the output).
+                                        
+        Pattern                   Expansion                            
+       ----------------------------------------------------------------
+        `c:/Program Files/[A-z]*' `c:\Program Files\WindowsUpdate ...' 
+                                        
+     
+  
+  
+  
 
 8.4.1  glob
 ===========
@@ -8167,10 +8264,10 @@ terminal displaying the summary of the build (see `BUILD_SUMMARY'
   If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can define them in
 your `.omakerc' A.8.
-  The `find-build-targets' function ?? is useful for obtaining a firther
-summary of the build. Note that when output diversions are in effect
-(with the `--divert-*' options A), any output produced by the commands
-is copied to a file. The name of the file is specified by the
+  The `find-build-targets' function 11.7.0.9 is useful for obtaining a
+firther summary of the build. Note that when output diversions are in
+effect (with the `--divert-*' options A), any output produced by the
+commands is copied to a file. The name of the file is specified by the
 `output-file' field of the `Target' 10.1.11 object. You may find this
 useful in defining custom build summaries.
 
@@ -9022,8 +9119,8 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-11.7.0.9  build-targets
------------------------
+11.7.0.9  find-build-targets
+----------------------------
   
 <<
       $(build-targets tag) : Target Array
@@ -10539,7 +10636,6 @@ Index
  - bg, 9.2.2 
  - bind, 8.8.29 
  - build model, 3 
- - build-targets, 11.7.0.9 
  
  - CAMLP4, 11.5.1.4 
  - CC, 11.4.1.1 
@@ -10620,6 +10716,7 @@ Index
  - filter-proper-targets, 8.3.3 
  - filter-targets, 8.3.3 
  - find, 8.7.2 
+ - find-build-targets, 11.7.0.9 
  - find-in-path, 8.2.6 
  - find-targets-in-path, 8.3.4 
  - find-targets-in-path-optional, 8.3.4 
@@ -11037,7 +11134,6 @@ Index of functions and special forms
  - basename, 8.1.4 
  - bg, 9.2.2 
  - bind, 8.8.29 
- - build-targets, 11.7.0.9 
  
  - CGeneratedFiles, 11.4.2.1 
  - CProgram, 11.4.3.5 
@@ -11092,6 +11188,7 @@ Index of functions and special forms
  - filter-proper-targets, 8.3.3 
  - filter-targets, 8.3.3 
  - find, 8.7.2 
+ - find-build-targets, 11.7.0.9 
  - find-in-path, 8.2.6 
  - find-targets-in-path, 8.3.4 
  - find-targets-in-path-optional, 8.3.4 

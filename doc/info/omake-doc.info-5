@@ -1,5 +1,197 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-8-6,	Next: Subsection 8-8-7,	Prev: Subsection 8-8-5,	Up: Section 8-8
+  
+
+8.8.6   close
+=============
+
+<<
+      $(close channel...)
+         channel : Channel
+>>
+  
+  The `close' function closes a file that was previously opened with
+`fopen'. 
+
+Node: Subsection 8-8-7,	Next: Subsection 8-8-8,	Prev: Subsection 8-8-6,	Up: Section 8-8
+  
+
+8.8.7   read
+============
+
+<<
+     $(read channel, amount) : String
+        channel : InChannel
+        amount  : Int
+     raises RuntimeException
+>>
+  
+  The `read' function reads up to `amount' bytes from an input channel,
+and returns the data that was read. If an end-of-file condition is
+reached, the function raises a `RuntimeException' exception. 
+
+Node: Subsection 8-8-8,	Next: Subsection 8-8-9,	Prev: Subsection 8-8-7,	Up: Section 8-8
+  
+
+8.8.8   write
+=============
+
+<<
+     $(write channel, buffer, offset, amount) : String
+        channel : OutChannel
+        buffer  : String
+        offset  : Int
+        amount  : Int
+     $(write channel, buffer) : String
+        channel : OutChannel
+        buffer  : String
+     raises RuntimeException
+>>
+  
+  In the 4-argument form, the `write' function writes bytes to the
+output channel `channel' from the `buffer', starting at position
+`offset'. Up to `amount' bytes are written. The function returns the
+number of bytes that were written.
+  The 3-argument form is similar, but the `offset' is 0.
+  In the 2-argument form, the `offset' is 0, and the `amount' if the
+length of the `buffer'.
+  If an end-of-file condition is reached, the function raises a
+`RuntimeException' exception. 
+
+Node: Subsection 8-8-9,	Next: Subsection 8-8-10,	Prev: Subsection 8-8-8,	Up: Section 8-8
+  
+
+8.8.9   lseek
+=============
+
+<<
+      $(lseek channel, offset, whence) : Int
+         channel : Channel
+         offset  : Int
+         whence  : String
+      raises RuntimeException
+>>
+  
+  The `lseek' function repositions the offset of the channel `channel'
+according to the `whence' directive, as follows:
+  
+  
+ SEEK_SET  The offset is set to `offset'. 
+ SEEK_CUR  The offset is set to its current position plus `offset'
+   bytes. 
+ SEEK_END  The offset is set to the size of the file plus `offset'
+   bytes. 
+  
+  The `lseek' function returns the new position in the file. 
+
+Node: Subsection 8-8-10,	Next: Subsection 8-8-11,	Prev: Subsection 8-8-9,	Up: Section 8-8
+  
+
+8.8.10   rewind
+===============
+
+<<
+     rewind(channel...)
+        channel : Channel
+>>
+  
+  The `rewind' function set the current file position to the beginning
+of the file. 
+
+Node: Subsection 8-8-11,	Next: Subsection 8-8-12,	Prev: Subsection 8-8-10,	Up: Section 8-8
+  
+
+8.8.11   tell
+=============
+
+<<
+      $(tell channel...) : Int...
+         channel : Channel
+      raises RuntimeException
+>>
+  
+  The `tell' function returns the current position of the `channel'. 
+
+Node: Subsection 8-8-12,	Next: Subsection 8-8-13,	Prev: Subsection 8-8-11,	Up: Section 8-8
+  
+
+8.8.12   flush
+==============
+
+<<
+     $(flush channel...)
+        channel : OutChannel
+>>
+  
+  The `flush' function can be used only on files that are open for
+writing. It flushes all pending data to the file. 
+
+Node: Subsection 8-8-13,	Next: Subsection 8-8-14,	Prev: Subsection 8-8-12,	Up: Section 8-8
+  
+
+8.8.13   dup
+============
+
+<<
+      $(dup channel) : Channel
+         channel : Channel
+      raises RuntimeException
+>>
+  
+  The `dup' function returns a new channel referencing the same file as
+the argument. 
+
+Node: Subsection 8-8-14,	Next: Subsection 8-8-15,	Prev: Subsection 8-8-13,	Up: Section 8-8
+  
+
+8.8.14   dup2
+=============
+
+<<
+     dup2(channel1, channel2)
+        channel1 : Channel
+        channel2 : Channel
+     raises RuntimeException
+>>
+  
+  The `dup2' function causes `channel2' to refer to the same file as
+`channel1'. 
+
+Node: Subsection 8-8-15,	Next: Subsection 8-8-16,	Prev: Subsection 8-8-14,	Up: Section 8-8
+  
+
+8.8.15   set-nonblock
+=====================
+
+<<
+     set-nonblock-mode(mode, channel...)
+        channel : Channel
+        mode : String
+>>
+  
+  The `set-nonblock-mode' function sets the nonblocking flag on the
+given channel. When IO is performed on the channel, and the operation
+cannot be completed immediately, the operations raises a
+`RuntimeException'. 
+
+Node: Subsection 8-8-16,	Next: Subsection 8-8-17,	Prev: Subsection 8-8-15,	Up: Section 8-8
+  
+
+8.8.16   set-close-on-exec-mode
+===============================
+
+<<
+     set-close-on-exec-mode(mode, channel...)
+        channel : Channel
+        mode : String
+     raises RuntimeException
+>>
+  
+  The `set-close-on-exec-mode' function sets the close-on-exec flags for
+the given channels. If the close-on-exec flag is set, the channel is not
+inherited by child processes. Otherwise it is. 
+
 Node: Subsection 8-8-17,	Next: Subsection 8-8-18,	Prev: Subsection 8-8-16,	Up: Section 8-8
   
 
@@ -1585,122 +1777,3 @@ values in different contexts. The easiest way to make sure that the
 `Target' information is complete is to compute it within a rule body,
 where the rule depends on the target file, or the dependencies of the
 target file. 
-
-Node: Subsection 10-1-12,	Next: Subsection 10-1-13,	Prev: Subsection 10-1-11,	Up: Section 10-1
-  
-
-10.1.12   Node
-==============
-
-  Parent objects: `Object'.
-  The `Node' object is the parent object for files and directories. It
-supports the following operations. 
-  
- - `$(node.stat)': returns a `stat' object for the file. If the file is
-   a symbolic link, the `stat' information is for the destination of the
-   link, not the link itself.
- 
- - `$(node.lstat)': returns a `stat' object for the file or symbolic
-   link. 
- - `$(node.unlink)': removes the file. 
- - `$(node.rename <file>)': renames the file. 
- - `$(node.link <file>)': creates a hard link `<dst>' to this file. 
- - `$(node.symlink <file>)': create a symbolic link `<dst>' to this
-   file. 
- - `$(node.chmod <perm>)': change the permission of this file. 
- - `$(node.chown <uid>, <gid>)': change the owner and group id of this
-   file. 
-   
-
-Node: Subsection 10-1-13,	Next: Subsection 10-1-14,	Prev: Subsection 10-1-12,	Up: Section 10-1
-  
-
-10.1.13   File
-==============
-
-  Parent objects: `Node'.
-  The file object represents the name of a file. 
-
-Node: Subsection 10-1-14,	Next: Subsection 10-1-15,	Prev: Subsection 10-1-13,	Up: Section 10-1
-  
-
-10.1.14   Dir
-=============
-
-  Parent objects: `Node'.
-  The `Dir' object represents the name of a directory. 
-
-Node: Subsection 10-1-15,	Next: Subsection 10-1-16,	Prev: Subsection 10-1-14,	Up: Section 10-1
-  
-
-10.1.15   Channel
-=================
-
-  Parent objects: `Object'.
-  A `Channel' is a generic IO channel. It provides the following
-methods. 
-  
- - `$(o.close)': close the channel. 
-   
-
-Node: Subsection 10-1-16,	Next: Subsection 10-1-17,	Prev: Subsection 10-1-15,	Up: Section 10-1
-  
-
-10.1.16   InChannel
-===================
-
-  Parent objects: `Channel'.
-  A `InChannel' is an input channel. The variable `stdin' is the
-standard input channel.
-  It provides the following methods. 
-  
- - `$(InChannel.fopen <file>)': open a new input channel. 
-   
-
-Node: Subsection 10-1-17,	Next: Subsection 10-1-18,	Prev: Subsection 10-1-16,	Up: Section 10-1
-  
-
-10.1.17   OutChannel
-====================
-
-  Parent object: `Channel'.
-  A `OutChannel' is an output channel. The variables `stdout' and
-`stderr' are the standard output and error channels.
-  It provides the following methods. 
-  
- - `$(OutChannel.fopen <file>)': open a new output channel. 
- - `$(OutChannel.append <file>)': opens a new output channel, appending
-   to the file. 
- - `$(c.flush)': flush the output channel. 
- - `$(c.print <string>)': print a string to the channel. 
- - `$(c.println <string>)': print a string to the channel, followed by a
-   line terminator. 
-   
-
-Node: Subsection 10-1-18,	Next: Subsection 10-1-19,	Prev: Subsection 10-1-17,	Up: Section 10-1
-  
-
-10.1.18   Location
-==================
-
-  Parent objects: `Location'.
-  The `Location' object represents a location in a file. 
-
-Node: Subsection 10-1-19,	Next: Subsection 10-1-20,	Prev: Subsection 10-1-18,	Up: Section 10-1
-  
-
-10.1.19   Position
-==================
-
-  Parent objects: `Position'.
-  The `Position' object represents a stack trace. 
-
-Node: Subsection 10-1-20,	Next: Subsection 10-1-21,	Prev: Subsection 10-1-19,	Up: Section 10-1
-  
-
-10.1.20   Exception
-===================
-
-  Parent objects: `Object'.
-  The `Exception' object is used as the base object for exceptions. It
-has no fields. 

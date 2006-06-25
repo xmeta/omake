@@ -305,7 +305,7 @@ let target_optional = target_core true
 
 (*
  * \begin{doc}
- * \fun{build-targets}
+ * \fun{find-build-targets}
  *
  * \begin{verbatim}
  *     $(build-targets tag) : Target Array

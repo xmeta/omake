@@ -1,5 +1,124 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 10-1-12,	Next: Subsection 10-1-13,	Prev: Subsection 10-1-11,	Up: Section 10-1
+  
+
+10.1.12   Node
+==============
+
+  Parent objects: `Object'.
+  The `Node' object is the parent object for files and directories. It
+supports the following operations. 
+  
+ - `$(node.stat)': returns a `stat' object for the file. If the file is
+   a symbolic link, the `stat' information is for the destination of the
+   link, not the link itself.
+ 
+ - `$(node.lstat)': returns a `stat' object for the file or symbolic
+   link. 
+ - `$(node.unlink)': removes the file. 
+ - `$(node.rename <file>)': renames the file. 
+ - `$(node.link <file>)': creates a hard link `<dst>' to this file. 
+ - `$(node.symlink <file>)': create a symbolic link `<dst>' to this
+   file. 
+ - `$(node.chmod <perm>)': change the permission of this file. 
+ - `$(node.chown <uid>, <gid>)': change the owner and group id of this
+   file. 
+   
+
+Node: Subsection 10-1-13,	Next: Subsection 10-1-14,	Prev: Subsection 10-1-12,	Up: Section 10-1
+  
+
+10.1.13   File
+==============
+
+  Parent objects: `Node'.
+  The file object represents the name of a file. 
+
+Node: Subsection 10-1-14,	Next: Subsection 10-1-15,	Prev: Subsection 10-1-13,	Up: Section 10-1
+  
+
+10.1.14   Dir
+=============
+
+  Parent objects: `Node'.
+  The `Dir' object represents the name of a directory. 
+
+Node: Subsection 10-1-15,	Next: Subsection 10-1-16,	Prev: Subsection 10-1-14,	Up: Section 10-1
+  
+
+10.1.15   Channel
+=================
+
+  Parent objects: `Object'.
+  A `Channel' is a generic IO channel. It provides the following
+methods. 
+  
+ - `$(o.close)': close the channel. 
+   
+
+Node: Subsection 10-1-16,	Next: Subsection 10-1-17,	Prev: Subsection 10-1-15,	Up: Section 10-1
+  
+
+10.1.16   InChannel
+===================
+
+  Parent objects: `Channel'.
+  A `InChannel' is an input channel. The variable `stdin' is the
+standard input channel.
+  It provides the following methods. 
+  
+ - `$(InChannel.fopen <file>)': open a new input channel. 
+   
+
+Node: Subsection 10-1-17,	Next: Subsection 10-1-18,	Prev: Subsection 10-1-16,	Up: Section 10-1
+  
+
+10.1.17   OutChannel
+====================
+
+  Parent object: `Channel'.
+  A `OutChannel' is an output channel. The variables `stdout' and
+`stderr' are the standard output and error channels.
+  It provides the following methods. 
+  
+ - `$(OutChannel.fopen <file>)': open a new output channel. 
+ - `$(OutChannel.append <file>)': opens a new output channel, appending
+   to the file. 
+ - `$(c.flush)': flush the output channel. 
+ - `$(c.print <string>)': print a string to the channel. 
+ - `$(c.println <string>)': print a string to the channel, followed by a
+   line terminator. 
+   
+
+Node: Subsection 10-1-18,	Next: Subsection 10-1-19,	Prev: Subsection 10-1-17,	Up: Section 10-1
+  
+
+10.1.18   Location
+==================
+
+  Parent objects: `Location'.
+  The `Location' object represents a location in a file. 
+
+Node: Subsection 10-1-19,	Next: Subsection 10-1-20,	Prev: Subsection 10-1-18,	Up: Section 10-1
+  
+
+10.1.19   Position
+==================
+
+  Parent objects: `Position'.
+  The `Position' object represents a stack trace. 
+
+Node: Subsection 10-1-20,	Next: Subsection 10-1-21,	Prev: Subsection 10-1-19,	Up: Section 10-1
+  
+
+10.1.20   Exception
+===================
+
+  Parent objects: `Object'.
+  The `Exception' object is used as the base object for exceptions. It
+has no fields. 
+
 Node: Subsection 10-1-21,	Next: Subsection 10-1-22,	Prev: Subsection 10-1-20,	Up: Section 10-1
   
 
@@ -259,10 +378,10 @@ terminal displaying the summary of the build (see `BUILD_SUMMARY'
 is probably a good idea if you work with others), you can define them in
 your `.omakerc' A.8*Note Section A-8::.
   The `find-build-targets' function
-?? is useful for obtaining a firther
-summary of the build. Note that when output diversions are in effect
-(with the `--divert-*' options A*Note Appendix A::), any
-output produced by the commands is copied to a file. The name of the
+11.7.0.9*Note Section 11-7:: is useful for obtaining a
+firther summary of the build. Note that when output diversions are in
+effect (with the `--divert-*' options A*Note Appendix A::),
+any output produced by the commands is copied to a file. The name of the
 file is specified by the `output-file' field of the `Target'
 10.1.11*Note Subsection 10-1-11:: object. You may find this useful in
 defining custom build summaries. 
@@ -1242,8 +1361,8 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-11.7.0.9   build-targets
-------------------------
+11.7.0.9   find-build-targets
+-----------------------------
 
 <<
       $(build-targets tag) : Target Array
@@ -1659,85 +1778,3 @@ turns the option on; a lowercase character turns the option off.
  S  Equivalent to `-S' 
  s  Equivalent to `--no-S' 
   
-
-Node: Section A-3,	Next: Subsection A-3-1,	Prev: Section A-2,	Up: Appendix A
-  
-
-A.3   Build options
-*=*=*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection A-3-1::	-k
-* Subsection A-3-2::	-n
-* Subsection A-3-3::	-p
-* Subsection A-3-4::	-P
-* Subsection A-3-5::	-R
-* Subsection A-3-6::	-t
-* Subsection A-3-7::	-U
-* Subsection A-3-8::	--depend
-* Subsection A-3-9::	--configure
-* Subsection A-3-10::	--force-dotomake
-* Subsection A-3-11::	--dotomake
-* Subsection A-3-12::	-j
-* Subsection A-3-13::	--print-dependencies
-* Subsection A-3-14::	--show-dependencies
-* Subsection A-3-15::	--all-dependencies
-* Subsection A-3-16::	--verbose-dependencies
-* Subsection A-3-17::	--install
-* Subsection A-3-18::	--install-all
-* Subsection A-3-19::	--install-force
-* Subsection A-3-20::	--absname
-* Subsection A-3-21::	variable definition
-
-
-Node: Subsection A-3-1,	Next: Subsection A-3-2,	Prev: Section A-3,	Up: Section A-3
-  
-
-A.3.1   -k
-==========
- `-k'
-  Do not abort when a build command fails; continue to build as much of
-the project as possible.
-
-Node: Subsection A-3-2,	Next: Subsection A-3-3,	Prev: Subsection A-3-1,	Up: Section A-3
-  
-
-A.3.2   -n
-==========
- `-n'
-  This can be used to see what would happen if the project were to be
-built.
-
-Node: Subsection A-3-3,	Next: Subsection A-3-4,	Prev: Subsection A-3-2,	Up: Section A-3
-  
-
-A.3.3   -p
-==========
- `-p'
-  Watch the filesystem for changes, and continue the build until it
-succeeds. If this option is specified, omake will restart the build
-whenever source files are modified. Implies -k.
-
-Node: Subsection A-3-4,	Next: Subsection A-3-5,	Prev: Subsection A-3-3,	Up: Section A-3
-  
-
-A.3.4   -P
-==========
- `-P'
-  Watch the filesystem for changes forever. If this option is specified,
-omake will restart the build whenever source files are modified. Implies
--k.
-
-Node: Subsection A-3-5,	Next: Subsection A-3-6,	Prev: Subsection A-3-4,	Up: Section A-3
-  
-
-A.3.5   -R
-==========
- `-R'
-  Ignore the current directory and build the project from its root
-directory. When omake is run in a subdirectory of a project, it normally
-builds files within the current directory and its subdirectories. If the
--R option is specified, the build is performed as if omake were run in
-the project root.
