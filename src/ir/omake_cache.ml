@@ -77,7 +77,7 @@ type dir_listing = dir_listing_item list
  *)
 type exe_entry_core =
    ExeEntryCore of (Dir.t * string) list
- | ExeEntryNode of Node.t
+ | ExeEntryNodes of Node.t list
 
 type exe_listing_item = exe_entry_core ref StringTable.t
 
@@ -1128,56 +1128,60 @@ let is_exe_file cache node =
     | Not_found ->
          false
 
-let rec search_exe_win32 cache entries =
-   match entries with
-      (dir, s) :: entries ->
-         let node = Node.intern no_mount_points PhonyProhibited dir s in
-            if is_dir cache node then
-               search_exe_win32 cache entries
-            else
-               node
-    | [] ->
-         raise Not_found
+let is_exe_win32 cache dir s =
+   let node = Node.intern no_mount_points PhonyProhibited dir s in
+      if is_dir cache node then
+         None
+      else
+         Some node
 
-let rec search_exe_unix cache entries =
-   match entries with
-      (dir, s) :: entries ->
-         let node = Node.intern no_mount_points PhonyProhibited dir s in
-            if is_exe_file cache node then
-               node
-            else
-               search_exe_unix cache entries
-    | [] ->
-         raise Not_found
+let is_exe_unix cache dir s =
+   let node = Node.intern no_mount_points PhonyProhibited dir s in
+      if is_exe_file cache node then
+         Some node
+      else
+         None
 
-let rec search_exe_cygwin cache entries =
-   match entries with
-      (dir, s) :: entries ->
-         let node = Node.intern no_mount_points PhonyProhibited dir s in
-            if Filename.check_suffix s ".exe" || Filename.check_suffix s ".bat" || is_exe_file cache node then
-               node
-            else
-               search_exe_cygwin cache entries
-    | [] ->
-         raise Not_found
+let is_exe_cygwin cache dir s =
+   let node = Node.intern no_mount_points PhonyProhibited dir s in
+      if Filename.check_suffix s ".exe" || Filename.check_suffix s ".bat" || is_exe_file cache node then
+         Some node
+      else
+         None
 
-let ls_exe_path, search_exe, name_exe =
+let ls_exe_path, is_exe, name_exe =
    if Sys.os_type = "Win32" then
-      ls_exe_path_win32, search_exe_win32, String.lowercase
+      ls_exe_path_win32, is_exe_win32, String.lowercase
    else if Sys.os_type = "Cygwin" then
-      ls_exe_path_win32, search_exe_cygwin, String.lowercase
+      ls_exe_path_win32, is_exe_cygwin, String.lowercase
    else
-      ls_exe_path_unix, search_exe_unix, (fun s -> s)
+      ls_exe_path_unix, is_exe_unix, (fun s -> s)
 
-let exe_find_item cache listing s =
+let rec search_exe cache entries =
+   Lm_list_util.some_map (fun (dir, s) ->
+         is_exe cache dir s) entries
+
+let exe_find_nodes cache listing s =
    let entry_ref = StringTable.find listing (name_exe s) in
       match !entry_ref with
          ExeEntryCore entries ->
-            let node = search_exe cache entries in
-               entry_ref := ExeEntryNode node;
-               node
-       | ExeEntryNode node ->
-            node
+            let nodes = search_exe cache entries in
+               entry_ref := ExeEntryNodes nodes;
+               nodes
+       | ExeEntryNodes nodes ->
+            nodes
+
+let exe_find_nodes_all cache listing s =
+   try exe_find_nodes cache listing s with
+      Not_found ->
+         []
+
+let exe_find_item cache listing s =
+   match exe_find_nodes cache listing s with
+      node :: _ ->
+         node
+    | [] ->
+         raise Not_found
 
 (************************************************************************
  * Redefine the functions to work on directory groups, where each group may
@@ -1204,6 +1208,9 @@ let rec exe_find cache listings s =
                 exe_find cache listings s)
     | [] ->
          raise Not_found
+
+let exe_find_all cache listings s =
+   List.flatten (List.map (fun listing -> exe_find_nodes_all cache listing s) listings)
 
 let ls_dir cache auto_rehash dir =
    [ls_dir cache auto_rehash dir]

@@ -456,14 +456,17 @@ let which venv pos loc args =
    let pos = string_pos "which" pos in
       match args with
          [arg] ->
+            let path = venv_find_var venv ScopeGlobal pos loc path_sym in
+            let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
+            let cache = venv_cache venv in
+            let path = Omake_cache.ls_exe_path cache path in
             let args = strings_of_value venv pos arg in
             let args =
                List.map (fun s ->
-                     try Lm_filename_util.which s with
+                     try ValNode (Omake_cache.exe_find cache path s) with
                         Not_found ->
                            raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", s)))) args
             in
-            let args = List.map (fun s -> ValNode (venv_intern venv PhonyProhibited s)) args in
                concat_array args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -489,42 +492,40 @@ let where venv pos loc args =
    let pos = string_pos "where" pos in
       match args with
          [arg] ->
-            begin match strings_of_value venv pos arg with
-               [arg] ->
-                  let res =
-                     try Lm_filename_util.where arg with
-                        Invalid_argument _ ->
-                           raise (OmakeException (loc_pos loc pos, (**)
-                              StringStringError ("where: path separators do not make sense", arg)))
-                  in
-                  let res = List.map (fun s -> ValNode (venv_intern venv PhonyProhibited s)) res in
-                  let res =
-                     try
-                        let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
-                           match eval_single_value venv pos obj with
-                              ValObject obj ->
-                                 let v = venv_find_field_exn obj (Lm_symbol.add arg) in
-                                 let kind =
-                                    match eval_value venv pos v with
-                                       ValPrim _ ->
-                                          "Shell object method (a built-in function)"
-                                     | ValFun _
-                                     | ValFunValue _ ->
-                                          "Shell object method (an omake function)"
-                                     | _ ->
-                                          "Shell object method"
-                                 in
-                                    ValData (arg ^ " is a " ^ kind) :: res
-                            | _ ->
-                                 res
-                     with
-                        Not_found ->
-                           res
-                  in
-                     concat_array res
-             | args ->
-                  raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-            end
+            (match strings_of_value venv pos arg with
+                [arg] ->
+                   let path = venv_find_var venv ScopeGlobal pos loc path_sym in
+                   let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
+                   let cache = venv_cache venv in
+                   let path = Omake_cache.ls_exe_path cache path in
+                   let res = Omake_cache.exe_find_all cache path arg in
+                   let res = List.map (fun v -> ValNode v) res in
+                   let res =
+                      try
+                         let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+                            match eval_single_value venv pos obj with
+                               ValObject obj ->
+                                  let v = venv_find_field_exn obj (Lm_symbol.add arg) in
+                                  let kind =
+                                     match eval_value venv pos v with
+                                        ValPrim _ ->
+                                           "Shell object method (a built-in function)"
+                                      | ValFun _
+                                      | ValFunValue _ ->
+                                           "Shell object method (an omake function)"
+                                      | _ ->
+                                           "Shell object method"
+                                  in
+                                     ValData (arg ^ " is a " ^ kind) :: res
+                             | _ ->
+                                  res
+                      with
+                         Not_found ->
+                            res
+                   in
+                      concat_array res
+              | args ->
+                   raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args))))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 

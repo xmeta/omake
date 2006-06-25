@@ -107,6 +107,7 @@ val listing_find     : t -> dir_listing -> string -> dir_entry
 
 val ls_exe_path      : t -> (bool * Dir.t list) list -> exe_listing
 val exe_find         : t -> exe_listing -> string -> Node.t
+val exe_find_all     : t -> exe_listing -> string -> Node.t list
 
 (*
  * Memoizing commands.
