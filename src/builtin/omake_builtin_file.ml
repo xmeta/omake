@@ -1126,6 +1126,7 @@ let sort_val_nodes nodes =
 (*
  * \begin{doc}
  * \section{Globbing and file listings}
+ * \label{section:globbing}
  *
  * OMake commands are ``glob-expanded'' before being executed.  That is,
  * names may contain \emph{patterns} that are expanded to sequences of
@@ -1186,7 +1187,7 @@ let sort_val_nodes nodes =
  * \end{center}
  *
  * \item[\texttt{~}]  The tilde is used to specify home directories.
- * Depending on your system, these might be possible expandsions.
+ * Depending on your system, these might be possible expansions.
  *
  * \begin{center}
  * \begin{tabular}{ll}

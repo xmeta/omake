@@ -832,7 +832,8 @@ let test_cmd venv pos loc argv =
  * additions.
  *
  * \begin{itemize}
- * \item    \verb+-name+ \emph{string} : The current file matches the regular expression.
+ * \item    \verb+-name+ \emph{string} : The current file matches the glob expression
+ * (see Section~\ref{section:globbing}).
  * \end{itemize}
  *
  * The \verb+find+ function performs a recursive scan of all subdirectories.
