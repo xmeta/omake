@@ -58,7 +58,6 @@ type omake_options =
      opt_print_progress       : bool;
      opt_touch_only           : bool;
      opt_flush_cache          : bool;
-     opt_flush_env            : bool;
      opt_flush_dependencies   : bool;
      opt_print_dependencies   : bool;
      opt_show_dependencies    : string list;

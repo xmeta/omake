@@ -1697,27 +1697,9 @@ let execute_rule env command =
  *)
 
 (*
- * Convert to saved environment.
- *)
-let save_of_env env =
-   let { env_venv                 = venv;
-         env_explicit_deps        = explicit_deps;
-         env_explicit_targets     = explicit_targets;
-         env_explicit_directories = explicit_directories;
-         env_includes             = includes
-       } = env
-   in
-      { save_venv                 = venv;
-        save_explicit_deps        = explicit_deps;
-        save_explicit_targets     = explicit_targets;
-        save_explicit_directories = explicit_directories;
-        save_includes             = includes
-      }
-
-(*
  * Create a new, empty environment.
  *)
-let empty_env venv cache exec deps targets dirs includes =
+let empty_env venv cache exec ~summary deps targets dirs includes =
    let cwd = Dir.cwd () in
    let options = venv_options venv in
       { env_venv                 = venv;
@@ -1749,6 +1731,7 @@ let empty_env venv cache exec deps targets dirs includes =
 
         env_success_tees       = [];
         env_failed_tees        = [];
+        env_summary            = summary;
 
         env_optional_count   = 0;
         env_succeeded_count  = 0;
@@ -1758,7 +1741,7 @@ let empty_env venv cache exec deps targets dirs includes =
         env_rule_exec_count  = 0
       }
 
-let create exec venv cache =
+let create exec venv cache summary =
    let erule_info = venv_explicit_rules venv in
    let { explicit_targets     = target_table;
          explicit_directories = dir_table;
@@ -1767,39 +1750,7 @@ let create exec venv cache =
    in
    let includes = venv_files venv in
    let includes = Omake_cache.stat_set cache includes in
-      empty_env venv cache exec dep_table target_table dir_table includes
-
-(*
- * Build environment from saved copy.
- *)
-let env_of_save exec cache save =
-   let { save_venv                 = venv;
-         save_explicit_deps        = explicit_deps;
-         save_explicit_targets     = explicit_targets;
-         save_explicit_directories = explicit_directories;
-         save_includes             = includes
-       } = save
-   in
-      empty_env venv cache exec explicit_deps explicit_targets explicit_directories includes
-
-(*
- * Read environment from a channel.
- *)
-let from_channel inx exec cache =
-   let magic = Omake_magic.input_magic inx in
-   let _ =
-      if magic <> magic_number then
-         raise (Failure "bad magic number")
-   in
-   let save = Marshal.from_channel inx in
-      env_of_save exec cache save
-
-(*
- * Save to a channel.
- *)
-let to_channel outx env =
-   Omake_magic.output_magic outx magic_number;
-   Marshal.to_channel outx (save_of_env env) [Marshal.Closures]
+      empty_env venv cache exec ~summary dep_table target_table dir_table includes
 
 (************************************************************************
  * Saving state to .omakedb
@@ -1849,8 +1800,6 @@ let save_aux env =
       try
          Omake_cache.add cache env_fun env_target targets includes None MemoSuccess;
          Omake_cache.to_channel outx cache;
-         if not options.opt_flush_env then
-            to_channel outx env;
          close_out outx;
          if not db_win32_bug then
             Unix.rename db_tmp db_name
@@ -1878,9 +1827,69 @@ let save env =
 (*
  * Close the environment.
  *)
+let unlink_file name =
+   try Unix.unlink name with
+      Unix.Unix_error _ ->
+         ()
+
 let close env =
    NodeTable.iter (fun _ command -> unlink_tee command) env.env_commands;
-   Exec.close env.env_exec
+   Exec.close env.env_exec;
+   unlink_file env.env_summary
+
+(************************************************************************
+ * Invalidation.
+ *)
+
+(*
+ * Forms for walking up and down the tree.
+ *)
+let invalidate_parents env nodes command =
+   try
+      let inverse = NodeTable.find env.env_inverse command.command_target in
+         NodeTable.fold (fun nodes node _ ->
+               NodeSet.add nodes node) nodes inverse
+   with
+      Not_found ->
+         nodes
+
+let invalidate_children env nodes command =
+   NodeSet.union nodes command.command_build_deps
+
+(*
+ * General invalidation function.
+ *
+ * The invalidate_next function determines how to walk the tree.
+ *)
+let rec invalidate_aux invalidate_next env nodes =
+   if not (NodeSet.is_empty nodes) then
+      let node = NodeSet.choose nodes in
+      let command = find_command env node in
+      let nodes =
+         if command.command_state <> CommandInitial then
+            let nodes = NodeSet.union nodes command.command_effects in
+            let nodes = invalidate_next env nodes command in
+
+            (* Recompute the commands if they have value dependencies *)
+            let () =
+               match command.command_lines with
+                  CommandScanner (info, _, _, _)
+                | CommandLines (info, _, _) ->
+                     command.command_lines <- CommandInfo info
+                | CommandInfo _
+                | CommandNone ->
+                     ()
+            in
+               (* Move the command back to the initial state *)
+               reclassify_command env command CommandInitial;
+               nodes
+         else
+            nodes
+      in
+         invalidate_aux invalidate_next env (NodeSet.remove nodes node)
+
+let invalidate_ancestors = invalidate_aux invalidate_parents
+let invalidate_children  = invalidate_aux invalidate_children
 
 (************************************************************************
  * Command management.
@@ -2043,43 +2052,6 @@ and invalidate_event_core env event =
        } = env
    in
 
-   (* Invalidate the node and all its ancestors *)
-   let rec invalidate nodes =
-      if not (NodeSet.is_empty nodes) then
-         let node = NodeSet.choose nodes in
-         let command = find_command env node in
-         let nodes =
-            if command.command_state <> CommandInitial then
-               let nodes = NodeSet.union nodes command.command_effects in
-               let inverse =
-                  try NodeTable.find inverse node with
-                     Not_found ->
-                        NodeTable.empty
-               in
-               let nodes =
-                  NodeTable.fold (fun nodes node _ ->
-                        NodeSet.add nodes node) nodes inverse
-               in
-
-               (* Recompute the commands if they have value dependencies *)
-               let () =
-                  match command.command_lines with
-                     CommandScanner (info, _, _, _)
-                   | CommandLines (info, _, _) ->
-                        command.command_lines <- CommandInfo info
-                   | CommandInfo _
-                   | CommandNone ->
-                        ()
-               in
-                  (* Move the command back to the initial state *)
-                  reclassify_command env command CommandInitial;
-                  nodes
-            else
-               nodes
-         in
-            invalidate (NodeSet.remove nodes node)
-   in
-
    (* Check whether the event refers to an update we care about *)
    let { notify_code = code;
          notify_name = name
@@ -2110,7 +2082,7 @@ and invalidate_event_core env event =
                raise Restart
             end
             else
-               invalidate (NodeSet.singleton node)
+               invalidate_ancestors env (NodeSet.singleton node)
       end;
       changed_flag
 
@@ -2229,7 +2201,7 @@ let print_stats env message start_time =
 (*
  * All of the commands in the Blocked queue are deadlocked.
  *)
-let print_deadlock env state =
+let print_deadlock env buf state =
    (* Inconsistency *)
    let failwith_inconsistency command =
       let { command_target       = target;
@@ -2241,7 +2213,7 @@ let print_deadlock env state =
             command_loc          = loc
           } = command
       in
-         eprintf "@[<v 3>*** omake: inconsistent state %a@ state = %a@ @[<b 3>effects =%a@]@ @[<b 3>build deps =%a@]@ @[<b 3>scanner deps =%a@]@ @[<b 3>static deps = %a@]@." (**)
+         fprintf buf "@[<v 3>*** omake: inconsistent state %a@ state = %a@ @[<b 3>effects =%a@]@ @[<b 3>build deps =%a@]@ @[<b 3>scanner deps =%a@]@ @[<b 3>static deps = %a@]@." (**)
             pp_print_node target
             pp_print_command_state state
             (pp_print_node_states env) effects
@@ -2256,13 +2228,13 @@ let print_deadlock env state =
       let rec print_marked marked =
          match marked with
             mark :: marked ->
-               eprintf "*** omake: is a dependency of %a@." pp_print_node mark;
+               fprintf buf "*** omake: is a dependency of %a@." pp_print_node mark;
                if not (Node.equal mark target) then
                   print_marked marked
           | [] ->
-               eprintf "*** omake: not deadlocked!@."
+               fprintf buf "*** omake: not deadlocked!@."
       in
-         eprintf "*** omake: deadlock on %a@." pp_print_node target;
+         fprintf buf "*** omake: deadlock on %a@." pp_print_node target;
          print_marked marked;
          raise (OmakeException (loc_exp_pos loc, StringNodeError ("failed on target", target)))
    in
@@ -2291,7 +2263,7 @@ let print_deadlock env state =
                            Some command
                   with
                      Not_found ->
-                        eprintf "*** omake: Do not know how to build \"%a\" required for \"%a\"@." pp_print_node dep pp_print_node target;
+                        fprintf buf "*** omake: Do not know how to build \"%a\" required for \"%a\"@." pp_print_node dep pp_print_node target;
                         raise (Failure "blocked")
                in
                   (match command with
@@ -2320,24 +2292,24 @@ let print_deadlock env state =
 (*
  * Print the failed commands.
  *)
-let print_failed_targets env =
+let print_failed_targets env buf =
    if (venv_options env.env_venv).opt_print_status then begin
-      eprintf "@[<v 3>*** omake: targets were not rebuilt because of errors:";
+      fprintf buf "@[<v 3>*** omake: targets were not rebuilt because of errors:";
       command_iter env CommandFailedTag (fun command ->
-            eprintf "@ @[<v 3>%a" pp_print_node command.command_target;
+            fprintf buf "@ @[<v 3>%a" pp_print_node command.command_target;
             NodeSet.iter (fun dep ->
                   if Node.is_real dep && is_leaf_node env dep then
-                     eprintf "@ depends on: %a" pp_print_node dep) command.command_static_deps;
-            eprintf "@]");
-      eprintf "@]@."
+                     fprintf buf "@ depends on: %a" pp_print_node dep) command.command_static_deps;
+            fprintf buf "@]");
+      fprintf buf "@]@."
    end;
    command_iter env CommandFailedTag eprint_tee
 
-let print_failed env state =
+let print_failed env buf state =
    if not (command_list_is_empty env CommandFailedTag) then
-      print_failed_targets env
+      print_failed_targets env buf
    else
-      print_deadlock env state
+      print_deadlock env buf state
 
 (************************************************************************
  * Loading state from .omakedb
@@ -2350,14 +2322,24 @@ let create_env exec options cache targets =
    let pos = string_exp_pos "create_env" in
    let venv = Omake_env.create options "." exec cache in
    let venv = Omake_builtin.venv_add_command_defs venv in
-   let venv = Omake_env.venv_add_var venv ScopeGlobal pos targets_sym (ValString (String.concat " " targets)) in
+   let targets_value = ValArray (List.map (fun v -> ValData v) targets) in
+   let venv = Omake_env.venv_add_var venv ScopeGlobal pos targets_sym targets_value in
    let venv = Omake_builtin.venv_add_builtins venv in
    let venv = Omake_builtin.venv_include_rc_file venv omakeinit_file in
    let venv = Omake_builtin.venv_add_pervasives venv in
-   let venv = Omake_builtin.venv_include_rc_file venv omakerc_file in
+
+   (* Summary file *)
+   let summary =
+      let summary, outx = Filename.open_temp_file ~mode:[Open_binary] "omake" ".error" in
+         Pervasives.close_out outx;
+         summary
+   in
+   let summary_value = ValNode (venv_intern venv PhonyProhibited summary) in
+   let venv = venv_add_var venv ScopeGlobal pos build_summary_sym summary_value in
 
    (* Ignore match errors *)
    let venv = venv_add_var venv ScopeGlobal pos glob_options_sym (ValString "n") in
+   let venv = Omake_builtin.venv_include_rc_file venv omakerc_file in
    let now = Unix.gettimeofday () in
    let _ =
       if options.opt_print_dir then
@@ -2371,14 +2353,14 @@ let create_env exec options cache targets =
       if options.opt_print_status then
          printf "*** omake: finished reading %ss (%.1f sec)@." makefile_name (now' -. now)
    in
-   let env = create exec venv cache in
+   let env = create exec venv cache summary in
       Omake_builtin_util.set_env env;
       env
 
 (*
  * Create from scratch.
  *)
-let create_empty exec options targets =
+let create_empty exec options targets : env =
    create_env exec options (Omake_cache.create ()) targets
 
 (*
@@ -2391,32 +2373,12 @@ let load_env_aux options inx exec targets =
       if options.opt_flush_dependencies then
          Omake_cache.clear cache scanner_fun
    in
-      (* Load the environment *)
-      if options.opt_flush_env || Omake_builtin.command_defs_are_nonempty () then
-         create_env exec options cache targets
-      else
-         let env =
-            try Some (from_channel inx exec cache) with
-               Failure _
-             | End_of_file ->
-                  None
-         in
-            match env with
-               Some env ->
-                  (* Check that environment is up to date *)
-                  let includes = NodeTable.fold (fun set node _ -> NodeSet.add set node) NodeSet.empty env.env_includes in
-                     if Omake_cache.up_to_date cache env_fun includes None then
-                        env
-                     else
-                        create_env exec options cache targets
-
-             | None ->
-                  create_env exec options cache targets
+      create_env exec options cache targets
 
 (*
  * If a marshal exception happens, create from scratch.
  *)
-let load_env options inx exec targets =
+let load_env options inx exec targets : env =
    try load_env_aux options inx exec targets with
       Unix.Unix_error _
     | End_of_file
@@ -2516,7 +2478,7 @@ let wait_for_lock () =
             eprintf "*** omake WARNING: Can not lock the project database file .omakedb:
 \tThe operation is not supported.
 \tWARNING: Be aware that simultaneously running more than one instance
-\t\tof OMake on the same project is not recommended. It may
+\t\tof OMake on the same project is not recommended.  It may
 \t\tresult in some OMake instances failing to record their
 \t\tprogress in the database@."
        | Unix.Unix_error (err, _, _) ->
@@ -2590,20 +2552,89 @@ let notify_wait env =
       eprintf "*** omake: rebuilding@."
 
 (*
- * Build command line targets.
+ * Build the .SUCCESS and .FAILURE targets.
  *)
-let rec build_targets env save_flag start_time parallel print targets =
-   let options = env_options env in
+let create_tmpfile env =
+   let outx = Pervasives.open_out_gen [Open_wronly; Open_binary; Open_creat; Open_trunc] 0o600 env.env_summary in
+      close_out outx
+
+let open_tmpfile env =
+   let outx = Pervasives.open_out_gen [Open_wronly; Open_binary; Open_append] 0o600 env.env_summary in
+   let buf = formatter_of_out_channel outx in
+      buf, outx
+
+let print_summary env =
+   let inx = open_in_bin env.env_summary in
+   let buffer = String.create 256 in
+   let rec copy () =
+      let amount = input inx buffer 0 (String.length buffer) in
+         if amount > 0 then begin
+            Pervasives.output Pervasives.stderr buffer 0 amount;
+            copy ()
+         end
+   in
+      copy ();
+      Pervasives.flush Pervasives.stderr;
+      close_in inx
+
+let build_start env =
+   let name = ".BUILD_BEGIN" in
+   let target = Node.phony_global name in
+      try
+         create_tmpfile env;
+         build_target env false target;
+         invalidate_children env (NodeSet.singleton target);
+         make env
+      with
+         Sys_error _
+       | ExitException _
+       | Unix.Unix_error _
+       | OmakeException _
+       | Sys.Break
+       | Failure _
+       | Return _ as exn ->
+            eprintf "@[<v 3>%s target failed:@ %a@]@." name Omake_exn_print.pp_print_exn exn
+
+let build_final name env =
+   let target = Node.phony_global name in
    let () =
       try
-         if parallel || is_parallel options then
-            begin
-               (* Add commands to build the targets *)
-               List.iter (build_target env print) targets;
+         build_target env false target;
+         invalidate_children env (NodeSet.singleton target);
+         make env
+      with
+         Sys_error _
+       | ExitException _
+       | Unix.Unix_error _
+       | OmakeException _
+       | Sys.Break
+       | Failure _
+       | Return _ as exn ->
+            eprintf "@[<v 3>%s target failed:@ %a@]@." name Omake_exn_print.pp_print_exn exn
+   in
+      print_summary env
 
-               (* Build *)
-               make env
-            end
+let build_success = build_final ".BUILD_SUCCESS"
+let build_failure = build_final ".BUILD_FAILURE"
+
+(*
+ * Build command line targets.
+ *)
+let rec build_targets env save_flag start_time parallel print ?(summary = true) targets =
+   let options = env_options env in
+   let () =
+      if summary then
+         build_start env
+   in
+   let () =
+      try
+         if parallel || is_parallel options then begin
+            (* Add commands to build the targets *)
+            List.iter (build_target env print) targets;
+
+            (* Build *)
+            make env
+         end
          else
             (* Make them in order *)
             List.iter (fun target ->
@@ -2617,12 +2648,15 @@ let rec build_targets env save_flag start_time parallel print targets =
        | Sys.Break
        | Failure _
        | Return _ as exn ->
-            if not options.opt_dry_run then
-               save env;
-            print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
-            eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-            close env;
-            exit exn_error_code
+            let buf, outx = open_tmpfile env in
+               fprintf buf "%a@." Omake_exn_print.pp_print_exn exn;
+               close_out outx;
+               if not options.opt_dry_run then
+                  save env;
+               print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
+               build_failure env;
+               close env;
+               exit exn_error_code
    in
       (* Save database before exiting *)
       if save_flag && not options.opt_dry_run then
@@ -2630,38 +2664,43 @@ let rec build_targets env save_flag start_time parallel print targets =
 
       (* Return error if that happened *)
       if env.env_error_code <> 0 then
-         begin
+         let buf, outx = open_tmpfile env in
             print_stats env "failed" start_time;
-            print_failed_targets env;
+            print_failed_targets env buf;
+            close_out outx;
+            build_failure env;
             build_on_error env save_flag start_time parallel print targets options env.env_error_code
-         end
       else if not (command_list_is_empty env CommandBlockedTag) then
-         begin
+         let buf, outx = open_tmpfile env in
             print_stats env "blocked" start_time;
-            print_failed env CommandBlockedTag;
+            print_failed env buf CommandBlockedTag;
+            close_out outx;
+            build_failure env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
-         end
       else if not (command_list_is_empty env CommandScanBlockedTag) then
-         begin
+         let buf, outx = open_tmpfile env in
             print_stats env "scanner is blocked" start_time;
-            print_failed env CommandScanBlockedTag;
+            print_failed env buf CommandScanBlockedTag;
+            close_out outx;
+            build_failure env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
-         end
       else if not (command_list_is_empty env CommandFailedTag) then
-         begin
+         let buf, outx = open_tmpfile env in
             print_stats env "failed" start_time;
-            print_failed_targets env;
+            print_failed_targets env buf;
+            close_out outx;
+            build_failure env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
-         end
+      else if summary then
+         build_success env
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
    if not options.opt_poll then
       exit error_code
-   else
-      begin
-         notify_wait env;
-         build_targets env save_flag (Unix.gettimeofday ()) parallel print targets
-      end
+   else begin
+      notify_wait env;
+      build_targets env save_flag (Unix.gettimeofday ()) parallel print targets
+   end
 
 (*
  * Notification loop.
@@ -2700,12 +2739,11 @@ let rec build_time start_time options dir_name targets =
 
    (* Check that this directory is actually a .SUBDIR *)
    let () =
-      if not (options.opt_project || DirTable.mem env.env_explicit_directories dir) then
-         begin
-            eprintf "*** omake: the current directory %s@." (Dir.absname dir);
-            eprintf "*** omake: is not part of the root project in %s@." (Dir.absname env.env_cwd);
-            exit 1
-         end
+      if not (options.opt_project || DirTable.mem env.env_explicit_directories dir) then begin
+         eprintf "*** omake: the current directory %s@." (Dir.absname dir);
+         eprintf "*** omake: is not part of the root project in %s@." (Dir.absname env.env_cwd);
+         exit 1
+      end
    in
       try build_core env dir_name dir start_time options targets with
          Restart ->
@@ -2727,17 +2765,16 @@ and build_core env dir_name dir start_time options targets =
          false
       else
          let includes = NodeTable.fold (fun includes node _ -> node :: includes) [] env.env_includes in
-         let _ = build_targets env false start_time true false includes in
+         let _ = build_targets env false start_time true false ~summary:false includes in
             NodeTable.exists (fun node digest ->
                   let digest' = Omake_cache.force_stat env.env_cache node in
                      digest' <> digest) env.env_includes
    in
    let () =
-      if changed then
-         begin
-            env.env_includes <- Omake_cache.stat_table env.env_cache env.env_includes;
-            raise Restart
-         end
+      if changed then begin
+         env.env_includes <- Omake_cache.stat_table env.env_cache env.env_includes;
+         raise Restart
+      end
    in
 
    let targets = List.map (Node.intern no_mount_points PhonyOK dir) targets in

@@ -43,11 +43,14 @@ open Omake_exec
 open Omake_value
 open Omake_state
 open Omake_symbol
+open Omake_node_sig
+open Omake_exec_util
 open Omake_build_type
 open Omake_cache_type
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
+open Omake_build
 
 module Pos = MakePos (struct let name = "Omake_builtin_target" end)
 open Pos
@@ -179,7 +182,7 @@ let dependencies_proper = dependencies_all_core (fun command -> not (is_leaf_com
  * \begin{doc}
  * \fun{target}
  * \begin{verbatim}
- *    $(target targets) : Rule Array
+ *    $(target targets) : Target Array
  *       targets : File Sequence
  *    raises RuntimeException
  * \end{verbatim}
@@ -226,6 +229,7 @@ let target_of_command venv pos loc command =
          command_scanner_deps = scanner_deps;
          command_static_deps  = static_deps;
          command_build_deps   = build_deps;
+         command_tee          = tee;
          command_lines        = commands
        } = command
    in
@@ -257,6 +261,16 @@ let target_of_command venv pos loc command =
    let obj = venv_add_field obj build_deps_sym build_deps in
    let obj = venv_add_field obj build_values_sym (ValArray command_values) in
    let obj = venv_add_field obj build_commands_sym (ValArray command_lines) in
+
+   (* Add the tee *)
+   let obj =
+      match tee_file tee with
+         Some name ->
+            let node = venv_intern venv PhonyProhibited name in
+               venv_add_field obj output_file_sym (ValNode node)
+       | None ->
+            obj
+   in
       ValObject obj
 
 let target_core optional_flag venv pos loc args =
@@ -290,7 +304,70 @@ let target = target_core false
 let target_optional = target_core true
 
 (*
- * Project directories.
+ * \begin{doc}
+ * \fun{build-targets}
+ *
+ * \begin{verbatim}
+ *     $(build-targets tag) : Target Array
+ *        tag : Succeeded | Failed
+ * \end{verbatim}
+ *
+ * The \verb+build-targets+ allow the results
+ * of the build to be examined.  The \verb+tag+ must
+ * specifies which targets are to be returned; the comparison
+ * is case-insensitive.
+ *
+ * \begin{description}
+ * \item[Succeeded] The list of targets that were built successfully.
+ * \item[Failed] The list of targets that could not be built.
+ * \end{description}
+ *
+ * These are used mainly in conjuction with the
+ * \verb+.BUILD_SUCCESS+~\ref{target:.BUILD_SUCCESS} and
+ * \verb+.BUILD_FAILURE+~\ref{target:.BUILD_FAILURE} phony targets.
+ * For example, adding the following to your project \verb+OMakefile+
+ * will print the number of targets that failed (if the build failed).
+ *
+ * \begin{verbatim}
+ *     .BUILD_FAILURE:
+ *         echo "Failed target count: $(length $(failed-targets))"
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let find_build_targets venv pos loc args =
+   let pos = string_pos "find-build-targets" pos in
+      match args with
+         [tag] ->
+            let tag =
+               match String.lowercase (string_of_value venv pos tag) with
+                  "succeeded" -> CommandSucceededTag
+                | "failed" -> CommandFailedTag
+                | tag ->
+                     raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", tag)))
+            in
+            let env = get_env pos loc in
+            let targets =
+               command_fold env tag (fun targets command ->
+                     target_of_command venv pos loc command :: targets) []
+            in
+               concat_array targets
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun{project-directories}
+ *
+ * \begin{verbatim}
+ *    $(project-directories) : Dir Array
+ * \end{verbatim}
+ *
+ * The \verb+project-directories+ function returns the list of all directories
+ * that are considered to be part of the project.
+ *
+ * To get the complete directory list, this function should be called
+ * from within a rule body.
+ * \end{doc}
  *)
 let project_directories venv pos loc args =
    let pos = string_pos "project-directories" pos in
@@ -378,6 +455,7 @@ let () =
        true,  "dependencies-all",     dependencies_all,    ArityExact 1;
        true,  "dependencies-proper",  dependencies_proper, ArityExact 1;
        true,  "project-directories",  project_directories, ArityExact 0;
+       true,  "find-build-targets",   find_build_targets,  ArityExact 1;
 
        (* Rule definition *)
        true,  "rule",                 rule_fun,            ArityExact 6]

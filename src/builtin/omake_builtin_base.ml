@@ -86,13 +86,26 @@ open Pos
  * \var{TARGETS}
  *    The command-line target strings.  For example, if \verb+omake+ is invoked with the
  *    following command line,
- *
  * \begin{verbatim}
  *       omake CFLAGS=1 foo bar.c
  * \end{verbatim}
  *
  *    then \verb+TARGETS+ is defined as \verb+foo bar.c+.
  *
+ * \varlabel{BUILD_SUMMARY}{BUILD\_SUMMARY}
+ *    The \verb+BUILD_SUMMARY+ variable refers to the file that \verb+omake+ uses
+ *    to summarize a build (the message that is printed at the very end of a build).
+ *    The file is empty when the build starts.  If you wish to add additional messages
+ *    to the build summary, you can edit/modify this file during the build.
+ *
+ *    For example, if you want to point out that some action was taken,
+ *    you can append a message to the build summary.
+ *
+ * \begin{verbatim}
+ *    foo: boo
+ *        echo "The file foo was built" >> $(BUILD_SUMMARY)
+ *        ...build foo...
+ * \end{verbatim}
  * \end{doc}
  *)
 

@@ -57,8 +57,72 @@ open Pos
 
 (*
  * These targets are decribed in doc/src/omake-rules.tex
+ *
+ * \begin{doc}
+ * \section{Builtin .PHONY targets}
+ *
+ * The complete set of builtin \verb+.PHONY+ targets include the following.
+ *
+ * \begin{description}
+ * \item[.PHONY] Declares new phony targets (Section~\ref{target:.PHONY}).
+ * \item[.DEFAULT] Declare the default build targets (Section~\ref{target:.DEFAULT}).
+ * \item[.SUBDIRS] Include a directory as part of the project (Section~\ref{target:.SUBDIRS}).
+ * \item[.SCANNER] Define a dependency scanner (Section~\ref{target:.SUBDIRS}).
+ * \item[.INCLUDE] Include a file (Section~\ref{target:.INCLUDE}).
+ * \item[.ORDER] Define a file-dependency ordering rule (Section~\ref{target:.ORDER}).
+ * \item[.BUILD\_BEGIN] Commands to be executed at the beginning of a build.
+ * \item[.BUILD\_SUCCESS] Commands to be executed if the build is successful.
+ * \item[.BUILD\_FAILURE] Commands to be executed if the build fails.
+ * \end{description}
+ *
+ * \targetlabelref{.BUILD_BEGIN}{.BUILD\_BEGIN}
+ * \targetlabelref{.BUILD_SUCCESS}{.BUILD\_SUCCESS}
+ * \targetlabelref{.BUILD_FAILURE}{.BUILD\_FAILURE}
+ *
+ * The \verb+.BUILD+ targets can be used to specify commands to be executed at
+ * the beginning and end of the build.  The \verb+.BUILD_BEGIN+ target is built
+ * at the beginning of a project build, and one of \verb+.BUILD_FAILURE+ or
+ * \verb+.BUILD_SUCCESS+ is executed when the build terminates.
+ *
+ * For example, the following set of rules simply print additional messages
+ * about the status of the build.
+ *
+ * \begin{verbatim}
+ *    .BUILD_BEGIN:
+ *        echo Build starting
+ *
+ *    .BUILD_SUCCESS:
+ *        echo The build was successful
+ *
+ *    .BUILD_FAILURE:
+ *        println($"The build failed: $(length $(find-build-targets Failed)) targets could not be built")
+ * \end{verbatim}
+ *
+ * Another common use is to define notifications to be performed when
+ * the build completes.  For example, the following rule will create
+ * a new X terminal displaying the summary of the build
+ * (see \verb+BUILD_SUMMARY+~\ref{var:BUILD_SUMMARY}).
+ *
+ * \begin{verbatim}
+ *     .BUILD_FAILURE:
+ *         xterm -e vi $(BUILD_SUMMARY)
+ * \end{verbatim}
+ *
+ * If you do not wish to add these rules directly to your project (which
+ * is probably a good idea if you work with others), you can
+ * define them in your \verb+.omakerc+~\ref{section:.omakerc}.
+ *
+ * The \verb+find-build-targets+ function~\ref{fun:find-build-targets}
+ * is useful for obtaining a firther summary of the build.  Note that
+ * when output diversions are in effect (with the \verb+--divert-*+ options~\ref{chapter:options}),
+ * any output produced by the commands is copied to a file.  The name of the
+ * file is specified by the \verb+output-file+ field of the \verb+Target+~\ref{obj:Target} object.
+ * You may find this useful in defining custom build summaries.
+ * \end{doc}
  *)
-let phony_targets = [".PHONY"; ".DEFAULT"; ".SUBDIRS"; ".SCANNER"; ".INCLUDE"; ".ORDER"]
+let phony_targets =
+   [".PHONY"; ".DEFAULT"; ".SUBDIRS"; ".SCANNER"; ".INCLUDE"; ".ORDER";
+    ".BUILD_BEGIN"; ".BUILD_SUCCESS"; ".BUILD_FAILURE"]
 
 (************************************************************************
  * Set options.
@@ -241,9 +305,8 @@ let () =
    let builtin_rules =
       [true, [".PHONY"], phony_targets]
    in
-   let phony_targets = [".PHONY"; ".DEFAULT"; ".SUBDIRS"; ".SCANNER"; ".INCLUDE"; ".ORDER"] in
    let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs;
+      { builtin_empty with builtin_funs  = builtin_funs;
                            builtin_rules = builtin_rules;
                            phony_targets = phony_targets
       }

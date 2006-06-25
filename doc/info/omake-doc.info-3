@@ -131,7 +131,7 @@ Node: Section 6-8,	Next: Section 6-9,	Prev: Section 6-7,	Up: Chapter 6
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' 11.2.1.7*Note Subsection 11-2-1:: variable
+  The `SCANNER_MODE' 11.3.1.7*Note Subsection 11-3-1:: variable
 controls the usage of implicit scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
@@ -515,7 +515,7 @@ absolute names.
   
   Alternately, the `--absname' option is scoped. If you want to use it
 for only a few rules, you can use the `OMakeFlags' function
-11.1.0.1*Note Section 11-1:: to control how it is applied.
+11.2.0.1*Note Section 11-2:: to control how it is applied.
 <<
      section
         OMakeFlags(--absname)
@@ -565,6 +565,7 @@ Node: Section 7-1,	Next: Subsection 7-1-1,	Prev: Chapter 7,	Up: Chapter 7
 * Subsection 7-1-9::	HOME
 * Subsection 7-1-10::	PID
 * Subsection 7-1-11::	TARGETS
+* Subsection 7-1-12::	BUILD_SUMMARY
 
 
 Node: Subsection 7-1-1,	Next: Subsection 7-1-2,	Prev: Section 7-1,	Up: Section 7-1
@@ -648,19 +649,38 @@ Node: Subsection 7-1-10,	Next: Subsection 7-1-11,	Prev: Subsection 7-1-9,	Up: Se
 ============
   The OMake process id. 
 
-Node: Subsection 7-1-11,	Next: Section 7-2,	Prev: Subsection 7-1-10,	Up: Section 7-1
+Node: Subsection 7-1-11,	Next: Subsection 7-1-12,	Prev: Subsection 7-1-10,	Up: Section 7-1
   
 
 7.1.11   TARGETS
 ================
   The command-line
 target strings. For example, if `omake' is invoked with the  following
-command line,
+command line, 
 <<
         omake CFLAGS=1 foo bar.c
 >>
   
    then `TARGETS' is defined as `foo bar.c'.
+
+Node: Subsection 7-1-12,	Next: Section 7-2,	Prev: Subsection 7-1-11,	Up: Section 7-1
+  
+
+7.1.12   BUILD_SUMMARY
+======================
+  The
+`BUILD_SUMMARY' variable refers to the file that `omake' uses  to
+summarize a build (the message that is printed at the very end of a
+build).  The file is empty when the build starts. If you wish to add
+additional messages  to the build summary, you can edit/modify this file
+during the build.
+  For example, if you want to point out that some action was taken,  you
+can append a message to the build summary.
+<<
+     foo: boo
+         echo "The file foo was built" >> $(BUILD_SUMMARY)
+         ...build foo...
+>>
 
 Node: Section 7-2,	Next: Subsection 7-2-1,	Prev: Section 7-1,	Up: Chapter 7
   
@@ -1709,33 +1729,3 @@ Node: Subsection 7-3-31,	Next: Subsection 7-3-32,	Prev: Subsection 7-3-30,	Up: S
   The `capitalize' function capitalizes each word in a sequence. For
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'. 
-
-Node: Subsection 7-3-32,	Next: Subsection 7-3-33,	Prev: Subsection 7-3-31,	Up: Section 7-3
-  
-
-7.3.32   uncapitalize
-=====================
-
-<<
-     $(uncapitalize sequence) : Array
-        sequence : Sequence
->>
-  
-  The `uncapitalize' function uncapitalizes each word in its argument.
-  For example, `$(uncapitalize through the looking Glass)' evaluates to
-`through the looking glass'. 
-
-Node: Subsection 7-3-33,	Next: Subsection 7-3-34,	Prev: Subsection 7-3-32,	Up: Section 7-3
-  
-
-7.3.33   uppercase
-==================
-
-<<
-     $(uppercase sequence) : Array
-        sequence : Sequence
->>
-  
-  The `uppercase' function converts each word in a sequence to
-uppercase. For example, `$(uppercase through the looking Glass)'
-evaluates to `THROUGH THE LOOKING GLASS'. 

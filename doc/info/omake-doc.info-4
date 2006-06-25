@@ -1,5 +1,35 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 7-3-32,	Next: Subsection 7-3-33,	Prev: Subsection 7-3-31,	Up: Section 7-3
+  
+
+7.3.32   uncapitalize
+=====================
+
+<<
+     $(uncapitalize sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `uncapitalize' function uncapitalizes each word in its argument.
+  For example, `$(uncapitalize through the looking Glass)' evaluates to
+`through the looking glass'. 
+
+Node: Subsection 7-3-33,	Next: Subsection 7-3-34,	Prev: Subsection 7-3-32,	Up: Section 7-3
+  
+
+7.3.33   uppercase
+==================
+
+<<
+     $(uppercase sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `uppercase' function converts each word in a sequence to
+uppercase. For example, `$(uppercase through the looking Glass)'
+evaluates to `THROUGH THE LOOKING GLASS'. 
+
 Node: Subsection 7-3-34,	Next: Subsection 7-3-35,	Prev: Subsection 7-3-33,	Up: Section 7-3
   
 
@@ -324,7 +354,7 @@ lazily. The following two definitions are equivalent.
 >>
   
   The `create-lazy-map' function is used in rule construction
-11.6.0.9*Note Section 11-6::. 
+11.7.0.11*Note Section 11-7::. 
 
 Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
   
@@ -851,7 +881,7 @@ Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Sect
 8.3.4   find-targets-in-path, find-targets-in-path-optional
 ===========================================================
 \@name
-{@default163}
+{@default164}
 <<
       $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array
@@ -1876,60 +1906,3 @@ Node: Subsection 8-8-16,	Next: Subsection 8-8-17,	Prev: Subsection 8-8-15,	Up: S
   The `set-close-on-exec-mode' function sets the close-on-exec flags for
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is. 
-
-Node: Subsection 8-8-17,	Next: Subsection 8-8-18,	Prev: Subsection 8-8-16,	Up: Section 8-8
-  
-
-8.8.17   pipe
-=============
-
-<<
-     $(pipe) : Pipe
-     raises RuntimeException
->>
-  
-  The `pipe' function creates a `Pipe' object, which has two fields. The
-`read' field is a channel that is opened for reading, and the `write'
-field is a channel that is opened for writing. 
-
-Node: Subsection 8-8-18,	Next: Subsection 8-8-19,	Prev: Subsection 8-8-17,	Up: Section 8-8
-  
-
-8.8.18   mkfifo
-===============
-
-<<
-     mkfifo(mode, node...)
-        mode : Int
-        node : Node
->>
-  
-  The `mkfifo' function creates a named pipe. 
-
-Node: Subsection 8-8-19,	Next: Subsection 8-8-20,	Prev: Subsection 8-8-18,	Up: Section 8-8
-  
-
-8.8.19   select
-===============
-
-<<
-     $(select rfd..., wfd..., wfd..., timeout) : Select
-        rfd : InChannel
-        wfd : OutChannel
-        efd : Channel
-        timeout : float
-     raises RuntimeException
->>
-  
-  The `select' function polls for possible IO on a set of channels. The
-`rfd' are a sequence of channels for reading, `wfd' are a sequence of
-channels for writing, and `efd' are a sequence of channels to poll for
-error conditions. The `timeout' specifies the maximum amount of time to
-wait for events.
-  On successful return, `select' returns a `Select' object, which has
-the following fields: 
-  
- read  An array of channels available for reading. 
- write  An array of channels available for writing. 
- error  An array of channels on which an error has occurred. 
-   

@@ -1,5 +1,335 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection A-3-6,	Next: Subsection A-3-7,	Prev: Subsection A-3-5,	Up: Section A-3
+  
+
+A.3.6   -t
+==========
+ `-t'
+  Update the omake database to force the project to be considered
+up-to-date.
+
+Node: Subsection A-3-7,	Next: Subsection A-3-8,	Prev: Subsection A-3-6,	Up: Section A-3
+  
+
+A.3.7   -U
+==========
+ `-U'
+  Do not trust cached build information. This will force the entire
+project to be rebuilt.
+
+Node: Subsection A-3-8,	Next: Subsection A-3-9,	Prev: Subsection A-3-7,	Up: Section A-3
+  
+
+A.3.8   --depend
+================
+ `--depend'
+  Do not trust cached dependency information. This will force files to
+be rescanned for dependency information.
+
+Node: Subsection A-3-9,	Next: Subsection A-3-10,	Prev: Subsection A-3-8,	Up: Section A-3
+  
+
+A.3.9   --configure
+===================
+
+`--configure'
+  Re-run `static.' sections of the included omake files, instead of
+trusting the cached results.
+
+Node: Subsection A-3-10,	Next: Subsection A-3-11,	Prev: Subsection A-3-9,	Up: Section A-3
+  
+
+A.3.10   --force-dotomake
+=========================
+
+`--force-dotomake'
+  Always use the `$HOME/.omake' for the `.omc' cache files.
+
+Node: Subsection A-3-11,	Next: Subsection A-3-12,	Prev: Subsection A-3-10,	Up: Section A-3
+  
+
+A.3.11   --dotomake
+===================
+ `--dotomake
+<dir>'
+  Use the specified directory instead of the `$HOME/.omake' for the
+placement of the `.omc' cache files.
+
+Node: Subsection A-3-12,	Next: Subsection A-3-13,	Prev: Subsection A-3-11,	Up: Section A-3
+  
+
+A.3.12   -j
+===========
+ `-j <count>'
+  Run multiple build commands in parallel. The count specifies a bound
+on the number of commands to run simultaneously. In addition, the count
+may specify servers for remote execution of commands in the form
+`server=count'. For example, the option `-j
+2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs can
+be executed locally, 1 on the server `small.host.org' and 4 on
+`large.host.org'. Each remote server must use the same filesystem
+location for the project.
+  Remote execution is currently an experimental feature. Remote
+filesystems like NFS do not provide adequate file consistency for this
+to work.
+
+Node: Subsection A-3-13,	Next: Subsection A-3-14,	Prev: Subsection A-3-12,	Up: Section A-3
+  
+
+A.3.13   --print-dependencies
+=============================
+
+`--print-dependencies'
+  Print dependency information for the targets on the command line.
+
+Node: Subsection A-3-14,	Next: Subsection A-3-15,	Prev: Subsection A-3-13,	Up: Section A-3
+  
+
+A.3.14   --show-dependencies
+============================
+
+`--show-dependencies <target>'
+  Print dependency information if the `target' is built.
+
+Node: Subsection A-3-15,	Next: Subsection A-3-16,	Prev: Subsection A-3-14,	Up: Section A-3
+  
+
+A.3.15   --all-dependencies
+===========================
+
+`--all-dependencies'
+  If either of the options --print-dependencies or --show-dependencies
+is in effect, print transitive dependencies. That is, print all
+dependencies recursively. If neither option --print-dependencies,
+--show-dependencies is specified, this option has no effect.
+
+Node: Subsection A-3-16,	Next: Subsection A-3-17,	Prev: Subsection A-3-15,	Up: Section A-3
+  
+
+A.3.16   --verbose-dependencies
+===============================
+
+`--verbose-dependencies'
+  If either of the options --print-dependencies or --show-dependencies
+is in effect, also print listings for each dependency. The output is
+very verbose, consider redirecting to a file. If neither option
+--print-dependencies, --show-dependencies is specified, this option has
+no effect.
+
+Node: Subsection A-3-17,	Next: Subsection A-3-18,	Prev: Subsection A-3-16,	Up: Section A-3
+  
+
+A.3.17   --install
+==================
+ `--install'
+  Install default files OMakefile and OMakeroot into the current
+directory. You would typically do this to start a project in the current
+directory.
+
+Node: Subsection A-3-18,	Next: Subsection A-3-19,	Prev: Subsection A-3-17,	Up: Section A-3
+  
+
+A.3.18   --install-all
+======================
+
+`--install-all'
+  In addition to installing files OMakefile and OMakeroot, install
+default OMakefiles into each subdirectory of the current directory.
+cvs(1) rules are used for filtering the subdirectory list. For example,
+OMakefiles are not copied into directories called `CVS', `RCCS', etc.
+
+Node: Subsection A-3-19,	Next: Subsection A-3-20,	Prev: Subsection A-3-18,	Up: Section A-3
+  
+
+A.3.19   --install-force
+========================
+
+`--install-force'
+  Normally, omake will prompt before it overwrites any existing
+OMakefile. If this option is given, all files are forcibly overwritten
+without prompting.
+
+Node: Subsection A-3-20,	Next: Subsection A-3-21,	Prev: Subsection A-3-19,	Up: Section A-3
+  
+
+A.3.20   --absname
+==================
+ `--absname'
+  Filenames should expand to absolute pathnames.
+  N.B. This is an experimental option. It may become deprecated.
+
+Node: Subsection A-3-21,	Next: Section A-4,	Prev: Subsection A-3-20,	Up: Section A-3
+  
+
+A.3.21   variable definition
+============================
+
+`name=[value]'
+  omake variables can also be defined on the command line in the form
+`name=value'. For example, the `CFLAGS' variable might be defined on the
+command line with the argument `CFLAGS="-Wall -g"'.
+
+Node: Section A-4,	Next: Section A-5,	Prev: Section A-3,	Up: Appendix A
+  
+
+A.4   Additional options
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  In addition, omake supports a number of debugging flags on the command
+line. Run `omake --help' to get a summary of these flags.
+
+Node: Section A-5,	Next: Subsection A-5-1,	Prev: Section A-4,	Up: Appendix A
+  
+
+A.5   Environment variables
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-5-1::	OMAKEFLAGS
+* Subsection A-5-2::	OMAKELIB
+
+
+Node: Subsection A-5-1,	Next: Subsection A-5-2,	Prev: Section A-5,	Up: Section A-5
+  
+
+A.5.1   OMAKEFLAGS
+==================
+   
+  If defines, the `OMAKEFLAGS' should specify a set of options exactly
+as they are specified on the command line.
+
+Node: Subsection A-5-2,	Next: Section A-6,	Prev: Subsection A-5-1,	Up: Section A-5
+  
+
+A.5.2   OMAKELIB
+================
+   
+  If defined, the `OMAKELIB' environment variable should refer to the
+installed location of the OMake standard library. This is the directory
+that contains `Pervasives.om' etc. On a Unix system, this is often
+`/usr/lib/omake' or `/usr/local/lib/omake', and on Win32 systems it is
+often `c:\Program Files\OMake\lib'.
+  If not defined, `omake' uses the default configured location. You
+should normally leave this unset.
+
+Node: Section A-6,	Next: Subsection A-6-1,	Prev: Section A-5,	Up: Appendix A
+  
+
+A.6   Functions
+*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-6-1::	OMakeFlags 11.2.0.1
+
+
+Node: Subsection A-6-1,	Next: Section A-7,	Prev: Section A-6,	Up: Section A-6
+  
+
+A.6.1   OMakeFlags 11.2.0.1*Note Section 11-2::
+======================================================
+  
+  The `OMakeFlags' function 11.2.0.1*Note Section 11-2:: can be
+used within an `OMakefile' to modify the set of options. The options
+should be specified exactly as they are on the command line. For
+example, if you want some specific project to be silent and display a
+progress bar, you can add the following line to your `OMakefile'.
+<<
+      OMakeFlags(-S --progress)
+>>
+  
+  For options where it makes sense, the options are scoped like
+variables. For example, if you want OMake to be silent for a single rule
+(instead of for the entire project), you can use scoping the restrict
+the range of the option.
+<<
+      section
+          # Do not display command output when foo is constructed
+          OMakeFlags(-S)
+  
+          foo: fee
+             echo "This is a generated file" > foo
+             cat fee >> foo
+             chmod 555 foo
+>>
+  
+
+Node: Section A-7,	Next: Section A-8,	Prev: Section A-6,	Up: Appendix A
+  
+
+A.7   Option processing
+*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  When `omake' is invoked, the options are processed in the following
+order.
+  
+  
+ 1. All options specified by the `OMAKEFLAGS' environment variable are
+   defined globally. 
+ 2. All options from the command line are defined globally. 
+ 3. Any individual calls the the `OMakeFlags' function modify the
+   options locally. 
+  
+
+Node: Section A-8,	Next: Appendix B,	Prev: Section A-7,	Up: Appendix A
+  
+
+A.8   .omakerc
+*=*=*=*=*=*=*=
+
+    
+  If the `$(HOME)/.omakerc' exists, it is read before any of the
+`OMakefiles' in your project. The `.omakerc' file is frequently used for
+user-specific customization. For example, instead of defining the
+`OMAKEFLAGS' environment variable, you could add a line to your
+`.omakerc'.
+<<
+      $(HOME)/.omakerc:
+          # My private options
+          OMakeFlags(-S --progress)
+>>
+  
+   
+
+Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
+  
+
+Appendix B     OMake grammar
+****************************
+    
+* Menu:
+
+* Section B-1::	OMake lexical conventions
+* Section B-2::	The OMake grammar
+* Section B-3::	Dollar modifiers
+
+
+Node: Section B-1,	Next: Subsection B-1-1,	Prev: Appendix B,	Up: Appendix B
+  
+
+B.1   OMake lexical conventions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The OMake language is based on the language for GNU/BSD make, where
+there are few lexical conventions. Strictly speaking, there are no
+keywords, and few special symbols.
+* Menu:
+
+* Subsection B-1-1::	Comments
+* Subsection B-1-2::	Special characters
+* Subsection B-1-3::	Identifiers
+* Subsection B-1-4::	Command identifiers
+* Subsection B-1-5::	Variable references
+* Subsection B-1-6::	String constants
+
+
 Node: Subsection B-1-1,	Next: Subsection B-1-2,	Prev: Section B-1,	Up: Section B-1
   
 
@@ -885,10 +1215,14 @@ Appendix C     Index
  - -U, A.3.7*Note Subsection A-3-7:: 
  - -w, A.2.3*Note Subsection A-2-3:: 
  
+ - .BUILD_BEGIN, 11.1*Note Section 11-1:: 
+ - .BUILD_FAILURE, 11.1*Note Section 11-1:: 
+ - .BUILD_SUCCESS, 11.1*Note Section 11-1:: 
  - .BUILDORDER, 8.3.5*Note Subsection 8-3-5:: 
  - .DEFAULT, 6.9*Note Section 6-9:: 
  - .INCLUDE, 6.11*Note Section 6-11:: 
  - .ORDER, 8.3.5*Note Subsection 8-3-5:: 
+ - .omakerc, A.8*Note Section A-8:: 
  - .PHONY, 6.12*Note Section 6-12:: 
  - .SCANNER, 3.4.3*Note Subsection 3-4-3::, 6.6*Note Section 6-6:: 
  - .SUBDIRS, 3*Note Chapter 3::, 6.10*Note Section 6-10:: 
@@ -899,13 +1233,13 @@ Appendix C     Index
  - :scanner:, 6.7*Note Section 6-7:: 
  - :value:, 6.5.3*Note Subsection 6-5-3:: 
  
- - ABORT_ON_COMMAND_ERROR, 11.2.1.6*Note Subsection 11-2-1:: 
- - ABORT_ON_DEPENDENCY_ERRORS, 11.4.3.7*Note Subsection 11-4-3:: 
- - AR, 11.3.1.10*Note Subsection 11-3-1:: 
- - AROUT, 11.3.1.11*Note Subsection 11-3-1:: 
+ - ABORT_ON_COMMAND_ERROR, 11.3.1.6*Note Subsection 11-3-1:: 
+ - ABORT_ON_DEPENDENCY_ERRORS, 11.5.3.7*Note Subsection 11-5-3:: 
+ - AR, 11.4.1.10*Note Subsection 11-4-1:: 
+ - AROUT, 11.4.1.11*Note Subsection 11-4-1:: 
  - Array, 10.1.7*Note Subsection 10-1-7:: 
- - AS, 11.3.1.8*Note Subsection 11-3-1:: 
- - ASFLAGS, 11.3.1.9*Note Subsection 11-3-1:: 
+ - AS, 11.4.1.8*Note Subsection 11-4-1:: 
+ - ASFLAGS, 11.4.1.9*Note Subsection 11-4-1:: 
  - absname, 8.1.8*Note Subsection 8-1-8:: 
  - accept, 8.8.31*Note Subsection 8-8-31:: 
  - add, 7.4.3*Note Subsection 7-4-3:: 
@@ -923,27 +1257,29 @@ Appendix C     Index
  - asr, 7.4.3*Note Subsection 7-4-3:: 
  - awk, 3.4.3*Note Subsection 3-4-3::, 8.11.5*Note Subsection 8-11-5:: 
  
- - BIBTEX, 11.5.1.4*Note Subsection 11-5-1:: 
- - BYTE_ENABLED, 11.4.1.16*Note Subsection 11-4-1:: 
+ - BIBTEX, 11.6.1.4*Note Subsection 11-6-1:: 
+ - BUILD_SUMMARY, 7.1.12*Note Subsection 7-1-12:: 
+ - BYTE_ENABLED, 11.5.1.16*Note Subsection 11-5-1:: 
  - basename, 8.1.4*Note Subsection 8-1-4:: 
  - bg, 9.2.2*Note Subsection 9-2-2:: 
  - bind, 8.8.29*Note Subsection 8-8-29:: 
  - build model, 3*Note Chapter 3:: 
+ - build-targets, 11.7.0.9*Note Section 11-7:: 
  
- - CAMLP4, 11.4.1.4*Note Subsection 11-4-1:: 
- - CC, 11.3.1.1*Note Subsection 11-3-1:: 
- - CFLAGS, 11.3.1.4*Note Subsection 11-3-1:: 
- - CGeneratedFiles, 11.3.2.1*Note Subsection 11-3-2:: 
+ - CAMLP4, 11.5.1.4*Note Subsection 11-5-1:: 
+ - CC, 11.4.1.1*Note Subsection 11-4-1:: 
+ - CFLAGS, 11.4.1.4*Note Subsection 11-4-1:: 
+ - CGeneratedFiles, 11.4.2.1*Note Subsection 11-4-2:: 
  - Channel, 10.1.15*Note Subsection 10-1-15:: 
- - CPP, 11.3.1.3*Note Subsection 11-3-1:: 
- - CProgram, 11.3.3.5*Note Subsection 11-3-3:: 
- - CProgramCopy, 11.3.3.6*Note Subsection 11-3-3:: 
- - CProgramInstall, 11.3.3.7*Note Subsection 11-3-3:: 
- - CWD, 11.2.1.2*Note Subsection 11-2-1:: 
- - CXX, 11.3.1.2*Note Subsection 11-3-1:: 
- - CXXFLAGS, 11.3.1.5*Note Subsection 11-3-1:: 
- - CXXProgram, 11.3.3.8*Note Subsection 11-3-3:: 
- - CXXProgramInstall, 11.3.3.8*Note Subsection 11-3-3:: 
+ - CPP, 11.4.1.3*Note Subsection 11-4-1:: 
+ - CProgram, 11.4.3.5*Note Subsection 11-4-3:: 
+ - CProgramCopy, 11.4.3.6*Note Subsection 11-4-3:: 
+ - CProgramInstall, 11.4.3.7*Note Subsection 11-4-3:: 
+ - CWD, 11.3.1.2*Note Subsection 11-3-1:: 
+ - CXX, 11.4.1.2*Note Subsection 11-4-1:: 
+ - CXXFLAGS, 11.4.1.5*Note Subsection 11-4-1:: 
+ - CXXProgram, 11.4.3.8*Note Subsection 11-4-3:: 
+ - CXXProgramInstall, 11.4.3.8*Note Subsection 11-4-3:: 
  - capitalize, 7.3.31*Note Subsection 7-3-31:: 
  - cat, 8.11.2*Note Subsection 8-11-2:: 
  - cats and dogs, 3.4*Note Section 3-4:: 
@@ -952,24 +1288,24 @@ Appendix C     Index
  - chown, 8.5.10*Note Subsection 8-5-10:: 
  - classes, 4.12*Note Section 4-12:: 
  - close, 8.8.6*Note Subsection 8-8-6:: 
- - cmp-versions, 11.1.0.3*Note Section 11-1:: 
+ - cmp-versions, 11.2.0.3*Note Section 11-2:: 
  - concat, 7.3.3*Note Subsection 7-3-3:: 
  - conditionals, 4.9*Note Section 4-9:: 
  - connect, 8.8.32*Note Subsection 8-8-32:: 
  - create-lazy-map, 7.5.4*Note Subsection 7-5-4:: 
  - create-map, 7.5.4*Note Subsection 7-5-4:: 
  
- - DefineCommandVars, 11.1.0.4*Note Section 11-1:: 
- - DIRSEP, 11.2.2.3*Note Subsection 11-2-2:: 
+ - DefineCommandVars, 11.2.0.4*Note Section 11-2:: 
+ - DIRSEP, 11.3.2.3*Note Subsection 11-3-2:: 
  - Dir, 10.1.14*Note Subsection 10-1-14:: 
- - DVIPDFM, 11.5.1.8*Note Subsection 11-5-1:: 
- - DVIPDFMFLAGS, 11.5.1.9*Note Subsection 11-5-1:: 
- - DVIPS, 11.5.1.6*Note Subsection 11-5-1:: 
- - DVIPSFLAGS, 11.5.1.7*Note Subsection 11-5-1:: 
+ - DVIPDFM, 11.6.1.8*Note Subsection 11-6-1:: 
+ - DVIPDFMFLAGS, 11.6.1.9*Note Subsection 11-6-1:: 
+ - DVIPS, 11.6.1.6*Note Subsection 11-6-1:: 
+ - DVIPSFLAGS, 11.6.1.7*Note Subsection 11-6-1:: 
  - defined, 7.2.10*Note Subsection 7-2-10:: 
  - defined-env, 7.2.11*Note Subsection 7-2-11:: 
- - dependencies, 11.6.0.7*Note Section 11-6:: 
- - dependencies-all, 11.6.0.7*Note Section 11-6:: 
+ - dependencies, 11.7.0.7*Note Section 11-7:: 
+ - dependencies-all, 11.7.0.7*Note Section 11-7:: 
  - digest, 8.2.5*Note Subsection 8-2-5:: 
  - digest-path, 8.2.7*Note Subsection 8-2-7:: 
  - dir, 8.1.1*Note Subsection 8-1-1:: 
@@ -978,11 +1314,11 @@ Appendix C     Index
  - dup, 8.8.13*Note Subsection 8-8-13:: 
  - dup2, 8.8.14*Note Subsection 8-8-14:: 
  
- - EMPTY, 11.2.1.3*Note Subsection 11-2-1:: 
- - EXE, 11.2.2.7*Note Subsection 11-2-2:: 
- - EXT_ASM, 11.2.2.6*Note Subsection 11-2-2:: 
- - EXT_LIB, 11.2.2.4*Note Subsection 11-2-2:: 
- - EXT_OBJ, 11.2.2.5*Note Subsection 11-2-2:: 
+ - EMPTY, 11.3.1.3*Note Subsection 11-3-1:: 
+ - EXE, 11.3.2.7*Note Subsection 11-3-2:: 
+ - EXT_ASM, 11.3.2.6*Note Subsection 11-3-2:: 
+ - EXT_LIB, 11.3.2.4*Note Subsection 11-3-2:: 
+ - EXT_OBJ, 11.3.2.5*Note Subsection 11-3-2:: 
  - Exception, 10.1.20*Note Subsection 10-1-20:: 
  - echo, 9.1.1*Note Subsection 9-1-1:: 
  - eprint, 8.9*Note Section 8-9:: 
@@ -1046,8 +1382,8 @@ Appendix C     Index
  - homename, 8.1.9*Note Subsection 8-1-9:: 
  - html-string, 7.3.14*Note Subsection 7-3-14:: 
  
- - INCLUDES, 11.3.1.6*Note Subsection 11-3-1:: 
- - INSTALL, 11.2.2.1*Note Subsection 11-2-2:: 
+ - INCLUDES, 11.4.1.6*Note Subsection 11-4-1:: 
+ - INSTALL, 11.3.2.1*Note Subsection 11-3-2:: 
  - InChannel, 10.1.16*Note Subsection 10-1-16:: 
  - InetAddr, 8.8.21*Note Subsection 8-8-21:: 
  - Int, 10.1.4*Note Subsection 10-1-4:: 
@@ -1064,19 +1400,19 @@ Appendix C     Index
  
  - kill, 9.2.6*Note Subsection 9-2-6:: 
  
- - LATEX, 11.5.1.1*Note Subsection 11-5-1:: 
- - LATEXFLAGS, 11.5.1.3*Note Subsection 11-5-1:: 
- - LaTeXDocument, 11.5.2.1*Note Subsection 11-5-2:: 
- - LaTeXDocumentCopy, 11.5.2.5*Note Subsection 11-5-2:: 
- - LaTeXDocumentInstall, 11.5.2.6*Note Subsection 11-5-2:: 
- - LD, 11.3.1.12*Note Subsection 11-3-1:: 
- - LDFLAGS, 11.3.1.13*Note Subsection 11-3-1:: 
- - LEX, 11.3.1.15*Note Subsection 11-3-1:: 
+ - LATEX, 11.6.1.1*Note Subsection 11-6-1:: 
+ - LATEXFLAGS, 11.6.1.3*Note Subsection 11-6-1:: 
+ - LaTeXDocument, 11.6.2.1*Note Subsection 11-6-2:: 
+ - LaTeXDocumentCopy, 11.6.2.5*Note Subsection 11-6-2:: 
+ - LaTeXDocumentInstall, 11.6.2.6*Note Subsection 11-6-2:: 
+ - LD, 11.4.1.12*Note Subsection 11-4-1:: 
+ - LDFLAGS, 11.4.1.13*Note Subsection 11-4-1:: 
+ - LEX, 11.4.1.15*Note Subsection 11-4-1:: 
  - Lexer, 8.11.7*Note Subsection 8-11-7:: 
- - LIBS, 11.3.1.7*Note Subsection 11-3-1:: 
- - LocalCGeneratedFiles, 11.3.2.1*Note Subsection 11-3-2:: 
- - LocalOCamlGeneratedFiles, 11.4.3.5*Note Subsection 11-4-3:: 
- - LocalTeXGeneratedFiles, 11.5.2.4*Note Subsection 11-5-2:: 
+ - LIBS, 11.4.1.7*Note Subsection 11-4-1:: 
+ - LocalCGeneratedFiles, 11.4.2.1*Note Subsection 11-4-2:: 
+ - LocalOCamlGeneratedFiles, 11.5.3.5*Note Subsection 11-5-3:: 
+ - LocalTeXGeneratedFiles, 11.6.2.4*Note Subsection 11-6-2:: 
  - Location, 10.1.18*Note Subsection 10-1-18:: 
  - land, 7.4.3*Note Subsection 7-4-3:: 
  - le, 7.4.4*Note Subsection 7-4-4:: 
@@ -1096,7 +1432,7 @@ Appendix C     Index
  - lxor, 7.4.3*Note Subsection 7-4-3:: 
  
  - MACHINE, 7.1.5*Note Subsection 7-1-5:: 
- - MAKEINDEX, 11.5.1.5*Note Subsection 11-5-1:: 
+ - MAKEINDEX, 11.6.1.5*Note Subsection 11-6-1:: 
  - Map, 10.1.2*Note Subsection 10-1-2:: 
  - mapprefix, 7.3.22*Note Subsection 7-3-22:: 
  - mapsuffix, 7.3.16*Note Subsection 7-3-16:: 
@@ -1107,7 +1443,7 @@ Appendix C     Index
  - mod, 7.4.3*Note Subsection 7-4-3:: 
  - mul, 7.4.3*Note Subsection 7-4-3:: 
  
- - NATIVE_ENABLED, 11.4.1.17*Note Subsection 11-4-1:: 
+ - NATIVE_ENABLED, 11.5.1.17*Note Subsection 11-5-1:: 
  - NODENAME, 7.1.3*Note Subsection 7-1-3:: 
  - Node, 10.1.12*Note Subsection 10-1-12:: 
  - Number, 10.1.3*Note Subsection 10-1-3:: 
@@ -1118,56 +1454,56 @@ Appendix C     Index
  - nth-tl, 7.3.7*Note Subsection 7-3-7:: 
  
  - Object, 10.1.1*Note Subsection 10-1-1:: 
- - OCAML_BYTE_LINK_FLAGS, 11.4.2.6*Note Subsection 11-4-2:: 
- - OCAML_CLIBS, 11.4.3.3*Note Subsection 11-4-3:: 
- - OCAML_LIB_FLAGS, 11.4.3.4*Note Subsection 11-4-3:: 
- - OCAML_LIBS, 11.4.3.1*Note Subsection 11-4-3:: 
- - OCAML_LINK_FLAGS, 11.4.2.8*Note Subsection 11-4-2:: 
- - OCAML_NATIVE_LINK_FLAGS, 11.4.2.7*Note Subsection 11-4-2:: 
- - OCAML_OTHER_LIBS, 11.4.3.2*Note Subsection 11-4-3:: 
- - OCAMLC, 11.4.1.2*Note Subsection 11-4-1:: 
- - OCAMLCFLAGS, 11.4.2.3*Note Subsection 11-4-2:: 
- - OCAMLDEP, 11.4.1.8*Note Subsection 11-4-1:: 
- - OCAMLDEPFLAGS, 11.4.2.1*Note Subsection 11-4-2:: 
- - OCAMLFIND, 11.4.1.13*Note Subsection 11-4-1:: 
- - OCAMLFINDFLAGS, 11.4.1.14*Note Subsection 11-4-1:: 
- - OCAMLFLAGS, 11.4.2.5*Note Subsection 11-4-2:: 
- - OCAMLINCLUDES, 11.4.1.12*Note Subsection 11-4-1:: 
- - OCAMLLEX, 11.4.1.5*Note Subsection 11-4-1:: 
- - OCAMLLEXFLAGS, 11.4.1.6*Note Subsection 11-4-1:: 
- - OCAMLLINK, 11.4.1.10*Note Subsection 11-4-1:: 
- - OCAMLMKTOP, 11.4.1.9*Note Subsection 11-4-1:: 
- - OCAMLOPT, 11.4.1.3*Note Subsection 11-4-1:: 
- - OCAMLOPTFLAGS, 11.4.2.4*Note Subsection 11-4-2:: 
- - OCAMLOPTLINK, 11.4.1.11*Note Subsection 11-4-1:: 
- - OCAMLPACKS, 11.4.1.15*Note Subsection 11-4-1:: 
- - OCAMLPPFLAGS, 11.4.2.2*Note Subsection 11-4-2:: 
- - OCAMLYACC, 11.4.1.7*Note Subsection 11-4-1:: 
- - OCamlGeneratedFiles, 11.4.3.5*Note Subsection 11-4-3:: 
- - OCamlLibrary, 11.4.3.6*Note Subsection 11-4-3:: 
- - OCamlLibraryCopy, 11.4.3.9*Note Subsection 11-4-3:: 
- - OCamlLibraryInstall, 11.4.3.10*Note Subsection 11-4-3:: 
- - OCamlPackage, 11.4.3.8*Note Subsection 11-4-3:: 
- - OCamlProgram, 11.4.3.11*Note Subsection 11-4-3:: 
- - OCamlProgramCopy, 11.4.3.12*Note Subsection 11-4-3:: 
- - OCamlProgramInstall, 11.4.3.13*Note Subsection 11-4-3:: 
+ - OCAML_BYTE_LINK_FLAGS, 11.5.2.6*Note Subsection 11-5-2:: 
+ - OCAML_CLIBS, 11.5.3.3*Note Subsection 11-5-3:: 
+ - OCAML_LIB_FLAGS, 11.5.3.4*Note Subsection 11-5-3:: 
+ - OCAML_LIBS, 11.5.3.1*Note Subsection 11-5-3:: 
+ - OCAML_LINK_FLAGS, 11.5.2.8*Note Subsection 11-5-2:: 
+ - OCAML_NATIVE_LINK_FLAGS, 11.5.2.7*Note Subsection 11-5-2:: 
+ - OCAML_OTHER_LIBS, 11.5.3.2*Note Subsection 11-5-3:: 
+ - OCAMLC, 11.5.1.2*Note Subsection 11-5-1:: 
+ - OCAMLCFLAGS, 11.5.2.3*Note Subsection 11-5-2:: 
+ - OCAMLDEP, 11.5.1.8*Note Subsection 11-5-1:: 
+ - OCAMLDEPFLAGS, 11.5.2.1*Note Subsection 11-5-2:: 
+ - OCAMLFIND, 11.5.1.13*Note Subsection 11-5-1:: 
+ - OCAMLFINDFLAGS, 11.5.1.14*Note Subsection 11-5-1:: 
+ - OCAMLFLAGS, 11.5.2.5*Note Subsection 11-5-2:: 
+ - OCAMLINCLUDES, 11.5.1.12*Note Subsection 11-5-1:: 
+ - OCAMLLEX, 11.5.1.5*Note Subsection 11-5-1:: 
+ - OCAMLLEXFLAGS, 11.5.1.6*Note Subsection 11-5-1:: 
+ - OCAMLLINK, 11.5.1.10*Note Subsection 11-5-1:: 
+ - OCAMLMKTOP, 11.5.1.9*Note Subsection 11-5-1:: 
+ - OCAMLOPT, 11.5.1.3*Note Subsection 11-5-1:: 
+ - OCAMLOPTFLAGS, 11.5.2.4*Note Subsection 11-5-2:: 
+ - OCAMLOPTLINK, 11.5.1.11*Note Subsection 11-5-1:: 
+ - OCAMLPACKS, 11.5.1.15*Note Subsection 11-5-1:: 
+ - OCAMLPPFLAGS, 11.5.2.2*Note Subsection 11-5-2:: 
+ - OCAMLYACC, 11.5.1.7*Note Subsection 11-5-1:: 
+ - OCamlGeneratedFiles, 11.5.3.5*Note Subsection 11-5-3:: 
+ - OCamlLibrary, 11.5.3.6*Note Subsection 11-5-3:: 
+ - OCamlLibraryCopy, 11.5.3.9*Note Subsection 11-5-3:: 
+ - OCamlLibraryInstall, 11.5.3.10*Note Subsection 11-5-3:: 
+ - OCamlPackage, 11.5.3.8*Note Subsection 11-5-3:: 
+ - OCamlProgram, 11.5.3.11*Note Subsection 11-5-3:: 
+ - OCamlProgramCopy, 11.5.3.12*Note Subsection 11-5-3:: 
+ - OCamlProgramInstall, 11.5.3.13*Note Subsection 11-5-3:: 
  - OMAKE_VERSION, 7.1.7*Note Subsection 7-1-7:: 
  - OMAKEFLAGS, A.5.1*Note Subsection A-5-1:: 
  - OMAKELIB, A.5.2*Note Subsection A-5-2:: 
- - OMakeFlags, 11.1.0.1*Note Section 11-1:: 
+ - OMakeFlags, 11.2.0.1*Note Section 11-2:: 
  - OMakefile, 2.8*Note Section 2-8::, 3*Note Chapter 3:: 
  - OMakeroot, 2.8*Note Section 2-8::, 3*Note Chapter 3::,
-   11.2*Note Section 11-2:: 
- - OMakeVersion, 11.1.0.2*Note Section 11-1:: 
+   11.3*Note Section 11-3:: 
+ - OMakeVersion, 11.2.0.2*Note Section 11-2:: 
  - OS_VERSION, 7.1.4*Note Subsection 7-1-4:: 
  - OSTYPE, 7.1.1*Note Subsection 7-1-1:: 
  - OutChannel, 10.1.17*Note Subsection 10-1-17:: 
  - objects, 4.11*Note Section 4-11:: 
  - or, 7.2.4*Note Subsection 7-2-4:: 
  
- - PATHSEP, 11.2.2.2*Note Subsection 11-2-2:: 
- - PDFLATEX, 11.5.1.10*Note Subsection 11-5-1:: 
- - PDFLATEXFLAGS, 11.5.1.11*Note Subsection 11-5-1:: 
+ - PATHSEP, 11.3.2.2*Note Subsection 11-3-2:: 
+ - PDFLATEX, 11.6.1.10*Note Subsection 11-6-1:: 
+ - PDFLATEXFLAGS, 11.6.1.11*Note Subsection 11-6-1:: 
  - PID, 7.1.10*Note Subsection 7-1-10:: 
  - Position, 10.1.19*Note Subsection 10-1-19:: 
  - Protocol, 8.8.24*Note Subsection 8-8-24:: 
@@ -1177,6 +1513,7 @@ Appendix C     Index
  - printv, 8.10*Note Section 8-10:: 
  - printvln, 8.10*Note Section 8-10:: 
  - private., 4.15*Note Section 4-15:: 
+ - project-directories, 11.7.0.10*Note Section 11-7:: 
  - prompt, 12.1.1*Note Subsection 12-1-1:: 
  - protected., 4.16*Note Section 4-16:: 
  - public., 4.17*Note Section 4-17:: 
@@ -1185,7 +1522,7 @@ Appendix C     Index
  - quote, 7.3.12*Note Subsection 7-3-12:: 
  - quote-argv, 7.3.13*Note Subsection 7-3-13:: 
  
- - ROOT, 11.2.1.1*Note Subsection 11-2-1:: 
+ - ROOT, 11.3.1.1*Note Subsection 11-3-1:: 
  - Rule, 10.1.10*Note Subsection 10-1-10:: 
  - RuntimeException, 10.1.21*Note Subsection 10-1-21:: 
  - raise, 7.2.8*Note Subsection 7-2-8:: 
@@ -1201,24 +1538,24 @@ Appendix C     Index
  - rev, 7.3.9*Note Subsection 7-3-9:: 
  - rewind, 8.8.10*Note Subsection 8-8-10:: 
  - rootname, 8.1.5*Note Subsection 8-1-5:: 
- - rule, 11.6.0.9*Note Section 11-6:: 
+ - rule, 11.7.0.11*Note Section 11-7:: 
  - rule, options, 6.5*Note Section 6-5:: 
  - rule, scoping, 6.13*Note Section 6-13:: 
  - rules, bounded implicit, 6.2*Note Section 6-2:: 
  - rules, implicit, 6.1*Note Section 6-1:: 
  
- - SCANNER_MODE, 11.2.1.7*Note Subsection 11-2-1:: 
+ - SCANNER_MODE, 11.3.1.7*Note Subsection 11-3-1:: 
  - Sequence, 10.1.6*Note Subsection 10-1-6:: 
  - Service, 8.8.26*Note Subsection 8-8-26:: 
  - Shell, 10.1.22*Note Subsection 10-1-22:: 
- - STDROOT, 11.2.1.4*Note Subsection 11-2-1:: 
+ - STDROOT, 11.3.1.4*Note Subsection 11-3-1:: 
  - Stat, 8.5.2*Note Subsection 8-5-2:: 
- - StaticCLibrary, 11.3.3.1*Note Subsection 11-3-3:: 
- - StaticCLibraryCopy, 11.3.3.2*Note Subsection 11-3-3:: 
- - StaticCLibraryInstall, 11.3.3.3*Note Subsection 11-3-3:: 
- - StaticCObject, 11.3.3.4*Note Subsection 11-3-3:: 
- - StaticCObjectCopy, 11.3.3.4*Note Subsection 11-3-3:: 
- - StaticCObjectInstall, 11.3.3.4*Note Subsection 11-3-3:: 
+ - StaticCLibrary, 11.4.3.1*Note Subsection 11-4-3:: 
+ - StaticCLibraryCopy, 11.4.3.2*Note Subsection 11-4-3:: 
+ - StaticCLibraryInstall, 11.4.3.3*Note Subsection 11-4-3:: 
+ - StaticCObject, 11.4.3.4*Note Subsection 11-4-3:: 
+ - StaticCObjectCopy, 11.4.3.4*Note Subsection 11-4-3:: 
+ - StaticCObjectInstall, 11.4.3.4*Note Subsection 11-4-3:: 
  - String, 10.1.8*Note Subsection 10-1-8:: 
  - SYSNAME, 7.1.2*Note Subsection 7-1-2:: 
  - scan, 8.11.4*Note Subsection 8-11-4:: 
@@ -1254,11 +1591,11 @@ Appendix C     Index
  
  - TARGETS, 7.1.11*Note Subsection 7-1-11:: 
  - Target, 10.1.11*Note Subsection 10-1-11:: 
- - TETEX2_ENABLED, 11.5.1.2*Note Subsection 11-5-1:: 
- - TEXDEPS, 11.5.2.3*Note Subsection 11-5-2:: 
- - TEXINPUTS, 11.5.2.2*Note Subsection 11-5-2:: 
- - TeXGeneratedFiles, 11.5.2.4*Note Subsection 11-5-2:: 
- - target, 11.6.0.8*Note Section 11-6:: 
+ - TETEX2_ENABLED, 11.6.1.2*Note Subsection 11-6-1:: 
+ - TEXDEPS, 11.6.2.3*Note Subsection 11-6-2:: 
+ - TEXINPUTS, 11.6.2.2*Note Subsection 11-6-2:: 
+ - TeXGeneratedFiles, 11.6.2.4*Note Subsection 11-6-2:: 
+ - target, 11.7.0.8*Note Section 11-7:: 
  - target-exists, 8.3.1*Note Subsection 8-3-1:: 
  - target-is-proper, 8.3.1*Note Subsection 8-3-1:: 
  - tell, 8.8.11*Note Subsection 8-8-11:: 
@@ -1266,8 +1603,8 @@ Appendix C     Index
  - tmpfile, 8.1.2*Note Subsection 8-1-2:: 
  - try, 7.2.7*Note Subsection 7-2-7:: 
  
- - USE_OCAMLFIND, 11.4.1.1*Note Subsection 11-4-1:: 
- - USEPDFLATEX, 11.5.1.12*Note Subsection 11-5-1:: 
+ - USE_OCAMLFIND, 11.5.1.1*Note Subsection 11-5-1:: 
+ - USEPDFLATEX, 11.6.1.12*Note Subsection 11-6-1:: 
  - USER, 7.1.8*Note Subsection 7-1-8:: 
  - uge, 7.4.4*Note Subsection 7-4-4:: 
  - ugt, 7.4.4*Note Subsection 7-4-4:: 
@@ -1278,7 +1615,7 @@ Appendix C     Index
  - unlink, 8.5.4*Note Subsection 8-5-4:: 
  - uppercase, 7.3.33*Note Subsection 7-3-33:: 
  
- - VERBOSE, 11.2.1.5*Note Subsection 11-2-1:: 
+ - VERBOSE, 11.3.1.5*Note Subsection 11-3-1:: 
  - variable definition, A.3.21*Note Subsection A-3-21:: 
  - vmount, 2.9*Note Section 2-9::, 8.6.1*Note Subsection 8-6-1:: 
  
@@ -1288,120 +1625,5 @@ Appendix C     Index
  - while, 7.3.37*Note Subsection 7-3-37:: 
  - write, 8.8.8*Note Subsection 8-8-8:: 
  
- - YACC, 11.3.1.14*Note Subsection 11-3-1:: 
-     
-
-Node: Appendix D,	Next: Appendix E,	Prev: Appendix C,	Up: Top
-  
-
-Appendix D     Index of variables
-*********************************
-  
-  
- - ABORT_ON_COMMAND_ERROR, 11.2.1.6*Note Subsection 11-2-1:: 
- - ABORT_ON_DEPENDENCY_ERRORS, 11.4.3.7*Note Subsection 11-4-3:: 
- - AR, 11.3.1.10*Note Subsection 11-3-1:: 
- - AROUT, 11.3.1.11*Note Subsection 11-3-1:: 
- - AS, 11.3.1.8*Note Subsection 11-3-1:: 
- - ASFLAGS, 11.3.1.9*Note Subsection 11-3-1:: 
- 
- - BIBTEX, 11.5.1.4*Note Subsection 11-5-1:: 
- - BYTE_ENABLED, 11.4.1.16*Note Subsection 11-4-1:: 
- 
- - CAMLP4, 11.4.1.4*Note Subsection 11-4-1:: 
- - CC, 11.3.1.1*Note Subsection 11-3-1:: 
- - CFLAGS, 11.3.1.4*Note Subsection 11-3-1:: 
- - CPP, 11.3.1.3*Note Subsection 11-3-1:: 
- - CWD, 11.2.1.2*Note Subsection 11-2-1:: 
- - CXX, 11.3.1.2*Note Subsection 11-3-1:: 
- - CXXFLAGS, 11.3.1.5*Note Subsection 11-3-1:: 
- 
- - DIRSEP, 11.2.2.3*Note Subsection 11-2-2:: 
- - DVIPDFM, 11.5.1.8*Note Subsection 11-5-1:: 
- - DVIPDFMFLAGS, 11.5.1.9*Note Subsection 11-5-1:: 
- - DVIPS, 11.5.1.6*Note Subsection 11-5-1:: 
- - DVIPSFLAGS, 11.5.1.7*Note Subsection 11-5-1:: 
- 
- - EMPTY, 11.2.1.3*Note Subsection 11-2-1:: 
- - EXE, 11.2.2.7*Note Subsection 11-2-2:: 
- - EXT_ASM, 11.2.2.6*Note Subsection 11-2-2:: 
- - EXT_LIB, 11.2.2.4*Note Subsection 11-2-2:: 
- - EXT_OBJ, 11.2.2.5*Note Subsection 11-2-2:: 
- 
- - HOME, 7.1.9*Note Subsection 7-1-9:: 
- - HOST, 7.1.6*Note Subsection 7-1-6:: 
- 
- - INCLUDES, 11.3.1.6*Note Subsection 11-3-1:: 
- - INSTALL, 11.2.2.1*Note Subsection 11-2-2:: 
- - ignoreeof, 12.1.2*Note Subsection 12-1-2:: 
- 
- - LATEX, 11.5.1.1*Note Subsection 11-5-1:: 
- - LATEXFLAGS, 11.5.1.3*Note Subsection 11-5-1:: 
- - LD, 11.3.1.12*Note Subsection 11-3-1:: 
- - LDFLAGS, 11.3.1.13*Note Subsection 11-3-1:: 
- - LEX, 11.3.1.15*Note Subsection 11-3-1:: 
- - LIBS, 11.3.1.7*Note Subsection 11-3-1:: 
- 
- - MACHINE, 7.1.5*Note Subsection 7-1-5:: 
- - MAKEINDEX, 11.5.1.5*Note Subsection 11-5-1:: 
- 
- - NATIVE_ENABLED, 11.4.1.17*Note Subsection 11-4-1:: 
- - NODENAME, 7.1.3*Note Subsection 7-1-3:: 
- 
- - OCAML_BYTE_LINK_FLAGS, 11.4.2.6*Note Subsection 11-4-2:: 
- - OCAML_CLIBS, 11.4.3.3*Note Subsection 11-4-3:: 
- - OCAML_LIB_FLAGS, 11.4.3.4*Note Subsection 11-4-3:: 
- - OCAML_LIBS, 11.4.3.1*Note Subsection 11-4-3:: 
- - OCAML_LINK_FLAGS, 11.4.2.8*Note Subsection 11-4-2:: 
- - OCAML_NATIVE_LINK_FLAGS, 11.4.2.7*Note Subsection 11-4-2:: 
- - OCAML_OTHER_LIBS, 11.4.3.2*Note Subsection 11-4-3:: 
- - OCAMLC, 11.4.1.2*Note Subsection 11-4-1:: 
- - OCAMLCFLAGS, 11.4.2.3*Note Subsection 11-4-2:: 
- - OCAMLDEP, 11.4.1.8*Note Subsection 11-4-1:: 
- - OCAMLDEPFLAGS, 11.4.2.1*Note Subsection 11-4-2:: 
- - OCAMLFIND, 11.4.1.13*Note Subsection 11-4-1:: 
- - OCAMLFINDFLAGS, 11.4.1.14*Note Subsection 11-4-1:: 
- - OCAMLFLAGS, 11.4.2.5*Note Subsection 11-4-2:: 
- - OCAMLINCLUDES, 11.4.1.12*Note Subsection 11-4-1:: 
- - OCAMLLEX, 11.4.1.5*Note Subsection 11-4-1:: 
- - OCAMLLEXFLAGS, 11.4.1.6*Note Subsection 11-4-1:: 
- - OCAMLLINK, 11.4.1.10*Note Subsection 11-4-1:: 
- - OCAMLMKTOP, 11.4.1.9*Note Subsection 11-4-1:: 
- - OCAMLOPT, 11.4.1.3*Note Subsection 11-4-1:: 
- - OCAMLOPTFLAGS, 11.4.2.4*Note Subsection 11-4-2:: 
- - OCAMLOPTLINK, 11.4.1.11*Note Subsection 11-4-1:: 
- - OCAMLPACKS, 11.4.1.15*Note Subsection 11-4-1:: 
- - OCAMLPPFLAGS, 11.4.2.2*Note Subsection 11-4-2:: 
- - OCAMLYACC, 11.4.1.7*Note Subsection 11-4-1:: 
- - OMAKE_VERSION, 7.1.7*Note Subsection 7-1-7:: 
- - OS_VERSION, 7.1.4*Note Subsection 7-1-4:: 
- - OSTYPE, 7.1.1*Note Subsection 7-1-1:: 
- 
- - PATHSEP, 11.2.2.2*Note Subsection 11-2-2:: 
- - PDFLATEX, 11.5.1.10*Note Subsection 11-5-1:: 
- - PDFLATEXFLAGS, 11.5.1.11*Note Subsection 11-5-1:: 
- - PID, 7.1.10*Note Subsection 7-1-10:: 
- - prompt, 12.1.1*Note Subsection 12-1-1:: 
- 
- - ROOT, 11.2.1.1*Note Subsection 11-2-1:: 
- 
- - SCANNER_MODE, 11.2.1.7*Note Subsection 11-2-1:: 
- - STDROOT, 11.2.1.4*Note Subsection 11-2-1:: 
- - SYSNAME, 7.1.2*Note Subsection 7-1-2:: 
- - stderr, 8.8.4*Note Subsection 8-8-4:: 
- - stdin, 8.8.2*Note Subsection 8-8-2:: 
- - stdout, 8.8.3*Note Subsection 8-8-3:: 
- 
- - TARGETS, 7.1.11*Note Subsection 7-1-11:: 
- - TETEX2_ENABLED, 11.5.1.2*Note Subsection 11-5-1:: 
- - TEXDEPS, 11.5.2.3*Note Subsection 11-5-2:: 
- - TEXINPUTS, 11.5.2.2*Note Subsection 11-5-2:: 
- 
- - USE_OCAMLFIND, 11.4.1.1*Note Subsection 11-4-1:: 
- - USEPDFLATEX, 11.5.1.12*Note Subsection 11-5-1:: 
- - USER, 7.1.8*Note Subsection 7-1-8:: 
- 
- - VERBOSE, 11.2.1.5*Note Subsection 11-2-1:: 
- 
- - YACC, 11.3.1.14*Note Subsection 11-3-1:: 
+ - YACC, 11.4.1.14*Note Subsection 11-4-1:: 
      

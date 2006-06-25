@@ -335,7 +335,20 @@ When \verb+omake+ is invoked, the options are processed in the following order.
 \item Any individual calls the the \verb+OMakeFlags+ function modify the options locally.
 \end{enumerate}
 
-For forward compatibility, all other letters are silently ignored.
+\section{.omakerc}
+\label{section:.omakerc}
+\index{.omakerc}
+
+If the \verb+$(HOME)/.omakerc+ exists, it is read before any of the \verb+OMakefiles+ in your
+project.  The \verb+.omakerc+ file is frequently used for user-specific customization.
+For example, instead of defining the \verb+OMAKEFLAGS+ environment variable, you could add
+a line to your \verb+.omakerc+.
+
+\begin{verbatim}
+    $(HOME)/.omakerc:
+        # My private options
+        OMakeFlags(-S --progress)
+\end{verbatim}    
 
 % -*-
 % Local Variables:

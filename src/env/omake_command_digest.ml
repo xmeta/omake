@@ -1452,7 +1452,7 @@ let rec squash_value pos buf v =
        | ValClass _
        | ValOther _ as v ->
             let print_error buf =
-               eprintf "@[<v 3>Non digestable value:@ @[<hv 3>%a@]@ Contact the OMake team at omake@metaprl.org if you think this should be supported@]@." pp_print_value v
+               eprintf "@[<v 3>Non digestable value:@ @[<hv 3>%a@]@ Contact the OMake team at omake@@metaprl.org if you think this should be supported@]@." pp_print_value v
             in
                raise (OmakeException (pos, LazyError print_error))
    end;

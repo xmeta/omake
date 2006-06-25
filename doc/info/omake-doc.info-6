@@ -1,5 +1,188 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 10-1-21,	Next: Subsection 10-1-22,	Prev: Subsection 10-1-20,	Up: Section 10-1
+  
+
+10.1.21   RuntimeException
+==========================
+
+  Parent objects: `Exception'.
+  The `RuntimeException' object represents an exception from the runtime
+system. It has the following fields.
+  
+  
+ - `position': a string representing the location where the  exception
+   was raised. 
+ - `message': a string containing the exception message. 
+   
+
+Node: Subsection 10-1-22,	Next: Chapter 11,	Prev: Subsection 10-1-21,	Up: Section 10-1
+  
+
+10.1.22   Shell
+===============
+
+  Parent objects: `Object'.
+  The `Shell' object contains the collection of builtin functions
+available as shell commands.
+  You can define aliases by extending this object with additional
+methods. All methods in this class are called with one argument: a
+single array containing an argument list.
+  
+  
+ - `echo'
+ The `echo' function prints its arguments to the standard output
+   channel. 
+ - `jobs'
+ The `jobs' method prints the status of currently running commands. 
+ - `cd'
+ The `cd' function changes the current directory. Note that the current
+   directory follows the usual scoping rules. For example, the following
+   program lists the files in the `foo' directory, but the current
+   directory is not changed.
+   <<
+        section
+           echo Listing files in the foo directory...
+           cd foo
+           ls
+     
+        echo Listing files in the current directory...
+        ls
+   >>
+ 
+ - `bg'
+ The `bg' method places a job in the background. The job is resumed if
+   it has been suspended. 
+ - `fg'
+ The `fg' method brings a job to the foreground. The job is resumed if
+   it has been suspended. 
+ - `stop'
+ The `stop' method suspends a running job. 
+ - `wait'
+ The `wait' function waits for a running job to terminate. It is not
+   possible to wait for a suspended job.
+ The job is not brought to the foreground. If the `wait' is interrupted,
+   the job continues to run in the background. 
+ - `kill'
+ The `kill' function signal a job.
+ `kill [signal] <pid...>'.
+ The signals are either numeric, or symbolic. The symbolic signals are
+   named as follows.
+ ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2, CHLD, STOP,
+   TSTP, TTIN, TTOU, VTALRM, PROF. 
+ - `exit'
+ The `exit' function terminates the current session. 
+ - `which', `where'
+ See the documentation for the corresponding functions. 
+ - `rehash'
+ Reset the search path. 
+ - `history'
+ Print the current command-line history. 
+ - Win32 functions.
+ Win32 doesn't provide very many programs for scripting, except  for the
+   functions that are builtin to the DOS `cmd.exe'.  The following
+   functions are defined on Win32 and only on Win32.  On other systems,
+   it is expected that these programs already  exist.
+ 
+     
+    - `grep'
+      <<
+           grep [-q] [-n] pattern files...
+      >>
+    
+    The `grep' function calls the omake `grep' function. 
+  By default, omake uses internal versions of the following commands:
+   `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
+   really want to use the standard system versions of these commands,
+   set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
+   `OMakeroot' file.
+ 
+     
+    - `mkdir'
+      <<
+            mkdir [-m <mode>] [-p] files
+      >>
+    
+    The `mkdir' function is used to create directories. The -verb+-m+
+      option can be used to specify the permission mode of the created
+      directory. If the `-p' option is specified, the full path is
+      created. 
+    - `cp' 
+    - `mv'
+      <<
+            cp [-f] [-i] [-v] src dst
+            cp [-f] [-i] [-v] files dst
+            mv [-f] [-i] [-v] src dst
+            mv [-f] [-i] [-v] files dst
+      >>
+    
+    The `cp' function copies a `src' file to a `dst' file, overwriting
+      it if it already exists. If more than one source file is
+      specified, the final file must be a directory, and the source
+      files are copied into the directory.
+    
+        
+       -f  Copy files forcibly, do not prompt. 
+       -i  Prompt before removing destination files. 
+       -v  Explain what is happening. 
+     
+    - `rm'
+      <<
+           rm [-f] [-i] [-v] [-r] files
+           rmdir [-f] [-i] [-v] [-r] dirs
+      >>
+    
+    The `rm' function removes a set of files. No warnings are issued if
+      the files do not exist, or if they cannot be removed.
+    Options: 
+        
+       -f  Forcibly remove files, do not prompt. 
+       -i  Prompt before removal. 
+       -v  Explain what is happening. 
+       -r  Remove contents of directories recursively. 
+     
+    - `chmod'
+      <<
+            chmod [-r] [-v] [-f] mode files
+      >>
+    
+    The `chmod' function changes the permissions on a set of files or
+      directories. This function does nothing on Win32. The `mode' may
+      be specified as an octal number, or in symbolic form
+      `[ugoa]*['-=][rwxXstugo]+. See the man page for `chmod' for
+      details.
+    Options: 
+        
+       -r  Change permissions of all files in a directory recursively. 
+       -v  Explain what is happening. 
+       -f  Continue on errors. 
+     
+    - `cat'
+      <<
+           cat files...
+      >>
+    
+    The `cat' function prints the contents of the files to stdout 
+    - `test'
+      <<
+           test \emph{expression}
+           \verb+[+ \emph{expression} +]+
+           \verb+[ --help+
+           \verb+[ --version+
+      >>
+    
+    See the documentation for the `test' function.
+    
+    - `find'
+      <<
+           find \emph{expression}
+      >>
+    
+    See the documentation for the `find' function.
+ 
+  
+    
+
 Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-1,	Up: Top
   
 
@@ -8,23 +191,91 @@ Chapter 11     Build functions
      
 * Menu:
 
-* Section 11-1::	Options and versioning
-* Section 11-2::	The OMakeroot file
-* Section 11-3::	Building C programs
-* Section 11-4::	Building OCaml programs
-* Section 11-5::	Building LaTeX programs
-* Section 11-6::	Examining the dependency graph
+* Section 11-1::	Builtin .PHONY targets
+* Section 11-2::	Options and versioning
+* Section 11-3::	The OMakeroot file
+* Section 11-4::	Building C programs
+* Section 11-5::	Building OCaml programs
+* Section 11-6::	Building LaTeX programs
+* Section 11-7::	Examining the dependency graph
 
 
 Node: Section 11-1,	Next: Section 11-2,	Prev: Chapter 11,	Up: Chapter 11
   
 
-11.1   Options and versioning
+11.1   Builtin .PHONY targets
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The complete set of builtin `.PHONY' targets include the following.
+  
+  
+ .PHONY  Declares new phony targets (Section
+   6.12*Note Section 6-12::). 
+ .DEFAULT  Declare the default build targets (Section
+   6.9*Note Section 6-9::). 
+ .SUBDIRS  Include a directory as part of the project (Section
+   6.10*Note Section 6-10::). 
+ .SCANNER  Define a dependency scanner (Section
+   6.10*Note Section 6-10::). 
+ .INCLUDE  Include a file (Section 6.11*Note Section 6-11::). 
+ .ORDER  Define a file-dependency ordering rule (Section
+   8.3.5*Note Subsection 8-3-5::). 
+ .BUILD_BEGIN  Commands to be executed at the beginning of a build. 
+ .BUILD_SUCCESS  Commands to be executed if the build is successful. 
+ .BUILD_FAILURE  Commands to be executed if the build fails. 
+  
+
+
+
+  The `.BUILD' targets can be used to specify commands to be executed at
+the beginning and end of the build. The `.BUILD_BEGIN' target is built
+at the beginning of a project build, and one of `.BUILD_FAILURE' or
+`.BUILD_SUCCESS' is executed when the build terminates.
+  For example, the following set of rules simply print additional
+messages about the status of the build.
+<<
+     .BUILD_BEGIN:
+         echo Build starting
+  
+     .BUILD_SUCCESS:
+         echo The build was successful
+  
+     .BUILD_FAILURE:
+         println($"The build failed: $(length $(find-build-targets
+Failed)) targets could not be built")
+>>
+  
+  Another common use is to define notifications to be performed when the
+build completes. For example, the following rule will create a new X
+terminal displaying the summary of the build (see `BUILD_SUMMARY'
+7.1.12*Note Subsection 7-1-12::).
+<<
+      .BUILD_FAILURE:
+          xterm -e vi $(BUILD_SUMMARY)
+>>
+  
+  If you do not wish to add these rules directly to your project (which
+is probably a good idea if you work with others), you can define them in
+your `.omakerc' A.8*Note Section A-8::.
+  The `find-build-targets' function
+?? is useful for obtaining a firther
+summary of the build. Note that when output diversions are in effect
+(with the `--divert-*' options A*Note Appendix A::), any
+output produced by the commands is copied to a file. The name of the
+file is specified by the `output-file' field of the `Target'
+10.1.11*Note Subsection 10-1-11:: object. You may find this useful in
+defining custom build summaries. 
+
+Node: Section 11-2,	Next: Section 11-3,	Prev: Section 11-1,	Up: Chapter 11
+  
+
+11.2   Options and versioning
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
 
 
-11.1.0.1   OMakeFlags
+11.2.0.1   OMakeFlags
 ---------------------
 
 <<
@@ -44,7 +295,7 @@ command line.
 >>
   
 
-11.1.0.2   OMakeVersion
+11.2.0.2   OMakeVersion
 -----------------------
 
 <<
@@ -60,7 +311,7 @@ OMakefiles. It takes one or two arguments.
 version must lie between `version1' and `version2'.
   
 
-11.1.0.3   cmp-versions
+11.2.0.3   cmp-versions
 -----------------------
  
 <<
@@ -73,7 +324,7 @@ strings. It returns 0 when the two version strings are equal, a negative
 number when the first string represents an earlier version, and a
 positive number otherwise.
 
-11.1.0.4   DefineCommandVars
+11.2.0.4   DefineCommandVars
 ----------------------------
 
 <<
@@ -85,10 +336,10 @@ commandline. Variables definitions are passed on the command line in the
 form `name=value'. This function is primarily for internal use by omake
 to define these variables for the first time. 
 
-Node: Section 11-2,	Next: Subsection 11-2-1,	Prev: Section 11-1,	Up: Chapter 11
+Node: Section 11-3,	Next: Subsection 11-3-1,	Prev: Section 11-2,	Up: Chapter 11
   
 
-11.2   The OMakeroot file
+11.3   The OMakeroot file
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
    
@@ -96,42 +347,42 @@ Node: Section 11-2,	Next: Subsection 11-2-1,	Prev: Section 11-1,	Up: Chapter 11
 building standard projects.
 * Menu:
 
-* Subsection 11-2-1::	Variables
-* Subsection 11-2-2::	System variables
+* Subsection 11-3-1::	Variables
+* Subsection 11-3-2::	System variables
 
 
-Node: Subsection 11-2-1,	Next: Subsection 11-2-2,	Prev: Section 11-2,	Up: Section 11-2
+Node: Subsection 11-3-1,	Next: Subsection 11-3-2,	Prev: Section 11-3,	Up: Section 11-3
   
 
-11.2.1   Variables
+11.3.1   Variables
 ==================
 
 
-11.2.1.1   ROOT
+11.3.1.1   ROOT
 ---------------
  The root directory of
 the current project.
 
-11.2.1.2   CWD
+11.3.1.2   CWD
 --------------
  The current working
 directory (the directory is set for each OMakefile in the project).
 
-11.2.1.3   EMPTY
+11.3.1.3   EMPTY
 ----------------
  The empty string.
 
-11.2.1.4   STDROOT
+11.3.1.4   STDROOT
 ------------------
  The name of the
 standard installed OMakeroot file.
 
-11.2.1.5   VERBOSE
+11.3.1.5   VERBOSE
 ------------------
  Whether certain
 commands should be verbose (`false' by default).
 
-11.2.1.6   ABORT_ON_COMMAND_ERROR
+11.3.1.6   ABORT_ON_COMMAND_ERROR
 ---------------------------------
  If
 set to true, the construction of a target should  be aborted whenever
@@ -139,7 +390,7 @@ one of the commands to build it fail. This defaults to true,  and should
 normally be left that way.
   
 
-11.2.1.7   SCANNER_MODE
+11.3.1.7   SCANNER_MODE
 -----------------------
  This variable
 should be defined as one of four values  (defaults to `enabled'). 
@@ -155,104 +406,104 @@ should be defined as one of four values  (defaults to `enabled').
    `.SCANNER' rule, the build will terminate abnormally. 
    
 
-Node: Subsection 11-2-2,	Next: Section 11-3,	Prev: Subsection 11-2-1,	Up: Section 11-2
+Node: Subsection 11-3-2,	Next: Section 11-4,	Prev: Subsection 11-3-1,	Up: Section 11-3
   
 
-11.2.2   System variables
+11.3.2   System variables
 =========================
   
   
 
-11.2.2.1   INSTALL
+11.3.2.1   INSTALL
 ------------------
  The command to
 install a program (`install' on `Unix', `cp' on `Win32').
 
-11.2.2.2   PATHSEP
+11.3.2.2   PATHSEP
 ------------------
  The normal path
 separator (`:' on `Unix', `;' on `Win32').
 
-11.2.2.3   DIRSEP
+11.3.2.3   DIRSEP
 -----------------
  The normal directory
 separator (`/' on `Unix', `\' on `Win32').
 
-11.2.2.4   EXT_LIB
+11.3.2.4   EXT_LIB
 ------------------
  File suffix for a
 static library (default is `.a' on `Unix', and `.lib' on `Win32').
 
-11.2.2.5   EXT_OBJ
+11.3.2.5   EXT_OBJ
 ------------------
  File suffix for an
 object file (default is `.o' on `Unix', and `.obj' on `Win32').
 
-11.2.2.6   EXT_ASM
+11.3.2.6   EXT_ASM
 ------------------
  File suffix for an
 assembly file (default is `.s' on `Unix', and `.asm' on `Win32').
 
-11.2.2.7   EXE
+11.3.2.7   EXE
 --------------
  File suffix for
 executables (default is empty for `Unix', and `.exe' on `Win32' and
 `Cygwin'). 
 
-Node: Section 11-3,	Next: Subsection 11-3-1,	Prev: Section 11-2,	Up: Chapter 11
+Node: Section 11-4,	Next: Subsection 11-4-1,	Prev: Section 11-3,	Up: Chapter 11
   
 
-11.3   Building C programs
+11.4   Building C programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
   omake provides extensive support for building C programs.
 * Menu:
 
-* Subsection 11-3-1::	C configuration variables
-* Subsection 11-3-2::	Generated C files
-* Subsection 11-3-3::	Building C programs and Libraries
+* Subsection 11-4-1::	C configuration variables
+* Subsection 11-4-2::	Generated C files
+* Subsection 11-4-3::	Building C programs and Libraries
 
 
-Node: Subsection 11-3-1,	Next: Subsection 11-3-2,	Prev: Section 11-3,	Up: Section 11-3
+Node: Subsection 11-4-1,	Next: Subsection 11-4-2,	Prev: Section 11-4,	Up: Section 11-4
   
 
-11.3.1   C configuration variables
+11.4.1   C configuration variables
 ==================================
   
   The following variables can be redefined in your project.
   
 
-11.3.1.1   CC
+11.4.1.1   CC
 -------------
  The name of the C
 compiler (on `Unix' it defaults to `gcc' when `gcc' is present and  to
 `cc' otherwise; on `Win32' defaults to `cl /nologo').
 
-11.3.1.2   CXX
+11.4.1.2   CXX
 --------------
  The name of the C++
 compiler (on `Unix' it defaults to `gcc' when `gcc' is present  and to
 `c'++ otherwise; on `Win32' defaults to `cl /nologo').
 
-11.3.1.3   CPP
+11.4.1.3   CPP
 --------------
  The name of the C
 preprocessor (defaults to `cpp' on `Unix', and `cl /E' on `Win32').
 
-11.3.1.4   CFLAGS
+11.4.1.4   CFLAGS
 -----------------
  Compilation flags to
 pass to the C compiler (default empty on `Unix', and `/DWIN32'  on
 `Win32').
 
-11.3.1.5   CXXFLAGS
+11.4.1.5   CXXFLAGS
 -------------------
  Compilation flags
 to pass to the C++ compiler (default empty on `Unix', and `/DWIN32'  on
 `Win32').
 
-11.3.1.6   INCLUDES
+11.4.1.6   INCLUDES
 -------------------
  Additional
 directories that specify the search path to the C and C++ compilers
@@ -260,62 +511,62 @@ directories that specify the search path to the C and C++ compilers
 with the `-I' option.  The include path with `-I' prefixes is defined in
 the `PREFIXED_INCLUDES' variable.
 
-11.3.1.7   LIBS
+11.4.1.7   LIBS
 ---------------
  Additional libraries
 needed when building a program (default is empty).
 
-11.3.1.8   AS
+11.4.1.8   AS
 -------------
  The name of the
 assembler (defaults to `as' on `Unix', and `ml' on `Win32').
 
-11.3.1.9   ASFLAGS
+11.4.1.9   ASFLAGS
 ------------------
  Flags to pass to
 the assembler (default is empty on `Unix', and `/c /coff' on `Win32').
 
-11.3.1.10   AR
+11.4.1.10   AR
 --------------
  The name of the program
 to create static libraries (defaults to `ar cq' on `Unix',  and `lib' on
 `Win32').
 
-11.3.1.11   AROUT
+11.4.1.11   AROUT
 -----------------
  The option string
 that specifies the output file for `AR'.
 
-11.3.1.12   LD
+11.4.1.12   LD
 --------------
  The name of the linker
 (defaults to `ld' on `Unix', and `cl' on `Win32').
 
-11.3.1.13   LDFLAGS
+11.4.1.13   LDFLAGS
 -------------------
  Options to pass to
 the linker (default is empty).
 
-11.3.1.14   YACC
+11.4.1.14   YACC
 ----------------
  The name of the `yacc'
 parser generator (default is `yacc' on `Unix', empty on `Win32').
 
-11.3.1.15   LEX
+11.4.1.15   LEX
 ---------------
  The name of the `lex'
 lexer generator (default is `lex' on `Unix', empty on `Win32'). 
 
-Node: Subsection 11-3-2,	Next: Subsection 11-3-3,	Prev: Subsection 11-3-1,	Up: Section 11-3
+Node: Subsection 11-4-2,	Next: Subsection 11-4-3,	Prev: Subsection 11-4-1,	Up: Section 11-4
   
 
-11.3.2   Generated C files
+11.4.2   Generated C files
 ==========================
    Because the C scanners do not normally know anything about generated
 source files (such as generated header files), these files may need to
 be created before running the scanner.
 
-11.3.2.1   CGeneratedFiles, LocalCGeneratedFiles
+11.4.2.1   CGeneratedFiles, LocalCGeneratedFiles
 ------------------------------------------------
  
 <<
@@ -336,14 +587,14 @@ generated before any C files anywhere in the project are scanned for
 dependencies. The `LocalCGeneratedFiles' function follows the normal
 scoping rules of OMake.
 
-Node: Subsection 11-3-3,	Next: Section 11-4,	Prev: Subsection 11-3-2,	Up: Section 11-3
+Node: Subsection 11-4-3,	Next: Section 11-5,	Prev: Subsection 11-4-2,	Up: Section 11-4
   
 
-11.3.3   Building C programs and Libraries
+11.4.3   Building C programs and Libraries
 ==========================================
 
 
-11.3.3.1   StaticCLibrary
+11.4.3.1   StaticCLibrary
 -------------------------
 
   The `StaticCLibrary' builds a static library.
@@ -361,7 +612,7 @@ list does not include the object suffix. These are obtained from the
 >>
   
 
-11.3.3.2   StaticCLibraryCopy
+11.4.3.2   StaticCLibraryCopy
 -----------------------------
 
   The `StaticCLibraryCopy' function copies the static library to an
@@ -381,7 +632,7 @@ directory.
 >>
   
 
-11.3.3.3   StaticCLibraryInstall
+11.4.3.3   StaticCLibraryInstall
 --------------------------------
 
   The `StaticCLibraryInstall' function builds a library, and sets the
@@ -393,7 +644,7 @@ the target directory.
 >>
   
 
-11.3.3.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
+11.4.3.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@n
 ame{@fun201}
@@ -401,7 +652,7 @@ ame{@fun201}
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
 
-11.3.3.5   CProgram
+11.4.3.5   CProgram
 -------------------
 
   The `CProgram' function builds a C program from a set of object files
@@ -426,7 +677,7 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 >>
   
 
-11.3.3.6   CProgramCopy
+11.4.3.6   CProgramCopy
 -----------------------
 
   The `CProgramCopy' function copies a file to an install location.
@@ -436,7 +687,7 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 >>
   
 
-11.3.3.7   CProgramInstall
+11.4.3.7   CProgramInstall
 --------------------------
 
   The `CProgramInstall' function specifies a program to build, and a
@@ -449,121 +700,121 @@ location to install, simultaneously.
 >>
   
 
-11.3.3.8   CXXProgram, CXXProgramInstall
+11.4.3.8   CXXProgram, CXXProgramInstall
 ----------------------------------------
 
   The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
 their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
 for linking instead of `$(CC)' and `$(CFLAGS)'. 
 
-Node: Section 11-4,	Next: Subsection 11-4-1,	Prev: Section 11-3,	Up: Chapter 11
+Node: Section 11-5,	Next: Subsection 11-5-1,	Prev: Section 11-4,	Up: Chapter 11
   
 
-11.4   Building OCaml programs
+11.5   Building OCaml programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
 * Menu:
 
-* Subsection 11-4-1::	Variables for OCaml programs
-* Subsection 11-4-2::	OCaml command flags
-* Subsection 11-4-3::	Library variables
+* Subsection 11-5-1::	Variables for OCaml programs
+* Subsection 11-5-2::	OCaml command flags
+* Subsection 11-5-3::	Library variables
 
 
-Node: Subsection 11-4-1,	Next: Subsection 11-4-2,	Prev: Section 11-4,	Up: Section 11-4
+Node: Subsection 11-5-1,	Next: Subsection 11-5-2,	Prev: Section 11-5,	Up: Section 11-5
   
 
-11.4.1   Variables for OCaml programs
+11.5.1   Variables for OCaml programs
 =====================================
   
   The following variables can be redefined in your project.
 
-11.4.1.1   USE_OCAMLFIND
+11.5.1.1   USE_OCAMLFIND
 ------------------------
  Whether to
 use the `ocamlfind' utility (default `false\')
 
-11.4.1.2   OCAMLC
+11.5.1.2   OCAMLC
 -----------------
  The OCaml bytecode
 compiler (default `ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not
 set, otherwise `ocamlc').
 
-11.4.1.3   OCAMLOPT
+11.5.1.3   OCAMLOPT
 -------------------
  The OCaml
 native-code compiler (default `ocamlopt.opt' if it  exists and
 `USE_OCAMLFIND' is not set, otherwise `ocamlopt').
 
-11.4.1.4   CAMLP4
+11.5.1.4   CAMLP4
 -----------------
  The `camlp4'
 preprocessor (default `camlp4').
 
-11.4.1.5   OCAMLLEX
+11.5.1.5   OCAMLLEX
 -------------------
  The OCaml lexer
 generator (default `ocamllex').
 
-11.4.1.6   OCAMLLEXFLAGS
+11.5.1.6   OCAMLLEXFLAGS
 ------------------------
  The flags to
 pass to `ocamllex' (default `-q').
 
-11.4.1.7   OCAMLYACC
+11.5.1.7   OCAMLYACC
 --------------------
  The OCaml parser
 generator (default `ocamlyacc').
 
-11.4.1.8   OCAMLDEP
+11.5.1.8   OCAMLDEP
 -------------------
  The OCaml
 dependency analyzer (default `ocamldep').
 
-11.4.1.9   OCAMLMKTOP
+11.5.1.9   OCAMLMKTOP
 ---------------------
  The OCaml
 toploop compiler (default `ocamlmktop').
 
-11.4.1.10   OCAMLLINK
+11.5.1.10   OCAMLLINK
 ---------------------
  The OCaml
 bytecode linker (default `$(OCAMLC)').
 
-11.4.1.11   OCAMLOPTLINK
+11.5.1.11   OCAMLOPTLINK
 ------------------------
  The OCaml
 native-code linker (default `$(OCAMLOPT)').
 
-11.4.1.12   OCAMLINCLUDES
+11.5.1.12   OCAMLINCLUDES
 -------------------------
  Search path
 to pass to the OCaml compilers (default `.').  The search path with the
 `-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES'  variable.
 
-11.4.1.13   OCAMLFIND
+11.5.1.13   OCAMLFIND
 ---------------------
  The `ocamlfind'
 utility (default `ocamlfind' if  `USE_OCAMLFIND' is set, otherwise
 empty).
 
-11.4.1.14   OCAMLFINDFLAGS
+11.5.1.14   OCAMLFINDFLAGS
 --------------------------
  The flags to
 pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must be set).
 
-11.4.1.15   OCAMLPACKS
+11.5.1.15   OCAMLPACKS
 ----------------------
  Package names to
 pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
 
-11.4.1.16   BYTE_ENABLED
+11.5.1.16   BYTE_ENABLED
 ------------------------
  Flag
 indicating whether to use the bytecode compiler (default `true', when no
 `ocamlopt' found, `false' otherwise).
 
-11.4.1.17   NATIVE_ENABLED
+11.5.1.17   NATIVE_ENABLED
 --------------------------
  Flag
 indicating whether to use the native-code compiler (default `true', when
@@ -571,88 +822,88 @@ ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED' and
 `NATIVE_ENABLED' can be set to true;  at least one should be set to
 true. 
 
-Node: Subsection 11-4-2,	Next: Subsection 11-4-3,	Prev: Subsection 11-4-1,	Up: Section 11-4
+Node: Subsection 11-5-2,	Next: Subsection 11-5-3,	Prev: Subsection 11-5-1,	Up: Section 11-5
   
 
-11.4.2   OCaml command flags
+11.5.2   OCaml command flags
 ============================
   
   The following variables specify additional options to be passed to the
 OCaml tools.
 
-11.4.2.1   OCAMLDEPFLAGS
+11.5.2.1   OCAMLDEPFLAGS
 ------------------------
  Flags to pass
 to `OCAMLDEP'.
 
-11.4.2.2   OCAMLPPFLAGS
+11.5.2.2   OCAMLPPFLAGS
 -----------------------
  Flags to pass
 to `CAMLP4'.
 
-11.4.2.3   OCAMLCFLAGS
+11.5.2.3   OCAMLCFLAGS
 ----------------------
  Flags to pass
 to the byte-code compiler (default `-g').
 
-11.4.2.4   OCAMLOPTFLAGS
+11.5.2.4   OCAMLOPTFLAGS
 ------------------------
  Flags to pass
 to the native-code compiler (default empty).
 
-11.4.2.5   OCAMLFLAGS
+11.5.2.5   OCAMLFLAGS
 ---------------------
  Flags to pass to
 either compiler (default `-warn-error A').
 
-11.4.2.6   OCAML_BYTE_LINK_FLAGS
+11.5.2.6   OCAML_BYTE_LINK_FLAGS
 --------------------------------
  Flags
 to pass to the byte-code linker (default empty).
 
-11.4.2.7   OCAML_NATIVE_LINK_FLAGS
+11.5.2.7   OCAML_NATIVE_LINK_FLAGS
 ----------------------------------
 
 Flags to pass to the native-code linker (default empty).
 
-11.4.2.8   OCAML_LINK_FLAGS
+11.5.2.8   OCAML_LINK_FLAGS
 ---------------------------
  Flags to
 pass to either linker. 
 
-Node: Subsection 11-4-3,	Next: Section 11-5,	Prev: Subsection 11-4-2,	Up: Section 11-4
+Node: Subsection 11-5-3,	Next: Section 11-6,	Prev: Subsection 11-5-2,	Up: Section 11-5
   
 
-11.4.3   Library variables
+11.5.3   Library variables
 ==========================
   
   The following variables are used during linking.
   
 
-11.4.3.1   OCAML_LIBS
+11.5.3.1   OCAML_LIBS
 ---------------------
  Libraries to
 pass to the linker. These libraries become dependencies  of the link
 step.
 
-11.4.3.2   OCAML_OTHER_LIBS
+11.5.3.2   OCAML_OTHER_LIBS
 ---------------------------
  Additional
 libraries to pass to the linker. These libraries are  not included as
 dependencies to the link step. Typical use is for the OCaml  standard
 libraries like `unix' or `str'.
 
-11.4.3.3   OCAML_CLIBS
+11.5.3.3   OCAML_CLIBS
 ----------------------
  C libraries to
 pass to the linker.
 
-11.4.3.4   OCAML_LIB_FLAGS
+11.5.3.4   OCAML_LIB_FLAGS
 --------------------------
  Extra flags
 for the library.
 
-11.4.3.5   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
+11.5.3.5   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
 --------------------------------------------------------
  
 <<
@@ -674,7 +925,7 @@ dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-11.4.3.6   OCamlLibrary
+11.5.3.6   OCamlLibrary
 -----------------------
 
   The `OCamlLibrary' function builds an OCaml library.
@@ -682,7 +933,7 @@ scoping rules of OMake.
   The `<libname>' and `<files>' are listed without suffixes.
   
 
-11.4.3.7   ABORT_ON_DEPENDENCY_ERRORS
+11.5.3.7   ABORT_ON_DEPENDENCY_ERRORS
 -------------------------------------
  
 The linker requires that the files to be  listed in dependency order. If
@@ -700,7 +951,7 @@ from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
 >>
   
 
-11.4.3.8   OCamlPackage
+11.5.3.8   OCamlPackage
 -----------------------
 
   The `OCamlPackage' function builds an OCaml package.
@@ -719,7 +970,7 @@ is set).
 >>
   
 
-11.4.3.9   OCamlLibraryCopy
+11.5.3.9   OCamlLibraryCopy
 ---------------------------
 
   The `OCamlLibraryCopy' function copies a library to an install
@@ -728,14 +979,14 @@ location.
   The `<interface-files>' specify additional interface files to be
 copied if the `INSTALL_INTERFACES' variable is true.
 
-11.4.3.10   OCamlLibraryInstall
+11.5.3.10   OCamlLibraryInstall
 -------------------------------
 
   The `OCamlLibraryInstall' function builds a library and copies it to
 an install location in one step.
   `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
 
-11.4.3.11   OCamlProgram
+11.5.3.11   OCamlProgram
 ------------------------
 
   The `OCamlProgram' function builds an OCaml program. It returns the
@@ -745,24 +996,24 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   `OCamlProgram(<name>, <files>)'
   Additional variables used: 
   
- OCAML_LIBS 11.4.3.1*Note Subsection 11-4-3::  Additional libraries
+ OCAML_LIBS 11.5.3.1*Note Subsection 11-5-3::  Additional libraries
    passed to the linker, without suffix. These files  become
    dependencies of the target program. 
- OCAML_OTHER_LIBS 11.4.3.2*Note Subsection 11-4-3::  Additional
+ OCAML_OTHER_LIBS 11.5.3.2*Note Subsection 11-5-3::  Additional
    libraries passed to the linker, without suffix. These  files do not
    become dependencies of the target program. 
- OCAML_CLIBS 11.4.3.3*Note Subsection 11-4-3::  C libraries to pass
+ OCAML_CLIBS 11.5.3.3*Note Subsection 11-5-3::  C libraries to pass
    to the linker. 
- OCAML_BYTE_LINK_FLAGS 11.4.2.6*Note Subsection 11-4-2:: 
+ OCAML_BYTE_LINK_FLAGS 11.5.2.6*Note Subsection 11-5-2:: 
    Flags to pass to the bytecode linker. 
  OCAML_NATIVE_LINK_FLAGS
-   11.4.2.7*Note Subsection 11-4-2::  Flags to pass to
+   11.5.2.7*Note Subsection 11-5-2::  Flags to pass to
    the native code linker. 
- OCAML_LINK_FLAGS 11.4.2.8*Note Subsection 11-4-2::  Flags to
+ OCAML_LINK_FLAGS 11.5.2.8*Note Subsection 11-5-2::  Flags to
    pass to both linkers. 
 
 
-11.4.3.12   OCamlProgramCopy
+11.5.3.12   OCamlProgramCopy
 ----------------------------
 
   The `OCamlProgramCopy' function copies an OCaml program to an install
@@ -771,109 +1022,109 @@ location.
   Additional variables used: 
   
  NATIVE_ENABLED  If `NATIVE_ENABLED'
-   11.4.1.17*Note Subsection 11-4-1:: is set, the native-code
+   11.5.1.17*Note Subsection 11-5-1:: is set, the native-code
    executable  is copied; otherwise the byte-code executable is copied. 
 
 
-11.4.3.13   OCamlProgramInstall
+11.5.3.13   OCamlProgramInstall
 -------------------------------
 
   The `OCamlProgramInstall' function builds a programs and copies it to
 an install location in one step.
   `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
 
-Node: Section 11-5,	Next: Subsection 11-5-1,	Prev: Section 11-4,	Up: Chapter 11
+Node: Section 11-6,	Next: Subsection 11-6-1,	Prev: Section 11-5,	Up: Chapter 11
   
 
-11.5   Building LaTeX programs
+11.6   Building LaTeX programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
 * Menu:
 
-* Subsection 11-5-1::	Configuration variables
-* Subsection 11-5-2::	Building LaTeX documents
+* Subsection 11-6-1::	Configuration variables
+* Subsection 11-6-2::	Building LaTeX documents
 
 
-Node: Subsection 11-5-1,	Next: Subsection 11-5-2,	Prev: Section 11-5,	Up: Section 11-5
+Node: Subsection 11-6-1,	Next: Subsection 11-6-2,	Prev: Section 11-6,	Up: Section 11-6
   
 
-11.5.1   Configuration variables
+11.6.1   Configuration variables
 ================================
   
   The following variables can be modified in your project.
 
-11.5.1.1   LATEX
+11.6.1.1   LATEX
 ----------------
  The LaTeX command
 (default `latex').
 
-11.5.1.2   TETEX2_ENABLED
+11.6.1.2   TETEX2_ENABLED
 -------------------------
  Flag
 indicating whether to use advanced LaTeX options present in TeTeX v.2
 (default value is determined the first time omake reads `LaTeX.src' and
 depends on the version of LaTeX you have installed).
 
-11.5.1.3   LATEXFLAGS
+11.6.1.3   LATEXFLAGS
 ---------------------
  The LaTeX flags
 (defaults depend on the `TETEX2_ENABLED' variable)
 
-11.5.1.4   BIBTEX
+11.6.1.4   BIBTEX
 -----------------
  The BibTeX command
 (default `bibtex').
 
-11.5.1.5   MAKEINDEX
+11.6.1.5   MAKEINDEX
 --------------------
  The command to
 build an index (default `makeindex').
 
-11.5.1.6   DVIPS
+11.6.1.6   DVIPS
 ----------------
  The `.dvi' to
 PostScript converter (default `dvips').
 
-11.5.1.7   DVIPSFLAGS
+11.6.1.7   DVIPSFLAGS
 ---------------------
  Flags to pass to
 `dvips' (default `-t letter').
 
-11.5.1.8   DVIPDFM
+11.6.1.8   DVIPDFM
 ------------------
  The `.dvi' to
 `.pdf' converter (default `dvipdfm').
 
-11.5.1.9   DVIPDFMFLAGS
+11.6.1.9   DVIPDFMFLAGS
 -----------------------
  Flags to pass
 to `dvipdfm' (default `-p letter').
 
-11.5.1.10   PDFLATEX
+11.6.1.10   PDFLATEX
 --------------------
  The `.latex' to
 `.pdf' converter (default `pdflatex').
 
-11.5.1.11   PDFLATEXFLAGS
+11.6.1.11   PDFLATEXFLAGS
 -------------------------
  Flags to pass
 to pdflatex (default is empty).
 
-11.5.1.12   USEPDFLATEX
+11.6.1.12   USEPDFLATEX
 -----------------------
  Flag indicating
 whether to use pdflatex instead of dvipdfm to generate the `.pdf'
 document (default `false'). 
 
-Node: Subsection 11-5-2,	Next: Section 11-6,	Prev: Subsection 11-5-1,	Up: Section 11-5
+Node: Subsection 11-6-2,	Next: Section 11-7,	Prev: Subsection 11-6-1,	Up: Section 11-6
   
 
-11.5.2   Building LaTeX documents
+11.6.2   Building LaTeX documents
 =================================
 
 
-11.5.2.1   LaTeXDocument
+11.6.2.1   LaTeXDocument
 ------------------------
 
   The `LaTeXDocument' produces a LaTeX document.
@@ -883,18 +1134,18 @@ This function returns the filenames for the generated `.ps' and `.pdf'
 files.
   Additional variables used:
 
-11.5.2.2   TEXINPUTS
+11.6.2.2   TEXINPUTS
 --------------------
  The LaTeX search
 path (an array of directories, default is  taken from the `TEXINPUTS'
 environment variable).
 
-11.5.2.3   TEXDEPS
+11.6.2.3   TEXDEPS
 ------------------
  Additional files
 this document depends on.
 
-11.5.2.4   TeXGeneratedFiles, LocalTeXGeneratedFiles
+11.6.2.4   TeXGeneratedFiles, LocalTeXGeneratedFiles
 ----------------------------------------------------
  
 <<
@@ -916,14 +1167,14 @@ dependencies. The `LocalTeXGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-11.5.2.5   LaTeXDocumentCopy
+11.6.2.5   LaTeXDocumentCopy
 ----------------------------
 
   The `LaTeXDocumentCopy' copies the document to an install location.
   `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
   This function copies just the `.pdf' and `.ps' files.
 
-11.5.2.6   LaTeXDocumentInstall
+11.6.2.6   LaTeXDocumentInstall
 -------------------------------
 
   The `LaTeXDocumentInstall' builds a document and copies it to an
@@ -931,15 +1182,15 @@ install location in one step.
   `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
 <files>)' 
 
-Node: Section 11-6,	Next: Chapter 12,	Prev: Section 11-5,	Up: Chapter 11
+Node: Section 11-7,	Next: Chapter 12,	Prev: Section 11-6,	Up: Chapter 11
   
 
-11.6   Examining the dependency graph
+11.7   Examining the dependency graph
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
 
 
-11.6.0.7   dependencies, dependencies-all
+11.7.0.7   dependencies, dependencies-all
 -----------------------------------------
 
 <<
@@ -979,11 +1230,11 @@ For a shorter form, see the `filter-proper-targets' function.
   
   
 
-11.6.0.8   target
+11.7.0.8   target
 -----------------
  
 <<
-     $(target targets) : Rule Array
+     $(target targets) : Target Array
         targets : File Sequence
      raises RuntimeException
 >>
@@ -991,8 +1242,47 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-11.6.0.9   rule
----------------
+11.7.0.9   build-targets
+------------------------
+
+<<
+      $(build-targets tag) : Target Array
+         tag : Succeeded | Failed
+>>
+  
+  The `build-targets' allow the results of the build to be examined. The
+`tag' must specifies which targets are to be returned; the comparison is
+case-insensitive.
+  
+  
+ Succeeded  The list of targets that were built successfully. 
+ Failed  The list of targets that could not be built. 
+  
+  These are used mainly in conjuction with the `.BUILD_SUCCESS'
+11.1*Note Section 11-1:: and `.BUILD_FAILURE'
+11.1*Note Section 11-1:: phony targets. For example,
+adding the following to your project `OMakefile' will print the number
+of targets that failed (if the build failed).
+<<
+      .BUILD_FAILURE:
+          echo "Failed target count: $(length $(failed-targets))"
+>>
+  
+
+11.7.0.10   project-directories
+-------------------------------
+
+<<
+     $(project-directories) : Dir Array
+>>
+  
+  The `project-directories' function returns the list of all directories
+that are considered to be part of the project.
+  To get the complete directory list, this function should be called
+from within a rule body.
+
+11.7.0.11   rule
+----------------
 
   The `rule' function is called whenever a build rule is defined. It is
 unlikely that you will need to redefine this function, except in very
@@ -1175,6 +1465,7 @@ Appendix A     Synopsis
 * Section A-5::	Environment variables
 * Section A-6::	Functions
 * Section A-7::	Option processing
+* Section A-8::	.omakerc
 
 
 Node: Section A-1,	Next: Section A-2,	Prev: Appendix A,	Up: Appendix A
@@ -1450,315 +1741,3 @@ directory. When omake is run in a subdirectory of a project, it normally
 builds files within the current directory and its subdirectories. If the
 -R option is specified, the build is performed as if omake were run in
 the project root.
-
-Node: Subsection A-3-6,	Next: Subsection A-3-7,	Prev: Subsection A-3-5,	Up: Section A-3
-  
-
-A.3.6   -t
-==========
- `-t'
-  Update the omake database to force the project to be considered
-up-to-date.
-
-Node: Subsection A-3-7,	Next: Subsection A-3-8,	Prev: Subsection A-3-6,	Up: Section A-3
-  
-
-A.3.7   -U
-==========
- `-U'
-  Do not trust cached build information. This will force the entire
-project to be rebuilt.
-
-Node: Subsection A-3-8,	Next: Subsection A-3-9,	Prev: Subsection A-3-7,	Up: Section A-3
-  
-
-A.3.8   --depend
-================
- `--depend'
-  Do not trust cached dependency information. This will force files to
-be rescanned for dependency information.
-
-Node: Subsection A-3-9,	Next: Subsection A-3-10,	Prev: Subsection A-3-8,	Up: Section A-3
-  
-
-A.3.9   --configure
-===================
-
-`--configure'
-  Re-run `static.' sections of the included omake files, instead of
-trusting the cached results.
-
-Node: Subsection A-3-10,	Next: Subsection A-3-11,	Prev: Subsection A-3-9,	Up: Section A-3
-  
-
-A.3.10   --force-dotomake
-=========================
-
-`--force-dotomake'
-  Always use the `$HOME/.omake' for the `.omc' cache files.
-
-Node: Subsection A-3-11,	Next: Subsection A-3-12,	Prev: Subsection A-3-10,	Up: Section A-3
-  
-
-A.3.11   --dotomake
-===================
- `--dotomake
-<dir>'
-  Use the specified directory instead of the `$HOME/.omake' for the
-placement of the `.omc' cache files.
-
-Node: Subsection A-3-12,	Next: Subsection A-3-13,	Prev: Subsection A-3-11,	Up: Section A-3
-  
-
-A.3.12   -j
-===========
- `-j <count>'
-  Run multiple build commands in parallel. The count specifies a bound
-on the number of commands to run simultaneously. In addition, the count
-may specify servers for remote execution of commands in the form
-`server=count'. For example, the option `-j
-2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs can
-be executed locally, 1 on the server `small.host.org' and 4 on
-`large.host.org'. Each remote server must use the same filesystem
-location for the project.
-  Remote execution is currently an experimental feature. Remote
-filesystems like NFS do not provide adequate file consistency for this
-to work.
-
-Node: Subsection A-3-13,	Next: Subsection A-3-14,	Prev: Subsection A-3-12,	Up: Section A-3
-  
-
-A.3.13   --print-dependencies
-=============================
-
-`--print-dependencies'
-  Print dependency information for the targets on the command line.
-
-Node: Subsection A-3-14,	Next: Subsection A-3-15,	Prev: Subsection A-3-13,	Up: Section A-3
-  
-
-A.3.14   --show-dependencies
-============================
-
-`--show-dependencies <target>'
-  Print dependency information if the `target' is built.
-
-Node: Subsection A-3-15,	Next: Subsection A-3-16,	Prev: Subsection A-3-14,	Up: Section A-3
-  
-
-A.3.15   --all-dependencies
-===========================
-
-`--all-dependencies'
-  If either of the options --print-dependencies or --show-dependencies
-is in effect, print transitive dependencies. That is, print all
-dependencies recursively. If neither option --print-dependencies,
---show-dependencies is specified, this option has no effect.
-
-Node: Subsection A-3-16,	Next: Subsection A-3-17,	Prev: Subsection A-3-15,	Up: Section A-3
-  
-
-A.3.16   --verbose-dependencies
-===============================
-
-`--verbose-dependencies'
-  If either of the options --print-dependencies or --show-dependencies
-is in effect, also print listings for each dependency. The output is
-very verbose, consider redirecting to a file. If neither option
---print-dependencies, --show-dependencies is specified, this option has
-no effect.
-
-Node: Subsection A-3-17,	Next: Subsection A-3-18,	Prev: Subsection A-3-16,	Up: Section A-3
-  
-
-A.3.17   --install
-==================
- `--install'
-  Install default files OMakefile and OMakeroot into the current
-directory. You would typically do this to start a project in the current
-directory.
-
-Node: Subsection A-3-18,	Next: Subsection A-3-19,	Prev: Subsection A-3-17,	Up: Section A-3
-  
-
-A.3.18   --install-all
-======================
-
-`--install-all'
-  In addition to installing files OMakefile and OMakeroot, install
-default OMakefiles into each subdirectory of the current directory.
-cvs(1) rules are used for filtering the subdirectory list. For example,
-OMakefiles are not copied into directories called `CVS', `RCCS', etc.
-
-Node: Subsection A-3-19,	Next: Subsection A-3-20,	Prev: Subsection A-3-18,	Up: Section A-3
-  
-
-A.3.19   --install-force
-========================
-
-`--install-force'
-  Normally, omake will prompt before it overwrites any existing
-OMakefile. If this option is given, all files are forcibly overwritten
-without prompting.
-
-Node: Subsection A-3-20,	Next: Subsection A-3-21,	Prev: Subsection A-3-19,	Up: Section A-3
-  
-
-A.3.20   --absname
-==================
- `--absname'
-  Filenames should expand to absolute pathnames.
-  N.B. This is an experimental option. It may become deprecated.
-
-Node: Subsection A-3-21,	Next: Section A-4,	Prev: Subsection A-3-20,	Up: Section A-3
-  
-
-A.3.21   variable definition
-============================
-
-`name=[value]'
-  omake variables can also be defined on the command line in the form
-`name=value'. For example, the `CFLAGS' variable might be defined on the
-command line with the argument `CFLAGS="-Wall -g"'.
-
-Node: Section A-4,	Next: Section A-5,	Prev: Section A-3,	Up: Appendix A
-  
-
-A.4   Additional options
-*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  In addition, omake supports a number of debugging flags on the command
-line. Run `omake --help' to get a summary of these flags.
-
-Node: Section A-5,	Next: Subsection A-5-1,	Prev: Section A-4,	Up: Appendix A
-  
-
-A.5   Environment variables
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection A-5-1::	OMAKEFLAGS
-* Subsection A-5-2::	OMAKELIB
-
-
-Node: Subsection A-5-1,	Next: Subsection A-5-2,	Prev: Section A-5,	Up: Section A-5
-  
-
-A.5.1   OMAKEFLAGS
-==================
-   
-  If defines, the `OMAKEFLAGS' should specify a set of options exactly
-as they are specified on the command line.
-
-Node: Subsection A-5-2,	Next: Section A-6,	Prev: Subsection A-5-1,	Up: Section A-5
-  
-
-A.5.2   OMAKELIB
-================
-   
-  If defined, the `OMAKELIB' environment variable should refer to the
-installed location of the OMake standard library. This is the directory
-that contains `Pervasives.om' etc. On a Unix system, this is often
-`/usr/lib/omake' or `/usr/local/lib/omake', and on Win32 systems it is
-often `c:\Program Files\OMake\lib'.
-  If not defined, `omake' uses the default configured location. You
-should normally leave this unset.
-
-Node: Section A-6,	Next: Subsection A-6-1,	Prev: Section A-5,	Up: Appendix A
-  
-
-A.6   Functions
-*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection A-6-1::	OMakeFlags 11.1.0.1
-
-
-Node: Subsection A-6-1,	Next: Section A-7,	Prev: Section A-6,	Up: Section A-6
-  
-
-A.6.1   OMakeFlags 11.1.0.1*Note Section 11-1::
-======================================================
-  
-  The `OMakeFlags' function 11.1.0.1*Note Section 11-1:: can be
-used within an `OMakefile' to modify the set of options. The options
-should be specified exactly as they are on the command line. For
-example, if you want some specific project to be silent and display a
-progress bar, you can add the following line to your `OMakefile'.
-<<
-      OMakeFlags(-S --progress)
->>
-  
-  For options where it makes sense, the options are scoped like
-variables. For example, if you want OMake to be silent for a single rule
-(instead of for the entire project), you can use scoping the restrict
-the range of the option.
-<<
-      section
-          # Do not display command output when foo is constructed
-          OMakeFlags(-S)
-  
-          foo: fee
-             echo "This is a generated file" > foo
-             cat fee >> foo
-             chmod 555 foo
->>
-  
-
-Node: Section A-7,	Next: Appendix B,	Prev: Section A-6,	Up: Appendix A
-  
-
-A.7   Option processing
-*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  When `omake' is invoked, the options are processed in the following
-order.
-  
-  
- 1. All options specified by the `OMAKEFLAGS' environment variable are
-   defined globally. 
- 2. All options from the command line are defined globally. 
- 3. Any individual calls the the `OMakeFlags' function modify the
-   options locally. 
-  
-  For forward compatibility, all other letters are silently ignored.
-   
-
-Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
-  
-
-Appendix B     OMake grammar
-****************************
-    
-* Menu:
-
-* Section B-1::	OMake lexical conventions
-* Section B-2::	The OMake grammar
-* Section B-3::	Dollar modifiers
-
-
-Node: Section B-1,	Next: Subsection B-1-1,	Prev: Appendix B,	Up: Appendix B
-  
-
-B.1   OMake lexical conventions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The OMake language is based on the language for GNU/BSD make, where
-there are few lexical conventions. Strictly speaking, there are no
-keywords, and few special symbols.
-* Menu:
-
-* Subsection B-1-1::	Comments
-* Subsection B-1-2::	Special characters
-* Subsection B-1-3::	Identifiers
-* Subsection B-1-4::	Command identifiers
-* Subsection B-1-5::	Variable references
-* Subsection B-1-6::	String constants
-

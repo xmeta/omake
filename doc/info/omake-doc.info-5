@@ -1,5 +1,62 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-8-17,	Next: Subsection 8-8-18,	Prev: Subsection 8-8-16,	Up: Section 8-8
+  
+
+8.8.17   pipe
+=============
+
+<<
+     $(pipe) : Pipe
+     raises RuntimeException
+>>
+  
+  The `pipe' function creates a `Pipe' object, which has two fields. The
+`read' field is a channel that is opened for reading, and the `write'
+field is a channel that is opened for writing. 
+
+Node: Subsection 8-8-18,	Next: Subsection 8-8-19,	Prev: Subsection 8-8-17,	Up: Section 8-8
+  
+
+8.8.18   mkfifo
+===============
+
+<<
+     mkfifo(mode, node...)
+        mode : Int
+        node : Node
+>>
+  
+  The `mkfifo' function creates a named pipe. 
+
+Node: Subsection 8-8-19,	Next: Subsection 8-8-20,	Prev: Subsection 8-8-18,	Up: Section 8-8
+  
+
+8.8.19   select
+===============
+
+<<
+     $(select rfd..., wfd..., wfd..., timeout) : Select
+        rfd : InChannel
+        wfd : OutChannel
+        efd : Channel
+        timeout : float
+     raises RuntimeException
+>>
+  
+  The `select' function polls for possible IO on a set of channels. The
+`rfd' are a sequence of channels for reading, `wfd' are a sequence of
+channels for writing, and `efd' are a sequence of channels to poll for
+error conditions. The `timeout' specifies the maximum amount of time to
+wait for events.
+  On successful return, `select' returns a `Select' object, which has
+the following fields: 
+  
+ read  An array of channels available for reading. 
+ write  An array of channels available for writing. 
+ error  An array of channels on which an error has occurred. 
+   
+
 Node: Subsection 8-8-20,	Next: Subsection 8-8-21,	Prev: Subsection 8-8-19,	Up: Section 8-8
   
 
@@ -1509,6 +1566,9 @@ target file.
  - `build-values': all the value dependencies associated  with the
    build. 
  - `build-commands': the commands to build the target. 
+ - `output-file': if output was diverted to a file,  with one of the
+   `--divert-*' options A*Note Appendix A::,  this field names
+   that file. Otherwise it is `false'. 
   
   The object supports the following methods.
   
@@ -1644,186 +1704,3 @@ Node: Subsection 10-1-20,	Next: Subsection 10-1-21,	Prev: Subsection 10-1-19,	Up
   Parent objects: `Object'.
   The `Exception' object is used as the base object for exceptions. It
 has no fields. 
-
-Node: Subsection 10-1-21,	Next: Subsection 10-1-22,	Prev: Subsection 10-1-20,	Up: Section 10-1
-  
-
-10.1.21   RuntimeException
-==========================
-
-  Parent objects: `Exception'.
-  The `RuntimeException' object represents an exception from the runtime
-system. It has the following fields.
-  
-  
- - `position': a string representing the location where the  exception
-   was raised. 
- - `message': a string containing the exception message. 
-   
-
-Node: Subsection 10-1-22,	Next: Chapter 11,	Prev: Subsection 10-1-21,	Up: Section 10-1
-  
-
-10.1.22   Shell
-===============
-
-  Parent objects: `Object'.
-  The `Shell' object contains the collection of builtin functions
-available as shell commands.
-  You can define aliases by extending this object with additional
-methods. All methods in this class are called with one argument: a
-single array containing an argument list.
-  
-  
- - `echo'
- The `echo' function prints its arguments to the standard output
-   channel. 
- - `jobs'
- The `jobs' method prints the status of currently running commands. 
- - `cd'
- The `cd' function changes the current directory. Note that the current
-   directory follows the usual scoping rules. For example, the following
-   program lists the files in the `foo' directory, but the current
-   directory is not changed.
-   <<
-        section
-           echo Listing files in the foo directory...
-           cd foo
-           ls
-     
-        echo Listing files in the current directory...
-        ls
-   >>
- 
- - `bg'
- The `bg' method places a job in the background. The job is resumed if
-   it has been suspended. 
- - `fg'
- The `fg' method brings a job to the foreground. The job is resumed if
-   it has been suspended. 
- - `stop'
- The `stop' method suspends a running job. 
- - `wait'
- The `wait' function waits for a running job to terminate. It is not
-   possible to wait for a suspended job.
- The job is not brought to the foreground. If the `wait' is interrupted,
-   the job continues to run in the background. 
- - `kill'
- The `kill' function signal a job.
- `kill [signal] <pid...>'.
- The signals are either numeric, or symbolic. The symbolic signals are
-   named as follows.
- ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2, CHLD, STOP,
-   TSTP, TTIN, TTOU, VTALRM, PROF. 
- - `exit'
- The `exit' function terminates the current session. 
- - `which', `where'
- See the documentation for the corresponding functions. 
- - `rehash'
- Reset the search path. 
- - `history'
- Print the current command-line history. 
- - Win32 functions.
- Win32 doesn't provide very many programs for scripting, except  for the
-   functions that are builtin to the DOS `cmd.exe'.  The following
-   functions are defined on Win32 and only on Win32.  On other systems,
-   it is expected that these programs already  exist.
- 
-     
-    - `grep'
-      <<
-           grep [-q] [-n] pattern files...
-      >>
-    
-    The `grep' function calls the omake `grep' function. 
-  By default, omake uses internal versions of the following commands:
-   `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
-   really want to use the standard system versions of these commands,
-   set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
-   `OMakeroot' file.
- 
-     
-    - `mkdir'
-      <<
-            mkdir [-m <mode>] [-p] files
-      >>
-    
-    The `mkdir' function is used to create directories. The -verb+-m+
-      option can be used to specify the permission mode of the created
-      directory. If the `-p' option is specified, the full path is
-      created. 
-    - `cp' 
-    - `mv'
-      <<
-            cp [-f] [-i] [-v] src dst
-            cp [-f] [-i] [-v] files dst
-            mv [-f] [-i] [-v] src dst
-            mv [-f] [-i] [-v] files dst
-      >>
-    
-    The `cp' function copies a `src' file to a `dst' file, overwriting
-      it if it already exists. If more than one source file is
-      specified, the final file must be a directory, and the source
-      files are copied into the directory.
-    
-        
-       -f  Copy files forcibly, do not prompt. 
-       -i  Prompt before removing destination files. 
-       -v  Explain what is happening. 
-     
-    - `rm'
-      <<
-           rm [-f] [-i] [-v] [-r] files
-           rmdir [-f] [-i] [-v] [-r] dirs
-      >>
-    
-    The `rm' function removes a set of files. No warnings are issued if
-      the files do not exist, or if they cannot be removed.
-    Options: 
-        
-       -f  Forcibly remove files, do not prompt. 
-       -i  Prompt before removal. 
-       -v  Explain what is happening. 
-       -r  Remove contents of directories recursively. 
-     
-    - `chmod'
-      <<
-            chmod [-r] [-v] [-f] mode files
-      >>
-    
-    The `chmod' function changes the permissions on a set of files or
-      directories. This function does nothing on Win32. The `mode' may
-      be specified as an octal number, or in symbolic form
-      `[ugoa]*['-=][rwxXstugo]+. See the man page for `chmod' for
-      details.
-    Options: 
-        
-       -r  Change permissions of all files in a directory recursively. 
-       -v  Explain what is happening. 
-       -f  Continue on errors. 
-     
-    - `cat'
-      <<
-           cat files...
-      >>
-    
-    The `cat' function prints the contents of the files to stdout 
-    - `test'
-      <<
-           test \emph{expression}
-           \verb+[+ \emph{expression} +]+
-           \verb+[ --help+
-           \verb+[ --version+
-      >>
-    
-    See the documentation for the `test' function.
-    
-    - `find'
-      <<
-           find \emph{expression}
-      >>
-    
-    See the documentation for the `find' function.
- 
-  
-    

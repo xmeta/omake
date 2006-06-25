@@ -76,7 +76,6 @@ let default_options =
      opt_print_progress       = false;
      opt_touch_only           = false;
      opt_flush_cache          = false;
-     opt_flush_env            = true;
      opt_flush_dependencies   = false;
      opt_print_dependencies   = false;
      opt_show_dependencies    = [];
@@ -166,10 +165,6 @@ let options_spec =
        "Do not trust cached dependecy information";
     "-U", Lm_arg.SetFold (fun options b -> { options with opt_flush_cache = b }), (**)
        "Do not trust the dependency cache or cached OMakefiles";
-    "-T", Lm_arg.ClearFold (fun options b -> { options with opt_flush_env = b }), (**)
-       "Trust cached OMakefiles";
-    "-u", Lm_arg.SetFold (fun options b -> { options with opt_flush_env = b }), (**)
-       "Do not trust cached OMakefiles (default)";
     "--flush-includes", Lm_arg.SetFold (fun options b -> { options with opt_flush_include = b }), (**)
        "Do not trust cached .omc files";
     "--configure", Lm_arg.SetFold (fun options b -> { options with opt_flush_static = b }), (**)

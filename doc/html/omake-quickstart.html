@@ -87,7 +87,7 @@ For users already familiar with the <TT>make</TT>(1) command, here is a list of
 differences to keep in mind when using <TT>omake</TT>.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 In <TT>omake</TT>, you are much less likely to define build rules of your own.
- The system provides many standard functions (like <CODE>StaticCLibrary</CODE>&nbsp;<A HREF="omake-rule.html#fun:StaticCLibrary">11.3.3.1</A> and <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.3.3.5</A>)
+ The system provides many standard functions (like <CODE>StaticCLibrary</CODE>&nbsp;<A HREF="omake-rule.html#fun:StaticCLibrary">11.4.3.1</A> and <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.4.3.5</A>)
  to specify these builds more simply.
 <LI CLASS="li-itemize">Implicit rules using <CODE>.SUFFIXES</CODE> and the <CODE>.suf1.suf2:</CODE> are not supported.
  You should use wildcard patterns instead <CODE>%.suf2: %.suf1</CODE>.
@@ -120,7 +120,7 @@ Suppose we have a C file called <CODE>hello_code.c</CODE> containing the followi
         return 0;
     }
 </PRE>
-To build the program a program <CODE>hello</CODE> from this file, we can use the <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.3.3.5</A> function.
+To build the program a program <CODE>hello</CODE> from this file, we can use the <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.4.3.5</A> function.
 The <TT>OMakefile</TT> contains just one line that specifies that the program <CODE>hello</CODE> is
 to be built from the source code in the <CODE>hello_code.c</CODE> file (note that file suffixes
 are not passed to these functions).
@@ -148,7 +148,7 @@ were built, and how many MD5 digests were computed.
     *** omake: done (0.1 sec, 0/4 scans, 0/4 rules, 0/9 digests)
 </PRE>
 If we want to change the compile options, we can redefine the <CODE>CC</CODE> and <CODE>CFLAGS</CODE>
-variables <EM>before</EM> the <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.3.3.5</A> line. In this example, we will use the <CODE>gcc</CODE>
+variables <EM>before</EM> the <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.4.3.5</A> line. In this example, we will use the <CODE>gcc</CODE>
 compiler with the <CODE>-g</CODE> option. In addition, we will specify a <CODE>.DEFAULT</CODE> target
 to be built by default. The <CODE>EXE</CODE> variable is defined to be <CODE>.exe</CODE> on <CODE>Win32</CODE>
 systems; it is empty otherwise.
@@ -258,7 +258,7 @@ Alternatively, we can also place the change in the root <TT>OMakefile</TT>.
     .DEFAULT: hello$(EXE)
 </PRE>
 Note that the way we have specified it, the <CODE>CFLAGS</CODE> variable also contains the <CODE>-O3</CODE>
-option for the <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.3.3.5</A>, and <CODE>hello_code.c</CODE> and <CODE>hello_helper.c</CODE> file will both be
+option for the <CODE>CProgram</CODE>&nbsp;<A HREF="omake-rule.html#fun:CProgram">11.4.3.5</A>, and <CODE>hello_code.c</CODE> and <CODE>hello_helper.c</CODE> file will both be
 compiled with the <CODE>-O3</CODE> option. If we want to make the change truly local to <CODE>libbar</CODE>, we
 can put the <CODE>bar</CODE> subdirectory in its own scope using the <CODE>section</CODE> form.
 <PRE CLASS="verbatim">

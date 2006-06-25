@@ -25,6 +25,7 @@
  * @end[license]
  *)
 open Omake_options_type
+open Omake_build_type
 
 (*
  * Debugging flags.
@@ -37,6 +38,12 @@ val debug_deps     : bool ref
  * .omakedb save interval (0 - disable)
  *)
 val save_interval  : float ref
+
+(*
+ * Examining the state.
+ *)
+val command_iter   : env -> command_tag -> (command -> unit) -> unit
+val command_fold   : env -> command_tag -> ('a -> command -> 'a) -> 'a -> 'a
 
 (*
  * Build the system.

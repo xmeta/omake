@@ -212,6 +212,7 @@ type env =
      (* Output files *)
      mutable env_success_tees       : string list;
      mutable env_failed_tees        : string list;
+     env_summary                    : string;
 
      (* Statistics *)
      mutable env_succeeded_count    : int;
@@ -221,18 +222,6 @@ type env =
      mutable env_rule_count         : int;
      mutable env_rule_exec_count    : int
    }
-
-(*
- * We save only part of the environment to a file.
- *)
-type save =
-   { save_venv                 : venv;
-     save_explicit_deps        : (NodeSet.t * NodeSet.t * NodeSet.t) NodeTable.t;
-     save_explicit_targets     : erule NodeTable.t;
-     save_explicit_directories : venv DirTable.t;
-     save_includes             : digest NodeTable.t
-   }
-
 
 (*
  * Helper type for determining how to build a command

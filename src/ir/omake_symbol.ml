@@ -90,6 +90,7 @@ let static_deps_sym            = Lm_symbol.add "static-deps"
 let build_deps_sym             = Lm_symbol.add "build-deps"
 let build_values_sym           = Lm_symbol.add "build-values"
 let build_commands_sym         = Lm_symbol.add "build-commands"
+let output_file_sym            = Lm_symbol.add "output-file"
 
 let argv_sym                   = Lm_symbol.add "argv"
 let star_sym                   = Lm_symbol.add "*"
@@ -131,6 +132,8 @@ let scanner_mode_sym               = Lm_symbol.add "SCANNER_MODE"
 
 let history_file_sym               = Lm_symbol.add "history-file"
 let history_length_sym             = Lm_symbol.add "history-length"
+
+let build_summary_sym              = Lm_symbol.add "BUILD_SUMMARY"
 
 (*
  * Special symbols.
