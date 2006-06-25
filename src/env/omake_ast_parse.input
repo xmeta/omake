@@ -179,13 +179,13 @@ let rule2 multiple target ploc source loc2 body =
 %token <string * Lm_location.loc> TokKeyword
 %token <string * Lm_location.loc> TokCatch
 %token <string * Lm_location.loc> TokClass
-%token <string * Lm_location.loc> TokVar
 %token <string * Lm_location.loc> TokString
 %token <string * Lm_location.loc> TokBeginQuote
 %token <string * Lm_location.loc> TokEndQuote
 %token <string * Lm_location.loc> TokBeginQuoteString
 %token <string * Lm_location.loc> TokEndQuoteString
 %token <string * Lm_location.loc> TokStringQuote
+%token <Omake_ast.apply_strategy * string * Lm_location.loc> TokVar
 %token <Omake_ast.apply_strategy * string * Lm_location.loc> TokVarQuote
 
 /*
@@ -473,8 +473,8 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_args TokRig
                SuperApplyExp (strategy, Lm_symbol.add super, Lm_symbol.add v, $8, loc), loc
           }
         | TokVar
-          { let id, loc = $1 in
-               ApplyExp (NormalApply, Lm_symbol.add id, [], loc), loc
+          { let strategy, id, loc = $1 in
+               ApplyExp (strategy, Lm_symbol.add id, [], loc), loc
           }
         | TokBeginQuote rev_text TokEndQuote
           { let id1, loc1 = $1 in

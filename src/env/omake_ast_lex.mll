@@ -162,7 +162,7 @@ let pp_print_token buf = function
        fprintf buf "catch: %s" s
   | TokClass (s, _) ->
        fprintf buf "class: %s" s
-  | TokVar (s, _) ->
+  | TokVar (_, s, _) ->
        fprintf buf "var: %s" s
   | TokString (s, _) ->
        fprintf buf "string: %s" s
@@ -391,7 +391,13 @@ let lexeme_esc state lexbuf =
  *)
 let lexeme_var state lexbuf =
    let s, loc = lexeme_string state lexbuf in
-      TokVar (String.sub s 1 1, loc)
+   let strategy, s =
+      match s.[1] with
+         '`' -> LazyApply, String.sub s 2 1
+       | ',' -> EagerApply, String.sub s 2 1
+       | _ -> NormalApply, String.sub s 1 1
+   in
+      TokVar (strategy, s, loc)
 
 (*
  * Dollar sequence.
@@ -526,9 +532,10 @@ let quote          = squote | dquote | pipe
 (*
  * Special variables.
  *)
-let special_var    = '$' ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
 let dollar         = '$' ['`' ',' '$']
 let paren_dollar   = '$' ['`' ',']?
+let special_char   = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
+let special_var    = paren_dollar special_char
 
 (*
  * Named colon separators.
@@ -581,7 +588,7 @@ rule lex_main state = parse
    { lexeme_name state lexbuf }
  | '%'
    { let s, loc = lexeme_string state lexbuf in
-        TokVar (s, loc)
+        TokVar (NormalApply, s, loc)
    }
  | ['\'' '"']
    { let id, loc = lexeme_string state lexbuf in
