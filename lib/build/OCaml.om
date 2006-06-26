@@ -1,7 +1,7 @@
 ########################################################################
 # Building OCaml programs.
 #
-# Copyright (C) 2003-2005 Jason Hickey and Mojave Group
+# Copyright (C) 2003-2006 Jason Hickey and Mojave Group
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this file, to deal in the File without
@@ -30,7 +30,20 @@ open configure/Configure
 # \begin{doc}
 # \section{Building OCaml programs}
 #
-# \subsection{Variables for OCaml programs}
+# \subsection{Autoconfiguration variables for OCaml programs}
+# These variables will get defined based on the ``autoconf-style'' tests executed when you
+# run \OMake for the first time. You can use then to configure your project accordingly,
+# and you should not redefine them.
+# \varlabel{OCAMLOPT_EXISTS}{OCAMLOPT\_EXISTS} True when \verb+ocamlopt+ (or \verb+ocamlopt.opt+) is
+#    available on your machine.
+# \varlabel{OCAMLFIND_EXISTS}{OCAMLFIND\_EXISTS} True when the ocamlfind is available on your
+#    machines.
+# \varlabel{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} True when a version of
+#    \verb+ocamldep+ that understands the \verb+-modules+ option is available on your machine.
+# \varlabel{MENHIR_AVAILABLE}{MENHIR\_AVAILABLE} True when the Menhir parser-generator is available
+#    on your machine.
+#
+# \subsection{Configuration variables for OCaml programs}
 #
 # The following variables can be redefined in your project.
 # \varlabel{USE_OCAMLFIND}{USE\_OCAMLFIND} Whether to use the \verb+ocamlfind+ utility (default \verb+false\+)
@@ -42,7 +55,18 @@ open configure/Configure
 # \var{OCAMLLEX} The OCaml lexer generator (default \verb+ocamllex+).
 # \var{OCAMLLEXFLAGS} The flags to pass to \verb+ocamllex+ (default \verb+-q+).
 # \var{OCAMLYACC} The OCaml parser generator (default \verb+ocamlyacc+).
+# \var{OCAMLYACCFLAGS} Additional options to pass to \verb+$(OCAMLYACC)+.
 # \var{OCAMLDEP} The OCaml dependency analyzer (default \verb+ocamldep+).
+# \varlabel{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} The OCaml dependency analyzer that understands the
+#    \verb+-module+ option (default \verb+ocamldep+, if \verb+ocamldep -modules+ works, or
+#    \verb+ocamlrun ocamldep-omake+, if \verb+ocamlrun ocamldep-omake -modules+ works, and empty
+#    when neither works).
+# \varlabel{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} Instead of using \verb+OCAMLDEP+
+#    in a traditional \verb+make+-style fashion, run \verb+$(OCAMLDEP_MODULES) -modules+ and then
+#    postprocess the output internally to discover all the relevant generated \verb+.ml+ and
+#    \verb+.mli+ files. See Section~\ref{section:ocaml-generated-files} for more information on
+#    interactions between \OMake, \verb+OCAMLDEP+ and generated files. This feature is currently
+#    considered highly experimental and is disabled by default.
 # \var{OCAMLMKTOP} The OCaml toploop compiler (default \verb+ocamlmktop+).
 # \var{OCAMLLINK} The OCaml bytecode linker (default \verb+$(OCAMLC)+).
 # \var{OCAMLOPTLINK} The OCaml native-code linker (default \verb+$(OCAMLOPT)+).
@@ -57,6 +81,8 @@ open configure/Configure
 # \varlabel{NATIVE_ENABLED}{NATIVE\_ENABLED} Flag indicating whether to use the native-code compiler (default \verb+true+, when ocamlopt is found, \verb+false+ otherwise).
 #    Both \verb+BYTE_ENABLED+ and \verb+NATIVE_ENABLED+ can be set to true;
 #    at least one should be set to true.
+# \varlabel{MENHIR_ENABLED}{MENHIR\_ENABLED} Define this as \verb+true+ if you wish to use
+#    \verb+menhir+ instead of \verb+ocamlyacc+ (default \verb+false+).
 # \end{doc}
 #
 static. =
@@ -66,7 +92,7 @@ static. =
     OCAMLOPT_OPT_EXISTS = $(CheckProg ocamlopt.opt)
     OCAMLOPT_EXISTS = $(or $(OCAMLOPT_OPT_EXISTS), $(CheckProg ocamlopt))
     print(--- Testing whether ocamlc understands the "z" warnings... )
-    OCAML_ACCEPTS_Z_WARNING = 
+    OCAML_ACCEPTS_Z_WARNING =
         if $(OCAMLC_EXISTS)
             private.res = $(shell-success-null ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt) -w Az)
             println($"($(if $(res), yes, no))")
@@ -87,6 +113,7 @@ CAMLP4 = camlp4
 OCAMLLEX = ocamllex
 OCAMLLEXFLAGS = -q
 OCAMLYACC = ocamlyacc
+OCAMLYACCFLAGS =
 OCAMLMKTOP = ocamlmktop
 OCAMLLINK = $`(OCAMLC)
 OCAMLOPTLINK = $`(OCAMLOPT)
@@ -115,16 +142,12 @@ BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 #
 # Various options
 #
-# BUG JYH: The OCAMLDEPFLAGS is a hack: use the -native flag if
-# we are producing native code.  The OCaml distribution does
-# not provide a working ocamldep.
-#
 # \begin{doc}
 # \subsection{OCaml command flags}
 #
-# The following variables specify additional options to be passed to
+# The following variables specify \emph{additional} options to be passed to
 # the OCaml tools.
-# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+.
+# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+ (but not to \verb+OCAMLDEP_MODULES+).
 # \var{OCAMLPPFLAGS} Flags to pass to \verb+CAMLP4+.
 # \var{OCAMLCFLAGS} Flags to pass to the byte-code compiler (default \verb+-g+).
 # \var{OCAMLOPTFLAGS} Flags to pass to the native-code compiler (default empty).
@@ -132,6 +155,7 @@ BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 # \varlabel{OCAML_BYTE_LINK_FLAGS}{OCAML\_BYTE\_LINK\_FLAGS} Flags to pass to the byte-code linker (default empty).
 # \varlabel{OCAML_NATIVE_LINK_FLAGS}{OCAML\_NATIVE\_LINK\_FLAGS} Flags to pass to the native-code linker (default empty).
 # \varlabel{OCAML_LINK_FLAGS}{OCAML\_LINK\_FLAGS} Flags to pass to either linker.
+# \varlabel{MENHIR_FLAGS}{MENHIR\_FLAGS} Additional flags to pass to \verb+menhir+.
 # \end{doc}
 #
 OCAMLDEPFLAGS = $`(if $(NATIVE_ENABLED), -native, $(EMPTY))
@@ -170,7 +194,234 @@ OCAML_CLIBS =
 OCAML_OTHER_LIBS =
 OCAML_LIB_FLAGS =
 
+########################################################################
+# \begin{doc}
+# \section{Generated OCaml Files}
+# \label{section:ocaml-generated-files}
+# As of OCaml version 3.09.2, the standard \verb+ocamldep+ scanner is ``broken''.  The main issue is
+# that it finds only those dependencies that already exist.  If \verb+foo.ml+ contains a dependency
+# on \verb+Bar+,
+# \begin{verbatim}
+# foo.ml:
+#    open Bar
+# \end{verbatim}
+# then the default \verb+ocamldep+ will only find the dependency if a file \verb+bar.ml+ or
+# \verb+bar.ml+ exists in the include path. It will not find (or print) the dependency if, for
+# example, only \verb+bar.mly+ exists at the time \verb+ocamldep+ is run, even though \verb+bar.ml+
+# and \verb+bar.mli+ can be generated from \verb+bar.mly+.
 #
+# OMake currently provides two methods for addressing this problem --- one that requires manually
+# specifying the generated files, and an experimental method for discovering such ``hidden''
+# dependencies automatically. The variable
+# \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} controls which method is
+# going to be used. When this variable is false, the manual specifications are expected and when it
+# is true, the automated discovery will be attempted.
+#
+# \twofuns{OCamlGeneratedFiles}{LocalOCamlGeneratedFiles}
+# \begin{verbatim}
+# OCamlGeneratedFiles(files)
+# LocalOCamlGeneratedFiles(files)
+# \end{verbatim}
+#
+# When the \hyperlink{var:OCAMLDEP_MODULES_ENABLED}{\verb+OCAMLDEP_MODULES_ENABLED+} variable is set
+# to \verb+false+, the \verb+OCamlGeneratedFiles+ and \verb+LocalOCamlGeneratedFiles+ functions specify files
+# that need to be generated before any OCaml files are scanned for dependencies. For example,
+# if \verb+parser.ml+ and \verb+lexer.ml+ are both generated files, specify:
+# \begin{verbatim}
+# OCamlGeneratedFiles(parser.ml lexer.ml)
+# \end{verbatim}
+#
+# The \verb+OCamlGeneratedFiles+ function is \emph{global} --- its arguments will be generated
+# before any OCaml files anywhere in the project are scanned for dependencies. The
+# \verb+LocalOCamlGeneratedFiles+ function follows the normal scoping rules of OMake.
+#
+# These functions have no effect when
+# \hyperlink{var:OCAMLDEP_MODULES_ENABLED}{\verb+OCAMLDEP_MODULES_ENABLED+} is true.
+#
+# \end{doc}
+#
+.PHONY: OCamlGeneratedFilesTarget
+
+OCamlGeneratedFiles(files) =
+    if $(OCAMLDEP_MODULES_ENABLED)
+        # For now, we want to allow ``backwards-compatible'' projects.
+        # eprintln($"WARNING: OCamlGeneratedFiles should not be used when OCAMLDEP_MODULES_ENABLED")
+        # eprintln($"         is set")
+    else
+        OCamlGeneratedFilesTarget: $(files)
+
+LocalOCamlGeneratedFiles(files) =
+    if $(OCAMLDEP_MODULES_ENABLED)
+        # For now, we want to allow ``backwards-compatible'' projects.
+        # eprintln($"WARNING: OCamlGeneratedFiles should not be used when OCAMLDEP_MODULES_ENABLED")
+        # eprintln($"         is set")
+    else
+        .SCANNER: scan-ocaml-%: $(files)
+        .SCANNER: %.cmi: $(files)
+        .SCANNER: %.cmx %.cmo: $(files)
+        export
+    export
+
+# \begin{doc}
+# \subsubsection{Automatic discovery of generated files during dependency analysis.}
+# Having to specify the generated files manualy when OMake could discover them automatically is
+# obviously suboptimal.  To address this, we try to use a custom \verb+ocamldep+ that \emph{only}
+# finds the free module names in a file. 
+#
+# This functionality is experimental and is disabled by default for now.
+# Set \hyperlink{var:OCAMLDEP_MODULES_ENABLED}{\verb+OCAMLDEP_MODULES_ENABLED+} to \verb+true+ (or
+# to \verb+$(OCAMLDEP_MODULES_AVAILABLE)+ in your project to enable it.
+#
+# Note that the experimental \verb+ocamldep+ functionality this relies upon is not yet included in
+# the standard OCaml --- see \url{http://caml.inria.fr/mantis/view.php?id=4047}. Temporarily, we
+# distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
+# modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
+# Sections~\ref{var:OCAMLDEP_MODULES_AVAILABLE} and~\ref{OCAMLDEP_MODULES}.
+# \end{doc}
+#
+OCAMLDEP_MODULES_ENABLED = false
+
+OCAMLDEP_MODULES_AVAILABLE = false
+OCAMLDEP_MODULES =
+static. =
+    print($"--- Testing if ocamldep understands -modules... ")
+    if $(shell-success-null ocamldep -modules)
+        println($"(yes)")
+        OCAMLDEP_MODULES_AVAILABLE = true
+        OCAMLDEP_MODULES = ocamldep
+        export
+    else
+        println($"(no)")
+        print($"--- Testing if ocamldep-omake runs... ")
+        if $(shell-success-null ocamlrun ocamldep-omake -modules)
+            println($"(yes)")
+            OCAMLDEP_MODULES_AVAILABLE = true
+            OCAMLDEP_MODULES = ocamlrun ocamldep-omake
+            export
+        else
+            println($"(no)")
+        export
+
+#
+# The ocamldep -modules output has the following
+# form, where the indented lines are the free module names in foo.ml.
+#
+# foo.ml:
+#     Bar
+#     ...
+#
+# From this, we generate proper dependencies by finding the files
+# that can be built, using the find-targets-in-path-optional
+# function.
+#
+
+#
+# Print the dependencies for a ML file, based on the
+# .cmi files.
+#
+# If OCAMLDEP_PRESERVE_TARGETS is true, then the
+# ocamldep entries are taken literally (the suffix
+# is not replaced with .cmo/.cmx).
+#
+OCAMLDEP_PRESERVE_TARGETS = false
+
+PrintMLIDependencies(filename, cmideps) =
+    base = $(string-escaped $(removesuffix $(filename)))
+    cmideps = $(string-escaped $(cmideps))
+    println($"""$(base).cmi: $(cmideps)""")
+
+PrintMLDependencies(filename, cmideps, cmxdeps) =
+    base = $(string-escaped $(removesuffix $(filename)))
+    cmideps = $(string-escaped $(cmideps))
+    odeps = $(string-escaped $(addsuffix $(EXT_OBJ), $(removesuffix $(cmxdeps))))
+    cmxdeps = $(string-escaped $(cmxdeps))
+    esc = $' \'
+    text = $"""\
+$(base).cmo: $(cmideps)
+$(base).cmx $(base)$(EXT_OBJ):$(esc)
+    $(cmideps)$(esc)
+    $(cmxdeps)$(esc)
+    $(odeps)"""
+    # eprintln($(text))
+    println($(text))
+
+PrintFileDependencies(filename, cmideps) =
+    filename = $(string-escaped $(filename))
+    cmideps = $(string-escaped $(cmideps))
+    text = $"""$(filename): $(cmideps)"""
+    # eprintln($(text))
+    println($(text))
+
+#
+# Given a set of literal dependencies, compute
+# the actual dependencies by finding the filenames
+# associated with each module.
+#
+PrintDependencies(filename, modules) =
+    if $(filename)
+        modules = $(uncapitalize $(modules))
+
+        #
+        # Find the .cmi files that can be built
+        #
+        cmideps = $(addsuffix .cmi, $(modules))
+        cmideps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmideps))
+
+        # Now produce the dependencies
+        if $(OCAMLDEP_PRESERVE_TARGETS)
+            PrintFileDependencies($(filename), $(cmideps))
+        else
+            switch($(suffix $(filename)))
+            case .ml
+                cmxdeps[] =
+                if $(NATIVE_ENABLED)
+                    cmxdeps = $(addsuffix .cmx, $(modules))
+                    cmxdeps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmxdeps))
+                    export
+                PrintMLDependencies($(filename), $(cmideps), $(cmxdeps))
+            case .mli
+                PrintMLIDependencies($(filename), $(cmideps))
+            default
+                eprintln($"ocaml scanner: illegal filename $(filename)")
+                exit(1)
+
+#
+# Post-process the output of ocamldep.
+# Use awk to process the input, find the targets that
+# exist, and then print the dependencies.
+#
+OCamlScannerPostproc() =
+    #
+    # Read the module names from the standard input
+    #
+    filename =
+    modules[] =
+    awk($(stdin))
+    case $'^\(.*\):$'
+        PrintDependencies($(filename), $(modules))
+        filename = $1
+        modules[] =
+        export
+    case $'^	\(.*\)'
+        # Add the dependency
+        modules[] += $1
+        export
+    PrintDependencies($(filename), $(modules))
+
+Shell. +=
+    ocamldep-postproc(argv) =
+        if $(mem -preserve-targets, $(argv))
+           OCAMLDEP_PRESERVE_TARGETS = true
+           export
+        OCamlScannerPostproc()
+
+OCamlScanner(src_file) =
+    if $(OCAMLDEP_MODULES_ENABLED)
+        value $(OCAMLDEP_MODULES) -modules $(src_file) | ocamldep-postproc
+    else
+        value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
+
+########################################################################
 # Generic build rules.
 #
 # The order of the %.cmi rules is important.
@@ -183,6 +434,14 @@ OCAML_LIB_FLAGS =
 # from being called twice: once to generate the .cmi file, and again
 # for the .cmo or .cmx file.
 #
+OCamlC() =
+    value $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
+              $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
+
+OCamlOpt() =
+    value $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
+              $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
+
 %.cmx: %.ml
     section rule
         if $(not $(NATIVE_ENABLED))
@@ -194,19 +453,14 @@ OCAML_LIB_FLAGS =
             exit(1)
         if $(target-exists %.mli)
             %.cmx %$(EXT_OBJ): %.ml %.cmi :scanner: scan-ocaml-%.ml
-                $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                        $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                $(OCamlOpt) -c $<
+        elseif $(BYTE_ENABLED)
+            %.cmx %.cmi %$(EXT_OBJ) %.cmo: %.ml :scanner: scan-ocaml-%.ml
+                $(OCamlC) -c $<
+                $(OCamlOpt) -c $<
         else
-            if $(BYTE_ENABLED)
-                %.cmx %.cmi %$(EXT_OBJ) %.cmo: %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-            else
-                %.cmx %.cmi %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            %.cmx %.cmi %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
+                $(OCamlOpt) -c $<
 
 %$(EXT_OBJ): %.ml
     section rule
@@ -219,19 +473,14 @@ OCAML_LIB_FLAGS =
             exit(1)
         if $(target-exists %.mli)
             %$(EXT_OBJ) %.cmx: %.ml %.cmi :scanner: scan-ocaml-%.ml
-                $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                        $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                $(OCamlOpt) -c $<
+        elseif $(BYTE_ENABLED)
+            %$(EXT_OBJ) %.cmi %.cmx %.cmo: %.ml :scanner: scan-ocaml-%.ml
+                $(OCamlC) -c $<
+                $(OCamlOpt) -c $<
         else
-            if $(BYTE_ENABLED)
-                %$(EXT_OBJ) %.cmi %.cmx %.cmo: %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-            else
-                %$(EXT_OBJ) %.cmi %.cmx: %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            %$(EXT_OBJ) %.cmi %.cmx: %.ml :scanner: scan-ocaml-%.ml
+                $(OCamlOpt) -c $<
 
 %.cmo: %.ml
     section rule
@@ -244,51 +493,179 @@ OCAML_LIB_FLAGS =
             exit(1)
         if $(target-exists %.mli)
             %.cmo: %.ml %.cmi :scanner: scan-ocaml-%.ml
-                $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                        $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                $(OCamlC) -c $<
+        elseif $(NATIVE_ENABLED)
+            %.cmo %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
+                $(OCamlC) -c $<
+                $(OCamlOpt) -c $<
         else
-            if $(NATIVE_ENABLED)
-                %.cmo %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-            else
-                %.cmo %.cmi: %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+            %.cmo %.cmi: %.ml :scanner: scan-ocaml-%.ml
+                $(OCamlC) -c $<
 
 %.cmi: %.ml
     section rule
         if $(BYTE_ENABLED)
             if $(NATIVE_ENABLED)
                 %.cmi %.cmo %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
-                    $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                    $(OCamlC) -c $<
+                    $(OCamlOpt) -c $<
             else
                 %.cmi %.cmo: %.ml :scanner: scan-ocaml-%.ml
-                    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                    $(OCamlC) -c $<
         else
             %.cmi %.cmx %$(EXT_OBJ): %.ml :scanner: scan-ocaml-%.ml
-                $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-                        $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+                $(OCamlOpt) -c $<
 
 %.cmi: %.mli :scanner: scan-ocaml-%.mli
-    $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
-        $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES) -c $<
+    $(OCamlC) -c $<
 
-%.ml: %.mll
-    $(OCAMLLEX) $(OCAMLLEXFLAGS) $<
+########################################################################
+# Parser generators
+#
 
-%.ml %.mli: %.mly
-    $(OCAMLYACC) $<
+#
+# You can choose to use ocamlyacc or menhir for a parser
+# generator.  The default is ocamlyacc.  Define the
+# MENHIR_ENABLED as true if you would rather use menhir.
+#
+# Variables:
+#    MENHIR : the name of the menhir executable
+#    MENHIR_FLAGS : any additional options to pass to Menhir
+#    MENHIR_AVAILABLE : the menhir executable is installed
+#    MENHIR_RAW_DEPEND : menhir supports the --raw-depend option
+#
+MENHIR = menhir
+MENHIR_FLAGS =
+MENHIR_ENABLED = false
+static. =
+    MENHIR_AVAILABLE = $(CheckProg $(MENHIR))
+    MENHIR_RAW_DEPEND = false
+    if $(MENHIR_AVAILABLE)
+        print($"--- Checking if $(MENHIR) supports the --raw-depend option... ")
+        MENHIR_RAW_DEPEND = $(shell-success-null $(MENHIR) -help | grep $'^ *--raw-depend')
+        println($(if $(MENHIR_RAW_DEPEND), $'(yes)', $'(no)'))
+        export
 
+# Menhir is being requested.  Check that it is installed.
+MenhirCheck() =
+    if $(not $(MENHIR_AVAILABLE))
+       eprintln($"""!!! You are asking to use Menhir, but it is not installed.""")
+       eprintln($"""!!! See the Menhir home page for instructions on downloading.""")
+       eprintln($"""!!!    http://cristal.inria.fr/~fpottier/menhir/""")
+       exit(1)
+
+# Compute the correct ocamlc and ocamldep options for Menhir.
+MenhirOCamlcCommand() =
+    MenhirCheck()
+    ocamlc[] =\
+       $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
+           $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
+    value --ocamlc $"$(ocamlc)"
+
+MenhirOCamldepCommand() =
+    ocamldep =
+       if $(and $(MENHIR_RAW_DEPEND), $(OCAMLDEP_MODULES_ENABLED))
+           value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS) -modules
+       else
+           value ocamldep $(PREFIXED_OCAMLINCLUDES)
+    value --ocamldep $"$(ocamldep)"
+
+# Compute the Mendir dependency scanner command
+MenhirScannerCommand(base, src) =
+    if $(MENHIR_ENABLED)
+        if $(MENHIR_RAW_DEPEND)
+            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand) $(base) --raw-depend $(src) | ocamldep-postproc -preserve-targets
+        else
+            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand) $(base) --depend $(src)
+
+# Use Menhir if MENHIR_ENABLED, ocamlyacc otherwise
+OCamlYaccCommand(src) =
+    if $(MENHIR_ENABLED)
+        value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamlcCommand) $(src)
+    else
+        value $(OCAMLYACC) $(OCAMLYACCFLAGS) $(src)
+
+.SCANNER: scan-ocamlyacc-%.mly: %.mly :value: $(MENHIR_ENABLED) $(OCamlScannerTargets $&)
+    $(MenhirScannerCommand $(EMPTY), $<)
+
+%.ml %.mli: %.mly :scanner: scan-ocamlyacc-%.mly
+    $(OCamlYaccCommand $<)
+
+#
+# \begin{doc}
+# \subsection{Using the Menhir parser generator}
+#
+# Menhir is a parser generator that is mostly compatible with
+# \verb+ocamlyacc+, but with many improvements.  A few of these
+# are listed here (excerpted from the Menhir home page
+# \url{http://cristal.inria.fr/~fpottier/menhir/}).
+#
+# \begin{itemize}
+# \item Menhir's explanations are believed to be understandable by mere humans.
+# \item Menhir allows grammar specifications to be split over multiple files.
+#     It also allows several grammars to share a single set of tokens.
+# \item Menhir is able to produce parsers that are parameterized by Objective Caml modules.
+# \item [Added by jyh] With the \verb+--infer+ option, Menhir can typecheck the semantic actions
+#    in your grammar at \emph{generation} time.
+# \end{itemize}
+#
+# What do you need to do to use Menhir instead of \verb+ocamlyacc+?
+# \begin{enumerate}
+# \item Place the following definition before the relevant section of your project
+#    (or at the top of your project \verb+OMakefile+ if you want to use Menhir everywhere).
+#
+# \begin{verbatim}
+#    MENHIR_ENABLED = true
+# \end{verbatim}
+#
+# \item Optionally, add any desired Menhir options to the \verb+MENHIR_FLAGS+ variable.
+#
+# \begin{verbatim}
+#    MENHIR_FLAGS += --infer
+# \end{verbatim}
+# \end{enumerate}
+#
+# With this setup, any file with a \verb+.mly+ suffix will be compiled with Menhir.
+#
+# If your grammar is split across several files, you need to specify it explicitly,
+# using the \verb+MenhirMulti+ function.
+#
+# \begin{verbatim}
+#     MenhirMulti(target, sources)
+#         target : filename, without suffix
+#         sources : the files that define the grammar, without suffixes
+# \end{verbatim}
+#
+# For example, if you want to generate the parser files \verb+parse.ml+ and \verb+parse.mli+,
+# from the grammar specified in files \verb+a.mly+ and \verb+b.mly+, you would use
+# the following.
+#
+# \begin{verbatim}
+#     MenhirMulti(parse, a b)
+# \end{verbatim}
+# \end{doc}
+#
+MenhirMulti(target, sources) =
+    MenhirCheck()
+    sources = $(addsuffix .mly, $(sources))
+
+    # Menhir needs all the files for dependency analysis
+    .SCANNER: scan-menhir-$(target).multi: $(sources) :value: $(OCamlScannerTargets $&)
+        $(MenhirScannerCommand --base $(target), $+)
+
+    # Set up the actual rule
+    $(target).ml $(target).mli: $(sources) :scanner: scan-menhir-$(target).multi
+        $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamlcCommand) --base $(target) $+
+
+########################################################################
+# Other common generated files
+#
 %.ml %.mli: %.mlz
     $(symlink $<, $*.ml)
     $(symlink $<, $*.mli)
+
+%.ml: %.mll
+    $(OCAMLLEX) $(OCAMLLEXFLAGS) $<
 
 %.ml: %.mlp %.h
     @rm -f $@
@@ -297,61 +674,25 @@ OCAML_LIB_FLAGS =
     @chmod 444 $@
 
 #
-# Make sure generated files are built before scanning
-#
-# \begin{doc}
-# \twofuns{OCamlGeneratedFiles}{LocalOCamlGeneratedFiles}
-# \begin{verbatim}
-# OCamlGeneratedFiles(files)
-# LocalOCamlGeneratedFiles(files)
-# \end{verbatim}
-#
-# The \verb+OCamlGeneratedFiles+ and \verb+LocalOCamlGeneratedFiles+ functions specify files
-# that need to be generated before any OCaml files are scanned for dependencies. For example,
-# if \verb+parser.ml+ and \verb+lexer.ml+ are both generated files, specify:
-# \begin{verbatim}
-# OCamlGeneratedFiles(parser.ml lexer.ml)
-# \end{verbatim}
-#
-# The \verb+OCamlGeneratedFiles+ function is \emph{global} --- its arguments will be generated
-# before any OCaml files anywhere in the project are scanned for dependencies. The
-# \verb+LocalOCamlGeneratedFiles+ function follows the normal scoping rules of OMake.
-#
-# \end{doc}
-#
-.PHONY: OCamlGeneratedFilesTarget
-
-OCamlGeneratedFiles(files) =
-    OCamlGeneratedFilesTarget: $(files)
-
-LocalOCamlGeneratedFiles(files) =
-    .SCANNER: scan-ocaml-%: $(files)
-    .SCANNER: %.cmi: $(files)
-    .SCANNER: %.cmx %.cmo: $(files)
-    export
-
-#
 # Generic scanners
 #
-OCamlScannerDeps(files) =
-    files = $(set $(replacesuffixes .cmi .ppi .cmo .cmx .ppo, .mli .mli .ml .ml .ml, $(files)))
-    files = $(filter %.ml %.mli, $(files))
-    return $(find-in-path-optional $(OCAMLINCLUDES), $(files))
+OCamlScannerTargets(files) =
+    value $(find-targets-in-path-optional $(OCAMLINCLUDES), $(basename $(files))) $(NATIVE_ENABLED)
 
-.SCANNER: scan-ocaml-%.mli: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerDeps $&)
-    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+.SCANNER: scan-ocaml-%.mli: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerTargets $&)
+    $(OCamlScanner $<)
 
-.SCANNER: scan-ocaml-%.ml: %.ml /.PHONY/OCamlGeneratedFilesTarget :exists: %.mli :value: $(OCamlScannerDeps $&)
-    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+.SCANNER: scan-ocaml-%.ml: %.ml /.PHONY/OCamlGeneratedFilesTarget :exists: %.mli :value: $(OCamlScannerTargets $&)
+    $(OCamlScanner $<)
 
 #
 # Default .SCANNER rules for backwards-compatibility.
 #
-.SCANNER: %.cmi: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerDeps $&)
-    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+.SCANNER: %.cmi: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerTargets $&)
+    $(OCamlScanner $<)
 
-.SCANNER: %.cmx %.cmo %$(EXT_OBJ): %.ml /.PHONY/OCamlGeneratedFilesTarget :exists: %.mli :value: $(OCamlScannerDeps $&)
-    $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $<
+.SCANNER: %.cmx %.cmo %$(EXT_OBJ): %.ml /.PHONY/OCamlGeneratedFilesTarget :exists: %.mli :value: $(OCamlScannerTargets $&)
+    $(OCamlScanner $<)
 
 #
 # Define a link order for OCaml files.
@@ -562,7 +903,7 @@ OCamlLibraryCopy(tag, lib, name, ifiles) =
    if $(NATIVE_ENABLED)
       $(tag): $(LIBNATIVE) $(LIBCLIB)
 
-      FILES[] += 
+      FILES[] +=
          $(LIBNATIVE)
          $(LIBCLIB)
 
@@ -601,7 +942,7 @@ OCamlLibraryInstall(tag, lib, name, files) =
 # \fun{OCamlProgram}
 #
 # The \verb+OCamlProgram+ function builds an OCaml program. It returns the array with all
-# the targets for which it have defined the rules (\verb+$(name)$(EXE)+ and \verb+$(name).run+
+# the targets for which it has defined the rules (\verb+$(name)$(EXE)+ and \verb+$(name).run+
 # and/or \verb+$(name).opt+, depending on the \verb+NATIVE_ENABLED+ and \verb+BYTE_ENABLED+
 # variables).
 #
@@ -723,3 +1064,4 @@ OCamlProgramInstall(tag, bin, name, files) =
     OCamlProgram($(name), $(files))
     return $(OCamlProgramCopy $(tag), $(bin), $(name))
 
+# vim:tw=100:fo=tcq:
