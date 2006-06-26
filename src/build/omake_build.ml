@@ -1411,10 +1411,18 @@ let execute_scanner env command =
             pp_print_arg_command_lines scanner
    in
 
+   (* Save errors to the tee *)
+   let options = venv_options venv in
+   let () = unlink_tee command in
+   let tee = tee_create (options.opt_divert <> []) in
+   let divert_only = List.mem DivertOnly options.opt_divert in
+   let copy_stderr = tee_stderr tee divert_only in
+
    (* Save output into a temporary file *)
    let tmpfile = Filename.temp_file "omake" ".deps" in
    let handle_out = copy_file tmpfile in
    let shell = eval_shell venv pos in
+      command.command_tee <- tee;
       env.env_scan_exec_count <- succ env.env_scan_exec_count;
       match Exec.spawn env.env_exec shell (venv_options venv) tee_none handle_out copy_stderr "scan" target scanner with
          ProcessFailed ->
