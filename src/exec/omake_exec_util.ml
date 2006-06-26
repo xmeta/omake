@@ -161,13 +161,15 @@ let tee_create b =
       tee_none
 
 let tee_copy fd tee tee_only id buf off len =
-   if not tee_only then
-      write_all fd id buf off len;
-   match tee_channel tee with
-      Some outx ->
-         Pervasives.output outx buf off len
-    | None ->
-         ()
+   if len <> 0 then begin
+      if not tee_only then
+         write_all fd id buf off len;
+      match tee_channel tee with
+         Some outx ->
+            Pervasives.output outx buf off len
+       | None ->
+            ()
+   end
 
 let tee_stdout = tee_copy Unix.stdout
 let tee_stderr = tee_copy Unix.stderr

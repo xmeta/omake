@@ -2651,17 +2651,13 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
             let buf, outx = open_tmpfile env in
                fprintf buf "%a@." Omake_exn_print.pp_print_exn exn;
                close_out outx;
-               if not options.opt_dry_run then
-                  save env;
                print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
                build_failure env;
+               if not options.opt_dry_run then
+                  save env;
                close env;
                exit exn_error_code
    in
-      (* Save database before exiting *)
-      if save_flag && not options.opt_dry_run then
-         save env;
-
       (* Return error if that happened *)
       if env.env_error_code <> 0 then
          let buf, outx = open_tmpfile env in
@@ -2692,7 +2688,11 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
             build_failure env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
       else if summary then
-         build_success env
+         build_success env;
+
+      (* Save database before exiting *)
+      if save_flag && not options.opt_dry_run then
+         save env
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
    if not options.opt_poll then
