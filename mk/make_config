@@ -93,6 +93,15 @@ FAM_ENABLED = $(FAM_ENABLED)
 # a floating point number).
 #
 DEFAULT_SAVE_INTERVAL = $(DEFAULT_SAVE_INTERVAL)
+
+#
+# The OCAMLDEP_MODULES_ENABLED variable specifies whether to use the -modules
+# option to ocamldep.  Dependency analysis is much better with this option,
+# but it is also a little slower.  Also, the -modules option is not yet available
+# with the standard OCaml distribution.  OMake includes a patched ocamldep,
+# in case you want to use it anyway.
+#
+OCAMLDEP_MODULES_ENABLED = $(and $(OCAMLDEP_MODULES_AVAILABLE), $(OCAMLDEP_MODULES_ENABLED))
 """
 
     # Save the text in the output file
