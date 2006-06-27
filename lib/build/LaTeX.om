@@ -63,17 +63,21 @@ public.PDFLATEX = pdflatex
 public.PDFLATEXFLAGS =
 public.USEPDFLATEX = false
 public.LATEX = latex
-public.LATEXFLAGS =
-    BASE = -output-comment=$"LaTeX Output (built with OMake)"
-    value $`(if $(TETEX2_ENABLED), $(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
 #
 # Configure LaTeX by checking whether some LaTeX options exist.
 #
-public.TETEX2_ENABLED = false
-public.FILE_LINE_ERROR =
+public. =
+    declare FORCE_WIN32_LATEX
+    if $(not $(defined FORCE_WIN32_LATEX))
+        FORCE_WIN32_LATEX = false
+        export
+
 static. =
     open configure/Configure
+
+    TETEX2_ENABLED = false
+    FILE_LINE_ERROR =
 
     #
     # XXX: JYH: when Cygwin latex is called from Win32,
@@ -83,10 +87,6 @@ static. =
     #
     # XXX: We should move the uname test into configure/uname.
     #
-    if $(not $(defined FORCE_WIN32_LATEX))
-        FORCE_WIN32_LATEX = false
-        export
-
     LATEX_USABLE = $(CheckProg latex)
     if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
@@ -136,9 +136,16 @@ static. =
             println($'(tetex2 disabled)')
 
         rm $(TETEX_CONFIG_TMP)
-        export
+        export FILE_LINE_ERROR TETEX2_ENABLED
 
     export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE
+
+#
+# Compute the default flags
+#
+public.LATEXFLAGS =
+    protected.BASE = -output-comment=$"LaTeX Output (built with OMake)"
+    value $`(if $(TETEX2_ENABLED), $(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
 #
 # Dynamically defined list of files that the TeX source depends on.
@@ -155,7 +162,7 @@ public.TEXINPUTS = $(split $(PATHSEP), $(getenv TEXINPUTS, .))
 # TeX can log its inputs and outputs into an .fls file.  We use the internal awk
 # to turn an .fls file into in appropriate dependency file format.
 #
-public.Shell. +=
+Shell. +=
     protected.builtin-tex-deps(argv) =
         private. =
             dep = $(nth 0, $(argv))
@@ -260,7 +267,7 @@ public.LocalTeXGeneratedFiles(files) =
     .SCANNER: scan-tex-%: $(files)
     export
 
-public.Shell. +=
+Shell. +=
     protected.drop-dvips-junk(argv) =
         private.print = true
         awk()

@@ -9,10 +9,9 @@ MAKEFILE_LINK =
 MAKEFILE_DONT_LINK =
 MAKEFILE_EXPLICIT_LINK =
 
-private. =
-    slash = $'$(slash)'
-    ext_obj = $'$(EXT_OBJ)'
-    ext_lib = $'$(EXT_LIB)'
+private.slash = $'$(slash)'
+private.ext_obj = $'$(EXT_OBJ)'
+private.ext_lib = $'$(EXT_LIB)'
 
 ########################################################################
 # Linking
@@ -26,15 +25,14 @@ MakeDontLink(files) =
     export
 
 MakeLinkFile(dst, src) =
-    private. =
-        cwd = $(in $(BOOT), $(CWD))
-        cwd = $(split \/, $(cwd))
-        cwd = $(concat $(slash), $(cwd))
+    private.cwd = $(in $(BOOT), $(CWD))
+    private.cwd = $(split \/, $(cwd))
+    private.cwd = $(concat $(slash), $(cwd))
 
-        src = $(split \/, $(src))
-        src = $(concat $(slash), $(src))
+    private.src = $(split \/, $(src))
+    private.src = $(concat $(slash), $(src))
 
-        srcfile = $"$(cwd)$(slash)$(src)"
+    private.srcfile = $"$(cwd)$(slash)$(src)"
     MAKEFILE_TEXT += $"""
 $(dst): $(srcfile)
 	$$(LN) $(srcfile) $(dst)
@@ -76,10 +74,9 @@ MakeLinkExternal(srcdir, files) =
 MakeStaticCLibrary(name, files) =
     StaticCLibrary($(name), $(files))
 
-    private. =
-        cfiles = $(addsuffix .c, $(files))
-        hfiles = $(filter-exists $(addsuffix .h, $(files)))
-        ofiles = $(addsuffix $(ext_obj), $(files))
+    private.cfiles = $(addsuffix .c, $(files))
+    private.hfiles = $(filter-exists $(addsuffix .h, $(files)))
+    private.ofiles = $(addsuffix $(ext_obj), $(files))
     MAKEFILE_LINK += $(cfiles) $(hfiles)
     MAKEFILE_TEXT += $"""
 OFILES_$(name) = $(ofiles)
@@ -100,15 +97,14 @@ $(name)$$(EXT_LIB): $$(OFILES_$(name))
 MakeOCamlProgram(name, files) =
     OCamlProgram($(name), $(files))
 
-    private. =
-        mlfiles = $(addsuffix .ml, $(files))
-        mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
-        cmofiles = $(addsuffix .cmo, $(files))
-        ocaml_libs = $(addsuffix .cma, $(basename $(public.OCAML_LIBS)))
-        ocaml_other_libs = $(addsuffix .cma, $(public.OCAML_OTHER_LIBS))
-        ocaml_other_libs = $(set-diff $(ocaml_other_libs), threads.cma)
-        ocaml_clibs = $(addsuffix $(ext_lib), $(basename $(public.OCAML_CLIBS)))
-        ocaml_cclibs = $(mapprefix -cclib, $(ocaml_clibs))
+    private.mlfiles = $(addsuffix .ml, $(files))
+    private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
+    private.cmofiles = $(addsuffix .cmo, $(files))
+    private.ocaml_libs = $(addsuffix .cma, $(basename $(OCAML_LIBS)))
+    private.ocaml_other_libs = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+    private.ocaml_other_libs = $(set-diff $(ocaml_other_libs), threads.cma)
+    private.ocaml_clibs = $(addsuffix $(ext_lib), $(basename $(OCAML_CLIBS)))
+    private.ocaml_cclibs = $(mapprefix -cclib, $(ocaml_clibs))
     MAKEFILE_LINK += $(mlfiles) $(mlifiles)
     MAKEFILE_TEXT += $"""
 CMOFILES_$(name) = $(cmofiles)
@@ -128,10 +124,9 @@ $(name)$$(EXE): $$(CMOFILES_$(name)) $$(OCAML_LIBS_$(name)) $$(OCAML_CLIBS_$(nam
 MakeOCamlLibrary(name, files) =
     OCamlLibrary($(name), $(files))
 
-    private. =
-        mlfiles = $(addsuffix .ml, $(files))
-        mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
-        cmofiles = $(addsuffix .cmo, $(files))
+    private.mlfiles = $(addsuffix .ml, $(files))
+    private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
+    private.cmofiles = $(addsuffix .cmo, $(files))
     MAKEFILE_LINK += $(mlfiles) $(mlifiles)
     MAKEFILE_TEXT += $"""
 CMOFILES_$(name) = $(cmofiles)
@@ -146,10 +141,9 @@ $(name).cma: $$(CMOFILES_$(name))
 # Add some dependencies (the make version of depend is rough)
 #
 MakeOCamlDepend(files, deps) =
-    private. =
-        mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
-        cmofiles = $(addsuffix .cmo, $(files))
-        cmifiles = $(addsuffix .cmi, $(removesuffix $(mlifiles)))
+    private.mlifiles = $(filter-exists $(addsuffix .mli, $(files)))
+    private.cmofiles = $(addsuffix .cmo, $(files))
+    private.cmifiles = $(addsuffix .cmi, $(removesuffix $(mlifiles)))
     MAKEFILE_TEXT += $"""
 $(cmofiles) $(cmifiles): $(deps)
 """
@@ -159,14 +153,13 @@ $(cmofiles) $(cmifiles): $(deps)
 # Finish generating the Makefile text.
 #
 MakeText() =
-    private. =
-        cwd = $(in $(BOOT), $(CWD))
-        base = $(basename $(cwd))
-        cwd = $(split \/, $(cwd))
-        cwd = $(concat $(slash), $(cwd))
-        links = $(set $(MAKEFILE_LINK))
-        implicit-links = $(set-diff $(links), $(MAKEFILE_DONT_LINK) $(MAKEFILE_EXPLICIT_LINK))
-        makefiledep_deps = $(set-diff $(MAKEFILE_DONT_LINK), omake_magic.ml)
+    private.cwd = $(in $(BOOT), $(CWD))
+    private.base = $(basename $(cwd))
+    private.cwd = $(split \/, $(cwd))
+    private.cwd = $(concat $(slash), $(cwd))
+    private.links = $(set $(MAKEFILE_LINK))
+    private.implicit-links = $(set-diff $(links), $(MAKEFILE_DONT_LINK) $(MAKEFILE_EXPLICIT_LINK))
+    private.makefiledep_deps = $(set-diff $(MAKEFILE_DONT_LINK), omake_magic.ml)
 
     if $(makefiledep_deps)
         MAKEFILE_TEXT += $"""
@@ -201,8 +194,7 @@ ALLFILES_$(base) = $(implicit-links) $(MAKEFILE_EXPLICIT_LINK)
 # Write to the Makefile
 #
 MakeMakefile() =
-    private. =
-        text = $(MakeText)
+    private.text = $(MakeText)
 
     Makefile.tmp: :value: $(text)
         @echo $(text) > $@
@@ -210,11 +202,11 @@ MakeMakefile() =
 ########################################################################
 # Global Makefile generation
 #
-private. =
-    #
-    # Header file for Unix
-    #
-    MAKEFILE_HEAD_UNIX = $'''#
+
+#
+# Header file for Unix
+#
+private.MAKEFILE_HEAD_UNIX = $'''#
 # !!!THIS IS A GENERATED FILE!!!
 # !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
 #
@@ -251,7 +243,7 @@ THREADSLIB =
 	$(CC) $(CFLAGS) -I"`ocamlc -where`" -c $*.c
 '''
 
-    MAKEFILE_HEAD_NT = $'''#
+private.MAKEFILE_HEAD_NT = $'''#
 # !!!THIS IS A GENERATED FILE!!!
 # !!!DO NOT MAKE CHANGES HERE, THEY WILL BE LOST!!!
 #
@@ -286,7 +278,7 @@ THREADSLIB = threads.cma
 	$(CC) $(CFLAGS) -c $*.c
 '''
 
-    MAKEFILE_HEAD_COMMON = $'''
+private.MAKEFILE_HEAD_COMMON = $'''
 #
 # OCaml configuration
 #
@@ -317,7 +309,7 @@ version.txt:
 	@echo 0.0.boot > $@
 '''
 
-    MAKEFILE_TAIL_COMMON = $'''
+private.MAKEFILE_TAIL_COMMON = $'''
 #
 # Create a dependency file
 #
@@ -333,11 +325,11 @@ clean:
 	$(RM) omake
 '''
 
-    MAKEFILE_TAIL_UNIX = $'''
+private.MAKEFILE_TAIL_UNIX = $'''
 include Makefile.dep
 '''
 
-    MAKEFILE_TAIL_NT = $'''
+private.MAKEFILE_TAIL_NT = $'''
 !INCLUDE Makefile.dep
 '''
 

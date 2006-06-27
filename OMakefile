@@ -1,6 +1,7 @@
 ########################################################################
 # Configuration.
 #
+open build/C
 include mk/defaults
 include mk/make_gen
 
@@ -84,19 +85,19 @@ if $(THREADS_ENABLED)
 # C options
 #
 INCLUDES += $(CAMLLIB) .
-protected.READLINE_CLIBS =
+CLIBS =
 
 if $(READLINE_ENABLED)
     CFLAGS += $(READLINE_CFLAGS)
-    READLINE_CLIBS += $(READLINE_CLIBS)
+    CLIBS += $(READLINE_CLIBS)
     export
 
 if $(FAM_ENABLED)
     CFLAGS += $(FAM_CFLAGS)
-    READLINE_CLIBS += $(FAM_CLIBS)
+    CLIBS += $(FAM_CLIBS)
     export
 
-OCAML_LINK_FLAGS = $(mapprefix -cclib, $(READLINE_CLIBS))
+OCAML_LINK_FLAGS = $(mapprefix -cclib, $(CLIBS))
 
 #
 # Name of the genmagic program
