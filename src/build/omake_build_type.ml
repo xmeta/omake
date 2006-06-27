@@ -210,8 +210,6 @@ type env =
      env_failed_wl                  : command option ref;
 
      (* Output files *)
-     mutable env_success_tees       : string list;
-     mutable env_failed_tees        : string list;
      env_summary                    : string;
 
      (* Statistics *)

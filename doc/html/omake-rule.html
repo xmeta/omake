@@ -41,8 +41,9 @@ Build functions
 <LI><A HREF="omake-rule.html#toc80">The OMakeroot file</A>
 <LI><A HREF="omake-rule.html#toc81">Building C programs</A>
 <LI><A HREF="omake-rule.html#toc82">Building OCaml programs</A>
-<LI><A HREF="omake-rule.html#toc83">Building L<sup>A</sup>T<sub>E</sub>X programs</A>
-<LI><A HREF="omake-rule.html#toc84">Examining the dependency graph</A>
+<LI><A HREF="omake-rule.html#toc83">Generated OCaml Files</A>
+<LI><A HREF="omake-rule.html#toc84">Building L<sup>A</sup>T<sub>E</sub>X programs</A>
+<LI><A HREF="omake-rule.html#toc85">Examining the dependency graph</A>
 </UL>
 
 <A NAME="chapter:rule"></A>
@@ -93,7 +94,7 @@ If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can
 define them in your <CODE>.omakerc</CODE>&nbsp;<A HREF="omake-options.html#section:.omakerc">A.8</A>.<BR>
 <BR>
-The <CODE>find-build-targets</CODE> function&nbsp;<A HREF="#fun:find-build-targets">11.7.0.9</A>
+The <CODE>find-build-targets</CODE> function&nbsp;<A HREF="#fun:find-build-targets">11.8.0.9</A>
 is useful for obtaining a firther summary of the build. Note that
 when output diversions are in effect (with the <CODE>--divert-*</CODE> options&nbsp;<A HREF="omake-options.html#chapter:options">A</A>),
 any output produced by the commands is copied to a file. The name of the
@@ -371,91 +372,150 @@ for linking instead of <CODE>$(CC)</CODE> and <CODE>$(CFLAGS)</CODE>.
 <A NAME="toc82"></A>
 <H2 CLASS="section"><A NAME="htoc355">11.5</A>&nbsp;&nbsp;Building OCaml programs</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc356">11.5.1</A>&nbsp;&nbsp;Variables for OCaml programs</H3>
+<H3 CLASS="subsection"><A NAME="htoc356">11.5.1</A>&nbsp;&nbsp;Autoconfiguration variables for OCaml programs</H3>
+These variables will get defined based on the &#8220;autoconf-style&#8221; tests executed when you
+run OMakefor the first time. You can use them to configure your project accordingly,
+and you should not redefine them.
+
+<H4 CLASS="subsubsection"><A NAME="htoc357">11.5.1.1</A>&nbsp;&nbsp;OCAMLOPT_EXISTS</H4><A NAME="@default325"></A><A NAME="@var44"></A><A NAME="var:OCAMLOPT_EXISTS"></A> True when <CODE>ocamlopt</CODE> (or <CODE>ocamlopt.opt</CODE>) is
+ available on your machine.
+
+<H4 CLASS="subsubsection"><A NAME="htoc358">11.5.1.2</A>&nbsp;&nbsp;OCAMLFIND_EXISTS</H4><A NAME="@default326"></A><A NAME="@var45"></A><A NAME="var:OCAMLFIND_EXISTS"></A> True when the ocamlfind is available on your
+ machines.
+
+<H4 CLASS="subsubsection"><A NAME="htoc359">11.5.1.3</A>&nbsp;&nbsp;OCAMLDEP_MODULES_AVAILABLE</H4><A NAME="@default327"></A><A NAME="@var46"></A><A NAME="var:OCAMLDEP_MODULES_AVAILABLE"></A> True when a version of
+ <CODE>ocamldep</CODE> that understands the <CODE>-modules</CODE> option is available on your machine.
+
+<H4 CLASS="subsubsection"><A NAME="htoc360">11.5.1.4</A>&nbsp;&nbsp;MENHIR_AVAILABLE</H4><A NAME="@default328"></A><A NAME="@var47"></A><A NAME="var:MENHIR_AVAILABLE"></A> True when the Menhir parser-generator is available
+ on your machine.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc361">11.5.2</A>&nbsp;&nbsp;Configuration variables for OCaml programs</H3>
 The following variables can be redefined in your project.
 
-<H4 CLASS="subsubsection"><A NAME="htoc357">11.5.1.1</A>&nbsp;&nbsp;USE_OCAMLFIND</H4><A NAME="@default325"></A><A NAME="@var44"></A><A NAME="var:USE_OCAMLFIND"></A> Whether to use the <CODE>ocamlfind</CODE> utility (default <CODE>false\</CODE>)
+<H4 CLASS="subsubsection"><A NAME="htoc362">11.5.2.1</A>&nbsp;&nbsp;USE_OCAMLFIND</H4><A NAME="@default329"></A><A NAME="@var48"></A><A NAME="var:USE_OCAMLFIND"></A> Whether to use the <CODE>ocamlfind</CODE> utility (default <CODE>false\</CODE>)
 
-<H4 CLASS="subsubsection"><A NAME="htoc358">11.5.1.2</A>&nbsp;&nbsp;OCAMLC</H4><A NAME="@default326"></A><A NAME="@var45"></A><A NAME="var:OCAMLC"></A> The OCaml bytecode compiler (default <CODE>ocamlc.opt</CODE> if it exists
+<H4 CLASS="subsubsection"><A NAME="htoc363">11.5.2.2</A>&nbsp;&nbsp;OCAMLC</H4><A NAME="@default330"></A><A NAME="@var49"></A><A NAME="var:OCAMLC"></A> The OCaml bytecode compiler (default <CODE>ocamlc.opt</CODE> if it exists
  and <CODE>USE_OCAMLFIND</CODE> is not set, otherwise <CODE>ocamlc</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc359">11.5.1.3</A>&nbsp;&nbsp;OCAMLOPT</H4><A NAME="@default327"></A><A NAME="@var46"></A><A NAME="var:OCAMLOPT"></A> The OCaml native-code compiler (default <CODE>ocamlopt.opt</CODE> if it
+<H4 CLASS="subsubsection"><A NAME="htoc364">11.5.2.3</A>&nbsp;&nbsp;OCAMLOPT</H4><A NAME="@default331"></A><A NAME="@var50"></A><A NAME="var:OCAMLOPT"></A> The OCaml native-code compiler (default <CODE>ocamlopt.opt</CODE> if it
  exists and <CODE>USE_OCAMLFIND</CODE> is not set, otherwise <CODE>ocamlopt</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc360">11.5.1.4</A>&nbsp;&nbsp;CAMLP4</H4><A NAME="@default328"></A><A NAME="@var47"></A><A NAME="var:CAMLP4"></A> The <CODE>camlp4</CODE> preprocessor (default <CODE>camlp4</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc365">11.5.2.4</A>&nbsp;&nbsp;CAMLP4</H4><A NAME="@default332"></A><A NAME="@var51"></A><A NAME="var:CAMLP4"></A> The <CODE>camlp4</CODE> preprocessor (default <CODE>camlp4</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc361">11.5.1.5</A>&nbsp;&nbsp;OCAMLLEX</H4><A NAME="@default329"></A><A NAME="@var48"></A><A NAME="var:OCAMLLEX"></A> The OCaml lexer generator (default <CODE>ocamllex</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc366">11.5.2.5</A>&nbsp;&nbsp;OCAMLLEX</H4><A NAME="@default333"></A><A NAME="@var52"></A><A NAME="var:OCAMLLEX"></A> The OCaml lexer generator (default <CODE>ocamllex</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc362">11.5.1.6</A>&nbsp;&nbsp;OCAMLLEXFLAGS</H4><A NAME="@default330"></A><A NAME="@var49"></A><A NAME="var:OCAMLLEXFLAGS"></A> The flags to pass to <CODE>ocamllex</CODE> (default <CODE>-q</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc367">11.5.2.6</A>&nbsp;&nbsp;OCAMLLEXFLAGS</H4><A NAME="@default334"></A><A NAME="@var53"></A><A NAME="var:OCAMLLEXFLAGS"></A> The flags to pass to <CODE>ocamllex</CODE> (default <CODE>-q</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc363">11.5.1.7</A>&nbsp;&nbsp;OCAMLYACC</H4><A NAME="@default331"></A><A NAME="@var50"></A><A NAME="var:OCAMLYACC"></A> The OCaml parser generator (default <CODE>ocamlyacc</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc368">11.5.2.7</A>&nbsp;&nbsp;OCAMLYACC</H4><A NAME="@default335"></A><A NAME="@var54"></A><A NAME="var:OCAMLYACC"></A> The OCaml parser generator (default <CODE>ocamlyacc</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc364">11.5.1.8</A>&nbsp;&nbsp;OCAMLDEP</H4><A NAME="@default332"></A><A NAME="@var51"></A><A NAME="var:OCAMLDEP"></A> The OCaml dependency analyzer (default <CODE>ocamldep</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc369">11.5.2.8</A>&nbsp;&nbsp;OCAMLYACCFLAGS</H4><A NAME="@default336"></A><A NAME="@var55"></A><A NAME="var:OCAMLYACCFLAGS"></A> Additional options to pass to <CODE>$(OCAMLYACC)</CODE>.
 
-<H4 CLASS="subsubsection"><A NAME="htoc365">11.5.1.9</A>&nbsp;&nbsp;OCAMLMKTOP</H4><A NAME="@default333"></A><A NAME="@var52"></A><A NAME="var:OCAMLMKTOP"></A> The OCaml toploop compiler (default <CODE>ocamlmktop</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc370">11.5.2.9</A>&nbsp;&nbsp;OCAMLDEP</H4><A NAME="@default337"></A><A NAME="@var56"></A><A NAME="var:OCAMLDEP"></A> The OCaml dependency analyzer (default <CODE>ocamldep</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc366">11.5.1.10</A>&nbsp;&nbsp;OCAMLLINK</H4><A NAME="@default334"></A><A NAME="@var53"></A><A NAME="var:OCAMLLINK"></A> The OCaml bytecode linker (default <CODE>$(OCAMLC)</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc371">11.5.2.10</A>&nbsp;&nbsp;OCAMLDEP_MODULES</H4><A NAME="@default338"></A><A NAME="@var57"></A><A NAME="var:OCAMLDEP_MODULES"></A> The OCaml dependency analyzer that understands the
+ <CODE>-module</CODE> option (default <CODE>ocamldep</CODE>, if <CODE>ocamldep -modules</CODE> works, or
+ <CODE>ocamlrun ocamldep-omake</CODE>, if <CODE>ocamlrun ocamldep-omake -modules</CODE> works, and empty
+ when neither works).
 
-<H4 CLASS="subsubsection"><A NAME="htoc367">11.5.1.11</A>&nbsp;&nbsp;OCAMLOPTLINK</H4><A NAME="@default335"></A><A NAME="@var54"></A><A NAME="var:OCAMLOPTLINK"></A> The OCaml native-code linker (default <CODE>$(OCAMLOPT)</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc372">11.5.2.11</A>&nbsp;&nbsp;OCAMLDEP_MODULES_ENABLED</H4><A NAME="@default339"></A><A NAME="@var58"></A><A NAME="var:OCAMLDEP_MODULES_ENABLED"></A> Instead of using <CODE>OCAMLDEP</CODE>
+ in a traditional <CODE>make</CODE>-style fashion, run <CODE>$(OCAMLDEP_MODULES) -modules</CODE> and then
+ postprocess the output internally to discover all the relevant generated <CODE>.ml</CODE> and
+ <CODE>.mli</CODE> files. See Section&nbsp;<A HREF="#section:ocaml-generated-files">11.6</A> for more information on
+ interactions between OMake, <CODE>OCAMLDEP</CODE> and generated files. This feature is currently
+ considered highly experimental and is disabled by default.
 
-<H4 CLASS="subsubsection"><A NAME="htoc368">11.5.1.12</A>&nbsp;&nbsp;OCAMLINCLUDES</H4><A NAME="@default336"></A><A NAME="@var55"></A><A NAME="var:OCAMLINCLUDES"></A> Search path to pass to the OCaml compilers (default <CODE>.</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc373">11.5.2.12</A>&nbsp;&nbsp;OCAMLMKTOP</H4><A NAME="@default340"></A><A NAME="@var59"></A><A NAME="var:OCAMLMKTOP"></A> The OCaml toploop compiler (default <CODE>ocamlmktop</CODE>).
+
+<H4 CLASS="subsubsection"><A NAME="htoc374">11.5.2.13</A>&nbsp;&nbsp;OCAMLLINK</H4><A NAME="@default341"></A><A NAME="@var60"></A><A NAME="var:OCAMLLINK"></A> The OCaml bytecode linker (default <CODE>$(OCAMLC)</CODE>).
+
+<H4 CLASS="subsubsection"><A NAME="htoc375">11.5.2.14</A>&nbsp;&nbsp;OCAMLOPTLINK</H4><A NAME="@default342"></A><A NAME="@var61"></A><A NAME="var:OCAMLOPTLINK"></A> The OCaml native-code linker (default <CODE>$(OCAMLOPT)</CODE>).
+
+<H4 CLASS="subsubsection"><A NAME="htoc376">11.5.2.15</A>&nbsp;&nbsp;OCAMLINCLUDES</H4><A NAME="@default343"></A><A NAME="@var62"></A><A NAME="var:OCAMLINCLUDES"></A> Search path to pass to the OCaml compilers (default <CODE>.</CODE>).
  The search path with the <CODE>-I</CODE> prefix is defined by the <CODE>PREFIXED_OCAMLINCLUDES</CODE>
  variable.
 
-<H4 CLASS="subsubsection"><A NAME="htoc369">11.5.1.13</A>&nbsp;&nbsp;OCAMLFIND</H4><A NAME="@default337"></A><A NAME="@var56"></A><A NAME="var:OCAMLFIND"></A> The <CODE>ocamlfind</CODE> utility (default <CODE>ocamlfind</CODE> if
+<H4 CLASS="subsubsection"><A NAME="htoc377">11.5.2.16</A>&nbsp;&nbsp;OCAMLFIND</H4><A NAME="@default344"></A><A NAME="@var63"></A><A NAME="var:OCAMLFIND"></A> The <CODE>ocamlfind</CODE> utility (default <CODE>ocamlfind</CODE> if
  <CODE>USE_OCAMLFIND</CODE> is set, otherwise empty).
 
-<H4 CLASS="subsubsection"><A NAME="htoc370">11.5.1.14</A>&nbsp;&nbsp;OCAMLFINDFLAGS</H4><A NAME="@default338"></A><A NAME="@var57"></A><A NAME="var:OCAMLFINDFLAGS"></A> The flags to pass to <CODE>ocamlfind</CODE> (default empty, <CODE>USE_OCAMLFIND</CODE> must be set).
+<H4 CLASS="subsubsection"><A NAME="htoc378">11.5.2.17</A>&nbsp;&nbsp;OCAMLFINDFLAGS</H4><A NAME="@default345"></A><A NAME="@var64"></A><A NAME="var:OCAMLFINDFLAGS"></A> The flags to pass to <CODE>ocamlfind</CODE> (default empty, <CODE>USE_OCAMLFIND</CODE> must be set).
 
-<H4 CLASS="subsubsection"><A NAME="htoc371">11.5.1.15</A>&nbsp;&nbsp;OCAMLPACKS</H4><A NAME="@default339"></A><A NAME="@var58"></A><A NAME="var:OCAMLPACKS"></A> Package names to pass to <CODE>ocamlfind</CODE> (<CODE>USE_OCAMLFIND</CODE> must be set).
+<H4 CLASS="subsubsection"><A NAME="htoc379">11.5.2.18</A>&nbsp;&nbsp;OCAMLPACKS</H4><A NAME="@default346"></A><A NAME="@var65"></A><A NAME="var:OCAMLPACKS"></A> Package names to pass to <CODE>ocamlfind</CODE> (<CODE>USE_OCAMLFIND</CODE> must be set).
 
-<H4 CLASS="subsubsection"><A NAME="htoc372">11.5.1.16</A>&nbsp;&nbsp;BYTE_ENABLED</H4><A NAME="@default340"></A><A NAME="@var59"></A><A NAME="var:BYTE_ENABLED"></A> Flag indicating whether to use the bytecode compiler (default <CODE>true</CODE>, when no <CODE>ocamlopt</CODE> found, <CODE>false</CODE> otherwise).
+<H4 CLASS="subsubsection"><A NAME="htoc380">11.5.2.19</A>&nbsp;&nbsp;BYTE_ENABLED</H4><A NAME="@default347"></A><A NAME="@var66"></A><A NAME="var:BYTE_ENABLED"></A> Flag indicating whether to use the bytecode compiler (default <CODE>true</CODE>, when no <CODE>ocamlopt</CODE> found, <CODE>false</CODE> otherwise).
 
-<H4 CLASS="subsubsection"><A NAME="htoc373">11.5.1.17</A>&nbsp;&nbsp;NATIVE_ENABLED</H4><A NAME="@default341"></A><A NAME="@var60"></A><A NAME="var:NATIVE_ENABLED"></A> Flag indicating whether to use the native-code compiler (default <CODE>true</CODE>, when ocamlopt is found, <CODE>false</CODE> otherwise).
+<H4 CLASS="subsubsection"><A NAME="htoc381">11.5.2.20</A>&nbsp;&nbsp;NATIVE_ENABLED</H4><A NAME="@default348"></A><A NAME="@var67"></A><A NAME="var:NATIVE_ENABLED"></A> Flag indicating whether to use the native-code compiler (default <CODE>true</CODE>, when ocamlopt is found, <CODE>false</CODE> otherwise).
  Both <CODE>BYTE_ENABLED</CODE> and <CODE>NATIVE_ENABLED</CODE> can be set to true;
  at least one should be set to true.
 
-<H3 CLASS="subsection"><A NAME="htoc374">11.5.2</A>&nbsp;&nbsp;OCaml command flags</H3>
-The following variables specify additional options to be passed to
+<H4 CLASS="subsubsection"><A NAME="htoc382">11.5.2.21</A>&nbsp;&nbsp;MENHIR_ENABLED</H4><A NAME="@default349"></A><A NAME="@var68"></A><A NAME="var:MENHIR_ENABLED"></A> Define this as <CODE>true</CODE> if you wish to use
+ <CODE>menhir</CODE> instead of <CODE>ocamlyacc</CODE> (default <CODE>false</CODE>).
+
+<H3 CLASS="subsection"><A NAME="htoc383">11.5.3</A>&nbsp;&nbsp;OCaml command flags</H3>
+The following variables specify <EM>additional</EM> options to be passed to
 the OCaml tools.
 
-<H4 CLASS="subsubsection"><A NAME="htoc375">11.5.2.1</A>&nbsp;&nbsp;OCAMLDEPFLAGS</H4><A NAME="@default342"></A><A NAME="@var61"></A><A NAME="var:OCAMLDEPFLAGS"></A> Flags to pass to <CODE>OCAMLDEP</CODE>.
+<H4 CLASS="subsubsection"><A NAME="htoc384">11.5.3.1</A>&nbsp;&nbsp;OCAMLDEPFLAGS</H4><A NAME="@default350"></A><A NAME="@var69"></A><A NAME="var:OCAMLDEPFLAGS"></A> Flags to pass to <CODE>OCAMLDEP</CODE> (but not to <CODE>OCAMLDEP_MODULES</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc376">11.5.2.2</A>&nbsp;&nbsp;OCAMLPPFLAGS</H4><A NAME="@default343"></A><A NAME="@var62"></A><A NAME="var:OCAMLPPFLAGS"></A> Flags to pass to <CODE>CAMLP4</CODE>.
+<H4 CLASS="subsubsection"><A NAME="htoc385">11.5.3.2</A>&nbsp;&nbsp;OCAMLPPFLAGS</H4><A NAME="@default351"></A><A NAME="@var70"></A><A NAME="var:OCAMLPPFLAGS"></A> Flags to pass to <CODE>CAMLP4</CODE>.
 
-<H4 CLASS="subsubsection"><A NAME="htoc377">11.5.2.3</A>&nbsp;&nbsp;OCAMLCFLAGS</H4><A NAME="@default344"></A><A NAME="@var63"></A><A NAME="var:OCAMLCFLAGS"></A> Flags to pass to the byte-code compiler (default <CODE>-g</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc386">11.5.3.3</A>&nbsp;&nbsp;OCAMLCFLAGS</H4><A NAME="@default352"></A><A NAME="@var71"></A><A NAME="var:OCAMLCFLAGS"></A> Flags to pass to the byte-code compiler (default <CODE>-g</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc378">11.5.2.4</A>&nbsp;&nbsp;OCAMLOPTFLAGS</H4><A NAME="@default345"></A><A NAME="@var64"></A><A NAME="var:OCAMLOPTFLAGS"></A> Flags to pass to the native-code compiler (default empty).
+<H4 CLASS="subsubsection"><A NAME="htoc387">11.5.3.4</A>&nbsp;&nbsp;OCAMLOPTFLAGS</H4><A NAME="@default353"></A><A NAME="@var72"></A><A NAME="var:OCAMLOPTFLAGS"></A> Flags to pass to the native-code compiler (default empty).
 
-<H4 CLASS="subsubsection"><A NAME="htoc379">11.5.2.5</A>&nbsp;&nbsp;OCAMLFLAGS</H4><A NAME="@default346"></A><A NAME="@var65"></A><A NAME="var:OCAMLFLAGS"></A> Flags to pass to either compiler (default <CODE>-warn-error A</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc388">11.5.3.5</A>&nbsp;&nbsp;OCAMLFLAGS</H4><A NAME="@default354"></A><A NAME="@var73"></A><A NAME="var:OCAMLFLAGS"></A> Flags to pass to either compiler (default <CODE>-warn-error A</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc380">11.5.2.6</A>&nbsp;&nbsp;OCAML_BYTE_LINK_FLAGS</H4><A NAME="@default347"></A><A NAME="@var66"></A><A NAME="var:OCAML_BYTE_LINK_FLAGS"></A> Flags to pass to the byte-code linker (default empty).
+<H4 CLASS="subsubsection"><A NAME="htoc389">11.5.3.6</A>&nbsp;&nbsp;OCAML_BYTE_LINK_FLAGS</H4><A NAME="@default355"></A><A NAME="@var74"></A><A NAME="var:OCAML_BYTE_LINK_FLAGS"></A> Flags to pass to the byte-code linker (default empty).
 
-<H4 CLASS="subsubsection"><A NAME="htoc381">11.5.2.7</A>&nbsp;&nbsp;OCAML_NATIVE_LINK_FLAGS</H4><A NAME="@default348"></A><A NAME="@var67"></A><A NAME="var:OCAML_NATIVE_LINK_FLAGS"></A> Flags to pass to the native-code linker (default empty).
+<H4 CLASS="subsubsection"><A NAME="htoc390">11.5.3.7</A>&nbsp;&nbsp;OCAML_NATIVE_LINK_FLAGS</H4><A NAME="@default356"></A><A NAME="@var75"></A><A NAME="var:OCAML_NATIVE_LINK_FLAGS"></A> Flags to pass to the native-code linker (default empty).
 
-<H4 CLASS="subsubsection"><A NAME="htoc382">11.5.2.8</A>&nbsp;&nbsp;OCAML_LINK_FLAGS</H4><A NAME="@default349"></A><A NAME="@var68"></A><A NAME="var:OCAML_LINK_FLAGS"></A> Flags to pass to either linker.
+<H4 CLASS="subsubsection"><A NAME="htoc391">11.5.3.8</A>&nbsp;&nbsp;OCAML_LINK_FLAGS</H4><A NAME="@default357"></A><A NAME="@var76"></A><A NAME="var:OCAML_LINK_FLAGS"></A> Flags to pass to either linker.
 
-<H3 CLASS="subsection"><A NAME="htoc383">11.5.3</A>&nbsp;&nbsp;Library variables</H3>
+<H4 CLASS="subsubsection"><A NAME="htoc392">11.5.3.9</A>&nbsp;&nbsp;MENHIR_FLAGS</H4><A NAME="@default358"></A><A NAME="@var77"></A><A NAME="var:MENHIR_FLAGS"></A> Additional flags to pass to <CODE>menhir</CODE>.
+
+<H3 CLASS="subsection"><A NAME="htoc393">11.5.4</A>&nbsp;&nbsp;Library variables</H3>
 The following variables are used during linking.<BR>
 <BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc384">11.5.3.1</A>&nbsp;&nbsp;OCAML_LIBS</H4><A NAME="@default350"></A><A NAME="@var69"></A><A NAME="var:OCAML_LIBS"></A> Libraries to pass to the linker. These libraries become dependencies
+<H4 CLASS="subsubsection"><A NAME="htoc394">11.5.4.1</A>&nbsp;&nbsp;OCAML_LIBS</H4><A NAME="@default359"></A><A NAME="@var78"></A><A NAME="var:OCAML_LIBS"></A> Libraries to pass to the linker. These libraries become dependencies
  of the link step.
 
-<H4 CLASS="subsubsection"><A NAME="htoc385">11.5.3.2</A>&nbsp;&nbsp;OCAML_OTHER_LIBS</H4><A NAME="@default351"></A><A NAME="@var70"></A><A NAME="var:OCAML_OTHER_LIBS"></A> Additional libraries to pass to the linker. These libraries are
+<H4 CLASS="subsubsection"><A NAME="htoc395">11.5.4.2</A>&nbsp;&nbsp;OCAML_OTHER_LIBS</H4><A NAME="@default360"></A><A NAME="@var79"></A><A NAME="var:OCAML_OTHER_LIBS"></A> Additional libraries to pass to the linker. These libraries are
  <EM>not</EM> included as dependencies to the link step. Typical use is for the OCaml
  standard libraries like <CODE>unix</CODE> or <CODE>str</CODE>.
 
-<H4 CLASS="subsubsection"><A NAME="htoc386">11.5.3.3</A>&nbsp;&nbsp;OCAML_CLIBS</H4><A NAME="@default352"></A><A NAME="@var71"></A><A NAME="var:OCAML_CLIBS"></A> C libraries to pass to the linker.
+<H4 CLASS="subsubsection"><A NAME="htoc396">11.5.4.3</A>&nbsp;&nbsp;OCAML_CLIBS</H4><A NAME="@default361"></A><A NAME="@var80"></A><A NAME="var:OCAML_CLIBS"></A> C libraries to pass to the linker.
 
-<H4 CLASS="subsubsection"><A NAME="htoc387">11.5.3.4</A>&nbsp;&nbsp;OCAML_LIB_FLAGS</H4><A NAME="@default353"></A><A NAME="@var72"></A><A NAME="var:OCAML_LIB_FLAGS"></A> Extra flags for the library.
+<H4 CLASS="subsubsection"><A NAME="htoc397">11.5.4.4</A>&nbsp;&nbsp;OCAML_LIB_FLAGS</H4><A NAME="@default362"></A><A NAME="@var81"></A><A NAME="var:OCAML_LIB_FLAGS"></A> Extra flags for the library.
+<A NAME="toc83"></A>
+<H2 CLASS="section"><A NAME="htoc398">11.6</A>&nbsp;&nbsp;Generated OCaml Files</H2>
+<A NAME="section:ocaml-generated-files"></A>
+As of OCaml version 3.09.2, the standard <CODE>ocamldep</CODE> scanner is &#8220;broken&#8221;. The main issue is
+that it finds only those dependencies that already exist. If <CODE>foo.ml</CODE> contains a dependency
+on <CODE>Bar</CODE>,
+<PRE CLASS="verbatim">
+foo.ml:
+   open Bar
+</PRE>then the default <CODE>ocamldep</CODE> will only find the dependency if a file <CODE>bar.ml</CODE> or
+<CODE>bar.ml</CODE> exists in the include path. It will not find (or print) the dependency if, for
+example, only <CODE>bar.mly</CODE> exists at the time <CODE>ocamldep</CODE> is run, even though <CODE>bar.ml</CODE>
+and <CODE>bar.mli</CODE> can be generated from <CODE>bar.mly</CODE>.<BR>
+<BR>
+OMake currently provides two methods for addressing this problem &mdash; one that requires manually
+specifying the generated files, and an experimental method for discovering such &#8220;hidden&#8221;
+dependencies automatically. The variable
+<CODE>OCAMLDEP_MODULES_ENABLED</CODE>&nbsp;<A HREF="#var:OCAMLDEP_MODULES_ENABLED">11.5.2.11</A> controls which method is
+going to be used. When this variable is false, the manual specifications are expected and when it
+is true, the automated discovery will be attempted.<BR>
+<BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc388">11.5.3.5</A>&nbsp;&nbsp;OCamlGeneratedFiles, LocalOCamlGeneratedFiles</H4><A NAME="@default354"></A><A NAME="@fun207"></A><A NAME="fun:OCamlGeneratedFiles"></A><A NAME="@default355"></A><A NAME="@fun208"></A><A NAME="fun:LocalOCamlGeneratedFiles"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc399">11.6.0.5</A>&nbsp;&nbsp;OCamlGeneratedFiles, LocalOCamlGeneratedFiles</H4><A NAME="@default363"></A><A NAME="@fun207"></A><A NAME="fun:OCamlGeneratedFiles"></A><A NAME="@default364"></A><A NAME="@fun208"></A><A NAME="fun:LocalOCamlGeneratedFiles"></A>
 <PRE CLASS="verbatim">
 OCamlGeneratedFiles(files)
 LocalOCamlGeneratedFiles(files)
 </PRE>
-The <CODE>OCamlGeneratedFiles</CODE> and <CODE>LocalOCamlGeneratedFiles</CODE> functions specify files
+When the <CODE>OCAMLDEP_MODULES_ENABLED</CODE>&nbsp;<A HREF="#var:OCAMLDEP_MODULES_ENABLED">11.5.2.11</A> variable is set
+to <CODE>false</CODE>, the <CODE>OCamlGeneratedFiles</CODE> and <CODE>LocalOCamlGeneratedFiles</CODE> functions specify files
 that need to be generated before any OCaml files are scanned for dependencies. For example,
 if <CODE>parser.ml</CODE> and <CODE>lexer.ml</CODE> are both generated files, specify:
 <PRE CLASS="verbatim">
@@ -465,8 +525,66 @@ The <CODE>OCamlGeneratedFiles</CODE> function is <EM>global</EM> &mdash; its arg
 before any OCaml files anywhere in the project are scanned for dependencies. The
 <CODE>LocalOCamlGeneratedFiles</CODE> function follows the normal scoping rules of OMake.<BR>
 <BR>
+These functions have no effect when
+<CODE>OCAMLDEP_MODULES_ENABLED</CODE>&nbsp;<A HREF="#var:OCAMLDEP_MODULES_ENABLED">11.5.2.11</A> is true.<BR>
+<BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc389">11.5.3.6</A>&nbsp;&nbsp;OCamlLibrary</H4><A NAME="@default356"></A><A NAME="@fun209"></A><A NAME="fun:OCamlLibrary"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc400">11.6.0.6</A>&nbsp;&nbsp;Automatic discovery of generated files during dependency analysis.</H4>
+Having to specify the generated files manualy when OMake could discover them automatically is
+obviously suboptimal. To address this, we try to use a custom <CODE>ocamldep</CODE> that <EM>only</EM>
+finds the free module names in a file. <BR>
+<BR>
+This functionality is experimental and is disabled by default for now.
+Set <CODE>OCAMLDEP_MODULES_ENABLED</CODE>&nbsp;<A HREF="#var:OCAMLDEP_MODULES_ENABLED">11.5.2.11</A> to <CODE>true</CODE> (or
+to <CODE>$(OCAMLDEP_MODULES_AVAILABLE)</CODE> in your project to enable it.<BR>
+<BR>
+Note that the experimental <CODE>ocamldep</CODE> functionality this relies upon is not yet included in
+the standard OCaml &mdash; see <A HREF="http://caml.inria.fr/mantis/view.php?id=4047"><TT>http://caml.inria.fr/mantis/view.php?id=4047</TT></A>. Temporarily, we
+distribute a bytecode version <A NAME="@default365"></A><CODE>ocamldep-omake</CODE> of the appropriately
+modified <CODE>ocamldep</CODE>. The appropriate <CODE>ocamldep</CODE> will be discovered automatically &mdash; see
+Sections&nbsp;<A HREF="#var:OCAMLDEP_MODULES_AVAILABLE">11.5.1.3</A> and&nbsp;<A HREF="#var:OCAMLDEP_MODULES">11.5.2.10</A>.
+
+<H3 CLASS="subsection"><A NAME="htoc401">11.6.1</A>&nbsp;&nbsp;Using the Menhir parser generator</H3>
+Menhir is a parser generator that is mostly compatible with
+<CODE>ocamlyacc</CODE>, but with many improvements. A few of these
+are listed here (excerpted from the Menhir home page
+<A HREF="http://cristal.inria.fr/~fpottier/menhir/"><TT>http://cristal.inria.fr/~fpottier/menhir/</TT></A>).
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+Menhir's explanations are believed to be understandable by mere humans.
+<LI CLASS="li-itemize">Menhir allows grammar specifications to be split over multiple files.
+ It also allows several grammars to share a single set of tokens.
+<LI CLASS="li-itemize">Menhir is able to produce parsers that are parameterized by Objective Caml modules.
+<LI CLASS="li-itemize">Added by jyh With the <CODE>--infer</CODE> option, Menhir can typecheck the semantic actions
+ in your grammar at <EM>generation</EM> time.
+</UL>
+What do you need to do to use Menhir instead of <CODE>ocamlyacc</CODE>?
+<OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
+Place the following definition before the relevant section of your project
+ (or at the top of your project <CODE>OMakefile</CODE> if you want to use Menhir everywhere).
+<PRE CLASS="verbatim">
+   MENHIR_ENABLED = true
+</PRE><BR>
+<BR>
+<LI CLASS="li-enumerate">Optionally, add any desired Menhir options to the <CODE>MENHIR_FLAGS</CODE> variable.
+<PRE CLASS="verbatim">
+   MENHIR_FLAGS += --infer
+</PRE></OL>
+With this setup, any file with a <CODE>.mly</CODE> suffix will be compiled with Menhir.<BR>
+<BR>
+If your grammar is split across several files, you need to specify it explicitly,
+using the <CODE>MenhirMulti</CODE> function.
+<PRE CLASS="verbatim">
+    MenhirMulti(target, sources)
+        target : filename, without suffix
+        sources : the files that define the grammar, without suffixes
+</PRE>
+For example, if you want to generate the parser files <CODE>parse.ml</CODE> and <CODE>parse.mli</CODE>,
+from the grammar specified in files <CODE>a.mly</CODE> and <CODE>b.mly</CODE>, you would use
+the following.
+<PRE CLASS="verbatim">
+    MenhirMulti(parse, a b)
+</PRE>
+<H4 CLASS="subsubsection"><A NAME="htoc402">11.6.1.1</A>&nbsp;&nbsp;OCamlLibrary</H4><A NAME="@default366"></A><A NAME="@fun209"></A><A NAME="fun:OCamlLibrary"></A>
 The <CODE>OCamlLibrary</CODE> function builds an OCaml library.<BR>
 <BR>
 <CODE>OCamlLibrary(&lt;libname&gt;, &lt;files&gt;)</CODE><BR>
@@ -474,7 +592,7 @@ The <CODE>OCamlLibrary</CODE> function builds an OCaml library.<BR>
 The <CODE>&lt;libname&gt;</CODE> and <CODE>&lt;files&gt;</CODE> are listed <EM>without</EM> suffixes.<BR>
 <BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc390">11.5.3.7</A>&nbsp;&nbsp;ABORT_ON_DEPENDENCY_ERRORS</H4><A NAME="@default357"></A><A NAME="@var73"></A><A NAME="var:ABORT_ON_DEPENDENCY_ERRORS"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc403">11.6.1.2</A>&nbsp;&nbsp;ABORT_ON_DEPENDENCY_ERRORS</H4><A NAME="@default367"></A><A NAME="@var82"></A><A NAME="var:ABORT_ON_DEPENDENCY_ERRORS"></A>
  The linker requires that the files to be
  listed in dependency order. If this variable is true, the order of
  the files is determined by the command line, but <TT>omake</TT> will
@@ -490,7 +608,7 @@ and <CODE>bar.cmx</CODE> (if <CODE>NATIVE_ENABLED</CODE> is set), and <CODE>libf
 <PRE CLASS="verbatim">
 OCamlLibrary(libfoo, foo bar)
 </PRE>
-<H4 CLASS="subsubsection"><A NAME="htoc391">11.5.3.8</A>&nbsp;&nbsp;OCamlPackage</H4><A NAME="@default358"></A><A NAME="@fun210"></A><A NAME="fun:OCamlPackage"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc404">11.6.1.3</A>&nbsp;&nbsp;OCamlPackage</H4><A NAME="@default368"></A><A NAME="@fun210"></A><A NAME="fun:OCamlPackage"></A>
 The <CODE>OCamlPackage</CODE> function builds an OCaml package.<BR>
 <BR>
 <CODE>OCamlPackage(&lt;name&gt;, &lt;files&gt;)</CODE><BR>
@@ -508,7 +626,7 @@ and <CODE>bar.cmx</CODE> (if <CODE>NATIVE_ENABLED</CODE> is set), and <CODE>pack
 <PRE CLASS="verbatim">
 OCamlPackage(package, foo bar)
 </PRE>
-<H4 CLASS="subsubsection"><A NAME="htoc392">11.5.3.9</A>&nbsp;&nbsp;OCamlLibraryCopy</H4><A NAME="@default359"></A><A NAME="@fun211"></A><A NAME="fun:OCamlLibraryCopy"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc405">11.6.1.4</A>&nbsp;&nbsp;OCamlLibraryCopy</H4><A NAME="@default369"></A><A NAME="@fun211"></A><A NAME="fun:OCamlLibraryCopy"></A>
 The <CODE>OCamlLibraryCopy</CODE> function copies a library to an install location.<BR>
 <BR>
 <CODE>OCamlLibraryCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;interface-files&gt;)</CODE><BR>
@@ -516,15 +634,15 @@ The <CODE>OCamlLibraryCopy</CODE> function copies a library to an install locati
 The <CODE>&lt;interface-files&gt;</CODE> specify additional interface files
 to be copied if the <CODE>INSTALL_INTERFACES</CODE> variable is true.
 
-<H4 CLASS="subsubsection"><A NAME="htoc393">11.5.3.10</A>&nbsp;&nbsp;OCamlLibraryInstall</H4><A NAME="@default360"></A><A NAME="@fun212"></A><A NAME="fun:OCamlLibraryInstall"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc406">11.6.1.5</A>&nbsp;&nbsp;OCamlLibraryInstall</H4><A NAME="@default370"></A><A NAME="@fun212"></A><A NAME="fun:OCamlLibraryInstall"></A>
 The <CODE>OCamlLibraryInstall</CODE> function builds a library
 and copies it to an install location in one step.<BR>
 <BR>
 <CODE>OCamlLibraryInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;libname&gt;, &lt;files&gt;)</CODE>
 
-<H4 CLASS="subsubsection"><A NAME="htoc394">11.5.3.11</A>&nbsp;&nbsp;OCamlProgram</H4><A NAME="@default361"></A><A NAME="@fun213"></A><A NAME="fun:OCamlProgram"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc407">11.6.1.6</A>&nbsp;&nbsp;OCamlProgram</H4><A NAME="@default371"></A><A NAME="@fun213"></A><A NAME="fun:OCamlProgram"></A>
 The <CODE>OCamlProgram</CODE> function builds an OCaml program. It returns the array with all
-the targets for which it have defined the rules (<CODE>$(name)$(EXE)</CODE> and <CODE>$(name).run</CODE>
+the targets for which it has defined the rules (<CODE>$(name)$(EXE)</CODE> and <CODE>$(name).run</CODE>
 and/or <CODE>$(name).opt</CODE>, depending on the <CODE>NATIVE_ENABLED</CODE> and <CODE>BYTE_ENABLED</CODE>
 variables).<BR>
 <BR>
@@ -532,68 +650,68 @@ variables).<BR>
 <BR>
 Additional variables used:
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B>OCAML_LIBS&nbsp;</B><A HREF="#var:OCAML_LIBS"><B>11.5.3.1</B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These files
+<B>OCAML_LIBS&nbsp;</B><A HREF="#var:OCAML_LIBS"><B>11.5.4.1</B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These files
  become dependencies of the target program.
-<DT CLASS="dt-description"><B>OCAML_OTHER_LIBS&nbsp;</B><A HREF="#var:OCAML_OTHER_LIBS"><B>11.5.3.2</B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These
+<DT CLASS="dt-description"><B>OCAML_OTHER_LIBS&nbsp;</B><A HREF="#var:OCAML_OTHER_LIBS"><B>11.5.4.2</B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These
  files do <EM>not</EM> become dependencies of the target program.
-<DT CLASS="dt-description"><B>OCAML_CLIBS&nbsp;</B><A HREF="#var:OCAML_CLIBS"><B>11.5.3.3</B></A><DD CLASS="dd-description"> C libraries to pass to the linker.
-<DT CLASS="dt-description"><B>OCAML_BYTE_LINK_FLAGS&nbsp;</B><A HREF="#var:OCAML_BYTE_LINK_FLAGS"><B>11.5.2.6</B></A><DD CLASS="dd-description"> Flags to pass to the bytecode linker.
-<DT CLASS="dt-description"><B>OCAML_NATIVE_LINK_FLAGS&nbsp;</B><A HREF="#var:OCAML_NATIVE_LINK_FLAGS"><B>11.5.2.7</B></A><DD CLASS="dd-description"> Flags to pass to the native code linker.
-<DT CLASS="dt-description"><B>OCAML_LINK_FLAGS&nbsp;</B><A HREF="#var:OCAML_LINK_FLAGS"><B>11.5.2.8</B></A><DD CLASS="dd-description"> Flags to pass to both linkers.
+<DT CLASS="dt-description"><B>OCAML_CLIBS&nbsp;</B><A HREF="#var:OCAML_CLIBS"><B>11.5.4.3</B></A><DD CLASS="dd-description"> C libraries to pass to the linker.
+<DT CLASS="dt-description"><B>OCAML_BYTE_LINK_FLAGS&nbsp;</B><A HREF="#var:OCAML_BYTE_LINK_FLAGS"><B>11.5.3.6</B></A><DD CLASS="dd-description"> Flags to pass to the bytecode linker.
+<DT CLASS="dt-description"><B>OCAML_NATIVE_LINK_FLAGS&nbsp;</B><A HREF="#var:OCAML_NATIVE_LINK_FLAGS"><B>11.5.3.7</B></A><DD CLASS="dd-description"> Flags to pass to the native code linker.
+<DT CLASS="dt-description"><B>OCAML_LINK_FLAGS&nbsp;</B><A HREF="#var:OCAML_LINK_FLAGS"><B>11.5.3.8</B></A><DD CLASS="dd-description"> Flags to pass to both linkers.
 </DL>
 
-<H4 CLASS="subsubsection"><A NAME="htoc395">11.5.3.12</A>&nbsp;&nbsp;OCamlProgramCopy</H4><A NAME="@default362"></A><A NAME="@fun214"></A><A NAME="fun:OCamlProgramCopy"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc408">11.6.1.7</A>&nbsp;&nbsp;OCamlProgramCopy</H4><A NAME="@default372"></A><A NAME="@fun214"></A><A NAME="fun:OCamlProgramCopy"></A>
 The <CODE>OCamlProgramCopy</CODE> function copies an OCaml program to an install location.<BR>
 <BR>
 <CODE>OCamlProgramCopy(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;)</CODE><BR>
 <BR>
 Additional variables used:
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B>NATIVE_ENABLED</B><DD CLASS="dd-description"> If <CODE>NATIVE_ENABLED</CODE>&nbsp;<A HREF="#var:NATIVE_ENABLED">11.5.1.17</A> is set, the native-code executable
+<B>NATIVE_ENABLED</B><DD CLASS="dd-description"> If <CODE>NATIVE_ENABLED</CODE>&nbsp;<A HREF="#var:NATIVE_ENABLED">11.5.2.20</A> is set, the native-code executable
  is copied; otherwise the byte-code executable is copied.
 </DL>
 
-<H4 CLASS="subsubsection"><A NAME="htoc396">11.5.3.13</A>&nbsp;&nbsp;OCamlProgramInstall</H4><A NAME="@default363"></A><A NAME="@fun215"></A><A NAME="fun:OCamlProgramInstall"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc409">11.6.1.8</A>&nbsp;&nbsp;OCamlProgramInstall</H4><A NAME="@default373"></A><A NAME="@fun215"></A><A NAME="fun:OCamlProgramInstall"></A>
 The <CODE>OCamlProgramInstall</CODE> function builds a programs and copies it to
 an install location in one step.<BR>
 <BR>
 <CODE>OCamlProgramInstall(&lt;tag&gt;, &lt;bindir&gt;, &lt;name&gt;, &lt;files&gt;)</CODE>
-<A NAME="toc83"></A>
-<H2 CLASS="section"><A NAME="htoc397">11.6</A>&nbsp;&nbsp;Building L<sup>A</sup>T<sub>E</sub>X programs</H2>
+<A NAME="toc84"></A>
+<H2 CLASS="section"><A NAME="htoc410">11.7</A>&nbsp;&nbsp;Building L<sup>A</sup>T<sub>E</sub>X programs</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc398">11.6.1</A>&nbsp;&nbsp;Configuration variables</H3>
+<H3 CLASS="subsection"><A NAME="htoc411">11.7.1</A>&nbsp;&nbsp;Configuration variables</H3>
 The following variables can be modified in your project.
 
-<H4 CLASS="subsubsection"><A NAME="htoc399">11.6.1.1</A>&nbsp;&nbsp;LATEX</H4><A NAME="@default364"></A><A NAME="@var74"></A><A NAME="var:LATEX"></A> The L<sup>A</sup>T<sub>E</sub>X command (default <CODE>latex</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc412">11.7.1.1</A>&nbsp;&nbsp;LATEX</H4><A NAME="@default374"></A><A NAME="@var83"></A><A NAME="var:LATEX"></A> The L<sup>A</sup>T<sub>E</sub>X command (default <CODE>latex</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc400">11.6.1.2</A>&nbsp;&nbsp;TETEX2_ENABLED</H4><A NAME="@default365"></A><A NAME="@var75"></A><A NAME="var:TETEX2_ENABLED"></A> Flag indicating whether to use advanced L<sup>A</sup>T<sub>E</sub>X options
+<H4 CLASS="subsubsection"><A NAME="htoc413">11.7.1.2</A>&nbsp;&nbsp;TETEX2_ENABLED</H4><A NAME="@default375"></A><A NAME="@var84"></A><A NAME="var:TETEX2_ENABLED"></A> Flag indicating whether to use advanced L<sup>A</sup>T<sub>E</sub>X options
 present in TeTeX v.2 (default value is determined the first time omake reads <CODE>LaTeX.src</CODE>
 and depends on the version of L<sup>A</sup>T<sub>E</sub>X you have installed).
 
-<H4 CLASS="subsubsection"><A NAME="htoc401">11.6.1.3</A>&nbsp;&nbsp;LATEXFLAGS</H4><A NAME="@default366"></A><A NAME="@var76"></A><A NAME="var:LATEXFLAGS"></A> The L<sup>A</sup>T<sub>E</sub>X flags (defaults depend on the <CODE>TETEX2_ENABLED</CODE> variable)
+<H4 CLASS="subsubsection"><A NAME="htoc414">11.7.1.3</A>&nbsp;&nbsp;LATEXFLAGS</H4><A NAME="@default376"></A><A NAME="@var85"></A><A NAME="var:LATEXFLAGS"></A> The L<sup>A</sup>T<sub>E</sub>X flags (defaults depend on the <CODE>TETEX2_ENABLED</CODE> variable)
 
-<H4 CLASS="subsubsection"><A NAME="htoc402">11.6.1.4</A>&nbsp;&nbsp;BIBTEX</H4><A NAME="@default367"></A><A NAME="@var77"></A><A NAME="var:BIBTEX"></A> The BibTeX command (default <CODE>bibtex</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc415">11.7.1.4</A>&nbsp;&nbsp;BIBTEX</H4><A NAME="@default377"></A><A NAME="@var86"></A><A NAME="var:BIBTEX"></A> The BibTeX command (default <CODE>bibtex</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc403">11.6.1.5</A>&nbsp;&nbsp;MAKEINDEX</H4><A NAME="@default368"></A><A NAME="@var78"></A><A NAME="var:MAKEINDEX"></A> The command to build an index (default <CODE>makeindex</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc416">11.7.1.5</A>&nbsp;&nbsp;MAKEINDEX</H4><A NAME="@default378"></A><A NAME="@var87"></A><A NAME="var:MAKEINDEX"></A> The command to build an index (default <CODE>makeindex</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc404">11.6.1.6</A>&nbsp;&nbsp;DVIPS</H4><A NAME="@default369"></A><A NAME="@var79"></A><A NAME="var:DVIPS"></A> The <CODE>.dvi</CODE> to PostScript converter (default <CODE>dvips</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc417">11.7.1.6</A>&nbsp;&nbsp;DVIPS</H4><A NAME="@default379"></A><A NAME="@var88"></A><A NAME="var:DVIPS"></A> The <CODE>.dvi</CODE> to PostScript converter (default <CODE>dvips</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc405">11.6.1.7</A>&nbsp;&nbsp;DVIPSFLAGS</H4><A NAME="@default370"></A><A NAME="@var80"></A><A NAME="var:DVIPSFLAGS"></A> Flags to pass to <CODE>dvips</CODE> (default <CODE>-t letter</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc418">11.7.1.7</A>&nbsp;&nbsp;DVIPSFLAGS</H4><A NAME="@default380"></A><A NAME="@var89"></A><A NAME="var:DVIPSFLAGS"></A> Flags to pass to <CODE>dvips</CODE> (default <CODE>-t letter</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc406">11.6.1.8</A>&nbsp;&nbsp;DVIPDFM</H4><A NAME="@default371"></A><A NAME="@var81"></A><A NAME="var:DVIPDFM"></A> The <CODE>.dvi</CODE> to <CODE>.pdf</CODE> converter (default <CODE>dvipdfm</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc419">11.7.1.8</A>&nbsp;&nbsp;DVIPDFM</H4><A NAME="@default381"></A><A NAME="@var90"></A><A NAME="var:DVIPDFM"></A> The <CODE>.dvi</CODE> to <CODE>.pdf</CODE> converter (default <CODE>dvipdfm</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc407">11.6.1.9</A>&nbsp;&nbsp;DVIPDFMFLAGS</H4><A NAME="@default372"></A><A NAME="@var82"></A><A NAME="var:DVIPDFMFLAGS"></A> Flags to pass to <CODE>dvipdfm</CODE> (default <CODE>-p letter</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc420">11.7.1.9</A>&nbsp;&nbsp;DVIPDFMFLAGS</H4><A NAME="@default382"></A><A NAME="@var91"></A><A NAME="var:DVIPDFMFLAGS"></A> Flags to pass to <CODE>dvipdfm</CODE> (default <CODE>-p letter</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc408">11.6.1.10</A>&nbsp;&nbsp;PDFLATEX</H4><A NAME="@default373"></A><A NAME="@var83"></A><A NAME="var:PDFLATEX"></A> The <CODE>.latex</CODE> to <CODE>.pdf</CODE> converter (default <CODE>pdflatex</CODE>).
+<H4 CLASS="subsubsection"><A NAME="htoc421">11.7.1.10</A>&nbsp;&nbsp;PDFLATEX</H4><A NAME="@default383"></A><A NAME="@var92"></A><A NAME="var:PDFLATEX"></A> The <CODE>.latex</CODE> to <CODE>.pdf</CODE> converter (default <CODE>pdflatex</CODE>).
 
-<H4 CLASS="subsubsection"><A NAME="htoc409">11.6.1.11</A>&nbsp;&nbsp;PDFLATEXFLAGS</H4><A NAME="@default374"></A><A NAME="@var84"></A><A NAME="var:PDFLATEXFLAGS"></A> Flags to pass to pdflatex (default is empty).
+<H4 CLASS="subsubsection"><A NAME="htoc422">11.7.1.11</A>&nbsp;&nbsp;PDFLATEXFLAGS</H4><A NAME="@default384"></A><A NAME="@var93"></A><A NAME="var:PDFLATEXFLAGS"></A> Flags to pass to pdflatex (default is empty).
 
-<H4 CLASS="subsubsection"><A NAME="htoc410">11.6.1.12</A>&nbsp;&nbsp;USEPDFLATEX</H4><A NAME="@default375"></A><A NAME="@var85"></A><A NAME="var:USEPDFLATEX"></A> Flag indicating whether to use pdflatex instead of dvipdfm
+<H4 CLASS="subsubsection"><A NAME="htoc423">11.7.1.12</A>&nbsp;&nbsp;USEPDFLATEX</H4><A NAME="@default385"></A><A NAME="@var94"></A><A NAME="var:USEPDFLATEX"></A> Flag indicating whether to use pdflatex instead of dvipdfm
 to generate the <CODE>.pdf</CODE> document (default <CODE>false</CODE>).
 
-<H3 CLASS="subsection"><A NAME="htoc411">11.6.2</A>&nbsp;&nbsp;Building L<sup>A</sup>T<sub>E</sub>X documents</H3>
+<H3 CLASS="subsection"><A NAME="htoc424">11.7.2</A>&nbsp;&nbsp;Building L<sup>A</sup>T<sub>E</sub>X documents</H3>
 
-<H4 CLASS="subsubsection"><A NAME="htoc412">11.6.2.1</A>&nbsp;&nbsp;LaTeXDocument</H4><A NAME="@default376"></A><A NAME="@fun216"></A><A NAME="fun:LaTeXDocument"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc425">11.7.2.1</A>&nbsp;&nbsp;LaTeXDocument</H4><A NAME="@default386"></A><A NAME="@fun216"></A><A NAME="fun:LaTeXDocument"></A>
 The <CODE>LaTeXDocument</CODE> produces a L<sup>A</sup>T<sub>E</sub>X document.<BR>
 <BR>
 <CODE>LaTeXDocument(&lt;name&gt;, &lt;texfiles&gt;)</CODE><BR>
@@ -603,13 +721,13 @@ returns the filenames for the generated <CODE>.ps</CODE> and <CODE>.pdf</CODE> f
 <BR>
 Additional variables used:
 
-<H4 CLASS="subsubsection"><A NAME="htoc413">11.6.2.2</A>&nbsp;&nbsp;TEXINPUTS</H4><A NAME="@default377"></A><A NAME="@var86"></A><A NAME="var:TEXINPUTS"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc426">11.7.2.2</A>&nbsp;&nbsp;TEXINPUTS</H4><A NAME="@default387"></A><A NAME="@var95"></A><A NAME="var:TEXINPUTS"></A>
 The L<sup>A</sup>T<sub>E</sub>X search path (an array of directories, default is
  taken from the <CODE>TEXINPUTS</CODE> environment variable).
 
-<H4 CLASS="subsubsection"><A NAME="htoc414">11.6.2.3</A>&nbsp;&nbsp;TEXDEPS</H4><A NAME="@default378"></A><A NAME="@var87"></A><A NAME="var:TEXDEPS"></A> Additional files this document depends on.
+<H4 CLASS="subsubsection"><A NAME="htoc427">11.7.2.3</A>&nbsp;&nbsp;TEXDEPS</H4><A NAME="@default388"></A><A NAME="@var96"></A><A NAME="var:TEXDEPS"></A> Additional files this document depends on.
 
-<H4 CLASS="subsubsection"><A NAME="htoc415">11.6.2.4</A>&nbsp;&nbsp;TeXGeneratedFiles, LocalTeXGeneratedFiles</H4><A NAME="@default379"></A><A NAME="@fun217"></A><A NAME="fun:TeXGeneratedFiles"></A><A NAME="@default380"></A><A NAME="@fun218"></A><A NAME="fun:LocalTeXGeneratedFiles"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc428">11.7.2.4</A>&nbsp;&nbsp;TeXGeneratedFiles, LocalTeXGeneratedFiles</H4><A NAME="@default389"></A><A NAME="@fun217"></A><A NAME="fun:TeXGeneratedFiles"></A><A NAME="@default390"></A><A NAME="@fun218"></A><A NAME="fun:LocalTeXGeneratedFiles"></A>
 <PRE CLASS="verbatim">
 TeXGeneratedFiles(files)
 LocalTeXGeneratedFiles(files)
@@ -625,22 +743,22 @@ before any TeX files anywhere in the project are scanned for dependencies. The
 <CODE>LocalTeXGeneratedFiles</CODE> function follows the normal scoping rules of OMake.<BR>
 <BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc416">11.6.2.5</A>&nbsp;&nbsp;LaTeXDocumentCopy</H4><A NAME="@default381"></A><A NAME="@fun219"></A><A NAME="fun:LaTeXDocumentCopy"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc429">11.7.2.5</A>&nbsp;&nbsp;LaTeXDocumentCopy</H4><A NAME="@default391"></A><A NAME="@fun219"></A><A NAME="fun:LaTeXDocumentCopy"></A>
 The <CODE>LaTeXDocumentCopy</CODE> copies the document to an install location.<BR>
 <BR>
 <CODE>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</CODE><BR>
 <BR>
 This function copies just the <CODE>.pdf</CODE> and <CODE>.ps</CODE> files.
 
-<H4 CLASS="subsubsection"><A NAME="htoc417">11.6.2.6</A>&nbsp;&nbsp;LaTeXDocumentInstall</H4><A NAME="@default382"></A><A NAME="@fun220"></A><A NAME="fun:LaTeXDocumentInstall"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc430">11.7.2.6</A>&nbsp;&nbsp;LaTeXDocumentInstall</H4><A NAME="@default392"></A><A NAME="@fun220"></A><A NAME="fun:LaTeXDocumentInstall"></A>
 The <CODE>LaTeXDocumentInstall</CODE> builds a document and copies it to an
 install location in one step.<BR>
 <BR>
 <CODE>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</CODE>
-<A NAME="toc84"></A>
-<H2 CLASS="section"><A NAME="htoc418">11.7</A>&nbsp;&nbsp;Examining the dependency graph</H2>
+<A NAME="toc85"></A>
+<H2 CLASS="section"><A NAME="htoc431">11.8</A>&nbsp;&nbsp;Examining the dependency graph</H2>
 
-<H4 CLASS="subsubsection"><A NAME="htoc419">11.7.0.7</A>&nbsp;&nbsp;dependencies, dependencies-all</H4><A NAME="@default383"></A><A NAME="@fun221"></A><A NAME="fun:dependencies"></A><A NAME="@default384"></A><A NAME="@fun222"></A><A NAME="fun:dependencies-all"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc432">11.8.0.7</A>&nbsp;&nbsp;dependencies, dependencies-all</H4><A NAME="@default393"></A><A NAME="@fun221"></A><A NAME="fun:dependencies"></A><A NAME="@default394"></A><A NAME="@fun222"></A><A NAME="fun:dependencies-all"></A>
 <PRE CLASS="verbatim">
    $(dependencies targets) : File Array
    $(dependencies-all targets) : File Array
@@ -679,7 +797,7 @@ building the project before it can be deleted. For a shorter form, see the
        rm $(dependencies-proper $(APP))
 </PRE>
 
-<H4 CLASS="subsubsection"><A NAME="htoc420">11.7.0.8</A>&nbsp;&nbsp;target</H4><A NAME="@default385"></A><A NAME="@fun223"></A><A NAME="fun:target"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc433">11.8.0.8</A>&nbsp;&nbsp;target</H4><A NAME="@default395"></A><A NAME="@fun223"></A><A NAME="fun:target"></A>
 <PRE CLASS="verbatim">
    $(target targets) : Target Array
       targets : File Sequence
@@ -688,7 +806,7 @@ building the project before it can be deleted. For a shorter form, see the
 The <CODE>target</CODE> function returns the Target object associated with each
 of the targets. See the <CODE>Target</CODE> object for more information.
 
-<H4 CLASS="subsubsection"><A NAME="htoc421">11.7.0.9</A>&nbsp;&nbsp;find-build-targets</H4><A NAME="@default386"></A><A NAME="@fun224"></A><A NAME="fun:find-build-targets"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc434">11.8.0.9</A>&nbsp;&nbsp;find-build-targets</H4><A NAME="@default396"></A><A NAME="@fun224"></A><A NAME="fun:find-build-targets"></A>
 <PRE CLASS="verbatim">
     $(build-targets tag) : Target Array
        tag : Succeeded | Failed
@@ -710,7 +828,7 @@ will print the number of targets that failed (if the build failed).
     .BUILD_FAILURE:
         echo "Failed target count: $(length $(failed-targets))"
 </PRE>
-<H4 CLASS="subsubsection"><A NAME="htoc422">11.7.0.10</A>&nbsp;&nbsp;project-directories</H4><A NAME="@default387"></A><A NAME="@fun225"></A><A NAME="fun:project-directories"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc435">11.8.0.10</A>&nbsp;&nbsp;project-directories</H4><A NAME="@default397"></A><A NAME="@fun225"></A><A NAME="fun:project-directories"></A>
 <PRE CLASS="verbatim">
    $(project-directories) : Dir Array
 </PRE>
@@ -720,7 +838,7 @@ that are considered to be part of the project.<BR>
 To get the complete directory list, this function should be called
 from within a rule body.
 
-<H4 CLASS="subsubsection"><A NAME="htoc423">11.7.0.11</A>&nbsp;&nbsp;rule</H4><A NAME="@default388"></A><A NAME="@fun226"></A><A NAME="fun:rule"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc436">11.8.0.11</A>&nbsp;&nbsp;rule</H4><A NAME="@default398"></A><A NAME="@fun226"></A><A NAME="fun:rule"></A>
 The <CODE>rule</CODE> function is called whenever a build rule is defined.
 It is unlikely that you will need to redefine this function, except in
 very exceptional cases.

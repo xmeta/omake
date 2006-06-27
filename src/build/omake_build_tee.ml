@@ -46,15 +46,6 @@ let unlink_file name =
       Unix.Unix_error _ ->
          ()
 
-let unlink_files names =
-   List.iter unlink_file names
-
-let env_unlink_tees env =
-   unlink_files env.env_success_tees;
-   unlink_files env.env_failed_tees;
-   env.env_success_tees <- [];
-   env.env_failed_tees <- []
-
 (*
  * Print all tees.
  *)

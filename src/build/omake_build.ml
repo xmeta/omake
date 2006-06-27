@@ -1737,8 +1737,6 @@ let empty_env venv cache exec ~summary deps targets dirs includes =
         env_succeeded_wl       = ref None;
         env_failed_wl          = ref None;
 
-        env_success_tees       = [];
-        env_failed_tees        = [];
         env_summary            = summary;
 
         env_optional_count   = 0;

@@ -53,25 +53,25 @@ open build/Common
 # to generate the \verb+.pdf+ document (default \verb+false+).
 # \end{doc}
 #
-BIBTEX = bibtex
-MAKEINDEX = makeindex
-DVIPS = dvips
-DVIPSFLAGS = -t letter $`(if $(VERBOSE), $(EMPTY), -q)
-DVIPDFM = dvipdfm
-DVIPDFMFLAGS = -p letter
-PDFLATEX = pdflatex
-PDFLATEXFLAGS =
-USEPDFLATEX = false
-LATEX = latex
-LATEXFLAGS =
+public.BIBTEX = bibtex
+public.MAKEINDEX = makeindex
+public.DVIPS = dvips
+public.DVIPSFLAGS = -t letter $`(if $(VERBOSE), $(EMPTY), -q)
+public.DVIPDFM = dvipdfm
+public.DVIPDFMFLAGS = -p letter
+public.PDFLATEX = pdflatex
+public.PDFLATEXFLAGS =
+public.USEPDFLATEX = false
+public.LATEX = latex
+public.LATEXFLAGS =
     BASE = -output-comment=$"LaTeX Output (built with OMake)"
     value $`(if $(TETEX2_ENABLED), $(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
 #
 # Configure LaTeX by checking whether some LaTeX options exist.
 #
-TETEX2_ENABLED = false
-FILE_LINE_ERROR =
+public.TETEX2_ENABLED = false
+public.FILE_LINE_ERROR =
 static. =
     open configure/Configure
 
@@ -143,20 +143,20 @@ static. =
 #
 # Dynamically defined list of files that the TeX source depends on.
 #
-TEXDEPS =
+public.TEXDEPS =
 
 #
 # Directories in the search path.
 # Split them at colons to get a directory list.
 #
-TEXINPUTS = $(split $(PATHSEP), $(getenv TEXINPUTS, .))
+public.TEXINPUTS = $(split $(PATHSEP), $(getenv TEXINPUTS, .))
 
 #
 # TeX can log its inputs and outputs into an .fls file.  We use the internal awk
 # to turn an .fls file into in appropriate dependency file format.
 #
-Shell. +=
-    builtin-tex-deps(argv) =
+public.Shell. +=
+    protected.builtin-tex-deps(argv) =
         private. =
             dep = $(nth 0, $(argv))
             f = $(nth 1, $(argv))
@@ -186,11 +186,11 @@ Shell. +=
         DEPS = $(string $(set-diff $(DEPS), $(WRITES)))
         println($(dep): $(DEPS))
 
-    stdout-to-stderr(argv) =
+    protected.stdout-to-stderr(argv) =
         stdout = $(stderr)
         $(argv)
 
-    run-latex(argv) =
+    protected.run-latex(argv) =
         if $(mem $(FILE_LINE_ERROR), $(argv))
             if $(not $(shell-success $(argv)))
                 private.f = $(replacesuffixes .tex, $(string $(EMPTY)), $(last $(argv)))
@@ -253,15 +253,15 @@ Shell. +=
 
 .PHONY: TeXGeneratedFilesTarget
 
-TeXGeneratedFiles(files) =
+public.TeXGeneratedFiles(files) =
     TeXGeneratedFilesTarget: $(files)
 
-LocalTeXGeneratedFiles(files) =
+public.LocalTeXGeneratedFiles(files) =
     .SCANNER: scan-tex-%: $(files)
     export
 
-Shell. +=
-    drop-dvips-junk(argv) =
+public.Shell. +=
+    protected.drop-dvips-junk(argv) =
         private.print = true
         awk()
         case $'dvips: Could not find figure file pdf:[a-z]*; continuing':
@@ -283,17 +283,18 @@ Shell. +=
             export
         return true
 
-LaTeXDocument(name, texfiles) =
+public.LaTeXDocument(name, texfiles) =
     name = $(file $(name))
+
     #
     # TeX files all have the .tex suffix
     #
-    TEXFILES = $(name).tex $(addsuffix .tex, $(texfiles))
+    protected.TEXFILES[] = $(name).tex $(addsuffix .tex, $(texfiles))
 
     #
     # Setting the proper TEXINPUTS environment
     #
-    INPUTS = $(concat $(PATHSEP), $(TEXINPUTS))$(PATHSEP)
+    private.INPUTS = $(concat $(PATHSEP), $(TEXINPUTS))$(PATHSEP)
     setenv(TEXINPUTS, $(INPUTS))
     setenv(BIBINPUTS, $(INPUTS))
 
@@ -321,7 +322,7 @@ LaTeXDocument(name, texfiles) =
         # TeTeX2 has the ability to compute dependencies for us
         #
         if $(TETEX2_ENABLED)
-            SCANNER = scan-$(if $(use_pdflatex), pdflatex, latex)-$(name).tex
+            protected.SCANNER = scan-$(if $(use_pdflatex), pdflatex, latex)-$(name).tex
 
             .SCANNER: $(SCANNER): $(name).tex $(TEXDEPS) $(TEXFILES) /.PHONY/TeXGeneratedFilesTarget\
               :value: $(USEPDFLATEX) $(find-in-path-optional $(INPUTS), $&)\
@@ -361,7 +362,7 @@ LaTeXDocument(name, texfiles) =
 # This function copies just the \verb+.pdf+ and \verb+.ps+ files.
 # \end{doc}
 #
-LaTeXDocumentCopy(tag, lib, dst, src) =
+public.LaTeXDocumentCopy(tag, lib, dst, src) =
     $(lib)/$(dst).pdf: $(src).pdf $(lib) :scanner: $(NOSCANNER)
         cp $< $@
 
@@ -384,6 +385,6 @@ LaTeXDocumentCopy(tag, lib, dst, src) =
 # \verb+LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>, <files>)+
 # \end{doc}
 #
-LaTeXDocumentInstall(tag, lib, dst, src, texfiles) =
+public.LaTeXDocumentInstall(tag, lib, dst, src, texfiles) =
     LaTeXDocument($(src), $(texfiles))
     return $(LaTeXDocumentCopy $(tag), $(lib), $(dst), $(src))

@@ -32,7 +32,7 @@ open configure/Configure
 #
 # \subsection{Autoconfiguration variables for OCaml programs}
 # These variables will get defined based on the ``autoconf-style'' tests executed when you
-# run \OMake for the first time. You can use then to configure your project accordingly,
+# run \OMake for the first time. You can use them to configure your project accordingly,
 # and you should not redefine them.
 # \varlabel{OCAMLOPT_EXISTS}{OCAMLOPT\_EXISTS} True when \verb+ocamlopt+ (or \verb+ocamlopt.opt+) is
 #    available on your machine.
@@ -101,34 +101,34 @@ static. =
             println($"(FAILED - ocamlc not found)")
             value $(not true)
 
-USE_OCAMLFIND = false
-OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
-OCAMLFINDFLAGS =
-LAZY_OCAMLFINDFLAGS = $`(if $(USE_OCAMLFIND), $(OCAMLFINDFLAGS))
-OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
-OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
+public.USE_OCAMLFIND = false
+public.OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
+public.OCAMLFINDFLAGS =
+public.LAZY_OCAMLFINDFLAGS = $`(if $(USE_OCAMLFIND), $(OCAMLFINDFLAGS))
+public.OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
+public.OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
 
-OCAMLDEP = ocamldep
-CAMLP4 = camlp4
-OCAMLLEX = ocamllex
-OCAMLLEXFLAGS = -q
-OCAMLYACC = ocamlyacc
-OCAMLYACCFLAGS =
-OCAMLMKTOP = ocamlmktop
-OCAMLLINK = $`(OCAMLC)
-OCAMLOPTLINK = $`(OCAMLOPT)
+public.OCAMLDEP = ocamldep
+public.CAMLP4 = camlp4
+public.OCAMLLEX = ocamllex
+public.OCAMLLEXFLAGS = -q
+public.OCAMLYACC = ocamlyacc
+public.OCAMLYACCFLAGS =
+public.OCAMLMKTOP = ocamlmktop
+public.OCAMLLINK = $`(OCAMLC)
+public.OCAMLOPTLINK = $`(OCAMLOPT)
 
 #
 # Include path
 #
-OCAMLINCLUDES[] = .
-PREFIXED_OCAMLINCLUDES = $`(mapprefix -I, $(OCAMLINCLUDES))
+public.OCAMLINCLUDES[] = .
+public.PREFIXED_OCAMLINCLUDES = $`(mapprefix -I, $(OCAMLINCLUDES))
 
 #
 # Packages
 #
-OCAMLPACKS[] =
-PREFIXED_OCAMLPACKS =\
+public.OCAMLPACKS[] =
+public.PREFIXED_OCAMLPACKS =\
    $`(if $(and $(USE_OCAMLFIND) $(gt $(length $(OCAMLPACKS)), 0)),\
          -package $"$(concat \,, $(OCAMLPACKS))",\
          $(EMPTY))
@@ -136,8 +136,8 @@ PREFIXED_OCAMLPACKS =\
 #
 # Compile native or byte code?
 #
-NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
-BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
+public.NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
+public.BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 
 #
 # Various options
@@ -158,15 +158,15 @@ BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 # \varlabel{MENHIR_FLAGS}{MENHIR\_FLAGS} Additional flags to pass to \verb+menhir+.
 # \end{doc}
 #
-OCAMLDEPFLAGS = $`(if $(NATIVE_ENABLED), -native, $(EMPTY))
-OCAMLPPFLAGS  =
-OCAMLFLAGS    = -warn-error A
-OCAMLCFLAGS   = -g
-OCAMLOPTFLAGS =
-OCAMLCPPFLAGS =
-OCAML_LINK_FLAGS = $`(if $(and $(USE_OCAMLFIND) $(gt $(length $(OCAMLPACKS)), 0)), -linkpkg, $(EMPTY))
-OCAML_BYTE_LINK_FLAGS = -custom
-OCAML_NATIVE_LINK_FLAGS =
+public.OCAMLDEPFLAGS = $`(if $(NATIVE_ENABLED), -native, $(EMPTY))
+public.OCAMLPPFLAGS  =
+public.OCAMLFLAGS    = -warn-error A
+public.OCAMLCFLAGS   = -g
+public.OCAMLOPTFLAGS =
+public.OCAMLCPPFLAGS =
+public.OCAML_LINK_FLAGS = $`(if $(and $(USE_OCAMLFIND) $(gt $(length $(OCAMLPACKS)), 0)), -linkpkg, $(EMPTY))
+public.OCAML_BYTE_LINK_FLAGS = -custom
+public.OCAML_NATIVE_LINK_FLAGS =
 
 #
 # OCAML_LIBS contains libraries that are used as dependencies
@@ -189,10 +189,10 @@ OCAML_NATIVE_LINK_FLAGS =
 # \varlabel{OCAML_LIB_FLAGS}{OCAML\_LIB\_FLAGS} Extra flags for the library.
 # \end{doc}
 #
-OCAML_LIBS =
-OCAML_CLIBS =
-OCAML_OTHER_LIBS =
-OCAML_LIB_FLAGS =
+public.OCAML_LIBS =
+public.OCAML_CLIBS =
+public.OCAML_OTHER_LIBS =
+public.OCAML_LIB_FLAGS =
 
 ########################################################################
 # \begin{doc}
@@ -223,7 +223,7 @@ OCAML_LIB_FLAGS =
 # LocalOCamlGeneratedFiles(files)
 # \end{verbatim}
 #
-# When the \hyperlink{var:OCAMLDEP_MODULES_ENABLED}{\verb+OCAMLDEP_MODULES_ENABLED+} variable is set
+# When the \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} variable is set
 # to \verb+false+, the \verb+OCamlGeneratedFiles+ and \verb+LocalOCamlGeneratedFiles+ functions specify files
 # that need to be generated before any OCaml files are scanned for dependencies. For example,
 # if \verb+parser.ml+ and \verb+lexer.ml+ are both generated files, specify:
@@ -236,55 +236,29 @@ OCAML_LIB_FLAGS =
 # \verb+LocalOCamlGeneratedFiles+ function follows the normal scoping rules of OMake.
 #
 # These functions have no effect when
-# \hyperlink{var:OCAMLDEP_MODULES_ENABLED}{\verb+OCAMLDEP_MODULES_ENABLED+} is true.
+# \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} is true.
 #
-# \end{doc}
-#
-.PHONY: OCamlGeneratedFilesTarget
-
-OCamlGeneratedFiles(files) =
-    if $(OCAMLDEP_MODULES_ENABLED)
-        # For now, we want to allow ``backwards-compatible'' projects.
-        # eprintln($"WARNING: OCamlGeneratedFiles should not be used when OCAMLDEP_MODULES_ENABLED")
-        # eprintln($"         is set")
-    else
-        OCamlGeneratedFilesTarget: $(files)
-
-LocalOCamlGeneratedFiles(files) =
-    if $(OCAMLDEP_MODULES_ENABLED)
-        # For now, we want to allow ``backwards-compatible'' projects.
-        # eprintln($"WARNING: OCamlGeneratedFiles should not be used when OCAMLDEP_MODULES_ENABLED")
-        # eprintln($"         is set")
-    else
-        .SCANNER: scan-ocaml-%: $(files)
-        .SCANNER: %.cmi: $(files)
-        .SCANNER: %.cmx %.cmo: $(files)
-        export
-    export
-
-# \begin{doc}
 # \subsubsection{Automatic discovery of generated files during dependency analysis.}
 # Having to specify the generated files manualy when OMake could discover them automatically is
 # obviously suboptimal.  To address this, we try to use a custom \verb+ocamldep+ that \emph{only}
 # finds the free module names in a file. 
 #
 # This functionality is experimental and is disabled by default for now.
-# Set \hyperlink{var:OCAMLDEP_MODULES_ENABLED}{\verb+OCAMLDEP_MODULES_ENABLED+} to \verb+true+ (or
+# Set \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} to \verb+true+ (or
 # to \verb+$(OCAMLDEP_MODULES_AVAILABLE)+ in your project to enable it.
 #
 # Note that the experimental \verb+ocamldep+ functionality this relies upon is not yet included in
 # the standard OCaml --- see \url{http://caml.inria.fr/mantis/view.php?id=4047}. Temporarily, we
 # distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
 # modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
-# Sections~\ref{var:OCAMLDEP_MODULES_AVAILABLE} and~\ref{OCAMLDEP_MODULES}.
+# Sections~\ref{var:OCAMLDEP_MODULES_AVAILABLE} and~\ref{var:OCAMLDEP_MODULES}.
 # \end{doc}
 #
-OCAMLDEP_MODULES_ENABLED = false
-
-OCAMLDEP_MODULES_AVAILABLE = false
-OCAMLDEP_MODULES =
 static. =
     print($"--- Testing if ocamldep understands -modules... ")
+    OCAMLDEP_MODULES_ENABLED = false
+    OCAMLDEP_MODULES_AVAILABLE = false
+    OCAMLDEP_MODULES =
     if $(shell-success-null ocamldep -modules)
         println($"(yes)")
         OCAMLDEP_MODULES_AVAILABLE = true
@@ -301,6 +275,28 @@ static. =
         else
             println($"(no)")
         export
+
+.PHONY: OCamlGeneratedFilesTarget
+
+public.OCamlGeneratedFiles(files) =
+    if $(OCAMLDEP_MODULES_ENABLED)
+        # For now, we want to allow ``backwards-compatible'' projects.
+        # eprintln($"WARNING: OCamlGeneratedFiles should not be used when OCAMLDEP_MODULES_ENABLED")
+        # eprintln($"         is set")
+    else
+        OCamlGeneratedFilesTarget: $(files)
+
+public.LocalOCamlGeneratedFiles(files) =
+    if $(OCAMLDEP_MODULES_ENABLED)
+        # For now, we want to allow ``backwards-compatible'' projects.
+        # eprintln($"WARNING: OCamlGeneratedFiles should not be used when OCAMLDEP_MODULES_ENABLED")
+        # eprintln($"         is set")
+    else
+        .SCANNER: scan-ocaml-%: $(files)
+        .SCANNER: %.cmi: $(files)
+        .SCANNER: %.cmx %.cmo: $(files)
+        export
+    export
 
 #
 # The ocamldep -modules output has the following
@@ -323,20 +319,20 @@ static. =
 # ocamldep entries are taken literally (the suffix
 # is not replaced with .cmo/.cmx).
 #
-OCAMLDEP_PRESERVE_TARGETS = false
+public.OCAMLDEP_PRESERVE_TARGETS = false
 
-PrintMLIDependencies(filename, cmideps) =
-    base = $(string-escaped $(removesuffix $(filename)))
-    cmideps = $(string-escaped $(cmideps))
+public.PrintMLIDependencies(filename, cmideps) =
+    private.base = $(string-escaped $(removesuffix $(filename)))
+    private.cmideps = $(string-escaped $(cmideps))
     println($"""$(base).cmi: $(cmideps)""")
 
-PrintMLDependencies(filename, cmideps, cmxdeps) =
-    base = $(string-escaped $(removesuffix $(filename)))
-    cmideps = $(string-escaped $(cmideps))
-    odeps = $(string-escaped $(addsuffix $(EXT_OBJ), $(removesuffix $(cmxdeps))))
-    cmxdeps = $(string-escaped $(cmxdeps))
-    esc = $' \'
-    text = $"""\
+public.PrintMLDependencies(filename, cmideps, cmxdeps) =
+    private.base = $(string-escaped $(removesuffix $(filename)))
+    private.cmideps = $(string-escaped $(cmideps))
+    private.odeps = $(string-escaped $(addsuffix $(EXT_OBJ), $(removesuffix $(cmxdeps))))
+    private.cmxdeps = $(string-escaped $(cmxdeps))
+    private.esc = $' \'
+    private.text = $"""\
 $(base).cmo: $(cmideps)
 $(base).cmx $(base)$(EXT_OBJ):$(esc)
     $(cmideps)$(esc)
@@ -345,10 +341,10 @@ $(base).cmx $(base)$(EXT_OBJ):$(esc)
     # eprintln($(text))
     println($(text))
 
-PrintFileDependencies(filename, cmideps) =
-    filename = $(string-escaped $(filename))
-    cmideps = $(string-escaped $(cmideps))
-    text = $"""$(filename): $(cmideps)"""
+public.PrintFileDependencies(filename, cmideps) =
+    private.filename = $(string-escaped $(filename))
+    private.cmideps = $(string-escaped $(cmideps))
+    private.text = $"""$(filename): $(cmideps)"""
     # eprintln($(text))
     println($(text))
 
@@ -357,15 +353,15 @@ PrintFileDependencies(filename, cmideps) =
 # the actual dependencies by finding the filenames
 # associated with each module.
 #
-PrintDependencies(filename, modules) =
+public.PrintDependencies(filename, modules) =
     if $(filename)
-        modules = $(uncapitalize $(modules))
+        private.modules = $(uncapitalize $(modules))
 
         #
         # Find the .cmi files that can be built
         #
-        cmideps = $(addsuffix .cmi, $(modules))
-        cmideps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmideps))
+        private.cmideps = $(addsuffix .cmi, $(modules))
+        private.cmideps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmideps))
 
         # Now produce the dependencies
         if $(OCAMLDEP_PRESERVE_TARGETS)
@@ -373,7 +369,7 @@ PrintDependencies(filename, modules) =
         else
             switch($(suffix $(filename)))
             case .ml
-                cmxdeps[] =
+                private.cmxdeps[] =
                 if $(NATIVE_ENABLED)
                     cmxdeps = $(addsuffix .cmx, $(modules))
                     cmxdeps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmxdeps))
@@ -390,12 +386,12 @@ PrintDependencies(filename, modules) =
 # Use awk to process the input, find the targets that
 # exist, and then print the dependencies.
 #
-OCamlScannerPostproc() =
+public.OCamlScannerPostproc() =
     #
     # Read the module names from the standard input
     #
-    filename =
-    modules[] =
+    protected.filename =
+    protected.modules[] =
     awk($(stdin))
     case $'^\(.*\):$'
         PrintDependencies($(filename), $(modules))
@@ -409,13 +405,13 @@ OCamlScannerPostproc() =
     PrintDependencies($(filename), $(modules))
 
 Shell. +=
-    ocamldep-postproc(argv) =
+    public.ocamldep-postproc(argv) =
         if $(mem -preserve-targets, $(argv))
            OCAMLDEP_PRESERVE_TARGETS = true
            export
         OCamlScannerPostproc()
 
-OCamlScanner(src_file) =
+public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
         value $(OCAMLDEP_MODULES) -modules $(src_file) | ocamldep-postproc
     else
@@ -434,11 +430,11 @@ OCamlScanner(src_file) =
 # from being called twice: once to generate the .cmi file, and again
 # for the .cmo or .cmx file.
 #
-OCamlC() =
+public.OCamlC() =
     value $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
               $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
 
-OCamlOpt() =
+public.OCamlOpt() =
     value $(OCAMLFIND) $(OCAMLOPT) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
               $(OCAMLOPTFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
 
@@ -534,9 +530,9 @@ OCamlOpt() =
 #    MENHIR_AVAILABLE : the menhir executable is installed
 #    MENHIR_RAW_DEPEND : menhir supports the --raw-depend option
 #
-MENHIR = menhir
-MENHIR_FLAGS =
-MENHIR_ENABLED = false
+public.MENHIR = menhir
+public.MENHIR_FLAGS =
+public.MENHIR_ENABLED = false
 static. =
     MENHIR_AVAILABLE = $(CheckProg $(MENHIR))
     MENHIR_RAW_DEPEND = false
@@ -547,7 +543,7 @@ static. =
         export
 
 # Menhir is being requested.  Check that it is installed.
-MenhirCheck() =
+public.MenhirCheck() =
     if $(not $(MENHIR_AVAILABLE))
        eprintln($"""!!! You are asking to use Menhir, but it is not installed.""")
        eprintln($"""!!! See the Menhir home page for instructions on downloading.""")
@@ -555,14 +551,14 @@ MenhirCheck() =
        exit(1)
 
 # Compute the correct ocamlc and ocamldep options for Menhir.
-MenhirOCamlcCommand() =
+public.MenhirOCamlcCommand() =
     MenhirCheck()
-    ocamlc[] =\
+    private.ocamlc[] =\
        $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
     value --ocamlc $"$(ocamlc)"
 
-MenhirOCamldepCommand() =
+public.MenhirOCamldepCommand() =
     ocamldep =
        if $(and $(MENHIR_RAW_DEPEND), $(OCAMLDEP_MODULES_ENABLED))
            value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS) -modules
@@ -571,7 +567,7 @@ MenhirOCamldepCommand() =
     value --ocamldep $"$(ocamldep)"
 
 # Compute the Mendir dependency scanner command
-MenhirScannerCommand(base, src) =
+public.MenhirScannerCommand(base, src) =
     if $(MENHIR_ENABLED)
         if $(MENHIR_RAW_DEPEND)
             value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand) $(base) --raw-depend $(src) | ocamldep-postproc -preserve-targets
@@ -579,7 +575,7 @@ MenhirScannerCommand(base, src) =
             value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand) $(base) --depend $(src)
 
 # Use Menhir if MENHIR_ENABLED, ocamlyacc otherwise
-OCamlYaccCommand(src) =
+public.OCamlYaccCommand(src) =
     if $(MENHIR_ENABLED)
         value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamlcCommand) $(src)
     else
@@ -645,9 +641,9 @@ OCamlYaccCommand(src) =
 # \end{verbatim}
 # \end{doc}
 #
-MenhirMulti(target, sources) =
+public.MenhirMulti(target, sources) =
     MenhirCheck()
-    sources = $(addsuffix .mly, $(sources))
+    private.sources = $(addsuffix .mly, $(sources))
 
     # Menhir needs all the files for dependency analysis
     .SCANNER: scan-menhir-$(target).multi: $(sources) :value: $(OCamlScannerTargets $&)
@@ -703,15 +699,13 @@ OCamlScannerTargets(files) =
 .OCAMLLINK: %.cmi: %.cmo
 .OCAMLLINK: %.cmx: %.cmo
 
-ABORT_ON_DEPENDENCY_ERRORS = false
+public.ABORT_ON_DEPENDENCY_ERRORS = false
 
 OCamlLinkSort(nodes) =
    if $(ABORT_ON_DEPENDENCY_ERRORS)
-      nodes = $(file-check-sort .OCAMLLINK, $(nodes))
-      return($(nodes))
+      value $(file-check-sort .OCAMLLINK, $(nodes))
    else
-      nodes = $(file-sort .OCAMLLINK, $(nodes))
-      return($(nodes))
+      value $(file-sort .OCAMLLINK, $(nodes))
 
 #
 # Generic rule to build an ML library
@@ -744,16 +738,17 @@ OCamlLinkSort(nodes) =
 # \end{verbatim}
 # \end{doc}
 #
-OCamlLibrary(name, files) =
-   name = $(file $(name))
+public.OCamlLibrary(name, files) =
+   # XXX: JYH: these variables should be marked private in 0.9.9
+   protected.name = $(file $(name))
 
-   OFILES   = $(addsuffix $(EXT_OBJ), $(files))
-   CMOFILES = $(addsuffix .cmo, $(files))
-   CMXFILES = $(addsuffix .cmx, $(files))
+   protected.OFILES   = $(addsuffix $(EXT_OBJ), $(files))
+   protected.CMOFILES = $(addsuffix .cmo, $(files))
+   protected.CMXFILES = $(addsuffix .cmx, $(files))
 
-   CLIB      = $(file $(name)$(EXT_LIB))
-   BYTELIB   = $(file $(name).cma)
-   NATIVELIB = $(file $(name).cmxa)
+   protected.CLIB      = $(file $(name)$(EXT_LIB))
+   protected.BYTELIB   = $(file $(name).cma)
+   protected.NATIVELIB = $(file $(name).cmxa)
 
    #
    # Link commands
@@ -794,22 +789,24 @@ OCamlLibrary(name, files) =
 # \end{verbatim}
 # \end{doc}
 #
-OCamlPackage(name, files) =
-   OFILES   = $(addsuffix $(EXT_OBJ), $(files))
-   CMOFILES = $(addsuffix .cmo, $(files))
-   CMXFILES = $(addsuffix .cmx, $(files))
+public.OCamlPackage(name, files) =
+   # XXX: JYH: these variables should be marked private in 0.9.9
+   protected.OFILES   = $(addsuffix $(EXT_OBJ), $(files))
+   protected.CMOFILES = $(addsuffix .cmo, $(files))
+   protected.CMXFILES = $(addsuffix .cmx, $(files))
 
-   OBJ       = $(file $(name)$(EXT_OBJ))
-   CMO       = $(file $(name).cmo)
-   CMX       = $(file $(name).cmx)
-   CMI       = $(file $(name).cmi)
+   protected.OBJ       = $(file $(name)$(EXT_OBJ))
+   protected.CMO       = $(file $(name).cmo)
+   protected.CMX       = $(file $(name).cmx)
+   protected.CMI       = $(file $(name).cmi)
 
-   BYTE_TARGETS   = $(CMO)
-   NATIVE_TARGETS = $(CMX) $(OBJ)
+   protected.BYTE_TARGETS   = $(CMO)
+   protected.NATIVE_TARGETS = $(CMX) $(OBJ)
 
    #
    # Choose how to generate the .cmi
    #
+   protected.TARGETS =
    if $(NATIVE_ENABLED)
        NATIVE_TARGETS += $(CMI)
        TARGETS = $(NATIVE_TARGETS)
@@ -836,7 +833,7 @@ OCamlPackage(name, files) =
 # If the interfaces are to be installed,
 # define this variable to be true.
 #
-INSTALL_INTERFACES = false
+public.INSTALL_INTERFACES = false
 
 #
 # Install the library
@@ -852,13 +849,13 @@ INSTALL_INTERFACES = false
 # to be copied if the \verb+INSTALL_INTERFACES+ variable is true.
 # \end{doc}
 #
-OCamlLibraryCopy(tag, lib, name, ifiles) =
+public.OCamlLibraryCopy(tag, lib, name, ifiles) =
    #
    # Copy interfaces
    #
    if $(INSTALL_INTERFACES)
-      MLIFILES  = $(filter-targets $(addsuffix .mli, $(ifiles)))
-      CMIFILES  = $(addsuffix .cmi, $(ifiles))
+      private.MLIFILES  = $(filter-targets $(addsuffix .mli, $(ifiles)))
+      private.CMIFILES  = $(addsuffix .cmi, $(ifiles))
 
       foreach(src, $(MLIFILES) $(CMIFILES))
           $(lib)/$(basename $(src)): $(src) $(lib) :scanner: $(NOSCANNER)
@@ -870,13 +867,13 @@ OCamlLibraryCopy(tag, lib, name, ifiles) =
    #
    # Also install libraries
    #
-   CLIB      = $(file $(name)$(EXT_LIB))
-   BYTELIB   = $(file $(name).cma)
-   NATIVELIB = $(file $(name).cmxa)
+   private.CLIB      = $(file $(name)$(EXT_LIB))
+   private.BYTELIB   = $(file $(name).cma)
+   private.NATIVELIB = $(file $(name).cmxa)
 
-   LIBCLIB   = $(file $(lib)/$(name)$(EXT_LIB))
-   LIBBYTE   = $(file $(lib)/$(name).cma)
-   LIBNATIVE = $(file $(lib)/$(name).cmxa)
+   private.LIBCLIB   = $(file $(lib)/$(name)$(EXT_LIB))
+   private.LIBBYTE   = $(file $(lib)/$(name).cma)
+   private.LIBNATIVE = $(file $(lib)/$(name).cmxa)
 
    #
    # Link libraries into lib directory
@@ -893,7 +890,7 @@ OCamlLibraryCopy(tag, lib, name, ifiles) =
    #
    # Add dependencies to the target tag
    #
-   FILES[] =
+   public.FILES[] =
 
    if $(BYTE_ENABLED)
       $(tag): $(LIBBYTE)
@@ -921,7 +918,7 @@ OCamlLibraryCopy(tag, lib, name, ifiles) =
 # \verb+OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)+
 # \end{doc}
 #
-OCamlLibraryInstall(tag, lib, name, files) =
+public.OCamlLibraryInstall(tag, lib, name, files) =
     OCamlLibrary($(name), $(files))
     return $(OCamlLibraryCopy $(tag), $(lib), $(name), $(files))
 
@@ -961,26 +958,27 @@ OCamlLibraryInstall(tag, lib, name, files) =
 # \end{description}
 # \end{doc}
 #
-OCamlProgram(name, files) =
-   CMOFILES  = $(addsuffix .cmo, $(files))
-   CMXFILES  = $(addsuffix .cmx, $(files))
-   OFILES    = $(addsuffix $(EXT_OBJ), $(files))
+public.OCamlProgram(name, files) =
+   # XXX: JYH: these variables should be marked private in 0.9.9
+   protected.CMOFILES  = $(addsuffix .cmo, $(files))
+   protected.CMXFILES  = $(addsuffix .cmx, $(files))
+   protected.OFILES    = $(addsuffix $(EXT_OBJ), $(files))
 
-   CMAFILES  = $(addsuffix .cma,  $(OCAML_LIBS))
-   CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
-   ARFILES   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
-   CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
-   CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
+   protected.CMAFILES  = $(addsuffix .cma,  $(OCAML_LIBS))
+   protected.CMXAFILES = $(addsuffix .cmxa, $(OCAML_LIBS))
+   protected.ARFILES   = $(addsuffix $(EXT_LIB), $(OCAML_LIBS))
+   protected.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
+   protected.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
 
-   BYTE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
-   NATIVE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
-   CLIBS = $(addsuffix $(EXT_LIB), $(LIBS))
+   protected.BYTE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+   protected.NATIVE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
+   protected.CLIBS = $(addsuffix $(EXT_LIB), $(LIBS))
 
-   name = $(file $(name))
+   protected.name = $(file $(name))
 
-   PROG     = $(file $(name)$(EXE))
-   BYTEPROG = $(file $(name).run)
-   OPTPROG  = $(file $(name).opt)
+   protected.PROG     = $(file $(name)$(EXE))
+   protected.BYTEPROG = $(file $(name).run)
+   protected.OPTPROG  = $(file $(name).opt)
 
    #
    # Rules to build byte-code and native targets
@@ -1027,14 +1025,14 @@ OCamlProgram(name, files) =
 # \end{description}
 # \end{doc}
 #
-OCamlProgramCopy(tag, bin, name) =
-   name = $(file $(name))
+public.OCamlProgramCopy(tag, bin, name) =
+   private.name = $(file $(name))
 
-   BYTEPROG = $(file $(name).run)
-   OPTPROG  = $(file $(name).opt)
+   private.BYTEPROG = $(file $(name).run)
+   private.OPTPROG  = $(file $(name).opt)
 
-   SRCNAME  = $(if $(NATIVE_ENABLED), $(OPTPROG), $(BYTEPROG))
-   BINNAME  = $(file $(bin)/$(basename $(name))$(EXE))
+   private.SRCNAME  = $(if $(NATIVE_ENABLED), $(OPTPROG), $(BYTEPROG))
+   private.BINNAME  = $(file $(bin)/$(basename $(name))$(EXE))
 
    #
    # Link the actual executables.
@@ -1060,7 +1058,7 @@ OCamlProgramCopy(tag, bin, name) =
 # \verb+OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)+
 # \end{doc}
 #
-OCamlProgramInstall(tag, bin, name, files) =
+public.OCamlProgramInstall(tag, bin, name, files) =
     OCamlProgram($(name), $(files))
     return $(OCamlProgramCopy $(tag), $(bin), $(name))
 

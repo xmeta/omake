@@ -315,8 +315,9 @@ Chapter 11     Build functions
 * Section 11-3::	The OMakeroot file
 * Section 11-4::	Building C programs
 * Section 11-5::	Building OCaml programs
-* Section 11-6::	Building LaTeX programs
-* Section 11-7::	Examining the dependency graph
+* Section 11-6::	Generated OCaml Files
+* Section 11-7::	Building LaTeX programs
+* Section 11-8::	Examining the dependency graph
 
 
 Node: Section 11-1,	Next: Section 11-2,	Prev: Chapter 11,	Up: Chapter 11
@@ -378,7 +379,7 @@ terminal displaying the summary of the build (see `BUILD_SUMMARY'
 is probably a good idea if you work with others), you can define them in
 your `.omakerc' A.8*Note Section A-8::.
   The `find-build-targets' function
-11.7.0.9*Note Section 11-7:: is useful for obtaining a
+11.8.0.9*Note Section 11-8:: is useful for obtaining a
 firther summary of the build. Note that when output diversions are in
 effect (with the `--divert-*' options A*Note Appendix A::),
 any output produced by the commands is copied to a file. The name of the
@@ -835,194 +836,289 @@ Node: Section 11-5,	Next: Subsection 11-5-1,	Prev: Section 11-4,	Up: Chapter 11
   
 * Menu:
 
-* Subsection 11-5-1::	Variables for OCaml programs
-* Subsection 11-5-2::	OCaml command flags
-* Subsection 11-5-3::	Library variables
+* Subsection 11-5-1::	Autoconfiguration variables for OCaml programs
+* Subsection 11-5-2::	Configuration variables for OCaml programs
+* Subsection 11-5-3::	OCaml command flags
+* Subsection 11-5-4::	Library variables
 
 
 Node: Subsection 11-5-1,	Next: Subsection 11-5-2,	Prev: Section 11-5,	Up: Section 11-5
   
 
-11.5.1   Variables for OCaml programs
-=====================================
+11.5.1   Autoconfiguration variables for OCaml programs
+=======================================================
+   These variables will get defined based on the ``autoconf-style''
+tests executed when you run OMakefor the first time. You can use them to
+configure your project accordingly, and you should not redefine them.
+
+11.5.1.1   OCAMLOPT_EXISTS
+--------------------------
+ True when
+`ocamlopt' (or `ocamlopt.opt') is  available on your machine.
+
+11.5.1.2   OCAMLFIND_EXISTS
+---------------------------
+ True when
+the ocamlfind is available on your  machines.
+
+11.5.1.3   OCAMLDEP_MODULES_AVAILABLE
+-------------------------------------
+
+True when a version of  `ocamldep' that understands the `-modules'
+option is available on your machine.
+
+11.5.1.4   MENHIR_AVAILABLE
+---------------------------
+ True when
+the Menhir parser-generator is available  on your machine.
+
+Node: Subsection 11-5-2,	Next: Subsection 11-5-3,	Prev: Subsection 11-5-1,	Up: Section 11-5
+  
+
+11.5.2   Configuration variables for OCaml programs
+===================================================
   
   The following variables can be redefined in your project.
 
-11.5.1.1   USE_OCAMLFIND
+11.5.2.1   USE_OCAMLFIND
 ------------------------
  Whether to
 use the `ocamlfind' utility (default `false\')
 
-11.5.1.2   OCAMLC
+11.5.2.2   OCAMLC
 -----------------
  The OCaml bytecode
 compiler (default `ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not
 set, otherwise `ocamlc').
 
-11.5.1.3   OCAMLOPT
+11.5.2.3   OCAMLOPT
 -------------------
  The OCaml
 native-code compiler (default `ocamlopt.opt' if it  exists and
 `USE_OCAMLFIND' is not set, otherwise `ocamlopt').
 
-11.5.1.4   CAMLP4
+11.5.2.4   CAMLP4
 -----------------
  The `camlp4'
 preprocessor (default `camlp4').
 
-11.5.1.5   OCAMLLEX
+11.5.2.5   OCAMLLEX
 -------------------
  The OCaml lexer
 generator (default `ocamllex').
 
-11.5.1.6   OCAMLLEXFLAGS
+11.5.2.6   OCAMLLEXFLAGS
 ------------------------
  The flags to
 pass to `ocamllex' (default `-q').
 
-11.5.1.7   OCAMLYACC
+11.5.2.7   OCAMLYACC
 --------------------
  The OCaml parser
 generator (default `ocamlyacc').
 
-11.5.1.8   OCAMLDEP
+11.5.2.8   OCAMLYACCFLAGS
+-------------------------
+ Additional
+options to pass to `$(OCAMLYACC)'.
+
+11.5.2.9   OCAMLDEP
 -------------------
  The OCaml
 dependency analyzer (default `ocamldep').
 
-11.5.1.9   OCAMLMKTOP
----------------------
+11.5.2.10   OCAMLDEP_MODULES
+----------------------------
+ The OCaml
+dependency analyzer that understands the  `-module' option (default
+`ocamldep', if `ocamldep -modules' works, or  `ocamlrun ocamldep-omake',
+if `ocamlrun ocamldep-omake -modules' works, and empty  when neither
+works).
+
+11.5.2.11   OCAMLDEP_MODULES_ENABLED
+------------------------------------
+
+Instead of using `OCAMLDEP'  in a traditional `make'-style fashion, run
+`$(OCAMLDEP_MODULES) -modules' and then  postprocess the output
+internally to discover all the relevant generated `.ml' and  `.mli'
+files. See Section 11.6*Note Section 11-6:: for
+more information on  interactions between OMake, `OCAMLDEP' and
+generated files. This feature is currently  considered highly
+experimental and is disabled by default.
+
+11.5.2.12   OCAMLMKTOP
+----------------------
  The OCaml
 toploop compiler (default `ocamlmktop').
 
-11.5.1.10   OCAMLLINK
+11.5.2.13   OCAMLLINK
 ---------------------
  The OCaml
 bytecode linker (default `$(OCAMLC)').
 
-11.5.1.11   OCAMLOPTLINK
+11.5.2.14   OCAMLOPTLINK
 ------------------------
  The OCaml
 native-code linker (default `$(OCAMLOPT)').
 
-11.5.1.12   OCAMLINCLUDES
+11.5.2.15   OCAMLINCLUDES
 -------------------------
  Search path
 to pass to the OCaml compilers (default `.').  The search path with the
 `-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES'  variable.
 
-11.5.1.13   OCAMLFIND
+11.5.2.16   OCAMLFIND
 ---------------------
  The `ocamlfind'
 utility (default `ocamlfind' if  `USE_OCAMLFIND' is set, otherwise
 empty).
 
-11.5.1.14   OCAMLFINDFLAGS
+11.5.2.17   OCAMLFINDFLAGS
 --------------------------
  The flags to
 pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must be set).
 
-11.5.1.15   OCAMLPACKS
+11.5.2.18   OCAMLPACKS
 ----------------------
  Package names to
 pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
 
-11.5.1.16   BYTE_ENABLED
+11.5.2.19   BYTE_ENABLED
 ------------------------
  Flag
 indicating whether to use the bytecode compiler (default `true', when no
 `ocamlopt' found, `false' otherwise).
 
-11.5.1.17   NATIVE_ENABLED
+11.5.2.20   NATIVE_ENABLED
 --------------------------
  Flag
 indicating whether to use the native-code compiler (default `true', when
 ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED' and
 `NATIVE_ENABLED' can be set to true;  at least one should be set to
-true. 
+true.
+
+11.5.2.21   MENHIR_ENABLED
+--------------------------
+ Define this
+as `true' if you wish to use  `menhir' instead of `ocamlyacc' (default
+`false'). 
 
-Node: Subsection 11-5-2,	Next: Subsection 11-5-3,	Prev: Subsection 11-5-1,	Up: Section 11-5
+Node: Subsection 11-5-3,	Next: Subsection 11-5-4,	Prev: Subsection 11-5-2,	Up: Section 11-5
   
 
-11.5.2   OCaml command flags
+11.5.3   OCaml command flags
 ============================
   
   The following variables specify additional options to be passed to the
 OCaml tools.
 
-11.5.2.1   OCAMLDEPFLAGS
+11.5.3.1   OCAMLDEPFLAGS
 ------------------------
  Flags to pass
-to `OCAMLDEP'.
+to `OCAMLDEP' (but not to `OCAMLDEP_MODULES').
 
-11.5.2.2   OCAMLPPFLAGS
+11.5.3.2   OCAMLPPFLAGS
 -----------------------
  Flags to pass
 to `CAMLP4'.
 
-11.5.2.3   OCAMLCFLAGS
+11.5.3.3   OCAMLCFLAGS
 ----------------------
  Flags to pass
 to the byte-code compiler (default `-g').
 
-11.5.2.4   OCAMLOPTFLAGS
+11.5.3.4   OCAMLOPTFLAGS
 ------------------------
  Flags to pass
 to the native-code compiler (default empty).
 
-11.5.2.5   OCAMLFLAGS
+11.5.3.5   OCAMLFLAGS
 ---------------------
  Flags to pass to
 either compiler (default `-warn-error A').
 
-11.5.2.6   OCAML_BYTE_LINK_FLAGS
+11.5.3.6   OCAML_BYTE_LINK_FLAGS
 --------------------------------
  Flags
 to pass to the byte-code linker (default empty).
 
-11.5.2.7   OCAML_NATIVE_LINK_FLAGS
+11.5.3.7   OCAML_NATIVE_LINK_FLAGS
 ----------------------------------
 
 Flags to pass to the native-code linker (default empty).
 
-11.5.2.8   OCAML_LINK_FLAGS
+11.5.3.8   OCAML_LINK_FLAGS
 ---------------------------
  Flags to
-pass to either linker. 
+pass to either linker.
+
+11.5.3.9   MENHIR_FLAGS
+-----------------------
+ Additional
+flags to pass to `menhir'. 
 
-Node: Subsection 11-5-3,	Next: Section 11-6,	Prev: Subsection 11-5-2,	Up: Section 11-5
+Node: Subsection 11-5-4,	Next: Section 11-6,	Prev: Subsection 11-5-3,	Up: Section 11-5
   
 
-11.5.3   Library variables
+11.5.4   Library variables
 ==========================
   
   The following variables are used during linking.
   
 
-11.5.3.1   OCAML_LIBS
+11.5.4.1   OCAML_LIBS
 ---------------------
  Libraries to
 pass to the linker. These libraries become dependencies  of the link
 step.
 
-11.5.3.2   OCAML_OTHER_LIBS
+11.5.4.2   OCAML_OTHER_LIBS
 ---------------------------
  Additional
 libraries to pass to the linker. These libraries are  not included as
 dependencies to the link step. Typical use is for the OCaml  standard
 libraries like `unix' or `str'.
 
-11.5.3.3   OCAML_CLIBS
+11.5.4.3   OCAML_CLIBS
 ----------------------
  C libraries to
 pass to the linker.
 
-11.5.3.4   OCAML_LIB_FLAGS
+11.5.4.4   OCAML_LIB_FLAGS
 --------------------------
  Extra flags
-for the library.
+for the library. 
+
+Node: Section 11-6,	Next: Subsection 11-6-1,	Prev: Section 11-5,	Up: Chapter 11
+  
 
-11.5.3.5   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
+11.6   Generated OCaml Files
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+    As of OCaml version 3.09.2, the
+standard `ocamldep' scanner is ``broken''. The main issue is that it
+finds only those dependencies that already exist. If `foo.ml' contains a
+dependency on `Bar', 
+<<
+  foo.ml:
+     open Bar
+>>
+  then the default `ocamldep' will only find the dependency if a file
+`bar.ml' or `bar.ml' exists in the include path. It will not find (or
+print) the dependency if, for example, only `bar.mly' exists at the time
+`ocamldep' is run, even though `bar.ml' and `bar.mli' can be generated
+from `bar.mly'.
+  OMake currently provides two methods for addressing this problem ---
+one that requires manually specifying the generated files, and an
+experimental method for discovering such ``hidden'' dependencies
+automatically. The variable `OCAMLDEP_MODULES_ENABLED'
+11.5.2.11*Note Subsection 11-5-2:: controls which method
+is going to be used. When this variable is false, the manual
+specifications are expected and when it is true, the automated discovery
+will be attempted.
+  
+
+11.6.0.5   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
 --------------------------------------------------------
  
 <<
@@ -1030,10 +1126,12 @@ for the library.
   LocalOCamlGeneratedFiles(files)
 >>
   
-  The `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles' functions
-specify files that need to be generated before any OCaml files are
-scanned for dependencies. For example, if `parser.ml' and `lexer.ml' are
-both generated files, specify: 
+  When the `OCAMLDEP_MODULES_ENABLED'
+11.5.2.11*Note Subsection 11-5-2:: variable is set to
+`false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
+functions specify files that need to be generated before any OCaml files
+are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
+are both generated files, specify: 
 <<
   OCamlGeneratedFiles(parser.ml lexer.ml)
 >>
@@ -1042,9 +1140,91 @@ both generated files, specify:
 generated before any OCaml files anywhere in the project are scanned for
 dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
+  These functions have no effect when `OCAMLDEP_MODULES_ENABLED'
+11.5.2.11*Note Subsection 11-5-2:: is true.
   
 
-11.5.3.6   OCamlLibrary
+11.6.0.6   Automatic discovery of generated files during dependency
+-------------------------------------------------------------------
+analysis.
+---------
+   Having to specify the generated files manualy when OMake could
+discover them automatically is obviously suboptimal. To address this, we
+try to use a custom `ocamldep' that only finds the free module names in
+a file. 
+  This functionality is experimental and is disabled by default for now.
+Set `OCAMLDEP_MODULES_ENABLED'
+11.5.2.11*Note Subsection 11-5-2:: to `true' (or to
+`$(OCAMLDEP_MODULES_AVAILABLE)' in your project to enable it.
+  Note that the experimental `ocamldep' functionality this relies upon
+is not yet included in the standard OCaml --- see
+http://caml.inria.fr/mantis/view.php?id=4047. Temporarily, we distribute
+a bytecode version `ocamldep-omake' of the
+appropriately modified `ocamldep'. The appropriate `ocamldep' will be
+discovered automatically --- see Sections
+11.5.1.3*Note Subsection 11-5-1:: and
+11.5.2.10*Note Subsection 11-5-2::. 
+* Menu:
+
+* Subsection 11-6-1::	Using the Menhir parser generator
+
+
+Node: Subsection 11-6-1,	Next: Section 11-7,	Prev: Section 11-6,	Up: Section 11-6
+  
+
+11.6.1   Using the Menhir parser generator
+==========================================
+  
+  Menhir is a parser generator that is mostly compatible with
+`ocamlyacc', but with many improvements. A few of these are listed here
+(excerpted from the Menhir home page
+http://cristal.inria.fr/~fpottier/menhir/).
+  
+  
+ - Menhir's explanations are believed to be understandable by mere
+   humans. 
+ - Menhir allows grammar specifications to be split over multiple files.
+    It also allows several grammars to share a single set of tokens. 
+ - Menhir is able to produce parsers that are parameterized by Objective
+   Caml modules. 
+ - Added by jyh With the `--infer' option, Menhir can typecheck the
+   semantic actions  in your grammar at generation time. 
+  
+  What do you need to do to use Menhir instead of `ocamlyacc'? 
+  
+ 1. Place the following definition before the relevant section of your
+   project  (or at the top of your project `OMakefile' if you want to
+   use Menhir everywhere).
+   <<
+        MENHIR_ENABLED = true
+   >>
+ 
+ 
+ 2. Optionally, add any desired Menhir options to the `MENHIR_FLAGS'
+   variable.
+   <<
+        MENHIR_FLAGS += --infer
+   >>
+  
+  With this setup, any file with a `.mly' suffix will be compiled with
+Menhir.
+  If your grammar is split across several files, you need to specify it
+explicitly, using the `MenhirMulti' function.
+<<
+      MenhirMulti(target, sources)
+          target : filename, without suffix
+          sources : the files that define the grammar, without suffixes
+>>
+  
+  For example, if you want to generate the parser files `parse.ml' and
+`parse.mli', from the grammar specified in files `a.mly' and `b.mly',
+you would use the following.
+<<
+      MenhirMulti(parse, a b)
+>>
+  
+
+11.6.1.1   OCamlLibrary
 -----------------------
 
   The `OCamlLibrary' function builds an OCaml library.
@@ -1052,7 +1232,7 @@ scoping rules of OMake.
   The `<libname>' and `<files>' are listed without suffixes.
   
 
-11.5.3.7   ABORT_ON_DEPENDENCY_ERRORS
+11.6.1.2   ABORT_ON_DEPENDENCY_ERRORS
 -------------------------------------
  
 The linker requires that the files to be  listed in dependency order. If
@@ -1070,7 +1250,7 @@ from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
 >>
   
 
-11.5.3.8   OCamlPackage
+11.6.1.3   OCamlPackage
 -----------------------
 
   The `OCamlPackage' function builds an OCaml package.
@@ -1089,7 +1269,7 @@ is set).
 >>
   
 
-11.5.3.9   OCamlLibraryCopy
+11.6.1.4   OCamlLibraryCopy
 ---------------------------
 
   The `OCamlLibraryCopy' function copies a library to an install
@@ -1098,42 +1278,42 @@ location.
   The `<interface-files>' specify additional interface files to be
 copied if the `INSTALL_INTERFACES' variable is true.
 
-11.5.3.10   OCamlLibraryInstall
--------------------------------
+11.6.1.5   OCamlLibraryInstall
+------------------------------
 
   The `OCamlLibraryInstall' function builds a library and copies it to
 an install location in one step.
   `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
 
-11.5.3.11   OCamlProgram
-------------------------
+11.6.1.6   OCamlProgram
+-----------------------
 
   The `OCamlProgram' function builds an OCaml program. It returns the
-array with all the targets for which it have defined the rules
+array with all the targets for which it has defined the rules
 (`$(name)$(EXE)' and `$(name).run' and/or `$(name).opt', depending on
 the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   `OCamlProgram(<name>, <files>)'
   Additional variables used: 
   
- OCAML_LIBS 11.5.3.1*Note Subsection 11-5-3::  Additional libraries
+ OCAML_LIBS 11.5.4.1*Note Subsection 11-5-4::  Additional libraries
    passed to the linker, without suffix. These files  become
    dependencies of the target program. 
- OCAML_OTHER_LIBS 11.5.3.2*Note Subsection 11-5-3::  Additional
+ OCAML_OTHER_LIBS 11.5.4.2*Note Subsection 11-5-4::  Additional
    libraries passed to the linker, without suffix. These  files do not
    become dependencies of the target program. 
- OCAML_CLIBS 11.5.3.3*Note Subsection 11-5-3::  C libraries to pass
+ OCAML_CLIBS 11.5.4.3*Note Subsection 11-5-4::  C libraries to pass
    to the linker. 
- OCAML_BYTE_LINK_FLAGS 11.5.2.6*Note Subsection 11-5-2:: 
+ OCAML_BYTE_LINK_FLAGS 11.5.3.6*Note Subsection 11-5-3:: 
    Flags to pass to the bytecode linker. 
  OCAML_NATIVE_LINK_FLAGS
-   11.5.2.7*Note Subsection 11-5-2::  Flags to pass to
+   11.5.3.7*Note Subsection 11-5-3::  Flags to pass to
    the native code linker. 
- OCAML_LINK_FLAGS 11.5.2.8*Note Subsection 11-5-2::  Flags to
+ OCAML_LINK_FLAGS 11.5.3.8*Note Subsection 11-5-3::  Flags to
    pass to both linkers. 
 
 
-11.5.3.12   OCamlProgramCopy
-----------------------------
+11.6.1.7   OCamlProgramCopy
+---------------------------
 
   The `OCamlProgramCopy' function copies an OCaml program to an install
 location.
@@ -1141,109 +1321,109 @@ location.
   Additional variables used: 
   
  NATIVE_ENABLED  If `NATIVE_ENABLED'
-   11.5.1.17*Note Subsection 11-5-1:: is set, the native-code
+   11.5.2.20*Note Subsection 11-5-2:: is set, the native-code
    executable  is copied; otherwise the byte-code executable is copied. 
 
 
-11.5.3.13   OCamlProgramInstall
--------------------------------
+11.6.1.8   OCamlProgramInstall
+------------------------------
 
   The `OCamlProgramInstall' function builds a programs and copies it to
 an install location in one step.
   `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
 
-Node: Section 11-6,	Next: Subsection 11-6-1,	Prev: Section 11-5,	Up: Chapter 11
+Node: Section 11-7,	Next: Subsection 11-7-1,	Prev: Section 11-6,	Up: Chapter 11
   
 
-11.6   Building LaTeX programs
+11.7   Building LaTeX programs
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
 * Menu:
 
-* Subsection 11-6-1::	Configuration variables
-* Subsection 11-6-2::	Building LaTeX documents
+* Subsection 11-7-1::	Configuration variables
+* Subsection 11-7-2::	Building LaTeX documents
 
 
-Node: Subsection 11-6-1,	Next: Subsection 11-6-2,	Prev: Section 11-6,	Up: Section 11-6
+Node: Subsection 11-7-1,	Next: Subsection 11-7-2,	Prev: Section 11-7,	Up: Section 11-7
   
 
-11.6.1   Configuration variables
+11.7.1   Configuration variables
 ================================
   
   The following variables can be modified in your project.
 
-11.6.1.1   LATEX
+11.7.1.1   LATEX
 ----------------
  The LaTeX command
 (default `latex').
 
-11.6.1.2   TETEX2_ENABLED
+11.7.1.2   TETEX2_ENABLED
 -------------------------
  Flag
 indicating whether to use advanced LaTeX options present in TeTeX v.2
 (default value is determined the first time omake reads `LaTeX.src' and
 depends on the version of LaTeX you have installed).
 
-11.6.1.3   LATEXFLAGS
+11.7.1.3   LATEXFLAGS
 ---------------------
  The LaTeX flags
 (defaults depend on the `TETEX2_ENABLED' variable)
 
-11.6.1.4   BIBTEX
+11.7.1.4   BIBTEX
 -----------------
  The BibTeX command
 (default `bibtex').
 
-11.6.1.5   MAKEINDEX
+11.7.1.5   MAKEINDEX
 --------------------
  The command to
 build an index (default `makeindex').
 
-11.6.1.6   DVIPS
+11.7.1.6   DVIPS
 ----------------
  The `.dvi' to
 PostScript converter (default `dvips').
 
-11.6.1.7   DVIPSFLAGS
+11.7.1.7   DVIPSFLAGS
 ---------------------
  Flags to pass to
 `dvips' (default `-t letter').
 
-11.6.1.8   DVIPDFM
+11.7.1.8   DVIPDFM
 ------------------
  The `.dvi' to
 `.pdf' converter (default `dvipdfm').
 
-11.6.1.9   DVIPDFMFLAGS
+11.7.1.9   DVIPDFMFLAGS
 -----------------------
  Flags to pass
 to `dvipdfm' (default `-p letter').
 
-11.6.1.10   PDFLATEX
+11.7.1.10   PDFLATEX
 --------------------
  The `.latex' to
 `.pdf' converter (default `pdflatex').
 
-11.6.1.11   PDFLATEXFLAGS
+11.7.1.11   PDFLATEXFLAGS
 -------------------------
  Flags to pass
 to pdflatex (default is empty).
 
-11.6.1.12   USEPDFLATEX
+11.7.1.12   USEPDFLATEX
 -----------------------
  Flag indicating
 whether to use pdflatex instead of dvipdfm to generate the `.pdf'
 document (default `false'). 
 
-Node: Subsection 11-6-2,	Next: Section 11-7,	Prev: Subsection 11-6-1,	Up: Section 11-6
+Node: Subsection 11-7-2,	Next: Section 11-8,	Prev: Subsection 11-7-1,	Up: Section 11-7
   
 
-11.6.2   Building LaTeX documents
+11.7.2   Building LaTeX documents
 =================================
 
 
-11.6.2.1   LaTeXDocument
+11.7.2.1   LaTeXDocument
 ------------------------
 
   The `LaTeXDocument' produces a LaTeX document.
@@ -1253,18 +1433,18 @@ This function returns the filenames for the generated `.ps' and `.pdf'
 files.
   Additional variables used:
 
-11.6.2.2   TEXINPUTS
+11.7.2.2   TEXINPUTS
 --------------------
  The LaTeX search
 path (an array of directories, default is  taken from the `TEXINPUTS'
 environment variable).
 
-11.6.2.3   TEXDEPS
+11.7.2.3   TEXDEPS
 ------------------
  Additional files
 this document depends on.
 
-11.6.2.4   TeXGeneratedFiles, LocalTeXGeneratedFiles
+11.7.2.4   TeXGeneratedFiles, LocalTeXGeneratedFiles
 ----------------------------------------------------
  
 <<
@@ -1286,14 +1466,14 @@ dependencies. The `LocalTeXGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-11.6.2.5   LaTeXDocumentCopy
+11.7.2.5   LaTeXDocumentCopy
 ----------------------------
 
   The `LaTeXDocumentCopy' copies the document to an install location.
   `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
   This function copies just the `.pdf' and `.ps' files.
 
-11.6.2.6   LaTeXDocumentInstall
+11.7.2.6   LaTeXDocumentInstall
 -------------------------------
 
   The `LaTeXDocumentInstall' builds a document and copies it to an
@@ -1301,15 +1481,15 @@ install location in one step.
   `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
 <files>)' 
 
-Node: Section 11-7,	Next: Chapter 12,	Prev: Section 11-6,	Up: Chapter 11
+Node: Section 11-8,	Next: Chapter 12,	Prev: Section 11-7,	Up: Chapter 11
   
 
-11.7   Examining the dependency graph
+11.8   Examining the dependency graph
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
 
 
-11.7.0.7   dependencies, dependencies-all
+11.8.0.7   dependencies, dependencies-all
 -----------------------------------------
 
 <<
@@ -1349,7 +1529,7 @@ For a shorter form, see the `filter-proper-targets' function.
   
   
 
-11.7.0.8   target
+11.8.0.8   target
 -----------------
  
 <<
@@ -1361,7 +1541,7 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-11.7.0.9   find-build-targets
+11.8.0.9   find-build-targets
 -----------------------------
 
 <<
@@ -1388,7 +1568,7 @@ of targets that failed (if the build failed).
 >>
   
 
-11.7.0.10   project-directories
+11.8.0.10   project-directories
 -------------------------------
 
 <<
@@ -1400,7 +1580,7 @@ that are considered to be part of the project.
   To get the complete directory list, this function should be called
 from within a rule body.
 
-11.7.0.11   rule
+11.8.0.11   rule
 ----------------
 
   The `rule' function is called whenever a build rule is defined. It is
@@ -1530,251 +1710,3 @@ object. The following alias adds the `-AF' option to the `ls' command.
   
   Quoted commands do not undergo alias expansion. The quotation `"ls"'
 prevents the alias from being recursive.
-
-Node: Section 12-3,	Next: Appendix A,	Prev: Section 12-2,	Up: Chapter 12
-  
-
-12.3   Interactive syntax
-*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The interactive syntax in `osh' is the same as the syntax of an
-`OMakefile', with one exception in regard to indentation. The line
-before an indented block must have a colon at the end of the line. A
-block is terminated with a `.' on a line by itself, or `^D'. In the
-following example, the first line `if true' has no body, because there
-is no colon.
-<<
-     # The following if has no body
-     osh>if true
-     # The following if has a body
-     osh>if true:
-     if>       if true:
-     if>          println(Hello world)
-     if>          .
-     Hello world
->>
-  
-  Note that `osh' makes some effort to modify the prompt while in an
-indented body, and it auto-indents the text.
-  The colon signifier is also allowed in files, although it is not
-required.
-   
-
-Node: Appendix A,	Next: Section A-1,	Prev: Chapter 12,	Up: Top
-  
-
-Appendix A     Synopsis
-***********************
-    
-  omake  [-k]  [-j <count>]  [-n]  [-s] [-S]  [-p]  [-P]  [-w]  [-t] 
-[-u]  [-U]  [-R]  [--project]  [--progress]  [--print-status] 
-[--print-exit]  [--print-dependencies]  [--show-dependencies <target>] 
-[--all-dependencies]  [--verbose-dependencies]  [--force-dotomake] 
-[--dotomake <dir>]  [--flush-includes]  [--configure]  [--install] 
-[--install-all]  [--install-force]  [--version]  [--absname] 
-[--divert-errors]  [--divert-repeat]  [--divert-only]  filename... 
-[var-definition...]
-* Menu:
-
-* Section A-1::	General usage
-* Section A-2::	Output control
-* Section A-3::	Build options
-* Section A-4::	Additional options
-* Section A-5::	Environment variables
-* Section A-6::	Functions
-* Section A-7::	Option processing
-* Section A-8::	.omakerc
-
-
-Node: Section A-1,	Next: Section A-2,	Prev: Appendix A,	Up: Appendix A
-  
-
-A.1   General usage
-*=*=*=*=*=*=*=*=*=*
-
-  
-  For Boolean options (for example, `-s', `--progress', etc.) the option
-can include a prefix `--no-', which inverts the usual sense of the
-option. For example, the option `--progress' means ``print a progress
-bar,'' while the option `--no-progress' means ``do not print a progress
-bar.''
-  If multiple instances of an option are specified, the final option
-determines the behavior of OMake. In the following command line, the
-final `--no-S' cancels the earlier `-S'.
-<<
-      % omake -S --progress --no-S
->>
-  
-
-Node: Section A-2,	Next: Subsection A-2-1,	Prev: Section A-1,	Up: Appendix A
-  
-
-A.2   Output control
-*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection A-2-1::	-s
-* Subsection A-2-2::	-S
-* Subsection A-2-3::	-w
-* Subsection A-2-4::	--progress
-* Subsection A-2-5::	--print-status
-* Subsection A-2-6::	--print-exit
-* Subsection A-2-7::	--divert-errors
-* Subsection A-2-8::	--divert-repeat
-* Subsection A-2-9::	--divert-only
-* Subsection A-2-10::	--divert-discard-success
-* Subsection A-2-11::	-d
-
-
-Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
-  
-
-A.2.1   -s
-==========
- `-s'
-  Do not print commands as they are executed (be ``silent'').
-
-Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
-  
-
-A.2.2   -S
-==========
- `-S'
-  Do not print commands as they are executed unless they produce output
-and/or fail.
-
-Node: Subsection A-2-3,	Next: Subsection A-2-4,	Prev: Subsection A-2-2,	Up: Section A-2
-  
-
-A.2.3   -w
-==========
- `-w'
-  Print directory information in make format as commands are executed.
-This is mainly useful for editors that expect make-style directory
-information for determining the location of errors.
-
-Node: Subsection A-2-4,	Next: Subsection A-2-5,	Prev: Subsection A-2-3,	Up: Section A-2
-  
-
-A.2.4   --progress
-==================
- `--progress'
-  Print a progress indicator. This is normally used with the -s or -S
-options.
-
-Node: Subsection A-2-5,	Next: Subsection A-2-6,	Prev: Subsection A-2-4,	Up: Section A-2
-  
-
-A.2.5   --print-status
-======================
-
-`--print-status'
-  Print status lines (the `+' and `-' lines).
-
-Node: Subsection A-2-6,	Next: Subsection A-2-7,	Prev: Subsection A-2-5,	Up: Section A-2
-  
-
-A.2.6   --print-exit
-====================
-
-`--print-exit'
-  Print termination codes when commands complete.
-
-Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
-  
-
-A.2.7   --divert-errors
-=======================
-
-`--divert-errors'
-  ``Divert'' command output. The effect of this option to save the
-output of any commands so that it can be printed at the end of the
-build. If any rules/commands fail, then OMake will re-print the output
-of the failed commands when it finishes the build. Off by default.
-
-Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
-  
-
-A.2.8   --divert-repeat
-=======================
-
-`--divert-repeat'
-  When a rule finishes, print the output as a single block. This is
-useful in combination `-j' option A.3.12*Note Subsection A-3-12::, where
-the output of multiple subprocesses can be garbled. The diversion is
-printed as a single coherent unit. Implies `--divert-errors'.
-
-Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
-  
-
-A.2.9   --divert-only
-=====================
-
-`--divert-only' 
-  Print diversions only. This forces OMake to be much more quiet,
-printing output only when a command produces output. With this option
-alone, the output from successful commands is echoed immediately, and
-the output from failed commands is delayed until the build completes and
-the summary is printed. May be used in combination with
-`--divert-repeat' (output from failed commands will be printed twice).
-Implies `--divert-errors'.
-  You might also consider using the `--progress' flag
-A.2.4*Note Subsection A-2-4:: so that you can see when the build
-is active.
-
-Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
-  
-
-A.2.10   --divert-discard-success
-=================================
-
-`--divert-discard-success'
-  Discard the output from commands that were successful. This can be
-useful in reducing unwanted output so that you can concentrate on any
-errors.
-
-Node: Subsection A-2-11,	Next: Section A-3,	Prev: Subsection A-2-10,	Up: Section A-2
-  
-
-A.2.11   -d
-===========
- `-d [01jwWpPxXsS]'
-  For brevity, the `-o' option is also provided to duplicate the above
-output options. The `-o' option takes a argument consisting of a
-sequence of characters. The characters are read from left-to-right; each
-specifies a set of output options. In general, an uppercase character
-turns the option on; a lowercase character turns the option off.
-  
-  
- 0  Equivalent to `-s --divert-only --divert-discard-success'
- This option specifies that `omake' should be as quiet as possible. If
-   any errors occur during the build, the output is delayed until the
-   build terminates. Output from successful commands is discarded.
- 
- 1  Equivalent to `-S --progress --divert-only --divert-repeat
-   --divert-discard-success'
- This is a slightly more relaxed version of ``quiet'' output. The output
-   from successful commands is discarded. The output from failed
-   commands is printed immediately after the command complete. The
-   output from failed commands is displayed twice: once immediately
-   after the command completes, and again when the build completes. A
-   progress bar is displayed so that you know when the build is active.
-   Include the ``p'' option if you want to turn off the progress bar
-   (for example `omake -o 1p').
- 
- 2  Equivalent to `--progress --divert-only --divert-repeat'
- The is even more relaxed, output from successful commands is printed.
-   This is often useful for deinterleaving the output when using `-j'.
- 
- W  Equivalent to `-w' 
- w  Equivalent to `--no-w' 
- P  Equivalent to `--progress' 
- p  Equivalent to `--no-progress' 
- X  Equivalent to `--print-exit' 
- x  Equivalent to `--no-print-exit' 
- S  Equivalent to `-S' 
- s  Equivalent to `--no-S' 
-  

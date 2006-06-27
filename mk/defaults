@@ -5,22 +5,22 @@
 #
 # Name of the config file
 #
-CONFIG_FILE = $(file $(ROOT)/.config)
+public.CONFIG_FILE = $(file $(ROOT)/.config)
 
 #
 # Figure it out where ocaml is installed
 #
-CAMLLIB_DEFAULT = $(shell ocamlc -where)
+public.CAMLLIB_DEFAULT = $(shell ocamlc -where)
 
 #
 # Default installation path: check the environment (and the registry on Windows).
 # On Unix, use /usr/local by default.
 #
-PREFIX =
+public.PREFIX =
     getenv(PREFIX)
         get-registry(HKEY_CURRENT_USER, Software\MetaPRL\OMake, OMAKEDIR)
             get-registry(HKEY_LOCAL_MACHINE, Software\MetaPRL\OMake, OMAKEDIR)
-                PREFIX = $(get-registry HKEY_LOCAL_MACHINE, Software\Microsoft\Windows\CurrentVersion, ProgramFilesDir, false)
+                private.PREFIX = $(get-registry HKEY_LOCAL_MACHINE, Software\Microsoft\Windows\CurrentVersion, ProgramFilesDir, false)
                 if $(PREFIX)
                     value $(PREFIX)\OMake
                 else
@@ -28,16 +28,16 @@ PREFIX =
 
 PREFIX = $(dir $"$(PREFIX)")
 
-BINDIR = $(dir $"$(getenv BINDIR, $(PREFIX)/bin)")
-LIBDIR = $(dir $"$(getenv LIBDIR, $(PREFIX)/lib)")
-MANDIR = $(dir $"$(getenv MANDIR, $(PREFIX)/man)")
+public.BINDIR = $(dir $"$(getenv BINDIR, $(PREFIX)/bin)")
+public.LIBDIR = $(dir $"$(getenv LIBDIR, $(PREFIX)/lib)")
+public.MANDIR = $(dir $"$(getenv MANDIR, $(PREFIX)/man)")
 
-DEFAULT_SAVE_INTERVAL = $(if $(equal $(OSTYPE), Win32), 15, 60)
+public.DEFAULT_SAVE_INTERVAL = $(if $(equal $(OSTYPE), Win32), 15, 60)
 
 #
 # Profiling is disabled by default
 #
-NATIVE_PROFILE = false
+public.NATIVE_PROFILE = false
 
 #
 # C compiler and flags - check the environment
@@ -59,8 +59,8 @@ if $(file-exists $(CONFIG_FILE).local)
 include configure/fam
 include configure/readline
 
-FAM_ENABLED = $(FAM_AVAILABLE)
-READLINE_ENABLED = $(READLINE_AVAILABLE)
+public.FAM_ENABLED = $(FAM_AVAILABLE)
+public.READLINE_ENABLED = $(READLINE_AVAILABLE)
 
 include mk/make_config
 
@@ -74,7 +74,7 @@ LIBDIR = $(dir $(LIBDIR))
 MANDIR = $(dir $(MANDIR))
 
 #
-# ocamldep -modules is diabled by default.
+# ocamldep -modules is disabled by default.
 #
 OCAMLDEP_MODULES_ENABLED = false
 

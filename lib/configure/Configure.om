@@ -6,15 +6,15 @@
 # Check whether a header file exists.
 # We call the C compiler.
 #
-CheckHeader(files) =
-    includes = $(add-wrapper $(nl)$'#include <', >, $(files))
+public.CheckHeader(files) =
+    private.includes = $(add-wrapper $(nl)$'#include <', >, $(files))
 
     # The command line
-    tmp = $(tmpfile omake)
-    command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c
+    private.tmp = $(tmpfile omake)
+    private.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c
 
     # The program
-    program = $"""/* Configuration file; you can remove this. */
+    private.program = $"""/* Configuration file; you can remove this. */
 /* Command line: $(command) */
 #ifdef __cplusplus
 extern "C"
@@ -28,16 +28,16 @@ int main(int argc, char **argv) {
 
     # Compile it
     fprint($(tmp).c, $(program))
-    success = $(shell-success-null $(command))
+    private.success = $(shell-success-null $(command))
 
     # Remove temporaries
     rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
 
     return $(success)
 
-VerboseCheckHeader(files) =
+public.VerboseCheckHeader(files) =
     print(--- Testing for $(files)... )
-    success = $(CheckHeader $(files))
+    private.success = $(CheckHeader $(files))
     if $(success)
         println($'(success)')
     else
@@ -47,17 +47,17 @@ VerboseCheckHeader(files) =
 #
 # Check whether the libraries have the given functions
 #
-CheckLib(libs, funs) =
-    declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
-    funs = $(add-wrapper $(nl)    , $'();', $(funs))
-    clibs = $(addprefix -l, $(libs))
+public.CheckLib(libs, funs) =
+    private.declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
+    private.funs = $(add-wrapper $(nl)    , $'();', $(funs))
+    private.clibs = $(addprefix -l, $(libs))
 
     # The command line
-    tmp = $(tmpfile omake)
-    command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c $(clibs)
+    private.tmp = $(tmpfile omake)
+    private.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c $(clibs)
 
     # The program
-    program = $"""/* Configuration file, you can remove this. */
+    private.program = $"""/* Configuration file, you can remove this. */
 /* command line: $(command) */
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
@@ -72,14 +72,17 @@ $(funs)
 
     # Compile it
     fprint($(tmp).c, $(program))
-    success = $(shell-success-null $(command))
+    private.success = $(shell-success-null $(command))
 
     # Remove temporaries
     rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
 
     return $(success)
 
-CheckProg(prog) =
+#
+# Check whether a program exists in the PATH
+#
+public.CheckProg(prog) =
    print($"--- Testing for $(prog)... ")
    if $(where $(prog))
       println($"($(prog) found)")

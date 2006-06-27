@@ -58,25 +58,25 @@ open build/Common
 # \end{doc}
 #
 if $(equal $(OSTYPE), Win32)
-    CC = cl /nologo
-    CXX = cl /nologo
-    CPP = cl /nologo /E
-    CFLAGS = /DWIN32
-    CXXFLAGS = /DWIN32
-    AR(name) =
+    public.CC = cl /nologo
+    public.CXX = cl /nologo
+    public.CPP = cl /nologo /E
+    public.CFLAGS = /DWIN32
+    public.CXXFLAGS = /DWIN32
+    public.AR(name) =
         return(lib /nologo /debugtype:CV /out:$(name))
-    RANLIB = echo ranlib
-    LD = cl
-    INCLUDES[] = .
-    INCLUDES_OPT = /I
-    YACC = echo yacc
-    LEX = echo lex
-    LIBS =
-    LDFLAGS =
+    public.RANLIB = echo ranlib
+    public.LD = cl
+    public.INCLUDES[] = .
+    public.INCLUDES_OPT = /I
+    public.YACC = echo yacc
+    public.LEX = echo lex
+    public.LIBS =
+    public.LDFLAGS =
 
-    AS = ml /nologo
-    ASOUT = /Fo
-    ASFLAGS = /c /coff
+    public.AS = ml /nologo
+    public.ASOUT = /Fo
+    public.ASFLAGS = /c /coff
 
     export
 else
@@ -84,25 +84,25 @@ else
         open configure/Configure
         GCC_FOUND = $(CheckProg gcc)
         GXX_FOUND = $(and $(GCC_FOUND), $(CheckProg g++))
-    CC = $(if $(GCC_FOUND), gcc, cc)
-    CXX = $(if $(GXX_FOUND), g++, c++)
-    CPP = cpp
-    CFLAGS =
-    CXXFLAGS =
-    AR(name) =
+    public.CC = $(if $(GCC_FOUND), gcc, cc)
+    public.CXX = $(if $(GXX_FOUND), g++, c++)
+    public.CPP = cpp
+    public.CFLAGS =
+    public.CXXFLAGS =
+    public.AR(name) =
         return(ar cq $(name))
-    RANLIB = ranlib
-    LD = ld
-    INCLUDES[] = .
-    INCLUDES_OPT = -I
-    YACC = yacc
-    LEX = lex
-    LIBS =
-    LDFLAGS =
+    public.RANLIB = ranlib
+    public.LD = ld
+    public.INCLUDES[] = .
+    public.INCLUDES_OPT = -I
+    public.YACC = yacc
+    public.LEX = lex
+    public.LIBS =
+    public.LDFLAGS =
 
-    AS = as
-    ASOUT = $(array -o)
-    ASFLAGS =
+    public.AS = as
+    public.ASOUT = $(array -o)
+    public.ASFLAGS =
 
     export
 
@@ -110,19 +110,19 @@ else
 # Add the -I option to the includes lazily.
 # Don't redefine this variable unless you know what you are doing.
 #
-PREFIXED_INCLUDES = $`(addprefix $(INCLUDES_OPT), $(INCLUDES))
+public.PREFIXED_INCLUDES = $`(addprefix $(INCLUDES_OPT), $(INCLUDES))
 
 #
 # Special flags for compiling C files for use in OCaml
 #
-BYTE_CFLAGS =
-NATIVE_CFLAGS =
+public.BYTE_CFLAGS =
+public.NATIVE_CFLAGS =
 
 #
 # Generic build rules
 #
 #
-CXX_EXTS[] = .cpp .cc .c++
+public.CXX_EXTS[] = .cpp .cc .c++
 
 %$(EXT_OBJ): %.c :scanner: scan-c-%.c
     $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c -o $@ $*.c
@@ -174,10 +174,10 @@ foreach(CXX_EXT, $(CXX_EXTS))
 #
 .PHONY: CGeneratedFilesTarget
 
-CGeneratedFiles(files) =
+public.CGeneratedFiles(files) =
     CGeneratedFilesTarget: $(files)
 
-LocalCGeneratedFiles(files) =
+public.LocalCGeneratedFiles(files) =
     .SCANNER: scan-c-%: $(files)
     .SCANNER: scan-cxx-%: $(files)
     .SCANNER: %$(EXT_OBJ): $(files)
@@ -194,22 +194,22 @@ if $(equal $(OSTYPE), Win32)
     # directives from the preprocessor.
     #
     Shell. +=
-        builtin-cpp-filenames(argv) =
+        public.builtin-cpp-filenames(argv) =
            fsubst($(argv))
            case $'^[^"]*\("[^"]+"\).*'
               value $1
 
-        builtin-cc-depend(argv) =
-           filename = $(last $(argv))
-           pipeline =\
+        public.builtin-cc-depend(argv) =
+           private.filename = $(last $(argv))
+           private.pipeline =\
               $(argv) |\
               grep "^#(line)? [0-9]" |\
               builtin-cpp-filenames |\
               grep "^[^<]"
            if $(VERBOSE)
               eprintln(+ $(string $(pipeline)))
-           depends = $(set $(shell $(pipeline)))
-           objname = $(rootname $(filename))$(EXT_OBJ)
+           private.depends = $(set $(shell $(pipeline)))
+           private.objname = $(rootname $(filename))$(EXT_OBJ)
            println($(string $(objname): $(depends)))
 
     .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
@@ -275,16 +275,16 @@ else
 # \end{verbatim}
 # \end{doc}
 #
-StaticCLibrary(name, files) =
+public.StaticCLibrary(name, files) =
     #
     # Generic library that can be used on byte and native-code
     #
-    OFILES = $(addsuffix $(EXT_OBJ), $(files))
+    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
 
     #
     # Names of libs
     #
-    NORMALLIB = $(file $(name)$(EXT_LIB))
+    private.NORMALLIB = $(file $(name)$(EXT_LIB))
 
     if $(equal $(OSTYPE), Win32)
         $(NORMALLIB): $(OFILES)
@@ -327,12 +327,12 @@ StaticCLibrary(name, files) =
 # \end{verbatim}
 # \end{doc}
 #
-StaticCLibraryCopy(tag, lib, name) =
+public.StaticCLibraryCopy(tag, lib, name) =
     #
     # Names of libs
     #
-    NORMALLIB = $(file $(name)$(EXT_LIB))
-    LIBNORMAL = $(file $(lib)/$(basename $(name))$(EXT_LIB))
+    private.NORMALLIB = $(file $(name)$(EXT_LIB))
+    private.LIBNORMAL = $(file $(lib)/$(basename $(name))$(EXT_LIB))
 
     #
     # Linking the library into the root lib dir
@@ -364,7 +364,7 @@ StaticCLibraryCopy(tag, lib, name) =
 # \end{verbatim}
 # \end{doc}
 #
-StaticCLibraryInstall(tag, lib, name, files) =
+public.StaticCLibraryInstall(tag, lib, name, files) =
     StaticCLibrary($(name), $(files))
     return $(StaticCLibraryCopy $(tag), $(lib), $(name))
 
@@ -380,16 +380,16 @@ StaticCLibraryInstall(tag, lib, name, files) =
 # file (a \verb+.o+ file on \verb+Unix+, and a \verb+.obj+ file on \verb+Win32+).
 # \end{doc}
 #
-StaticCObject(name, files) =
+public.StaticCObject(name, files) =
     #
     # Generic library that can be used on byte and native-code
     #
-    OFILES = $(addsuffix $(EXT_OBJ), $(files))
+    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
 
     #
     # Names of libs
     #
-    NORMALLIB = $(file $(name)$(EXT_OBJ))
+    private.NORMALLIB = $(file $(name)$(EXT_OBJ))
 
     $(NORMALLIB): $(OFILES)
         $(LD) $(LDFLAGS) -r -o $@ $(OFILES)
@@ -399,12 +399,12 @@ StaticCObject(name, files) =
 #
 # Copy to an install directory
 #
-StaticCObjectCopy(tag, lib, name) =
+public.StaticCObjectCopy(tag, lib, name) =
     #
     # Names of libs
     #
-    NORMALLIB = $(file $(name)$(EXT_OBJ))
-    LIBNORMAL = $(file $(lib)/$(basename $(name))$(EXT_OBJ))
+    private.NORMALLIB = $(file $(name)$(EXT_OBJ))
+    private.LIBNORMAL = $(file $(lib)/$(basename $(name))$(EXT_OBJ))
 
     #
     # Linking the library into the root lib dir
@@ -422,7 +422,7 @@ StaticCObjectCopy(tag, lib, name) =
 #
 # We often use them together
 #
-StaticCObjectInstall(tag, lib, name, files) =
+public.StaticCObjectInstall(tag, lib, name, files) =
     StaticCObject($(name), $(files))
     return $(StaticCObjectCopy $(tag), $(lib), $(name))
 
@@ -459,12 +459,12 @@ StaticCObjectInstall(tag, lib, name, files) =
 # \end{verbatim}
 # \end{doc}
 #
-CProgram(name, files) =
+public.CProgram(name, files) =
    #
    # Generic program
    #
-   OFILES = $(addsuffix $(EXT_OBJ), $(files))
-   NAME   = $(file $(name)$(EXE))
+   private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
+   private.NAME   = $(file $(name)$(EXE))
 
    $(NAME): $(OFILES)
         $(CC) $(CFLAGS) -o $@ $,(OFILES) $(LIBS) $(LDFLAGS)
@@ -486,12 +486,12 @@ CProgram(name, files) =
 # \end{verbatim}
 # \end{doc}
 #
-CProgramCopy(tag, bin, name) =
+public.CProgramCopy(tag, bin, name) =
    #
    # Name of the program
    #
-   NAME   = $(file $(name)$(EXE))
-   BINNAME = $(file $(bin)/$(basename $(name))$(EXE))
+   private.NAME   = $(file $(name)$(EXE))
+   private.BINNAME = $(file $(bin)/$(basename $(name))$(EXE))
 
    #
    # Linking the program into the root bin dir
@@ -524,7 +524,7 @@ CProgramCopy(tag, bin, name) =
 # \end{verbatim}
 # \end{doc}
 #
-CProgramInstall(tag, bin, name, files) =
+public.CProgramInstall(tag, bin, name, files) =
    CProgram($(name), $(files))
    return $(CProgramCopy $(tag), $(bin), $(name))
 
@@ -539,12 +539,12 @@ CProgramInstall(tag, bin, name, files) =
 # for linking instead of \verb+$(CC)+ and \verb+$(CFLAGS)+.
 # \end{doc}
 #
-CXXProgram(name, files) =
+public.CXXProgram(name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
     return $(CProgram $(name), $(files))
 
-CXXProgramInstall(tag, bin, name, files) =
+public.CXXProgramInstall(tag, bin, name, files) =
    CXXProgram($(name), $(files))
    return $(CProgramCopy $(tag), $(bin), $(name))
 
