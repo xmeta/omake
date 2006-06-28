@@ -1,9 +1,388 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Section 12-3,	Next: Appendix A,	Prev: Section 12-2,	Up: Chapter 12
+Node: Section 12-7,	Next: Subsection 12-7-1,	Prev: Section 12-6,	Up: Chapter 12
   
 
-12.3   Interactive syntax
+12.7   Building LaTeX programs
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+* Menu:
+
+* Subsection 12-7-1::	Configuration variables
+* Subsection 12-7-2::	Building LaTeX documents
+
+
+Node: Subsection 12-7-1,	Next: Subsection 12-7-2,	Prev: Section 12-7,	Up: Section 12-7
+  
+
+12.7.1   Configuration variables
+================================
+  
+  The following variables can be modified in your project.
+
+12.7.1.1   LATEX
+----------------
+ The LaTeX command
+(default `latex').
+
+12.7.1.2   TETEX2_ENABLED
+-------------------------
+ Flag
+indicating whether to use advanced LaTeX options present in TeTeX v.2
+(default value is determined the first time omake reads `LaTeX.src' and
+depends on the version of LaTeX you have installed).
+
+12.7.1.3   LATEXFLAGS
+---------------------
+ The LaTeX flags
+(defaults depend on the `TETEX2_ENABLED' variable)
+
+12.7.1.4   BIBTEX
+-----------------
+ The BibTeX command
+(default `bibtex').
+
+12.7.1.5   MAKEINDEX
+--------------------
+ The command to
+build an index (default `makeindex').
+
+12.7.1.6   DVIPS
+----------------
+ The `.dvi' to
+PostScript converter (default `dvips').
+
+12.7.1.7   DVIPSFLAGS
+---------------------
+ Flags to pass to
+`dvips' (default `-t letter').
+
+12.7.1.8   DVIPDFM
+------------------
+ The `.dvi' to
+`.pdf' converter (default `dvipdfm').
+
+12.7.1.9   DVIPDFMFLAGS
+-----------------------
+ Flags to pass
+to `dvipdfm' (default `-p letter').
+
+12.7.1.10   PDFLATEX
+--------------------
+ The `.latex' to
+`.pdf' converter (default `pdflatex').
+
+12.7.1.11   PDFLATEXFLAGS
+-------------------------
+ Flags to pass
+to pdflatex (default is empty).
+
+12.7.1.12   USEPDFLATEX
+-----------------------
+ Flag indicating
+whether to use pdflatex instead of dvipdfm to generate the `.pdf'
+document (default `false'). 
+
+Node: Subsection 12-7-2,	Next: Section 12-8,	Prev: Subsection 12-7-1,	Up: Section 12-7
+  
+
+12.7.2   Building LaTeX documents
+=================================
+
+
+12.7.2.1   LaTeXDocument
+------------------------
+
+  The `LaTeXDocument' produces a LaTeX document.
+  `LaTeXDocument(<name>, <texfiles>)'
+  The document `<name>' and `<texfiles>' are listed without suffixes.
+This function returns the filenames for the generated `.ps' and `.pdf'
+files.
+  Additional variables used:
+
+12.7.2.2   TEXINPUTS
+--------------------
+ The LaTeX search
+path (an array of directories, default is  taken from the `TEXINPUTS'
+environment variable).
+
+12.7.2.3   TEXDEPS
+------------------
+ Additional files
+this document depends on.
+
+12.7.2.4   TeXGeneratedFiles, LocalTeXGeneratedFiles
+----------------------------------------------------
+ 
+<<
+  TeXGeneratedFiles(files)
+  LocalTeXGeneratedFiles(files)
+>>
+  
+  The `TeXGeneratedFiles' and `LocalTeXGeneratedFiles' functions specify
+files that need to be generated before any LaTeXfiles are scanned for
+dependencies. For example, if `config.tex' and `inputs.tex' are both
+generated files, specify: 
+<<
+      TeXGeneratedFiles(config.tex inputs.tex)
+>>
+  
+  The `TeXGeneratedFiles' function is global --- its arguments will be
+generated before any TeX files anywhere in the project are scanned for
+dependencies. The `LocalTeXGeneratedFiles' function follows the normal
+scoping rules of OMake.
+  
+
+12.7.2.5   LaTeXDocumentCopy
+----------------------------
+
+  The `LaTeXDocumentCopy' copies the document to an install location.
+  `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
+  This function copies just the `.pdf' and `.ps' files.
+
+12.7.2.6   LaTeXDocumentInstall
+-------------------------------
+
+  The `LaTeXDocumentInstall' builds a document and copies it to an
+install location in one step.
+  `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
+<files>)' 
+
+Node: Section 12-8,	Next: Chapter 13,	Prev: Section 12-7,	Up: Chapter 12
+  
+
+12.8   Examining the dependency graph
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+
+
+12.8.0.7   dependencies, dependencies-all
+-----------------------------------------
+
+<<
+     $(dependencies targets) : File Array
+     $(dependencies-all targets) : File Array
+     $(dependencies-proper targets) : File Array
+        targets : File Array
+     raises RuntimeException
+>>
+  
+  The `dependencies' function returns the set of immediate dependencies
+of the given targets. This function can only be used within a rule body
+and all the arguments to the `dependency' function must also be
+dependencies of this rule. This restriction ensures that all the
+dependencies are known when this function is executed.
+  The `dependencies-all' function is similar, but it expands the
+dependencies recursively, returning all of the dependencies of a target,
+not just the immediate ones.
+  The `dependencies-proper' function returns all recursive dependencies,
+except the dependencies that are leaf targets. A leaf target is a target
+that has no dependencies and no build commands; a leaf target
+corresponds to a source file in the current project.
+  In all three functions, files that are not part of the current project
+are silently discarded.
+  One purpose of the `dependencies-proper' function is for ``clean''
+targets. For example, one way to delete all intermediate files in a
+build is with a rule that uses the `dependencies-proper'. Note however,
+that the rule requires building the project before it can be deleted.
+For a shorter form, see the `filter-proper-targets' function.
+<<
+      .PHONY: clean
+  
+      APP = ...     # the name of the target application
+      clean: $(APP)
+         rm $(dependencies-proper $(APP))
+>>
+  
+  
+
+12.8.0.8   target
+-----------------
+ 
+<<
+     $(target targets) : Target Array
+        targets : File Sequence
+     raises RuntimeException
+>>
+  
+  The `target' function returns the Target object associated with each
+of the targets. See the `Target' object for more information.
+
+12.8.0.9   find-build-targets
+-----------------------------
+
+<<
+      $(build-targets tag) : Target Array
+         tag : Succeeded | Failed
+>>
+  
+  The `build-targets' allow the results of the build to be examined. The
+`tag' must specifies which targets are to be returned; the comparison is
+case-insensitive.
+  
+  
+ Succeeded  The list of targets that were built successfully. 
+ Failed  The list of targets that could not be built. 
+  
+  These are used mainly in conjuction with the `.BUILD_SUCCESS'
+12.1*Note Section 12-1:: and `.BUILD_FAILURE'
+12.1*Note Section 12-1:: phony targets. For example,
+adding the following to your project `OMakefile' will print the number
+of targets that failed (if the build failed).
+<<
+      .BUILD_FAILURE:
+          echo "Failed target count: $(length $(failed-targets))"
+>>
+  
+
+12.8.0.10   project-directories
+-------------------------------
+
+<<
+     $(project-directories) : Dir Array
+>>
+  
+  The `project-directories' function returns the list of all directories
+that are considered to be part of the project.
+  To get the complete directory list, this function should be called
+from within a rule body.
+
+12.8.0.11   rule
+----------------
+
+  The `rule' function is called whenever a build rule is defined. It is
+unlikely that you will need to redefine this function, except in very
+exceptional cases.
+<<
+     rule(multiple, target, pattern, sources, options, body) : Rule
+        multiple : String
+        target   : Sequence
+        pattern  : Sequence
+        sources  : Sequence
+        options  : Array
+        body     : Body
+>>
+  
+  The `rule' function is called when a rule is evaluated.
+  
+  
+ multiple  A Boolean value indicating whether the rule was defined  with
+   a double colon `::'. 
+ target  The sequence of target names. 
+ pattern  The sequence of patterns. This sequence will be empty  for
+   two-part rules. 
+ sources  The sequence of dependencies. 
+ options  An array of options. Each option is represented  as a `Map'
+   11.1.2*Note Subsection 11-1-2:: associating each specified option with  a
+   value. 
+ body  The body expression of the rule. 
+  
+  Consider the following rule.
+<<
+     target: pattern: sources :name1: option1 :name2: option2
+        expr1
+        expr2
+>>
+  
+  This expression represents the following function call, where square
+brackets are used to indicate arrays, and the curly brackets represent a
+`Map' 11.1.2*Note Subsection 11-1-2::.
+<<
+     rule(false, target, pattern, sources,
+          { $|:name1:| = option1; $|:name2:| = option2 }
+          [expr1; expr2])
+>>
+   
+
+Node: Chapter 13,	Next: Section 13-1,	Prev: Chapter 12,	Up: Top
+  
+
+Chapter 13     The OSH shell
+****************************
+    
+  OMake also includes a standalone command-line interpreter osh that can
+be used as an interactive shell. The shell uses the same syntax, and
+provides the same features on all platforms omake supports, including
+Win32.
+* Menu:
+
+* Section 13-1::	Startup
+* Section 13-2::	Aliases
+* Section 13-3::	Interactive syntax
+
+
+Node: Section 13-1,	Next: Subsection 13-1-1,	Prev: Chapter 13,	Up: Chapter 13
+  
+
+13.1   Startup
+*=*=*=*=*=*=*=
+
+  
+  On startup, osh reads the file `~/.oshrc' if it exists. The syntax of
+this file is the same as an OMakefile. The following additional
+variables are significant.
+* Menu:
+
+* Subsection 13-1-1::	prompt
+* Subsection 13-1-2::	ignoreeof
+
+
+Node: Subsection 13-1-1,	Next: Subsection 13-1-2,	Prev: Section 13-1,	Up: Section 13-1
+  
+
+13.1.1   prompt
+===============
+ The `prompt'
+variable specifies the command-line prompt. It can be a simple string.
+<<
+      prompt = osh>
+>>
+  
+  Or you may choose to define it as a function of no arguments.
+<<
+      prompt() =
+          return $"<$(USER):$(HOST) $(homename $(CWD))>"
+>>
+  
+  An example of the latter prompt is as follows.
+<<
+      <jyh:kenai.yapper.org ~>cd links/omake
+      <jyh:kenai.yapper.org ~/links/omake>
+>>
+  
+
+Node: Subsection 13-1-2,	Next: Section 13-2,	Prev: Subsection 13-1-1,	Up: Section 13-1
+  
+
+13.1.2   ignoreeof
+==================
+  If the
+`ignoreeof' is `true', then `osh' will not exit on  a terminal
+end-of-file (usually `^D' on Unix systems).
+
+Node: Section 13-2,	Next: Section 13-3,	Prev: Section 13-1,	Up: Chapter 13
+  
+
+13.2   Aliases
+*=*=*=*=*=*=*=
+
+   
+  Command aliases are defined by adding functions to the `Shell.'
+object. The following alias adds the `-AF' option to the `ls' command.
+<<
+      Shell. +=
+         ls(argv) =
+            "ls" -AF $(argv)
+>>
+  
+  Quoted commands do not undergo alias expansion. The quotation `"ls"'
+prevents the alias from being recursive.
+
+Node: Section 13-3,	Next: Appendix A,	Prev: Section 13-2,	Up: Chapter 13
+  
+
+13.3   Interactive syntax
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -30,7 +409,7 @@ indented body, and it auto-indents the text.
 required.
    
 
-Node: Appendix A,	Next: Section A-1,	Prev: Chapter 12,	Up: Top
+Node: Appendix A,	Next: Section A-1,	Prev: Chapter 13,	Up: Top
   
 
 Appendix A     Synopsis
@@ -555,16 +934,16 @@ A.6   Functions
   
 * Menu:
 
-* Subsection A-6-1::	OMakeFlags 11.2.0.1
+* Subsection A-6-1::	OMakeFlags 12.2.0.1
 
 
 Node: Subsection A-6-1,	Next: Section A-7,	Prev: Section A-6,	Up: Section A-6
   
 
-A.6.1   OMakeFlags 11.2.0.1*Note Section 11-2::
+A.6.1   OMakeFlags 12.2.0.1*Note Section 12-2::
 ======================================================
   
-  The `OMakeFlags' function 11.2.0.1*Note Section 11-2:: can be
+  The `OMakeFlags' function 12.2.0.1*Note Section 12-2:: can be
 used within an `OMakefile' to modify the set of options. The options
 should be specified exactly as they are on the command line. For
 example, if you want some specific project to be silent and display a
@@ -1063,7 +1442,7 @@ additional matching conditions.
          indented-body
 >>
   
-  Exceptions (see the `try' function 7.2.7*Note Subsection 7-2-7::). The
+  Exceptions (see the `try' function 8.2.7*Note Subsection 8-2-7::). The
 `try' command introduces an exception handler. Each `name' is the name
 of a class. All cases, including `catch', `default', and `finally' are
 optional. The `catch' and `default' clauses contain optional `when'
@@ -1131,7 +1510,7 @@ Otherwise, the export is limited to the specified identifiers.
       export id ... id
 >>
   
-  while (see the `while' description 7.3.37*Note Subsection 7-3-37::). The
+  while (see the `while' description 8.3.37*Note Subsection 8-3-37::). The
 `while' command introduces a `while' loop.
 <<
       while expr
@@ -1314,7 +1693,7 @@ two methods `zoom' and `crazy'.
 B.2.2.5   Rules
 ---------------
   
-  See the chapter on rules 6*Note Chapter 6::. A rule has the
+  See the chapter on rules 7*Note Chapter 7::. A rule has the
 following parts. 
   
  1. A sequence of targets; 
@@ -1408,7 +1787,7 @@ the explicit targets `a.cmo' and `b.cmo'.
 B.2.2.6   Shell commands
 ------------------------
   
-  See the chapter on shell commands 9*Note Chapter 9::.
+  See the chapter on shell commands 10*Note Chapter 10::.
   While it is possible to give a precise specification of shell
 commands, the informal description is simpler. Any non-empty statement
 where each prefix is not one of the other statements, is considered to
@@ -1426,544 +1805,3 @@ be a shell command. Here are some examples.
       "if" true                          -- shell command
 >>
   
-
-Node: Section B-3,	Next: Appendix C,	Prev: Section B-2,	Up: Appendix B
-  
-
-B.3   Dollar modifiers
-*=*=*=*=*=*=*=*=*=*=*=
-
-   
-  Inline applications have a function and zero-or-more arguments.
-Evaluation is normally strict: when an application is evaluated, the
-function identifier is evaluated to a function, the arguments are then
-evaluated and the function is called with the evaluated arguments.
-  The additional ``dollar'' sequences specify additional control over
-evaluation. The token `$`' defines a ``lazy'' application, where
-evaluation is delayed until a value is required. The `$,' sequence
-performs an ``eager'' application within a lazy context.
-  To illustrate, consider the expression `$(addsuffix .c, $(FILES))'.
-The `addsuffix' function appends its first argument to each value in its
-second argument. The following `osh' interaction demonstrates the normal
-bahavior.
-<<
-  osh> FILES[] = a b c
-  - : <array a b c>
-  osh> X = $(addsuffix .c, $(FILES))
-  - : <array ...>
-  osh> FILES[] = 1 2 3 # redefine FILES
-  - : <array 1 2 3>
-  osh> println($"$X")  # force the evaluation and print
-  a.c b.c c.c
->>
-  
-  When the lazy operator `$`' is used instead, evaluation is delayed
-until it is printed. In the following sample, the value for `X' has
-changed to the `$(apply ..)' form, but otherwise the result is unchanged
-because it it printed immediately.
-<<
-  osh> FILES[] = a b c
-  - : <array a b c>
-  osh> SUF = .c
-  - : ".c"
-  osh> X = $`(addsuffix $(SUF), $(FILES))
-  - : $(apply global.addsuffix ...)
-  osh> println($"$X")  # force the evaluation and print
-  a.c b.c c.c
->>
-  
-  However, consider what happens if we redefine the `FILES' variable
-after the definition for `X'. In the following sample, the result
-changes because evaluation occurs after the values for `FILES' has been
-redefined.
-<<
-  osh> FILES[] = a b c
-  - : <array a b c>
-  osh> SUF = .c
-  - : ".c"
-  osh> X = $`(addsuffix $(SUF), $(FILES))
-  - : $(apply global.addsuffix ...)
-  osh> SUF = .x
-  osh> FILES[] = 1 2 3
-  osh> println($"$X")  # force the evaluation and print
-  1.x 2.x 3.x
->>
-  
-  In some cases, more explicit control is desired over evaluation. For
-example, we may wish to evaluate `SUF' early, but allow for changes to
-the `FILES' variable. The `$,(SUF)' expression forces early evaluation.
-<<
-  osh> FILES[] = a b c
-  - : <array a b c>
-  osh> SUF = .c
-  - : ".c"
-  osh> X = $`(addsuffix $,(SUF), $(FILES))
-  - : $(apply global.addsuffix ...)
-  osh> SUF = .x
-  osh> FILES[] = 1 2 3
-  osh> println($"$X")  # force the evaluation and print
-  1.c 2.c 3.c
->>
-  
-
-Node: Appendix C,	Next: Appendix D,	Prev: Appendix B,	Up: Top
-  
-
-Appendix C     Index
-********************
-  
-  
- - --absname, A.3.20*Note Subsection A-3-20:: 
- - --all-dependencies, A.3.15*Note Subsection A-3-15:: 
- - --configure, A.3.9*Note Subsection A-3-9:: 
- - --depend, A.3.8*Note Subsection A-3-8:: 
- - --divert-discard-success, A.2.10*Note Subsection A-2-10:: 
- - --divert-errors, A.2.7*Note Subsection A-2-7:: 
- - --divert-only, A.2.9*Note Subsection A-2-9:: 
- - --divert-repeat, A.2.8*Note Subsection A-2-8:: 
- - --dotomake, A.3.11*Note Subsection A-3-11:: 
- - --force-dotomake, A.3.10*Note Subsection A-3-10:: 
- - --install, A.3.17*Note Subsection A-3-17:: 
- - --install-all, A.3.18*Note Subsection A-3-18:: 
- - --install-force, A.3.19*Note Subsection A-3-19:: 
- - --print-dependencies, A.3.13*Note Subsection A-3-13:: 
- - --print-exit, A.2.6*Note Subsection A-2-6:: 
- - --print-status, A.2.5*Note Subsection A-2-5:: 
- - --progress, A.2.4*Note Subsection A-2-4:: 
- - --show-dependencies, A.3.14*Note Subsection A-3-14:: 
- - --verbose-dependencies, A.3.16*Note Subsection A-3-16:: 
- - -d, A.2.11*Note Subsection A-2-11:: 
- - -j, A.3.12*Note Subsection A-3-12:: 
- - -k, A.3.1*Note Subsection A-3-1:: 
- - -n, A.3.2*Note Subsection A-3-2:: 
- - -P, A.3.4*Note Subsection A-3-4:: 
- - -p, A.3.3*Note Subsection A-3-3:: 
- - -R, A.3.5*Note Subsection A-3-5:: 
- - -S, A.2.2*Note Subsection A-2-2:: 
- - -s, A.2.1*Note Subsection A-2-1:: 
- - -t, A.3.6*Note Subsection A-3-6:: 
- - -U, A.3.7*Note Subsection A-3-7:: 
- - -w, A.2.3*Note Subsection A-2-3:: 
- 
- - .BUILD_BEGIN, 11.1*Note Section 11-1:: 
- - .BUILD_FAILURE, 11.1*Note Section 11-1:: 
- - .BUILD_SUCCESS, 11.1*Note Section 11-1:: 
- - .BUILDORDER, 8.3.5*Note Subsection 8-3-5:: 
- - .DEFAULT, 6.9*Note Section 6-9:: 
- - .INCLUDE, 6.11*Note Section 6-11:: 
- - .ORDER, 8.3.5*Note Subsection 8-3-5:: 
- - .omakerc, A.8*Note Section A-8:: 
- - .PHONY, 6.12*Note Section 6-12:: 
- - .SCANNER, 3.4.3*Note Subsection 3-4-3::, 6.6*Note Section 6-6:: 
- - .SUBDIRS, 3*Note Chapter 3::, 6.10*Note Section 6-10:: 
- - .SUBDIRS bodies, 3.5*Note Section 3-5:: 
- 
- - :effects:, 6.5.2*Note Subsection 6-5-2:: 
- - :exists:, 6.5.1*Note Subsection 6-5-1:: 
- - :scanner:, 6.7*Note Section 6-7:: 
- - :value:, 6.5.3*Note Subsection 6-5-3:: 
- 
- - ABORT_ON_COMMAND_ERROR, 11.3.1.6*Note Subsection 11-3-1:: 
- - ABORT_ON_DEPENDENCY_ERRORS, 11.6.1.2*Note Subsection 11-6-1:: 
- - AR, 11.4.1.10*Note Subsection 11-4-1:: 
- - AROUT, 11.4.1.11*Note Subsection 11-4-1:: 
- - Array, 10.1.7*Note Subsection 10-1-7:: 
- - AS, 11.4.1.8*Note Subsection 11-4-1:: 
- - ASFLAGS, 11.4.1.9*Note Subsection 11-4-1:: 
- - absname, 8.1.8*Note Subsection 8-1-8:: 
- - accept, 8.8.31*Note Subsection 8-8-31:: 
- - add, 7.4.3*Note Subsection 7-4-3:: 
- - add-project-directories, 8.6.2*Note Subsection 8-6-2:: 
- - add-wrapper, 7.3.23*Note Subsection 7-3-23:: 
- - addprefix, 7.3.21*Note Subsection 7-3-21:: 
- - addsuffix, 7.3.15*Note Subsection 7-3-15:: 
- - addsuffixes, 7.3.17*Note Subsection 7-3-17:: 
- - aliases, 12.2*Note Section 12-2:: 
- - and, 7.2.3*Note Subsection 7-2-3:: 
- - apply, 7.5.2*Note Subsection 7-5-2:: 
- - applya, 7.5.3*Note Subsection 7-5-3:: 
- - array, 7.3.1*Note Subsection 7-3-1:: 
- - arrays, 4.3*Note Section 4-3:: 
- - asr, 7.4.3*Note Subsection 7-4-3:: 
- - awk, 3.4.3*Note Subsection 3-4-3::, 8.11.5*Note Subsection 8-11-5:: 
- 
- - BIBTEX, 11.7.1.4*Note Subsection 11-7-1:: 
- - BUILD_SUMMARY, 7.1.12*Note Subsection 7-1-12:: 
- - BYTE_ENABLED, 11.5.2.19*Note Subsection 11-5-2:: 
- - basename, 8.1.4*Note Subsection 8-1-4:: 
- - bg, 9.2.2*Note Subsection 9-2-2:: 
- - bind, 8.8.29*Note Subsection 8-8-29:: 
- - build model, 3*Note Chapter 3:: 
- 
- - CAMLP4, 11.5.2.4*Note Subsection 11-5-2:: 
- - CC, 11.4.1.1*Note Subsection 11-4-1:: 
- - CFLAGS, 11.4.1.4*Note Subsection 11-4-1:: 
- - CGeneratedFiles, 11.4.2.1*Note Subsection 11-4-2:: 
- - Channel, 10.1.15*Note Subsection 10-1-15:: 
- - CPP, 11.4.1.3*Note Subsection 11-4-1:: 
- - CProgram, 11.4.3.5*Note Subsection 11-4-3:: 
- - CProgramCopy, 11.4.3.6*Note Subsection 11-4-3:: 
- - CProgramInstall, 11.4.3.7*Note Subsection 11-4-3:: 
- - CWD, 11.3.1.2*Note Subsection 11-3-1:: 
- - CXX, 11.4.1.2*Note Subsection 11-4-1:: 
- - CXXFLAGS, 11.4.1.5*Note Subsection 11-4-1:: 
- - CXXProgram, 11.4.3.8*Note Subsection 11-4-3:: 
- - CXXProgramInstall, 11.4.3.8*Note Subsection 11-4-3:: 
- - capitalize, 7.3.31*Note Subsection 7-3-31:: 
- - cat, 8.11.2*Note Subsection 8-11-2:: 
- - cats and dogs, 3.4*Note Section 3-4:: 
- - cd, 9.1.2*Note Subsection 9-1-2:: 
- - chmod, 8.5.9*Note Subsection 8-5-9:: 
- - chown, 8.5.10*Note Subsection 8-5-10:: 
- - classes, 4.12*Note Section 4-12:: 
- - close, 8.8.6*Note Subsection 8-8-6:: 
- - cmp-versions, 11.2.0.3*Note Section 11-2:: 
- - concat, 7.3.3*Note Subsection 7-3-3:: 
- - conditionals, 4.9*Note Section 4-9:: 
- - connect, 8.8.32*Note Subsection 8-8-32:: 
- - create-lazy-map, 7.5.4*Note Subsection 7-5-4:: 
- - create-map, 7.5.4*Note Subsection 7-5-4:: 
- 
- - DefineCommandVars, 11.2.0.4*Note Section 11-2:: 
- - DIRSEP, 11.3.2.3*Note Subsection 11-3-2:: 
- - Dir, 10.1.14*Note Subsection 10-1-14:: 
- - DVIPDFM, 11.7.1.8*Note Subsection 11-7-1:: 
- - DVIPDFMFLAGS, 11.7.1.9*Note Subsection 11-7-1:: 
- - DVIPS, 11.7.1.6*Note Subsection 11-7-1:: 
- - DVIPSFLAGS, 11.7.1.7*Note Subsection 11-7-1:: 
- - defined, 7.2.10*Note Subsection 7-2-10:: 
- - defined-env, 7.2.11*Note Subsection 7-2-11:: 
- - dependencies, 11.8.0.7*Note Section 11-8:: 
- - dependencies-all, 11.8.0.7*Note Section 11-8:: 
- - digest, 8.2.5*Note Subsection 8-2-5:: 
- - digest-path, 8.2.7*Note Subsection 8-2-7:: 
- - dir, 8.1.1*Note Subsection 8-1-1:: 
- - dirof, 8.1.6*Note Subsection 8-1-6:: 
- - div, 7.4.3*Note Subsection 7-4-3:: 
- - dup, 8.8.13*Note Subsection 8-8-13:: 
- - dup2, 8.8.14*Note Subsection 8-8-14:: 
- 
- - EMPTY, 11.3.1.3*Note Subsection 11-3-1:: 
- - EXE, 11.3.2.7*Note Subsection 11-3-2:: 
- - EXT_ASM, 11.3.2.6*Note Subsection 11-3-2:: 
- - EXT_LIB, 11.3.2.4*Note Subsection 11-3-2:: 
- - EXT_OBJ, 11.3.2.5*Note Subsection 11-3-2:: 
- - Exception, 10.1.20*Note Subsection 10-1-20:: 
- - echo, 9.1.1*Note Subsection 9-1-1:: 
- - eprint, 8.9*Note Section 8-9:: 
- - eprintln, 8.9*Note Section 8-9:: 
- - eprintv, 8.10*Note Section 8-10:: 
- - eprintvln, 8.10*Note Section 8-10:: 
- - eq, 7.4.4*Note Subsection 7-4-4:: 
- - equal, 7.2.2*Note Subsection 7-2-2:: 
- - exists-in-path, 8.2.4*Note Subsection 8-2-4:: 
- - exit, 7.2.9*Note Subsection 7-2-9:: 
- 
- - File, 10.1.13*Note Subsection 10-1-13:: 
- - Float, 10.1.5*Note Subsection 10-1-5:: 
- - Fun, 10.1.9*Note Subsection 10-1-9:: 
- - fg, 9.2.3*Note Subsection 9-2-3:: 
- - fgets, 8.8.35*Note Subsection 8-8-35:: 
- - file, 8.1.1*Note Subsection 8-1-1:: 
- - file-check-sort, 8.3.6*Note Subsection 8-3-6:: 
- - file-exists, 8.3.1*Note Subsection 8-3-1:: 
- - file-sort, 8.3.5*Note Subsection 8-3-5:: 
- - filter, 7.3.29*Note Subsection 7-3-29:: 
- - filter-exists, 8.3.3*Note Subsection 8-3-3:: 
- - filter-out, 7.3.30*Note Subsection 7-3-30:: 
- - filter-proper-targets, 8.3.3*Note Subsection 8-3-3:: 
- - filter-targets, 8.3.3*Note Subsection 8-3-3:: 
- - find, 8.7.2*Note Subsection 8-7-2:: 
- - find-build-targets, 11.8.0.9*Note Section 11-8:: 
- - find-in-path, 8.2.6*Note Subsection 8-2-6:: 
- - find-targets-in-path, 8.3.4*Note Subsection 8-3-4:: 
- - find-targets-in-path-optional, 8.3.4*Note Subsection 8-3-4:: 
- - float, 7.4.2*Note Subsection 7-4-2:: 
- - flush, 8.8.12*Note Subsection 8-8-12:: 
- - fopen, 8.8.5*Note Subsection 8-8-5:: 
- - foreach, 7.6.1*Note Subsection 7-6-1:: 
- - fprint, 8.9*Note Section 8-9:: 
- - fprintln, 8.9*Note Section 8-9:: 
- - fprintv, 8.10*Note Section 8-10:: 
- - fprintvln, 8.10*Note Section 8-10:: 
- - fsubst, 8.11.6*Note Subsection 8-11-6:: 
- - fullname, 8.1.7*Note Subsection 8-1-7:: 
- - fun, 7.5.1*Note Subsection 7-5-1:: 
- - functions, 4.5*Note Section 4-5:: 
- 
- - ge, 7.4.4*Note Subsection 7-4-4:: 
- - get-registry, 7.2.14*Note Subsection 7-2-14:: 
- - getchar, 8.8.33*Note Subsection 8-8-33:: 
- - getenv, 7.2.12*Note Subsection 7-2-12:: 
- - gethostbyname, 8.8.23*Note Subsection 8-8-23:: 
- - getprotobyname, 8.8.25*Note Subsection 8-8-25:: 
- - gets, 8.8.34*Note Subsection 8-8-34:: 
- - getservbyname, 8.8.27*Note Subsection 8-8-27:: 
- - gettimeofday, 8.11.15*Note Subsection 8-11-15:: 
- - getvar, 7.2.15*Note Subsection 7-2-15:: 
- - glob, 8.4.1*Note Subsection 8-4-1:: 
- - grep, 8.11.3*Note Subsection 8-11-3:: 
- - gt, 7.4.4*Note Subsection 7-4-4:: 
- 
- - HOME, 7.1.9*Note Subsection 7-1-9:: 
- - HOST, 7.1.6*Note Subsection 7-1-6:: 
- - Host, 8.8.22*Note Subsection 8-8-22:: 
- - history, 9.3.1*Note Subsection 9-3-1:: 
- - homename, 8.1.9*Note Subsection 8-1-9:: 
- - html-string, 7.3.14*Note Subsection 7-3-14:: 
- 
- - INCLUDES, 11.4.1.6*Note Subsection 11-4-1:: 
- - INSTALL, 11.3.2.1*Note Subsection 11-3-2:: 
- - InChannel, 10.1.16*Note Subsection 10-1-16:: 
- - InetAddr, 8.8.21*Note Subsection 8-8-21:: 
- - Int, 10.1.4*Note Subsection 10-1-4:: 
- - if, 4.9*Note Section 4-9::, 7.2.5*Note Subsection 7-2-5:: 
- - ignoreeof, 12.1.2*Note Subsection 12-1-2:: 
- - in, 8.1.3*Note Subsection 8-1-3:: 
- - include, 4.7*Note Section 4-7:: 
- - inheritance, 4.13*Note Section 4-13:: 
- - int, 7.4.1*Note Subsection 7-4-1:: 
- - intersection, 7.3.26*Note Subsection 7-3-26:: 
- - intersects, 7.3.27*Note Subsection 7-3-27:: 
- 
- - jobs, 9.2.1*Note Subsection 9-2-1:: 
- 
- - kill, 9.2.6*Note Subsection 9-2-6:: 
- 
- - LATEX, 11.7.1.1*Note Subsection 11-7-1:: 
- - LATEXFLAGS, 11.7.1.3*Note Subsection 11-7-1:: 
- - LaTeXDocument, 11.7.2.1*Note Subsection 11-7-2:: 
- - LaTeXDocumentCopy, 11.7.2.5*Note Subsection 11-7-2:: 
- - LaTeXDocumentInstall, 11.7.2.6*Note Subsection 11-7-2:: 
- - LD, 11.4.1.12*Note Subsection 11-4-1:: 
- - LDFLAGS, 11.4.1.13*Note Subsection 11-4-1:: 
- - LEX, 11.4.1.15*Note Subsection 11-4-1:: 
- - Lexer, 8.11.7*Note Subsection 8-11-7:: 
- - LIBS, 11.4.1.7*Note Subsection 11-4-1:: 
- - LocalCGeneratedFiles, 11.4.2.1*Note Subsection 11-4-2:: 
- - LocalOCamlGeneratedFiles, 11.6.0.5*Note Section 11-6:: 
- - LocalTeXGeneratedFiles, 11.7.2.4*Note Subsection 11-7-2:: 
- - Location, 10.1.18*Note Subsection 10-1-18:: 
- - land, 7.4.3*Note Subsection 7-4-3:: 
- - le, 7.4.4*Note Subsection 7-4-4:: 
- - length, 7.3.4*Note Subsection 7-3-4:: 
- - link, 8.5.6*Note Subsection 8-5-6:: 
- - link-order sorting, 8.3.5*Note Subsection 8-3-5:: 
- - listen, 8.8.30*Note Subsection 8-8-30:: 
- - lnot, 7.4.3*Note Subsection 7-4-3:: 
- - lockf, 8.8.20*Note Subsection 8-8-20:: 
- - lor, 7.4.3*Note Subsection 7-4-3:: 
- - lowercase, 7.3.34*Note Subsection 7-3-34:: 
- - ls, 8.4.2*Note Subsection 8-4-2:: 
- - lseek, 8.8.9*Note Subsection 8-8-9:: 
- - lsl, 7.4.3*Note Subsection 7-4-3:: 
- - lsr, 7.4.3*Note Subsection 7-4-3:: 
- - lt, 7.4.4*Note Subsection 7-4-4:: 
- - lxor, 7.4.3*Note Subsection 7-4-3:: 
- 
- - MACHINE, 7.1.5*Note Subsection 7-1-5:: 
- - MAKEINDEX, 11.7.1.5*Note Subsection 11-7-1:: 
- - Map, 10.1.2*Note Subsection 10-1-2:: 
- - MENHIR_AVAILABLE, 11.5.1.4*Note Subsection 11-5-1:: 
- - MENHIR_ENABLED, 11.5.2.21*Note Subsection 11-5-2:: 
- - MENHIR_FLAGS, 11.5.3.9*Note Subsection 11-5-3:: 
- - mapprefix, 7.3.22*Note Subsection 7-3-22:: 
- - mapsuffix, 7.3.16*Note Subsection 7-3-16:: 
- - match, 4.10*Note Section 4-10::, 7.2.6*Note Subsection 7-2-6:: 
- - mem, 7.3.25*Note Subsection 7-3-25:: 
- - mkdir, 8.5.1*Note Subsection 8-5-1:: 
- - mkfifo, 8.8.18*Note Subsection 8-8-18:: 
- - mod, 7.4.3*Note Subsection 7-4-3:: 
- - mul, 7.4.3*Note Subsection 7-4-3:: 
- 
- - NATIVE_ENABLED, 11.5.2.20*Note Subsection 11-5-2:: 
- - NODENAME, 7.1.3*Note Subsection 7-1-3:: 
- - Node, 10.1.12*Note Subsection 10-1-12:: 
- - Number, 10.1.3*Note Subsection 10-1-3:: 
- - neg, 7.4.3*Note Subsection 7-4-3:: 
- - not, 7.2.1*Note Subsection 7-2-1:: 
- - nth, 7.3.5*Note Subsection 7-3-5:: 
- - nth-hd, 7.3.6*Note Subsection 7-3-6:: 
- - nth-tl, 7.3.7*Note Subsection 7-3-7:: 
- 
- - Object, 10.1.1*Note Subsection 10-1-1:: 
- - OCAML_BYTE_LINK_FLAGS, 11.5.3.6*Note Subsection 11-5-3:: 
- - OCAML_CLIBS, 11.5.4.3*Note Subsection 11-5-4:: 
- - OCAML_LIB_FLAGS, 11.5.4.4*Note Subsection 11-5-4:: 
- - OCAML_LIBS, 11.5.4.1*Note Subsection 11-5-4:: 
- - OCAML_LINK_FLAGS, 11.5.3.8*Note Subsection 11-5-3:: 
- - OCAML_NATIVE_LINK_FLAGS, 11.5.3.7*Note Subsection 11-5-3:: 
- - OCAML_OTHER_LIBS, 11.5.4.2*Note Subsection 11-5-4:: 
- - OCAMLC, 11.5.2.2*Note Subsection 11-5-2:: 
- - OCAMLCFLAGS, 11.5.3.3*Note Subsection 11-5-3:: 
- - OCAMLDEP, 11.5.2.9*Note Subsection 11-5-2:: 
- - OCAMLDEP_MODULES, 11.5.2.10*Note Subsection 11-5-2:: 
- - OCAMLDEP_MODULES_AVAILABLE, 11.5.1.3*Note Subsection 11-5-1:: 
- - OCAMLDEP_MODULES_ENABLED, 11.5.2.11*Note Subsection 11-5-2:: 
- - OCAMLDEPFLAGS, 11.5.3.1*Note Subsection 11-5-3:: 
- - OCAMLFIND, 11.5.2.16*Note Subsection 11-5-2:: 
- - OCAMLFIND_EXISTS, 11.5.1.2*Note Subsection 11-5-1:: 
- - OCAMLFINDFLAGS, 11.5.2.17*Note Subsection 11-5-2:: 
- - OCAMLFLAGS, 11.5.3.5*Note Subsection 11-5-3:: 
- - OCAMLINCLUDES, 11.5.2.15*Note Subsection 11-5-2:: 
- - OCAMLLEX, 11.5.2.5*Note Subsection 11-5-2:: 
- - OCAMLLEXFLAGS, 11.5.2.6*Note Subsection 11-5-2:: 
- - OCAMLLINK, 11.5.2.13*Note Subsection 11-5-2:: 
- - OCAMLMKTOP, 11.5.2.12*Note Subsection 11-5-2:: 
- - OCAMLOPT, 11.5.2.3*Note Subsection 11-5-2:: 
- - OCAMLOPT_EXISTS, 11.5.1.1*Note Subsection 11-5-1:: 
- - OCAMLOPTFLAGS, 11.5.3.4*Note Subsection 11-5-3:: 
- - OCAMLOPTLINK, 11.5.2.14*Note Subsection 11-5-2:: 
- - OCAMLPACKS, 11.5.2.18*Note Subsection 11-5-2:: 
- - OCAMLPPFLAGS, 11.5.3.2*Note Subsection 11-5-3:: 
- - OCAMLYACC, 11.5.2.7*Note Subsection 11-5-2:: 
- - OCAMLYACCFLAGS, 11.5.2.8*Note Subsection 11-5-2:: 
- - OCamlGeneratedFiles, 11.6.0.5*Note Section 11-6:: 
- - OCamlLibrary, 11.6.1.1*Note Subsection 11-6-1:: 
- - OCamlLibraryCopy, 11.6.1.4*Note Subsection 11-6-1:: 
- - OCamlLibraryInstall, 11.6.1.5*Note Subsection 11-6-1:: 
- - OCamlPackage, 11.6.1.3*Note Subsection 11-6-1:: 
- - OCamlProgram, 11.6.1.6*Note Subsection 11-6-1:: 
- - OCamlProgramCopy, 11.6.1.7*Note Subsection 11-6-1:: 
- - OCamlProgramInstall, 11.6.1.8*Note Subsection 11-6-1:: 
- - OMAKE_VERSION, 7.1.7*Note Subsection 7-1-7:: 
- - OMAKEFLAGS, A.5.1*Note Subsection A-5-1:: 
- - OMAKELIB, A.5.2*Note Subsection A-5-2:: 
- - OMakeFlags, 11.2.0.1*Note Section 11-2:: 
- - OMakefile, 2.8*Note Section 2-8::, 3*Note Chapter 3:: 
- - OMakeroot, 2.8*Note Section 2-8::, 3*Note Chapter 3::,
-   11.3*Note Section 11-3:: 
- - OMakeVersion, 11.2.0.2*Note Section 11-2:: 
- - OS_VERSION, 7.1.4*Note Subsection 7-1-4:: 
- - OSTYPE, 7.1.1*Note Subsection 7-1-1:: 
- - OutChannel, 10.1.17*Note Subsection 10-1-17:: 
- - objects, 4.11*Note Section 4-11:: 
- - ocamldep-omake, 11.6.0.6*Note Section 11-6:: 
- - or, 7.2.4*Note Subsection 7-2-4:: 
- 
- - PATHSEP, 11.3.2.2*Note Subsection 11-3-2:: 
- - PDFLATEX, 11.7.1.10*Note Subsection 11-7-1:: 
- - PDFLATEXFLAGS, 11.7.1.11*Note Subsection 11-7-1:: 
- - PID, 7.1.10*Note Subsection 7-1-10:: 
- - Position, 10.1.19*Note Subsection 10-1-19:: 
- - Protocol, 8.8.24*Note Subsection 8-8-24:: 
- - pipe, 8.8.17*Note Subsection 8-8-17:: 
- - print, 8.9*Note Section 8-9:: 
- - println, 8.9*Note Section 8-9:: 
- - printv, 8.10*Note Section 8-10:: 
- - printvln, 8.10*Note Section 8-10:: 
- - private., 4.15*Note Section 4-15:: 
- - project-directories, 11.8.0.10*Note Section 11-8:: 
- - prompt, 12.1.1*Note Subsection 12-1-1:: 
- - protected., 4.16*Note Section 4-16:: 
- - public., 4.17*Note Section 4-17:: 
- 
- - quotations, 4.4*Note Section 4-4:: 
- - quote, 7.3.12*Note Subsection 7-3-12:: 
- - quote-argv, 7.3.13*Note Subsection 7-3-13:: 
- 
- - ROOT, 11.3.1.1*Note Subsection 11-3-1:: 
- - Rule, 10.1.10*Note Subsection 10-1-10:: 
- - RuntimeException, 10.1.21*Note Subsection 10-1-21:: 
- - raise, 7.2.8*Note Subsection 7-2-8:: 
- - read, 8.8.7*Note Subsection 8-8-7:: 
- - readlink, 8.5.8*Note Subsection 8-5-8:: 
- - regular expressions, 8.11.1*Note Subsection 8-11-1:: 
- - rehash, 8.2.3*Note Subsection 8-2-3:: 
- - remove-project-directories, 8.6.3*Note Subsection 8-6-3:: 
- - removeprefix, 7.3.18*Note Subsection 7-3-18:: 
- - removesuffix, 7.3.19*Note Subsection 7-3-19:: 
- - rename, 8.5.5*Note Subsection 8-5-5:: 
- - replacesuffixes, 7.3.20*Note Subsection 7-3-20:: 
- - rev, 7.3.9*Note Subsection 7-3-9:: 
- - rewind, 8.8.10*Note Subsection 8-8-10:: 
- - rootname, 8.1.5*Note Subsection 8-1-5:: 
- - rule, 11.8.0.11*Note Section 11-8:: 
- - rule, options, 6.5*Note Section 6-5:: 
- - rule, scoping, 6.13*Note Section 6-13:: 
- - rules, bounded implicit, 6.2*Note Section 6-2:: 
- - rules, implicit, 6.1*Note Section 6-1:: 
- 
- - SCANNER_MODE, 11.3.1.7*Note Subsection 11-3-1:: 
- - Sequence, 10.1.6*Note Subsection 10-1-6:: 
- - Service, 8.8.26*Note Subsection 8-8-26:: 
- - Shell, 10.1.22*Note Subsection 10-1-22:: 
- - STDROOT, 11.3.1.4*Note Subsection 11-3-1:: 
- - Stat, 8.5.2*Note Subsection 8-5-2:: 
- - StaticCLibrary, 11.4.3.1*Note Subsection 11-4-3:: 
- - StaticCLibraryCopy, 11.4.3.2*Note Subsection 11-4-3:: 
- - StaticCLibraryInstall, 11.4.3.3*Note Subsection 11-4-3:: 
- - StaticCObject, 11.4.3.4*Note Subsection 11-4-3:: 
- - StaticCObjectCopy, 11.4.3.4*Note Subsection 11-4-3:: 
- - StaticCObjectInstall, 11.4.3.4*Note Subsection 11-4-3:: 
- - String, 10.1.8*Note Subsection 10-1-8:: 
- - SYSNAME, 7.1.2*Note Subsection 7-1-2:: 
- - scan, 8.11.4*Note Subsection 8-11-4:: 
- - section, 4.8*Note Section 4-8::, 6.3*Note Section 6-3:: 
- - section rule, 6.4*Note Section 6-4:: 
- - select, 8.8.19*Note Subsection 8-8-19:: 
- - set, 7.3.24*Note Subsection 7-3-24:: 
- - set-close-on-exec-mode, 8.8.16*Note Subsection 8-8-16:: 
- - set-diff, 7.3.28*Note Subsection 7-3-28:: 
- - set-nonblock, 8.8.15*Note Subsection 8-8-15:: 
- - setenv, 7.2.13*Note Subsection 7-2-13:: 
- - setvar, 7.2.16*Note Subsection 7-2-16:: 
- - shell, 7.3.36*Note Subsection 7-3-36:: 
- - socket, 8.8.28*Note Subsection 8-8-28:: 
- - sorting (link-order), 8.3.5*Note Subsection 8-3-5:: 
- - split, 7.3.2*Note Subsection 7-3-2:: 
- - stat, 8.5.3*Note Subsection 8-5-3:: 
- - stat-reset, 8.3.2*Note Subsection 8-3-2:: 
- - static., 4.18*Note Section 4-18:: 
- - stderr, 8.8.4*Note Subsection 8-8-4:: 
- - stdin, 8.8.2*Note Subsection 8-8-2:: 
- - stdout, 8.8.3*Note Subsection 8-8-3:: 
- - stop, 9.2.4*Note Subsection 9-2-4:: 
- - string, 7.3.10*Note Subsection 7-3-10:: 
- - string-escaped, 7.3.11*Note Subsection 7-3-11:: 
- - sub, 7.4.3*Note Subsection 7-4-3:: 
- - subdirs, 8.4.3*Note Subsection 8-4-3:: 
- - subrange, 7.3.8*Note Subsection 7-3-8:: 
- - suffix, 8.1.10*Note Subsection 8-1-10:: 
- - switch, 4.10*Note Section 4-10::, 7.2.6*Note Subsection 7-2-6:: 
- - symlink, 8.5.7*Note Subsection 8-5-7:: 
- - system, 7.3.35*Note Subsection 7-3-35:: 
- 
- - TARGETS, 7.1.11*Note Subsection 7-1-11:: 
- - Target, 10.1.11*Note Subsection 10-1-11:: 
- - TETEX2_ENABLED, 11.7.1.2*Note Subsection 11-7-1:: 
- - TEXDEPS, 11.7.2.3*Note Subsection 11-7-2:: 
- - TEXINPUTS, 11.7.2.2*Note Subsection 11-7-2:: 
- - TeXGeneratedFiles, 11.7.2.4*Note Subsection 11-7-2:: 
- - target, 11.8.0.8*Note Section 11-8:: 
- - target-exists, 8.3.1*Note Subsection 8-3-1:: 
- - target-is-proper, 8.3.1*Note Subsection 8-3-1:: 
- - tell, 8.8.11*Note Subsection 8-8-11:: 
- - test, 8.7.1*Note Subsection 8-7-1:: 
- - tmpfile, 8.1.2*Note Subsection 8-1-2:: 
- - try, 7.2.7*Note Subsection 7-2-7:: 
- 
- - USE_OCAMLFIND, 11.5.2.1*Note Subsection 11-5-2:: 
- - USEPDFLATEX, 11.7.1.12*Note Subsection 11-7-1:: 
- - USER, 7.1.8*Note Subsection 7-1-8:: 
- - uge, 7.4.4*Note Subsection 7-4-4:: 
- - ugt, 7.4.4*Note Subsection 7-4-4:: 
- - ule, 7.4.4*Note Subsection 7-4-4:: 
- - ult, 7.4.4*Note Subsection 7-4-4:: 
- - umask, 8.5.11*Note Subsection 8-5-11:: 
- - uncapitalize, 7.3.32*Note Subsection 7-3-32:: 
- - unlink, 8.5.4*Note Subsection 8-5-4:: 
- - uppercase, 7.3.33*Note Subsection 7-3-33:: 
- 
- - VERBOSE, 11.3.1.5*Note Subsection 11-3-1:: 
- - variable definition, A.3.21*Note Subsection A-3-21:: 
- - vmount, 2.9*Note Section 2-9::, 8.6.1*Note Subsection 8-6-1:: 
- 
- - wait, 9.2.5*Note Subsection 9-2-5:: 
- - where, 8.2.2*Note Subsection 8-2-2:: 
- - which, 8.2.1*Note Subsection 8-2-1:: 
- - while, 7.3.37*Note Subsection 7-3-37:: 
- - write, 8.8.8*Note Subsection 8-8-8:: 
- 
- - YACC, 11.4.1.14*Note Subsection 11-4-1:: 
-     

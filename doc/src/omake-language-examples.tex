@@ -46,7 +46,97 @@ useful, especially for filenames that contain whitespace.
     osh> touch $(NAME)
     osh> ls -Q
     "fee"  "fi"  "foo"  "fum"  "Hello world"
-\end{verbatim}       
+\end{verbatim}     
+
+\section{Quoted strings}  
+
+A \verb+String+ is a single value; whitespace is significant in a string.  Strings are introduced
+with quotes.  There are four kinds of quoted elements; the kind is determined by the opening quote.
+The symbols \verb+'+ (single-quote) and \verb+"+ (double-quote) introduce the normal shell-style
+quoted elements.  The quotation symbols are \emph{included} in the result string.  Variables are
+always expanded within a quote of this kind.  Note that the \Cmd{osh}{1}~\ref{chapter:osh} printer
+escapes double-quotes within the string; these are only for printing, they are not part of the
+string itself.
+
+\begin{verbatim}
+    osh> A = 'Hello "world"'
+    - : "'Hello \"world\"'" : String
+    osh> B = "$(A)"
+    - : "\"'Hello \"world\"'\"" : String
+    osh> C = 'Hello \'world\''
+    - : "'Hello 'world''" : String
+\end{verbatim}
+
+A second kind of quote is introduced with the \verb+$'+ and \verb+$"+
+quotes.  The number of opening and closing quote symbols is arbitrary.
+These quotations have several properties:
+\begin{itemize}
+\item The quote delimiters are not part of the string.
+\item Backslash \verb+\+ symbols within the string are treated as normal characters.
+\item The strings may span several lines.
+\item Variables are expanded within \verb+$"+ sequences, but not within \verb+$'+
+  sequences.
+\end{itemize}
+
+\begin{verbatim}
+    osh> A = $'''Here $(IS) an '''' \(example\) string['''
+    - : "Here $(IS) an '''' \\(example\\) string[" : String
+    osh> B = $""""A is "$(A)" """"
+    - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
+    osh> value $(A.length)
+    - : 38 : Int
+    osh> value $(A.nth 5)
+    - : "$" : String
+    osh> value $(A.rev)
+    - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
+\end{verbatim}
+
+Strings and sequences both have the property that they can be merged
+with adjacent non-whitespace text.
+
+\begin{verbatim}
+    osh> A = a b c
+    - : "a b c" : Sequence
+    osh> B = $(A).c
+    - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
+    osh> value $(nth 2, $(B))
+    - : "c.c" : String
+    osh> value $(length $(B))
+    - : 3 : Int
+\end{verbatim}
+
+Arrays are different.  The elements of an array are never merged with
+adjacent text of any kind.  Arrays are defined by adding square
+brackets \verb+[]+ after a variable name and defining the elements
+with an indented body.  The elements may include whitespace.
+
+\begin{verbatim}
+    osh> A[] =
+            a b
+            foo bar
+    - : <array
+           "a b" : Sequence
+           "foo bar" : Sequence>
+           : Array
+    osh> echo $(A).c
+    a b foo bar .c
+    osh> value $(A.length)
+    - : 2 : Int
+    osh> value $(A.nth 1)
+    - : "foo bar" : Sequence
+\end{verbatim}
+
+Arrays are quite helpful on systems where filenames often contain whitespace.
+
+\begin{verbatim}
+    osh> FILES[] =
+             c:\Documents and Settings\jyh\one file
+             c:\Program Files\omake\second file
+
+    osh> CFILES = $(addsuffix .c, $(FILES))
+    osh> echo $(CFILES)
+    c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
+\end{verbatim}
 
 \section{Files and directories}
 
@@ -161,7 +251,45 @@ Later, if we want to modify/update the rule, we need do so in only one location.
 \section{Lazy expressions}
 \label{section:lazy}
 
-Lazy expressions are expressions that are not evaluated until their result is needed.  Some people,
+Evaluation in \Prog{omake} is normally eager.  That is, expressions
+are evaluated as soon as they are encountered by the evaluator.  One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.
+
+There are two ways to control this behavior.  The \verb+$`(v)+ form
+introduces lazy behavior, and the \verb+$,(v)+ form restores
+eager behavior.  Consider the following sequence.
+
+\begin{verbatim}
+    osh> A = 1
+    - : "1" : Sequence
+    osh> B = 2
+    - : "2" : Sequence
+    osh> C = $`(add $(A), $,(B))
+    - : $(apply add $(apply A) "2" : Sequence)
+    osh> println(C = $(C))
+    C = 3
+    osh> A = 5
+    - : "5" : Sequence
+    osh> B = 6
+    - : "6" : Sequence
+    osh> println(C = $(C))
+    C = 7
+\end{verbatim}
+
+The definition \verb+C = $`(add $(A), $,(B))+ defines a lazy application.
+The \verb+add+ function is not applied in this case until its value is needed.
+Within this expression, the value \verb+$,(B)+ specifies that \verb+B+ is
+to be evaluated immediately, even though it is defined in a lazy expression.
+
+The first time that we print the value of \verb+C+, it evaluates to 3
+since \verb+A+ is 1 and \verb+B+ is 2.  The second time we evaluate \verb+C+,
+it evaluates to 7 because \verb+A+ has been redefined to \verb+5+.  The second
+definition of \verb+B+ has no effect, since it was evaluated at definition time.
+
+\subsection{A larger example of lazy expressions}
+
+Lazy expressions are not evaluated until their result is needed.  Some people,
 including this author, frown on overuse of lazy expressions, mainly because it is difficult to know
 when evaluation actually happens.  However, there are cases where they pay off.
 

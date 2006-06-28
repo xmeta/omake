@@ -22,14 +22,15 @@ Contents
 * Chapter 2::	OMake quickstart guide
 * Chapter 3::	Additional build examples
 * Chapter 4::	OMake concepts and syntax
-* Chapter 5::	Additional language examples
-* Chapter 6::	Rules
-* Chapter 7::	Base library
-* Chapter 8::	File operations
-* Chapter 9::	Shell functions
-* Chapter 10::	Pervasives
-* Chapter 11::	Build functions
-* Chapter 12::	The OSH shell
+* Chapter 5::	Expressions and values
+* Chapter 6::	Additional language examples
+* Chapter 7::	Rules
+* Chapter 8::	Base library
+* Chapter 9::	File operations
+* Chapter 10::	Shell functions
+* Chapter 11::	Pervasives
+* Chapter 12::	Build functions
+* Chapter 13::	The OSH shell
 * Appendix A::	Synopsis
 * Appendix B::	OMake grammar
 * Appendix C::	Index
@@ -114,22 +115,24 @@ gives larger examples of build projects, and omake-language-examples
    examples. 
  The OMake language 4*Note Chapter 4::  The omake language,
    including a description of objects, expressions, and values. 
- Language examples 5*Note Chapter 5::  Advanced
+ Language discussion 5*Note Chapter 5::  Further discussion on
+   the language, including scoping, evaluation, and objects. 
+ Language examples 6*Note Chapter 6::  Additional
    language examples. 
- Build rules 6*Note Chapter 6::  Defining and using rules to
+ Build rules 7*Note Chapter 7::  Defining and using rules to
    build programs. 
- Base builtin functions 7*Note Chapter 7::  Functions and
+ Base builtin functions 8*Note Chapter 8::  Functions and
    variables in the core standard library. 
- System functions 8*Note Chapter 8::  Functions on files,
+ System functions 9*Note Chapter 9::  Functions on files,
    input/output, and system commands. 
- Shell commands 9*Note Chapter 9::  Using the omake shell for
+ Shell commands 10*Note Chapter 10::  Using the omake shell for
    command-line interpretation. 
- The standard objects Pervasives.om 10*Note Chapter 10:: 
+ The standard objects Pervasives.om 11*Note Chapter 11:: 
    Pervasives defines the built-in objects. 
- Standard build definitions 11*Note Chapter 11::  The build
+ Standard build definitions 12*Note Chapter 12::  The build
    specifications for programming languages in the OMake standard
    library. 
- The interactive command interpreter 12*Note Chapter 12::  The osh
+ The interactive command interpreter 13*Note Chapter 13::  The osh
    command-line interpreter. 
  Appendices  
      
@@ -141,7 +144,6 @@ gives larger examples of build projects, and omake-language-examples
  All the documentation on a single page (4*Note Notes 1::)  All the
    OMake documentation in a single page. 
   
-  For forward compatibility, all other letters are silently ignored.
    
 
 Node: Notes 1
@@ -246,16 +248,16 @@ differences to keep in mind when using omake.
   
  - In omake, you are much less likely to define build rules of your own.
     The system provides many standard functions (like `StaticCLibrary'
-   11.4.3.1*Note Subsection 11-4-3:: and `CProgram'
-   11.4.3.5*Note Subsection 11-4-3::)  to specify these builds more
+   12.4.3.1*Note Subsection 12-4-3:: and `CProgram'
+   12.4.3.5*Note Subsection 12-4-3::)  to specify these builds more
    simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
    %.suf1'. 
  - Scoping is significant: you should define variables and `.PHONY'
-   6.12*Note Section 6-12:: targets before they are used. 
+   7.12*Note Section 7-12:: targets before they are used. 
  - Subdirectories are incorporated into a project using the `.SUBDIRS:'
-   6.10*Note Section 6-10::.  target. 
+   7.10*Note Section 7-10::.  target. 
   
 
 Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
@@ -293,7 +295,7 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' 11.4.3.5*Note Subsection 11-4-3:: function. The OMakefile
+`CProgram' 12.4.3.5*Note Subsection 12-4-3:: function. The OMakefile
 contains just one line that specifies that the program `hello' is to be
 built from the source code in the `hello_code.c' file (note that file
 suffixes are not passed to these functions).
@@ -325,7 +327,7 @@ MD5 digests were computed.
   
   If we want to change the compile options, we can redefine the `CC' and
 `CFLAGS' variables before the `CProgram'
-11.4.3.5*Note Subsection 11-4-3:: line. In this example, we will use the
+12.4.3.5*Note Subsection 12-4-3:: line. In this example, we will use the
 `gcc' compiler with the `-g' option. In addition, we will specify a
 `.DEFAULT' target to be built by default. The `EXE' variable is defined
 to be `.exe' on `Win32' systems; it is empty otherwise.
@@ -457,7 +459,7 @@ can also place the change in the root OMakefile.
   
   Note that the way we have specified it, the `CFLAGS' variable also
 contains the `-O3' option for the `CProgram'
-11.4.3.5*Note Subsection 11-4-3::, and `hello_code.c' and
+12.4.3.5*Note Subsection 12-4-3::, and `hello_code.c' and
 `hello_helper.c' file will both be compiled with the `-O3' option. If we
 want to make the change truly local to `libbar', we can put the `bar'
 subdirectory in its own scope using the `section' form.
@@ -1202,7 +1204,7 @@ Node: Subsection 3-4-1,	Next: Subsection 3-4-2,	Prev: Section 3-4,	Up: Section 3
 define the build rule as an implicit rule. To handle the include path,
 we'll define a variable `CAT_INCLUDES' that specifies the include path.
 This will be an array of directories. To define the options, we'll use a
-lazy variable 5.4*Note Section 5-4::. In case there are any other
+lazy variable 6.5*Note Section 6-5::. In case there are any other
 standard flags, we'll define a `CAT_FLAGS' variable.
 <<
      # Define the catc command, in case we ever want to override it
@@ -1317,10 +1319,10 @@ print a line like the following.
 dependencies of `neko.woof', we should scan `neko.cat', line-by-line,
 looking for lines of the form `open <name>'. We could do this by writing
 a program, but it is easy enough to do it in `omake' itself. We can use
-the builtin `awk' 8.11.5*Note Subsection 8-11-5:: function to scan the source
+the builtin `awk' 9.11.5*Note Subsection 9-11-5:: function to scan the source
 file. One slight complication is that the dependencies depend on the
 `INCLUDE' path. We'll use the `find-in-path'
-8.2.6*Note Subsection 8-2-6:: function to find them. Here we go.
+9.2.6*Note Subsection 9-2-6:: function to find them. Here we go.
 <<
       .SCANNER: %.woof: %.cat
           section

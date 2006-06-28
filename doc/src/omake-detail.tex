@@ -2,7 +2,8 @@
 % Extra detail.
 %
 \chapter{Expressions and values}
-\label{chaper:extra}
+\label{chapter:extra}
+\cutname{omake-detail.html}
 
 \Prog{omake} provides a full programming-language including many
 system and IO functions.  The language is object-oriented -- everything is
@@ -21,13 +22,13 @@ three main respects.
 To illustrate these features, we will use the \Cmd{osh}{1} omake program shell.
 The \Cmd{osh}{1} program provides a toploop, where expressions can be entered
 and the result printed.  \Cmd{osh}{1} normally interprets input as command text
-to be executed by the shell, so in many cases we will use the \verb+return+
+to be executed by the shell, so in many cases we will use the \verb+value+
 form to evaluate an expression directly.
 
 \begin{verbatim}
     osh> 1
     *** omake error: File -: line 1, characters 0-1 command not found: 1
-    osh> return 1
+    osh> value 1
     - : "1" : Sequence
     osh> ls -l omake
     -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
@@ -142,7 +143,7 @@ an increment function by returning a function value.
 
    f = $(incby 5)
 
-   return $(f 3)
+   value $(f 3)
    - : 8 : Int
 \end{verbatim}
 
@@ -175,155 +176,56 @@ The \verb+A+ variable is not redefined.
 \end{verbatim}
 
 \section{Eager evaluation}
+\label{section:eager}
 
-Evaluation in \Prog{omake} is normally eager.  That is, expressions
-are evaluated as soon as they are encountered by the evaluator.  One effect
-of this is that the right-hand-side of a variable definition is expanded
-when the variable is defined.
-
-There are two ways to control this behavior.  The \verb+$`(v)+ form
-introduces lazy behavior, and the \verb+$,(v)+ form restores
-eager behavior.  Consider the following sequence.
+Evaluation in \Prog{omake} is eager.  That is, expressions are evaluated as soon as they are
+encountered by the evaluator.  One effect of this is that the right-hand-side of a variable
+definition is expanded when the variable is defined.
 
 \begin{verbatim}
     osh> A = 1
-    - : "1" : Sequence
-    osh> B = 2
-    - : "2" : Sequence
-    osh> C = $`(add $(A), $,(B))
-    - : $(apply add $(apply A) "2" : Sequence)
-    osh> println(C = $(C))
-    C = 3
-    osh> A = 5
-    - : "5" : Sequence
-    osh> B = 6
-    - : "6" : Sequence
-    osh> println(C = $(C))
-    C = 7
+    - : "1"
+    osh> A = $(A)$(A)
+    - : "11"
 \end{verbatim}
 
-The definition \verb+C = $`(add $(A), $,(B))+ defines a lazy application.
-The \verb+add+ function is not applied in this case until its value is needed.
-Within this expression, the value \verb+$,(B)+ specifies that \verb+B+ is
-to be evaluated immediately, even though it is defined in a lazy expression.
-
-The first time that we print the value of \verb+C+, it evaluates to 3
-since \verb+A+ is 1 and \verb+B+ is 2.  The second time we evaluate \verb+C+,
-it evaluates to 7 because \verb+A+ has been redefined to \verb+5+.  The second
-definition of \verb+B+ has no effect, since it was evaluated at definition time.
-
-\section{Strings, Sequences, and Arrays}
-
-\Prog{omake} represents most input values as sequences, where a sequence is a list
-of values separated by whitespace.  Sequences are often nested, and may contain
-arbitrary values.  The elements of a sequence are the values separated by whitespace.
+In the second definition, \verb+A = $(A)$(A)+, the right-hand-side is evaluated first, producing the
+sequence \verb+11+.  Then the variable \verb+A+ is \emph{redefined} as the new value.  When combined
+with dynamic scoping, this has many of the same properties as conventional imperative programming.
 
 \begin{verbatim}
-   osh> A = 1 2
-   - : "1 2" : Sequence
-   osh> B = 3 $(A) 5
-   - : <sequence "3 " : Sequence "1 2" : Sequence " 5" : Sequence> : Sequence
-   osh> return $(length $(B))
-   - : 4 : Int
-   osh> return $(nth 3, $(B))
-   - : "5" : String
-   osh> f(x) =
-           return $(x)
-   osh> C = x $(f) y
-   - : <sequence "x " : Sequence <fun 1> " y" : Sequence> : Sequence
-   osh> println($(C))
-   x  y
+    osh> A = 1
+    - : "1"
+    osh> printA() =
+        println($"A = $A")
+    osh> A = $(A)$(A)
+    - : "11"
+    osh> printA()
+    11
 \end{verbatim}
 
-A \verb+String+ is a single value; whitespace is significant in a
-string.  Strings are introduced with quotes.  There are four kinds of
-quoted elements; the kind is determined by the opening quote.  The
-symbols \verb+'+ (single-quote) and \verb+"+ (double-quote) introduce
-the normal shell-style quoted elements.  The quotation symbols are
-\emph{included} in the result string.  Variables are always expanded
-within a quote of this kind.  Note that the \Cmd{osh}{1} printer
-escapes double-quotes within the string; these are only for printing, they
-are not part of the string itself.
+In this example, the print function is defined in the scope of \verb+A+.  When it is called on
+the last line, the dynamic value of \verb+A+ is \verb+11+, which is what is printed.
+
+However, dynamic scoping and imperative programming should not be confused.  The following example
+illustrates a difference.  The second \verb+printA+ is not in the scope of the definition
+\verb+A = x$(A)$(A)x+, so it prints the original value, \verb+1+.
 
 \begin{verbatim}
-    osh> A = 'Hello "world"'
-    - : "'Hello \"world\"'" : String
-    osh> B = "$(A)"
-    - : "\"'Hello \"world\"'\"" : String
-    osh> C = 'Hello \'world\''
-    - : "'Hello 'world''" : String
+    osh> A = 1
+    - : "1"
+    osh> printA() =
+        println($"A = $A")
+    osh> section
+             A = x$(A)$(A)x
+             printA()
+    x11x
+    osh> printA()
+    1
 \end{verbatim}
 
-A second kind of quote is introduced with the \verb+$'+ and \verb+$"+
-quotes.  The number of opening and closing quote symbols is arbitrary.
-These quotations have several properties:
-\begin{itemize}
-\item The quote delimiters are not part of the string.
-\item Backslash \verb+\+ symbols within the string are treated as normal characters.
-\item The strings may span several lines.
-\item Variables are expanded within \verb+$"+ sequences, but not within \verb+$'+
-  sequences.
-\end{itemize}
-
-\begin{verbatim}
-    osh> A = $'''Here $(IS) an '''' \(example\) string['''
-    - : "Here $(IS) an '''' \\(example\\) string[" : String
-    osh> B = $""""A is "$(A)" """"
-    - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
-    osh> return $(A.length)
-    - : 38 : Int
-    osh> return $(A.nth 5)
-    - : "$" : String
-    osh> return $(A.rev)
-    - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
-\end{verbatim}
-
-Strings and sequences both have the property that they can be merged
-with adjacent non-whitespace text.
-
-\begin{verbatim}
-    osh> A = a b c
-    - : "a b c" : Sequence
-    osh> B = $(A).c
-    - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
-    osh> return $(nth 2, $(B))
-    - : "c.c" : String
-    osh> return $(length $(B))
-    - : 3 : Int
-\end{verbatim}
-
-Arrays are different.  The elements of an array are never merged with
-adjacent text of any kind.  Arrays are defined by adding square
-brackets \verb+[]+ after a variable name and defining the elements
-with an indented body.  The elements may include whitespace.
-
-\begin{verbatim}
-    osh> A[] =
-            a b
-            foo bar
-    - : <array
-           "a b" : Sequence
-           "foo bar" : Sequence>
-           : Array
-    osh> echo $(A).c
-    a b foo bar .c
-    osh> return $(A.length)
-    - : 2 : Int
-    osh> return $(A.nth 1)
-    - : "foo bar" : Sequence
-\end{verbatim}
-
-Arrays are quite helpful on systems where filenames often contain whitespace.
-
-\begin{verbatim}
-    osh> FILES[] =
-             c:\Documents and Settings\jyh\one file
-             c:\Program Files\omake\second file
-
-    osh> CFILES = $(addsuffix .c, $(FILES))
-    osh> echo $(CFILES)
-    c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
-\end{verbatim}
+See also Section~\ref{section:lazy} for further ways to control the evaluation order through the use
+of ``lazy'' expressions.
 
 \section{Objects}
 
@@ -392,11 +294,11 @@ For example, let's define a one-dimensional point value.
          return $(this)
 
    osh> p1 = $(Point.new 15)
-   osh> return $(p1.x)
+   osh> value $(p1.x)
    - : 15 : Int
 
    osh> p2 = $(p1.move)
-   osh> return $(p2.x)
+   osh> value $(p2.x)
    - : 16 : Int
 \end{verbatim}
 
@@ -428,7 +330,7 @@ just 1.  We can do it by overriding the \verb+move+ method.
 
    osh> p2 = $(Point2.new 15)
    osh> p3 = $(p2.move)
-   osh> return $(p3.x)
+   osh> value $(p3.x)
    - : 17 : Int
 \end{verbatim}
 

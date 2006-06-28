@@ -1,9 +1,564 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 6-5,	Next: Subsection 6-5-1,	Prev: Section 6-4,	Up: Chapter 6
+  
+
+6.5   Lazy expressions
+*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Evaluation in omake is normally eager. That is, expressions are
+evaluated as soon as they are encountered by the evaluator. One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.
+  There are two ways to control this behavior. The `$`(v)' form
+introduces lazy behavior, and the `$,(v)' form restores eager behavior.
+Consider the following sequence.
+<<
+      osh> A = 1
+      - : "1" : Sequence
+      osh> B = 2
+      - : "2" : Sequence
+      osh> C = $`(add $(A), $,(B))
+      - : $(apply add $(apply A) "2" : Sequence)
+      osh> println(C = $(C))
+      C = 3
+      osh> A = 5
+      - : "5" : Sequence
+      osh> B = 6
+      - : "6" : Sequence
+      osh> println(C = $(C))
+      C = 7
+>>
+  
+  The definition `C = $`(add $(A), $,(B))' defines a lazy application.
+The `add' function is not applied in this case until its value is
+needed. Within this expression, the value `$,(B)' specifies that `B' is
+to be evaluated immediately, even though it is defined in a lazy
+expression.
+  The first time that we print the value of `C', it evaluates to 3 since
+`A' is 1 and `B' is 2. The second time we evaluate `C', it evaluates to
+7 because `A' has been redefined to `5'. The second definition of `B'
+has no effect, since it was evaluated at definition time.
+* Menu:
+
+* Subsection 6-5-1::	A larger example of lazy expressions
+
+
+Node: Subsection 6-5-1,	Next: Section 6-6,	Prev: Section 6-5,	Up: Section 6-5
+  
+
+6.5.1   A larger example of lazy expressions
+============================================
+  
+  Lazy expressions are not evaluated until their result is needed. Some
+people, including this author, frown on overuse of lazy expressions,
+mainly because it is difficult to know when evaluation actually happens.
+However, there are cases where they pay off.
+  One example comes from option processing. Consider the specification
+of ``include'' directories on the command line for a C compiler. If we
+want to include files from /home/jyh/include and ../foo, we specify it
+on the command line with the options `-I/home/jyh/include -I../foo'.
+  Suppose we want to define a generic rule for building C files. We
+could define a `INCLUDES' array to specify the directories to be
+included, and then define a generic implicit rule in our root OMakefile.
+<<
+      # Generic way to compile C files.
+      CFLAGS = -g
+      INCLUDES[] =
+      %.o: %.c
+         $(CC) $(CFLAGS) $(INCLUDES) -c $<
+  
+      # The src directory builds my_widget+ from 4 source files.
+      # It reads include files from the include directory.
+      .SUBDIRS: src
+          FILES = fee fi foo fum
+          OFILES = $(addsuffix .o, $(FILES))
+          INCLUDES[] += -I../include
+          my_widget: $(OFILES)
+             $(CC) $(CFLAGS) -o $@ $(OFILES)
+>>
+  
+  But this is not quite right. The problem is that INCLUDES is an array
+of options, not directories. If we later wanted to recover the
+directories, we would have to strip the leading `-I' prefix, which is a
+hassle. Furthermore, we aren't using proper names for the directories.
+The solution here is to use a lazy expression. We'll define INCLUDES as
+a directory array, and a new variable `PREFIXED_INCLUDES' that adds the
+-I prefix. The `PREFIXED_INCLUDES' is computed lazily, ensuring that the
+value uses the most recent value of the INCLUDES variable.
+<<
+      # Generic way to compile C files.
+      CFLAGS = -g
+      INCLUDES[] =
+      PREFIXED_INCLUDES[] = $`(addprefix -I, $(INCLUDES))
+      %.o: %.c
+         $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c $<
+  
+      # For this example, we define a proper name for the include
+directory
+      STDINCLUDE = $(dir include)
+  
+      # The src directory builds my_widget+ from 4 source files.
+      # It reads include files from the include directory.
+      .SUBDIRS: src
+          FILES = fee fi foo fum
+          OFILES = $(addsuffix .o, $(FILES))
+          INCLUDES[] += $(STDINCLUDE)
+          my_widget: $(OFILES)
+             $(CC) $(CFLAGS) -o $@ $(OFILES)
+>>
+  
+  Note that there is a close connection between lazy values and
+functions. In the example above, we could equivalently define
+`PREFIXED_INCLUDES' as a function with zero arguments.
+<<
+      PREFIXED_INCLUDES() =
+          addprefix(-I, $(INCLUDES))
+>>
+  
+
 Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
   
 
-6.6   .SCANNER rules
+6.6   Scoping and exports
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The OMake language is functional (apart from IO and shell commands).
+This comes in two parts: functions are first-class, and variables are
+immutable (there is no assignment operator). The latter property may
+seem strange to users used to GNU make, but it is actually a central
+point of OMake. Since variables can't be modified, it is impossible (or
+at least hard) for one part of the project to interfere with another.
+  To be sure, pure functional programming can be awkward. In OMake, each
+new indentation level introduces a new scope, and new definitions in
+that scope are lost when the scope ends. If OMake were overly strict
+about scoping, we would wind up with a lot of convoluted code.
+<<
+     osh> X = 1
+     osh> setenv(BOO, 12)
+     osh> if $(equal $(OSTYPE), Win32)
+              setenv(BOO, 17)
+              X = 2
+     osh> println($X $(getenv BOO))
+     1 12
+>>
+  
+  The `export' command presents a way out. It takes care of
+``exporting'' a value (or the entire variable environment) from an inner
+scope to an outer one.
+<<
+     osh> X = 1
+     osh> setenv(BOO, 12)
+     osh> if $(equal $(OSTYPE), Win32)
+              setenv(BOO, 17)
+              X = 2
+              export
+     osh> println($X $(getenv BOO))
+     2 17
+>>
+  
+  Exports are especially useful in loop to export values from one
+iteration of a loop to the next.
+<<
+     # Ok, let's try to add up the elements of the array
+     osh>sum(l) =
+             total = 0
+             foreach(i, $l)
+                 total = $(add $(total), $i)
+             value $(total)
+     osh>sum(1 2 3)
+     - : 0 : Int
+  
+     # Oops, that didn't work!
+     osh>sum(l) =
+             total = 0
+             foreach(i, $l)
+                 total = $(add $(total), $i)
+                 export
+             value $(total)
+     osh>sum(1 2 3)
+     - : 6 : Int
+>>
+  
+  A `while' loop is another form of loop, with an auto-export.
+<<
+      osh>i = 0
+      osh>total = 0
+      osh>while $(lt $i, 10)
+              total = $(add $(total), $i)
+              i = $(add $i, 1)
+      osh>println($(total))
+      45
+>>
+  
+
+Node: Section 6-7,	Next: Section 6-8,	Prev: Section 6-6,	Up: Chapter 6
+  
+
+6.7   Shell aliases
+*=*=*=*=*=*=*=*=*=*
+
+  
+  Sometimes you may want to define an alias, an OMake command that
+masquerades as a real shell command. You can do this by adding your
+function as a method to the `Shell' object.
+  For an example, suppose we use the `awk' function to print out all the
+comments in a file.
+<<
+      osh>cat comment.om
+      # Comment function
+      comments(filename) =
+          awk($(filename))
+          case $'^#'
+              println($0)
+      # File finished
+      osh>include comment
+      osh>comments(comment.om)
+      # Comment function
+      # File finished
+>>
+  
+  To add it as an alias, add the method (using += to preserve the
+existing entries in the Shell).
+<<
+     osh>Shell. +=
+             printcom(argv) =
+                 comments($(nth 0, $(argv)))
+     osh>printcom comment.om > output.txt
+     osh>cat output.txt
+     # Comment function
+     # File finished
+>>
+  
+  A shell command is passed an array of arguments `argv'. This does not
+include the name of the alias.
+
+Node: Section 6-8,	Next: Chapter 7,	Prev: Section 6-7,	Up: Chapter 6
+  
+
+6.8   Input/output redirection on the cheap
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  As it turns out, scoping also provides a nice alternate way to perform
+redirection. Suppose you have already written a lot of code that prints
+to the standard output channel, but now you decide you want to redirect
+it. One way to do it is using the technique in the previous example:
+define your function as an alias, and then use shell redirection to
+place the output where you want.
+  There is an alternate method that is easier in some cases. The
+variables `stdin', `stdout', and `stderr' define the standard I/O
+channels. To redirect output, redefine these variables as you see fit.
+Of course, you would normally do this in a nested scope, so that the
+outer channels are not affected.
+<<
+      osh>f() =
+              println(Hello world)
+      osh>f()
+      Hello world
+      osh>section:
+              stdout = $(fopen output.txt, w)
+              f()
+              close($(stdout))
+      osh>cat output.txt
+      Hello world
+>>
+  
+  This also works for shell commands. If you like to gamble, you can try
+the following example.
+<<
+      osh>f() =
+              println(Hello world)
+      osh>f()
+      Hello world
+      osh>section:
+              stdout = $(fopen output.txt, w)
+              f()
+              cat output.txt
+              close($(stdout))
+      osh>cat output.txt
+      Hello world
+      Hello world
+>>
+  
+   
+
+Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
+  
+
+Chapter 7     Rules
+*******************
+    
+  Rules are used by OMake to specify how to build files. At its
+simplest, a rule has the following form.
+<<
+      <target>: <dependencies>
+          <commands>
+>>
+  
+  The `<target>' is the name of a file to be built. The `<dependencies>'
+are a list of files that are needed before the `<target>' can be built.
+The `<commands>' are a list of indented lines specifying commands to
+build the target. For example, the following rule specifies how to
+compile a file `hello.c'.
+<<
+      hello.o: hello.c
+          $(CC) $(CFLAGS) -c -o hello.o hello.c
+>>
+  
+  This rule states that the hello.o file depends on the hello.c file. If
+the hello.c file has changed, the command `$(CC) $(CFLAGS) -c -o hello.o
+hello.c' is to be executed to update the target file `hello.o'.
+  A rule can have an arbitrary number of commands. The individual
+command lines are executed independently by the command shell. The
+commands do not have to begin with a tab, but they must be indented from
+the dependency line.
+  In addition to normal variables, the following special variables may
+be used in the body of a rule.
+  
+  
+ - `$*': the target name, without a suffix. 
+ - `$@': the target name. 
+ - `$^': a list of the sources, in alphabetical order, with duplicates
+   removed. 
+ - `$'+: all the sources, in the original order. 
+ - `$<': the first source. 
+  
+  For example, the above `hello.c' rule may be simplified as follows.
+<<
+      hello.o: hello.c
+          $(CC) $(CFLAGS) -c -o $@ $<
+>>
+  
+  Unlike normal values, the variables in a rule body are expanded
+lazily, and binding is dynamic. The following function definition
+illustrates some of the issues.
+<<
+      CLibrary(name, files) =
+          OFILES = $(addsuffix .o, $(files))
+  
+          $(name).a: $(OFILES)
+              $(AR) cq $@ $(OFILES)
+>>
+  
+  This function defines a rule to build a program called `$(name)' from
+a list of `.o' files. The files in the argument are specified without a
+suffix, so the first line of the function definition defines a variable
+`OFILES' that adds the `.o' suffix to each of the file names. The next
+step defines a rule to build a target library `$(name).a' from the
+`$(OFILES)' files. The expression `$(AR)' is evaluated when the function
+is called, and the value of the variable `AR' is taken from the caller's
+scope (see also the section on Scoping).
+* Menu:
+
+* Section 7-1::	Implicit rules
+* Section 7-2::	Bounded implicit rules
+* Section 7-3::	section
+* Section 7-4::	section rule
+* Section 7-5::	Special dependencies
+* Section 7-6::	.SCANNER rules
+* Section 7-7::	Named scanners, and the :scanner: target
+* Section 7-8::	Notes
+* Section 7-9::	.DEFAULT
+* Section 7-10::	.SUBDIRS
+* Section 7-11::	.INCLUDE
+* Section 7-12::	.PHONY
+* Section 7-13::	Rule scoping
+* Section 7-14::	Pathnames in rules
+
+
+Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
+  
+
+7.1   Implicit rules
+*=*=*=*=*=*=*=*=*=*=
+
+   
+  Rules may also be implicit. That is, the files may be specified by
+wildcard patterns. The wildcard character is `%'. For example, the
+following rule specifies a default rule for building `.o' files.
+<<
+      %.o: %.c
+          $(CC) $(CFLAGS) -c -o $@ $*.c
+>>
+  
+  This rule is a template for building an arbitrary `.o' file from a
+`.c' file.
+  By default, implicit rules are only used for the targets in the
+current directory. However subdirectories included via the `.SUBDIRS'
+rules inherit all the implicit rules that are in scope (see also the
+section on Scoping).
+
+Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
+  
+
+7.2   Bounded implicit rules
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Implicit rules may specify the set of files they apply to. The
+following syntax is used.
+<<
+      <targets>: <pattern>: <dependencies>
+          <commands>
+>>
+  
+  For example, the following rule applies only to the files `a.o' and
+`b.o'.
+<<
+     a.o b.o: %.o: %.c
+          $(CC) $(CFLAGS) -DSPECIAL -c $*.c
+>>
+  
+
+Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
+  
+
+7.3   section
+*=*=*=*=*=*=*
+
+   
+  Frequently, the commands in a rule body are expressions to be
+evaluated by the shell. omake also allows expressions to be evaluated by
+omake itself.
+  The syntax of these ``computed rules'' uses the `section' expression.
+The following rule uses the omake IO functions to produce the target
+`hello.c'.
+<<
+      hello.c:
+          section
+              FP = fopen(hello.c, w)
+              fprintln($(FP), $""#include <stdio.h> int main() {
+printf("Hello world\n"); }"")
+              close($(FP))
+>>
+  
+  This example uses the quotation `$""...""'
+B.1.6*Note Subsection B-1-6:: to quote the text being printed. These
+quotes are not included in the output file. The `fopen', `fprintln', and
+`close' functions perform file IO as discussed in the IO section.
+  In addition, commands that are function calls, or special expressions,
+are interpreted correctly. Since the `fprintln' function can take a file
+directly, the above rule can be abbreviated as follows.
+<<
+      hello.c:
+         fprintln($@, $""#include <stdio.h> int main() { printf("Hello
+world\n"); }"")
+>>
+  
+
+Node: Section 7-4,	Next: Section 7-5,	Prev: Section 7-3,	Up: Chapter 7
+  
+
+7.4   section rule
+*=*=*=*=*=*=*=*=*=
+
+   
+  Rules can also be computed using the `section rule' form, where a rule
+body is expected instead of an expression. In the following rule, the
+file `a.c' is copied onto the `hello.c' file if it exists, otherwise
+`hello.c' is created from the file `default.c'.
+<<
+      hello.c:
+          section rule
+             if $(target-exists a.c)
+                hello.c: a.c
+                   cat a.c > hello.c
+             else
+                hello.c: default.c
+                   cp default.c hello.c
+>>
+  
+
+Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
+  
+
+7.5   Special dependencies
+*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 7-5-1::	:exists:
+* Subsection 7-5-2::	:effects:
+* Subsection 7-5-3::	:value:
+
+
+Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
+  
+
+7.5.1   :exists:
+================
+   
+  In some cases, the contents of a dependency do not matter, only
+whether the file exists or not. In this case, the `:exists:' qualifier
+can be used for the dependency.
+<<
+      foo.c: a.c :exists: .flag
+         if $(test -e .flag)
+             $(CP) a.c $@
+>>
+  
+
+Node: Subsection 7-5-2,	Next: Subsection 7-5-3,	Prev: Subsection 7-5-1,	Up: Section 7-5
+  
+
+7.5.2   :effects:
+=================
+   
+  Some commands produce files by side-effect. For example, the latex(1)
+command produces a `.aux' file as a side-effect of producing a `.dvi'
+file. In this case, the `:effects:' qualifier can be used to list the
+side-effect explicitly. omake is careful to avoid simultaneously running
+programs that have overlapping side-effects.
+<<
+      paper.dvi: paper.tex :effects: paper.aux
+          latex paper
+>>
+  
+
+Node: Subsection 7-5-3,	Next: Section 7-6,	Prev: Subsection 7-5-2,	Up: Section 7-5
+  
+
+7.5.3   :value:
+===============
+   
+  The `:value:' dependency is used to specify that the rule execution
+depends on the value of an expression. For example, the following rule
+<<
+      a: b c :value: $(X)
+          ...
+>>
+  
+  specifies that ``a'' should be recompiled if the value of `$(X)'
+changes (X does not have to be a filename). This is intended to allow
+greater control over dependencies.
+  In addition, it can be used instead of other kinds of dependencies.
+For example, the following rule:
+<<
+      a: b :exists: c
+          commands
+>>
+  
+  is the same as
+<<
+      a: b :value: $(target-exists c)
+          commands
+>>
+  
+  Notes: 
+  
+ - The values are arbitrary (they are not limited to variables) 
+ - The values are evaluated at rule expansion time, so expressions
+   containing variables like `$@', `$^', etc are legal. 
+  
+
+Node: Section 7-6,	Next: Section 7-7,	Prev: Section 7-5,	Up: Chapter 7
+  
+
+7.6   .SCANNER rules
 *=*=*=*=*=*=*=*=*=*=
 
    
@@ -70,10 +625,10 @@ $&)
 >>
   
 
-Node: Section 6-7,	Next: Section 6-8,	Prev: Section 6-6,	Up: Chapter 6
+Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
   
 
-6.7   Named scanners, and the :scanner: target
+7.7   Named scanners, and the :scanner: target
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -121,27 +676,27 @@ $(digest-in-path-optional $(INCLUDES), $&)
 disadvantage that when a single source file changes, all the files will
 end up being re-scanned.
 
-Node: Section 6-8,	Next: Section 6-9,	Prev: Section 6-7,	Up: Chapter 6
+Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
   
 
-6.8   Notes
+7.8   Notes
 *=*=*=*=*=*
 
   
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' 11.3.1.7*Note Subsection 11-3-1:: variable
+  The `SCANNER_MODE' 12.3.1.7*Note Subsection 12-3-1:: variable
 controls the usage of implicit scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
 idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
 rules and explicit `:scanner:' specifications.
 
-Node: Section 6-9,	Next: Section 6-10,	Prev: Section 6-8,	Up: Chapter 6
+Node: Section 7-9,	Next: Section 7-10,	Prev: Section 7-8,	Up: Chapter 7
   
 
-6.9   .DEFAULT
+7.9   .DEFAULT
 *=*=*=*=*=*=*=
 
    
@@ -153,10 +708,10 @@ omake to build the program `hello' by default
 >>
   
 
-Node: Section 6-10,	Next: Section 6-11,	Prev: Section 6-9,	Up: Chapter 6
+Node: Section 7-10,	Next: Section 7-11,	Prev: Section 7-9,	Up: Chapter 7
   
 
-6.10   .SUBDIRS
+7.10   .SUBDIRS
 *=*=*=*=*=*=*=*
 
    
@@ -190,10 +745,10 @@ includes the file if it exists.
 >>
   
 
-Node: Section 6-11,	Next: Section 6-12,	Prev: Section 6-10,	Up: Chapter 6
+Node: Section 7-11,	Next: Section 7-12,	Prev: Section 7-10,	Up: Chapter 7
   
 
-6.11   .INCLUDE
+7.11   .INCLUDE
 *=*=*=*=*=*=*=*
 
    
@@ -240,10 +795,10 @@ already exists.
 >>
   
 
-Node: Section 6-12,	Next: Section 6-13,	Prev: Section 6-11,	Up: Chapter 6
+Node: Section 7-12,	Next: Section 7-13,	Prev: Section 7-11,	Up: Chapter 7
   
 
-6.12   .PHONY
+7.12   .PHONY
 *=*=*=*=*=*=*
 
    
@@ -261,10 +816,10 @@ run whenever the `install' target is built (for example, by running
 >>
   
 
-Node: Section 6-13,	Next: Subsection 6-13-1,	Prev: Section 6-12,	Up: Chapter 6
+Node: Section 7-13,	Next: Subsection 7-13-1,	Prev: Section 7-12,	Up: Chapter 7
   
 
-6.13   Rule scoping
+7.13   Rule scoping
 *=*=*=*=*=*=*=*=*=*
 
    
@@ -331,15 +886,15 @@ it is compiled using the usual implicit rule for building `.o' files (in
 a context where `CFLAGS=-g -DLIBRARY').
 * Menu:
 
-* Subsection 6-13-1::	Scoping of implicit rules
-* Subsection 6-13-2::	Scoping of .SCANNER rules
-* Subsection 6-13-3::	Scoping for .PHONY targets
+* Subsection 7-13-1::	Scoping of implicit rules
+* Subsection 7-13-2::	Scoping of .SCANNER rules
+* Subsection 7-13-3::	Scoping for .PHONY targets
 
 
-Node: Subsection 6-13-1,	Next: Subsection 6-13-2,	Prev: Section 6-13,	Up: Section 6-13
+Node: Subsection 7-13-1,	Next: Subsection 7-13-2,	Prev: Section 7-13,	Up: Section 7-13
   
 
-6.13.1   Scoping of implicit rules
+7.13.1   Scoping of implicit rules
 ==================================
   
   Implicit rules (rules containing wildcard patterns) are not global,
@@ -368,10 +923,10 @@ implicit rule for building `%.o' files. The implicit rule adds the
 `-DLIBRARY' option. This implicit rule is defined only for the target
 `hello_lib.o'; the target `hello_code.o' is built as normal.
 
-Node: Subsection 6-13-2,	Next: Subsection 6-13-3,	Prev: Subsection 6-13-1,	Up: Section 6-13
+Node: Subsection 7-13-2,	Next: Subsection 7-13-3,	Prev: Subsection 7-13-1,	Up: Section 7-13
   
 
-6.13.2   Scoping of .SCANNER rules
+7.13.2   Scoping of .SCANNER rules
 ==================================
    
   Scanner rules are scoped the same way as normal rules. If the
@@ -409,10 +964,10 @@ write a complicated configuration like this! In this case, the
 scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
 
-Node: Subsection 6-13-3,	Next: Section 6-14,	Prev: Subsection 6-13-2,	Up: Section 6-13
+Node: Subsection 7-13-3,	Next: Section 7-14,	Prev: Subsection 7-13-2,	Up: Section 7-13
   
 
-6.13.3   Scoping for .PHONY targets
+7.13.3   Scoping for .PHONY targets
 ===================================
    
   Phony targets (targets that do not correspond to files) are defined
@@ -454,18 +1009,18 @@ project root.
 >>
   
 
-Node: Section 6-14,	Next: Chapter 7,	Prev: Section 6-13,	Up: Chapter 6
+Node: Section 7-14,	Next: Chapter 8,	Prev: Section 7-13,	Up: Chapter 7
   
 
-6.14   Pathnames in rules
+7.14   Pathnames in rules
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
   In rules, the targets and dependencies are first translated to file
-values (as in the `file' function 8.1.1*Note Subsection 8-1-1::). They are
+values (as in the `file' function 9.1.1*Note Subsection 9-1-1::). They are
 then translated to strings for the command line. This can cause some
 unexpected behavior. In the following example, the `absname' function
-8.1.8*Note Subsection 8-1-8:: is the absolute pathname for the file `a',
+9.1.8*Note Subsection 9-1-8:: is the absolute pathname for the file `a',
 but the rule still prints the relative pathname.
 <<
       .PHONY: demo
@@ -515,7 +1070,7 @@ absolute names.
   
   Alternately, the `--absname' option is scoped. If you want to use it
 for only a few rules, you can use the `OMakeFlags' function
-11.2.0.1*Note Section 11-2:: to control how it is applied.
+12.2.0.1*Note Section 12-2:: to control how it is applied.
 <<
      section
         OMakeFlags(--absname)
@@ -529,49 +1084,49 @@ for only a few rules, you can use the `OMakeFlags' function
   N.B. The `--absname' option is currently an experimental feature.
    
 
-Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
+Node: Chapter 8,	Next: Section 8-1,	Prev: Chapter 7,	Up: Top
   
 
-Chapter 7     Base library
+Chapter 8     Base library
 **************************
      
 * Menu:
 
-* Section 7-1::	Builtin variables
-* Section 7-2::	Logic, Boolean functions, and control flow
-* Section 7-3::	Arrays and sequences
-* Section 7-4::	Arithmetic
-* Section 7-5::	First-class functions
-* Section 7-6::	Iteration and mapping
+* Section 8-1::	Builtin variables
+* Section 8-2::	Logic, Boolean functions, and control flow
+* Section 8-3::	Arrays and sequences
+* Section 8-4::	Arithmetic
+* Section 8-5::	First-class functions
+* Section 8-6::	Iteration and mapping
 
 
-Node: Section 7-1,	Next: Subsection 7-1-1,	Prev: Chapter 7,	Up: Chapter 7
+Node: Section 8-1,	Next: Subsection 8-1-1,	Prev: Chapter 8,	Up: Chapter 8
   
 
-7.1   Builtin variables
+8.1   Builtin variables
 *=*=*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 7-1-1::	OSTYPE
-* Subsection 7-1-2::	SYSNAME
-* Subsection 7-1-3::	NODENAME
-* Subsection 7-1-4::	OS_VERSION
-* Subsection 7-1-5::	MACHINE
-* Subsection 7-1-6::	HOST
-* Subsection 7-1-7::	OMAKE_VERSION
-* Subsection 7-1-8::	USER
-* Subsection 7-1-9::	HOME
-* Subsection 7-1-10::	PID
-* Subsection 7-1-11::	TARGETS
-* Subsection 7-1-12::	BUILD_SUMMARY
+* Subsection 8-1-1::	OSTYPE
+* Subsection 8-1-2::	SYSNAME
+* Subsection 8-1-3::	NODENAME
+* Subsection 8-1-4::	OS_VERSION
+* Subsection 8-1-5::	MACHINE
+* Subsection 8-1-6::	HOST
+* Subsection 8-1-7::	OMAKE_VERSION
+* Subsection 8-1-8::	USER
+* Subsection 8-1-9::	HOME
+* Subsection 8-1-10::	PID
+* Subsection 8-1-11::	TARGETS
+* Subsection 8-1-12::	BUILD_SUMMARY
 
 
-Node: Subsection 7-1-1,	Next: Subsection 7-1-2,	Prev: Section 7-1,	Up: Section 7-1
+Node: Subsection 8-1-1,	Next: Subsection 8-1-2,	Prev: Section 8-1,	Up: Section 8-1
   
 
-7.1.1   OSTYPE
+8.1.1   OSTYPE
 ==============
   Set to the machine
 architecture omake is running on. Possible values are  `Unix' (for all
@@ -579,80 +1134,80 @@ Unix versions, including Linux and Mac OS X), `Win32'  (for MS-Windows,
 OMake compiled with MSVC++ or Mingw), and `Cygwin' (for  MS-Windows,
 OMake compiled with Cygwin). 
 
-Node: Subsection 7-1-2,	Next: Subsection 7-1-3,	Prev: Subsection 7-1-1,	Up: Section 7-1
+Node: Subsection 8-1-2,	Next: Subsection 8-1-3,	Prev: Subsection 8-1-1,	Up: Section 8-1
   
 
-7.1.2   SYSNAME
+8.1.2   SYSNAME
 ===============
   The name of the
 operating system for the current machine. 
 
-Node: Subsection 7-1-3,	Next: Subsection 7-1-4,	Prev: Subsection 7-1-2,	Up: Section 7-1
+Node: Subsection 8-1-3,	Next: Subsection 8-1-4,	Prev: Subsection 8-1-2,	Up: Section 8-1
   
 
-7.1.3   NODENAME
+8.1.3   NODENAME
 ================
   The hostname of the
 current machine. 
 
-Node: Subsection 7-1-4,	Next: Subsection 7-1-5,	Prev: Subsection 7-1-3,	Up: Section 7-1
+Node: Subsection 8-1-4,	Next: Subsection 8-1-5,	Prev: Subsection 8-1-3,	Up: Section 8-1
   
 
-7.1.4   OS_VERSION
+8.1.4   OS_VERSION
 ==================
   The operating
 system release. 
 
-Node: Subsection 7-1-5,	Next: Subsection 7-1-6,	Prev: Subsection 7-1-4,	Up: Section 7-1
+Node: Subsection 8-1-5,	Next: Subsection 8-1-6,	Prev: Subsection 8-1-4,	Up: Section 8-1
   
 
-7.1.5   MACHINE
+8.1.5   MACHINE
 ===============
   The machine
 architecture, e.g. `i386', `sparc', etc. 
 
-Node: Subsection 7-1-6,	Next: Subsection 7-1-7,	Prev: Subsection 7-1-5,	Up: Section 7-1
+Node: Subsection 8-1-6,	Next: Subsection 8-1-7,	Prev: Subsection 8-1-5,	Up: Section 8-1
   
 
-7.1.6   HOST
+8.1.6   HOST
 ============
   Same as `NODENAME'. 
 
-Node: Subsection 7-1-7,	Next: Subsection 7-1-8,	Prev: Subsection 7-1-6,	Up: Section 7-1
+Node: Subsection 8-1-7,	Next: Subsection 8-1-8,	Prev: Subsection 8-1-6,	Up: Section 8-1
   
 
-7.1.7   OMAKE_VERSION
+8.1.7   OMAKE_VERSION
 =====================
   Version of
 OMake. 
 
-Node: Subsection 7-1-8,	Next: Subsection 7-1-9,	Prev: Subsection 7-1-7,	Up: Section 7-1
+Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Section 8-1
   
 
-7.1.8   USER
+8.1.8   USER
 ============
   The login name of the
 user executing the process. 
 
-Node: Subsection 7-1-9,	Next: Subsection 7-1-10,	Prev: Subsection 7-1-8,	Up: Section 7-1
+Node: Subsection 8-1-9,	Next: Subsection 8-1-10,	Prev: Subsection 8-1-8,	Up: Section 8-1
   
 
-7.1.9   HOME
+8.1.9   HOME
 ============
   The home directory of
 the user executing the process. 
 
-Node: Subsection 7-1-10,	Next: Subsection 7-1-11,	Prev: Subsection 7-1-9,	Up: Section 7-1
+Node: Subsection 8-1-10,	Next: Subsection 8-1-11,	Prev: Subsection 8-1-9,	Up: Section 8-1
   
 
-7.1.10   PID
+8.1.10   PID
 ============
   The OMake process id. 
 
-Node: Subsection 7-1-11,	Next: Subsection 7-1-12,	Prev: Subsection 7-1-10,	Up: Section 7-1
+Node: Subsection 8-1-11,	Next: Subsection 8-1-12,	Prev: Subsection 8-1-10,	Up: Section 8-1
   
 
-7.1.11   TARGETS
+8.1.11   TARGETS
 ================
   The command-line
 target strings. For example, if `omake' is invoked with the  following
@@ -663,10 +1218,10 @@ command line,
   
    then `TARGETS' is defined as `foo bar.c'.
 
-Node: Subsection 7-1-12,	Next: Section 7-2,	Prev: Subsection 7-1-11,	Up: Section 7-1
+Node: Subsection 8-1-12,	Next: Section 8-2,	Prev: Subsection 8-1-11,	Up: Section 8-1
   
 
-7.1.12   BUILD_SUMMARY
+8.1.12   BUILD_SUMMARY
 ======================
   The
 `BUILD_SUMMARY' variable refers to the file that `omake' uses  to
@@ -682,10 +1237,10 @@ can append a message to the build summary.
          ...build foo...
 >>
 
-Node: Section 7-2,	Next: Subsection 7-2-1,	Prev: Section 7-1,	Up: Chapter 7
+Node: Section 8-2,	Next: Subsection 8-2-1,	Prev: Section 8-1,	Up: Chapter 8
   
 
-7.2   Logic, Boolean functions, and control flow
+8.2   Logic, Boolean functions, and control flow
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -694,28 +1249,28 @@ The false value can be represented by the strings `false', `no', `nil',
 `undefined' or `0', and everything else is true.
 * Menu:
 
-* Subsection 7-2-1::	not
-* Subsection 7-2-2::	equal
-* Subsection 7-2-3::	and
-* Subsection 7-2-4::	or
-* Subsection 7-2-5::	if
-* Subsection 7-2-6::	switch, match
-* Subsection 7-2-7::	try
-* Subsection 7-2-8::	raise
-* Subsection 7-2-9::	exit
-* Subsection 7-2-10::	defined
-* Subsection 7-2-11::	defined-env
-* Subsection 7-2-12::	getenv
-* Subsection 7-2-13::	setenv
-* Subsection 7-2-14::	get-registry
-* Subsection 7-2-15::	getvar
-* Subsection 7-2-16::	setvar
+* Subsection 8-2-1::	not
+* Subsection 8-2-2::	equal
+* Subsection 8-2-3::	and
+* Subsection 8-2-4::	or
+* Subsection 8-2-5::	if
+* Subsection 8-2-6::	switch, match
+* Subsection 8-2-7::	try
+* Subsection 8-2-8::	raise
+* Subsection 8-2-9::	exit
+* Subsection 8-2-10::	defined
+* Subsection 8-2-11::	defined-env
+* Subsection 8-2-12::	getenv
+* Subsection 8-2-13::	setenv
+* Subsection 8-2-14::	get-registry
+* Subsection 8-2-15::	getvar
+* Subsection 8-2-16::	setvar
 
 
-Node: Subsection 7-2-1,	Next: Subsection 7-2-2,	Prev: Section 7-2,	Up: Section 7-2
+Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8-2
   
 
-7.2.1   not
+8.2.1   not
 ===========
 
 <<
@@ -727,10 +1282,10 @@ Node: Subsection 7-2-1,	Next: Subsection 7-2-2,	Prev: Section 7-2,	Up: Section 7
   For example, `$(not false)' expands to the string `true', and `$(not
 hello world)' expands to `false'. 
 
-Node: Subsection 7-2-2,	Next: Subsection 7-2-3,	Prev: Subsection 7-2-1,	Up: Section 7-2
+Node: Subsection 8-2-2,	Next: Subsection 8-2-3,	Prev: Subsection 8-2-1,	Up: Section 8-2
   
 
-7.2.2   equal
+8.2.2   equal
 =============
 
 <<
@@ -743,10 +1298,10 @@ Node: Subsection 7-2-2,	Next: Subsection 7-2-3,	Prev: Subsection 7-2-1,	Up: Sect
   For example `$(equal a, b)' expands to `false', and `$(equal hello
 world, hello world)' expands to `true'. 
 
-Node: Subsection 7-2-3,	Next: Subsection 7-2-4,	Prev: Subsection 7-2-2,	Up: Section 7-2
+Node: Subsection 8-2-3,	Next: Subsection 8-2-4,	Prev: Subsection 8-2-2,	Up: Section 8-2
   
 
-7.2.3   and
+8.2.3   and
 ===========
 
 <<
@@ -763,10 +1318,10 @@ Node: Subsection 7-2-3,	Next: Subsection 7-2-4,	Prev: Subsection 7-2-2,	Up: Sect
       Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
 >>
 
-Node: Subsection 7-2-4,	Next: Subsection 7-2-5,	Prev: Subsection 7-2-3,	Up: Section 7-2
+Node: Subsection 8-2-4,	Next: Subsection 8-2-5,	Prev: Subsection 8-2-3,	Up: Section 8-2
   
 
-7.2.4   or
+8.2.4   or
 ==========
 
 <<
@@ -783,10 +1338,10 @@ Node: Subsection 7-2-4,	Next: Subsection 7-2-5,	Prev: Subsection 7-2-3,	Up: Sect
       Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
 >>
 
-Node: Subsection 7-2-5,	Next: Subsection 7-2-6,	Prev: Subsection 7-2-4,	Up: Section 7-2
+Node: Subsection 8-2-5,	Next: Subsection 8-2-6,	Prev: Subsection 8-2-4,	Up: Section 8-2
   
 
-7.2.5   if
+8.2.5   if
 ==========
 
 <<
@@ -832,10 +1387,10 @@ common idiom for defining the C compiler configuration.
         export
 >>
 
-Node: Subsection 7-2-6,	Next: Subsection 7-2-7,	Prev: Subsection 7-2-5,	Up: Section 7-2
+Node: Subsection 8-2-6,	Next: Subsection 8-2-7,	Prev: Subsection 8-2-5,	Up: Section 8-2
   
 
-7.2.6   switch, match
+8.2.6   switch, match
 =====================
 \@na
 me{@fun11}
@@ -891,10 +1446,10 @@ function uses regular expression matching.
         println(The string $(FILE) has no suffix)
 >>
 
-Node: Subsection 7-2-7,	Next: Subsection 7-2-8,	Prev: Subsection 7-2-6,	Up: Section 7-2
+Node: Subsection 8-2-7,	Next: Subsection 8-2-8,	Prev: Subsection 8-2-6,	Up: Section 8-2
   
 
-7.2.7   try
+8.2.7   try
 ===========
 
 <<
@@ -930,10 +1485,10 @@ returned as the result.
   There can be any number of `catch' clauses; the `finally' clause is
 optional. 
 
-Node: Subsection 7-2-8,	Next: Subsection 7-2-9,	Prev: Subsection 7-2-7,	Up: Section 7-2
+Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Section 8-2
   
 
-7.2.8   raise
+8.2.8   raise
 =============
 
 <<
@@ -945,10 +1500,10 @@ Node: Subsection 7-2-8,	Next: Subsection 7-2-9,	Prev: Subsection 7-2-7,	Up: Sect
 object. However, the normal convention is to raise an `Exception'
 object. 
 
-Node: Subsection 7-2-9,	Next: Subsection 7-2-10,	Prev: Subsection 7-2-8,	Up: Section 7-2
+Node: Subsection 8-2-9,	Next: Subsection 8-2-10,	Prev: Subsection 8-2-8,	Up: Section 8-2
   
 
-7.2.9   exit
+8.2.9   exit
 ============
 
 <<
@@ -961,10 +1516,10 @@ Node: Subsection 7-2-9,	Next: Subsection 7-2-10,	Prev: Subsection 7-2-8,	Up: Sec
   The `exit' function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination. 
 
-Node: Subsection 7-2-10,	Next: Subsection 7-2-11,	Prev: Subsection 7-2-9,	Up: Section 7-2
+Node: Subsection 8-2-10,	Next: Subsection 8-2-11,	Prev: Subsection 8-2-9,	Up: Section 8-2
   
 
-7.2.10   defined
+8.2.10   defined
 ================
 
 <<
@@ -981,10 +1536,10 @@ variable if it is not already defined.
          export
 >>
 
-Node: Subsection 7-2-11,	Next: Subsection 7-2-12,	Prev: Subsection 7-2-10,	Up: Section 7-2
+Node: Subsection 8-2-11,	Next: Subsection 8-2-12,	Prev: Subsection 8-2-10,	Up: Section 8-2
   
 
-7.2.11   defined-env
+8.2.11   defined-env
 ====================
 
 <<
@@ -1002,10 +1557,10 @@ environment variable `DEBUG' is defined.
       export
 >>
 
-Node: Subsection 7-2-12,	Next: Subsection 7-2-13,	Prev: Subsection 7-2-11,	Up: Section 7-2
+Node: Subsection 8-2-12,	Next: Subsection 8-2-13,	Prev: Subsection 8-2-11,	Up: Section 8-2
   
 
-7.2.12   getenv
+8.2.12   getenv
 ===============
 
 <<
@@ -1032,10 +1587,10 @@ it is defined, and to `/bin /usr/bin' otherwise.
            default
 >>
 
-Node: Subsection 7-2-13,	Next: Subsection 7-2-14,	Prev: Subsection 7-2-12,	Up: Section 7-2
+Node: Subsection 8-2-13,	Next: Subsection 8-2-14,	Prev: Subsection 8-2-12,	Up: Section 8-2
   
 
-7.2.13   setenv
+8.2.13   setenv
 ===============
 
 <<
@@ -1047,10 +1602,10 @@ Node: Subsection 7-2-13,	Next: Subsection 7-2-14,	Prev: Subsection 7-2-12,	Up: S
   The `setenv' function sets the value of a variable in the process
 environment. Environment variables are scoped like normal variables.
 
-Node: Subsection 7-2-14,	Next: Subsection 7-2-15,	Prev: Subsection 7-2-13,	Up: Section 7-2
+Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
   
 
-7.2.14   get-registry
+8.2.14   get-registry
 =====================
 
 <<
@@ -1085,10 +1640,10 @@ also use the alternate form.
 >>
   
 
-Node: Subsection 7-2-15,	Next: Subsection 7-2-16,	Prev: Subsection 7-2-14,	Up: Section 7-2
+Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
   
 
-7.2.15   getvar
+8.2.15   getvar
 ===============
 
 <<
@@ -1103,629 +1658,3 @@ Node: Subsection 7-2-15,	Next: Subsection 7-2-16,	Prev: Subsection 7-2-14,	Up: S
       foo_1 = abc
       X = $(getvar $(NAME)_1)
 >>
-
-Node: Subsection 7-2-16,	Next: Section 7-3,	Prev: Subsection 7-2-15,	Up: Section 7-2
-  
-
-7.2.16   setvar
-===============
-
-<<
-     setvar(name, value)
-        name : String
-        value : String
->>
-  
-  The `setvar' function defines a new variable. For example, the
-following code defines the variable `X' to be the string `abc'.
-<<
-     NAME = X
-     setvar($(NAME), abc)
->>
-
-Node: Section 7-3,	Next: Subsection 7-3-1,	Prev: Section 7-2,	Up: Chapter 7
-  
-
-7.3   Arrays and sequences
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 7-3-1::	array
-* Subsection 7-3-2::	split
-* Subsection 7-3-3::	concat
-* Subsection 7-3-4::	length
-* Subsection 7-3-5::	nth
-* Subsection 7-3-6::	nth-hd
-* Subsection 7-3-7::	nth-tl
-* Subsection 7-3-8::	subrange
-* Subsection 7-3-9::	rev
-* Subsection 7-3-10::	string
-* Subsection 7-3-11::	string-escaped
-* Subsection 7-3-12::	quote
-* Subsection 7-3-13::	quote-argv
-* Subsection 7-3-14::	html-string
-* Subsection 7-3-15::	addsuffix
-* Subsection 7-3-16::	mapsuffix
-* Subsection 7-3-17::	addsuffixes
-* Subsection 7-3-18::	removeprefix
-* Subsection 7-3-19::	removesuffix
-* Subsection 7-3-20::	replacesuffixes
-* Subsection 7-3-21::	addprefix
-* Subsection 7-3-22::	mapprefix
-* Subsection 7-3-23::	add-wrapper
-* Subsection 7-3-24::	set
-* Subsection 7-3-25::	mem
-* Subsection 7-3-26::	intersection
-* Subsection 7-3-27::	intersects
-* Subsection 7-3-28::	set-diff
-* Subsection 7-3-29::	filter
-* Subsection 7-3-30::	filter-out
-* Subsection 7-3-31::	capitalize
-* Subsection 7-3-32::	uncapitalize
-* Subsection 7-3-33::	uppercase
-* Subsection 7-3-34::	lowercase
-* Subsection 7-3-35::	system
-* Subsection 7-3-36::	shell
-* Subsection 7-3-37::	while
-
-
-Node: Subsection 7-3-1,	Next: Subsection 7-3-2,	Prev: Section 7-3,	Up: Section 7-3
-  
-
-7.3.1   array
-=============
-
-<<
-      $(array elements) : Array
-         elements : Sequence
->>
-  
-  The `array' function creates an array from a sequence. If the `<arg>'
-is a string, the elements of the array are the whitespace-separated
-elements of the string, respecting quotes.
-  In addition, array variables can be declared as follows.
-<<
-      A[] =
-         <val1>
-         ...
-         <valn>
->>
-  
-  In this case, the elements of the array are exactly `<val1>', ...,
-`<valn>', and whitespace is preserved literally. 
-
-Node: Subsection 7-3-2,	Next: Subsection 7-3-3,	Prev: Subsection 7-3-1,	Up: Section 7-3
-  
-
-7.3.2   split
-=============
-
-<<
-     $(split sep, elements) : Array
-        sep : String
-        elements : Sequence
->>
-  
-  The `split' function takes two arguments, a string of separators, and
-a string argument. The result is an array of elements determined by
-splitting the elements by all occurrence of the separator in the
-`elements' sequence.
-  For example, in the following code, the `X' variable is defined to be
-the array `/bin /usr/bin /usr/local/bin'.
-<<
-      PATH = /bin:/usr/bin:/usr/local/bin
-      X = $(split :, $(PATH))
->>
-  
-  The `sep' argument may be omitted. In this case `split' breaks its
-arguments along the white space. Quotations are not split. 
-
-Node: Subsection 7-3-3,	Next: Subsection 7-3-4,	Prev: Subsection 7-3-2,	Up: Section 7-3
-  
-
-7.3.3   concat
-==============
-
-<<
-     $(concat sep, elements) : String
-        sep : String
-        elements : Sequence
->>
-  
-  The `concat' function takes two arguments, a separator string, and a
-sequence of elements. The result is a string formed by concatenating the
-elements, placing the separator between adjacent elements.
-  For example, in the following code, the `X' variable is defined to be
-the string `foo_x_bar_x_baz'.
-<<
-      X = foo  bar     baz
-      Y = $(concat _x_, $(X))
->>
-
-Node: Subsection 7-3-4,	Next: Subsection 7-3-5,	Prev: Subsection 7-3-3,	Up: Section 7-3
-  
-
-7.3.4   length
-==============
-
-<<
-     $(length sequence) : Int
-        sequence : Sequence
->>
-  
-  The `length' function returns the number of elements in its argument.
-  For example, the expression `$(length a  b "c d")' evaluates to 3. 
-
-Node: Subsection 7-3-5,	Next: Subsection 7-3-6,	Prev: Subsection 7-3-4,	Up: Section 7-3
-  
-
-7.3.5   nth
-===========
-
-<<
-     $(nth i, sequence) : value
-        i : Int
-        sequence : Sequence
-     raises RuntimeException
->>
-  
-  The `nth' function returns the nth element of its argument, treated as
-a list. Counting starts at 0. An exception is raised if the index is not
-in bounds.
-  For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
-c"'. 
-
-Node: Subsection 7-3-6,	Next: Subsection 7-3-7,	Prev: Subsection 7-3-5,	Up: Section 7-3
-  
-
-7.3.6   nth-hd
-==============
-
-<<
-     $(nth-hd i, sequence) : value
-        i : Int
-        sequence : Sequence
-     raises RuntimeException
->>
-  
-  The `nth-hd' function returns the first `i' elements of the sequence.
-An exception is raised if the sequence is not at least `i' elements
-long.
-  For example, the expression `$(nth-hd 2, a "b c" d)' evaluates to `a
-"b c"'.
-
-Node: Subsection 7-3-7,	Next: Subsection 7-3-8,	Prev: Subsection 7-3-6,	Up: Section 7-3
-  
-
-7.3.7   nth-tl
-==============
-
-<<
-     $(nth-tl i, sequence) : value
-        i : Int
-        sequence : Sequence
-     raises RuntimeException
->>
-  
-  The `nth-tl' function skips `i' elements of the sequence and returns
-the rest. An exception is raised if the sequence is not at least `i'
-elements long.
-  For example, the expression `$(nth-tl 1, a "b c" d)' evaluates to `"b
-c" d'.
-
-Node: Subsection 7-3-8,	Next: Subsection 7-3-9,	Prev: Subsection 7-3-7,	Up: Section 7-3
-  
-
-7.3.8   subrange
-================
-
-<<
-     $(subrange off, len, sequent) : value
-        off : Int
-        len : Int
-        sequence : Sequence
-     raises RuntimeException
->>
-  
-  The `subrange' function returns a subrange of the sequence. Counting
-starts at 0. An exception is raised if the specified range is not in
-bounds.
-  For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
-to `"b c" d'. 
-
-Node: Subsection 7-3-9,	Next: Subsection 7-3-10,	Prev: Subsection 7-3-8,	Up: Section 7-3
-  
-
-7.3.9   rev
-===========
-
-<<
-      $(rev sequence) : Sequence
-         sequence : Sequence
->>
-  
-  The `rev' function returns the elements of a sequence in reverse
-order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
-c" a'. 
-
-Node: Subsection 7-3-10,	Next: Subsection 7-3-11,	Prev: Subsection 7-3-9,	Up: Section 7-3
-  
-
-7.3.10   string
-===============
-
-<<
-     $(string sequence) : String
-        sequence : Sequence
->>
-  
-  The `string' function flattens a sequence into a single string. This
-is similar to the `concat' function, but the elements are separated by
-whitespace. The result is treated as a unit; whitespace is significant. 
-
-Node: Subsection 7-3-11,	Next: Subsection 7-3-12,	Prev: Subsection 7-3-10,	Up: Section 7-3
-  
-
-7.3.11   string-escaped
-=======================
-
-<<
-     $(string-escaped sequence) : String Array
-        sequence : Array
->>
-  
-  The `string-escaped' function converts each element of its argument to
-a string, escaping characters that are special to omake. The special
-characters include `:)(,' and shitespace.
-<<
-      string-escaped($"a b" $"y:z")
-      a\ b y\:z
->>
-
-Node: Subsection 7-3-12,	Next: Subsection 7-3-13,	Prev: Subsection 7-3-11,	Up: Section 7-3
-  
-
-7.3.12   quote
-==============
-
-<<
-     $(quote sequence) : String
-        sequence : Sequence
->>
-  
-  The `quote' function flattens a sequence into a single string and adds
-quotes around the string. Inner quotation symbols are escaped.
-  For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
-c\" d"', and `$(quote abc)' evaluates to `"abc"'. 
-
-Node: Subsection 7-3-13,	Next: Subsection 7-3-14,	Prev: Subsection 7-3-12,	Up: Section 7-3
-  
-
-7.3.13   quote-argv
-===================
-
-<<
-     $(quote-argv sequence) : String
-        sequence : Sequence
->>
-  
-  The `quote-argv' function flattens a sequence into a single string,
-and adds quotes around the string. The quotation is formed so that a
-command-line parse can separate the string back into its components. 
-
-Node: Subsection 7-3-14,	Next: Subsection 7-3-15,	Prev: Subsection 7-3-13,	Up: Section 7-3
-  
-
-7.3.14   html-string
-====================
-
-<<
-     $(html-string sequence) : String
-        sequence : Sequence
->>
-  
-  The `html-string' function flattens a sequence into a single string,
-and escaped special HTML characters. This is similar to the `concat'
-function, but the elements are separated by whitespace. The result is
-treated as a unit; whitespace is significant. 
-
-Node: Subsection 7-3-15,	Next: Subsection 7-3-16,	Prev: Subsection 7-3-14,	Up: Section 7-3
-  
-
-7.3.15   addsuffix
-==================
-
-<<
-     $(addsuffix suffix, sequence) : Array
-        suffix : String
-        sequence : Sequence
->>
-  
-  The `addsuffix' function adds a suffix to each component of sequence.
-The number of elements in the array is exactly the same as the number of
-elements in the sequence.
-  For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
-d".c'. 
-
-Node: Subsection 7-3-16,	Next: Subsection 7-3-17,	Prev: Subsection 7-3-15,	Up: Section 7-3
-  
-
-7.3.16   mapsuffix
-==================
-
-<<
-     $(mapsuffix suffix, sequence) : Array
-        suffix : value
-        sequence : Sequence
->>
-  
-  The `mapsuffix' function adds a suffix to each component of sequence.
-It is similar to `addsuffix', but uses array concatenation instead of
-string concatenation. The number of elements in the array is twice the
-number of elements in the sequence.
-  For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
-d" .c'. 
-
-Node: Subsection 7-3-17,	Next: Subsection 7-3-18,	Prev: Subsection 7-3-16,	Up: Section 7-3
-  
-
-7.3.17   addsuffixes
-====================
-
-<<
-     $(addsuffixes suffixes, sequence) : Array
-        suffixes : Sequence
-        sequence : Sequence
->>
-  
-  The `addsuffixes' function adds all suffixes in its first argument to
-each component of a sequence. If `suffixes' has `n' elements, and
-`sequence' has `m' elements, the the result has `n * m' elements.
-  For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
-to `a.c a.o b.c b.o c.o c.a'. 
-
-Node: Subsection 7-3-18,	Next: Subsection 7-3-19,	Prev: Subsection 7-3-17,	Up: Section 7-3
-  
-
-7.3.18   removeprefix
-=====================
-
-<<
-     $(removeprefix prefix, sequence) : Array
-        prefix : String
-        sequence : Array
->>
-  
-  The `removeprefix' function removes a prefix from each component of a
-sequence. 
-
-Node: Subsection 7-3-19,	Next: Subsection 7-3-20,	Prev: Subsection 7-3-18,	Up: Section 7-3
-  
-
-7.3.19   removesuffix
-=====================
-
-<<
-     $(removesuffix sequence) : Array
-        sequence : String
->>
-  
-  The `removesuffix' function removes the suffixes from each component
-of a sequence.
-  For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
-
-Node: Subsection 7-3-20,	Next: Subsection 7-3-21,	Prev: Subsection 7-3-19,	Up: Section 7-3
-  
-
-7.3.20   replacesuffixes
-========================
-
-<<
-     $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
-        old-suffixes : Sequence
-        new-suffixes : Sequence
-        sequence : Sequence
->>
-  
-  The `replacesuffixes' function modifies the suffix of each component
-in sequence. The `old-suffixes' and `new-suffixes' sequences should have
-the same length.
-  For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
-to `a.o b.o c.z'. 
-
-Node: Subsection 7-3-21,	Next: Subsection 7-3-22,	Prev: Subsection 7-3-20,	Up: Section 7-3
-  
-
-7.3.21   addprefix
-==================
-
-<<
-     $(addprefix prefix, sequence) : Array
-        prefix : String
-        sequence : Sequence
->>
-  
-  The `addprefix' function adds a prefix to each component of a
-sequence. The number of element in the result array is exactly the same
-as the number of elements in the argument sequence.
-  For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
-foo/"c d"'. 
-
-Node: Subsection 7-3-22,	Next: Subsection 7-3-23,	Prev: Subsection 7-3-21,	Up: Section 7-3
-  
-
-7.3.22   mapprefix
-==================
-
-<<
-     $(mapprefix prefix, sequence) : Array
-        prefix : String
-        sequence : Sequence
->>
-  
-  The `mapprefix' function adds a prefix to each component of a
-sequence. It is similar to `addprefix', but array concatenation is used
-instead of string concatenation. The result array contains twice as many
-elements as the argument sequence.
-  For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
-"c d"'. 
-
-Node: Subsection 7-3-23,	Next: Subsection 7-3-24,	Prev: Subsection 7-3-22,	Up: Section 7-3
-  
-
-7.3.23   add-wrapper
-====================
-
-<<
-     $(add-wrapper prefix, suffix, sequence) : Array
-        prefix : String
-        suffix : String
-        sequence : Sequence
->>
-  
-  The `add-wrapper' functions adds both a prefix and a suffix to each
-component of a sequence. For example, the expression `$(add-wrapper
-dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
-used. The array result has the same number of elements as the argument
-sequence. 
-
-Node: Subsection 7-3-24,	Next: Subsection 7-3-25,	Prev: Subsection 7-3-23,	Up: Section 7-3
-  
-
-7.3.24   set
-============
-
-<<
-     $(set sequence) : Array
-        sequence : Sequence
->>
-  
-  The `set' function sorts a set of string components, eliminating
-duplicates.
-  For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'. 
-
-Node: Subsection 7-3-25,	Next: Subsection 7-3-26,	Prev: Subsection 7-3-24,	Up: Section 7-3
-  
-
-7.3.25   mem
-============
-
-<<
-     $(mem elem, sequence) : Boolean
-        elem : String
-        sequence : Sequence
->>
-  
-  The `mem' function tests for membership in a sequence.
-  For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
-`$(mem m n, y z "m n" w a)' evaluates to `false'. 
-
-Node: Subsection 7-3-26,	Next: Subsection 7-3-27,	Prev: Subsection 7-3-25,	Up: Section 7-3
-  
-
-7.3.26   intersection
-=====================
-
-<<
-     $(intersection sequence1, sequence2) : Array
-        sequence1 : Sequence
-        sequence2 : Sequence
->>
-  
-  The `intersection' function takes two arguments, treats them as sets
-of strings, and computes their intersection. The order of the result is
-undefined, and it may contain duplicates. Use the `set' function to sort
-the result and eliminate duplicates in the result if desired.
-  For example, the expression `$(intersection c a b a, b a)' evaluates
-to `a b a'. 
-
-Node: Subsection 7-3-27,	Next: Subsection 7-3-28,	Prev: Subsection 7-3-26,	Up: Section 7-3
-  
-
-7.3.27   intersects
-===================
-
-<<
-     $(intersects sequence1, sequence2) : Boolean
-        sequence1 : Sequence
-        sequence2 : Sequence
->>
-  
-  The `intersects' function tests whether two sets have a non-empty
-intersection. This is slightly more efficient than computing the
-intersection and testing whether it is empty.
-  For example, the expression `$(intersects a b c, d c e)' evaluates to
-`true', and `$(intersects a b c a, d e f)' evaluates to `false'. 
-
-Node: Subsection 7-3-28,	Next: Subsection 7-3-29,	Prev: Subsection 7-3-27,	Up: Section 7-3
-  
-
-7.3.28   set-diff
-=================
-
-<<
-     $(set-diff sequence1, sequence2) : Array
-        sequence1 : Sequence
-        sequence2 : Sequence
->>
-  
-  The `set-diff' function takes two arguments, treats them as sets of
-strings, and computes their difference (all the elements of the first
-set that are not present in the second one). The order of the result is
-undefined and it may contain duplicates. Use the `set' function to sort
-the result and eliminate duplicates in the result if desired.
-  For example, the expression `$(set-diff c a b a e, b a)' evaluates to
-`c e'. 
-
-Node: Subsection 7-3-29,	Next: Subsection 7-3-30,	Prev: Subsection 7-3-28,	Up: Section 7-3
-  
-
-7.3.29   filter
-===============
-
-<<
-     $(filter patterns, sequence) : Array
-        patterns : Sequence
-        sequence : Sequence
->>
-  
-  The `filter' function picks elements from a sequence. The patterns is
-a non-empty sequence of patterns, each may contain one occurrence of the
-wildcard `%' character.
-  For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
-evaluates to `x.o b.h y.o'. 
-
-Node: Subsection 7-3-30,	Next: Subsection 7-3-31,	Prev: Subsection 7-3-29,	Up: Section 7-3
-  
-
-7.3.30   filter-out
-===================
-
-<<
-     $(filter-out patterns, sequence) : Array
-        patterns : Sequence
-        sequence : Sequence
->>
-  
-  The `filter-out' function removes elements from a sequence. The
-patterns is a non-empty sequence of patterns, each may contain one
-occurrence of the wildcard `%' character.
-  For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
-evaluates to `x.o y.o'. 
-
-Node: Subsection 7-3-31,	Next: Subsection 7-3-32,	Prev: Subsection 7-3-30,	Up: Section 7-3
-  
-
-7.3.31   capitalize
-===================
-
-<<
-     $(capitalize sequence) : Array
-        sequence : Sequence
->>
-  
-  The `capitalize' function capitalizes each word in a sequence. For
-example, `$(capitalize through the looking Glass)' evaluates to `Through
-The Looking Glass'. 

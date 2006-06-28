@@ -1,9 +1,626 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 8-8-6,	Next: Subsection 8-8-7,	Prev: Subsection 8-8-5,	Up: Section 8-8
+Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
   
 
-8.8.6   close
+9.5   Filesystem operations
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 9-5-1::	mkdir
+* Subsection 9-5-2::	Stat
+* Subsection 9-5-3::	stat
+* Subsection 9-5-4::	unlink
+* Subsection 9-5-5::	rename
+* Subsection 9-5-6::	link
+* Subsection 9-5-7::	symlink
+* Subsection 9-5-8::	readlink
+* Subsection 9-5-9::	chmod
+* Subsection 9-5-10::	chown
+* Subsection 9-5-11::	umask
+
+
+Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9-5
+  
+
+9.5.1   mkdir
+=============
+
+<<
+     mkdir(mode, node...)
+        mode : Int
+        node : Node
+     raises RuntimeException
+  
+     mkdir(node...)
+        node : Node
+     raises RuntimeException
+>>
+  
+  The `mkdir' function creates a directory, or a set of directories. The
+following options are supported. 
+  
+ -m mode  Specify the permissions of the created directory. 
+ -p  Create parent directories if they do not exist. 
+ --  Interpret the remaining names literally. 
+   
+
+Node: Subsection 9-5-2,	Next: Subsection 9-5-3,	Prev: Subsection 9-5-1,	Up: Section 9-5
+  
+
+9.5.2   Stat
+============
+
+  The `Stat' object represents the result returned by the `stat' and
+`lstat' functions. It contains the following fields.
+  A `stat' object has the following fields. Not all of the fields will
+have meaning on all architectures.
+  
+  
+ dev : the device number. 
+ ino : the inode number. 
+ kind : the kind of the file, one of the following:  `REG' (regular
+   file),  `DIR' (directory),  `CHR' (character device),  `BLK' (block
+   device),  `LNK' (symbolic link),  `FIFO' (named pipe),  `SOCK'
+   (socket). 
+ perm : access rights, represented as an integer. 
+ nlink : number of links. 
+ uid : user id of the owner. 
+ gid : group id of the file's group. 
+ rdev : device minor number. 
+ size : size in bytes. 
+ atime : last access time, as a floating point number. 
+ mtime : last modification time, as a floating point number. 
+ ctime : last status change time, as a floating point number. 
+  
+
+Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Section 9-5
+  
+
+9.5.3   stat
+============
+
+<<
+      $(stat node...) : Stat
+         node : Node or Channel
+      $(lstat node...) : Stat
+         node : Node or Channel
+      raises RuntimeException
+>>
+  
+  The `stat' functions return file information. If the file is a
+symbolic link, the `stat' function refers to the destination of the
+link; the `lstat' function refers to the link itself. 
+
+Node: Subsection 9-5-4,	Next: Subsection 9-5-5,	Prev: Subsection 9-5-3,	Up: Section 9-5
+  
+
+9.5.4   unlink
+==============
+
+<<
+     $(unlink file...)
+        file : File
+     #(rm file...)
+        file : File
+     $(rmdir dir...)
+        dir : Dir
+     raises RuntimeException
+>>
+  
+  The `unlink' and `rm' functions remove a file. The `rmdir' function
+removes a directory.
+  The following options are supported for `rm' and `rmdir'. 
+  
+ -f  ignore nonexistent files, never prompt. 
+ -i  prompt before removal. 
+ -r  remove the contents of directories recursively. 
+ -v  explain what is going on. 
+ --  the rest of the values are interpreted literally. 
+   
+
+Node: Subsection 9-5-5,	Next: Subsection 9-5-6,	Prev: Subsection 9-5-4,	Up: Section 9-5
+  
+
+9.5.5   rename
+==============
+
+<<
+      rename(old, new)
+         old : Node
+         new : Node
+      mv(nodes... dir)
+         nodes : Node Sequence
+         dir   : Dir
+      cp(nodes... dir)
+         nodes : Node Sequence
+         dir   : Dir
+      raises RuntimeException
+>>
+  
+  The `rename' function changes the name of a file or directory named
+`old' to `new'.
+  The `mv' function is similar, but if `new' is a directory, and it
+exists, then the files specified by the sequence are moved into the
+directory. If not, the behavior of `mv' is identical to `rename'. The
+`cp' function is similar, but the original file is not removed.
+  The `mv' and `cp' functions take the following options. 
+  
+ -f  Do not prompt before overwriting. 
+ -i  Prompt before overwriting. 
+ -v  Explain what it happening. 
+ -r  Copy the contents of directories recursively. 
+ --  Interpret the remaining arguments literally. 
+   
+
+Node: Subsection 9-5-6,	Next: Subsection 9-5-7,	Prev: Subsection 9-5-5,	Up: Section 9-5
+  
+
+9.5.6   link
+============
+
+<<
+     link(src, dst)
+        src : Node
+        dst : Node
+     raises RuntimeException
+>>
+  
+  The `link' function creates a hard link named `dst' to the file or
+directory `src'.
+  Hard links are not supported in Win32.
+  Normally, only the superuser can create hard links to directories. 
+
+Node: Subsection 9-5-7,	Next: Subsection 9-5-8,	Prev: Subsection 9-5-6,	Up: Section 9-5
+  
+
+9.5.7   symlink
+===============
+
+<<
+     symlink(src, dst)
+        src : Node
+        dst : Node
+     raises RuntimeException
+>>
+  
+  The `symlink' function creates a symbolic link `dst' that points to
+the `src' file.
+  The link name is computed relative to the target directory. For
+example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
+-> ../a/b'.
+  Symbolic links are not supported in Win32. 
+
+Node: Subsection 9-5-8,	Next: Subsection 9-5-9,	Prev: Subsection 9-5-7,	Up: Section 9-5
+  
+
+9.5.8   readlink
+================
+
+<<
+     $(readlink node...) : Node
+        node : Node
+>>
+  
+  The `readlink' function reads the value of a symbolic link. 
+
+Node: Subsection 9-5-9,	Next: Subsection 9-5-10,	Prev: Subsection 9-5-8,	Up: Section 9-5
+  
+
+9.5.9   chmod
+=============
+
+<<
+     chmod(mode, dst...)
+        mode : Int
+        dst : Node or Channel
+     chmod(mode dst...)
+        mode : String
+        dst : Node Sequence
+     raises RuntimeException
+>>
+  
+  The `chmod' function changes the permissions of the targets. The
+`chmod' function does nothing on Win32 platforms.
+  Options: 
+  
+ -v  Explain what is happening. 
+ -r  Change files and directories recursively. 
+ -f  Continue on errors. 
+ --  Interpret the remaining argument literally. 
+   
+
+Node: Subsection 9-5-10,	Next: Subsection 9-5-11,	Prev: Subsection 9-5-9,	Up: Section 9-5
+  
+
+9.5.10   chown
+==============
+
+<<
+     chown(uid, gid, node...)
+        uid : Int
+        gid : Int
+        node : Node or Channel
+     chown(uid, node...)
+        uid : Int
+        node : Node or Channel
+     raises RuntimeException
+>>
+  
+  The `chown' function changes the user and group id of the file. If the
+`gid' is not specified, it is not changed. If either id is -1, that id
+is not changed. 
+
+Node: Subsection 9-5-11,	Next: Section 9-6,	Prev: Subsection 9-5-10,	Up: Section 9-5
+  
+
+9.5.11   umask
+==============
+
+<<
+      $(umask mode) : Int
+         mode : Int
+      raises RuntimeException
+>>
+  
+  Sets the file mode creation mask. The previous mask is returned. This
+value is not scoped, changes have global effect. 
+
+Node: Section 9-6,	Next: Subsection 9-6-1,	Prev: Section 9-5,	Up: Chapter 9
+  
+
+9.6   vmount
+*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 9-6-1::	vmount
+* Subsection 9-6-2::	add-project-directories
+* Subsection 9-6-3::	remove-project-directories
+
+
+Node: Subsection 9-6-1,	Next: Subsection 9-6-2,	Prev: Section 9-6,	Up: Section 9-6
+  
+
+9.6.1   vmount
+==============
+
+<<
+      vmount(src, dst)
+         src, dst : Dir
+      vmount(flags, src, dst)
+         flags : String
+         src, dst : Dir
+>>
+  
+  ``Mount'' the `src' directory on the `dst' directory. This is a
+virtual mount, changing the behavior of the `$(file ...)' function. When
+the `$(file str)' function is used, the resulting file is taken relative
+to the `src' directory if the file exists. Otherwise, the file is
+relative to the current directory.
+  The main purpose of the `vmount' function is to support multiple
+builds with separate configurations or architectures.
+  The options are as follows. 
+  
+ l  Create symbolic links to files in the `src' directory. 
+ c  Copy files from the `src' directory. 
+  
+  Mount operations are scoped. 
+
+Node: Subsection 9-6-2,	Next: Subsection 9-6-3,	Prev: Subsection 9-6-1,	Up: Section 9-6
+  
+
+9.6.2   add-project-directories
+===============================
+
+<<
+      add-project-directories(dirs)
+         dirs : Dir Array
+>>
+  
+  Add the directories to the set of directories that omake considers to
+be part of the project. This is mainly used to avoid omake complaining
+that the current directory is not part of the project. 
+
+Node: Subsection 9-6-3,	Next: Section 9-7,	Prev: Subsection 9-6-2,	Up: Section 9-6
+  
+
+9.6.3   remove-project-directories
+==================================
+
+<<
+      remove-project-directories(dirs)
+         dirs : Dir Array
+>>
+  
+  Removed the directories from the set of directories that omake
+considers to be part of the project. This is mainly used to cancel a
+`.SUBDIRS' from including a directory if it is determined that the
+directory does not need to be compiled. 
+
+Node: Section 9-7,	Next: Subsection 9-7-1,	Prev: Section 9-6,	Up: Chapter 9
+  
+
+9.7   File predicates
+*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 9-7-1::	test
+* Subsection 9-7-2::	find
+
+
+Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9-7
+  
+
+9.7.1   test
+============
+
+<<
+     test(exp) : Bool
+        exp : String Sequence
+>>
+  
+  The expression grammar is as follows:
+  
+  
+ - `!' expression : expression is not true 
+ - expression1 `-a' expression2 : both expressions are true 
+ - expression1 `-o' expression2 : at least one expression is true 
+ - `(' expression `)' : expression is true 
+  
+  The base expressions are:
+  
+  
+ - `-n' string : The string has nonzero length 
+ - `-z' string : The string has zero length 
+ - string `=' string : The strings are equal 
+ - string `!=' string : The strings are not equal
+ 
+ - int1 `-eq' int2 : The integers are equal 
+ - int1 `-ne' int2 : The integers are not equal 
+ - int1 `-gt' int2 : int1 is larger than int2 
+ - int1 `-ge' int2 : int2 is not larger than int1 
+ - int1 `-lt' int2 : int1 is smaller than int2 
+ - int1 `-le' int2 : int1 is not larger than int2
+ 
+ - file1 `-ef' file2 : On Unix, file1 and file2 have the  same device
+   and inode number.  On Win32, file1 and file2 have the  same name. 
+ - file1 `-nt' file2 : file1 is newer than file2 
+ - file1 `-ot' file2 : file1 is older than file2
+ 
+ - `-b' file : The file is a block special file 
+ - `-c' file : The file is a character special file 
+ - `-d' file : The file is a directory 
+ - `-e' file : The file exists 
+ - `-f' file : The file is a normal file 
+ - `-g' file : The set`-group'`-id' bit is set on the file 
+ - `-G' file : The file's group is the current effective group 
+ - `-h' file : The file is a symbolic link (also `-L') 
+ - `-k' file : The file's sticky bit is set 
+ - `-L' file : The file is a symbolic link (also `-h') 
+ - `-O' file : The file's owner is the current effective user 
+ - `-p' file : The file is a named pipe 
+ - `-r' file : The file is readable 
+ - `-s' file : The file is empty 
+ - `-S' file : The file is a socket 
+ - `-u' file : The set`-user'`-id' bit is set on the file 
+ - `-w' file : The file is writable 
+ - `-x' file : The file is executable 
+  
+  A string is any sequence of characters; leading `-' characters are
+allowed.
+  An int is a string that can be interpreted as an integer. Unlike
+traditional versions of the test program, the leading characters may
+specify an arity. The prefix `0b' means the numbers is in binary; the
+prefix `0o' means the number is in octal; the prefix `0x' means the
+number is in hexadecimal. An int can also be specified as `-l' string,
+which evaluates to the length of the string.
+  A file is a string that represents the name of a file.
+  The syntax mirrors that of the test(1) program. If you are on a Unix
+system, the man page explains more. Here are some examples.
+<<
+      # Create an empty file
+      osh> touch foo
+      # Is the file empty?
+      osh> test(-e foo)
+      - : true
+      osh> test(! -e foo)
+      - : false
+      # Create another file
+      osh> touch boo
+      # Is the newer file newer?
+      osh> test(boo -nt foo)
+      - : true
+      # A more complex query
+      # boo is newer than foo, and foo is empty
+      osh> test(\( boo -nt foo \) -a -e foo)
+      - : true
+>>
+
+Node: Subsection 9-7-2,	Next: Section 9-8,	Prev: Subsection 9-7-1,	Up: Section 9-7
+  
+
+9.7.2   find
+============
+
+<<
+     find(exp) : Node Array
+        exp : String Sequence
+>>
+  
+  The `find' function searches a directory recursively, returning the
+files for which the expression evaluates to true.
+  The expression argument uses the same syntax as the `test' function,
+with the following exceptions.
+  
+  
+ 1. The expression may begin with a directory. If not specified, the
+   current  directory is searched. 
+ 2. The `{}' string expands to the current file being examined. 
+  
+  The syntax of the expression is the same as `test', with the following
+additions.
+  
+  
+ - `-name' string : The current file matches the glob expression (see
+   Section 9.4*Note Section 9-4::). 
+  
+  The `find' function performs a recursive scan of all subdirectories.
+The following call is being run from the root of the `omake' source
+directory.
+<<
+      osh> find(. -name fo* )
+      - : <array
+              /home/jyh/.../omake/mk/.svn/format
+              /home/jyh/.../omake/RPM/.svn/format
+              ...
+             
+/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+>>
+  
+  Another example, listing only those files that are normal files or
+symbolic links.
+<<
+      osh> find(. -name fo* -a \( -f {} -o -L {} \))
+      - : <array
+              /home/jyh/.../omake/mk/.svn/format
+              /home/jyh/.../omake/RPM/.svn/format
+              ...
+             
+/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
+>>
+   
+
+Node: Section 9-8,	Next: Subsection 9-8-1,	Prev: Section 9-7,	Up: Chapter 9
+  
+
+9.8   IO functions
+*=*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 9-8-1::	Standard channels
+* Subsection 9-8-2::	stdin
+* Subsection 9-8-3::	stdout
+* Subsection 9-8-4::	stderr
+* Subsection 9-8-5::	fopen
+* Subsection 9-8-6::	close
+* Subsection 9-8-7::	read
+* Subsection 9-8-8::	write
+* Subsection 9-8-9::	lseek
+* Subsection 9-8-10::	rewind
+* Subsection 9-8-11::	tell
+* Subsection 9-8-12::	flush
+* Subsection 9-8-13::	dup
+* Subsection 9-8-14::	dup2
+* Subsection 9-8-15::	set-nonblock
+* Subsection 9-8-16::	set-close-on-exec-mode
+* Subsection 9-8-17::	pipe
+* Subsection 9-8-18::	mkfifo
+* Subsection 9-8-19::	select
+* Subsection 9-8-20::	lockf
+* Subsection 9-8-21::	InetAddr
+* Subsection 9-8-22::	Host
+* Subsection 9-8-23::	gethostbyname
+* Subsection 9-8-24::	Protocol
+* Subsection 9-8-25::	getprotobyname
+* Subsection 9-8-26::	Service
+* Subsection 9-8-27::	getservbyname
+* Subsection 9-8-28::	socket
+* Subsection 9-8-29::	bind
+* Subsection 9-8-30::	listen
+* Subsection 9-8-31::	accept
+* Subsection 9-8-32::	connect
+* Subsection 9-8-33::	getchar
+* Subsection 9-8-34::	gets
+* Subsection 9-8-35::	fgets
+
+
+Node: Subsection 9-8-1,	Next: Subsection 9-8-2,	Prev: Section 9-8,	Up: Section 9-8
+  
+
+9.8.1   Standard channels
+=========================
+  
+  The following variables define the standard channels.
+
+Node: Subsection 9-8-2,	Next: Subsection 9-8-3,	Prev: Subsection 9-8-1,	Up: Section 9-8
+  
+
+9.8.2   stdin
+=============
+
+<<
+  stdin : InChannel
+>>
+  
+  The standard input channel, open for reading.
+
+Node: Subsection 9-8-3,	Next: Subsection 9-8-4,	Prev: Subsection 9-8-2,	Up: Section 9-8
+  
+
+9.8.3   stdout
+==============
+ 
+<<
+  stdout : OutChannel
+>>
+  
+  The standard output channel, open for writing.
+
+Node: Subsection 9-8-4,	Next: Subsection 9-8-5,	Prev: Subsection 9-8-3,	Up: Section 9-8
+  
+
+9.8.4   stderr
+==============
+ 
+<<
+  stderr : OutChannel
+>>
+  
+  The standard error channel, open for writing. 
+
+Node: Subsection 9-8-5,	Next: Subsection 9-8-6,	Prev: Subsection 9-8-4,	Up: Section 9-8
+  
+
+9.8.5   fopen
+=============
+
+  The `fopen' function opens a file for reading or writing.
+<<
+     $(fopen file, mode) : Channel
+        file : File
+        mode : String
+>>
+  
+  The `file' is the name of the file to be opened. The `mode' is a
+combination of the following characters. 
+  
+ r  Open the file for reading; it is an error if the file does not
+   exist. 
+ w  Open the file for writing; the file is created if it does not exist.
+   
+ a  Open the file in append mode; the file is created if it does not
+   exist. 
+ +  Open the file for both reading an writing. 
+ t  Open the file in text mode (default). 
+ b  Open the file in binary mode. 
+ n  Open the file in nonblocking mode. 
+ x  Fail if the file already exists. 
+  
+  Binary mode is not significant on Unix systems, where text and binary
+modes are equivalent. 
+
+Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Section 9-8
+  
+
+9.8.6   close
 =============
 
 <<
@@ -14,10 +631,10 @@ Node: Subsection 8-8-6,	Next: Subsection 8-8-7,	Prev: Subsection 8-8-5,	Up: Sect
   The `close' function closes a file that was previously opened with
 `fopen'. 
 
-Node: Subsection 8-8-7,	Next: Subsection 8-8-8,	Prev: Subsection 8-8-6,	Up: Section 8-8
+Node: Subsection 9-8-7,	Next: Subsection 9-8-8,	Prev: Subsection 9-8-6,	Up: Section 9-8
   
 
-8.8.7   read
+9.8.7   read
 ============
 
 <<
@@ -31,10 +648,10 @@ Node: Subsection 8-8-7,	Next: Subsection 8-8-8,	Prev: Subsection 8-8-6,	Up: Sect
 and returns the data that was read. If an end-of-file condition is
 reached, the function raises a `RuntimeException' exception. 
 
-Node: Subsection 8-8-8,	Next: Subsection 8-8-9,	Prev: Subsection 8-8-7,	Up: Section 8-8
+Node: Subsection 9-8-8,	Next: Subsection 9-8-9,	Prev: Subsection 9-8-7,	Up: Section 9-8
   
 
-8.8.8   write
+9.8.8   write
 =============
 
 <<
@@ -59,10 +676,10 @@ length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception. 
 
-Node: Subsection 8-8-9,	Next: Subsection 8-8-10,	Prev: Subsection 8-8-8,	Up: Section 8-8
+Node: Subsection 9-8-9,	Next: Subsection 9-8-10,	Prev: Subsection 9-8-8,	Up: Section 9-8
   
 
-8.8.9   lseek
+9.8.9   lseek
 =============
 
 <<
@@ -85,10 +702,10 @@ according to the `whence' directive, as follows:
   
   The `lseek' function returns the new position in the file. 
 
-Node: Subsection 8-8-10,	Next: Subsection 8-8-11,	Prev: Subsection 8-8-9,	Up: Section 8-8
+Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Section 9-8
   
 
-8.8.10   rewind
+9.8.10   rewind
 ===============
 
 <<
@@ -99,10 +716,10 @@ Node: Subsection 8-8-10,	Next: Subsection 8-8-11,	Prev: Subsection 8-8-9,	Up: Se
   The `rewind' function set the current file position to the beginning
 of the file. 
 
-Node: Subsection 8-8-11,	Next: Subsection 8-8-12,	Prev: Subsection 8-8-10,	Up: Section 8-8
+Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: Section 9-8
   
 
-8.8.11   tell
+9.8.11   tell
 =============
 
 <<
@@ -113,10 +730,10 @@ Node: Subsection 8-8-11,	Next: Subsection 8-8-12,	Prev: Subsection 8-8-10,	Up: S
   
   The `tell' function returns the current position of the `channel'. 
 
-Node: Subsection 8-8-12,	Next: Subsection 8-8-13,	Prev: Subsection 8-8-11,	Up: Section 8-8
+Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: Section 9-8
   
 
-8.8.12   flush
+9.8.12   flush
 ==============
 
 <<
@@ -127,10 +744,10 @@ Node: Subsection 8-8-12,	Next: Subsection 8-8-13,	Prev: Subsection 8-8-11,	Up: S
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file. 
 
-Node: Subsection 8-8-13,	Next: Subsection 8-8-14,	Prev: Subsection 8-8-12,	Up: Section 8-8
+Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: Section 9-8
   
 
-8.8.13   dup
+9.8.13   dup
 ============
 
 <<
@@ -142,10 +759,10 @@ Node: Subsection 8-8-13,	Next: Subsection 8-8-14,	Prev: Subsection 8-8-12,	Up: S
   The `dup' function returns a new channel referencing the same file as
 the argument. 
 
-Node: Subsection 8-8-14,	Next: Subsection 8-8-15,	Prev: Subsection 8-8-13,	Up: Section 8-8
+Node: Subsection 9-8-14,	Next: Subsection 9-8-15,	Prev: Subsection 9-8-13,	Up: Section 9-8
   
 
-8.8.14   dup2
+9.8.14   dup2
 =============
 
 <<
@@ -158,10 +775,10 @@ Node: Subsection 8-8-14,	Next: Subsection 8-8-15,	Prev: Subsection 8-8-13,	Up: S
   The `dup2' function causes `channel2' to refer to the same file as
 `channel1'. 
 
-Node: Subsection 8-8-15,	Next: Subsection 8-8-16,	Prev: Subsection 8-8-14,	Up: Section 8-8
+Node: Subsection 9-8-15,	Next: Subsection 9-8-16,	Prev: Subsection 9-8-14,	Up: Section 9-8
   
 
-8.8.15   set-nonblock
+9.8.15   set-nonblock
 =====================
 
 <<
@@ -175,10 +792,10 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'. 
 
-Node: Subsection 8-8-16,	Next: Subsection 8-8-17,	Prev: Subsection 8-8-15,	Up: Section 8-8
+Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: Section 9-8
   
 
-8.8.16   set-close-on-exec-mode
+9.8.16   set-close-on-exec-mode
 ===============================
 
 <<
@@ -192,10 +809,10 @@ Node: Subsection 8-8-16,	Next: Subsection 8-8-17,	Prev: Subsection 8-8-15,	Up: S
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is. 
 
-Node: Subsection 8-8-17,	Next: Subsection 8-8-18,	Prev: Subsection 8-8-16,	Up: Section 8-8
+Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: Section 9-8
   
 
-8.8.17   pipe
+9.8.17   pipe
 =============
 
 <<
@@ -207,10 +824,10 @@ Node: Subsection 8-8-17,	Next: Subsection 8-8-18,	Prev: Subsection 8-8-16,	Up: S
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing. 
 
-Node: Subsection 8-8-18,	Next: Subsection 8-8-19,	Prev: Subsection 8-8-17,	Up: Section 8-8
+Node: Subsection 9-8-18,	Next: Subsection 9-8-19,	Prev: Subsection 9-8-17,	Up: Section 9-8
   
 
-8.8.18   mkfifo
+9.8.18   mkfifo
 ===============
 
 <<
@@ -221,10 +838,10 @@ Node: Subsection 8-8-18,	Next: Subsection 8-8-19,	Prev: Subsection 8-8-17,	Up: S
   
   The `mkfifo' function creates a named pipe. 
 
-Node: Subsection 8-8-19,	Next: Subsection 8-8-20,	Prev: Subsection 8-8-18,	Up: Section 8-8
+Node: Subsection 9-8-19,	Next: Subsection 9-8-20,	Prev: Subsection 9-8-18,	Up: Section 9-8
   
 
-8.8.19   select
+9.8.19   select
 ===============
 
 <<
@@ -249,10 +866,10 @@ the following fields:
  error  An array of channels on which an error has occurred. 
    
 
-Node: Subsection 8-8-20,	Next: Subsection 8-8-21,	Prev: Subsection 8-8-19,	Up: Section 8-8
+Node: Subsection 9-8-20,	Next: Subsection 9-8-21,	Prev: Subsection 9-8-19,	Up: Section 9-8
   
 
-8.8.20   lockf
+9.8.20   lockf
 ==============
 
 <<
@@ -275,10 +892,10 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
    
 
-Node: Subsection 8-8-21,	Next: Subsection 8-8-22,	Prev: Subsection 8-8-20,	Up: Section 8-8
+Node: Subsection 9-8-21,	Next: Subsection 9-8-22,	Prev: Subsection 9-8-20,	Up: Section 9-8
   
 
-8.8.21   InetAddr
+9.8.21   InetAddr
 =================
 
   The `InetAddr' object describes an Internet address. It contains the
@@ -289,10 +906,10 @@ following fields.
  port  `Int': the port number. 
   
 
-Node: Subsection 8-8-22,	Next: Subsection 8-8-23,	Prev: Subsection 8-8-21,	Up: Section 8-8
+Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: Section 9-8
   
 
-8.8.22   Host
+9.8.22   Host
 =============
 
   A `Host' object contains the following fields.
@@ -305,10 +922,10 @@ Node: Subsection 8-8-22,	Next: Subsection 8-8-23,	Prev: Subsection 8-8-21,	Up: S
    the host. 
   
 
-Node: Subsection 8-8-23,	Next: Subsection 8-8-24,	Prev: Subsection 8-8-22,	Up: Section 8-8
+Node: Subsection 9-8-23,	Next: Subsection 9-8-24,	Prev: Subsection 9-8-22,	Up: Section 9-8
   
 
-8.8.23   gethostbyname
+9.8.23   gethostbyname
 ======================
 
 <<
@@ -320,10 +937,10 @@ Node: Subsection 8-8-23,	Next: Subsection 8-8-24,	Prev: Subsection 8-8-22,	Up: S
   The `gethostbyname' function returns a `Host' object for the specified
 host. The `host' may specify a domain name or an Internet address.
 
-Node: Subsection 8-8-24,	Next: Subsection 8-8-25,	Prev: Subsection 8-8-23,	Up: Section 8-8
+Node: Subsection 9-8-24,	Next: Subsection 9-8-25,	Prev: Subsection 9-8-23,	Up: Section 9-8
   
 
-8.8.24   Protocol
+9.8.24   Protocol
 =================
 
   The `Protocol' object represents a protocol entry. It has the
@@ -335,10 +952,10 @@ following fields.
  proto  `Int': the protocol number. 
   
 
-Node: Subsection 8-8-25,	Next: Subsection 8-8-26,	Prev: Subsection 8-8-24,	Up: Section 8-8
+Node: Subsection 9-8-25,	Next: Subsection 9-8-26,	Prev: Subsection 9-8-24,	Up: Section 9-8
   
 
-8.8.25   getprotobyname
+9.8.25   getprotobyname
 =======================
 
 <<
@@ -351,10 +968,10 @@ Node: Subsection 8-8-25,	Next: Subsection 8-8-26,	Prev: Subsection 8-8-24,	Up: S
 specified protocol. The `name' may be a protocol name, or a protocol
 number. 
 
-Node: Subsection 8-8-26,	Next: Subsection 8-8-27,	Prev: Subsection 8-8-25,	Up: Section 8-8
+Node: Subsection 9-8-26,	Next: Subsection 9-8-27,	Prev: Subsection 9-8-25,	Up: Section 9-8
   
 
-8.8.26   Service
+9.8.26   Service
 ================
 
   The `Service' object represents a network service. It has the
@@ -367,10 +984,10 @@ following fields.
  proto  `Protocol': the protocol for the service. 
   
 
-Node: Subsection 8-8-27,	Next: Subsection 8-8-28,	Prev: Subsection 8-8-26,	Up: Section 8-8
+Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: Section 9-8
   
 
-8.8.27   getservbyname
+9.8.27   getservbyname
 ======================
 
 <<
@@ -382,10 +999,10 @@ Node: Subsection 8-8-27,	Next: Subsection 8-8-28,	Prev: Subsection 8-8-26,	Up: S
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number. 
 
-Node: Subsection 8-8-28,	Next: Subsection 8-8-29,	Prev: Subsection 8-8-27,	Up: Section 8-8
+Node: Subsection 9-8-28,	Next: Subsection 9-8-29,	Prev: Subsection 9-8-27,	Up: Section 9-8
   
 
-8.8.28   socket
+9.8.28   socket
 ===============
 
 <<
@@ -414,10 +1031,10 @@ Node: Subsection 8-8-28,	Next: Subsection 8-8-29,	Prev: Subsection 8-8-27,	Up: S
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database. 
 
-Node: Subsection 8-8-29,	Next: Subsection 8-8-30,	Prev: Subsection 8-8-28,	Up: Section 8-8
+Node: Subsection 9-8-29,	Next: Subsection 9-8-30,	Prev: Subsection 9-8-28,	Up: Section 9-8
   
 
-8.8.29   bind
+9.8.29   bind
 =============
 
 <<
@@ -437,10 +1054,10 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address. 
 
-Node: Subsection 8-8-30,	Next: Subsection 8-8-31,	Prev: Subsection 8-8-29,	Up: Section 8-8
+Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: Section 9-8
   
 
-8.8.30   listen
+9.8.30   listen
 ===============
 
 <<
@@ -453,10 +1070,10 @@ Node: Subsection 8-8-30,	Next: Subsection 8-8-31,	Prev: Subsection 8-8-29,	Up: S
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests. 
 
-Node: Subsection 8-8-31,	Next: Subsection 8-8-32,	Prev: Subsection 8-8-30,	Up: Section 8-8
+Node: Subsection 9-8-31,	Next: Subsection 9-8-32,	Prev: Subsection 9-8-30,	Up: Section 9-8
   
 
-8.8.31   accept
+9.8.31   accept
 ===============
 
 <<
@@ -467,10 +1084,10 @@ Node: Subsection 8-8-31,	Next: Subsection 8-8-32,	Prev: Subsection 8-8-30,	Up: S
   
   The `accept' function accepts a connection on a socket. 
 
-Node: Subsection 8-8-32,	Next: Subsection 8-8-33,	Prev: Subsection 8-8-31,	Up: Section 8-8
+Node: Subsection 9-8-32,	Next: Subsection 9-8-33,	Prev: Subsection 9-8-31,	Up: Section 9-8
   
 
-8.8.32   connect
+9.8.32   connect
 ================
 
 <<
@@ -491,10 +1108,10 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket. 
 
-Node: Subsection 8-8-33,	Next: Subsection 8-8-34,	Prev: Subsection 8-8-32,	Up: Section 8-8
+Node: Subsection 9-8-33,	Next: Subsection 9-8-34,	Prev: Subsection 9-8-32,	Up: Section 9-8
   
 
-8.8.33   getchar
+9.8.33   getchar
 ================
 
 <<
@@ -508,10 +1125,10 @@ Node: Subsection 8-8-33,	Next: Subsection 8-8-34,	Prev: Subsection 8-8-32,	Up: S
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'. 
 
-Node: Subsection 8-8-34,	Next: Subsection 8-8-35,	Prev: Subsection 8-8-33,	Up: Section 8-8
+Node: Subsection 9-8-34,	Next: Subsection 9-8-35,	Prev: Subsection 9-8-33,	Up: Section 9-8
   
 
-8.8.34   gets
+9.8.34   gets
 =============
 
 <<
@@ -525,10 +1142,10 @@ Node: Subsection 8-8-34,	Next: Subsection 8-8-35,	Prev: Subsection 8-8-33,	Up: S
 returns the empty string if the end of file has been reached. The line
 terminator is removed. 
 
-Node: Subsection 8-8-35,	Next: Section 8-9,	Prev: Subsection 8-8-34,	Up: Section 8-8
+Node: Subsection 9-8-35,	Next: Section 9-9,	Prev: Subsection 9-8-34,	Up: Section 9-8
   
 
-8.8.35   fgets
+9.8.35   fgets
 ==============
 
 <<
@@ -543,10 +1160,10 @@ opened for reading with `fopen'. The function returns the empty string
 if the end of file has been reached. The returned string is returned as
 literal data. The line terminator is not removed. 
 
-Node: Section 8-9,	Next: Section 8-10,	Prev: Section 8-8,	Up: Chapter 8
+Node: Section 9-9,	Next: Section 9-10,	Prev: Section 9-8,	Up: Chapter 9
   
 
-8.9   Printing functions
+9.9   Printing functions
 *=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -571,10 +1188,10 @@ printed, the `print' function does not.
 with `fopen'. The `print' functions print to the standard output
 channel, and the `eprint' functions print to the standard error channel.
 
-Node: Section 8-10,	Next: Section 8-11,	Prev: Section 8-9,	Up: Chapter 8
+Node: Section 9-10,	Next: Section 9-11,	Prev: Section 9-9,	Up: Chapter 9
   
 
-8.10   Value printing functions
+9.10   Value printing functions
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
@@ -600,36 +1217,36 @@ opened with `fopen'. The `printv' functions print to the standard output
 channel, and the `eprintv' functions print to the standard error
 channel. 
 
-Node: Section 8-11,	Next: Subsection 8-11-1,	Prev: Section 8-10,	Up: Chapter 8
+Node: Section 9-11,	Next: Subsection 9-11-1,	Prev: Section 9-10,	Up: Chapter 9
   
 
-8.11   Higher-level IO functions
+9.11   Higher-level IO functions
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
 * Menu:
 
-* Subsection 8-11-1::	Regular expressions
-* Subsection 8-11-2::	cat
-* Subsection 8-11-3::	grep
-* Subsection 8-11-4::	scan
-* Subsection 8-11-5::	awk
-* Subsection 8-11-6::	fsubst
-* Subsection 8-11-7::	Lexer
-* Subsection 8-11-8::	Lexer matching
-* Subsection 8-11-9::	Extending lexer definitions
-* Subsection 8-11-10::	Threading the lexer object
-* Subsection 8-11-11::	Parser
-* Subsection 8-11-12::	Calling the parser
-* Subsection 8-11-13::	Parsing control
-* Subsection 8-11-14::	Extending parsers
-* Subsection 8-11-15::	gettimeofday
+* Subsection 9-11-1::	Regular expressions
+* Subsection 9-11-2::	cat
+* Subsection 9-11-3::	grep
+* Subsection 9-11-4::	scan
+* Subsection 9-11-5::	awk
+* Subsection 9-11-6::	fsubst
+* Subsection 9-11-7::	Lexer
+* Subsection 9-11-8::	Lexer matching
+* Subsection 9-11-9::	Extending lexer definitions
+* Subsection 9-11-10::	Threading the lexer object
+* Subsection 9-11-11::	Parser
+* Subsection 9-11-12::	Calling the parser
+* Subsection 9-11-13::	Parsing control
+* Subsection 9-11-14::	Extending parsers
+* Subsection 9-11-15::	gettimeofday
 
 
-Node: Subsection 8-11-1,	Next: Subsection 8-11-2,	Prev: Section 8-11,	Up: Section 8-11
+Node: Subsection 9-11-1,	Next: Subsection 9-11-2,	Prev: Section 9-11,	Up: Section 9-11
   
 
-8.11.1   Regular expressions
+9.11.1   Regular expressions
 ============================
    
   Many of the higher-level functions use regular expressions. Regular
@@ -706,10 +1323,10 @@ abstractly. Some of these sequences can change depending on your LOCALE.
  - `[:space:]' Whitespace characters. 
    
 
-Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: Section 8-11
+Node: Subsection 9-11-2,	Next: Subsection 9-11-3,	Prev: Subsection 9-11-1,	Up: Section 9-11
   
 
-8.11.2   cat
+9.11.2   cat
 ============
 
 <<
@@ -720,10 +1337,10 @@ Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: S
   The `cat' function concatenates the output from multiple files and
 returns it as a string. 
 
-Node: Subsection 8-11-3,	Next: Subsection 8-11-4,	Prev: Subsection 8-11-2,	Up: Section 8-11
+Node: Subsection 9-11-3,	Next: Subsection 9-11-4,	Prev: Subsection 9-11-2,	Up: Section 9-11
   
 
-8.11.3   grep
+9.11.3   grep
 =============
 
 <<
@@ -755,10 +1372,10 @@ highly-simplified version of grep(1).
   If successful (`grep' found a match), the function returns `true'.
 Otherwise, it returns `false'. 
 
-Node: Subsection 8-11-4,	Next: Subsection 8-11-5,	Prev: Subsection 8-11-3,	Up: Section 8-11
+Node: Subsection 9-11-4,	Next: Subsection 9-11-5,	Prev: Subsection 9-11-3,	Up: Section 9-11
   
 
-8.11.4   scan
+9.11.4   scan
 =============
 
 <<
@@ -841,10 +1458,10 @@ meaning of `stdout' outside the `calc' function.
           close(stdout)
 >>
 
-Node: Subsection 8-11-5,	Next: Subsection 8-11-6,	Prev: Subsection 8-11-4,	Up: Section 8-11
+Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: Section 9-11
   
 
-8.11.5   awk
+9.11.5   awk
 ============
 
 <<
@@ -913,10 +1530,10 @@ meaning of `stdout' outside the `filter' function.
           close(stdout)
 >>
 
-Node: Subsection 8-11-6,	Next: Subsection 8-11-7,	Prev: Subsection 8-11-5,	Up: Section 8-11
+Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: Section 9-11
   
 
-8.11.6   fsubst
+9.11.6   fsubst
 ===============
 
 <<
@@ -956,10 +1573,10 @@ expression `word.' with its capitalized form.
          close(stdout)
 >>
 
-Node: Subsection 8-11-7,	Next: Subsection 8-11-8,	Prev: Subsection 8-11-6,	Up: Section 8-11
+Node: Subsection 9-11-7,	Next: Subsection 9-11-8,	Prev: Subsection 9-11-6,	Up: Section 9-11
   
 
-8.11.7   Lexer
+9.11.7   Lexer
 ==============
 
   The `Lexer' object defines a facility for lexical analysis, similar to
@@ -1036,10 +1653,10 @@ and value.
 `lexer1.lex-channel(channel)' reads the next token from the channel
 argument.
 
-Node: Subsection 8-11-8,	Next: Subsection 8-11-9,	Prev: Subsection 8-11-7,	Up: Section 8-11
+Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: Section 9-11
   
 
-8.11.8   Lexer matching
+9.11.8   Lexer matching
 =======================
   
   During lexical analysis, clauses are selected by longest match. That
@@ -1048,10 +1665,10 @@ chosen for evaluation. If no clause matches, the lexer raises a
 `RuntimeException'. If more than one clause matches the same amount of
 input, the first one is chosen for evaluation.
 
-Node: Subsection 8-11-9,	Next: Subsection 8-11-10,	Prev: Subsection 8-11-8,	Up: Section 8-11
+Node: Subsection 9-11-9,	Next: Subsection 9-11-10,	Prev: Subsection 9-11-8,	Up: Section 9-11
   
 
-8.11.9   Extending lexer definitions
+9.11.9   Extending lexer definitions
 ====================================
   
   Suppose we wish to augment the lexer example so that it ignores
@@ -1096,10 +1713,10 @@ this by extending the lexer object `lexer1' that we just created.
   The body for the comment clause calls the `lex-comment' lexer when a
 comment is encountered, and continues lexing when that lexer returns.
 
-Node: Subsection 8-11-10,	Next: Subsection 8-11-11,	Prev: Subsection 8-11-9,	Up: Section 8-11
+Node: Subsection 9-11-10,	Next: Subsection 9-11-11,	Prev: Subsection 9-11-9,	Up: Section 9-11
   
 
-8.11.10   Threading the lexer object
+9.11.10   Threading the lexer object
 ====================================
   
   Clause bodies may also end with an `export' directive. In this case
@@ -1109,10 +1726,10 @@ the lexer object itself is used as the returned token. If used with the
 lexer, it calls it with the lexer returned from the previous lex
 invocation. 
 
-Node: Subsection 8-11-11,	Next: Subsection 8-11-12,	Prev: Subsection 8-11-10,	Up: Section 8-11
+Node: Subsection 9-11-11,	Next: Subsection 9-11-12,	Prev: Subsection 9-11-10,	Up: Section 9-11
   
 
-8.11.11   Parser
+9.11.11   Parser
 ================
   
   The `Parser' object provides a facility for syntactic analysis based
@@ -1186,594 +1803,3 @@ expressions recognized by the desktop calculator. The semantic action
 performs the calculation. The variables `$1, $2, ...' correspond to the
 values associated with each of the variables on the right-hand-side of
 the production.
-
-Node: Subsection 8-11-12,	Next: Subsection 8-11-13,	Prev: Subsection 8-11-11,	Up: Section 8-11
-  
-
-8.11.12   Calling the parser
-============================
-  
-  The parser is called with the `$(parser1.parse-channel start,
-channel)' or `$(parser1.parse-file start, file)' functions. The `start'
-argument is the start symbol, and the `channel' or `file' is the input
-to the parser.
-
-Node: Subsection 8-11-13,	Next: Subsection 8-11-14,	Prev: Subsection 8-11-12,	Up: Section 8-11
-  
-
-8.11.13   Parsing control
-=========================
-  
-  The parser generator generates a pushdown automation based on LALR(1)
-tables. As usual, if the grammar is ambiguous, this may generate
-shift/reduce or reduce/reduce conflicts. These conflicts are printed to
-standard output when the automaton is generated.
-  By default, the automaton is not constructed until the parser is first
-used.
-  The `build(debug)' method forces the construction of the automaton.
-While not required, it is wise to finish each complete parser with a
-call to the `build(debug)' method. If the `debug' variable is set, this
-also prints with parser table together with any conflicts.
-  The `loc' variable is defined within action bodies, and represents the
-input range for all tokens on the right-hand-side of the production.
-
-Node: Subsection 8-11-14,	Next: Subsection 8-11-15,	Prev: Subsection 8-11-13,	Up: Section 8-11
-  
-
-8.11.14   Extending parsers
-===========================
-  
-  Parsers may also be extended by inheritance. For example, let's extend
-the grammar so that it also recognizes the `<<' and `>>' shift
-operations.
-  First, we extend the lexer so that it recognizes these tokens. This
-time, we choose to leave `lexer1' intact, instead of using the +=
-operator.
-<<
-     lexer2. =
-        extends $(lexer1)
-  
-        lsl: $"<<"
-           Token.unit($(loc), lsl)
-  
-        asr: $">>"
-           Token.unit($(loc), asr)
->>
-  
-  Next, we extend the parser to handle these new operators. We intend
-that the bitwise operators have lower precedence than the other
-arithmetic operators. The two-argument form of the `left' method
-accomplishes this.
-<<
-     parser2. =
-        extends $(parser1)
-  
-        left(plus, lsl lsr asr)
-  
-        lexer = $(lexer2)
-  
-        exp: exp lsl exp
-           lsl($1, $3)
-  
-        exp: exp asr exp
-           asr($1, $3)
->>
-  
-  In this case, we use the new lexer `lexer2', and we add productions
-for the new shift operations. 
-
-Node: Subsection 8-11-15,	Next: Chapter 9,	Prev: Subsection 8-11-14,	Up: Section 8-11
-  
-
-8.11.15   gettimeofday
-======================
-
-<<
-     $(gettimeofday) : Float
->>
-  
-  The `gettimeofday' function returns the time of day in seconds since
-January 1, 1970.
-
-Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-11,	Up: Top
-  
-
-Chapter 9     Shell functions
-*****************************
-    
-* Menu:
-
-* Section 9-1::	Basic functions
-* Section 9-2::	Job control
-* Section 9-3::	Command history
-
-
-Node: Section 9-1,	Next: Subsection 9-1-1,	Prev: Chapter 9,	Up: Chapter 9
-  
-
-9.1   Basic functions
-*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 9-1-1::	echo
-* Subsection 9-1-2::	cd
-
-
-Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9-1
-  
-
-9.1.1   echo
-============
-
-  The `echo' function prints a string.
-  `$(echo <args>)' `echo <args>' 
-
-Node: Subsection 9-1-2,	Next: Section 9-2,	Prev: Subsection 9-1-1,	Up: Section 9-1
-  
-
-9.1.2   cd
-==========
-
-  The `cd' function changes the current directory.
-<<
-      cd(dir)
-         dir : Dir
->>
-  
-  The `cd' function also supports a 2-argument form:
-<<
-      $(cd dir, e)
-         dir : Dir
-         e : expression
->>
-  
-  In the two-argument form, expression `e' is evaluated in the directory
-`dir'. The current directory is not changed otherwise.
-  The behavior of the `cd' function can be changed with the `CDPATH'
-variable, which specifies a search path for directories. This is
-normally useful only in the osh command interpreter.
-<<
-      CDPATH : Dir Sequence
->>
-  
-  For example, the following will change directory to the first
-directory `./foo', `~/dir1/foo', `~/dir2/foo'.
-<<
-      CDPATH[] =
-         .
-         $(HOME)/dir1
-         $(HOME)/dir2
-      cd foo
->>
-  
-
-Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
-  
-
-9.2   Job control
-*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 9-2-1::	jobs
-* Subsection 9-2-2::	bg
-* Subsection 9-2-3::	fg
-* Subsection 9-2-4::	stop
-* Subsection 9-2-5::	wait
-* Subsection 9-2-6::	kill
-
-
-Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9-2
-  
-
-9.2.1   jobs
-============
-
-  The `jobs' function prints a list of jobs.
-  `jobs' 
-
-Node: Subsection 9-2-2,	Next: Subsection 9-2-3,	Prev: Subsection 9-2-1,	Up: Section 9-2
-  
-
-9.2.2   bg
-==========
-
-  The `bg' function places a job in the background.
-  `bg <pid...>' 
-
-Node: Subsection 9-2-3,	Next: Subsection 9-2-4,	Prev: Subsection 9-2-2,	Up: Section 9-2
-  
-
-9.2.3   fg
-==========
-
-  The `fg' function brings a job to the foreground.
-  `fg <pid...>' 
-
-Node: Subsection 9-2-4,	Next: Subsection 9-2-5,	Prev: Subsection 9-2-3,	Up: Section 9-2
-  
-
-9.2.4   stop
-============
-
-  The `stop' function suspends a job.
-  `stop <pid...>' 
-
-Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Section 9-2
-  
-
-9.2.5   wait
-============
-
-  The `wait' function waits for a job to finish. If no process
-identifiers are given, the shell waits for all jobs to complete.
-  `wait <pid...>' 
-
-Node: Subsection 9-2-6,	Next: Section 9-3,	Prev: Subsection 9-2-5,	Up: Section 9-2
-  
-
-9.2.6   kill
-============
-
-  The `kill' function signals a job.
-  `kill [signal] <pid...>' 
-
-Node: Section 9-3,	Next: Subsection 9-3-1,	Prev: Section 9-2,	Up: Chapter 9
-  
-
-9.3   Command history
-*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 9-3-1::	history
-
-
-Node: Subsection 9-3-1,	Next: Chapter 10,	Prev: Section 9-3,	Up: Section 9-3
-  
-
-9.3.1   history
-===============
-
-<<
-      $(history-index) : Int
-      $(history) : String Sequence
-      history-file : File
-      history-length : Int
->>
-  
-  The history variables manage the command-line history in osh. They
-have no effect in omake.
-  The `history-index' variable is the current index into the
-command-line history. The `history' variable is the current command-line
-history.
-  The `history-file' variable can be redefined if you want the
-command-line history to be saved. The default value is
-`~/.omake/osh_history'.
-  The `history-length' variable can be redefined to specify the maximum
-number of lines in the history that you want saved. The default value is
-`100'.   
-
-Node: Chapter 10,	Next: Section 10-1,	Prev: Section 9-3,	Up: Top
-  
-
-Chapter 10     Pervasives
-*************************
-    
-  `Pervasives' defines the objects that are defined in all programs. The
-following objects are defined.
-* Menu:
-
-* Section 10-1::	Pervasives objects
-
-
-Node: Section 10-1,	Next: Subsection 10-1-1,	Prev: Chapter 10,	Up: Chapter 10
-  
-
-10.1   Pervasives objects
-*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection 10-1-1::	Object
-* Subsection 10-1-2::	Map
-* Subsection 10-1-3::	Number
-* Subsection 10-1-4::	Int
-* Subsection 10-1-5::	Float
-* Subsection 10-1-6::	Sequence
-* Subsection 10-1-7::	Array
-* Subsection 10-1-8::	String
-* Subsection 10-1-9::	Fun
-* Subsection 10-1-10::	Rule
-* Subsection 10-1-11::	Target
-* Subsection 10-1-12::	Node
-* Subsection 10-1-13::	File
-* Subsection 10-1-14::	Dir
-* Subsection 10-1-15::	Channel
-* Subsection 10-1-16::	InChannel
-* Subsection 10-1-17::	OutChannel
-* Subsection 10-1-18::	Location
-* Subsection 10-1-19::	Position
-* Subsection 10-1-20::	Exception
-* Subsection 10-1-21::	RuntimeException
-* Subsection 10-1-22::	Shell
-
-
-Node: Subsection 10-1-1,	Next: Subsection 10-1-2,	Prev: Section 10-1,	Up: Section 10-1
-  
-
-10.1.1   Object
-===============
-
-  Parent objects: none.
-  The `Object' object is the root object. Every class is a subclass of
-`Object'.
-  It provides the following fields:
-  
-  
- - `$(o.object-length)': the number of fields and methods in the object.
-   
- - `$(o.object-mem <var>)': returns `true' iff the `<var>' is a field 
-   or method of the object. 
- - `$(o.object-add <var>, <value>)': adds the field to the object, 
-   returning a new object. 
- - `$(o.object-find <var>)': fetches the field or method from the
-   object;  it is equivalent to `$(o.<var>)', but the variable can be
-   non-constant. 
- - `$(o.object-map <fun>)': maps a function over the object. The
-   function  should take two arguments; the first is a field name, the
-   second is the  value of that field. The result is a new object
-   constructed from the  values returned by the function. 
- - `o.object-foreach': the `foreach' form is equivalent to `map',  but
-   with altered syntax.
-   <<
-        o.foreach(<var1>, <var2>)
-           <body>
-        >>
- 
-  For example, the following function prints all the fields of an 
-   object `o'.
-   <<
-        PrintObject(o) =
-           o.foreach(v, x)
-              println($(v) = $(x))
-        >>
- 
-  The `export' form is valid in a `foreach' body. The following 
-   function collects just the field names of an object.
-   <<
-        FieldNames(o) =
-           names =
-           o.foreach(v, x)
-              names += $(v)
-              export
-           return $(names)
-        >>
-  
-
-Node: Subsection 10-1-2,	Next: Subsection 10-1-3,	Prev: Subsection 10-1-1,	Up: Section 10-1
-  
-
-10.1.2   Map
-============
-
-  Parent objects: `Object'.
-  A `Map' object is a dictionary from values to values. The `<key>'
-values are restricted to simple values: integers, floating-point
-numbers, strings, files, directories, and arrays of simple values.
-  The Map object provides the following methods.
-  
-  
- - `$(o.mem <key>)': returns `true' iff the `<key>' is defined  in the
-   map. 
- - `$(o.add <key>, <value>)': adds the field to the map,  returning a
-   new map. 
- - `$(o.find <key>)': fetches the field from the map. 
- - `$(o.map <fun>)': maps a function over the map. The function  should
-   take two arguments; the first is a field name, the second is the 
-   value of that field. The result is a new object constructed from the 
-   values returned by the function. 
- - `o.foreach': the `foreach' form is equivalent to `map',  but with
-   altered syntax.
-   <<
-        o.foreach(<var1>, <var2>)
-           <body>
-        >>
- 
-  For example, the following function prints all the fields of an 
-   object `o'.
-   <<
-        PrintObject(o) =
-           o.foreach(v, x)
-              println($(v) = $(x))
-        >>
- 
-  The `export' form is valid in a `foreach' body. The following 
-   function collects just the field names of the map.
-   <<
-        FieldNames(o) =
-           names =
-           o.foreach(v, x)
-              names += $(v)
-              export
-           return $(names)
-        >>
-  
-  There is also simpler syntax when the key is a string. The table can
-be defined using definitions with the form `$|key|' (the number of pipe
-symbols `|' is allowed to vary).
-<<
-      $|key 1| = value1
-      $||key1|key2|| = value2    # The key is key1|key2
-      X = $|key 1|               # Define X to be the value of field
-$|key 1|
->>
-  
-  The usual modifiers are also allowed. The expression `$`|key|'
-represents lazy evaluation of the key, and `$,|key|' is normal
-evaluation.
-
-Node: Subsection 10-1-3,	Next: Subsection 10-1-4,	Prev: Subsection 10-1-2,	Up: Section 10-1
-  
-
-10.1.3   Number
-===============
-
-  Parent objects: `Object'.
-  The `Number' object is the parent object for integers and
-floating-point numbers. 
-
-Node: Subsection 10-1-4,	Next: Subsection 10-1-5,	Prev: Subsection 10-1-3,	Up: Section 10-1
-  
-
-10.1.4   Int
-============
-
-  Parent objects: `Number'.
-  The `Int' object represents integer values. 
-
-Node: Subsection 10-1-5,	Next: Subsection 10-1-6,	Prev: Subsection 10-1-4,	Up: Section 10-1
-  
-
-10.1.5   Float
-==============
-
-  Parent objects: `Number'.
-  The `Float' object represents floating-point numbers. 
-
-Node: Subsection 10-1-6,	Next: Subsection 10-1-7,	Prev: Subsection 10-1-5,	Up: Section 10-1
-  
-
-10.1.6   Sequence
-=================
-
-  Parent objects: `Object'.
-  The `Sequence' object represents a generic object containing
-sequential elements. It provides the following methods.
-  
-  
- - `$(s.length)': the number of elements in the sequence. 
- - `$(s.map <fun>)': maps a function over the fields in the sequence. 
-   The function should take one argument. The result is a new sequence 
-   constructed from the values returned by the function. 
- - `s.foreach': the `foreach' form is equivalent to `map',  but with
-   altered syntax.
-   <<
-        s.foreach(<var>)
-           <body>
-        >>
- 
-  For example, the following function prints all the elements of the
-   sequence.
-   <<
-        PrintSequence(s) =
-           s.foreach(x)
-              println(Elem = $(x))
-        >>
- 
-  The `export' form is valid in a `foreach' body. The following 
-   function counts the number of zeros in the sequence.
-   <<
-        Zeros(s) =
-           count = $(int 0)
-           s.foreach(v)
-              if $(equal $(v), 0)
-                 count = $(add $(count), 1)
-                 export
-              export
-           return $(count)
-        >>
-   
-
-Node: Subsection 10-1-7,	Next: Subsection 10-1-8,	Prev: Subsection 10-1-6,	Up: Section 10-1
-  
-
-10.1.7   Array
-==============
-
-  Parent objects: `Sequence'.
-  The `Array' is a random-access sequence. It provides the following
-additional methods.
-  
-  
- - `$(s.nth <i>)': returns element `i' of the sequence. 
- - `$(s.rev <i>)': returns the reversed sequence. 
-  
-
-Node: Subsection 10-1-8,	Next: Subsection 10-1-9,	Prev: Subsection 10-1-7,	Up: Section 10-1
-  
-
-10.1.8   String
-===============
-
-  Parent objects: `Array'. 
-
-Node: Subsection 10-1-9,	Next: Subsection 10-1-10,	Prev: Subsection 10-1-8,	Up: Section 10-1
-  
-
-10.1.9   Fun
-============
-
-  Parent objects: `Object'.
-  The `Fun' object provides the following methods. 
-  
- - `$(f.arity)': the arity if the function. 
-   
-
-Node: Subsection 10-1-10,	Next: Subsection 10-1-11,	Prev: Subsection 10-1-9,	Up: Section 10-1
-  
-
-10.1.10   Rule
-==============
-
-  Parent objects: `Object'.
-  The `Rule' object represents a build rule. It does not currently have
-any methods. 
-
-Node: Subsection 10-1-11,	Next: Subsection 10-1-12,	Prev: Subsection 10-1-10,	Up: Section 10-1
-  
-
-10.1.11   Target
-================
-
-  Parent object: `Object'.
-  The `Target' object contains information collected for a specific
-target file.
-  
-  
- - `target': the target file. 
- - `effects': the files that may be modified by a  side-effect when this
-   target is built. 
- - `scanner_deps': static dependencies that must be built  before this
-   target can be scanned. 
- - `static-deps': statically-defined build dependencies  of this target.
-   
- - `build-deps': all the build dependencies for the target,  including
-   static and scanned dependencies. 
- - `build-values': all the value dependencies associated  with the
-   build. 
- - `build-commands': the commands to build the target. 
- - `output-file': if output was diverted to a file,  with one of the
-   `--divert-*' options A*Note Appendix A::,  this field names
-   that file. Otherwise it is `false'. 
-  
-  The object supports the following methods.
-  
-  
- - `find(file)': returns a Target object for the given file.  Raises a
-   `RuntimeException' if the specified target is  not part of the
-   project. 
- - `find-optional(file)': returns a `Target' object  for the given file,
-   or `false' if the file is not  part of the project. 
-  
-  NOTE: the information for a target is constructed dynamically, so it
-is possible that the `Target' object for a node will contain different
-values in different contexts. The easiest way to make sure that the
-`Target' information is complete is to compute it within a rule body,
-where the rule depends on the target file, or the dependencies of the
-target file. 

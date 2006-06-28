@@ -1,9 +1,635 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 7-3-32,	Next: Subsection 7-3-33,	Prev: Subsection 7-3-31,	Up: Section 7-3
+Node: Subsection 8-2-16,	Next: Section 8-3,	Prev: Subsection 8-2-15,	Up: Section 8-2
   
 
-7.3.32   uncapitalize
+8.2.16   setvar
+===============
+
+<<
+     setvar(name, value)
+        name : String
+        value : String
+>>
+  
+  The `setvar' function defines a new variable. For example, the
+following code defines the variable `X' to be the string `abc'.
+<<
+     NAME = X
+     setvar($(NAME), abc)
+>>
+
+Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
+  
+
+8.3   Arrays and sequences
+*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+* Menu:
+
+* Subsection 8-3-1::	array
+* Subsection 8-3-2::	split
+* Subsection 8-3-3::	concat
+* Subsection 8-3-4::	length
+* Subsection 8-3-5::	nth
+* Subsection 8-3-6::	nth-hd
+* Subsection 8-3-7::	nth-tl
+* Subsection 8-3-8::	subrange
+* Subsection 8-3-9::	rev
+* Subsection 8-3-10::	string
+* Subsection 8-3-11::	string-escaped
+* Subsection 8-3-12::	quote
+* Subsection 8-3-13::	quote-argv
+* Subsection 8-3-14::	html-string
+* Subsection 8-3-15::	addsuffix
+* Subsection 8-3-16::	mapsuffix
+* Subsection 8-3-17::	addsuffixes
+* Subsection 8-3-18::	removeprefix
+* Subsection 8-3-19::	removesuffix
+* Subsection 8-3-20::	replacesuffixes
+* Subsection 8-3-21::	addprefix
+* Subsection 8-3-22::	mapprefix
+* Subsection 8-3-23::	add-wrapper
+* Subsection 8-3-24::	set
+* Subsection 8-3-25::	mem
+* Subsection 8-3-26::	intersection
+* Subsection 8-3-27::	intersects
+* Subsection 8-3-28::	set-diff
+* Subsection 8-3-29::	filter
+* Subsection 8-3-30::	filter-out
+* Subsection 8-3-31::	capitalize
+* Subsection 8-3-32::	uncapitalize
+* Subsection 8-3-33::	uppercase
+* Subsection 8-3-34::	lowercase
+* Subsection 8-3-35::	system
+* Subsection 8-3-36::	shell
+* Subsection 8-3-37::	while
+
+
+Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
+  
+
+8.3.1   array
+=============
+
+<<
+      $(array elements) : Array
+         elements : Sequence
+>>
+  
+  The `array' function creates an array from a sequence. If the `<arg>'
+is a string, the elements of the array are the whitespace-separated
+elements of the string, respecting quotes.
+  In addition, array variables can be declared as follows.
+<<
+      A[] =
+         <val1>
+         ...
+         <valn>
+>>
+  
+  In this case, the elements of the array are exactly `<val1>', ...,
+`<valn>', and whitespace is preserved literally. 
+
+Node: Subsection 8-3-2,	Next: Subsection 8-3-3,	Prev: Subsection 8-3-1,	Up: Section 8-3
+  
+
+8.3.2   split
+=============
+
+<<
+     $(split sep, elements) : Array
+        sep : String
+        elements : Sequence
+>>
+  
+  The `split' function takes two arguments, a string of separators, and
+a string argument. The result is an array of elements determined by
+splitting the elements by all occurrence of the separator in the
+`elements' sequence.
+  For example, in the following code, the `X' variable is defined to be
+the array `/bin /usr/bin /usr/local/bin'.
+<<
+      PATH = /bin:/usr/bin:/usr/local/bin
+      X = $(split :, $(PATH))
+>>
+  
+  The `sep' argument may be omitted. In this case `split' breaks its
+arguments along the white space. Quotations are not split. 
+
+Node: Subsection 8-3-3,	Next: Subsection 8-3-4,	Prev: Subsection 8-3-2,	Up: Section 8-3
+  
+
+8.3.3   concat
+==============
+
+<<
+     $(concat sep, elements) : String
+        sep : String
+        elements : Sequence
+>>
+  
+  The `concat' function takes two arguments, a separator string, and a
+sequence of elements. The result is a string formed by concatenating the
+elements, placing the separator between adjacent elements.
+  For example, in the following code, the `X' variable is defined to be
+the string `foo_x_bar_x_baz'.
+<<
+      X = foo  bar     baz
+      Y = $(concat _x_, $(X))
+>>
+
+Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Section 8-3
+  
+
+8.3.4   length
+==============
+
+<<
+     $(length sequence) : Int
+        sequence : Sequence
+>>
+  
+  The `length' function returns the number of elements in its argument.
+  For example, the expression `$(length a  b "c d")' evaluates to 3. 
+
+Node: Subsection 8-3-5,	Next: Subsection 8-3-6,	Prev: Subsection 8-3-4,	Up: Section 8-3
+  
+
+8.3.5   nth
+===========
+
+<<
+     $(nth i, sequence) : value
+        i : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `nth' function returns the nth element of its argument, treated as
+a list. Counting starts at 0. An exception is raised if the index is not
+in bounds.
+  For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
+c"'. 
+
+Node: Subsection 8-3-6,	Next: Subsection 8-3-7,	Prev: Subsection 8-3-5,	Up: Section 8-3
+  
+
+8.3.6   nth-hd
+==============
+
+<<
+     $(nth-hd i, sequence) : value
+        i : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `nth-hd' function returns the first `i' elements of the sequence.
+An exception is raised if the sequence is not at least `i' elements
+long.
+  For example, the expression `$(nth-hd 2, a "b c" d)' evaluates to `a
+"b c"'.
+
+Node: Subsection 8-3-7,	Next: Subsection 8-3-8,	Prev: Subsection 8-3-6,	Up: Section 8-3
+  
+
+8.3.7   nth-tl
+==============
+
+<<
+     $(nth-tl i, sequence) : value
+        i : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `nth-tl' function skips `i' elements of the sequence and returns
+the rest. An exception is raised if the sequence is not at least `i'
+elements long.
+  For example, the expression `$(nth-tl 1, a "b c" d)' evaluates to `"b
+c" d'.
+
+Node: Subsection 8-3-8,	Next: Subsection 8-3-9,	Prev: Subsection 8-3-7,	Up: Section 8-3
+  
+
+8.3.8   subrange
+================
+
+<<
+     $(subrange off, len, sequent) : value
+        off : Int
+        len : Int
+        sequence : Sequence
+     raises RuntimeException
+>>
+  
+  The `subrange' function returns a subrange of the sequence. Counting
+starts at 0. An exception is raised if the specified range is not in
+bounds.
+  For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
+to `"b c" d'. 
+
+Node: Subsection 8-3-9,	Next: Subsection 8-3-10,	Prev: Subsection 8-3-8,	Up: Section 8-3
+  
+
+8.3.9   rev
+===========
+
+<<
+      $(rev sequence) : Sequence
+         sequence : Sequence
+>>
+  
+  The `rev' function returns the elements of a sequence in reverse
+order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
+c" a'. 
+
+Node: Subsection 8-3-10,	Next: Subsection 8-3-11,	Prev: Subsection 8-3-9,	Up: Section 8-3
+  
+
+8.3.10   string
+===============
+
+<<
+     $(string sequence) : String
+        sequence : Sequence
+>>
+  
+  The `string' function flattens a sequence into a single string. This
+is similar to the `concat' function, but the elements are separated by
+whitespace. The result is treated as a unit; whitespace is significant. 
+
+Node: Subsection 8-3-11,	Next: Subsection 8-3-12,	Prev: Subsection 8-3-10,	Up: Section 8-3
+  
+
+8.3.11   string-escaped
+=======================
+
+<<
+     $(string-escaped sequence) : String Array
+        sequence : Array
+>>
+  
+  The `string-escaped' function converts each element of its argument to
+a string, escaping characters that are special to omake. The special
+characters include `:)(,' and shitespace.
+<<
+      string-escaped($"a b" $"y:z")
+      a\ b y\:z
+>>
+
+Node: Subsection 8-3-12,	Next: Subsection 8-3-13,	Prev: Subsection 8-3-11,	Up: Section 8-3
+  
+
+8.3.12   quote
+==============
+
+<<
+     $(quote sequence) : String
+        sequence : Sequence
+>>
+  
+  The `quote' function flattens a sequence into a single string and adds
+quotes around the string. Inner quotation symbols are escaped.
+  For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
+c\" d"', and `$(quote abc)' evaluates to `"abc"'. 
+
+Node: Subsection 8-3-13,	Next: Subsection 8-3-14,	Prev: Subsection 8-3-12,	Up: Section 8-3
+  
+
+8.3.13   quote-argv
+===================
+
+<<
+     $(quote-argv sequence) : String
+        sequence : Sequence
+>>
+  
+  The `quote-argv' function flattens a sequence into a single string,
+and adds quotes around the string. The quotation is formed so that a
+command-line parse can separate the string back into its components. 
+
+Node: Subsection 8-3-14,	Next: Subsection 8-3-15,	Prev: Subsection 8-3-13,	Up: Section 8-3
+  
+
+8.3.14   html-string
+====================
+
+<<
+     $(html-string sequence) : String
+        sequence : Sequence
+>>
+  
+  The `html-string' function flattens a sequence into a single string,
+and escaped special HTML characters. This is similar to the `concat'
+function, but the elements are separated by whitespace. The result is
+treated as a unit; whitespace is significant. 
+
+Node: Subsection 8-3-15,	Next: Subsection 8-3-16,	Prev: Subsection 8-3-14,	Up: Section 8-3
+  
+
+8.3.15   addsuffix
+==================
+
+<<
+     $(addsuffix suffix, sequence) : Array
+        suffix : String
+        sequence : Sequence
+>>
+  
+  The `addsuffix' function adds a suffix to each component of sequence.
+The number of elements in the array is exactly the same as the number of
+elements in the sequence.
+  For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
+d".c'. 
+
+Node: Subsection 8-3-16,	Next: Subsection 8-3-17,	Prev: Subsection 8-3-15,	Up: Section 8-3
+  
+
+8.3.16   mapsuffix
+==================
+
+<<
+     $(mapsuffix suffix, sequence) : Array
+        suffix : value
+        sequence : Sequence
+>>
+  
+  The `mapsuffix' function adds a suffix to each component of sequence.
+It is similar to `addsuffix', but uses array concatenation instead of
+string concatenation. The number of elements in the array is twice the
+number of elements in the sequence.
+  For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
+d" .c'. 
+
+Node: Subsection 8-3-17,	Next: Subsection 8-3-18,	Prev: Subsection 8-3-16,	Up: Section 8-3
+  
+
+8.3.17   addsuffixes
+====================
+
+<<
+     $(addsuffixes suffixes, sequence) : Array
+        suffixes : Sequence
+        sequence : Sequence
+>>
+  
+  The `addsuffixes' function adds all suffixes in its first argument to
+each component of a sequence. If `suffixes' has `n' elements, and
+`sequence' has `m' elements, the the result has `n * m' elements.
+  For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
+to `a.c a.o b.c b.o c.o c.a'. 
+
+Node: Subsection 8-3-18,	Next: Subsection 8-3-19,	Prev: Subsection 8-3-17,	Up: Section 8-3
+  
+
+8.3.18   removeprefix
+=====================
+
+<<
+     $(removeprefix prefix, sequence) : Array
+        prefix : String
+        sequence : Array
+>>
+  
+  The `removeprefix' function removes a prefix from each component of a
+sequence. 
+
+Node: Subsection 8-3-19,	Next: Subsection 8-3-20,	Prev: Subsection 8-3-18,	Up: Section 8-3
+  
+
+8.3.19   removesuffix
+=====================
+
+<<
+     $(removesuffix sequence) : Array
+        sequence : String
+>>
+  
+  The `removesuffix' function removes the suffixes from each component
+of a sequence.
+  For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
+
+Node: Subsection 8-3-20,	Next: Subsection 8-3-21,	Prev: Subsection 8-3-19,	Up: Section 8-3
+  
+
+8.3.20   replacesuffixes
+========================
+
+<<
+     $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
+        old-suffixes : Sequence
+        new-suffixes : Sequence
+        sequence : Sequence
+>>
+  
+  The `replacesuffixes' function modifies the suffix of each component
+in sequence. The `old-suffixes' and `new-suffixes' sequences should have
+the same length.
+  For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
+to `a.o b.o c.z'. 
+
+Node: Subsection 8-3-21,	Next: Subsection 8-3-22,	Prev: Subsection 8-3-20,	Up: Section 8-3
+  
+
+8.3.21   addprefix
+==================
+
+<<
+     $(addprefix prefix, sequence) : Array
+        prefix : String
+        sequence : Sequence
+>>
+  
+  The `addprefix' function adds a prefix to each component of a
+sequence. The number of element in the result array is exactly the same
+as the number of elements in the argument sequence.
+  For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
+foo/"c d"'. 
+
+Node: Subsection 8-3-22,	Next: Subsection 8-3-23,	Prev: Subsection 8-3-21,	Up: Section 8-3
+  
+
+8.3.22   mapprefix
+==================
+
+<<
+     $(mapprefix prefix, sequence) : Array
+        prefix : String
+        sequence : Sequence
+>>
+  
+  The `mapprefix' function adds a prefix to each component of a
+sequence. It is similar to `addprefix', but array concatenation is used
+instead of string concatenation. The result array contains twice as many
+elements as the argument sequence.
+  For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
+"c d"'. 
+
+Node: Subsection 8-3-23,	Next: Subsection 8-3-24,	Prev: Subsection 8-3-22,	Up: Section 8-3
+  
+
+8.3.23   add-wrapper
+====================
+
+<<
+     $(add-wrapper prefix, suffix, sequence) : Array
+        prefix : String
+        suffix : String
+        sequence : Sequence
+>>
+  
+  The `add-wrapper' functions adds both a prefix and a suffix to each
+component of a sequence. For example, the expression `$(add-wrapper
+dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
+used. The array result has the same number of elements as the argument
+sequence. 
+
+Node: Subsection 8-3-24,	Next: Subsection 8-3-25,	Prev: Subsection 8-3-23,	Up: Section 8-3
+  
+
+8.3.24   set
+============
+
+<<
+     $(set sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `set' function sorts a set of string components, eliminating
+duplicates.
+  For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'. 
+
+Node: Subsection 8-3-25,	Next: Subsection 8-3-26,	Prev: Subsection 8-3-24,	Up: Section 8-3
+  
+
+8.3.25   mem
+============
+
+<<
+     $(mem elem, sequence) : Boolean
+        elem : String
+        sequence : Sequence
+>>
+  
+  The `mem' function tests for membership in a sequence.
+  For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
+`$(mem m n, y z "m n" w a)' evaluates to `false'. 
+
+Node: Subsection 8-3-26,	Next: Subsection 8-3-27,	Prev: Subsection 8-3-25,	Up: Section 8-3
+  
+
+8.3.26   intersection
+=====================
+
+<<
+     $(intersection sequence1, sequence2) : Array
+        sequence1 : Sequence
+        sequence2 : Sequence
+>>
+  
+  The `intersection' function takes two arguments, treats them as sets
+of strings, and computes their intersection. The order of the result is
+undefined, and it may contain duplicates. Use the `set' function to sort
+the result and eliminate duplicates in the result if desired.
+  For example, the expression `$(intersection c a b a, b a)' evaluates
+to `a b a'. 
+
+Node: Subsection 8-3-27,	Next: Subsection 8-3-28,	Prev: Subsection 8-3-26,	Up: Section 8-3
+  
+
+8.3.27   intersects
+===================
+
+<<
+     $(intersects sequence1, sequence2) : Boolean
+        sequence1 : Sequence
+        sequence2 : Sequence
+>>
+  
+  The `intersects' function tests whether two sets have a non-empty
+intersection. This is slightly more efficient than computing the
+intersection and testing whether it is empty.
+  For example, the expression `$(intersects a b c, d c e)' evaluates to
+`true', and `$(intersects a b c a, d e f)' evaluates to `false'. 
+
+Node: Subsection 8-3-28,	Next: Subsection 8-3-29,	Prev: Subsection 8-3-27,	Up: Section 8-3
+  
+
+8.3.28   set-diff
+=================
+
+<<
+     $(set-diff sequence1, sequence2) : Array
+        sequence1 : Sequence
+        sequence2 : Sequence
+>>
+  
+  The `set-diff' function takes two arguments, treats them as sets of
+strings, and computes their difference (all the elements of the first
+set that are not present in the second one). The order of the result is
+undefined and it may contain duplicates. Use the `set' function to sort
+the result and eliminate duplicates in the result if desired.
+  For example, the expression `$(set-diff c a b a e, b a)' evaluates to
+`c e'. 
+
+Node: Subsection 8-3-29,	Next: Subsection 8-3-30,	Prev: Subsection 8-3-28,	Up: Section 8-3
+  
+
+8.3.29   filter
+===============
+
+<<
+     $(filter patterns, sequence) : Array
+        patterns : Sequence
+        sequence : Sequence
+>>
+  
+  The `filter' function picks elements from a sequence. The patterns is
+a non-empty sequence of patterns, each may contain one occurrence of the
+wildcard `%' character.
+  For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
+evaluates to `x.o b.h y.o'. 
+
+Node: Subsection 8-3-30,	Next: Subsection 8-3-31,	Prev: Subsection 8-3-29,	Up: Section 8-3
+  
+
+8.3.30   filter-out
+===================
+
+<<
+     $(filter-out patterns, sequence) : Array
+        patterns : Sequence
+        sequence : Sequence
+>>
+  
+  The `filter-out' function removes elements from a sequence. The
+patterns is a non-empty sequence of patterns, each may contain one
+occurrence of the wildcard `%' character.
+  For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
+evaluates to `x.o y.o'. 
+
+Node: Subsection 8-3-31,	Next: Subsection 8-3-32,	Prev: Subsection 8-3-30,	Up: Section 8-3
+  
+
+8.3.31   capitalize
+===================
+
+<<
+     $(capitalize sequence) : Array
+        sequence : Sequence
+>>
+  
+  The `capitalize' function capitalizes each word in a sequence. For
+example, `$(capitalize through the looking Glass)' evaluates to `Through
+The Looking Glass'. 
+
+Node: Subsection 8-3-32,	Next: Subsection 8-3-33,	Prev: Subsection 8-3-31,	Up: Section 8-3
+  
+
+8.3.32   uncapitalize
 =====================
 
 <<
@@ -15,10 +641,10 @@ Node: Subsection 7-3-32,	Next: Subsection 7-3-33,	Prev: Subsection 7-3-31,	Up: S
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'. 
 
-Node: Subsection 7-3-33,	Next: Subsection 7-3-34,	Prev: Subsection 7-3-32,	Up: Section 7-3
+Node: Subsection 8-3-33,	Next: Subsection 8-3-34,	Prev: Subsection 8-3-32,	Up: Section 8-3
   
 
-7.3.33   uppercase
+8.3.33   uppercase
 ==================
 
 <<
@@ -30,10 +656,10 @@ Node: Subsection 7-3-33,	Next: Subsection 7-3-34,	Prev: Subsection 7-3-32,	Up: S
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'. 
 
-Node: Subsection 7-3-34,	Next: Subsection 7-3-35,	Prev: Subsection 7-3-33,	Up: Section 7-3
+Node: Subsection 8-3-34,	Next: Subsection 8-3-35,	Prev: Subsection 8-3-33,	Up: Section 8-3
   
 
-7.3.34   lowercase
+8.3.34   lowercase
 ==================
 
 <<
@@ -46,10 +672,10 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'. 
 
-Node: Subsection 7-3-35,	Next: Subsection 7-3-36,	Prev: Subsection 7-3-34,	Up: Section 7-3
+Node: Subsection 8-3-35,	Next: Subsection 8-3-36,	Prev: Subsection 8-3-34,	Up: Section 8-3
   
 
-7.3.35   system
+8.3.35   system
 ===============
 
 <<
@@ -65,10 +691,10 @@ function is used internally by omake to evaluate shell commands.
      ls foo
 >>
 
-Node: Subsection 7-3-36,	Next: Subsection 7-3-37,	Prev: Subsection 7-3-35,	Up: Section 7-3
+Node: Subsection 8-3-36,	Next: Subsection 8-3-37,	Prev: Subsection 8-3-35,	Up: Section 8-3
   
 
-7.3.36   shell
+8.3.36   shell
 ==============
 
 <<
@@ -89,10 +715,10 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).  
 
-Node: Subsection 7-3-37,	Next: Section 7-4,	Prev: Subsection 7-3-36,	Up: Section 7-3
+Node: Subsection 8-3-37,	Next: Section 8-4,	Prev: Subsection 8-3-36,	Up: Section 8-3
   
 
-7.3.37   while
+8.3.37   while
 ==============
 
 <<
@@ -149,45 +775,45 @@ value is printed.
          echo $i
 >>
 
-Node: Section 7-4,	Next: Subsection 7-4-1,	Prev: Section 7-3,	Up: Chapter 7
+Node: Section 8-4,	Next: Subsection 8-4-1,	Prev: Section 8-3,	Up: Chapter 8
   
 
-7.4   Arithmetic
+8.4   Arithmetic
 *=*=*=*=*=*=*=*=
 
    
 * Menu:
 
-* Subsection 7-4-1::	int
-* Subsection 7-4-2::	float
-* Subsection 7-4-3::	Basic arithmetic
-* Subsection 7-4-4::	Comparisons
+* Subsection 8-4-1::	int
+* Subsection 8-4-2::	float
+* Subsection 8-4-3::	Basic arithmetic
+* Subsection 8-4-4::	Comparisons
 
 
-Node: Subsection 7-4-1,	Next: Subsection 7-4-2,	Prev: Section 7-4,	Up: Section 7-4
+Node: Subsection 8-4-1,	Next: Subsection 8-4-2,	Prev: Section 8-4,	Up: Section 8-4
   
 
-7.4.1   int
+8.4.1   int
 ===========
 
   The `int' function can be used to create integers. It returns an `Int'
 object.
   `$(int 17)'.
 
-Node: Subsection 7-4-2,	Next: Subsection 7-4-3,	Prev: Subsection 7-4-1,	Up: Section 7-4
+Node: Subsection 8-4-2,	Next: Subsection 8-4-3,	Prev: Subsection 8-4-1,	Up: Section 8-4
   
 
-7.4.2   float
+8.4.2   float
 =============
  The `float' function
 can be used to create floating-point numbers. It returns a `Float'
 object.
   `$(float 3.1415926)'. 
 
-Node: Subsection 7-4-3,	Next: Subsection 7-4-4,	Prev: Subsection 7-4-2,	Up: Section 7-4
+Node: Subsection 8-4-3,	Next: Subsection 8-4-4,	Prev: Subsection 8-4-2,	Up: Section 8-4
   
 
-7.4.3   Basic arithmetic
+8.4.3   Basic arithmetic
 ========================
    
 
@@ -220,10 +846,10 @@ Node: Subsection 7-4-3,	Next: Subsection 7-4-4,	Prev: Subsection 7-4-2,	Up: Sect
  - `$(asr <numbers>)': arithmetic shift right. 
    
 
-Node: Subsection 7-4-4,	Next: Section 7-5,	Prev: Subsection 7-4-3,	Up: Section 7-4
+Node: Subsection 8-4-4,	Next: Section 8-5,	Prev: Subsection 8-4-3,	Up: Section 8-4
   
 
-7.4.4   Comparisons
+8.4.4   Comparisons
 ===================
    
 
@@ -248,25 +874,25 @@ Node: Subsection 7-4-4,	Next: Section 7-5,	Prev: Subsection 7-4-3,	Up: Section 7
  - `$(ugt <numbers>)': unsigned greater than. 
    
 
-Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
+Node: Section 8-5,	Next: Subsection 8-5-1,	Prev: Section 8-4,	Up: Chapter 8
   
 
-7.5   First-class functions
+8.5   First-class functions
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 7-5-1::	fun
-* Subsection 7-5-2::	apply
-* Subsection 7-5-3::	applya
-* Subsection 7-5-4::	create-map, create-lazy-map
+* Subsection 8-5-1::	fun
+* Subsection 8-5-2::	apply
+* Subsection 8-5-3::	applya
+* Subsection 8-5-4::	create-map, create-lazy-map
 
 
-Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
+Node: Subsection 8-5-1,	Next: Subsection 8-5-2,	Prev: Section 8-5,	Up: Section 8-5
   
 
-7.5.1   fun
+8.5.1   fun
 ===========
 
   The `fun' form introduces anonymous functions.
@@ -285,10 +911,10 @@ the parameter names.
             value $(addsuffix $(Y), $(X))
 >>
 
-Node: Subsection 7-5-2,	Next: Subsection 7-5-3,	Prev: Subsection 7-5-1,	Up: Section 7-5
+Node: Subsection 8-5-2,	Next: Subsection 8-5-3,	Prev: Subsection 8-5-1,	Up: Section 8-5
   
 
-7.5.2   apply
+8.5.2   apply
 =============
 
   The `apply' operator is used to apply a function.
@@ -305,10 +931,10 @@ Node: Subsection 7-5-2,	Next: Subsection 7-5-3,	Prev: Subsection 7-5-1,	Up: Sect
       X = $(apply $(F), a b c, .c)
 >>
 
-Node: Subsection 7-5-3,	Next: Subsection 7-5-4,	Prev: Subsection 7-5-2,	Up: Section 7-5
+Node: Subsection 8-5-3,	Next: Subsection 8-5-4,	Prev: Subsection 8-5-2,	Up: Section 8-5
   
 
-7.5.3   applya
+8.5.3   applya
 ==============
 
   The `applya' operator is used to apply a function to an array of
@@ -324,10 +950,10 @@ arguments.
       Z = $(applya $(F), $(args))
 >>
 
-Node: Subsection 7-5-4,	Next: Section 7-6,	Prev: Subsection 7-5-3,	Up: Section 7-5
+Node: Subsection 8-5-4,	Next: Section 8-6,	Prev: Subsection 8-5-3,	Up: Section 8-5
   
 
-7.5.4   create-map, create-lazy-map
+8.5.4   create-map, create-lazy-map
 ===================================
 
   The `create-map' is a simplified form for creating `Map' objects. The
@@ -354,24 +980,24 @@ lazily. The following two definitions are equivalent.
 >>
   
   The `create-lazy-map' function is used in rule construction
-11.8.0.11*Note Section 11-8::. 
+12.8.0.11*Note Section 12-8::. 
 
-Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
+Node: Section 8-6,	Next: Subsection 8-6-1,	Prev: Section 8-5,	Up: Chapter 8
   
 
-7.6   Iteration and mapping
+8.6   Iteration and mapping
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
 * Menu:
 
-* Subsection 7-6-1::	foreach
+* Subsection 8-6-1::	foreach
 
 
-Node: Subsection 7-6-1,	Next: Chapter 8,	Prev: Section 7-6,	Up: Section 7-6
+Node: Subsection 8-6-1,	Next: Chapter 9,	Prev: Section 8-6,	Up: Section 8-6
   
 
-7.6.1   foreach
+8.6.1   foreach
 ===============
 
   The `foreach' function maps a function over a sequence.
@@ -403,52 +1029,52 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
 
-Node: Chapter 8,	Next: Section 8-1,	Prev: Section 7-6,	Up: Top
+Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-6,	Up: Top
   
 
-Chapter 8     File operations
+Chapter 9     File operations
 *****************************
      
 * Menu:
 
-* Section 8-1::	File names
-* Section 8-2::	Path search
-* Section 8-3::	File stats
-* Section 8-4::	Globbing and file listings
-* Section 8-5::	Filesystem operations
-* Section 8-6::	vmount
-* Section 8-7::	File predicates
-* Section 8-8::	IO functions
-* Section 8-9::	Printing functions
-* Section 8-10::	Value printing functions
-* Section 8-11::	Higher-level IO functions
+* Section 9-1::	File names
+* Section 9-2::	Path search
+* Section 9-3::	File stats
+* Section 9-4::	Globbing and file listings
+* Section 9-5::	Filesystem operations
+* Section 9-6::	vmount
+* Section 9-7::	File predicates
+* Section 9-8::	IO functions
+* Section 9-9::	Printing functions
+* Section 9-10::	Value printing functions
+* Section 9-11::	Higher-level IO functions
 
 
-Node: Section 8-1,	Next: Subsection 8-1-1,	Prev: Chapter 8,	Up: Chapter 8
+Node: Section 9-1,	Next: Subsection 9-1-1,	Prev: Chapter 9,	Up: Chapter 9
   
 
-8.1   File names
+9.1   File names
 *=*=*=*=*=*=*=*=
 
    
 * Menu:
 
-* Subsection 8-1-1::	file, dir
-* Subsection 8-1-2::	tmpfile
-* Subsection 8-1-3::	in
-* Subsection 8-1-4::	basename
-* Subsection 8-1-5::	rootname
-* Subsection 8-1-6::	dirof
-* Subsection 8-1-7::	fullname
-* Subsection 8-1-8::	absname
-* Subsection 8-1-9::	homename
-* Subsection 8-1-10::	suffix
+* Subsection 9-1-1::	file, dir
+* Subsection 9-1-2::	tmpfile
+* Subsection 9-1-3::	in
+* Subsection 9-1-4::	basename
+* Subsection 9-1-5::	rootname
+* Subsection 9-1-6::	dirof
+* Subsection 9-1-7::	fullname
+* Subsection 9-1-8::	absname
+* Subsection 9-1-9::	homename
+* Subsection 9-1-10::	suffix
 
 
-Node: Subsection 8-1-1,	Next: Subsection 8-1-2,	Prev: Section 8-1,	Up: Section 8-1
+Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9-1
   
 
-8.1.1   file, dir
+9.1.1   file, dir
 =================
 \@na
 me{@fun90}
@@ -492,10 +1118,10 @@ of the `bin' directory relative to the command being executed.
    cp hello $(BIN)
 >>
 
-Node: Subsection 8-1-2,	Next: Subsection 8-1-3,	Prev: Subsection 8-1-1,	Up: Section 8-1
+Node: Subsection 9-1-2,	Next: Subsection 9-1-3,	Prev: Subsection 9-1-1,	Up: Section 9-1
   
 
-8.1.2   tmpfile
+9.1.2   tmpfile
 ===============
 
 <<
@@ -508,10 +1134,10 @@ Node: Subsection 8-1-2,	Next: Subsection 8-1-3,	Prev: Subsection 8-1-1,	Up: Sect
   The `tmpfile' function returns the name of a fresh temporary file in
 the temporary directory. 
 
-Node: Subsection 8-1-3,	Next: Subsection 8-1-4,	Prev: Subsection 8-1-2,	Up: Section 8-1
+Node: Subsection 9-1-3,	Next: Subsection 9-1-4,	Prev: Subsection 9-1-2,	Up: Section 9-1
   
 
-8.1.3   in
+9.1.3   in
 ==========
 
 <<
@@ -535,10 +1161,10 @@ is relative to the directory where the link is created.
   Note that the `in' function only affects the expansion of `Node'
 (`File' and `Dir') values. 
 
-Node: Subsection 8-1-4,	Next: Subsection 8-1-5,	Prev: Subsection 8-1-3,	Up: Section 8-1
+Node: Subsection 9-1-4,	Next: Subsection 9-1-5,	Prev: Subsection 9-1-3,	Up: Section 9-1
   
 
-8.1.4   basename
+9.1.4   basename
 ================
 
 <<
@@ -552,10 +1178,10 @@ removed.
   For example, the expression `$(basename dir1/dir2/a.out
 /etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'. 
 
-Node: Subsection 8-1-5,	Next: Subsection 8-1-6,	Prev: Subsection 8-1-4,	Up: Section 8-1
+Node: Subsection 9-1-5,	Next: Subsection 9-1-6,	Prev: Subsection 9-1-4,	Up: Section 9-1
   
 
-8.1.5   rootname
+9.1.5   rootname
 ================
 
 <<
@@ -568,10 +1194,10 @@ rootname is the filename with the final suffix removed.
   For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
 /foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'. 
 
-Node: Subsection 8-1-6,	Next: Subsection 8-1-7,	Prev: Subsection 8-1-5,	Up: Section 8-1
+Node: Subsection 9-1-6,	Next: Subsection 9-1-7,	Prev: Subsection 9-1-5,	Up: Section 9-1
   
 
-8.1.6   dirof
+9.1.6   dirof
 =============
 
 <<
@@ -584,10 +1210,10 @@ files.
   For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
 /foo.ml)' evaluates to the directories `dir1/dir2 /etc /'. 
 
-Node: Subsection 8-1-7,	Next: Subsection 8-1-8,	Prev: Subsection 8-1-6,	Up: Section 8-1
+Node: Subsection 9-1-7,	Next: Subsection 9-1-8,	Prev: Subsection 9-1-6,	Up: Section 9-1
   
 
-8.1.7   fullname
+9.1.7   fullname
 ================
 
 <<
@@ -598,10 +1224,10 @@ Node: Subsection 8-1-7,	Next: Subsection 8-1-8,	Prev: Subsection 8-1-6,	Up: Sect
   The `fullname' function returns the pathname relative to the project
 root for each of the files or directories. 
 
-Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Section 8-1
+Node: Subsection 9-1-8,	Next: Subsection 9-1-9,	Prev: Subsection 9-1-7,	Up: Section 9-1
   
 
-8.1.8   absname
+9.1.8   absname
 ===============
 
 <<
@@ -612,10 +1238,10 @@ Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Sect
   The `absname' function returns the absolute pathname for each of the
 files or directories. 
 
-Node: Subsection 8-1-9,	Next: Subsection 8-1-10,	Prev: Subsection 8-1-8,	Up: Section 8-1
+Node: Subsection 9-1-9,	Next: Subsection 9-1-10,	Prev: Subsection 9-1-8,	Up: Section 9-1
   
 
-8.1.9   homename
+9.1.9   homename
 ================
 
 <<
@@ -628,10 +1254,10 @@ possible. The unexpanded forms are computed lazily: the `homename'
 function will usually evaluate to an absolute pathname until the first
 tilde-expansion for the same directory. 
 
-Node: Subsection 8-1-10,	Next: Section 8-2,	Prev: Subsection 8-1-9,	Up: Section 8-1
+Node: Subsection 9-1-10,	Next: Section 9-2,	Prev: Subsection 9-1-9,	Up: Section 9-1
   
 
-8.1.10   suffix
+9.1.10   suffix
 ===============
 
 <<
@@ -644,28 +1270,28 @@ file has no suffix, the function returns the empty string.
   For example, the expression `$(suffix dir1/dir2/a.out /etc/a /foo.ml)'
 evaluates to `.out .ml'. 
 
-Node: Section 8-2,	Next: Subsection 8-2-1,	Prev: Section 8-1,	Up: Chapter 8
+Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
   
 
-8.2   Path search
+9.2   Path search
 *=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 8-2-1::	which
-* Subsection 8-2-2::	where
-* Subsection 8-2-3::	rehash
-* Subsection 8-2-4::	exists-in-path
-* Subsection 8-2-5::	digest
-* Subsection 8-2-6::	find-in-path
-* Subsection 8-2-7::	digest-path
+* Subsection 9-2-1::	which
+* Subsection 9-2-2::	where
+* Subsection 9-2-3::	rehash
+* Subsection 9-2-4::	exists-in-path
+* Subsection 9-2-5::	digest
+* Subsection 9-2-6::	find-in-path
+* Subsection 9-2-7::	digest-path
 
 
-Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8-2
+Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9-2
   
 
-8.2.1   which
+9.2.1   which
 =============
 
 <<
@@ -677,10 +1303,10 @@ Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8
 search path, and returns `file' values for each of the commands. It is
 an error if a command is not found. 
 
-Node: Subsection 8-2-2,	Next: Subsection 8-2-3,	Prev: Subsection 8-2-1,	Up: Section 8-2
+Node: Subsection 9-2-2,	Next: Subsection 9-2-3,	Prev: Subsection 9-2-1,	Up: Section 9-2
   
 
-8.2.2   where
+9.2.2   where
 =============
 
   The `where' function is similar to which, except it returns the list
@@ -694,10 +1320,10 @@ will describe the command as a built-in function.
       /bin/echo
 >>
 
-Node: Subsection 8-2-3,	Next: Subsection 8-2-4,	Prev: Subsection 8-2-2,	Up: Section 8-2
+Node: Subsection 9-2-3,	Next: Subsection 9-2-4,	Prev: Subsection 9-2-2,	Up: Section 9-2
   
 
-8.2.3   rehash
+9.2.3   rehash
 ==============
 
 <<
@@ -706,10 +1332,10 @@ Node: Subsection 8-2-3,	Next: Subsection 8-2-4,	Prev: Subsection 8-2-2,	Up: Sect
   
   The `rehash' function resets all search paths. 
 
-Node: Subsection 8-2-4,	Next: Subsection 8-2-5,	Prev: Subsection 8-2-3,	Up: Section 8-2
+Node: Subsection 9-2-4,	Next: Subsection 9-2-5,	Prev: Subsection 9-2-3,	Up: Section 9-2
   
 
-8.2.4   exists-in-path
+9.2.4   exists-in-path
 ======================
 
 <<
@@ -720,10 +1346,10 @@ Node: Subsection 8-2-4,	Next: Subsection 8-2-5,	Prev: Subsection 8-2-3,	Up: Sect
   The `exists-in-path' function tests whether all executables are
 present in the current search path. 
 
-Node: Subsection 8-2-5,	Next: Subsection 8-2-6,	Prev: Subsection 8-2-4,	Up: Section 8-2
+Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Section 9-2
   
 
-8.2.5   digest
+9.2.5   digest
 ==============
 
 <<
@@ -740,10 +1366,10 @@ files. The `digest' function raises an exception if a file does no
 exist. The `digest-optional' returns `false' if a file does no exist.
 MD5 digests are cached. 
 
-Node: Subsection 8-2-6,	Next: Subsection 8-2-7,	Prev: Subsection 8-2-5,	Up: Section 8-2
+Node: Subsection 9-2-6,	Next: Subsection 9-2-7,	Prev: Subsection 9-2-5,	Up: Section 9-2
   
 
-8.2.6   find-in-path
+9.2.6   find-in-path
 ====================
 
 <<
@@ -761,10 +1387,10 @@ function raises an exception if the file can't be found. The
 `find-in-path-optional' function silently removes files that can't be
 found. 
 
-Node: Subsection 8-2-7,	Next: Section 8-3,	Prev: Subsection 8-2-6,	Up: Section 8-2
+Node: Subsection 9-2-7,	Next: Section 9-3,	Prev: Subsection 9-2-6,	Up: Section 9-2
   
 
-8.2.7   digest-path
+9.2.7   digest-path
 ===================
 
 <<
@@ -782,27 +1408,27 @@ filename is significant. The `digest-in-path' function raises an
 exception if the file can't be found. The `digest-in-path-optional'
 function silently removes elements that can't be found. 
 
-Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
+Node: Section 9-3,	Next: Subsection 9-3-1,	Prev: Section 9-2,	Up: Chapter 9
   
 
-8.3   File stats
+9.3   File stats
 *=*=*=*=*=*=*=*=
 
    
 * Menu:
 
-* Subsection 8-3-1::	file-exists, target-exists, target-is-proper
-* Subsection 8-3-2::	stat-reset
-* Subsection 8-3-3::	filter-exists, filter-targets, filter-proper-targets
-* Subsection 8-3-4::	find-targets-in-path, find-targets-in-path-optional
-* Subsection 8-3-5::	file-sort
-* Subsection 8-3-6::	file-check-sort
+* Subsection 9-3-1::	file-exists, target-exists, target-is-proper
+* Subsection 9-3-2::	stat-reset
+* Subsection 9-3-3::	filter-exists, filter-targets, filter-proper-targets
+* Subsection 9-3-4::	find-targets-in-path, find-targets-in-path-optional
+* Subsection 9-3-5::	file-sort
+* Subsection 9-3-6::	file-check-sort
 
 
-Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
+Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9-3
   
 
-8.3.1   file-exists, target-exists, target-is-proper
+9.3.1   file-exists, target-exists, target-is-proper
 ====================================================
 
 <<
@@ -818,10 +1444,10 @@ However, it returns true if the file exists or if it can be built by the
 current project. The `target-is-proper' returns true only if the file
 can be generated in the current project. 
 
-Node: Subsection 8-3-2,	Next: Subsection 8-3-3,	Prev: Subsection 8-3-1,	Up: Section 8-3
+Node: Subsection 9-3-2,	Next: Subsection 9-3-3,	Prev: Subsection 9-3-1,	Up: Section 9-3
   
 
-8.3.2   stat-reset
+9.3.2   stat-reset
 ==================
 
 <<
@@ -833,10 +1459,10 @@ Node: Subsection 8-3-2,	Next: Subsection 8-3-3,	Prev: Subsection 8-3-1,	Up: Sect
 information for the given files, forcing the `stat' information to be
 recomputed the next time it is requested. 
 
-Node: Subsection 8-3-3,	Next: Subsection 8-3-4,	Prev: Subsection 8-3-2,	Up: Section 8-3
+Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Section 9-3
   
 
-8.3.3   filter-exists, filter-targets, filter-proper-targets
+9.3.3   filter-exists, filter-targets, filter-proper-targets
 ============================================================
 \@name
 {@fun113}
@@ -875,10 +1501,10 @@ removing intermediate files.
   If you use CVS, you may wish to use the `cvs_realclean' program that
 is distributed with `omake'.
 
-Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Section 8-3
+Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Section 9-3
   
 
-8.3.4   find-targets-in-path, find-targets-in-path-optional
+9.3.4   find-targets-in-path, find-targets-in-path-optional
 ===========================================================
 \@name
 {@default164}
@@ -914,10 +1540,10 @@ removes targets that can't be found.
       src/fee.o src/foo.o
 >>
 
-Node: Subsection 8-3-5,	Next: Subsection 8-3-6,	Prev: Subsection 8-3-4,	Up: Section 8-3
+Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
   
 
-8.3.5   file-sort
+9.3.5   file-sort
 =================
 
  
@@ -956,7 +1582,7 @@ where this matters).
   
   
 
-8.3.5.1   sort rule
+9.3.5.1   sort rule
 -------------------
   
   It is possible to further constrain the sorter through the use of sort
@@ -979,10 +1605,10 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
 
-Node: Subsection 8-3-6,	Next: Section 8-4,	Prev: Subsection 8-3-5,	Up: Section 8-3
+Node: Subsection 9-3-6,	Next: Section 9-4,	Prev: Subsection 9-3-5,	Up: Section 9-3
   
 
-8.3.6   file-check-sort
+9.3.6   file-check-sort
 =======================
 
 <<
@@ -996,10 +1622,10 @@ sort order. If so, the list is returned unchanged. If not, the function
 raises an exception.
   `$(file-check-sort <order>, <files>)' 
 
-Node: Section 8-4,	Next: Subsection 8-4-1,	Prev: Section 8-3,	Up: Chapter 8
+Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
   
 
-8.4   Globbing and file listings
+9.4   Globbing and file listings
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -1101,15 +1727,15 @@ syntax, with the following rules.
   
 * Menu:
 
-* Subsection 8-4-1::	glob
-* Subsection 8-4-2::	ls
-* Subsection 8-4-3::	subdirs
+* Subsection 9-4-1::	glob
+* Subsection 9-4-2::	ls
+* Subsection 9-4-3::	subdirs
 
 
-Node: Subsection 8-4-1,	Next: Subsection 8-4-2,	Prev: Section 8-4,	Up: Section 8-4
+Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
   
 
-8.4.1   glob
+9.4.1   glob
 ============
 
 <<
@@ -1147,10 +1773,10 @@ behavior of `glob'.
   
   The returned files are sorted by name. 
 
-Node: Subsection 8-4-2,	Next: Subsection 8-4-3,	Prev: Subsection 8-4-1,	Up: Section 8-4
+Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
   
 
-8.4.2   ls
+9.4.2   ls
 ==========
 
 <<
@@ -1172,10 +1798,10 @@ the following.
   The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
 the globbing behavior. The returned files are sorted by name. 
 
-Node: Subsection 8-4-3,	Next: Section 8-5,	Prev: Subsection 8-4-2,	Up: Section 8-4
+Node: Subsection 9-4-3,	Next: Section 9-5,	Prev: Subsection 9-4-2,	Up: Section 9-4
   
 
-8.4.3   subdirs
+9.4.3   subdirs
 ===============
 
 <<
@@ -1194,620 +1820,3 @@ directories, recursively.
  C  Ignore files according to .cvsignore rules. 
  P  Include only proper subdirectories. 
    
-
-Node: Section 8-5,	Next: Subsection 8-5-1,	Prev: Section 8-4,	Up: Chapter 8
-  
-
-8.5   Filesystem operations
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 8-5-1::	mkdir
-* Subsection 8-5-2::	Stat
-* Subsection 8-5-3::	stat
-* Subsection 8-5-4::	unlink
-* Subsection 8-5-5::	rename
-* Subsection 8-5-6::	link
-* Subsection 8-5-7::	symlink
-* Subsection 8-5-8::	readlink
-* Subsection 8-5-9::	chmod
-* Subsection 8-5-10::	chown
-* Subsection 8-5-11::	umask
-
-
-Node: Subsection 8-5-1,	Next: Subsection 8-5-2,	Prev: Section 8-5,	Up: Section 8-5
-  
-
-8.5.1   mkdir
-=============
-
-<<
-     mkdir(mode, node...)
-        mode : Int
-        node : Node
-     raises RuntimeException
-  
-     mkdir(node...)
-        node : Node
-     raises RuntimeException
->>
-  
-  The `mkdir' function creates a directory, or a set of directories. The
-following options are supported. 
-  
- -m mode  Specify the permissions of the created directory. 
- -p  Create parent directories if they do not exist. 
- --  Interpret the remaining names literally. 
-   
-
-Node: Subsection 8-5-2,	Next: Subsection 8-5-3,	Prev: Subsection 8-5-1,	Up: Section 8-5
-  
-
-8.5.2   Stat
-============
-
-  The `Stat' object represents the result returned by the `stat' and
-`lstat' functions. It contains the following fields.
-  A `stat' object has the following fields. Not all of the fields will
-have meaning on all architectures.
-  
-  
- dev : the device number. 
- ino : the inode number. 
- kind : the kind of the file, one of the following:  `REG' (regular
-   file),  `DIR' (directory),  `CHR' (character device),  `BLK' (block
-   device),  `LNK' (symbolic link),  `FIFO' (named pipe),  `SOCK'
-   (socket). 
- perm : access rights, represented as an integer. 
- nlink : number of links. 
- uid : user id of the owner. 
- gid : group id of the file's group. 
- rdev : device minor number. 
- size : size in bytes. 
- atime : last access time, as a floating point number. 
- mtime : last modification time, as a floating point number. 
- ctime : last status change time, as a floating point number. 
-  
-
-Node: Subsection 8-5-3,	Next: Subsection 8-5-4,	Prev: Subsection 8-5-2,	Up: Section 8-5
-  
-
-8.5.3   stat
-============
-
-<<
-      $(stat node...) : Stat
-         node : Node or Channel
-      $(lstat node...) : Stat
-         node : Node or Channel
-      raises RuntimeException
->>
-  
-  The `stat' functions return file information. If the file is a
-symbolic link, the `stat' function refers to the destination of the
-link; the `lstat' function refers to the link itself. 
-
-Node: Subsection 8-5-4,	Next: Subsection 8-5-5,	Prev: Subsection 8-5-3,	Up: Section 8-5
-  
-
-8.5.4   unlink
-==============
-
-<<
-     $(unlink file...)
-        file : File
-     #(rm file...)
-        file : File
-     $(rmdir dir...)
-        dir : Dir
-     raises RuntimeException
->>
-  
-  The `unlink' and `rm' functions remove a file. The `rmdir' function
-removes a directory.
-  The following options are supported for `rm' and `rmdir'. 
-  
- -f  ignore nonexistent files, never prompt. 
- -i  prompt before removal. 
- -r  remove the contents of directories recursively. 
- -v  explain what is going on. 
- --  the rest of the values are interpreted literally. 
-   
-
-Node: Subsection 8-5-5,	Next: Subsection 8-5-6,	Prev: Subsection 8-5-4,	Up: Section 8-5
-  
-
-8.5.5   rename
-==============
-
-<<
-      rename(old, new)
-         old : Node
-         new : Node
-      mv(nodes... dir)
-         nodes : Node Sequence
-         dir   : Dir
-      cp(nodes... dir)
-         nodes : Node Sequence
-         dir   : Dir
-      raises RuntimeException
->>
-  
-  The `rename' function changes the name of a file or directory named
-`old' to `new'.
-  The `mv' function is similar, but if `new' is a directory, and it
-exists, then the files specified by the sequence are moved into the
-directory. If not, the behavior of `mv' is identical to `rename'. The
-`cp' function is similar, but the original file is not removed.
-  The `mv' and `cp' functions take the following options. 
-  
- -f  Do not prompt before overwriting. 
- -i  Prompt before overwriting. 
- -v  Explain what it happening. 
- -r  Copy the contents of directories recursively. 
- --  Interpret the remaining arguments literally. 
-   
-
-Node: Subsection 8-5-6,	Next: Subsection 8-5-7,	Prev: Subsection 8-5-5,	Up: Section 8-5
-  
-
-8.5.6   link
-============
-
-<<
-     link(src, dst)
-        src : Node
-        dst : Node
-     raises RuntimeException
->>
-  
-  The `link' function creates a hard link named `dst' to the file or
-directory `src'.
-  Hard links are not supported in Win32.
-  Normally, only the superuser can create hard links to directories. 
-
-Node: Subsection 8-5-7,	Next: Subsection 8-5-8,	Prev: Subsection 8-5-6,	Up: Section 8-5
-  
-
-8.5.7   symlink
-===============
-
-<<
-     symlink(src, dst)
-        src : Node
-        dst : Node
-     raises RuntimeException
->>
-  
-  The `symlink' function creates a symbolic link `dst' that points to
-the `src' file.
-  The link name is computed relative to the target directory. For
-example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
--> ../a/b'.
-  Symbolic links are not supported in Win32. 
-
-Node: Subsection 8-5-8,	Next: Subsection 8-5-9,	Prev: Subsection 8-5-7,	Up: Section 8-5
-  
-
-8.5.8   readlink
-================
-
-<<
-     $(readlink node...) : Node
-        node : Node
->>
-  
-  The `readlink' function reads the value of a symbolic link. 
-
-Node: Subsection 8-5-9,	Next: Subsection 8-5-10,	Prev: Subsection 8-5-8,	Up: Section 8-5
-  
-
-8.5.9   chmod
-=============
-
-<<
-     chmod(mode, dst...)
-        mode : Int
-        dst : Node or Channel
-     chmod(mode dst...)
-        mode : String
-        dst : Node Sequence
-     raises RuntimeException
->>
-  
-  The `chmod' function changes the permissions of the targets. The
-`chmod' function does nothing on Win32 platforms.
-  Options: 
-  
- -v  Explain what is happening. 
- -r  Change files and directories recursively. 
- -f  Continue on errors. 
- --  Interpret the remaining argument literally. 
-   
-
-Node: Subsection 8-5-10,	Next: Subsection 8-5-11,	Prev: Subsection 8-5-9,	Up: Section 8-5
-  
-
-8.5.10   chown
-==============
-
-<<
-     chown(uid, gid, node...)
-        uid : Int
-        gid : Int
-        node : Node or Channel
-     chown(uid, node...)
-        uid : Int
-        node : Node or Channel
-     raises RuntimeException
->>
-  
-  The `chown' function changes the user and group id of the file. If the
-`gid' is not specified, it is not changed. If either id is -1, that id
-is not changed. 
-
-Node: Subsection 8-5-11,	Next: Section 8-6,	Prev: Subsection 8-5-10,	Up: Section 8-5
-  
-
-8.5.11   umask
-==============
-
-<<
-      $(umask mode) : Int
-         mode : Int
-      raises RuntimeException
->>
-  
-  Sets the file mode creation mask. The previous mask is returned. This
-value is not scoped, changes have global effect. 
-
-Node: Section 8-6,	Next: Subsection 8-6-1,	Prev: Section 8-5,	Up: Chapter 8
-  
-
-8.6   vmount
-*=*=*=*=*=*=
-
-   
-* Menu:
-
-* Subsection 8-6-1::	vmount
-* Subsection 8-6-2::	add-project-directories
-* Subsection 8-6-3::	remove-project-directories
-
-
-Node: Subsection 8-6-1,	Next: Subsection 8-6-2,	Prev: Section 8-6,	Up: Section 8-6
-  
-
-8.6.1   vmount
-==============
-
-<<
-      vmount(src, dst)
-         src, dst : Dir
-      vmount(flags, src, dst)
-         flags : String
-         src, dst : Dir
->>
-  
-  ``Mount'' the `src' directory on the `dst' directory. This is a
-virtual mount, changing the behavior of the `$(file ...)' function. When
-the `$(file str)' function is used, the resulting file is taken relative
-to the `src' directory if the file exists. Otherwise, the file is
-relative to the current directory.
-  The main purpose of the `vmount' function is to support multiple
-builds with separate configurations or architectures.
-  The options are as follows. 
-  
- l  Create symbolic links to files in the `src' directory. 
- c  Copy files from the `src' directory. 
-  
-  Mount operations are scoped. 
-
-Node: Subsection 8-6-2,	Next: Subsection 8-6-3,	Prev: Subsection 8-6-1,	Up: Section 8-6
-  
-
-8.6.2   add-project-directories
-===============================
-
-<<
-      add-project-directories(dirs)
-         dirs : Dir Array
->>
-  
-  Add the directories to the set of directories that omake considers to
-be part of the project. This is mainly used to avoid omake complaining
-that the current directory is not part of the project. 
-
-Node: Subsection 8-6-3,	Next: Section 8-7,	Prev: Subsection 8-6-2,	Up: Section 8-6
-  
-
-8.6.3   remove-project-directories
-==================================
-
-<<
-      remove-project-directories(dirs)
-         dirs : Dir Array
->>
-  
-  Removed the directories from the set of directories that omake
-considers to be part of the project. This is mainly used to cancel a
-`.SUBDIRS' from including a directory if it is determined that the
-directory does not need to be compiled. 
-
-Node: Section 8-7,	Next: Subsection 8-7-1,	Prev: Section 8-6,	Up: Chapter 8
-  
-
-8.7   File predicates
-*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 8-7-1::	test
-* Subsection 8-7-2::	find
-
-
-Node: Subsection 8-7-1,	Next: Subsection 8-7-2,	Prev: Section 8-7,	Up: Section 8-7
-  
-
-8.7.1   test
-============
-
-<<
-     test(exp) : Bool
-        exp : String Sequence
->>
-  
-  The expression grammar is as follows:
-  
-  
- - `!' expression : expression is not true 
- - expression1 `-a' expression2 : both expressions are true 
- - expression1 `-o' expression2 : at least one expression is true 
- - `(' expression `)' : expression is true 
-  
-  The base expressions are:
-  
-  
- - `-n' string : The string has nonzero length 
- - `-z' string : The string has zero length 
- - string `=' string : The strings are equal 
- - string `!=' string : The strings are not equal
- 
- - int1 `-eq' int2 : The integers are equal 
- - int1 `-ne' int2 : The integers are not equal 
- - int1 `-gt' int2 : int1 is larger than int2 
- - int1 `-ge' int2 : int2 is not larger than int1 
- - int1 `-lt' int2 : int1 is smaller than int2 
- - int1 `-le' int2 : int1 is not larger than int2
- 
- - file1 `-ef' file2 : On Unix, file1 and file2 have the  same device
-   and inode number.  On Win32, file1 and file2 have the  same name. 
- - file1 `-nt' file2 : file1 is newer than file2 
- - file1 `-ot' file2 : file1 is older than file2
- 
- - `-b' file : The file is a block special file 
- - `-c' file : The file is a character special file 
- - `-d' file : The file is a directory 
- - `-e' file : The file exists 
- - `-f' file : The file is a normal file 
- - `-g' file : The set`-group'`-id' bit is set on the file 
- - `-G' file : The file's group is the current effective group 
- - `-h' file : The file is a symbolic link (also `-L') 
- - `-k' file : The file's sticky bit is set 
- - `-L' file : The file is a symbolic link (also `-h') 
- - `-O' file : The file's owner is the current effective user 
- - `-p' file : The file is a named pipe 
- - `-r' file : The file is readable 
- - `-s' file : The file is empty 
- - `-S' file : The file is a socket 
- - `-u' file : The set`-user'`-id' bit is set on the file 
- - `-w' file : The file is writable 
- - `-x' file : The file is executable 
-  
-  A string is any sequence of characters; leading `-' characters are
-allowed.
-  An int is a string that can be interpreted as an integer. Unlike
-traditional versions of the test program, the leading characters may
-specify an arity. The prefix `0b' means the numbers is in binary; the
-prefix `0o' means the number is in octal; the prefix `0x' means the
-number is in hexadecimal. An int can also be specified as `-l' string,
-which evaluates to the length of the string.
-  A file is a string that represents the name of a file.
-  The syntax mirrors that of the test(1) program. If you are on a Unix
-system, the man page explains more. Here are some examples.
-<<
-      # Create an empty file
-      osh> touch foo
-      # Is the file empty?
-      osh> test(-e foo)
-      - : true
-      osh> test(! -e foo)
-      - : false
-      # Create another file
-      osh> touch boo
-      # Is the newer file newer?
-      osh> test(boo -nt foo)
-      - : true
-      # A more complex query
-      # boo is newer than foo, and foo is empty
-      osh> test(\( boo -nt foo \) -a -e foo)
-      - : true
->>
-
-Node: Subsection 8-7-2,	Next: Section 8-8,	Prev: Subsection 8-7-1,	Up: Section 8-7
-  
-
-8.7.2   find
-============
-
-<<
-     find(exp) : Node Array
-        exp : String Sequence
->>
-  
-  The `find' function searches a directory recursively, returning the
-files for which the expression evaluates to true.
-  The expression argument uses the same syntax as the `test' function,
-with the following exceptions.
-  
-  
- 1. The expression may begin with a directory. If not specified, the
-   current  directory is searched. 
- 2. The `{}' string expands to the current file being examined. 
-  
-  The syntax of the expression is the same as `test', with the following
-additions.
-  
-  
- - `-name' string : The current file matches the glob expression (see
-   Section 8.4*Note Section 8-4::). 
-  
-  The `find' function performs a recursive scan of all subdirectories.
-The following call is being run from the root of the `omake' source
-directory.
-<<
-      osh> find(. -name fo* )
-      - : <array
-              /home/jyh/.../omake/mk/.svn/format
-              /home/jyh/.../omake/RPM/.svn/format
-              ...
-             
-/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
->>
-  
-  Another example, listing only those files that are normal files or
-symbolic links.
-<<
-      osh> find(. -name fo* -a \( -f {} -o -L {} \))
-      - : <array
-              /home/jyh/.../omake/mk/.svn/format
-              /home/jyh/.../omake/RPM/.svn/format
-              ...
-             
-/home/jyh/.../omake/osx_resources/installer_files/.svn/format>
->>
-   
-
-Node: Section 8-8,	Next: Subsection 8-8-1,	Prev: Section 8-7,	Up: Chapter 8
-  
-
-8.8   IO functions
-*=*=*=*=*=*=*=*=*=
-
-   
-* Menu:
-
-* Subsection 8-8-1::	Standard channels
-* Subsection 8-8-2::	stdin
-* Subsection 8-8-3::	stdout
-* Subsection 8-8-4::	stderr
-* Subsection 8-8-5::	fopen
-* Subsection 8-8-6::	close
-* Subsection 8-8-7::	read
-* Subsection 8-8-8::	write
-* Subsection 8-8-9::	lseek
-* Subsection 8-8-10::	rewind
-* Subsection 8-8-11::	tell
-* Subsection 8-8-12::	flush
-* Subsection 8-8-13::	dup
-* Subsection 8-8-14::	dup2
-* Subsection 8-8-15::	set-nonblock
-* Subsection 8-8-16::	set-close-on-exec-mode
-* Subsection 8-8-17::	pipe
-* Subsection 8-8-18::	mkfifo
-* Subsection 8-8-19::	select
-* Subsection 8-8-20::	lockf
-* Subsection 8-8-21::	InetAddr
-* Subsection 8-8-22::	Host
-* Subsection 8-8-23::	gethostbyname
-* Subsection 8-8-24::	Protocol
-* Subsection 8-8-25::	getprotobyname
-* Subsection 8-8-26::	Service
-* Subsection 8-8-27::	getservbyname
-* Subsection 8-8-28::	socket
-* Subsection 8-8-29::	bind
-* Subsection 8-8-30::	listen
-* Subsection 8-8-31::	accept
-* Subsection 8-8-32::	connect
-* Subsection 8-8-33::	getchar
-* Subsection 8-8-34::	gets
-* Subsection 8-8-35::	fgets
-
-
-Node: Subsection 8-8-1,	Next: Subsection 8-8-2,	Prev: Section 8-8,	Up: Section 8-8
-  
-
-8.8.1   Standard channels
-=========================
-  
-  The following variables define the standard channels.
-
-Node: Subsection 8-8-2,	Next: Subsection 8-8-3,	Prev: Subsection 8-8-1,	Up: Section 8-8
-  
-
-8.8.2   stdin
-=============
-
-<<
-  stdin : InChannel
->>
-  
-  The standard input channel, open for reading.
-
-Node: Subsection 8-8-3,	Next: Subsection 8-8-4,	Prev: Subsection 8-8-2,	Up: Section 8-8
-  
-
-8.8.3   stdout
-==============
- 
-<<
-  stdout : OutChannel
->>
-  
-  The standard output channel, open for writing.
-
-Node: Subsection 8-8-4,	Next: Subsection 8-8-5,	Prev: Subsection 8-8-3,	Up: Section 8-8
-  
-
-8.8.4   stderr
-==============
- 
-<<
-  stderr : OutChannel
->>
-  
-  The standard error channel, open for writing. 
-
-Node: Subsection 8-8-5,	Next: Subsection 8-8-6,	Prev: Subsection 8-8-4,	Up: Section 8-8
-  
-
-8.8.5   fopen
-=============
-
-  The `fopen' function opens a file for reading or writing.
-<<
-     $(fopen file, mode) : Channel
-        file : File
-        mode : String
->>
-  
-  The `file' is the name of the file to be opened. The `mode' is a
-combination of the following characters. 
-  
- r  Open the file for reading; it is an error if the file does not
-   exist. 
- w  Open the file for writing; the file is created if it does not exist.
-   
- a  Open the file in append mode; the file is created if it does not
-   exist. 
- +  Open the file for both reading an writing. 
- t  Open the file in text mode (default). 
- b  Open the file in binary mode. 
- n  Open the file in nonblocking mode. 
- x  Fail if the file already exists. 
-  
-  Binary mode is not significant on Unix systems, where text and binary
-modes are equivalent. 
