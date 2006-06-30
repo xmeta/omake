@@ -366,6 +366,7 @@ val venv_add_rule : venv -> pos -> loc ->
 val venv_environment : venv -> string SymbolTable.t
 val venv_setenv : venv -> var -> string -> venv
 val venv_getenv : venv -> var -> string
+val venv_unsetenv : venv -> var -> venv
 val venv_defined_env : venv -> var -> bool
 
 (*

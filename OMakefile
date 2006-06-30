@@ -85,19 +85,19 @@ if $(THREADS_ENABLED)
 # C options
 #
 INCLUDES += $(CAMLLIB) .
-CLIBS =
+EXTRA_CLIBS =
 
 if $(READLINE_ENABLED)
     CFLAGS += $(READLINE_CFLAGS)
-    CLIBS += $(READLINE_CLIBS)
+    EXTRA_CLIBS += $(READLINE_CLIBS)
     export
 
 if $(FAM_ENABLED)
     CFLAGS += $(FAM_CFLAGS)
-    CLIBS += $(FAM_CLIBS)
+    EXTRA_CLIBS += $(FAM_CLIBS)
     export
 
-OCAML_LINK_FLAGS = $(mapprefix -cclib, $(CLIBS))
+OCAML_LINK_FLAGS = $(mapprefix -cclib, $(EXTRA_CLIBS))
 
 #
 # Name of the genmagic program

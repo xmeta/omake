@@ -2151,6 +2151,9 @@ let venv_getenv venv v =
 let venv_setenv venv v x =
    { venv with venv_inner = { venv.venv_inner with venv_environ = SymbolTable.add venv.venv_inner.venv_environ v x } }
 
+let venv_unsetenv venv v =
+   { venv with venv_inner = { venv.venv_inner with venv_environ = SymbolTable.remove venv.venv_inner.venv_environ v } }
+
 let venv_defined_env venv v =
    SymbolTable.mem venv.venv_inner.venv_environ v
 

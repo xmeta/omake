@@ -887,6 +887,34 @@ let setenv venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{unsetenv}
+ *
+ * \begin{verbatim}
+ *    unsetenv(names)
+ *       names : String Array
+ * \end{verbatim}
+ *
+ * The \verb+unsetenv+ function removes some variable definitions from
+ * the process environment.  Environment variables are scoped
+ * like normal variables.
+ *
+ * \end{doc}
+ *)
+let unsetenv venv pos loc args =
+   let pos = string_pos "unsetenv" pos in
+      match args with
+         [arg] ->
+            let vars = strings_of_value venv pos arg in
+            let venv =
+               List.fold_left (fun venv v ->
+                     venv_unsetenv venv (Lm_symbol.add v)) venv vars
+            in
+               ValEnv (venv, ExportAll)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
  * \fun{get-registry}
  *
  * \begin{verbatim}
@@ -2483,6 +2511,7 @@ let () =
        true,  "getenv",                getenv,              ArityRange (1, 2);
        true,  "defined-env",           defined_env,         ArityExact 1;
        true,  "setenv",                setenv,              ArityExact 2;
+       true,  "unsetenv",              unsetenv,            ArityExact 1;
        true,  "exit",                  exit_fun,            ArityRange (0, 1);
        true,  "raise",                 raise_fun,           ArityExact 1;
        true,  "get-registry",          get_registry,        ArityRange (3, 4);

@@ -10,11 +10,11 @@ public.CheckHeader(files) =
     private.includes = $(add-wrapper $(nl)$'#include <', >, $(files))
 
     # The command line
-    private.tmp = $(tmpfile omake)
-    private.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c
+    protected.tmp = $(tmpfile omake)
+    protected.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c
 
     # The program
-    private.program = $"""/* Configuration file; you can remove this. */
+    protected.program = $"""/* Configuration file; you can remove this. */
 /* Command line: $(command) */
 #ifdef __cplusplus
 extern "C"
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 
     # Compile it
     fprint($(tmp).c, $(program))
-    private.success = $(shell-success-null $(command))
+    protected.success = $(shell-success-null $(command))
 
     # Remove temporaries
     rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
 public.VerboseCheckHeader(files) =
     print(--- Testing for $(files)... )
-    private.success = $(CheckHeader $(files))
+    protected.success = $(CheckHeader $(files))
     if $(success)
         println($'(success)')
     else
@@ -48,16 +48,16 @@ public.VerboseCheckHeader(files) =
 # Check whether the libraries have the given functions
 #
 public.CheckLib(libs, funs) =
-    private.declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
-    private.funs = $(add-wrapper $(nl)    , $'();', $(funs))
-    private.clibs = $(addprefix -l, $(libs))
+    protected.declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
+    protected.funs = $(add-wrapper $(nl)    , $'();', $(funs))
+    protected.clibs = $(addprefix -l, $(libs))
 
     # The command line
-    private.tmp = $(tmpfile omake)
-    private.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c $(clibs)
+    protected.tmp = $(tmpfile omake)
+    protected.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c $(clibs)
 
     # The program
-    private.program = $"""/* Configuration file, you can remove this. */
+    protected.program = $"""/* Configuration file, you can remove this. */
 /* command line: $(command) */
 /* Override any gcc2 internal prototype to avoid an error.  */
 #ifdef __cplusplus
@@ -72,7 +72,7 @@ $(funs)
 
     # Compile it
     fprint($(tmp).c, $(program))
-    private.success = $(shell-success-null $(command))
+    protected.success = $(shell-success-null $(command))
 
     # Remove temporaries
     rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
