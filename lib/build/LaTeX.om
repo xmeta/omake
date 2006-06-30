@@ -301,9 +301,9 @@ public.LaTeXDocument(name, texfiles) =
     #
     # Setting the proper TEXINPUTS environment
     #
-    protected.INPUTS = $(concat $(PATHSEP), $(TEXINPUTS))$(PATHSEP)
-    setenv(TEXINPUTS, $(INPUTS))
-    setenv(BIBINPUTS, $(INPUTS))
+    private.INPUTS = $(concat $(PATHSEP), $(TEXINPUTS))$(PATHSEP)
+    setenv(TEXINPUTS, $(private.INPUTS))
+    setenv(BIBINPUTS, $(private.INPUTS))
 
     Rule(use_pdflatex) =
         private.prog = $(if $(use_pdflatex), $(PDFLATEX), $(LATEX))
