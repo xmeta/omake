@@ -2207,7 +2207,7 @@ let print_stats env message start_time =
 (*
  * All of the commands in the Blocked queue are deadlocked.
  *)
-let print_deadlock env buf state =
+let print_deadlock_exn env buf state =
    (* Inconsistency *)
    let failwith_inconsistency command =
       let { command_target       = target;
@@ -2294,6 +2294,12 @@ let print_deadlock env buf state =
             print (target :: marked) (search (NodeSet.to_list deps))
    in
       print [] (command_list_head env state)
+
+let print_deadlock env buf state =
+   try print_deadlock_exn env buf state with
+      OmakeException _
+    | Failure _ as exn ->
+         fprintf buf "%a@." Omake_exn_print.pp_print_exn exn
 
 (*
  * Print the failed commands.
@@ -2664,6 +2670,10 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                close env;
                exit exn_error_code
    in
+      (* Save database before exiting *)
+      if save_flag && not options.opt_dry_run then
+         save env;
+
       (* Return error if that happened *)
       if env.env_error_code <> 0 then
          let buf, outx = open_tmpfile env in
@@ -2694,11 +2704,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
             build_failure env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
       else if summary then
-         build_success env;
-
-      (* Save database before exiting *)
-      if save_flag && not options.opt_dry_run then
-         save env
+         build_success env
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
    if not options.opt_poll then

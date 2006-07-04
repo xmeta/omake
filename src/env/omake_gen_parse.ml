@@ -107,6 +107,12 @@ let arg_next =
 let arg_start =
    subtract arg_next white
 
+let neq_arg_next =
+   subtract arg_next ["TokEq"]
+
+let neq_arg_start =
+   subtract arg_start ["TokEq"]
+
 let other_start =
    subtract tokens ("TokWhite" :: "quote" :: List.flatten [id; colon])
 
@@ -137,6 +143,8 @@ let productions =
      "keyword_target_start",            keyword_target_start;
      "arg_next",                        arg_next;
      "arg_start",                       arg_start;
+     "neq_arg_next",                    neq_arg_next;
+     "neq_arg_start",                   neq_arg_start;
      "other_start",                     other_start;
      "other_method_id_white",           other_method_id_white;
      "other_method_id",                 other_method_id;

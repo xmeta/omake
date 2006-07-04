@@ -534,7 +534,7 @@ let quote          = squote | dquote | pipe
  *)
 let dollar         = '$' ['`' ',' '$']
 let paren_dollar   = '$' ['`' ',']?
-let special_char   = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
+let special_char   = ['@' '&' '*' '<' '>' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
 let special_var    = paren_dollar special_char
 
 (*

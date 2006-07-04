@@ -32,6 +32,8 @@ open Omake_ast
 open Omake_ast_util
 open Omake_symbol
 
+let replacesuffixes_sym = Lm_symbol.add "replacesuffixes"
+
 module Pos = MakePos (struct let name = "Omake_parse" end)
 open Pos;;
 
@@ -463,6 +465,20 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_args TokRig
                      ApplyExp (strategy, Lm_symbol.add id, $6, loc), loc
                 | _ ->
                      MethodApplyExp (strategy, method_id_intern idl, $6, loc), loc
+          }
+        | TokDollar opt_white TokLeftParen opt_white method_name TokColon neq_arg TokEq arg TokRightParen
+          { let _, strategy, loc1 = $1 in
+            let _, loc2 = $10 in
+            let idl, _ = $5 in
+            let loc = union_loc loc1 loc2 in
+            let arg =
+               match idl with
+                  [id] ->
+                     ApplyExp (NormalApply, Lm_symbol.add id, [], loc)
+                | _ ->
+                     MethodApplyExp (NormalApply, method_id_intern idl, [], loc)
+            in
+                ApplyExp (strategy, replacesuffixes_sym, [$7; $9; arg], loc), loc
           }
         | TokDollar opt_white TokLeftParen opt_white id TokDoubleColon id opt_args TokRightParen
           { let _, strategy, loc1 = $1 in
@@ -956,6 +972,25 @@ rev_arg:
                [e], loc
           }
         | rev_arg arg_next
+          { let l, loc1 = $1 in
+            let e, loc2 = $2 in
+               e :: l, union_loc loc1 loc2
+          }
+        ;
+
+neq_arg:
+          opt_white rev_neq_arg
+          { let l, loc = $2 in
+               sequence_exp (List.rev l) loc
+          }
+        ;
+
+rev_neq_arg:
+          neq_arg_start
+          { let e, loc = $1 in
+               [e], loc
+          }
+        | rev_neq_arg neq_arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
                e :: l, union_loc loc1 loc2
