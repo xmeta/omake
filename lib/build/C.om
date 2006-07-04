@@ -194,12 +194,12 @@ if $(equal $(OSTYPE), Win32)
     # directives from the preprocessor.
     #
     Shell. +=
-        public.builtin-cpp-filenames(argv) =
+        builtin-cpp-filenames(argv) =
            fsubst($(argv))
            case $'^[^"]*\("[^"]+"\).*'
               value $1
 
-        public.builtin-cc-depend(argv) =
+        builtin-cc-depend(argv) =
            private.filename = $(last $(argv))
            private.pipeline =\
               $(argv) |\
