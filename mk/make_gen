@@ -26,16 +26,16 @@ MakeDontLink(files) =
 
 MakeLinkFile(dst, src) =
     private.cwd = $(in $(BOOT), $(CWD))
-    private.cwd = $(split \/, $(cwd))
-    private.cwd = $(concat $(slash), $(cwd))
+    private.cwd = $(split \/, $(private.cwd))
+    private.cwd = $(concat $(slash), $(private.cwd))
 
-    private.src = $(split \/, $(src))
-    private.src = $(concat $(slash), $(src))
+    private.src = $(split \/, $(private.src))
+    private.src = $(concat $(slash), $(private.src))
 
-    private.srcfile = $"$(cwd)$(slash)$(src)"
+    private.srcfile = $"$(cwd)$(slash)$(private.src)"
     MAKEFILE_TEXT += $"""
-$(dst): $(srcfile)
-	$$(LN) $(srcfile) $(dst)
+$(dst): $(private.srcfile)
+	$$(LN) $(private.srcfile) $(dst)
 """
     MAKEFILE_EXPLICIT_LINK += $(dst)
     export
