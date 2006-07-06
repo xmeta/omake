@@ -188,7 +188,8 @@ let print_status_tee tee shell remote name exp =
    let flags, dir, target = shell.shell_info exp in
    let dirname = Dir.fullname dir in
       fprintf tee "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
-      fprintf tee "+%t %a@." pp_print_host shell.shell_print_exp exp
+      if not (List.mem QuietFlag flags) then
+         fprintf tee "+%t %a@." pp_print_host shell.shell_print_exp exp
 
 let print_status tee options shell remote name flag =
    let () =
