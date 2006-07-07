@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -69,10 +69,11 @@ let rec target_is_buildable_bound bound cache venv pos target =
    let target = Node.unsquash target in
       try venv_find_target_is_buildable_exn venv target with
          Not_found ->
+            (* Check for loops *)
+            if NodeSet.mem bound target then
+               raise (OmakeException(pos, StringNodeError("Cyclic implicit dependencies detected", target)));
             let flag =
-               (* Check for loops *)
-               not (NodeSet.mem bound target)
-               && (target_exists_or_is_phony_or_is_explicit cache venv target
+               (target_exists_or_is_phony_or_is_explicit cache venv target
                    || venv_find_buildable_implicit_rule_bound (NodeSet.add bound target) cache venv pos target <> None)
             in
                venv_add_target_is_buildable venv target flag;
@@ -96,7 +97,7 @@ and search_irules bound cache venv pos target irules =
                eprintf "@[<b 3>venv_find_buildable_implicit_rule: considering implicit rule %a:%a@]@." (**)
                   pp_print_node target
                   pp_print_node_set sources;
-            if NodeSet.for_all (target_is_buildable_bound bound cache venv pos) sources then
+            if NodeSet.for_all (target_is_buildable_bound bound cache venv (loc_pos irule.rule_loc pos)) sources then
                let irule' = expand_rule irule in
                   if irule == irule' || NodeSet.for_all (target_is_buildable_bound bound cache venv pos) (NodeSet.diff irule'.rule_sources sources) then begin
                      if debug debug_implicit then
@@ -145,12 +146,9 @@ let target_is_buildable_proper cache venv pos target =
                venv_add_target_is_buildable_proper venv target flag;
                flag
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
