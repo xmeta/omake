@@ -101,6 +101,7 @@ let copy_stderr = write_all Unix.stderr
  *)
 let copy_file name =
    let fd_out = Lm_unix_util.openfile name [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
+   let () = Unix.set_close_on_exec fd_out in
    let copy id buf off len =
       if len = 0 then
          Unix.close fd_out

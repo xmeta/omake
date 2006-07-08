@@ -373,7 +373,8 @@ let get_cache_file dir name =
 let lock_cache_file dir name =
    let filename_fd = get_cache_file dir name in
    let _, fd = filename_fd in
-      Lm_unix_util.lockf fd Unix.F_LOCK max_int;
+      Unix.set_close_on_exec fd;
+      Lm_unix_util.flock fd Lm_unix_util.LOCK_EX;
       filename_fd
 
 let db_file () =
