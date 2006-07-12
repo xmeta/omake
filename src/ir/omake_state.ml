@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -374,7 +374,7 @@ let lock_cache_file dir name =
    let filename_fd = get_cache_file dir name in
    let _, fd = filename_fd in
       Unix.set_close_on_exec fd;
-      Lm_unix_util.flock fd Lm_unix_util.LOCK_EX;
+      Lm_unix_util.lockf fd Unix.F_LOCK max_int;
       filename_fd
 
 let db_file () =
@@ -383,12 +383,9 @@ let db_file () =
 let history_file () =
    Filename.concat (omake_dir ()) "osh_history"
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
