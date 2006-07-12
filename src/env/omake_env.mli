@@ -209,10 +209,16 @@ and erule =
 
 (*
  * A listing of all the explicit rules.
+ *
+ *    explicit_targets     : the collapsed rules for each explicit target
+ *    explicit_deps        : the table of explicit rules that are just dependencies
+ *    explicit_rules       : the table of all individual explicit rules
+ *    explicit_directories : the environment for each directory in the project
  *)
 and erule_info =
    { explicit_targets         : erule NodeTable.t;
      explicit_deps            : (NodeSet.t * NodeSet.t * NodeSet.t) NodeTable.t;   (* locks, sources, scanners *)
+     explicit_rules           : erule NodeMTable.t;
      explicit_directories     : venv DirTable.t
    }
 
@@ -637,9 +643,10 @@ val debug_db : bool ref
 (*
  * Static loading.
  *)
-module Static :
+module type StaticSig =
 sig
-   type t
+   type in_handle
+   type out_handle
 
    (*
     * Open a file.  The Node.t is the name of the _source_ file,
@@ -647,8 +654,12 @@ sig
     * goes on our own.  Raises Not_found if the source file
     * can't be found.
     *)
-   val create     : venv -> Node.t -> t
-   val close      : t -> unit
+   val create_in    : venv -> Node.t -> in_handle
+   val close_in     : in_handle -> unit
+
+   val create_out   : venv -> Node.t -> out_handle
+   val recreate_out : in_handle -> out_handle
+   val close_out    : out_handle -> unit
 
    (*
     * Unfortunately, the IR type is delayed because it
@@ -657,19 +668,25 @@ sig
     *)
 
    (*
-    * Add the three kinds of entries.
-    *)
-   val add_ir     : t -> ir -> unit
-   val add_object : t -> obj -> unit
-   val add_values : t -> obj -> unit
-
-   (*
     * Fetch the three kinds of entries.
     *)
-   val find_ir     : t -> ir
-   val find_object : t -> obj
-   val find_values : t -> obj
+   val find_ir     : in_handle -> ir
+   val find_object : in_handle -> obj
+   val find_values : in_handle -> obj SymbolTable.t
+
+   (*
+    * Add the three kinds of entries.
+    *)
+   val get_ir      : out_handle -> ir
+   val get_object  : out_handle -> obj
+   val get_values  : out_handle -> obj SymbolTable.t
+
+   val add_ir      : out_handle -> ir -> unit
+   val add_object  : out_handle -> obj -> unit
+   val add_values  : out_handle -> obj SymbolTable.t -> unit
 end;;
+
+module Static : StaticSig;;
 
 (*!
  * @docoff

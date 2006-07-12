@@ -317,12 +317,17 @@ and erule =
    }
 
 (*
- * Info about explicit rules.
- * Keep track of all the possible explicit targets.
+ * A listing of all the explicit rules.
+ *
+ *    explicit_targets     : the collapsed rules for each explicit target
+ *    explicit_deps        : the table of explicit rules that are just dependencies
+ *    explicit_rules       : the table of all individual explicit rules
+ *    explicit_directories : the environment for each directory in the project
  *)
 and erule_info =
    { explicit_targets         : erule NodeTable.t;
-     explicit_deps            : (NodeSet.t * NodeSet.t * NodeSet.t) NodeTable.t;
+     explicit_deps            : (NodeSet.t * NodeSet.t * NodeSet.t) NodeTable.t;   (* locks, sources, scanners *)
+     explicit_rules           : erule NodeMTable.t;
      explicit_directories     : venv DirTable.t
    }
 
@@ -1269,7 +1274,53 @@ let venv_marshal venv f x =
             restore ();
             raise exn
 
-module Static =
+(*
+ * Static loading.
+ *)
+module type StaticSig =
+sig
+   type in_handle
+   type out_handle
+
+   (*
+    * Open a file.  The Node.t is the name of the _source_ file,
+    * not the .omc file.  We'll figure out where the .omc file
+    * goes on our own.  Raises Not_found if the source file
+    * can't be found.
+    *)
+   val create_in    : venv -> Node.t -> in_handle
+   val close_in     : in_handle -> unit
+
+   val create_out   : venv -> Node.t -> out_handle
+   val recreate_out : in_handle -> out_handle
+   val close_out    : out_handle -> unit
+
+   (*
+    * Unfortunately, the IR type is delayed because it
+    * has type (Omake_ir_ast.senv * Omake_ir.ir), and
+    * Omake_ir_ast depends on this file.
+    *)
+
+   (*
+    * Fetch the three kinds of entries.
+    *)
+   val find_ir     : in_handle -> ir
+   val find_object : in_handle -> obj
+   val find_values : in_handle -> obj SymbolTable.t
+
+   (*
+    * Add the three kinds of entries.
+    *)
+   val get_ir      : out_handle -> ir
+   val get_object  : out_handle -> obj
+   val get_values  : out_handle -> obj SymbolTable.t
+
+   val add_ir      : out_handle -> ir -> unit
+   val add_object  : out_handle -> obj -> unit
+   val add_values  : out_handle -> obj SymbolTable.t -> unit
+end;;
+
+module Static : StaticSig =
 struct
    (************************************************************************
     * Types.
@@ -1286,6 +1337,8 @@ struct
         db_flush_ir     : bool;
         db_flush_static : bool
       }
+   type in_handle = t
+   type out_handle = t
 
    (*
     * Tags for the various kinds of entries.
@@ -1303,7 +1356,7 @@ struct
     * not the .omc file.  We'll figure out where the .omc file
     * goes on our own.
     *)
-   let create venv source =
+   let create_mode mode venv source =
       (* Get the source digest *)
       let cache = venv.venv_inner.venv_globals.venv_cache in
       let digest =
@@ -1331,11 +1384,11 @@ struct
       let name = name ^ ".omc" in
       let target_fd =
          try
-            let target_name, target_fd =
-               Omake_state.lock_cache_file dir name
-            in
+            let target_name, target_fd = Omake_state.get_cache_file dir name in
                if !debug_db then
                   eprintf "@[<v 3>Omake_db.create:@ %a --> %s@]@." pp_print_node source target_name;
+               Unix.set_close_on_exec target_fd;
+               Omake_state.lock_file target_fd mode;
                Some target_fd
          with
             Unix.Unix_error _
@@ -1351,16 +1404,36 @@ struct
            db_flush_static = venv.venv_inner.venv_options.opt_flush_static
          }
 
+   let create_in = create_mode Unix.F_RLOCK
+   let create_out = create_mode Unix.F_LOCK
+
+   (*
+    * Restart with a write lock.
+    *)
+   let recreate_out info =
+      match info.db_file with
+         Some fd ->
+            let _ = Unix.lseek fd 0 Unix.SEEK_SET in
+               Omake_state.lock_file fd Unix.F_ULOCK;
+               Omake_state.lock_file fd Unix.F_LOCK;
+               info
+       | None ->
+            info
+
    (*
     * Close the file.
     *)
-   let close = function
-      { db_file = Some fd; db_name = name } ->
-         if !debug_db then
-            eprintf "Omake_db.close: %a@." pp_print_node name;
-         Unix.close fd
-    | { db_file = None } ->
-         ()
+   let close info =
+      match info with
+         { db_file = Some fd; db_name = name } ->
+            if !debug_db then
+               eprintf "Omake_db.close: %a@." pp_print_node name;
+            Unix.close fd
+       | { db_file = None } ->
+            ()
+
+   let close_in = close
+   let close_out = close
 
    (*
     * Add the three kinds of entries.
@@ -1436,6 +1509,9 @@ struct
     | { db_flush_static = true } ->
          raise Not_found
 
+   let get_ir     = find_ir
+   let get_object = find_object
+   let get_values = find_values
 end;;
 
 (************************************************************************
@@ -1807,14 +1883,14 @@ let venv_find_static_object venv node v =
       try NodeTable.find static node with
          Not_found ->
             (* Load it from the file *)
-            let fd = Static.create venv node in
+            let fd = Static.create_in venv node in
             let table =
                try Static.find_values fd with
                   Not_found ->
-                     Static.close fd;
+                     Static.close_in fd;
                      raise Not_found
             in
-               Static.close fd;
+               Static.close_in fd;
                globals.venv_static_values <- NodeTable.add static node table;
                table
    in
@@ -1855,14 +1931,14 @@ let venv_save_static_values venv =
    let globals = venv.venv_inner.venv_globals in
       NodeTable.iter (fun node table ->
             let fd =
-               try Some (Static.create venv node) with
+               try Some (Static.create_out venv node) with
                   Not_found ->
                      None
             in
                match fd with
                   Some fd ->
                      Static.add_values fd table;
-                     Static.close fd
+                     Static.close_out fd
                 | None ->
                      ()) globals.venv_modified_values;
       globals.venv_modified_values <- NodeTable.empty
@@ -2921,6 +2997,7 @@ let venv_explicit_rules venv =
    let info =
       { explicit_targets      = NodeTable.empty;
         explicit_deps         = NodeTable.empty;
+        explicit_rules        = NodeMTable.empty;
         explicit_directories  = venv_directories venv
       }
    in
@@ -2928,7 +3005,8 @@ let venv_explicit_rules venv =
       venv_explicit_flush venv;
       List.fold_left (fun info erule ->
             let { explicit_targets          = target_table;
-                  explicit_deps             = dep_table
+                  explicit_deps             = dep_table;
+                  explicit_rules            = rules
                 } = info
             in
             let { rule_target   = target;
@@ -2941,7 +3019,8 @@ let venv_explicit_rules venv =
             let target_table   = add_target target_table target erule in
             let dep_table      = add_deps dep_table target locks sources scanners in
                { info with explicit_targets  = target_table;
-                           explicit_deps     = dep_table
+                           explicit_deps     = dep_table;
+                           explicit_rules    = NodeMTable.add rules target erule
                }) info (List.rev venv.venv_inner.venv_globals.venv_explicit_rules)
    in
       if NodeMTable.is_empty !errors then

@@ -81,11 +81,13 @@ val application_dir : string
 val omake_dir       : unit -> string
 val db_file         : unit -> string
 val history_file    : unit -> string
-val lock_cache_file : string -> string -> string * Unix.file_descr
 
 val omakeinit_file : string
 val omakerc_file   : string
 val oshrc_file     : string
+
+val get_cache_file  : string -> string -> string * Unix.file_descr
+val lock_file       : Unix.file_descr -> Unix.lock_command -> unit
 
 (*!
  * @docoff

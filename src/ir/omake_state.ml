@@ -370,12 +370,8 @@ let get_cache_file dir name =
  *    - http://lists.metaprl.org/pipermail/omake/2005-November/thread.html#744
  *    - http://lists.metaprl.org/pipermail/omake-devel/2005-November/thread.html#122
  *)
-let lock_cache_file dir name =
-   let filename_fd = get_cache_file dir name in
-   let _, fd = filename_fd in
-      Unix.set_close_on_exec fd;
-      Lm_unix_util.lockf fd Unix.F_LOCK max_int;
-      filename_fd
+let lock_file fd mode =
+   Lm_unix_util.lockf fd mode max_int
 
 let db_file () =
    Filename.concat (omake_dir ()) db_name

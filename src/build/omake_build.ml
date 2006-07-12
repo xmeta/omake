@@ -2448,7 +2448,7 @@ let wait_for_lock () =
    in
    let () =
       (*
-       * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking
+       * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking.
        * .omakedb locking is only convenience, not safety, so it's not a huge problem.
        * But may be we should implement a "sloppy" locking as well - see
        * also the mailing list discussions:
