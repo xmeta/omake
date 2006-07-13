@@ -74,6 +74,12 @@ let prompt_interval = 1.0
 let prompt_long_interval = 3.0
 
 (*
+ * Maximum number of events that can be queued during
+ * the .BUILD_* phases.
+ *)
+let max_pending_events = 256
+
+(*
  * Build debugging.
  *)
 let debug_rule =
@@ -98,9 +104,9 @@ let debug_deps =
       }
 
 let scanner_fun = Omake_cache.scanner_fun
-let rule_fun = Omake_cache.rule_fun
-let env_fun = Omake_cache.env_fun
-let env_target = Omake_cache.env_target
+let rule_fun    = Omake_cache.rule_fun
+let env_fun     = Omake_cache.env_fun
+let env_target  = Omake_cache.env_target
 
 exception Restart
 exception UnknownTarget of Node.t
@@ -115,6 +121,19 @@ type default_scanner_mode =
  * Utilities.
  *)
 
+(*
+ * Special nodes.
+ *)
+let build_begin   = ".BUILD_BEGIN"
+let build_success = ".BUILD_SUCCESS"
+let build_failure = ".BUILD_FAILURE"
+let build_begin_target   = Node.phony_global build_begin
+let build_success_target = Node.phony_global build_success
+let build_failure_target = Node.phony_global build_failure
+
+(*
+ * Directory listing.
+ *)
 let rec list_directory dir =
    let dirx =
       try Some (Unix.opendir dir) with
@@ -332,6 +351,23 @@ let pp_print_dependencies =
  *)
 
 (*
+ * Worklist creation.
+ *)
+let create_wl () =
+   { env_idle_wl            = ref None;
+     env_initial_wl         = ref None;
+     env_scan_blocked_wl    = ref None;
+     env_scanned_pending_wl = ref None;
+     env_scanned_wl         = ref None;
+     env_blocked_wl         = ref None;
+     env_ready_wl           = ref None;
+     env_pending_wl         = ref None;
+     env_running_wl         = ref None;
+     env_succeeded_wl       = ref None;
+     env_failed_wl          = ref None
+   }
+
+(*
  * Get the list pointer for a node class.
  *)
 let command_tag state =
@@ -349,18 +385,19 @@ let command_tag state =
     | CommandFailed _        -> CommandFailedTag
 
 let command_worklist env state =
-   match state with
-      CommandIdleTag           -> env.env_idle_wl
-    | CommandInitialTag        -> env.env_initial_wl
-    | CommandScanBlockedTag    -> env.env_scan_blocked_wl
-    | CommandScannedPendingTag -> env.env_scanned_pending_wl
-    | CommandScannedTag        -> env.env_scanned_wl
-    | CommandBlockedTag        -> env.env_blocked_wl
-    | CommandReadyTag          -> env.env_ready_wl
-    | CommandPendingTag        -> env.env_pending_wl
-    | CommandRunningTag        -> env.env_running_wl
-    | CommandSucceededTag      -> env.env_succeeded_wl
-    | CommandFailedTag         -> env.env_failed_wl
+   let wl = env.env_current_wl in
+      match state with
+         CommandIdleTag           -> wl.env_idle_wl
+       | CommandInitialTag        -> wl.env_initial_wl
+       | CommandScanBlockedTag    -> wl.env_scan_blocked_wl
+       | CommandScannedPendingTag -> wl.env_scanned_pending_wl
+       | CommandScannedTag        -> wl.env_scanned_wl
+       | CommandBlockedTag        -> wl.env_blocked_wl
+       | CommandReadyTag          -> wl.env_ready_wl
+       | CommandPendingTag        -> wl.env_pending_wl
+       | CommandRunningTag        -> wl.env_running_wl
+       | CommandSucceededTag      -> wl.env_succeeded_wl
+       | CommandFailedTag         -> wl.env_failed_wl
 
 (*
  * Reclassify the commands.
@@ -1710,6 +1747,7 @@ let execute_rule env command =
 let empty_env venv cache exec ~summary deps targets dirs includes =
    let cwd = Dir.cwd () in
    let options = venv_options venv in
+   let wl = create_wl () in
       { env_venv                 = venv;
         env_cwd                  = cwd;
         env_cache                = cache;
@@ -1725,17 +1763,10 @@ let empty_env venv cache exec ~summary deps targets dirs includes =
         env_idle_count         = options.opt_job_count;
         env_print_dependencies = NodeSet.empty;
 
-        env_idle_wl            = ref None;
-        env_initial_wl         = ref None;
-        env_scan_blocked_wl    = ref None;
-        env_scanned_pending_wl = ref None;
-        env_scanned_wl         = ref None;
-        env_blocked_wl         = ref None;
-        env_ready_wl           = ref None;
-        env_pending_wl         = ref None;
-        env_running_wl         = ref None;
-        env_succeeded_wl       = ref None;
-        env_failed_wl          = ref None;
+        env_current_wl         = wl;
+        env_main_wl            = wl;
+
+        env_pending_events     = Queue.create ();
 
         env_summary            = summary;
 
@@ -2100,7 +2131,7 @@ and invalidate_event_core env event =
  * Intercept directory change events and pretend that every file
  * in the directory has changed.
  *)
-and invalidate_event env event =
+and invalidate_event_dir env event =
    match event with
       { notify_code = DirectoryChanged; notify_name = name } ->
          List.fold_left (fun changed name ->
@@ -2112,6 +2143,39 @@ and invalidate_event env event =
                   invalidate_event_core env event || changed) false (list_directory name)
     | _ ->
          invalidate_event_core env event
+
+(*
+ * Block FAM events during when performing a build phase
+ * (like .BUILD_BEGIN, .BUILD_SUCCESS, etc.).
+ *)
+and invalidate_event env event =
+   if env.env_current_wl != env.env_main_wl then begin
+      (* Don't let the queue get too large *)
+      if Queue.length env.env_pending_events < max_pending_events then
+         Queue.add event env.env_pending_events;
+      false
+   end
+   else
+      invalidate_event_dir env event
+
+(*
+ * Worklist switching.
+ *)
+let process_events env =
+   env.env_current_wl <- env.env_main_wl;
+   Queue.iter (fun event -> ignore (invalidate_event_dir env event)) env.env_pending_events;
+   Queue.clear env.env_pending_events
+
+let with_fresh_wl env f =
+   try
+      env.env_current_wl <- create_wl ();
+      let x = f () in
+         process_events env;
+         x
+   with
+      exn ->
+         process_events env;
+         raise exn
 
 (************************************************************************
  * Main processing loop.
@@ -2158,7 +2222,7 @@ let rec main_loop env timeout_prompt timeout_save =
    end
    else if (env.env_idle_count > 0)
            && (env.env_error_code = 0)
-           && (not (command_list_is_empty env CommandReadyTag))
+           && not (command_list_is_empty env CommandReadyTag)
    then begin
       process_ready env;
       main_loop env timeout_prompt timeout_save
@@ -2564,7 +2628,7 @@ let notify_wait env =
       eprintf "*** omake: rebuilding@."
 
 (*
- * Build the .SUCCESS and .FAILURE targets.
+ * Summary management.
  *)
 let create_tmpfile env =
    let outx = Pervasives.open_out_gen [Open_wronly; Open_binary; Open_creat; Open_trunc] 0o600 env.env_summary in
@@ -2589,45 +2653,18 @@ let print_summary env =
       Pervasives.flush Pervasives.stderr;
       close_in inx
 
-let build_start env =
-   let name = ".BUILD_BEGIN" in
-   let target = Node.phony_global name in
-      try
-         create_tmpfile env;
+(*
+ * Build a pseudo-phased target .BUILD_* with a fresh worklist.
+ * The reason for switching worklists is so we don't damage the
+ * main build, and also so that we ignore the main build
+ * when executing phases.
+ *)
+let build_phase env target =
+   with_fresh_wl env (fun () ->
          build_target env false target;
          invalidate_children env (NodeSet.singleton target);
-         make env
-      with
-         Sys_error _
-       | ExitException _
-       | Unix.Unix_error _
-       | OmakeException _
-       | Sys.Break
-       | Failure _
-       | Return _ as exn ->
-            eprintf "@[<v 3>%s target failed:@ %a@]@." name Omake_exn_print.pp_print_exn exn
-
-let build_final name env =
-   let target = Node.phony_global name in
-   let () =
-      try
-         build_target env false target;
-         invalidate_children env (NodeSet.singleton target);
-         make env
-      with
-         Sys_error _
-       | ExitException _
-       | Unix.Unix_error _
-       | OmakeException _
-       | Sys.Break
-       | Failure _
-       | Return _ as exn ->
-            eprintf "@[<v 3>%s target failed:@ %a@]@." name Omake_exn_print.pp_print_exn exn
-   in
-      print_summary env
-
-let build_success = build_final ".BUILD_SUCCESS"
-let build_failure = build_final ".BUILD_FAILURE"
+         make env;
+         command_list_is_empty env CommandFailedTag)
 
 (*
  * Build command line targets.
@@ -2635,23 +2672,38 @@ let build_failure = build_final ".BUILD_FAILURE"
 let rec build_targets env save_flag start_time parallel print ?(summary = true) targets =
    let options = env_options env in
    let () =
-      if summary then
-         build_start env
-   in
-   let () =
       try
-         if parallel || is_parallel options then begin
-            (* Add commands to build the targets *)
-            List.iter (build_target env print) targets;
+         let begin_success =
+            (* Build the initial summary *)
+            not summary || (create_tmpfile env; build_phase env build_begin_target)
+         in
+            if begin_success then begin
+               (* Build the core *)
+               if parallel || is_parallel options then begin
+                  (* Add commands to build the targets *)
+                  List.iter (build_target env print) targets;
 
-            (* Build *)
-            make env
-         end
-         else
-            (* Make them in order *)
-            List.iter (fun target ->
-                  build_target env print target;
-                  make env) targets
+                  (* Build *)
+                  make env
+               end
+               else begin
+                  (* Make them in order *)
+                  List.iter (fun target ->
+                        build_target env print target;
+                        make env) targets
+               end;
+
+               (* Build the final summary *)
+               if summary then begin
+                  let success_success =
+                     command_list_is_empty env CommandFailedTag && build_phase env build_success_target
+                  in
+                     if not success_success then
+                        ignore (build_phase env build_failure_target)
+               end
+            end
+            else
+               ignore (build_phase env build_failure_target)
       with
          Sys_error _
        | ExitException _
@@ -2664,7 +2716,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                fprintf buf "%a@." Omake_exn_print.pp_print_exn exn;
                close_out outx;
                print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
-               build_failure env;
+               print_summary env;
                if not options.opt_dry_run then
                   save env;
                close env;
@@ -2680,31 +2732,31 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
             print_stats env "failed" start_time;
             print_failed_targets env buf;
             close_out outx;
-            build_failure env;
+            print_summary env;
             build_on_error env save_flag start_time parallel print targets options env.env_error_code
       else if not (command_list_is_empty env CommandBlockedTag) then
          let buf, outx = open_tmpfile env in
             print_stats env "blocked" start_time;
             print_failed env buf CommandBlockedTag;
             close_out outx;
-            build_failure env;
+            print_summary env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
       else if not (command_list_is_empty env CommandScanBlockedTag) then
          let buf, outx = open_tmpfile env in
             print_stats env "scanner is blocked" start_time;
             print_failed env buf CommandScanBlockedTag;
             close_out outx;
-            build_failure env;
+            print_summary env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
       else if not (command_list_is_empty env CommandFailedTag) then
          let buf, outx = open_tmpfile env in
             print_stats env "failed" start_time;
             print_failed_targets env buf;
             close_out outx;
-            build_failure env;
+            print_summary env;
             build_on_error env save_flag start_time parallel print targets options deadlock_error_code
-      else if summary then
-         build_success env
+      else
+         print_summary env
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
    if not options.opt_poll then

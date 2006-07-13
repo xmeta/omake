@@ -179,6 +179,20 @@ type command =
  *    env_error_code: the exit code when an error occurs
  *    env_idle_count: number of idle processors
  *)
+type env_wl =
+   { env_idle_wl                    : command option ref;
+     env_initial_wl                 : command option ref;
+     env_scan_blocked_wl            : command option ref;
+     env_scanned_pending_wl         : command option ref;
+     env_scanned_wl                 : command option ref;
+     env_blocked_wl                 : command option ref;
+     env_ready_wl                   : command option ref;
+     env_pending_wl                 : command option ref;
+     env_running_wl                 : command option ref;
+     env_succeeded_wl               : command option ref;
+     env_failed_wl                  : command option ref
+   }
+
 type env =
    { env_venv                       : venv;
      env_cwd                        : Dir.t;
@@ -196,18 +210,12 @@ type env =
      mutable env_idle_count         : int;
      mutable env_print_dependencies : NodeSet.t;
 
-     (* The various command queues *)
-     env_idle_wl                    : command option ref;
-     env_initial_wl                 : command option ref;
-     env_scan_blocked_wl            : command option ref;
-     env_scanned_pending_wl         : command option ref;
-     env_scanned_wl                 : command option ref;
-     env_blocked_wl                 : command option ref;
-     env_ready_wl                   : command option ref;
-     env_pending_wl                 : command option ref;
-     env_running_wl                 : command option ref;
-     env_succeeded_wl               : command option ref;
-     env_failed_wl                  : command option ref;
+     (* Worklists *)
+     mutable env_current_wl         : env_wl;
+     env_main_wl                    : env_wl;
+
+     (* Pending events *)
+     mutable env_pending_events     : Lm_notify.event Queue.t;
 
      (* Output files *)
      env_summary                    : string;
