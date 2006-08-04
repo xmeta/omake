@@ -148,7 +148,7 @@ let set_omake_dir dir =
 let options_spec =
    ["-j", Lm_arg.StringFold set_job_count, (**)
        "Specify parallel jobs and remote servers";
-    "-k", Lm_arg.UnitFold (fun options ->  { options with opt_terminate_on_error = false }), (**)
+    "-k", Lm_arg.ClearFold (fun options b ->  { options with opt_terminate_on_error = b }), (**)
        "Do not stop when an error occurs";
     "-p", Lm_arg.SetFold (fun options b ->
           { options with opt_poll = b;
@@ -157,7 +157,7 @@ let options_spec =
     "-P", Lm_arg.SetFold (fun options b ->
           { options with opt_poll = b;
                          opt_terminate_on_error = false;
-                         opt_poll_on_done = true }), (**)
+                         opt_poll_on_done = b }), (**)
        "Poll filesystem for changes (keep polling \"forever\"); implies -k";
     "-n", Lm_arg.SetFold (fun options b -> { options with opt_dry_run = b }), (**)
        "Print commands, but do not execute them";
@@ -258,12 +258,12 @@ let divert_code options s =
       loop options 0
 
 let output_spec =
-   ["-s", Lm_arg.UnitFold (fun options ->
-          { options with opt_print_status  = false;
-                         opt_print_dir     = false;
-                         opt_print_file    = false;
-                         opt_print_exit    = false;
-                         opt_print_command = EvalNever }), (**)
+   ["-s", Lm_arg.ClearFold (fun options b ->
+          { options with opt_print_status  = b;
+                         opt_print_dir     = b;
+                         opt_print_file    = b;
+                         opt_print_exit    = b;
+                         opt_print_command = if b then EvalEager else EvalNever }), (**)
        "Do not print commands as they are executed";
     "-S", Lm_arg.SetFold (fun options b -> { options with opt_print_command = if b then EvalLazy else EvalEager }), (**)
        "Print command only if the command prints output";

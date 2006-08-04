@@ -128,7 +128,7 @@ let spec =
        "Shell flags", (**)
           ["--shell", Lm_arg.Set shell_flag, (**)
               "Run the OMake shell: osh";
-           "-i", Lm_arg.Unit (fun () -> Omake_readline.set_interactive true), (**)
+           "-i", Lm_arg.SetFold (fun opts b -> Omake_readline.set_interactive b; opts), (**)
               "Treat the session as interactive";
            "-c", Lm_arg.String (fun s -> command_string := Some s), (**)
               "Evaluate the commands from the string"];
@@ -185,7 +185,7 @@ let spec =
               "Debug the FAM (-p filesystem watch) operations";
            "-debug-db", Lm_arg.Set Omake_env.debug_db, (**)
               "Debug the file database";
-           "-allow-exceptions", Lm_arg.UnitFold (fun options -> { options with opt_allow_exceptions = true }),
+           "-allow-exceptions", Lm_arg.SetFold (fun options b -> { options with opt_allow_exceptions = b }),
               "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)"];
        "Internal flags", (**)
           ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
