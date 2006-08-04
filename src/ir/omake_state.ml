@@ -152,11 +152,11 @@ let options_spec =
        "Do not stop when an error occurs";
     "-p", Lm_arg.SetFold (fun options b ->
           { options with opt_poll = b;
-                         opt_terminate_on_error = false }), (**)
+                         opt_terminate_on_error = not b }), (**)
        "Poll filesystem for changes (until build succeeds); implies -k";
     "-P", Lm_arg.SetFold (fun options b ->
           { options with opt_poll = b;
-                         opt_terminate_on_error = false;
+                         opt_terminate_on_error = not b;
                          opt_poll_on_done = b }), (**)
        "Poll filesystem for changes (keep polling \"forever\"); implies -k";
     "-n", Lm_arg.SetFold (fun options b -> { options with opt_dry_run = b }), (**)

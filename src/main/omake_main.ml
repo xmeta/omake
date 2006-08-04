@@ -110,14 +110,16 @@ let spec =
        "Helper flags", (**)
           ["--install", Lm_arg.Set install_flag, (**)
               "Install an OMake project into the current directory";
-           "--install-all", Lm_arg.Unit (fun () ->
-                 install_flag := true;
-                 install_subdirs := true), (**)
+           "--install-all", Lm_arg.SetFold (fun opts b ->
+                 install_flag := b;
+                 install_subdirs := b;
+                 opts), (**)
               "Install an OMake project into the current directory and all subdirectories";
-           "--install-force", Lm_arg.Unit (fun () ->
-                 install_flag := true;
-                 install_force := true), (**)
-              "Force overwriting of files during installation";
+           "--install-force", Lm_arg.SetFold (fun opts b ->
+                 install_flag := b;
+                 install_force := b;
+                 opts), (**)
+              "Force overwriting of files during installation; implies --install";
            "--version", Lm_arg.Unit (fun () ->
                  printf "%s\n\nDefault library directory : %s@." Omake_magic.version_message Omake_magic.lib_dir;
                  if Omake_state.lib_dir_reason <> "" then
