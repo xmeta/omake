@@ -103,7 +103,14 @@ let read_version () =
             exit 1
    in
       close_in inx;
-      version
+      if Lm_string_util.contains_any version "()$\" " then
+         version
+      else if (String.contains version '-') then
+         let dash = String.index version '-' in
+         let release = String.sub version (dash + 1) ((String.length version) - dash - 1) in
+            sprintf "%s (release %s)" (String.sub version 0 dash) release
+      else
+         version ^ "(development snapshot)"
 
 (************************************************************************
  * File copying.
@@ -231,6 +238,12 @@ let mon_names =
 
 let digest_len = 4 + String.length (Digest.string "hello world")
 
+let shorten_version s =
+   if Lm_string_util.contains_any s " -" then
+      String.sub s 0 (Lm_string_util.index_set s " -")
+   else
+      s
+
 let omake_magic buf =
    let s = Filename.concat !libdir "omake" in
    let version = read_version () in
@@ -251,9 +264,9 @@ let omake_magic buf =
       fprintf buf "let ir_magic = \"%s\"\n"    (digest_files ".omc.magic" ".omc" !omc_files);
       fprintf buf "let obj_magic = \"%s\"\n"   (digest_files ".omo.magic" ".omo" !omo_files);
       fprintf buf "let lib_dir = \"%s\"\n" (String.escaped s);
-      fprintf buf "let version = \"%s\"\n" (String.escaped version);
+      fprintf buf "let version = \"%s\"\n" (String.escaped (shorten_version version));
       fprintf buf "let version_message = \"OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s\"\n"
-         version
+         (String.escaped version)
          wday_names.(wday)
          mon_names.(mon)
          mday
@@ -261,14 +274,14 @@ let omake_magic buf =
          min
          sec
          (year + 1900)
-         (Unix.gethostname ());
+         (String.escaped (Unix.gethostname ()));
       flush buf
 
 (************************************************************************
  * OMakeroot file.
  *)
 let omake_root buf name =
-   let version = read_version () in
+   let version = shorten_version (read_version ()) in
    let version =
       if Lm_string_util.contains_any version "()$\" " then
          sprintf "$'''%s'''" version

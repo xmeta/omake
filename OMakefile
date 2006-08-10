@@ -123,10 +123,18 @@ clean:
 #
 .PHONY: rpm tar zip pkg dmg osxclean publish
 
-VERSION  = $(string $(cat version.txt))
-RELEASE  = $(getenv RELEASE, 1)
+VERSION=$(string $(cat version.txt))
+RELEASE=0.devel
+match $(VERSION)
+case $'^\([^ ]*\)-\([^ ]*\)$'
+    VERSION=$1
+    RELEASE=$2
+    export
+case $'^\([^ ]*\) '
+    VERSION=$1
+    export
+
 BASENAME = omake-$(VERSION)-$(RELEASE)
-setenv(RELEASE, $(RELEASE))
 
 rpm: version.txt make_rpm make_checkout
 	./make_rpm
@@ -151,6 +159,13 @@ osxclean: version.txt
 
 publish: download/$(BASENAME).src.zip download/$(BASENAME).tar.gz
    rsync --progress --stats -lrt $^ mojave.caltech.edu\:/home/mojave/public_html/download/omake
+
+omake.spec: omake.spec.in
+    echo $"%define index $(RELEASE)" > $@
+    echo $"Version: $(VERSION)" >> $@
+    cat $< >> $@
+
+.DEFAULT: omake.spec
 
 ########################################################################
 # Documentation

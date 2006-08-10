@@ -15,9 +15,12 @@ if [ -d "$HOME/RPM" -a ! -d "$RPMROOT" ]; then
    RPMROOT="$HOME/RPM"
 fi
 
-VERSION=`cat version.txt`
-if [ -z "$RELEASE" ]; then
-   RELEASE=1
+if grep -q '^[^ ]*-[^ ]*$' version.txt; then
+   VERSION=`sed -e 's/-.*//' < version.txt`
+   RELEASE=`sed -e 's/[^-]*-//' < version.txt`
+else
+   VERSION=`cat version.txt`
+   RELEASE=0.devel
 fi
 
 #
