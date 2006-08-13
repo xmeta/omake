@@ -16,16 +16,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -1412,15 +1412,22 @@ let string venv pos loc args =
 (*
  * \begin{doc}
  * \fun{string-escaped}
+ * \fun{ocaml-escaped}
+ * \fun{c-escaped}
  *
  * \begin{verbatim}
  *    $(string-escaped sequence) : String Array
+ *    $(ocaml-escaped sequence) : String Array
+ *    $(c-escaped sequence) : String Array
  *       sequence : Array
  * \end{verbatim}
  *
  * The \verb+string-escaped+ function converts each element of its
  * argument to a string, escaping characters that are special to omake.
  * The special characters include \verb+:)(,+ and shitespace.
+ *
+ * The \verb+ocaml-escaped+ function converts each element of its
+ * argument to a string, escaping characters that are special to OCaml.
  *
  * \begin{verbatim}
  *     string-escaped($"a b" $"y:z")
@@ -1479,15 +1486,19 @@ let single_escaped s =
       else
          copy_string esc_length src_length s
 
-let string_escaped venv pos loc args =
+let any_escaped escaped venv pos loc args =
    let pos = string_pos "string-escaped" pos in
       match args with
          [arg] ->
             let args = strings_of_value venv pos arg in
-            let args = List.map (fun s -> ValData (single_escaped s)) args in
+            let args = List.map (fun s -> ValData (escaped s)) args in
                ValArray args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+let string_escaped = any_escaped single_escaped
+let ocaml_escaped  = any_escaped String.escaped
+let c_escaped      = any_escaped Lm_string_util.c_escaped
 
 (*
  * \begin{doc}
@@ -2502,6 +2513,8 @@ let () =
        (* String operations *)
        true,  "string",                string,              ArityExact 1;
        true,  "string-escaped",        string_escaped,      ArityExact 1;
+       true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
+       true,  "c-escaped",             c_escaped,           ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
        true,  "quote-argv",            quote_argv,          ArityExact 1;
        true,  "html-string",           html_string,         ArityExact 1;
