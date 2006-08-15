@@ -673,7 +673,10 @@ public.MenhirMulti(target, sources) =
 # Generic scanners
 #
 OCamlScannerTargets(files) =
-    value $(find-targets-in-path-optional $(OCAMLINCLUDES), $(basename $(files))) $(NATIVE_ENABLED)
+    files[] = $(basename $(files))
+    files[] = $(if $(NATIVE_ENABLED), $(files), $(filter-out %.cmx, $(files)))
+    files[] = $(if $(BYTE_ENABLED), $(files), $(filter-out %.cmo, $(files)))
+    value $(find-targets-in-path-optional $(OCAMLINCLUDES), $(files)) $(NATIVE_ENABLED) $(BYTE_ENABLED)
 
 .SCANNER: scan-ocaml-%.mli: %.mli /.PHONY/OCamlGeneratedFilesTarget :value: $(OCamlScannerTargets $&)
     $(OCamlScanner $<)
