@@ -720,6 +720,7 @@ let () =
        "Channel";
        "Exception";
        "RuntimeException";
+       "UnbuildableException";
        "Select";
        "Pipe";
        "Stat";
@@ -738,12 +739,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

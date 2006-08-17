@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,8 +23,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -33,6 +33,7 @@ open Lm_location
 
 open Omake_ast
 open Omake_env
+open Omake_symbol
 
 module Pos = MakePos (struct let name = "Omake_exn_print" end)
 open Pos
@@ -57,6 +58,21 @@ let pp_print_other_exn buf exn =
          fprintf buf "@[<v 3>%s@]" (**)
             (Printexc.to_string exn)
 
+let pp_print_obj_err buf obj =
+   if venv_object_mem obj message_sym then
+      match venv_find_field_exn obj message_sym with
+         ValString s
+       | ValData s ->
+            begin match Lm_string_util.split "\n" s with
+               [] -> ()
+             | s :: sl ->
+                  pp_print_string buf s;
+                  List.iter (fun s -> pp_force_newline buf (); pp_print_string buf s) sl
+            end
+       | v ->
+            pp_print_value buf v
+   else
+      pp_print_value buf (ValObject obj)
 (*
  * Exception printer.
  *)
@@ -71,9 +87,9 @@ let pp_print_exn buf exn =
             pp_print_pos pos
             pp_print_other_exn exn
     | RaiseException (pos, obj) ->
-         fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
+         fprintf buf "@[<v 3>*** omake error:@ %a@ @[<v3>Uncaught Exception:@ %a@]@]" (**)
             pp_print_pos pos
-            pp_print_value (ValObject obj)
+            pp_print_obj_err obj
     | OmakeFatal s ->
          fprintf buf "@[<v 3>*** omake fatal error:@ %s@]" s
     | ExitException (pos, code) ->

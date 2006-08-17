@@ -1,5 +1,5 @@
 ########################################################################
-# Copyright (C) 2003-2005 Jason Hickey and Mojave Group
+# Copyright (C) 2003-2006 Jason Hickey and Mojave Group
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this file, to deal in the File without
@@ -738,6 +738,30 @@ RuntimeException. +=
 
     position = no position
     message = no message
+
+#
+# \begin{doc}
+# \obj{UnbuildableException}
+#
+# Parent objects: \verb+Exception+.
+#
+# The \verb+UnbuildableException+ object should be used to signal that a target
+# is not buildable. It will be caught by functions such as
+# \verb+target-exists+~\ref{fun:target-exists}.
+# This exception has the following fields:
+#
+# \begin{itemize}
+# \item \verb+target+: indicates which target is not buildable.
+# \item \verb+message+: a string containing the exception message.
+# \end{itemize}
+# \end{doc}
+#
+UnbuildableException. +=
+    class UnbuildableException
+    extends $(Exception)
+
+    message = no message
+    target = no target
 
 ########################################################################
 # System objects.

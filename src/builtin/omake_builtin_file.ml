@@ -882,6 +882,21 @@ let file_exists_force venv pos loc args =
 let filter_exists venv pos loc args =
    filter_nodes (fun cache venv _ node -> Omake_cache.exists cache node) venv pos loc args
 
+(* Catch UnbuildableException *)
+let target_is_buildable cache venv pos node =
+   try
+      target_is_buildable cache venv pos node
+   with
+      RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+         false
+
+let target_is_buildable_proper cache venv pos node =
+   try
+      target_is_buildable_proper cache venv pos node
+   with
+      RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+         false
+
 let target_exists venv pos loc args =
    node_exists target_is_buildable venv pos loc args
 

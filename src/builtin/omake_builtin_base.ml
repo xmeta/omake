@@ -677,7 +677,12 @@ let try_fun venv pos loc args =
  * The \verb+raise+ function raises an exception.
  * The \verb+exn+ object can be any object.  However,
  * the normal convention is to raise an \verb+Exception+
- * object.
+ * object~\ref{obj:Exception}. 
+ *
+ * If the exception is never caught, the whole object will be verbosely
+ * printed in the error message. However, if the object is an \verb+Exception+ one
+ * and contains a \verb+message+ field, only that field will be included in the
+ * error message.
  * \end{doc}
  *)
 let raise_fun venv pos loc args =

@@ -1262,9 +1262,10 @@ The false value can be represented by the strings `false', `no', `nil',
 * Subsection 8-2-11::	defined-env
 * Subsection 8-2-12::	getenv
 * Subsection 8-2-13::	setenv
-* Subsection 8-2-14::	get-registry
-* Subsection 8-2-15::	getvar
-* Subsection 8-2-16::	setvar
+* Subsection 8-2-14::	unsetenv
+* Subsection 8-2-15::	get-registry
+* Subsection 8-2-16::	getvar
+* Subsection 8-2-17::	setvar
 
 
 Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8-2
@@ -1497,8 +1498,12 @@ Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Sect
 >>
   
   The `raise' function raises an exception. The `exn' object can be any
-object. However, the normal convention is to raise an `Exception'
-object. 
+object. However, the normal convention is to raise an `Exception' object
+11.1.20*Note Subsection 11-1-20::. 
+  If the exception is never caught, the whole object will be verbosely
+printed in the error message. However, if the object is an `Exception'
+one and contains a `message' field, only that field will be included in
+the error message. 
 
 Node: Subsection 8-2-9,	Next: Subsection 8-2-10,	Prev: Subsection 8-2-8,	Up: Section 8-2
   
@@ -1605,7 +1610,22 @@ environment. Environment variables are scoped like normal variables.
 Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
   
 
-8.2.14   get-registry
+8.2.14   unsetenv
+=================
+
+<<
+     unsetenv(names)
+        names : String Array
+>>
+  
+  The `unsetenv' function removes some variable definitions from the
+process environment. Environment variables are scoped like normal
+variables.
+
+Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
+  
+
+8.2.15   get-registry
 =====================
 
 <<
@@ -1639,22 +1659,3 @@ also use the alternate form.
          default
 >>
   
-
-Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
-  
-
-8.2.15   getvar
-===============
-
-<<
-     $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<
-      NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
->>

@@ -1,5 +1,248 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 12-6,	Next: Subsection 12-6-1,	Prev: Section 12-5,	Up: Chapter 12
+  
+
+12.6   Generated OCaml Files
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+    As of OCaml version 3.09.2, the
+standard `ocamldep' scanner is ``broken''. The main issue is that it
+finds only those dependencies that already exist. If `foo.ml' contains a
+dependency on `Bar', 
+<<
+  foo.ml:
+     open Bar
+>>
+  then the default `ocamldep' will only find the dependency if a file
+`bar.ml' or `bar.ml' exists in the include path. It will not find (or
+print) the dependency if, for example, only `bar.mly' exists at the time
+`ocamldep' is run, even though `bar.ml' and `bar.mli' can be generated
+from `bar.mly'.
+  OMake currently provides two methods for addressing this problem ---
+one that requires manually specifying the generated files, and an
+experimental method for discovering such ``hidden'' dependencies
+automatically. The variable `OCAMLDEP_MODULES_ENABLED'
+12.5.2.11*Note Subsection 12-5-2:: controls which method
+is going to be used. When this variable is false, the manual
+specifications are expected and when it is true, the automated discovery
+will be attempted.
+  
+
+12.6.0.5   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
+--------------------------------------------------------
+ 
+<<
+  OCamlGeneratedFiles(files)
+  LocalOCamlGeneratedFiles(files)
+>>
+  
+  When the `OCAMLDEP_MODULES_ENABLED'
+12.5.2.11*Note Subsection 12-5-2:: variable is set to
+`false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
+functions specify files that need to be generated before any OCaml files
+are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
+are both generated files, specify: 
+<<
+  OCamlGeneratedFiles(parser.ml lexer.ml)
+>>
+  
+  The `OCamlGeneratedFiles' function is global --- its arguments will be
+generated before any OCaml files anywhere in the project are scanned for
+dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
+scoping rules of OMake.
+  These functions have no effect when `OCAMLDEP_MODULES_ENABLED'
+12.5.2.11*Note Subsection 12-5-2:: is true.
+  
+
+12.6.0.6   Automatic discovery of generated files during dependency
+-------------------------------------------------------------------
+analysis.
+---------
+   Having to specify the generated files manualy when OMake could
+discover them automatically is obviously suboptimal. To address this, we
+try to use a custom `ocamldep' that only finds the free module names in
+a file. 
+  This functionality is experimental and is disabled by default for now.
+Set `OCAMLDEP_MODULES_ENABLED'
+12.5.2.11*Note Subsection 12-5-2:: to `true' (or to
+`$(OCAMLDEP_MODULES_AVAILABLE)' in your project to enable it.
+  Note that the experimental `ocamldep' functionality this relies upon
+is not yet included in the standard OCaml --- see
+http://caml.inria.fr/mantis/view.php?id=4047. Temporarily, we distribute
+a bytecode version `ocamldep-omake' of the
+appropriately modified `ocamldep'. The appropriate `ocamldep' will be
+discovered automatically --- see Sections
+12.5.1.3*Note Subsection 12-5-1:: and
+12.5.2.10*Note Subsection 12-5-2::. 
+* Menu:
+
+* Subsection 12-6-1::	Using the Menhir parser generator
+
+
+Node: Subsection 12-6-1,	Next: Section 12-7,	Prev: Section 12-6,	Up: Section 12-6
+  
+
+12.6.1   Using the Menhir parser generator
+==========================================
+  
+  Menhir is a parser generator that is mostly compatible with
+`ocamlyacc', but with many improvements. A few of these are listed here
+(excerpted from the Menhir home page
+http://cristal.inria.fr/~fpottier/menhir/).
+  
+  
+ - Menhir's explanations are believed to be understandable by mere
+   humans. 
+ - Menhir allows grammar specifications to be split over multiple files.
+    It also allows several grammars to share a single set of tokens. 
+ - Menhir is able to produce parsers that are parameterized by Objective
+   Caml modules. 
+ - Added by jyh With the `--infer' option, Menhir can typecheck the
+   semantic actions  in your grammar at generation time. 
+  
+  What do you need to do to use Menhir instead of `ocamlyacc'? 
+  
+ 1. Place the following definition before the relevant section of your
+   project  (or at the top of your project `OMakefile' if you want to
+   use Menhir everywhere).
+   <<
+        MENHIR_ENABLED = true
+   >>
+ 
+ 
+ 2. Optionally, add any desired Menhir options to the `MENHIR_FLAGS'
+   variable.
+   <<
+        MENHIR_FLAGS += --infer
+   >>
+  
+  With this setup, any file with a `.mly' suffix will be compiled with
+Menhir.
+  If your grammar is split across several files, you need to specify it
+explicitly, using the `MenhirMulti' function.
+<<
+      MenhirMulti(target, sources)
+          target : filename, without suffix
+          sources : the files that define the grammar, without suffixes
+>>
+  
+  For example, if you want to generate the parser files `parse.ml' and
+`parse.mli', from the grammar specified in files `a.mly' and `b.mly',
+you would use the following.
+<<
+      MenhirMulti(parse, a b)
+>>
+  
+
+12.6.1.1   OCamlLibrary
+-----------------------
+
+  The `OCamlLibrary' function builds an OCaml library.
+  `OCamlLibrary(<libname>, <files>)'
+  The `<libname>' and `<files>' are listed without suffixes.
+  
+
+12.6.1.2   ABORT_ON_DEPENDENCY_ERRORS
+-------------------------------------
+ 
+The linker requires that the files to be  listed in dependency order. If
+this variable is true, the order of  the files is determined by the
+command line, but omake will  abort with an error message if the order
+is illegal. Otherwise,  the files are sorted automatically.
+  This function returns the list of all the targets that it defines the
+rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
+is set).
+  The following code builds the `libfoo.cmxa' library from the files
+`foo.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and `libfoo.cma'
+from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
+<<
+  OCamlLibrary(libfoo, foo bar)
+>>
+  
+
+12.6.1.3   OCamlPackage
+-----------------------
+
+  The `OCamlPackage' function builds an OCaml package.
+  `OCamlPackage(<name>, <files>)'
+  The `<name>' and `<files>' are listed without suffixes. The `<files>'
+must have been compiled with the `-for-pack <ident>' flag to the OCaml
+compiler.
+  This function returns the list of all the targets that it defines the
+rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
+is set).
+  The following code builds the `libfoo.cmx' package from the files
+`package.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and
+`package.cmo' from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
+<<
+  OCamlPackage(package, foo bar)
+>>
+  
+
+12.6.1.4   OCamlLibraryCopy
+---------------------------
+
+  The `OCamlLibraryCopy' function copies a library to an install
+location.
+  `OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)'
+  The `<interface-files>' specify additional interface files to be
+copied if the `INSTALL_INTERFACES' variable is true.
+
+12.6.1.5   OCamlLibraryInstall
+------------------------------
+
+  The `OCamlLibraryInstall' function builds a library and copies it to
+an install location in one step.
+  `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
+
+12.6.1.6   OCamlProgram
+-----------------------
+
+  The `OCamlProgram' function builds an OCaml program. It returns the
+array with all the targets for which it has defined the rules
+(`$(name)$(EXE)' and `$(name).run' and/or `$(name).opt', depending on
+the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
+  `OCamlProgram(<name>, <files>)'
+  Additional variables used: 
+  
+ OCAML_LIBS 12.5.4.1*Note Subsection 12-5-4::  Additional libraries
+   passed to the linker, without suffix. These files  become
+   dependencies of the target program. 
+ OCAML_OTHER_LIBS 12.5.4.2*Note Subsection 12-5-4::  Additional
+   libraries passed to the linker, without suffix. These  files do not
+   become dependencies of the target program. 
+ OCAML_CLIBS 12.5.4.3*Note Subsection 12-5-4::  C libraries to pass
+   to the linker. 
+ OCAML_BYTE_LINK_FLAGS 12.5.3.6*Note Subsection 12-5-3:: 
+   Flags to pass to the bytecode linker. 
+ OCAML_NATIVE_LINK_FLAGS
+   12.5.3.7*Note Subsection 12-5-3::  Flags to pass to
+   the native code linker. 
+ OCAML_LINK_FLAGS 12.5.3.8*Note Subsection 12-5-3::  Flags to
+   pass to both linkers. 
+
+
+12.6.1.7   OCamlProgramCopy
+---------------------------
+
+  The `OCamlProgramCopy' function copies an OCaml program to an install
+location.
+  `OCamlProgramCopy(<tag>, <bindir>, <name>)'
+  Additional variables used: 
+  
+ NATIVE_ENABLED  If `NATIVE_ENABLED'
+   12.5.2.20*Note Subsection 12-5-2:: is set, the native-code
+   executable  is copied; otherwise the byte-code executable is copied. 
+
+
+12.6.1.8   OCamlProgramInstall
+------------------------------
+
+  The `OCamlProgramInstall' function builds a programs and copies it to
+an install location in one step.
+  `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
+
 Node: Section 12-7,	Next: Subsection 12-7-1,	Prev: Section 12-6,	Up: Chapter 12
   
 
@@ -1510,7 +1753,7 @@ Otherwise, the export is limited to the specified identifiers.
       export id ... id
 >>
   
-  while (see the `while' description 8.3.37*Note Subsection 8-3-37::). The
+  while (see the `while' description 8.3.39*Note Subsection 8-3-39::). The
 `while' command introduces a `while' loop.
 <<
       while expr

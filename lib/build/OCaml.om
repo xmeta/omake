@@ -441,13 +441,16 @@ public.OCamlOpt() =
 %.cmx: %.ml
     section rule
         if $(not $(NATIVE_ENABLED))
-            eprintln(!!! You are trying to build OCaml native code file: %.cmx)
-            eprintln(!!! However\, the NATIVE_ENABLED flag is not set.)
-            eprintln(!!! Include the following definition in your OMakefile)
-            eprintln(!!! if you really want to build this file.)
-            eprintln(NATIVE_ENABLED = true)
-            exit(1)
-        if $(target-exists %.mli)
+            err. =
+                extends $(UnbuildableException)
+                message = $(string $"You are trying to build OCaml native code file: "%.cmx$"
+However, the NATIVE_ENABLED flag is not set.
+Include the following definition in your OMakefile
+if you really want to build this file.
+       NATIVE_ENABLED = true")
+                target = $(file %.cmx)
+            raise $(err)
+        elseif $(target-exists %.mli)
             %.cmx %$(EXT_OBJ): %.ml %.cmi :scanner: scan-ocaml-%.ml
                 $(OCamlOpt) -c $<
         elseif $(BYTE_ENABLED)
@@ -461,13 +464,16 @@ public.OCamlOpt() =
 %$(EXT_OBJ): %.ml
     section rule
         if $(not $(NATIVE_ENABLED))
-            eprintln(!!! You are trying to build OCaml native code file: %$(EXT_OBJ))
-            eprintln(!!! However\, the NATIVE_ENABLED flag is not set.)
-            eprintln(!!! Include the following definition in your OMakefile)
-            eprintln(!!! if you really want to build this file.)
-            eprintln(NATIVE_ENABLED = true)
-            exit(1)
-        if $(target-exists %.mli)
+            err. =
+                extends $(UnbuildableException)
+                message = $(string $"You are trying to build OCaml native code file: "%$(EXT_OBJ)$"
+However, the NATIVE_ENABLED flag is not set.
+Include the following definition in your OMakefile
+if you really want to build this file.
+       NATIVE_ENABLED = true")
+                target = $(file %.cmx)
+            raise $(err)
+        elseif $(target-exists %.mli)
             %$(EXT_OBJ) %.cmx: %.ml %.cmi :scanner: scan-ocaml-%.ml
                 $(OCamlOpt) -c $<
         elseif $(BYTE_ENABLED)
@@ -481,13 +487,16 @@ public.OCamlOpt() =
 %.cmo: %.ml
     section rule
         if $(not $(BYTE_ENABLED))
-            eprintln(!!! You are trying to build bytecode file: %.cmo)
-            eprintln(!!! However\, the BYTE_ENABLED flag is not set.)
-            eprintln(!!! Include the following definition in your OMakefile)
-            eprintln(!!! if you really want to build this file.)
-            eprintln(BYTE_ENABLED = true)
-            exit(1)
-        if $(target-exists %.mli)
+            err. =
+                extends $(UnbuildableException)
+                message = $(string $"You are trying to build OCaml native code file: "%.cmo$"
+However, the BYTE_ENABLED flag is not set.
+Include the following definition in your OMakefile
+if you really want to build this file.
+       BYTE_ENABLED = true")
+                target = $(file %.cmx)
+            raise $(err)
+        elseif $(target-exists %.mli)
             %.cmo: %.ml %.cmi :scanner: scan-ocaml-%.ml
                 $(OCamlC) -c $<
         elseif $(NATIVE_ENABLED)
