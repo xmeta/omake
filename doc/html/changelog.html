@@ -13,6 +13,7 @@
 <h1> OMake Change Log</h1>
 
 <p>Jump to version
+  <a href="#0.9.8">0.9.8</a>,
   <a href="#0.9.6.9">0.9.6.9</a>,
   <a href="#0.9.6.8">0.9.6.8</a>,
   <a href="#0.9.6.7">0.9.6.7</a>,
@@ -26,6 +27,88 @@
 <p>See also <a
   href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.6.x/CHANGELOG.txt">the
   brief summary change log</a>.
+
+<h3><a name="0.9.8">Version 0.9.8 (TBA)</a></h3>
+<ul>
+  <li>The main change in this release is that the OMake values will now be
+  converted into the shell command lines directly (all the previous versions
+  of OMake should first "flatten" the value into a string and then perform
+  <tt>sh</tt>-like parsing of the resulting string). In particular, this means
+  that:
+  <ul>
+    <li>All the special symbols in files and directory values will be
+    preserved.
+    <li>All the spaces inside the array elements will be preserved.
+    <li>All the special symbols in OMake-quoted values
+    (<tt>$"</tt>...<tt>"</tt> and <tt>$'</tt>...<tt>'</tt>) will be preserved.
+    <li>If the first element of the command line is a file value, neither
+    PATH- nor alias-expansion will be performed. Note - there will also be no
+    alias-expansion if the executable value contains quoted parts or starts
+    with a <tt>\</tt>.
+    <li>The <tt>Shell.</tt> aliases will now receive the values passed on the
+    shell command line as is, not the string-expanded version. Also, if some
+    of the arguments are the result of a glob-expansion, the alias function
+    will receive the appropriate file values, not the strings.
+  </ul>
+  <li>Major redesign of the OMake documentation (using <a
+    href="http://pauillac.inria.fr/~maranget/hevea/">H<FONT
+    SIZE="-1"><sup>E</sup></FONT>V<FONT SIZE="-1"><sup>E</sup></FONT>A</a>).
+  <ul>
+    <li>The documentation is significantly expanded, examples added, bugs
+    fixed.
+    <li>There are now a number of indices, including a index of variables, an
+    index of functions, and an overall index.
+  </ul>
+  <li>Implicit rules can no longer have target patterns referring to another
+  directories. See <a
+    href="http://bugzilla.metaprl.org/show_bug.cgi?id=456">bug #456</a> for
+  detail.
+  <li>OMake will now save the <tt>.omakedb</tt> periodically, preventing the
+  state loss in case the OMake process dies unexpectedly (for example, when Cygwin
+  kills OMake after user presses Ctrl-C). The checkpointing interval may be
+  configured both at  compile time and via the command line.
+  <li>The variables such as <tt>$&lt;</tt> and <tt>$@</tt> in rules and
+  <tt>%</tt> in implicit rules will no longer be expanded to strings.
+  <li>Much better handling of the <tt>exit</tt> function, a number of bugs fixed.
+  <ll>More control over the OMake output and verbosity.
+  <ul>
+    <li>An ability to divert the rule exacution output (so that, for example,
+    only the output of the rules that fail is printed, or the output of the
+    rules that failed is repeated at the end of the <tt>omake -k</tt>
+    execution). This feature is somewhat experimental and might change in the
+    future versions of OMake.
+    <li>Added the <tt>-o</tt> option for better control of OMake verbosity.
+  </ul>
+  <li>Added three special <tt>.PHONY</tt> targets: <tt>.BUILD_BEGIN</tt>,
+    <tt>.BUILD_SUCCESS</tt>, and <tt>.BUILD_FAILURE</tt>.
+    <tt>.BUILD_BEGIN</tt> is built before anything else in your project. One
+    of <tt>.BUILD_SUCCESS</tt> or <tt>.BUILD_FAILURE</tt> is built when the
+    build for your project terminates.<br>
+    Note:
+    <ul>
+      <li>This feature is considered experimental and it might change in the
+      future versions of OMake.
+      <li>If you want to use these targets, you should probably add them to
+      your <tt>~/.omakerc</tt>, rather than adding them directly to each of
+      the projects you work on.
+    </ul>
+    <li><tt>OCaml.om</tt> improvements:
+    <ul>
+    <li>Implemented a new approach to computing the dependencies in OCaml
+    projects in OMake. In this approach a special version of <tt>ocamldep</tt>
+    is used to only extract the list of the external modules a file depends on
+    and then OMake is used to map those modules to files in the include path.
+    This eliminates the "standard" deficiency of having to generate all the
+    relevant OCaml source files before <tt>ocamldep</tt> is called. This
+    feature is considered highly expiremental and is disabled by default. Use
+    the <tt>OCAMLDEP_MODULES_ENABLED</tt> variable to enable.
+    <li>Added support for the Menhir parser-generator (experimental).
+  </ul>
+  <li>A number of other bug fixes and improvements.
+
+
+</ul>
+
 
 <h3><a name="0.9.6.9">Version 0.9.6.9 (April 11, 2006)</a></h3>
 <ul>
