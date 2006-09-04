@@ -125,7 +125,7 @@ public.NATIVE_CFLAGS =
 public.CXX_EXTS[] = .cpp .cc .c++
 
 %$(EXT_OBJ): %.c :scanner: scan-c-%.c
-    $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c -o $@ $*.c
+    $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c -o $@ $<
 
 foreach(CXX_EXT, $(CXX_EXTS))
     %$(EXT_OBJ): %$(CXX_EXT) :scanner: scan-cxx-%$(CXX_EXT)
@@ -134,13 +134,13 @@ foreach(CXX_EXT, $(CXX_EXTS))
     export
 
 %$(EXT_OBJ): %$(EXT_ASM)
-    $(AS) $(ASFLAGS) $(PREFIXED_INCLUDES) $(ASOUT)$@ $*$(EXT_ASM)
+    $(AS) $(ASFLAGS) $(PREFIXED_INCLUDES) $(ASOUT)$@ $<
 
 %.c: %.y
-    $(YACC) $*.y
+    $(YACC) $<
 
 %.c: %.l
-    $(LEX) $*.l
+    $(LEX) $<
 
 #
 # Default C scanner
