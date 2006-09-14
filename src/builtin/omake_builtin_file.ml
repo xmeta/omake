@@ -16,16 +16,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -2493,6 +2493,41 @@ let chown venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{truncate}
+ *
+ * \begin{verbatim}
+ *    truncate(length, node...)
+ *        length : Int
+ *        node : Node or Channel
+ *    raises RuntimeException
+ * \end{verbatim}
+ *
+ * The \verb+truncate+ function truncates a file to the given length.
+ * \end{doc}
+ *)
+let truncate venv pos loc args =
+   let pos = string_pos "truncate" pos in
+   let len, nodes =
+      match args with
+         [len; nodes] ->
+            len, nodes
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+   let len = int_of_value venv pos len in
+   let nodes = values_of_value venv pos nodes in
+   let () =
+      try
+         List.iter (fun node ->
+               Unix.truncate (filename_of_value venv pos node) len) nodes
+      with
+         Unix.Unix_error _ as exn ->
+            raise (UncaughtException (pos, exn))
+   in
+      ValNone
+
+(*
+ * \begin{doc}
  * \fun{umask}
  *
  * \begin{verbatim}
@@ -2700,6 +2735,7 @@ let () =
        true, "unlink",                  unlink,                   ArityExact 1;
        true, "rename",                  rename,                   ArityExact 2;
        true, "readlink",                readlink,                 ArityExact 1;
+       true, "truncate",                truncate,                 ArityExact 2;
 
        true, "mkdir",                   mkdir,                    ArityRange (1, 2);
        true, "rmdir",                   rmdir,                    ArityExact 1;

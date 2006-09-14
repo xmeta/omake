@@ -677,7 +677,7 @@ let try_fun venv pos loc args =
  * The \verb+raise+ function raises an exception.
  * The \verb+exn+ object can be any object.  However,
  * the normal convention is to raise an \verb+Exception+
- * object~\ref{obj:Exception}. 
+ * object~\ref{obj:Exception}.
  *
  * If the exception is never caught, the whole object will be verbosely
  * printed in the error message. However, if the object is an \verb+Exception+ one
@@ -1158,6 +1158,54 @@ let split_fun venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
       concat_strings strings
+
+(*
+ * Concatenate the strings with a separator.
+ *
+ * \begin{doc}
+ * \fun{split-string}
+ *
+ * \begin{verbatim}
+ *    $(split-string sep, elements) : Array
+ *       sep : String
+ *       elements : Sequence
+ * \end{verbatim}
+ *
+ * The \verb+split-string+ function takes two arguments, a separator string, and
+ * a string argument.  The result is an array of elements determined by
+ * splitting the elements by occurrences of the separator in the
+ * \verb+elements+ sequence.
+ *
+ * For example, in the following code, the \verb+X+ variable is
+ * defined to be the array \verb+/bin /usr/bin /usr/local/bin+.
+ *
+ * \begin{verbatim}
+ *     PATH = /binXYZ/usr/binXYZ/usr/local/bin
+ *     X = $(split XYZ, $(PATH))
+ * \end{verbatim}
+ *
+ * The \verb+sep+ argument may be omitted. In this case \verb+split-string+ breaks its
+ * arguments along the white space. Quotations are not split.
+ * \end{doc}
+ *)
+let split_string_fun venv pos loc args =
+   let pos = string_pos "split-string" pos in
+   let sep, arg =
+      match args with
+         [arg] ->
+            ValString " ", arg
+       | [sep; arg] ->
+            sep, arg
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
+   in
+   let sep = string_of_value venv pos sep in
+   let args = strings_of_value venv pos arg in
+   let args =
+      List.fold_left (fun args s ->
+            List.rev_append (Lm_string_util.split_string sep s) args) [] args
+   in
+      ValArray (List.map (fun s -> ValData s) (List.rev args))
 
 (*
  * Concatenate the strings with a separator.
@@ -2556,6 +2604,7 @@ let () =
        (* List operations *)
        true,  "array",                 array_fun,           ArityAny;
        true,  "split",                 split_fun,           ArityRange (1, 2);
+       true,  "split-string",          split_string_fun,    ArityRange (1, 2);
        true,  "concat",                concat_fun,          ArityExact 2;
        true,  "filter",                filter,              ArityExact 2;
        true,  "filter-out",            filter_out,          ArityExact 2;

@@ -12,16 +12,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -79,10 +79,10 @@ let st_ino_sym                 = Lm_symbol.add "ino"
 let st_kind_sym                = Lm_symbol.add "kind"
 let st_perm_sym                = Lm_symbol.add "perm"
 let st_nlink_sym               = Lm_symbol.add "nlink"
-let st_uid_sym                 = Lm_symbol.add "uid_sym  "
-let st_gid_sym                 = Lm_symbol.add "gid_sym  "
-let st_rdev_sym                = Lm_symbol.add "rdev_sym "
-let st_size_sym                = Lm_symbol.add "size_sym "
+let st_uid_sym                 = Lm_symbol.add "uid"
+let st_gid_sym                 = Lm_symbol.add "gid"
+let st_rdev_sym                = Lm_symbol.add "rdev"
+let st_size_sym                = Lm_symbol.add "size"
 let st_atime_sym               = Lm_symbol.add "atime"
 let st_mtime_sym               = Lm_symbol.add "mtime"
 let st_ctime_sym               = Lm_symbol.add "ctime"

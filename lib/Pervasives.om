@@ -947,6 +947,18 @@ Shell. +=
 
    #
    # \begin{doc}
+   # \item \verb+digest+
+   #
+   # Print the digests of the given files.
+   # \end{doc}
+   #
+   digest(argv) =
+       foreach(n, $(argv))
+           println($"$n: $(digest $n)")
+       value
+
+   #
+   # \begin{doc}
    # \item Win32 functions.
    #
    #     Win32 doesn't provide very many programs for scripting, except
