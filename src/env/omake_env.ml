@@ -54,16 +54,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -1576,12 +1576,15 @@ let rule_kind = function
 (*
  * Add a channel slot.
  *)
-let venv_add_channel venv file kind mode binary fd =
+let venv_add_channel venv data =
    let { venv_channel_index = index;
          venv_channels      = channels
        } = venv_runtime
    in
-   let data = ChannelValue (Lm_channel.create index file kind mode binary (Some fd)) in
+   let data =
+      Lm_channel.set_id data index;
+      ChannelValue data
+   in
    let channel =
       { channel_id = index;
         channel_data = data
@@ -1591,9 +1594,12 @@ let venv_add_channel venv file kind mode binary fd =
       venv_runtime.venv_channel_index <- succ index;
       channel
 
-let venv_stdin  = venv_add_channel () "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false Unix.stdin
-let venv_stdout = venv_add_channel () "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stdout
-let venv_stderr = venv_add_channel () "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stderr
+let add_channel file kind mode binary fd =
+   Lm_channel.create file kind mode binary (Some fd)
+
+let venv_stdin  = venv_add_channel () (add_channel "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false Unix.stdin)
+let venv_stdout = venv_add_channel () (add_channel "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stdout)
+let venv_stderr = venv_add_channel () (add_channel "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stderr)
 
 (*
  * A formatting channel.
@@ -1603,7 +1609,8 @@ let venv_add_formatter_channel venv fmt =
          venv_channels      = channels
        } = venv_runtime
    in
-   let fd = Lm_channel.create index "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
+   let fd = Lm_channel.create "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
+   let () = Lm_channel.set_id fd index in
    let data = ChannelValue fd in
    let channel =
       { channel_id = index;

@@ -606,6 +606,14 @@ InChannel. +=
     #
     fopen(file) =
        return $(public.fopen $(file), r)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(InChannel.of-string <string>)+: open a new input channel,
+    # using a string as input.
+    # \end{doc}
+    of-string = $(open-in-string)
+       
 #
 # \begin{doc}
 # \end{itemize}
@@ -636,6 +644,24 @@ OutChannel. +=
     #
     fopen(file) =
        return $(public.fopen $(file), w)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(OutChannel.string)+: open a new output channel,
+    # writing to a string.
+    # \end{doc}
+    #
+    to-string() =
+       return $(public.open-out-string)
+
+    #
+    # \begin{doc}
+    # \item \verb+$(OutChannel.to-string)+: get the current string of
+    # output, for an output channel created as \verb+OutChannel.open-string+.
+    # \end{doc}
+    #
+    contents() =
+       return $(public.out-contents $(this))
 
     #
     # \begin{doc}

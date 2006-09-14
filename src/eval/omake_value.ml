@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -435,8 +435,9 @@ let in_channel_of_any_value venv pos v =
                         Unix.Unix_error _ as exn ->
                            raise (UncaughtException (pos, exn))
                   in
-                  let prim = venv_add_channel venv name Lm_channel.FileChannel Lm_channel.InChannel false fd in
-                     prim, true
+                  let chan = Lm_channel.create name Lm_channel.FileChannel Lm_channel.InChannel false (Some fd) in
+                  let pc = venv_add_channel venv chan in
+                     pc, true
        | ValChannel (OutChannel, _)
        | ValNone
        | ValEnv _
@@ -485,7 +486,8 @@ let out_channel_of_any_value venv pos v =
                         Unix.Unix_error _ as exn ->
                            raise (UncaughtException (pos, exn))
                   in
-                  let prim = venv_add_channel venv name Lm_channel.FileChannel Lm_channel.OutChannel false fd in
+                  let chan = Lm_channel.create name Lm_channel.FileChannel Lm_channel.OutChannel false (Some fd) in
+                  let prim = venv_add_channel venv chan in
                      prim, true
        | ValChannel (InChannel, _)
        | ValNone

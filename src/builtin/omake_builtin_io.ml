@@ -14,16 +14,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -88,6 +88,62 @@ let builtin_vars =
     "stdin",  (fun _ -> ValChannel (InChannel,  venv_stdin));
     "stdout", (fun _ -> ValChannel (OutChannel, venv_stdout));
     "stderr", (fun _ -> ValChannel (OutChannel, venv_stderr))]
+
+(*
+ * \begin{doc}
+ * \fun{open-in-string}
+ * The \verb+open-in-string+ treats a string as if it were a file
+ * and returns a channel for reading.
+ *
+ * \begin{verbatim}
+ *    $(open-in-string s) : Channel
+ *        s : String
+ * \end{verbatim}
+ *)
+let open_in_string venv pos loc args =
+   let pos = string_pos "open-in-string" pos in
+      match args with
+         [arg] ->
+            let s = string_of_value venv pos arg in
+            let fd = Lm_channel.of_string s in
+            let chan = venv_add_channel venv fd in
+               ValChannel (Lm_channel.InChannel, chan)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun2{open-out-string}{out-string}
+ * The \verb+open-out-string+ creates a channel that writes to a
+ * string instead of a file.  The string may be retrieved with the
+ * \verb+out-string+ function.
+ *
+ * \begin{verbatim}
+ *    $(open-out-string) : Channel
+ *    $(out-string chan) : String
+ *        chan : OutChannel
+ * \end{verbatim}
+ *)
+let open_out_string venv pos loc args =
+   let pos = string_pos "open-in-string" pos in
+      match args with
+         [] ->
+            let fd = Lm_channel.create_string () in
+            let chan = venv_add_channel venv fd in
+               ValChannel (Lm_channel.OutChannel, chan)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
+
+let out_contents venv pos loc args =
+   let pos = string_pos "out-contents" pos in
+      match args with
+         [fd] ->
+            let outp = prim_channel_of_value venv pos fd in
+            let outx = venv_find_channel venv pos outp in
+            let s = Lm_channel.to_string outx in
+               ValString s
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Open a file.
@@ -208,7 +264,8 @@ let fopen venv pos loc args =
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (loc_pos loc pos, exn))
             in
-               ValChannel (kind, venv_add_channel venv name Lm_channel.FileChannel kind binary fd)
+            let chan = Lm_channel.create name Lm_channel.FileChannel kind binary (Some fd) in
+               ValChannel (kind, venv_add_channel venv chan)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -514,7 +571,8 @@ let dup venv pos loc args =
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (pos, exn))
             in
-            let channel = venv_add_channel venv name kind mode binary fd in
+            let chan = Lm_channel.create name kind mode binary (Some fd) in
+            let channel = venv_add_channel venv chan in
                ValChannel (mode, channel)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -656,8 +714,10 @@ let pipe venv pos loc args =
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (pos, exn))
             in
-            let fd_read = ValChannel (InChannel, venv_add_channel venv "<readpipe>" Lm_channel.PipeChannel InChannel false fd_read) in
-            let fd_write = ValChannel (OutChannel, venv_add_channel venv "<writepipe>" Lm_channel.PipeChannel OutChannel false fd_write) in
+            let read = Lm_channel.create "<readpipe>" Lm_channel.PipeChannel InChannel false (Some fd_read) in
+            let write = Lm_channel.create "<writepipe>" Lm_channel.PipeChannel OutChannel false (Some fd_write) in
+            let fd_read = ValChannel (InChannel, venv_add_channel venv read) in
+            let fd_write = ValChannel (OutChannel, venv_add_channel venv write) in
             let obj =
                try
                   match venv_find_var_exn venv ScopeGlobal pipe_object_sym with
@@ -1097,7 +1157,8 @@ let socket venv pos loc args =
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (pos, exn))
             in
-            let channel = venv_add_channel venv "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false socket in
+            let channel = Lm_channel.create "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false (Some socket) in
+            let channel = venv_add_channel venv channel in
                ValChannel (InOutChannel, channel)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
@@ -1206,7 +1267,8 @@ let accept venv pos loc args =
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (pos, exn))
             in
-            let channel = venv_add_channel venv "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false socket in
+            let channel = Lm_channel.create "<socket>" Lm_channel.SocketChannel Lm_channel.InOutChannel false (Some socket) in
+            let channel = venv_add_channel venv channel in
                ValChannel (InOutChannel, channel)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -1806,7 +1868,10 @@ let () =
        "stderr", (fun _ -> ValChannel (OutChannel, venv_stderr))]
    in
    let builtin_funs =
-      [true, "fopen",                 fopen,                ArityExact 2;
+      [true, "open-in-string",        open_in_string,       ArityExact 1;
+       true, "open-out-string",       open_out_string,      ArityExact 0;
+       true, "out-contents",          out_contents,         ArityExact 1;
+       true, "fopen",                 fopen,                ArityExact 2;
        true, "close",                 close,                ArityExact 1;
        true, "read",                  read,                 ArityExact 2;
        true, "write",                 write,                ArityRange (2, 4);

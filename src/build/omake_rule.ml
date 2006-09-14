@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -610,9 +610,12 @@ let find_alias_exn shell_obj venv pos loc exe =
          eprintf "Running %s, stdin=%i, stdout=%i, stderr=%i@." exe (Obj.magic stdin) (Obj.magic stdout) (Obj.magic stderr);
       let venv   = venv_fork venv in
       let venv   = List.fold_left (fun venv (v, s) -> venv_setenv venv v s) venv env in
-      let stdin  = venv_add_channel venv "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false stdin in
-      let stdout = venv_add_channel venv "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false stdout in
-      let stderr = venv_add_channel venv "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false stderr in
+      let stdin_chan  = Lm_channel.create "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false (Some stdin) in
+      let stdout_chan = Lm_channel.create "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stdout) in
+      let stderr_chan = Lm_channel.create "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stderr) in
+      let stdin  = venv_add_channel venv stdin_chan in
+      let stdout = venv_add_channel venv stdout_chan in
+      let stderr = venv_add_channel venv stderr_chan in
       let venv   = venv_add_var venv ScopeGlobal pos stdin_sym  (ValChannel (InChannel,  stdin)) in
       let venv   = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, stdout)) in
       let venv   = venv_add_var venv ScopeGlobal pos stderr_sym (ValChannel (OutChannel, stderr)) in
@@ -1235,7 +1238,8 @@ and eval_shell_output venv pos loc e =
    let pos = string_pos "eval_shell_output" pos in
    let tmpname = Filename.temp_file "omake" ".shell" in
    let fd = Lm_unix_util.openfile tmpname [Unix.O_RDWR; Unix.O_CREAT; Unix.O_TRUNC] 0o600 in
-   let channel = venv_add_channel venv tmpname Lm_channel.PipeChannel Lm_channel.OutChannel false fd in
+   let channel = Lm_channel.create tmpname Lm_channel.PipeChannel Lm_channel.OutChannel false (Some fd) in
+   let channel = venv_add_channel venv channel in
    let venv = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, channel)) in
    let result =
       try
@@ -1308,9 +1312,12 @@ and eval_command venv stdout stderr pos loc e =
       if !debug_eval || !debug_shell then
          eprintf "eval_command: evaluating internal function: stderr = %d@." (Lm_unix_util.int_of_fd stderr);
       let venv   = venv_fork venv in
-      let stdin  = venv_add_channel venv "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false stdin in
-      let stdout = venv_add_channel venv "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false stdout in
-      let stderr = venv_add_channel venv "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false stderr in
+      let stdin  = Lm_channel.create "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false (Some stdin) in
+      let stdout = Lm_channel.create "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stdout) in
+      let stderr = Lm_channel.create "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stderr) in
+      let stdin  = venv_add_channel venv stdin in
+      let stdout = venv_add_channel venv stdout in
+      let stderr = venv_add_channel venv stderr in
       let venv   = venv_add_var venv ScopeGlobal pos stdin_sym  (ValChannel (InChannel,  stdin)) in
       let venv   = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, stdout)) in
       let venv   = venv_add_var venv ScopeGlobal pos stderr_sym (ValChannel (OutChannel, stderr)) in

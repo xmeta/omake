@@ -91,16 +91,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -944,10 +944,10 @@ let fsubst venv pos loc args =
             "\r|\n|\r\n"
    in
    let rs_lex =
-      try lexer_of_string rs
-      with Failure err ->
-         let msg = sprintf "Mailformed regular expression '%s'" rs in
-            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+      try lexer_of_string rs with
+         Failure err ->
+            let msg = sprintf "Malformed regular expression '%s'" rs in
+               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
    in
 
    (* Get lexers for all the cases *)
@@ -974,10 +974,10 @@ let fsubst venv pos loc args =
                      subst_options venv pos loc options (string_of_value venv pos arg)) 0 options
             in
             let _, lex =
-               try Lexer.add_clause Lexer.empty v pattern
-               with Failure err ->
-                  let msg = sprintf "Mailformed regular expression '%s'" pattern in
-                     raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+               try Lexer.add_clause Lexer.empty v pattern with
+                  Failure err ->
+                     let msg = sprintf "Malformed regular expression '%s'" pattern in
+                        raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
             in
                lex, options, body) cases
    in
@@ -1011,6 +1011,147 @@ let fsubst venv pos loc args =
       file_loop files;
       Lm_channel.flush outx;
       ValNone
+
+(*
+ * \begin{doc}
+ * \fun{lex}
+ *
+ * \begin{verbatim}
+ *    lex(files)
+ *    case pattern1
+ *       body1
+ *    case pattern2
+ *       body2
+ *    ...
+ *    default
+ *       bodyd
+ * \end{verbatim}
+ *
+ * The \verb+scan-forward+ function provides a \Cmd{lex}{1}-like scanner
+ * function.  The input is a sequence of files or channels.  The cases
+ * specify regular expressions.  Each time the input is read, the regular
+ * expression that matches the \emph{longest prefix} of the input is selected,
+ * and the body evaluated.  If the body end with an \verb+export+ directive,
+ * the state is passed to the next clause.
+ *
+ * For example, the following program collects all occurrences of alphanumeric
+ * words in an input file.
+ *
+ * \begin{verbatim}
+ *     collect-words($(files)) =
+ *        words[] =
+ *        lex($(files))
+ *        case $"[[:alnum:]]+" g
+ *           words[] += $0
+ *           export
+ *        default
+ *           # empty
+ * \end{verbatim}
+ * \end{doc}
+ *)
+
+(*
+ * Sed function performs a substitution line-by-line.
+ *)
+let rec subst_eval_case venv pos loc buf channel lex options body =
+   match Lexer.searchto lex channel with
+      Lexer.LexEOF
+    | Lexer.LexSkipped _ ->
+         ()
+    | Lexer.LexMatched (_, _, skipped, matched, args) ->
+         let venv' = venv_add_match venv matched args in
+         let result = eval_body_value venv' pos body in
+            Buffer.add_string buf skipped;
+            Buffer.add_string buf (string_of_value venv pos result);
+            if (options land subst_global_opt) <> 0 then
+               subst_eval_case venv pos loc buf channel lex options body
+            else
+               Lm_channel.LexerInput.lex_buffer channel buf
+
+let subst_eval_line venv pos loc line cases =
+   let buffer = Buffer.create (String.length line) in
+      List.fold_left (fun line (lex, options, body) ->
+            let channel = Lm_channel.of_string line in
+               Buffer.clear buffer;
+               subst_eval_case venv pos loc buffer channel lex options body;
+               Buffer.contents buffer) line cases
+
+let lex venv pos loc args =
+   let pos = string_pos "lexer" pos in
+   let cases, files = awk_args venv pos loc args in
+
+   (* Get lexers for all the cases *)
+   let lex, cases, _ =
+      List.fold_left (fun (lex, cases, index) (v, test, body) ->
+            let args = values_of_value venv pos test in
+            let pattern =
+               match args with
+                  pattern :: _ ->
+                     string_of_value venv pos pattern
+                | [] ->
+                     ""
+            in
+            let pattern =
+               if Lm_symbol.eq v case_sym then
+                  pattern
+               else if Lm_symbol.eq v default_sym then
+                  "."
+               else
+                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
+            in
+            let action_sym = Lm_symbol.make "action" index in
+            let _, lex =
+               try Lexer.add_clause lex action_sym pattern with
+                  Failure err ->
+                     let msg = sprintf "Malformed regular expression '%s'" pattern in
+                        raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+            in
+            let cases = SymbolTable.add cases action_sym body in
+               lex, cases, succ index) (Lexer.empty, SymbolTable.empty, 0) cases
+   in
+
+   (* Process the files *)
+   let rec input_loop venv inx =
+      let info =
+         try Some (Lexer.lex lex inx) with
+            End_of_file ->
+               None
+      in
+         match info with
+            Some (action_sym, lexeme_loc, lexeme, args) ->
+               let venv = venv_add_match venv lexeme args in
+               let venv = venv_add_var venv ScopeProtected pos loc_sym (ValOther (ValLocation lexeme_loc)) in
+               let body =
+                  try SymbolTable.find cases action_sym with
+                     Not_found ->
+                        raise (Invalid_argument "lex")
+               in
+               let result = eval_body_value venv pos body in
+               let venv, _ = add_exports venv pos result in
+                  input_loop venv inx
+          | None ->
+               venv
+   in
+   let rec file_loop venv files =
+      match files with
+         file :: files ->
+            let inp, close_in = in_channel_of_any_value venv pos file in
+            let inx = venv_find_channel venv pos inp in
+            let venv =
+               try input_loop venv inx with
+                  exn ->
+                     if close_in then
+                        venv_close_channel venv pos inp;
+                     raise (UncaughtException (pos, exn))
+            in
+               if close_in then
+                  venv_close_channel venv pos inp;
+               file_loop venv files
+       | [] ->
+            venv
+   in
+   let venv = file_loop venv files in
+      ValEnv (venv, ExportAll)
 
 (*
  * \begin{doc}
