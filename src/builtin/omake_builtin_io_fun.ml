@@ -624,6 +624,19 @@ let scan venv pos loc args =
  *    ...
  *    default:
  *       bodyd
+ *\end{verbatim}
+ *
+ * or
+ *
+ * \begin{verbatim}
+ *    awk(options, input-files)
+ *    case pattern1:
+ *       body1
+ *    case pattern2:
+ *       body2
+ *    ...
+ *    default:
+ *       bodyd
  * \end{verbatim}
  *
  * The \verb+awk+ function provides input processing similar to \Cmd{awk}{1},
@@ -688,18 +701,28 @@ let scan venv pos loc args =
  *            ...
  *         close(stdout)
  * \end{verbatim}
+ *
+ * Options.
+ * \begin{description}
+ * \item[b] ``Break'' when evaluating cases.  Only the first case that matches will be selected.
+ * \end{description}
+ *
+ * The \hyperref{break}{break} function can be used to abort the loop.
  * \end{doc}
  *)
 
 (*
  * Evaluate all the cases that match.
  *)
-let rec awk_eval_cases venv pos loc line cases =
+let rec awk_eval_cases venv pos loc break line cases =
    match cases with
       (None, body) :: cases ->
          let result = eval_body_value venv pos body in
          let venv, _ = add_exports venv pos result in
-            awk_eval_cases venv pos loc line cases
+            if break then
+               venv
+            else
+               awk_eval_cases venv pos loc break line cases
     | (Some lex, body) :: cases ->
          let channel = Lm_channel.of_string line in
          let result =
@@ -711,7 +734,10 @@ let rec awk_eval_cases venv pos loc line cases =
                   ValNone
          in
          let venv, _ = add_exports venv pos result in
-            awk_eval_cases venv pos loc line cases
+            if break then
+               venv
+            else
+               awk_eval_cases venv pos loc break line cases
     | [] ->
          venv
 
@@ -720,34 +746,50 @@ let rec awk_eval_cases venv pos loc line cases =
  *)
 let awk_args venv pos loc args =
    let pos = string_pos "awk_args" pos in
-   let cases, files =
       match args with
-         [ValCases cases] ->
-            cases, [venv_find_var venv ScopeGlobal pos loc stdin_sym]
-       | ValCases cases :: files ->
-            cases, files
+         [ValCases cases; files] ->
+            cases, values_of_value venv pos files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-   in
-      cases, files
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
-let awk_args venv pos loc args =
+let awk_option_args venv pos loc args =
    let pos = string_pos "awk_args" pos in
-   let rec flatten args' args =
       match args with
-         arg :: args ->
-            flatten (List.rev_append (values_of_value venv pos arg) args') args
-       | [] ->
-            List.rev args'
+         [ValCases cases; files] ->
+            cases, "", values_of_value venv pos files
+       | [ValCases cases; options; files] ->
+            cases, string_of_value venv pos options, values_of_value venv pos files
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+
+type awk_flag =
+   AwkBreak
+
+let awk_flags pos loc s =
+   let len = String.length s in
+   let rec collect flags i =
+      if i = len then
+         flags
+      else
+         let flag =
+            match s.[i] with
+               'b' ->
+                  AwkBreak
+             | c ->
+                  raise (OmakeException (loc_pos loc pos, StringStringError ("illegal awk option", String.make 1 c)))
+         in
+            collect (flag :: flags) (succ i)
    in
-      awk_args venv pos loc (flatten [] args)
+      collect [] 0
 
 (*
  * Awk the value.
  *)
 let awk venv pos loc args =
    let pos = string_pos "awk" pos in
-   let cases, files = awk_args venv pos loc args in
+   let cases, flags, files = awk_option_args venv pos loc args in
+   let flags = awk_flags pos loc flags in
+   let break = List.mem AwkBreak flags in
 
    (* Separator expressions *)
    let rs =
@@ -761,16 +803,16 @@ let awk venv pos loc args =
             "[ \t]+"
    in
    let rs_lex =
-      try lexer_of_string rs
-      with Failure err ->
-         let msg = sprintf "Malformed regular expression '%s'" rs in
-            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+      try lexer_of_string rs with
+         Failure err ->
+            let msg = sprintf "Malformed regular expression '%s'" rs in
+               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
    in
    let fs_lex =
-      try lexer_of_string fs
-      with Failure err ->
-         let msg = sprintf "Malformed regular expression '%s'" fs in
-            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+      try lexer_of_string fs with
+         Failure err ->
+            let msg = sprintf "Malformed regular expression '%s'" fs in
+               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
    in
 
    (* Get lexers for all the cases *)
@@ -779,10 +821,10 @@ let awk venv pos loc args =
             if Lm_symbol.eq v case_sym then
                let s = string_of_value venv pos test in
                let _, lex =
-                  try Lexer.add_clause Lexer.empty v s
-                  with Failure err ->
-                     let msg = sprintf "Malformed regular expression '%s'" s in
-                        raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+                  try Lexer.add_clause Lexer.empty v s with
+                     Failure err ->
+                        let msg = sprintf "Malformed regular expression '%s'" s in
+                           raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
                in
                   Some lex, body
             else if Lm_symbol.eq v default_sym then
@@ -815,7 +857,7 @@ let awk venv pos loc args =
             (* Split into words *)
             let words = collect_words line in
             let venv = venv_add_match venv line words in
-            let venv = awk_eval_cases venv pos loc line cases in
+            let venv = awk_eval_cases venv pos loc break line cases in
                line_loop venv inx
    in
    let rec file_loop venv args =
@@ -823,14 +865,25 @@ let awk venv pos loc args =
          arg :: args ->
             let inp, close_in = in_channel_of_any_value venv pos arg in
             let inx = venv_find_channel venv pos inp in
-            let venv = line_loop venv inx in
+            let venv =
+               try line_loop venv inx with
+                  Break _ as exn ->
+                     if close_in then
+                        venv_close_channel venv pos inp;
+                     raise exn
+            in
                if close_in then
                   venv_close_channel venv pos inp;
                file_loop venv args
        | [] ->
             venv
    in
-      ValEnv (file_loop venv files, ExportAll)
+   let venv =
+      try file_loop venv files with
+         Break (_, venv) ->
+            venv
+   in
+      ValEnv (venv, ExportAll)
 
 (*
  * \begin{doc}
@@ -1001,16 +1054,26 @@ let fsubst venv pos loc args =
          file :: files ->
             let inp, close_in = in_channel_of_any_value venv pos file in
             let inx = venv_find_channel venv pos inp in
-               line_loop inx;
+            let () =
+               try line_loop inx with
+                  Break _ as exn ->
+                     if close_in then
+                        venv_close_channel venv pos inp;
+                     raise exn
+            in
                if close_in then
                   venv_close_channel venv pos inp;
                file_loop files
        | [] ->
             ()
    in
-      file_loop files;
+   let return =
+      try file_loop files; ValNone with
+         Break (_, venv) ->
+            ValEnv (venv, ExportAll)
+   in
       Lm_channel.flush outx;
-      ValNone
+      return
 
 (*
  * \begin{doc}
