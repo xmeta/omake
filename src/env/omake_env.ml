@@ -482,6 +482,7 @@ exception UncaughtException of pos * exn
 exception RaiseException    of pos * obj
 exception ExitException     of pos * int
 exception Return            of loc * value
+exception Break             of loc * venv
 
 (*
  * Omake's internal version of the Invalid_argument

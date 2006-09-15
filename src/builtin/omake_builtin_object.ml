@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -627,6 +627,9 @@ let sequence_rev venv pos loc args =
  *        X += $(x).c
  *        export
  * \end{verbatim}
+ *
+ * The \hyperref{break}{break} function can be used to break out of the
+ * loop early.
  * \end{doc}
  *)
 let foreach_fun venv pos loc args =
@@ -651,10 +654,14 @@ let foreach_fun venv pos loc args =
 
    (* If the body exports the environment, preserve it across calls *)
    let venv', values =
-      List.fold_left (fun (venv, values) v ->
-            let result = f venv pos loc [v] in
-            let venv, result = add_exports venv pos result in
-               venv, result :: values) (venv, []) args
+      try
+         List.fold_left (fun (venv, values) v ->
+               let result = f venv pos loc [v] in
+               let venv, result = add_exports venv pos result in
+                  venv, result :: values) (venv, []) args
+      with
+         Break (_, venv) ->
+            venv, []
    in
       if venv' == venv then
          ValArray (List.rev values)

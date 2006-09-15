@@ -1027,11 +1027,17 @@ let fsubst venv pos loc args =
  *       bodyd
  * \end{verbatim}
  *
- * The \verb+scan-forward+ function provides a \Cmd{lex}{1}-like scanner
+ * The \verb+lex+ function provides a simple lexical-style scanner
  * function.  The input is a sequence of files or channels.  The cases
  * specify regular expressions.  Each time the input is read, the regular
  * expression that matches the \emph{longest prefix} of the input is selected,
- * and the body evaluated.  If the body end with an \verb+export+ directive,
+ * and the body is evaluated.
+ *
+ * If two clauses both match the same input, the \emph{last} one is selected
+ * for execution.  The \verb+default+ case matches the regular expression \verb+.+;
+ * you probably want to place it first in the pattern list.
+ *
+ * If the body end with an \verb+export+ directive,
  * the state is passed to the next clause.
  *
  * For example, the following program collects all occurrences of alphanumeric
@@ -1041,44 +1047,28 @@ let fsubst venv pos loc args =
  *     collect-words($(files)) =
  *        words[] =
  *        lex($(files))
+ *        default
+ *           # empty
  *        case $"[[:alnum:]]+" g
  *           words[] += $0
  *           export
- *        default
- *           # empty
  * \end{verbatim}
+ *
+ * The \verb+default+ case, if one exists, matches single characters.  Since
+ *
+ * It is an error if the input does not match any of the regular expressions.
+ *
+ * The \hyperref{break}{break} function can be used to abort the loop.
  * \end{doc}
  *)
-
-(*
- * Sed function performs a substitution line-by-line.
- *)
-let rec subst_eval_case venv pos loc buf channel lex options body =
-   match Lexer.searchto lex channel with
-      Lexer.LexEOF
-    | Lexer.LexSkipped _ ->
-         ()
-    | Lexer.LexMatched (_, _, skipped, matched, args) ->
-         let venv' = venv_add_match venv matched args in
-         let result = eval_body_value venv' pos body in
-            Buffer.add_string buf skipped;
-            Buffer.add_string buf (string_of_value venv pos result);
-            if (options land subst_global_opt) <> 0 then
-               subst_eval_case venv pos loc buf channel lex options body
-            else
-               Lm_channel.LexerInput.lex_buffer channel buf
-
-let subst_eval_line venv pos loc line cases =
-   let buffer = Buffer.create (String.length line) in
-      List.fold_left (fun line (lex, options, body) ->
-            let channel = Lm_channel.of_string line in
-               Buffer.clear buffer;
-               subst_eval_case venv pos loc buffer channel lex options body;
-               Buffer.contents buffer) line cases
+let eof_sym = Lm_symbol.add "eof"
 
 let lex venv pos loc args =
-   let pos = string_pos "lexer" pos in
+   let pos = string_pos "lex" pos in
    let cases, files = awk_args venv pos loc args in
+
+   (* Add a clause for EOF *)
+   let _, lex = Lexer.add_clause Lexer.empty eof_sym "\\'" in
 
    (* Get lexers for all the cases *)
    let lex, cases, _ =
@@ -1099,38 +1089,33 @@ let lex venv pos loc args =
                else
                   raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
             in
-            let action_sym = Lm_symbol.make "action" index in
-            let _, lex =
-               try Lexer.add_clause lex action_sym pattern with
-                  Failure err ->
-                     let msg = sprintf "Malformed regular expression '%s'" pattern in
-                        raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
-            in
-            let cases = SymbolTable.add cases action_sym body in
-               lex, cases, succ index) (Lexer.empty, SymbolTable.empty, 0) cases
+               let action_sym = Lm_symbol.make "action" index in
+               let _, lex =
+                  try Lexer.add_clause lex action_sym pattern with
+                     Failure err ->
+                        let msg = sprintf "Malformed regular expression '%s'" pattern in
+                           raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+               in
+               let cases = SymbolTable.add cases action_sym body in
+                  lex, cases, succ index) (lex, SymbolTable.empty, 0) cases
    in
 
    (* Process the files *)
    let rec input_loop venv inx =
-      let info =
-         try Some (Lexer.lex lex inx) with
-            End_of_file ->
-               None
-      in
-         match info with
-            Some (action_sym, lexeme_loc, lexeme, args) ->
-               let venv = venv_add_match venv lexeme args in
-               let venv = venv_add_var venv ScopeProtected pos loc_sym (ValOther (ValLocation lexeme_loc)) in
-               let body =
-                  try SymbolTable.find cases action_sym with
-                     Not_found ->
-                        raise (Invalid_argument "lex")
-               in
-               let result = eval_body_value venv pos body in
-               let venv, _ = add_exports venv pos result in
-                  input_loop venv inx
-          | None ->
-               venv
+      let action_sym, lexeme_loc, lexeme, args = Lexer.lex lex inx in
+         if Lm_symbol.eq action_sym eof_sym then
+            venv
+         else
+            let venv = venv_add_match venv lexeme args in
+            let venv = venv_add_var venv ScopeProtected pos loc_sym (ValOther (ValLocation lexeme_loc)) in
+            let body =
+               try SymbolTable.find cases action_sym with
+                  Not_found ->
+                     raise (Invalid_argument "lex")
+            in
+            let result = eval_body_value venv pos body in
+            let venv, _ = add_exports venv pos result in
+               input_loop venv inx
    in
    let rec file_loop venv files =
       match files with
@@ -1139,7 +1124,11 @@ let lex venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let venv =
                try input_loop venv inx with
-                  exn ->
+                  Break _ as exn ->
+                     if close_in then
+                        venv_close_channel venv pos inp;
+                     raise exn
+                | exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
                      raise (UncaughtException (pos, exn))
@@ -1150,7 +1139,151 @@ let lex venv pos loc args =
        | [] ->
             venv
    in
-   let venv = file_loop venv files in
+   let venv =
+      try file_loop venv files with
+         Break (_, venv) ->
+            venv
+   in
+      ValEnv (venv, ExportAll)
+
+(*
+ * \begin{doc}
+ * \fun{lex-search}
+ *
+ * \begin{verbatim}
+ *    lex-search(files)
+ *    case pattern1
+ *       body1
+ *    case pattern2
+ *       body2
+ *    ...
+ *    default
+ *       bodyd
+ * \end{verbatim}
+ *
+ * The \verb+lex-search+ function is like the \verb+lex+ function, but input that
+ * does not match any of the regular expressions is skipped.  If the clauses include
+ * a \verb+default+ case, then the \verb+default+ matches any skipped text.
+ *
+ * For example, the following program collects all occurrences of alphanumeric
+ * words in an input file, skipping any other text.
+ *
+ * \begin{verbatim}
+ *     collect-words($(files)) =
+ *        words[] =
+ *        lex-search($(files))
+ *        default
+ *           eprintln(Skipped $0)
+ *        case $"[[:alnum:]]+" g
+ *           words[] += $0
+ *           export
+ * \end{verbatim}
+ *
+ * The \verb+default+ case, if one exists, matches single characters.  Since
+ *
+ * It is an error if the input does not match any of the regular expressions.
+ *
+ * The \hyperref{break}{break} function can be used to abort the loop.
+ * \end{doc}
+ *)
+let lex_search venv pos loc args =
+   let pos = string_pos "lex-search" pos in
+   let cases, files = awk_args venv pos loc args in
+
+   (* Get lexers for all the cases *)
+   let lex, cases, default, _ =
+      List.fold_left (fun (lex, cases, default, index) (v, test, body) ->
+            let args = values_of_value venv pos test in
+            let pattern =
+               match args with
+                  pattern :: _ ->
+                     string_of_value venv pos pattern
+                | [] ->
+                     ""
+            in
+               if Lm_symbol.eq v case_sym then
+                  let action_sym = Lm_symbol.make "action" index in
+                  let _, lex =
+                     try Lexer.add_clause lex action_sym pattern with
+                        Failure err ->
+                           let msg = sprintf "Malformed regular expression '%s'" pattern in
+                              raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+                  in
+                  let cases = SymbolTable.add cases action_sym body in
+                     lex, cases, default, succ index
+               else if Lm_symbol.eq v default_sym then
+                  lex, cases, Some body, index
+               else
+                  raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (**)
+         (Lexer.empty, SymbolTable.empty, None, 0) cases
+   in
+
+   (* What to do for skipped text *)
+   let skip venv lexeme_loc lexeme =
+      match lexeme, default with
+         "", _
+       | _, None ->
+            venv
+       | _, Some body ->
+            let venv = venv_add_match venv lexeme [] in
+            let venv = venv_add_var venv ScopeProtected pos loc_sym (ValOther (ValLocation lexeme_loc)) in
+            let result = eval_body_value venv pos body in
+            let venv, _ = add_exports venv pos result in
+               venv
+   in
+
+   (* Process the files *)
+   let rec input_loop venv inx =
+      match Lexer.searchto lex inx with
+         Lexer.LexEOF ->
+            venv
+       | Lexer.LexSkipped (lexeme_loc, lexeme) ->
+            skip venv loc lexeme
+       | Lexer.LexMatched (action_sym, lexeme_loc, skipped, lexeme, args) ->
+            (* Process skipped text *)
+            let venv = skip venv lexeme_loc skipped in
+
+            (* Process the matched text *)
+            let venv = venv_add_match venv lexeme args in
+            let venv = venv_add_var venv ScopeProtected pos loc_sym (ValOther (ValLocation lexeme_loc)) in
+            let body =
+               try SymbolTable.find cases action_sym with
+                  Not_found ->
+                     raise (Invalid_argument "lex")
+            in
+            let result = eval_body_value venv pos body in
+            let venv, _ = add_exports venv pos result in
+               input_loop venv inx
+   in
+
+   (* Process each file *)
+   let rec file_loop venv files =
+      match files with
+         file :: files ->
+            let inp, close_in = in_channel_of_any_value venv pos file in
+            let inx = venv_find_channel venv pos inp in
+            let venv =
+               try input_loop venv inx with
+                  Break _ as exn ->
+                     if close_in then
+                        venv_close_channel venv pos inp;
+                     raise exn
+                | exn ->
+                     if close_in then
+                        venv_close_channel venv pos inp;
+                     raise (UncaughtException (pos, exn))
+            in
+               if close_in then
+                  venv_close_channel venv pos inp;
+               file_loop venv files
+       | [] ->
+            venv
+   in
+   let venv =
+      try file_loop venv files with
+         Break (_, venv) ->
+            venv
+   in
       ValEnv (venv, ExportAll)
 
 (*
@@ -1815,7 +1948,9 @@ let () =
        true, "parse-build",           parse_build,          ArityExact 1;
        true, "scan",                  scan,                 ArityRange (1, 3);
        true, "awk",                   awk,                  ArityExact 3;
-       true, "fsubst",                fsubst,               ArityExact 3]
+       true, "fsubst",                fsubst,               ArityExact 3;
+       true, "lex",                   lex,                  ArityExact 3;
+       true, "lex-search",            lex_search,           ArityExact 3]
    in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }

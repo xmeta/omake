@@ -636,6 +636,9 @@ let try_fun venv pos loc args =
             TryFailureExp (pos, object_of_uncaught_exception venv pos exn, exn)
        | RaiseException (pos, obj) as exn ->
             TryFailureExp (pos, obj, exn)
+       | Return _
+       | Break _ as exn ->
+            TryFailureExp (pos, object_of_uncaught_exception venv pos exn, exn)
    in
    let e =
       match e with
@@ -2449,6 +2452,9 @@ let export venv pos loc args =
  *     default
  *        echo $i
  * \end{verbatim}
+ *
+ * The \hyperref{break}{break} function can be used to break out of the
+ * loop early.
  * \end{doc}
  *)
 let rec eval_while_cases venv pos loc orig_cases arg cases =
@@ -2477,8 +2483,26 @@ let while_fun venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
-   let venv = while_loop venv pos loc cases arg in
+   let venv =
+      try while_loop venv pos loc cases arg with
+         Break (_, venv) ->
+            venv
+   in
       ValEnv (venv, ExportAll)
+
+(*
+ * \begin{doc}
+ * \hypertarget{break}{}
+ * \fun{break}
+ *
+ * \begin{verbatim}
+ *    break
+ * \end{verbatim}
+ *
+ * Terminate execution of the innermost loop, returning the current state.
+ *)
+let break venv pos loc args =
+   raise (Break (loc, venv))
 
 (************************************************************************
  * Register.
@@ -2581,7 +2605,8 @@ let () =
 
        true,  "export",                export,              ArityRange (0, 1);
 
-       false, "while",                 while_fun,           ArityExact 2]
+       false, "while",                 while_fun,           ArityExact 2;
+       true,  "break",                 break,               ArityExact 0]
    in
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;
