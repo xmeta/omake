@@ -237,13 +237,13 @@ let grep_flags pos loc s =
       else
          let flag =
             match s.[i] with
-               'q' | 'Q' ->
+               'q' ->
                   GrepQuiet
-             | 'n' | 'N' ->
+             | 'n' ->
                   GrepPrint
-             | 'v' | 'V' ->
+             | 'v' ->
                   GrepNoMatch
-             | 'h' | 'H' ->
+             | 'h' ->
                   GrepNoPrint
              | c ->
                   raise (OmakeException (loc_pos loc pos, StringStringError ("illegal grep option", String.make 1 c)))
@@ -354,6 +354,10 @@ let builtin_grep venv pos loc args =
                       collect ("q" ^ flags) args
                  | "-n" ->
                       collect ("n" ^ flags) args
+                 | "-v" ->
+                      collect ("v" ^ flags) args
+                 | "-h" ->
+                      collect ("h" ^ flags) args
                  | pattern ->
                       flags, pattern, args)
           | [] ->
