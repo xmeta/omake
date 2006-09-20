@@ -194,30 +194,23 @@ if $(equal $(OSTYPE), Win32)
     # directives from the preprocessor.
     #
     Shell. +=
-        builtin-cpp-filenames(argv) =
-           fsubst($(argv))
-           case $'^[^"]*\("[^"]+"\).*'
-              value $1
-
         builtin-cc-depend(argv) =
-           private.filename = $(last $(argv))
-           private.pipeline =\
-              $(argv) |\
-              grep "^#(line)? [0-9]" |\
-              builtin-cpp-filenames |\
-              grep "^[^<]"
-           if $(VERBOSE)
-              eprintln(+ $(string $(pipeline)))
-           private.depends = $(set $(shell $(pipeline)))
-           private.objname = $(rootname $(filename))$(EXT_OBJ)
-           println($(string $(objname): $(depends)))
+           filename = $(nth 0, $(argv))
+           depends[] =
+           awk($(stdin))
+           case $'Note:.*including file: *\(.*\)$'
+              depends[] += $"$1"
+              export
+           depends = $(string-escaped $(set $(depends)))
+           objname = $(string-escaped $(rootname $(filename))$(EXT_OBJ))
+           println($"$(objname): $(depends)")
 
     .SCANNER: scan-c-%.c: %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-        builtin-cc-depend $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -E $<
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
     # Include default rule for backwards-compatibility
     .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-        builtin-cc-depend $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -E $<
+        builtin-cc-depend $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $<
 
     foreach(CXX_EXT, $(CXX_EXTS))
         .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
