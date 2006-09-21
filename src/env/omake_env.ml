@@ -2870,14 +2870,16 @@ let venv_add_explicit3_rules venv pos loc multiple targets locks patterns source
                                let effect = venv_intern_rule_target venv multiple (TargetString effect) in
                                   NodeSet.add effects effect) NodeSet.empty patterns_wild
                       in
-                      let commands     = make_command_info venv source_args values body in
+                      let core = wild_core subst in
+                      let venv = venv_add_wild_match venv (ValData core) in
+                      let commands = make_command_info venv source_args values body in
                       let erule =
                          { rule_loc        = loc;
                            rule_env        = venv;
                            rule_target     = target;
                            rule_effects    = effects;
                            rule_locks      = locks;
-                           rule_match      = Some (wild_core subst);
+                           rule_match      = Some core;
                            rule_sources    = sources;
                            rule_scanners   = scanners;
                            rule_multiple   = multiple;
@@ -3154,6 +3156,8 @@ let venv_find_implicit_rules_inner venv target =
                         let locks = node_set_of_list lock_args in
                         let scanner_args = List.map (subst_source venv target_dir subst) scanners in
                         let scanners = node_set_of_list scanner_args in
+                        let core = wild_core subst in
+                        let venv = venv_add_wild_match venv (ValData core) in
                         let commands = make_command_info venv source_args values body in
                         let effects =
                            List.fold_left (fun effects pattern ->
@@ -3165,7 +3169,7 @@ let venv_find_implicit_rules_inner venv target =
                            { rule_loc         = loc;
                              rule_env         = venv;
                              rule_target      = target;
-                             rule_match       = Some (wild_core subst);
+                             rule_match       = Some core;
                              rule_effects     = effects;
                              rule_locks       = locks;
                              rule_sources     = sources;
