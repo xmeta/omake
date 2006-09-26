@@ -192,11 +192,6 @@ public.LocalCGeneratedFiles(files) =
 # whenever the scanned dependencies change.
 #
 if $(equal $(OSTYPE), Win32)
-    #
-    # Somehow Win32 doesn't have good dependency analysis,
-    # so we try to construct it by extracting the #line
-    # directives from the preprocessor.
-    #
     Shell. +=
         builtin-cc-depend(argv) =
            filename = $(nth 0, $(argv))
