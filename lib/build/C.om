@@ -22,6 +22,7 @@
 # FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
 
 open build/Common
+open configure/Configure
 
 #
 # \begin{doc}
@@ -78,10 +79,13 @@ if $(equal $(OSTYPE), Win32)
     public.ASOUT = /Fo
     public.ASFLAGS = /c /coff
 
+    static. =
+        CL_FOUND = $(CheckProg cl)
+        LIB_FOUND = $(CheckProg lib)
+
     export
 else
     static. =
-        open configure/Configure
         GCC_FOUND = $(CheckProg gcc)
         GXX_FOUND = $(and $(GCC_FOUND), $(CheckProg g++))
     public.CC = $(if $(GCC_FOUND), gcc, cc)
@@ -210,15 +214,15 @@ if $(equal $(OSTYPE), Win32)
 
     # Include default rule for backwards-compatibility
     .SCANNER: %$(EXT_OBJ): %.c /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-        builtin-cc-depend $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $<
+        $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
     foreach(CXX_EXT, $(CXX_EXTS))
         .SCANNER: scan-cxx-%$(CXX_EXT): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-            builtin-cc-depend $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -E $<
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
         # Include default rule for backwards-compatibility
         .SCANNER: %$(EXT_OBJ): %$(CXX_EXT) /.PHONY/CGeneratedFilesTarget :value: $(digest-in-path-optional $(INCLUDES), $&)
-            builtin-cc-depend $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -E $<
+            $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) /Zs /showIncludes $< |& builtin-cc-depend $<
 
         export
     export
