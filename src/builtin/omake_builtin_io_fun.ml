@@ -606,7 +606,12 @@ let scan venv pos loc args =
          arg :: args ->
             let inp, close_in = in_channel_of_any_value venv pos arg in
             let inx = venv_find_channel venv pos inp in
-            let venv = line_loop venv inx in
+            let venv = 
+               try line_loop venv inx with
+                  exn when close_in ->
+                     venv_close_channel venv pos inp;
+                     raise exn
+               in
                if close_in then
                   venv_close_channel venv pos inp;
                file_loop venv args
@@ -871,9 +876,8 @@ let awk venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let venv =
                try line_loop venv inx with
-                  Break _ as exn ->
-                     if close_in then
-                        venv_close_channel venv pos inp;
+                  exn when close_in ->
+                     venv_close_channel venv pos inp;
                      raise exn
             in
                if close_in then
@@ -1060,9 +1064,8 @@ let fsubst venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let () =
                try line_loop inx with
-                  Break _ as exn ->
-                     if close_in then
-                        venv_close_channel venv pos inp;
+                  exn when close_in ->
+                     venv_close_channel venv pos inp;
                      raise exn
             in
                if close_in then
@@ -1191,7 +1194,7 @@ let lex venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let venv =
                try input_loop venv inx with
-                  Break _ as exn ->
+                  (Break _ | Return _ | UncaughtException _ ) as exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
                      raise exn
@@ -1331,7 +1334,7 @@ let lex_search venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let venv =
                try input_loop venv inx with
-                  Break _ as exn ->
+                  (Break _ | Return _ | UncaughtException _ ) as exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
                      raise exn
