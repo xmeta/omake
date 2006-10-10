@@ -39,9 +39,9 @@ public.VerboseCheckHeader(files) =
     print(--- Testing for $(files)... )
     protected.success = $(CheckHeader $(files))
     if $(success)
-        println($'(success)')
+        println($'(found)')
     else
-        println($'(failed)')
+        println($'(NOT found)')
     return $(success)
 
 #
@@ -78,6 +78,18 @@ $(funs)
     rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
 
     return $(success)
+
+public.VerboseCheckLib(libs, funs) =
+    print($"""$(CONFIGURE_INDENT)--- Testing for function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))""")
+    if $(libs)
+        print($""" in librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))""")
+    print($"... ")
+    if $(CheckLib $(libs), $(funs))
+        println($"(found)")
+        return true
+    else
+        println($"(NOT found)")
+        return false
 
 #
 # Check whether a program exists in the PATH
