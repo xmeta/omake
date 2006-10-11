@@ -3,23 +3,31 @@
 #
 PATH[] +=
     $(dir ocamldep)
+
+#
+# Do not search elsewhere for standard libraries
+#
+OMAKEPATH[] =
+    .
+    $(dir lib)
+
 #
 # Include the standard configuration
 #
-include lib/build/C
-include lib/build/OCaml
-include lib/build/LaTeX
+include build/C
+include build/OCaml
+include build/LaTeX
 
 #
 # Include the definition functions
 #
-include lib/boot/License
-include lib/boot/Default
+include boot/License
+include boot/Default
 
 #
 # Include configuration utilities
 #
-include lib/configure/Configure
+include configure/Configure
 
 #
 # Include the OMakefile

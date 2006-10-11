@@ -28,6 +28,12 @@ MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
 
 CGeneratedFiles($(CUTIL_FILES))
 
+open configure/snprintf
+
+if $(SNPRINTF_AVAILABLE)
+    CFLAGS += -DHAVE_SNPRINTF
+    export
+
 FILES[] =
     lm_heap
     lm_channel

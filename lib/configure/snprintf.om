@@ -1,0 +1,8 @@
+open configure/Configure
+
+static. =
+    SNPRINTF_AVAILABLE = false
+    section
+        public.CFLAGS = $(filter-out -Wall --warn-error /WX -Werror, $(CFLAGS))
+        SNPRINTF_AVAILABLE = $(VerboseCheckLib $(EMPTY), snprintf)
+        export SNPRINTF_AVAILABLE
