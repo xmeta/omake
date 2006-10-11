@@ -753,11 +753,18 @@ let rec awk_eval_cases venv pos loc break line cases =
 (*
  * The arguments.
  *)
+let awk_files_of_value venv pos loc files =
+   match values_of_value venv pos files with
+      [] ->
+         [venv_find_var venv ScopeGlobal pos loc stdin_sym]
+    | files ->
+         files
+
 let awk_args venv pos loc args =
    let pos = string_pos "awk_args" pos in
       match args with
          [ValCases cases; files] ->
-            cases, values_of_value venv pos files
+            cases, awk_files_of_value venv pos loc files
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -765,9 +772,9 @@ let awk_option_args venv pos loc args =
    let pos = string_pos "awk_args" pos in
       match args with
          [ValCases cases; files] ->
-            cases, "", values_of_value venv pos files
+            cases, "", awk_files_of_value venv pos loc files
        | [ValCases cases; options; files] ->
-            cases, string_of_value venv pos options, values_of_value venv pos files
+            cases, string_of_value venv pos options, awk_files_of_value venv pos loc files
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
 
