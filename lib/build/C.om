@@ -446,7 +446,8 @@ public.StaticCObjectInstall(tag, lib, name, files) =
 #
 # \begin{verbatim}
 # section
-#    LIBS = libfoo$(EXT_LIB)
+#    LIBS = libfoo
+#    LDFLAGS += -lbar
 #    CProgram(foo, bar baz)
 # \end{verbatim}
 # \end{doc}
@@ -458,8 +459,26 @@ public.CProgram(name, files) =
    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
    private.NAME   = $(file $(name)$(EXE))
 
-   $(NAME): $(OFILES)
-        $(CC) $(CFLAGS) -o $@ $,(OFILES) $(LIBS) $(LDFLAGS)
+   #
+   # XXX: Backward compatibility: We used to confuse LIBS and LDFLAGS, so need to split things out.
+   #
+   private.FLAGS = $(filter -%, $(LIBS))
+   if $(FLAGS)
+      eprintln($""!!! WARNING: the LIBS variable should not include link flags "$(FLAGS)";"")
+      eprintln($""!!!          those should go into LDFLAGS"")
+      LDFLAGS += $(FLAGS)
+      LIBS = $(filter-out -%, $(LIBS))
+      export
+
+   if $(filter %$(EXT_LIB), $(LIBS))
+      eprintln($""!!! WARNING: the LIBS variable should contain libraries _without_ extensions."")
+      LIBS = $(replacesuffixes $(EXT_LIB), $"$(EMPTY)")
+      export
+
+   private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
+
+   $(NAME): $(OFILES) $(LFILES)
+        $(CC) $(CFLAGS) -o $@ $,(OFILES) $(LFILES) $(LDFLAGS)
 
    return $(NAME)
 
@@ -511,7 +530,8 @@ public.CProgramCopy(tag, bin, name) =
 #
 # \begin{verbatim}
 # section
-#    LIBS = libfoo$(EXT_LIB)
+#    LIBS = libfoo
+#    LDFLAGS += -lbar
 #    CProgramInstall(install, /usr/bin, foo, bar baz)
 # \end{verbatim}
 # \end{doc}
