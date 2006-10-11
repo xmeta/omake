@@ -1,50 +1,5 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Section 6-5,	Next: Subsection 6-5-1,	Prev: Section 6-4,	Up: Chapter 6
-  
-
-6.5   Lazy expressions
-*=*=*=*=*=*=*=*=*=*=*=
-
-   
-  Evaluation in omake is normally eager. That is, expressions are
-evaluated as soon as they are encountered by the evaluator. One effect
-of this is that the right-hand-side of a variable definition is expanded
-when the variable is defined.
-  There are two ways to control this behavior. The `$`(v)' form
-introduces lazy behavior, and the `$,(v)' form restores eager behavior.
-Consider the following sequence.
-<<
-      osh> A = 1
-      - : "1" : Sequence
-      osh> B = 2
-      - : "2" : Sequence
-      osh> C = $`(add $(A), $,(B))
-      - : $(apply add $(apply A) "2" : Sequence)
-      osh> println(C = $(C))
-      C = 3
-      osh> A = 5
-      - : "5" : Sequence
-      osh> B = 6
-      - : "6" : Sequence
-      osh> println(C = $(C))
-      C = 7
->>
-  
-  The definition `C = $`(add $(A), $,(B))' defines a lazy application.
-The `add' function is not applied in this case until its value is
-needed. Within this expression, the value `$,(B)' specifies that `B' is
-to be evaluated immediately, even though it is defined in a lazy
-expression.
-  The first time that we print the value of `C', it evaluates to 3 since
-`A' is 1 and `B' is 2. The second time we evaluate `C', it evaluates to
-7 because `A' has been redefined to `5'. The second definition of `B'
-has no effect, since it was evaluated at definition time.
-* Menu:
-
-* Subsection 6-5-1::	A larger example of lazy expressions
-
-
 Node: Subsection 6-5-1,	Next: Section 6-6,	Prev: Section 6-5,	Up: Section 6-5
   
 
@@ -1499,7 +1454,7 @@ Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Sect
   
   The `raise' function raises an exception. The `exn' object can be any
 object. However, the normal convention is to raise an `Exception' object
-11.1.20*Note Subsection 11-1-20::. 
+11.1.20*Note Subsection 11-1-20::.
   If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an `Exception'
 one and contains a `message' field, only that field will be included in
@@ -1659,3 +1614,92 @@ also use the alternate form.
          default
 >>
   
+
+Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
+  
+
+8.2.16   getvar
+===============
+
+<<
+     $(getvar name) : String
+>>
+  
+  The `getvar' function gets the value of a variable.
+  An exception is raised if the variable variable is not defined.
+  For example, the following code defines X to be the string abc.
+<<
+      NAME = foo
+      foo_1 = abc
+      X = $(getvar $(NAME)_1)
+>>
+
+Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
+  
+
+8.2.17   setvar
+===============
+
+<<
+     setvar(name, value)
+        name : String
+        value : String
+>>
+  
+  The `setvar' function defines a new variable. For example, the
+following code defines the variable `X' to be the string `abc'.
+<<
+     NAME = X
+     setvar($(NAME), abc)
+>>
+
+Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
+  
+
+8.3   Arrays and sequences
+*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+* Menu:
+
+* Subsection 8-3-1::	array
+* Subsection 8-3-2::	split
+* Subsection 8-3-3::	concat
+* Subsection 8-3-4::	length
+* Subsection 8-3-5::	nth
+* Subsection 8-3-6::	nth-hd
+* Subsection 8-3-7::	nth-tl
+* Subsection 8-3-8::	subrange
+* Subsection 8-3-9::	rev
+* Subsection 8-3-10::	string
+* Subsection 8-3-11::	string-escaped
+* Subsection 8-3-12::	ocaml-escaped
+* Subsection 8-3-13::	c-escaped
+* Subsection 8-3-14::	quote
+* Subsection 8-3-15::	quote-argv
+* Subsection 8-3-16::	html-string
+* Subsection 8-3-17::	addsuffix
+* Subsection 8-3-18::	mapsuffix
+* Subsection 8-3-19::	addsuffixes
+* Subsection 8-3-20::	removeprefix
+* Subsection 8-3-21::	removesuffix
+* Subsection 8-3-22::	replacesuffixes
+* Subsection 8-3-23::	addprefix
+* Subsection 8-3-24::	mapprefix
+* Subsection 8-3-25::	add-wrapper
+* Subsection 8-3-26::	set
+* Subsection 8-3-27::	mem
+* Subsection 8-3-28::	intersection
+* Subsection 8-3-29::	intersects
+* Subsection 8-3-30::	set-diff
+* Subsection 8-3-31::	filter
+* Subsection 8-3-32::	filter-out
+* Subsection 8-3-33::	capitalize
+* Subsection 8-3-34::	uncapitalize
+* Subsection 8-3-35::	uppercase
+* Subsection 8-3-36::	lowercase
+* Subsection 8-3-37::	system
+* Subsection 8-3-38::	shell
+* Subsection 8-3-39::	while
+* Subsection 8-3-40::	break
+

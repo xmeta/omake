@@ -2453,8 +2453,8 @@ let export venv pos loc args =
  *        echo $i
  * \end{verbatim}
  *
- * The \hyperref{break}{break} function can be used to break out of the
- * loop early.
+ * The \verb+break+ function can be used to break out of the \verb+while+ loop
+ * early~\ref{fun:break}.
  * \end{doc}
  *)
 let rec eval_while_cases venv pos loc orig_cases arg cases =
@@ -2500,6 +2500,7 @@ let while_fun venv pos loc args =
  * \end{verbatim}
  *
  * Terminate execution of the innermost loop, returning the current state.
+ * \end{doc}
  *)
 let break venv pos loc args =
    raise (Break (loc, venv))

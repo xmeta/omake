@@ -3,7 +3,67 @@ This file has been translated from LaTeX by HeVeA.
 Node: Subsection 9-11-10,	Next: Subsection 9-11-11,	Prev: Subsection 9-11-9,	Up: Section 9-11
   
 
-9.11.10   Threading the lexer object
+9.11.10   Lexer matching
+========================
+  
+  During lexical analysis, clauses are selected by longest match. That
+is, the clause that matches the longest sequence of input characters is
+chosen for evaluation. If no clause matches, the lexer raises a
+`RuntimeException'. If more than one clause matches the same amount of
+input, the first one is chosen for evaluation.
+
+Node: Subsection 9-11-11,	Next: Subsection 9-11-12,	Prev: Subsection 9-11-10,	Up: Section 9-11
+  
+
+9.11.11   Extending lexer definitions
+=====================================
+  
+  Suppose we wish to augment the lexer example so that it ignores
+comments. We will define comments as any text that begins with the
+string `(*', ends with `*)', and comments may be nested.
+  One convenient way to do this is to define a separate lexer just to
+skip comments.
+<<
+     lex-comment. =
+        extends $(Lexer)
+  
+        level = 0
+  
+        other: .
+           lex()
+  
+        term: $"[*][)]"
+           if $(not $(eq $(level), 0))
+              level = $(sub $(level), 1)
+              lex()
+  
+        next: $"[(][*]"
+           level = $(add $(level), 1)
+           lex()
+  
+        eof: $"\'"
+           eprintln(Unterminated comment)
+>>
+  
+  This lexer contains a field `level' that keeps track of the nesting
+level. On encountering a `(*' string, it increments the level, and for
+`*)', it decrements the level if nonzero, and continues.
+  Next, we need to modify our previous lexer to skip comments. We can do
+this by extending the lexer object `lexer1' that we just created.
+<<
+     lexer1. +=
+        comment: $"[(][*]"
+           lex-comment.lex-channel($(channel))
+           lex()
+>>
+  
+  The body for the comment clause calls the `lex-comment' lexer when a
+comment is encountered, and continues lexing when that lexer returns.
+
+Node: Subsection 9-11-12,	Next: Subsection 9-11-13,	Prev: Subsection 9-11-11,	Up: Section 9-11
+  
+
+9.11.12   Threading the lexer object
 ====================================
   
   Clause bodies may also end with an `export' directive. In this case
@@ -13,10 +73,10 @@ the lexer object itself is used as the returned token. If used with the
 lexer, it calls it with the lexer returned from the previous lex
 invocation. 
 
-Node: Subsection 9-11-11,	Next: Subsection 9-11-12,	Prev: Subsection 9-11-10,	Up: Section 9-11
+Node: Subsection 9-11-13,	Next: Subsection 9-11-14,	Prev: Subsection 9-11-12,	Up: Section 9-11
   
 
-9.11.11   Parser
+9.11.13   Parser
 ================
   
   The `Parser' object provides a facility for syntactic analysis based
@@ -91,10 +151,10 @@ performs the calculation. The variables `$1, $2, ...' correspond to the
 values associated with each of the variables on the right-hand-side of
 the production.
 
-Node: Subsection 9-11-12,	Next: Subsection 9-11-13,	Prev: Subsection 9-11-11,	Up: Section 9-11
+Node: Subsection 9-11-14,	Next: Subsection 9-11-15,	Prev: Subsection 9-11-13,	Up: Section 9-11
   
 
-9.11.12   Calling the parser
+9.11.14   Calling the parser
 ============================
   
   The parser is called with the `$(parser1.parse-channel start,
@@ -102,10 +162,10 @@ channel)' or `$(parser1.parse-file start, file)' functions. The `start'
 argument is the start symbol, and the `channel' or `file' is the input
 to the parser.
 
-Node: Subsection 9-11-13,	Next: Subsection 9-11-14,	Prev: Subsection 9-11-12,	Up: Section 9-11
+Node: Subsection 9-11-15,	Next: Subsection 9-11-16,	Prev: Subsection 9-11-14,	Up: Section 9-11
   
 
-9.11.13   Parsing control
+9.11.15   Parsing control
 =========================
   
   The parser generator generates a pushdown automation based on LALR(1)
@@ -121,10 +181,10 @@ also prints with parser table together with any conflicts.
   The `loc' variable is defined within action bodies, and represents the
 input range for all tokens on the right-hand-side of the production.
 
-Node: Subsection 9-11-14,	Next: Subsection 9-11-15,	Prev: Subsection 9-11-13,	Up: Section 9-11
+Node: Subsection 9-11-16,	Next: Subsection 9-11-17,	Prev: Subsection 9-11-15,	Up: Section 9-11
   
 
-9.11.14   Extending parsers
+9.11.16   Extending parsers
 ===========================
   
   Parsers may also be extended by inheritance. For example, let's extend
@@ -166,10 +226,10 @@ accomplishes this.
   In this case, we use the new lexer `lexer2', and we add productions
 for the new shift operations. 
 
-Node: Subsection 9-11-15,	Next: Chapter 10,	Prev: Subsection 9-11-14,	Up: Section 9-11
+Node: Subsection 9-11-17,	Next: Chapter 10,	Prev: Subsection 9-11-16,	Up: Section 9-11
   
 
-9.11.15   gettimeofday
+9.11.17   gettimeofday
 ======================
 
 <<
@@ -752,6 +812,8 @@ standard input channel.
   It provides the following methods. 
   
  - `$(InChannel.fopen <file>)': open a new input channel. 
+ - `$(InChannel.of-string <string>)': open a new input channel, using a
+   string as input. 
    
 
 Node: Subsection 11-1-17,	Next: Subsection 11-1-18,	Prev: Subsection 11-1-16,	Up: Section 11-1
@@ -766,6 +828,10 @@ Node: Subsection 11-1-17,	Next: Subsection 11-1-18,	Prev: Subsection 11-1-16,	Up
   It provides the following methods. 
   
  - `$(OutChannel.fopen <file>)': open a new output channel. 
+ - `$(OutChannel.string)': open a new output channel, writing to a
+   string. 
+ - `$(OutChannel.to-string)': get the current string of output, for an
+   output channel created as `OutChannel.open-string'. 
  - `$(OutChannel.append <file>)': opens a new output channel, appending
    to the file. 
  - `$(c.flush)': flush the output channel. 
@@ -897,6 +963,8 @@ single array containing an argument list.
  Reset the search path. 
  - `history'
  Print the current command-line history. 
+ - `digest'
+ Print the digests of the given files. 
  - Win32 functions.
  Win32 doesn't provide very many programs for scripting, except  for the
    functions that are builtin to the DOS `cmd.exe'.  The following
@@ -1467,7 +1535,7 @@ the target directory.
 12.4.3.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@n
-ame{@fun204}
+ame{@fun211}
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
@@ -1492,7 +1560,8 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 `libfoo.a'.
 <<
   section
-     LIBS = libfoo$(EXT_LIB)
+     LIBS = libfoo
+     LDFLAGS += -lbar
      CProgram(foo, bar baz)
 >>
   
@@ -1515,7 +1584,8 @@ location to install, simultaneously.
   `CProgramInstall(<tag>, <dir>, <name>, <files>)'
 <<
   section
-     LIBS = libfoo$(EXT_LIB)
+     LIBS = libfoo
+     LDFLAGS += -lbar
      CProgramInstall(install, /usr/bin, foo, bar baz)
 >>
   
@@ -1702,89 +1772,3 @@ true.
  Define this
 as `true' if you wish to use  `menhir' instead of `ocamlyacc' (default
 `false'). 
-
-Node: Subsection 12-5-3,	Next: Subsection 12-5-4,	Prev: Subsection 12-5-2,	Up: Section 12-5
-  
-
-12.5.3   OCaml command flags
-============================
-  
-  The following variables specify additional options to be passed to the
-OCaml tools.
-
-12.5.3.1   OCAMLDEPFLAGS
-------------------------
- Flags to pass
-to `OCAMLDEP' (but not to `OCAMLDEP_MODULES').
-
-12.5.3.2   OCAMLPPFLAGS
------------------------
- Flags to pass
-to `CAMLP4'.
-
-12.5.3.3   OCAMLCFLAGS
-----------------------
- Flags to pass
-to the byte-code compiler (default `-g').
-
-12.5.3.4   OCAMLOPTFLAGS
-------------------------
- Flags to pass
-to the native-code compiler (default empty).
-
-12.5.3.5   OCAMLFLAGS
----------------------
- Flags to pass to
-either compiler (default `-warn-error A').
-
-12.5.3.6   OCAML_BYTE_LINK_FLAGS
---------------------------------
- Flags
-to pass to the byte-code linker (default empty).
-
-12.5.3.7   OCAML_NATIVE_LINK_FLAGS
-----------------------------------
-
-Flags to pass to the native-code linker (default empty).
-
-12.5.3.8   OCAML_LINK_FLAGS
----------------------------
- Flags to
-pass to either linker.
-
-12.5.3.9   MENHIR_FLAGS
------------------------
- Additional
-flags to pass to `menhir'. 
-
-Node: Subsection 12-5-4,	Next: Section 12-6,	Prev: Subsection 12-5-3,	Up: Section 12-5
-  
-
-12.5.4   Library variables
-==========================
-  
-  The following variables are used during linking.
-  
-
-12.5.4.1   OCAML_LIBS
----------------------
- Libraries to
-pass to the linker. These libraries become dependencies  of the link
-step.
-
-12.5.4.2   OCAML_OTHER_LIBS
----------------------------
- Additional
-libraries to pass to the linker. These libraries are  not included as
-dependencies to the link step. Typical use is for the OCaml  standard
-libraries like `unix' or `str'.
-
-12.5.4.3   OCAML_CLIBS
-----------------------
- C libraries to
-pass to the linker.
-
-12.5.4.4   OCAML_LIB_FLAGS
---------------------------
- Extra flags
-for the library. 

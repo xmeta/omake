@@ -628,8 +628,7 @@ let sequence_rev venv pos loc args =
  *        export
  * \end{verbatim}
  *
- * The \hyperref{break}{break} function can be used to break out of the
- * loop early.
+ * The \verb+break+ function can be used to break out of the loop early~\ref{fun:break}.
  * \end{doc}
  *)
 let foreach_fun venv pos loc args =

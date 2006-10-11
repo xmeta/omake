@@ -305,7 +305,7 @@ is optional.
 The <CODE>raise</CODE> function raises an exception.
 The <CODE>exn</CODE> object can be any object. However,
 the normal convention is to raise an <CODE>Exception</CODE>
-object&nbsp;<A HREF="omake-pervasives.html#obj:Exception">11.1.20</A>. <BR>
+object&nbsp;<A HREF="omake-pervasives.html#obj:Exception">11.1.20</A>.<BR>
 <BR>
 If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an <CODE>Exception</CODE> one
@@ -972,36 +972,46 @@ value is printed.
        echo one
     default
        echo $i
-</PRE><A NAME="toc68"></A>
-<H2 CLASS="section"><A NAME="htoc162">8.4</A>&nbsp;&nbsp;Arithmetic</H2>
+</PRE>
+The <CODE>break</CODE> function can be used to break out of the <CODE>while</CODE> loop
+early&nbsp;<A HREF="#fun:break">8.3.40</A>.
+<A NAME="break"></A>
 
-<H3 CLASS="subsection"><A NAME="htoc163">8.4.1</A>&nbsp;&nbsp;int</H3><A NAME="@default111"></A><A NAME="@fun62"></A><A NAME="fun:int"></A>
+<H3 CLASS="subsection"><A NAME="htoc162">8.3.40</A>&nbsp;&nbsp;break</H3><A NAME="@default111"></A><A NAME="@fun62"></A><A NAME="fun:break"></A>
+<PRE CLASS="verbatim">
+   break
+</PRE>
+Terminate execution of the innermost loop, returning the current state.
+<A NAME="toc68"></A>
+<H2 CLASS="section"><A NAME="htoc163">8.4</A>&nbsp;&nbsp;Arithmetic</H2>
+
+<H3 CLASS="subsection"><A NAME="htoc164">8.4.1</A>&nbsp;&nbsp;int</H3><A NAME="@default112"></A><A NAME="@fun63"></A><A NAME="fun:int"></A>
 The <CODE>int</CODE> function can be used to create integers.
 It returns an <CODE>Int</CODE> object.<BR>
 <BR>
 <CODE>$(int 17)</CODE>.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc164">8.4.2</A>&nbsp;&nbsp;float</H3><A NAME="@default112"></A><A NAME="@fun63"></A><A NAME="fun:float"></A>
+<H3 CLASS="subsection"><A NAME="htoc165">8.4.2</A>&nbsp;&nbsp;float</H3><A NAME="@default113"></A><A NAME="@fun64"></A><A NAME="fun:float"></A>
 The <CODE>float</CODE> function can be used to create floating-point numbers.
 It returns a <CODE>Float</CODE> object.<BR>
 <BR>
 <CODE>$(float 3.1415926)</CODE>.
 
-<H3 CLASS="subsection"><A NAME="htoc165">8.4.3</A>&nbsp;&nbsp;Basic arithmetic</H3>
-<A NAME="@default113"></A><A NAME="@fun64"></A><A NAME="fun:neg"></A>
-<A NAME="@default114"></A><A NAME="@fun65"></A><A NAME="fun:add"></A>
-<A NAME="@default115"></A><A NAME="@fun66"></A><A NAME="fun:sub"></A>
-<A NAME="@default116"></A><A NAME="@fun67"></A><A NAME="fun:mul"></A>
-<A NAME="@default117"></A><A NAME="@fun68"></A><A NAME="fun:div"></A>
-<A NAME="@default118"></A><A NAME="@fun69"></A><A NAME="fun:mod"></A>
-<A NAME="@default119"></A><A NAME="@fun70"></A><A NAME="fun:lnot"></A>
-<A NAME="@default120"></A><A NAME="@fun71"></A><A NAME="fun:land"></A>
-<A NAME="@default121"></A><A NAME="@fun72"></A><A NAME="fun:lor"></A>
-<A NAME="@default122"></A><A NAME="@fun73"></A><A NAME="fun:lxor"></A>
-<A NAME="@default123"></A><A NAME="@fun74"></A><A NAME="fun:lsl"></A>
-<A NAME="@default124"></A><A NAME="@fun75"></A><A NAME="fun:lsr"></A>
-<A NAME="@default125"></A><A NAME="@fun76"></A><A NAME="fun:asr"></A>
+<H3 CLASS="subsection"><A NAME="htoc166">8.4.3</A>&nbsp;&nbsp;Basic arithmetic</H3>
+<A NAME="@default114"></A><A NAME="@fun65"></A><A NAME="fun:neg"></A>
+<A NAME="@default115"></A><A NAME="@fun66"></A><A NAME="fun:add"></A>
+<A NAME="@default116"></A><A NAME="@fun67"></A><A NAME="fun:sub"></A>
+<A NAME="@default117"></A><A NAME="@fun68"></A><A NAME="fun:mul"></A>
+<A NAME="@default118"></A><A NAME="@fun69"></A><A NAME="fun:div"></A>
+<A NAME="@default119"></A><A NAME="@fun70"></A><A NAME="fun:mod"></A>
+<A NAME="@default120"></A><A NAME="@fun71"></A><A NAME="fun:lnot"></A>
+<A NAME="@default121"></A><A NAME="@fun72"></A><A NAME="fun:land"></A>
+<A NAME="@default122"></A><A NAME="@fun73"></A><A NAME="fun:lor"></A>
+<A NAME="@default123"></A><A NAME="@fun74"></A><A NAME="fun:lxor"></A>
+<A NAME="@default124"></A><A NAME="@fun75"></A><A NAME="fun:lsl"></A>
+<A NAME="@default125"></A><A NAME="@fun76"></A><A NAME="fun:lsr"></A>
+<A NAME="@default126"></A><A NAME="@fun77"></A><A NAME="fun:asr"></A>
 The following functions can be used to perform basic arithmetic.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(neg &lt;numbers&gt;)</CODE>: arithmetic inverse
@@ -1019,16 +1029,16 @@ The following functions can be used to perform basic arithmetic.
 <LI CLASS="li-itemize"><CODE>$(asr &lt;numbers&gt;)</CODE>: arithmetic shift right.
 </UL>
 
-<H3 CLASS="subsection"><A NAME="htoc166">8.4.4</A>&nbsp;&nbsp;Comparisons</H3>
-<A NAME="@default126"></A><A NAME="@fun77"></A><A NAME="fun:lt"></A>
-<A NAME="@default127"></A><A NAME="@fun78"></A><A NAME="fun:le"></A>
-<A NAME="@default128"></A><A NAME="@fun79"></A><A NAME="fun:eq"></A>
-<A NAME="@default129"></A><A NAME="@fun80"></A><A NAME="fun:ge"></A>
-<A NAME="@default130"></A><A NAME="@fun81"></A><A NAME="fun:gt"></A>
-<A NAME="@default131"></A><A NAME="@fun82"></A><A NAME="fun:ult"></A>
-<A NAME="@default132"></A><A NAME="@fun83"></A><A NAME="fun:ule"></A>
-<A NAME="@default133"></A><A NAME="@fun84"></A><A NAME="fun:uge"></A>
-<A NAME="@default134"></A><A NAME="@fun85"></A><A NAME="fun:ugt"></A>
+<H3 CLASS="subsection"><A NAME="htoc167">8.4.4</A>&nbsp;&nbsp;Comparisons</H3>
+<A NAME="@default127"></A><A NAME="@fun78"></A><A NAME="fun:lt"></A>
+<A NAME="@default128"></A><A NAME="@fun79"></A><A NAME="fun:le"></A>
+<A NAME="@default129"></A><A NAME="@fun80"></A><A NAME="fun:eq"></A>
+<A NAME="@default130"></A><A NAME="@fun81"></A><A NAME="fun:ge"></A>
+<A NAME="@default131"></A><A NAME="@fun82"></A><A NAME="fun:gt"></A>
+<A NAME="@default132"></A><A NAME="@fun83"></A><A NAME="fun:ult"></A>
+<A NAME="@default133"></A><A NAME="@fun84"></A><A NAME="fun:ule"></A>
+<A NAME="@default134"></A><A NAME="@fun85"></A><A NAME="fun:uge"></A>
+<A NAME="@default135"></A><A NAME="@fun86"></A><A NAME="fun:ugt"></A>
 The following functions can be used to perform numerical comparisons.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(lt &lt;numbers&gt;)</CODE>: less then.
@@ -1042,9 +1052,9 @@ The following functions can be used to perform numerical comparisons.
 <LI CLASS="li-itemize"><CODE>$(ugt &lt;numbers&gt;)</CODE>: unsigned greater than.
 </UL>
 <A NAME="toc69"></A>
-<H2 CLASS="section"><A NAME="htoc167">8.5</A>&nbsp;&nbsp;First-class functions</H2>
+<H2 CLASS="section"><A NAME="htoc168">8.5</A>&nbsp;&nbsp;First-class functions</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc168">8.5.1</A>&nbsp;&nbsp;fun</H3><A NAME="@default135"></A><A NAME="@fun86"></A><A NAME="fun:fun"></A>
+<H3 CLASS="subsection"><A NAME="htoc169">8.5.1</A>&nbsp;&nbsp;fun</H3><A NAME="@default136"></A><A NAME="@fun87"></A><A NAME="fun:fun"></A>
 The <CODE>fun</CODE> form introduces anonymous functions.<BR>
 <BR>
 <CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</CODE><BR>
@@ -1063,7 +1073,7 @@ The three following definitions are equivalent.
        fun(X, Y)
           value $(addsuffix $(Y), $(X))
 </PRE>
-<H3 CLASS="subsection"><A NAME="htoc169">8.5.2</A>&nbsp;&nbsp;apply</H3><A NAME="@default136"></A><A NAME="@fun87"></A><A NAME="fun:apply"></A>
+<H3 CLASS="subsection"><A NAME="htoc170">8.5.2</A>&nbsp;&nbsp;apply</H3><A NAME="@default137"></A><A NAME="@fun88"></A><A NAME="fun:apply"></A>
 The <CODE>apply</CODE> operator is used to apply a function.<BR>
 <BR>
 <CODE>$(apply &lt;fun&gt;, &lt;args&gt;)</CODE><BR>
@@ -1078,7 +1088,7 @@ The the two expressions below are equivalent.
     X = F(a b c, .c)
     X = $(apply $(F), a b c, .c)
 </PRE>
-<H3 CLASS="subsection"><A NAME="htoc170">8.5.3</A>&nbsp;&nbsp;applya</H3><A NAME="@default137"></A><A NAME="@fun88"></A><A NAME="fun:applya"></A>
+<H3 CLASS="subsection"><A NAME="htoc171">8.5.3</A>&nbsp;&nbsp;applya</H3><A NAME="@default138"></A><A NAME="@fun89"></A><A NAME="fun:applya"></A>
 The <CODE>applya</CODE> operator is used to apply a function to
 an array of arguments.<BR>
 <BR>
@@ -1094,7 +1104,7 @@ of <CODE>Z</CODE> is <CODE>file.c</CODE>.
        .c
     Z = $(applya $(F), $(args))
 </PRE>
-<H3 CLASS="subsection"><A NAME="htoc171">8.5.4</A>&nbsp;&nbsp;create-map, create-lazy-map</H3><A NAME="@default138"></A><A NAME="@fun89"></A><A NAME="fun:create-map"></A><A NAME="@default139"></A><A NAME="@fun90"></A><A NAME="fun:create-lazy-map"></A>
+<H3 CLASS="subsection"><A NAME="htoc172">8.5.4</A>&nbsp;&nbsp;create-map, create-lazy-map</H3><A NAME="@default139"></A><A NAME="@fun90"></A><A NAME="fun:create-map"></A><A NAME="@default140"></A><A NAME="@fun91"></A><A NAME="fun:create-lazy-map"></A>
 The <CODE>create-map</CODE> is a simplified form for creating <CODE>Map</CODE> objects.
 The <CODE>create-map</CODE> function takes an even number of arguments that specify
 key/value pairs. For example, the following values are equivalent.
@@ -1118,9 +1128,9 @@ lazily. The following two definitions are equivalent.
 </PRE>
 The <CODE>create-lazy-map</CODE> function is used in rule construction&nbsp;<A HREF="omake-rule.html#fun:rule">12.8.0.11</A>.
 <A NAME="toc70"></A>
-<H2 CLASS="section"><A NAME="htoc172">8.6</A>&nbsp;&nbsp;Iteration and mapping</H2>
+<H2 CLASS="section"><A NAME="htoc173">8.6</A>&nbsp;&nbsp;Iteration and mapping</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc173">8.6.1</A>&nbsp;&nbsp;foreach</H3><A NAME="@default140"></A><A NAME="@fun91"></A><A NAME="fun:foreach"></A>
+<H3 CLASS="subsection"><A NAME="htoc174">8.6.1</A>&nbsp;&nbsp;foreach</H3><A NAME="@default141"></A><A NAME="@fun92"></A><A NAME="fun:foreach"></A>
 The <CODE>foreach</CODE> function maps a function over a sequence.
 <PRE CLASS="verbatim">
     $(foreach &lt;fun&gt;, &lt;args&gt;)
@@ -1148,6 +1158,8 @@ body. The final value of <CODE>X</CODE> is <CODE>a.c b.c c.c</CODE>.
        X += $(x).c
        export
 </PRE>
+The <CODE>break</CODE> function can be used to break out of the loop early&nbsp;<A HREF="#fun:break">8.3.40</A>.
+
 <TABLE CELLSPACING=2 CELLPADDING=0>
 <TR><TD ALIGN=left NOWRAP>Jump to:</TD>
 <TD VALIGN=top ALIGN=center NOWRAP>&nbsp;&nbsp;</TD>

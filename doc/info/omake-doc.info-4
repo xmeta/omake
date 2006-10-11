@@ -1,93 +1,5 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
-  
-
-8.2.16   getvar
-===============
-
-<<
-     $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<
-      NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
->>
-
-Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
-  
-
-8.2.17   setvar
-===============
-
-<<
-     setvar(name, value)
-        name : String
-        value : String
->>
-  
-  The `setvar' function defines a new variable. For example, the
-following code defines the variable `X' to be the string `abc'.
-<<
-     NAME = X
-     setvar($(NAME), abc)
->>
-
-Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
-  
-
-8.3   Arrays and sequences
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 8-3-1::	array
-* Subsection 8-3-2::	split
-* Subsection 8-3-3::	concat
-* Subsection 8-3-4::	length
-* Subsection 8-3-5::	nth
-* Subsection 8-3-6::	nth-hd
-* Subsection 8-3-7::	nth-tl
-* Subsection 8-3-8::	subrange
-* Subsection 8-3-9::	rev
-* Subsection 8-3-10::	string
-* Subsection 8-3-11::	string-escaped
-* Subsection 8-3-12::	ocaml-escaped
-* Subsection 8-3-13::	c-escaped
-* Subsection 8-3-14::	quote
-* Subsection 8-3-15::	quote-argv
-* Subsection 8-3-16::	html-string
-* Subsection 8-3-17::	addsuffix
-* Subsection 8-3-18::	mapsuffix
-* Subsection 8-3-19::	addsuffixes
-* Subsection 8-3-20::	removeprefix
-* Subsection 8-3-21::	removesuffix
-* Subsection 8-3-22::	replacesuffixes
-* Subsection 8-3-23::	addprefix
-* Subsection 8-3-24::	mapprefix
-* Subsection 8-3-25::	add-wrapper
-* Subsection 8-3-26::	set
-* Subsection 8-3-27::	mem
-* Subsection 8-3-28::	intersection
-* Subsection 8-3-29::	intersects
-* Subsection 8-3-30::	set-diff
-* Subsection 8-3-31::	filter
-* Subsection 8-3-32::	filter-out
-* Subsection 8-3-33::	capitalize
-* Subsection 8-3-34::	uncapitalize
-* Subsection 8-3-35::	uppercase
-* Subsection 8-3-36::	lowercase
-* Subsection 8-3-37::	system
-* Subsection 8-3-38::	shell
-* Subsection 8-3-39::	while
-
-
 Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
   
 
@@ -754,7 +666,7 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).  
 
-Node: Subsection 8-3-39,	Next: Section 8-4,	Prev: Subsection 8-3-38,	Up: Section 8-3
+Node: Subsection 8-3-39,	Next: Subsection 8-3-40,	Prev: Subsection 8-3-38,	Up: Section 8-3
   
 
 8.3.39   while
@@ -813,6 +725,22 @@ value is printed.
       default
          echo $i
 >>
+  
+  The `break' function can be used to break out of the `while' loop
+early 8.3.40*Note Subsection 8-3-40::.  
+
+Node: Subsection 8-3-40,	Next: Section 8-4,	Prev: Subsection 8-3-39,	Up: Section 8-3
+  
+
+8.3.40   break
+==============
+
+<<
+     break
+>>
+  
+  Terminate execution of the innermost loop, returning the current
+state. 
 
 Node: Section 8-4,	Next: Subsection 8-4-1,	Prev: Section 8-3,	Up: Chapter 8
   
@@ -1067,6 +995,9 @@ value of `X' is `a.c b.c c.c'.
          X += $(x).c
          export
 >>
+  
+  The `break' function can be used to break out of the loop early
+8.3.40*Note Subsection 8-3-40::. 
 
 Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-6,	Up: Top
   
@@ -1116,7 +1047,7 @@ Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9
 9.1.1   file, dir
 =================
 \@na
-me{@fun93}
+me{@fun94}
 <<
      $(file sequence) : File Sequence
         sequence : Sequence
@@ -1504,7 +1435,7 @@ Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Sect
 9.3.3   filter-exists, filter-targets, filter-proper-targets
 ============================================================
 \@name
-{@fun116}
+{@fun117}
 <<
      $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
@@ -1546,7 +1477,7 @@ Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Sect
 9.3.4   find-targets-in-path, find-targets-in-path-optional
 ===========================================================
 \@name
-{@default167}
+{@default168}
 <<
       $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array
@@ -1811,3 +1742,74 @@ behavior of `glob'.
    pattern in  `GLOB_ALLOW', it is ignored. 
   
   The returned files are sorted by name. 
+
+Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
+  
+
+9.4.2   ls
+==========
+
+<<
+     $(ls files) : Node Array
+        files : String Sequence
+     $(ls options, files) : Node Array
+        files : String Sequence
+>>
+  
+  The `ls' function returns the filenames in a directory.
+  The . and .. entries are always ignored. The patterns are shell-style
+patterns, and are glob-expanded.
+  The options include all of the options to the `glob' function, plus
+the following.
+  
+  
+ R  Perform a recursive listing. 
+  
+  The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
+the globbing behavior. The returned files are sorted by name. 
+
+Node: Subsection 9-4-3,	Next: Section 9-5,	Prev: Subsection 9-4-2,	Up: Section 9-4
+  
+
+9.4.3   subdirs
+===============
+
+<<
+     $(subdirs dirs) : Dir Array
+        dirs : String Sequence
+     $(subdirs options, dirs) : Dir Array
+        options : String
+        dirs : String Sequence
+>>
+  
+  The `subdirs' function returns all the subdirectories of a list of
+directories, recursively.
+  The possible options are the following: 
+  
+ A  Return directories that begin with a . 
+ C  Ignore files according to .cvsignore rules. 
+ P  Include only proper subdirectories. 
+   
+
+Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
+  
+
+9.5   Filesystem operations
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 9-5-1::	mkdir
+* Subsection 9-5-2::	Stat
+* Subsection 9-5-3::	stat
+* Subsection 9-5-4::	unlink
+* Subsection 9-5-5::	rename
+* Subsection 9-5-6::	link
+* Subsection 9-5-7::	symlink
+* Subsection 9-5-8::	readlink
+* Subsection 9-5-9::	chmod
+* Subsection 9-5-10::	chown
+* Subsection 9-5-11::	truncate
+* Subsection 9-5-12::	umask
+

@@ -99,6 +99,7 @@ let builtin_vars =
  *    $(open-in-string s) : Channel
  *        s : String
  * \end{verbatim}
+ * \end{doc}
  *)
 let open_in_string venv pos loc args =
    let pos = string_pos "open-in-string" pos in
@@ -113,7 +114,7 @@ let open_in_string venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun2{open-out-string}{out-string}
+ * \twofuns{open-out-string}{out-string}
  * The \verb+open-out-string+ creates a channel that writes to a
  * string instead of a file.  The string may be retrieved with the
  * \verb+out-string+ function.
@@ -123,6 +124,7 @@ let open_in_string venv pos loc args =
  *    $(out-string chan) : String
  *        chan : OutChannel
  * \end{verbatim}
+ * \end{doc}
  *)
 let open_out_string venv pos loc args =
    let pos = string_pos "open-in-string" pos in

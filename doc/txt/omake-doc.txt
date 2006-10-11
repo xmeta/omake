@@ -1,4 +1,4 @@
-  
+
   OMake manual:  
                                      
                The OMake user guide and reference manual
@@ -254,6 +254,7 @@ Contents
        - 8.3.37  system 
        - 8.3.38  shell 
        - 8.3.39  while 
+       - 8.3.40  break 
      
     - 8.4  Arithmetic 
         
@@ -329,7 +330,8 @@ Contents
        - 9.5.8  readlink 
        - 9.5.9  chmod 
        - 9.5.10  chown 
-       - 9.5.11  umask 
+       - 9.5.11  truncate 
+       - 9.5.12  umask 
      
     - 9.6  vmount 
         
@@ -348,37 +350,39 @@ Contents
        - 9.8.2  stdin 
        - 9.8.3  stdout 
        - 9.8.4  stderr 
-       - 9.8.5  fopen 
-       - 9.8.6  close 
-       - 9.8.7  read 
-       - 9.8.8  write 
-       - 9.8.9  lseek 
-       - 9.8.10  rewind 
-       - 9.8.11  tell 
-       - 9.8.12  flush 
-       - 9.8.13  dup 
-       - 9.8.14  dup2 
-       - 9.8.15  set-nonblock 
-       - 9.8.16  set-close-on-exec-mode 
-       - 9.8.17  pipe 
-       - 9.8.18  mkfifo 
-       - 9.8.19  select 
-       - 9.8.20  lockf 
-       - 9.8.21  InetAddr 
-       - 9.8.22  Host 
-       - 9.8.23  gethostbyname 
-       - 9.8.24  Protocol 
-       - 9.8.25  getprotobyname 
-       - 9.8.26  Service 
-       - 9.8.27  getservbyname 
-       - 9.8.28  socket 
-       - 9.8.29  bind 
-       - 9.8.30  listen 
-       - 9.8.31  accept 
-       - 9.8.32  connect 
-       - 9.8.33  getchar 
-       - 9.8.34  gets 
-       - 9.8.35  fgets 
+       - 9.8.5  open-in-string 
+       - 9.8.6  open-out-string, out-string 
+       - 9.8.7  fopen 
+       - 9.8.8  close 
+       - 9.8.9  read 
+       - 9.8.10  write 
+       - 9.8.11  lseek 
+       - 9.8.12  rewind 
+       - 9.8.13  tell 
+       - 9.8.14  flush 
+       - 9.8.15  dup 
+       - 9.8.16  dup2 
+       - 9.8.17  set-nonblock 
+       - 9.8.18  set-close-on-exec-mode 
+       - 9.8.19  pipe 
+       - 9.8.20  mkfifo 
+       - 9.8.21  select 
+       - 9.8.22  lockf 
+       - 9.8.23  InetAddr 
+       - 9.8.24  Host 
+       - 9.8.25  gethostbyname 
+       - 9.8.26  Protocol 
+       - 9.8.27  getprotobyname 
+       - 9.8.28  Service 
+       - 9.8.29  getservbyname 
+       - 9.8.30  socket 
+       - 9.8.31  bind 
+       - 9.8.32  listen 
+       - 9.8.33  accept 
+       - 9.8.34  connect 
+       - 9.8.35  getchar 
+       - 9.8.36  gets 
+       - 9.8.37  fgets 
      
     - 9.9  Printing functions 
     - 9.10  Value printing functions 
@@ -390,15 +394,17 @@ Contents
        - 9.11.4  scan 
        - 9.11.5  awk 
        - 9.11.6  fsubst 
-       - 9.11.7  Lexer 
-       - 9.11.8  Lexer matching 
-       - 9.11.9  Extending lexer definitions 
-       - 9.11.10  Threading the lexer object 
-       - 9.11.11  Parser 
-       - 9.11.12  Calling the parser 
-       - 9.11.13  Parsing control 
-       - 9.11.14  Extending parsers 
-       - 9.11.15  gettimeofday 
+       - 9.11.7  lex 
+       - 9.11.8  lex-search 
+       - 9.11.9  Lexer 
+       - 9.11.10  Lexer matching 
+       - 9.11.11  Extending lexer definitions 
+       - 9.11.12  Threading the lexer object 
+       - 9.11.13  Parser 
+       - 9.11.14  Calling the parser 
+       - 9.11.15  Parsing control 
+       - 9.11.16  Extending parsers 
+       - 9.11.17  gettimeofday 
      
   
  - Chapter 10  Shell functions 
@@ -1589,10 +1595,8 @@ full directory tree, containing the following files.
       INCLUDES += ../lib
   
       # Indicate which libraries we want to link against.
-      # The suffix depends on the platform.  The canonical
-      # suffix is defined in $(EXT_LIB).
       LIBS[] +=
-          ../lib/libbug$(EXT_LIB)
+          ../lib/libbug
   
       # Build the program.
       # Builds horsefly.exe on Win32, and horsefly on Unix.
@@ -1688,7 +1692,6 @@ This time, the directory tree looks like this.
       OCAMLINCLUDES += ../lib
   
       # Indicate which libraries we want to link against.
-      # The suffix does not depend on the platform.
       OCAML_LIBS[] +=
           ../lib/libbug
   
@@ -4885,7 +4888,7 @@ optional.
   
   The `raise' function raises an exception. The `exn' object can be any
 object. However, the normal convention is to raise an `Exception' object
-11.1.20. 
+11.1.20.
   If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an `Exception'
 one and contains a `message' field, only that field will be included in
@@ -5686,6 +5689,18 @@ value is printed.
          echo $i
 >>
   
+  The `break' function can be used to break out of the `while' loop
+early 8.3.40.
+
+8.3.40  break
+=============
+  
+<<
+     break
+>>
+  
+  Terminate execution of the innermost loop, returning the current
+state.
 
 8.4  Arithmetic
 *=*=*=*=*=*=*=*
@@ -5871,6 +5886,8 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
+  The `break' function can be used to break out of the loop early
+8.3.40.
 
 Chapter 9    File operations
 ****************************
@@ -6726,7 +6743,19 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
 `gid' is not specified, it is not changed. If either id is -1, that id
 is not changed.
 
-9.5.11  umask
+9.5.11  truncate
+================
+  
+<<
+     truncate(length, node...)
+         length : Int
+         node : Node or Channel
+     raises RuntimeException
+>>
+  
+  The `truncate' function truncates a file to the given length.
+
+9.5.12  umask
 =============
   
 <<
@@ -6975,7 +7004,29 @@ symbolic links.
   
   The standard error channel, open for writing.
 
-9.8.5  fopen
+9.8.5  open-in-string
+=====================
+   The `open-in-string' treats a string as if it were a file and returns
+a channel for reading.
+<<
+     $(open-in-string s) : Channel
+         s : String
+>>
+  
+
+9.8.6  open-out-string, out-string
+==================================
+   The `open-out-string' creates a channel that writes to a string
+instead of a file. The string may be retrieved with the `out-string'
+function.
+<<
+     $(open-out-string) : Channel
+     $(out-string chan) : String
+         chan : OutChannel
+>>
+  
+
+9.8.7  fopen
 ============
   
   The `fopen' function opens a file for reading or writing.
@@ -7003,7 +7054,7 @@ combination of the following characters.
   Binary mode is not significant on Unix systems, where text and binary
 modes are equivalent.
 
-9.8.6  close
+9.8.8  close
 ============
   
 <<
@@ -7014,7 +7065,7 @@ modes are equivalent.
   The `close' function closes a file that was previously opened with
 `fopen'.
 
-9.8.7  read
+9.8.9  read
 ===========
   
 <<
@@ -7028,8 +7079,8 @@ modes are equivalent.
 and returns the data that was read. If an end-of-file condition is
 reached, the function raises a `RuntimeException' exception.
 
-9.8.8  write
-============
+9.8.10  write
+=============
   
 <<
      $(write channel, buffer, offset, amount) : String
@@ -7053,8 +7104,8 @@ length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception.
 
-9.8.9  lseek
-============
+9.8.11  lseek
+=============
   
 <<
       $(lseek channel, offset, whence) : Int
@@ -7076,7 +7127,7 @@ according to the `whence' directive, as follows:
   
   The `lseek' function returns the new position in the file.
 
-9.8.10  rewind
+9.8.12  rewind
 ==============
   
 <<
@@ -7087,7 +7138,7 @@ according to the `whence' directive, as follows:
   The `rewind' function set the current file position to the beginning
 of the file.
 
-9.8.11  tell
+9.8.13  tell
 ============
   
 <<
@@ -7098,7 +7149,7 @@ of the file.
   
   The `tell' function returns the current position of the `channel'.
 
-9.8.12  flush
+9.8.14  flush
 =============
   
 <<
@@ -7109,7 +7160,7 @@ of the file.
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file.
 
-9.8.13  dup
+9.8.15  dup
 ===========
   
 <<
@@ -7121,7 +7172,7 @@ writing. It flushes all pending data to the file.
   The `dup' function returns a new channel referencing the same file as
 the argument.
 
-9.8.14  dup2
+9.8.16  dup2
 ============
   
 <<
@@ -7134,7 +7185,7 @@ the argument.
   The `dup2' function causes `channel2' to refer to the same file as
 `channel1'.
 
-9.8.15  set-nonblock
+9.8.17  set-nonblock
 ====================
   
 <<
@@ -7148,7 +7199,7 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'.
 
-9.8.16  set-close-on-exec-mode
+9.8.18  set-close-on-exec-mode
 ==============================
   
 <<
@@ -7162,7 +7213,7 @@ cannot be completed immediately, the operations raises a
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is.
 
-9.8.17  pipe
+9.8.19  pipe
 ============
   
 <<
@@ -7174,7 +7225,7 @@ inherited by child processes. Otherwise it is.
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing.
 
-9.8.18  mkfifo
+9.8.20  mkfifo
 ==============
   
 <<
@@ -7185,7 +7236,7 @@ field is a channel that is opened for writing.
   
   The `mkfifo' function creates a named pipe.
 
-9.8.19  select
+9.8.21  select
 ==============
   
 <<
@@ -7210,7 +7261,7 @@ the following fields:
  error  An array of channels on which an error has occurred. 
 
 
-9.8.20  lockf
+9.8.22  lockf
 =============
   
 <<
@@ -7233,7 +7284,7 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
 
 
-9.8.21  InetAddr
+9.8.23  InetAddr
 ================
   
   The `InetAddr' object describes an Internet address. It contains the
@@ -7245,7 +7296,7 @@ following fields.
   
   
 
-9.8.22  Host
+9.8.24  Host
 ============
   
   A `Host' object contains the following fields.
@@ -7259,7 +7310,7 @@ following fields.
   
   
 
-9.8.23  gethostbyname
+9.8.25  gethostbyname
 =====================
   
 <<
@@ -7272,7 +7323,7 @@ following fields.
 host. The `host' may specify a domain name or an Internet address.
   
 
-9.8.24  Protocol
+9.8.26  Protocol
 ================
   
   The `Protocol' object represents a protocol entry. It has the
@@ -7285,7 +7336,7 @@ following fields.
   
   
 
-9.8.25  getprotobyname
+9.8.27  getprotobyname
 ======================
   
 <<
@@ -7298,7 +7349,7 @@ following fields.
 specified protocol. The `name' may be a protocol name, or a protocol
 number.
 
-9.8.26  Service
+9.8.28  Service
 ===============
   
   The `Service' object represents a network service. It has the
@@ -7312,7 +7363,7 @@ following fields.
   
   
 
-9.8.27  getservbyname
+9.8.29  getservbyname
 =====================
   
 <<
@@ -7324,7 +7375,7 @@ following fields.
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number.
 
-9.8.28  socket
+9.8.30  socket
 ==============
   
 <<
@@ -7353,7 +7404,7 @@ service. The `service' may be specified as a service name or number.
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database.
 
-9.8.29  bind
+9.8.31  bind
 ============
   
 <<
@@ -7373,7 +7424,7 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address.
 
-9.8.30  listen
+9.8.32  listen
 ==============
   
 <<
@@ -7386,7 +7437,7 @@ filename for the address.
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests.
 
-9.8.31  accept
+9.8.33  accept
 ==============
   
 <<
@@ -7397,7 +7448,7 @@ filename for the address.
   
   The `accept' function accepts a connection on a socket.
 
-9.8.32  connect
+9.8.34  connect
 ===============
   
 <<
@@ -7418,7 +7469,7 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket.
 
-9.8.33  getchar
+9.8.35  getchar
 ===============
   
 <<
@@ -7432,7 +7483,7 @@ filename of the socket.
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'.
 
-9.8.34  gets
+9.8.36  gets
 ============
   
 <<
@@ -7446,7 +7497,7 @@ has been reached, the function returns `false'.
 returns the empty string if the end of file has been reached. The line
 terminator is removed.
 
-9.8.35  fgets
+9.8.37  fgets
 =============
   
 <<
@@ -7727,11 +7778,23 @@ meaning of `stdout' outside the `calc' function.
         bodyd
 >>
   
+  or
+<<
+     awk(options, input-files)
+     case pattern1:
+        body1
+     case pattern2:
+        body2
+     ...
+     default:
+        bodyd
+>>
+  
   The `awk' function provides input processing similar to awk(1), but
-more limited. The function takes filename arguments. If called with no
-arguments, the input is taken from `stdin'. If arguments are provided,
-each specifies an `InChannel', or the name of a file for input. Output
-is always to `stdout'.
+more limited. The `input-files' argument is a sequence of values, each
+specifies an `InChannel', or the name of a file for input. If called
+with no options and no file arguments, the input is taken from `stdin'.
+Output is always to `stdout'.
   The variables `RS' and `FS' define record and field separators as
 regular expressions. The default value of `RS' is the regular expression
 `\r|\n|\r\n'. The default value of `FS' is the regular expression `[
@@ -7782,6 +7845,13 @@ meaning of `stdout' outside the `filter' function.
           close(stdout)
 >>
   
+  Options. 
+  
+ b  ``Break'' when evaluating cases. Only the first case that matches
+   will be selected. 
+  
+  The `break' function can be used to abort the loop 8.3.40, exiting the
+`awk' function immediately.
 
 9.11.6  fsubst
 ==============
@@ -7824,7 +7894,84 @@ expression `word.' with its capitalized form.
 >>
   
 
-9.11.7  Lexer
+9.11.7  lex
+===========
+  
+<<
+     lex(files)
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `lex' function provides a simple lexical-style scanner function.
+The input is a sequence of files or channels. The cases specify regular
+expressions. Each time the input is read, the regular expression that
+matches the longest prefix of the input is selected, and the body is
+evaluated.
+  If two clauses both match the same input, the last one is selected for
+execution. The `default' case matches the regular expression `.'; you
+probably want to place it first in the pattern list.
+  If the body end with an `export' directive, the state is passed to the
+next clause.
+  For example, the following program collects all occurrences of
+alphanumeric words in an input file.
+<<
+      collect-words($(files)) =
+         words[] =
+         lex($(files))
+         default
+            # empty
+         case $"[[:alnum:]]+" g
+            words[] += $0
+            export
+>>
+  
+  The `default' case, if one exists, matches single characters. Since
+  It is an error if the input does not match any of the regular
+expressions.
+  The `break' function can be used to abort the loop 8.3.40.
+
+9.11.8  lex-search
+==================
+  
+<<
+     lex-search(files)
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `lex-search' function is like the `lex' function, but input that
+does not match any of the regular expressions is skipped. If the clauses
+include a `default' case, then the `default' matches any skipped text.
+  For example, the following program collects all occurrences of
+alphanumeric words in an input file, skipping any other text.
+<<
+      collect-words($(files)) =
+         words[] =
+         lex-search($(files))
+         default
+            eprintln(Skipped $0)
+         case $"[[:alnum:]]+" g
+            words[] += $0
+            export
+>>
+  
+  The `default' case, if one exists, matches single characters. Since
+  It is an error if the input does not match any of the regular
+expressions.
+  The `break' function can be used to abort the loop 8.3.40.
+
+9.11.9  Lexer
 =============
   
   The `Lexer' object defines a facility for lexical analysis, similar to
@@ -7902,8 +8049,8 @@ and value.
 argument.
   
 
-9.11.8  Lexer matching
-======================
+9.11.10  Lexer matching
+=======================
   
   During lexical analysis, clauses are selected by longest match. That
 is, the clause that matches the longest sequence of input characters is
@@ -7912,8 +8059,8 @@ chosen for evaluation. If no clause matches, the lexer raises a
 input, the first one is chosen for evaluation.
   
 
-9.11.9  Extending lexer definitions
-===================================
+9.11.11  Extending lexer definitions
+====================================
   
   Suppose we wish to augment the lexer example so that it ignores
 comments. We will define comments as any text that begins with the
@@ -7958,7 +8105,7 @@ this by extending the lexer object `lexer1' that we just created.
 comment is encountered, and continues lexing when that lexer returns.
   
 
-9.11.10  Threading the lexer object
+9.11.12  Threading the lexer object
 ===================================
   
   Clause bodies may also end with an `export' directive. In this case
@@ -7968,7 +8115,7 @@ the lexer object itself is used as the returned token. If used with the
 lexer, it calls it with the lexer returned from the previous lex
 invocation.
 
-9.11.11  Parser
+9.11.13  Parser
 ===============
   
   The `Parser' object provides a facility for syntactic analysis based
@@ -8044,7 +8191,7 @@ values associated with each of the variables on the right-hand-side of
 the production.
   
 
-9.11.12  Calling the parser
+9.11.14  Calling the parser
 ===========================
   
   The parser is called with the `$(parser1.parse-channel start,
@@ -8053,7 +8200,7 @@ argument is the start symbol, and the `channel' or `file' is the input
 to the parser.
   
 
-9.11.13  Parsing control
+9.11.15  Parsing control
 ========================
   
   The parser generator generates a pushdown automation based on LALR(1)
@@ -8070,7 +8217,7 @@ also prints with parser table together with any conflicts.
 input range for all tokens on the right-hand-side of the production.
   
 
-9.11.14  Extending parsers
+9.11.16  Extending parsers
 ==========================
   
   Parsers may also be extended by inheritance. For example, let's extend
@@ -8112,7 +8259,7 @@ accomplishes this.
   In this case, we use the new lexer `lexer2', and we add productions
 for the new shift operations.
 
-9.11.15  gettimeofday
+9.11.17  gettimeofday
 =====================
   
 <<
@@ -8556,6 +8703,8 @@ standard input channel.
   It provides the following methods. 
   
  - `$(InChannel.fopen <file>)': open a new input channel. 
+ - `$(InChannel.of-string <string>)': open a new input channel, using a
+   string as input. 
 
 
 11.1.17  OutChannel
@@ -8567,6 +8716,10 @@ standard input channel.
   It provides the following methods. 
   
  - `$(OutChannel.fopen <file>)': open a new output channel. 
+ - `$(OutChannel.string)': open a new output channel, writing to a
+   string. 
+ - `$(OutChannel.to-string)': get the current string of output, for an
+   output channel created as `OutChannel.open-string'. 
  - `$(OutChannel.append <file>)': opens a new output channel, appending
    to the file. 
  - `$(c.flush)': flush the output channel. 
@@ -8679,6 +8832,8 @@ single array containing an argument list.
  Reset the search path. 
  - `history'
  Print the current command-line history. 
+ - `digest'
+ Print the digests of the given files. 
  - Win32 functions.
  Win32 doesn't provide very many programs for scripting, except  for the
    functions that are builtin to the DOS `cmd.exe'.  The following
@@ -9202,7 +9357,8 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 `libfoo.a'.
 <<
   section
-     LIBS = libfoo$(EXT_LIB)
+     LIBS = libfoo
+     LDFLAGS += -lbar
      CProgram(foo, bar baz)
 >>
   
@@ -9225,7 +9381,8 @@ location to install, simultaneously.
   `CProgramInstall(<tag>, <dir>, <name>, <files>)'
 <<
   section
-     LIBS = libfoo$(EXT_LIB)
+     LIBS = libfoo
+     LDFLAGS += -lbar
      CProgramInstall(install, /usr/bin, foo, bar baz)
 >>
   
@@ -11336,7 +11493,7 @@ Index
  - AS, 12.4.1.8 
  - ASFLAGS, 12.4.1.9 
  - absname, 9.1.8 
- - accept, 9.8.31 
+ - accept, 9.8.33 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
  - add-wrapper, 8.3.25 
@@ -11357,7 +11514,8 @@ Index
  - BYTE_ENABLED, 12.5.2.19 
  - basename, 9.1.4 
  - bg, 10.2.2 
- - bind, 9.8.29 
+ - bind, 9.8.31 
+ - break, 8.3.40 
  - build model, 3 
  
  - CAMLP4, 12.5.2.4 
@@ -11382,11 +11540,11 @@ Index
  - chmod, 9.5.9 
  - chown, 9.5.10 
  - classes, 4.12 
- - close, 9.8.6 
+ - close, 9.8.8 
  - cmp-versions, 12.2.0.3 
  - concat, 8.3.3 
  - conditionals, 4.9 
- - connect, 9.8.32 
+ - connect, 9.8.34 
  - create-lazy-map, 8.5.4 
  - create-map, 8.5.4 
  
@@ -11406,8 +11564,8 @@ Index
  - dir, 9.1.1 
  - dirof, 9.1.6 
  - div, 8.4.3 
- - dup, 9.8.13 
- - dup2, 9.8.14 
+ - dup, 9.8.15 
+ - dup2, 9.8.16 
  
  - EMPTY, 12.3.1.3 
  - EXE, 12.3.2.7 
@@ -11429,7 +11587,7 @@ Index
  - Float, 11.1.5 
  - Fun, 11.1.9 
  - fg, 10.2.3 
- - fgets, 9.8.35 
+ - fgets, 9.8.37 
  - file, 9.1.1 
  - file-check-sort, 9.3.6 
  - file-exists, 9.3.1 
@@ -11445,8 +11603,8 @@ Index
  - find-targets-in-path, 9.3.4 
  - find-targets-in-path-optional, 9.3.4 
  - float, 8.4.2 
- - flush, 9.8.12 
- - fopen, 9.8.5 
+ - flush, 9.8.14 
+ - fopen, 9.8.7 
  - foreach, 8.6.1 
  - fprint, 9.9 
  - fprintln, 9.9 
@@ -11459,13 +11617,13 @@ Index
  
  - ge, 8.4.4 
  - get-registry, 8.2.15 
- - getchar, 9.8.33 
+ - getchar, 9.8.35 
  - getenv, 8.2.12 
- - gethostbyname, 9.8.23 
- - getprotobyname, 9.8.25 
- - gets, 9.8.34 
- - getservbyname, 9.8.27 
- - gettimeofday, 9.11.15 
+ - gethostbyname, 9.8.25 
+ - getprotobyname, 9.8.27 
+ - gets, 9.8.36 
+ - getservbyname, 9.8.29 
+ - gettimeofday, 9.11.17 
  - getvar, 8.2.16 
  - glob, 9.4.1 
  - grep, 9.11.3 
@@ -11473,7 +11631,7 @@ Index
  
  - HOME, 8.1.9 
  - HOST, 8.1.6 
- - Host, 9.8.22 
+ - Host, 9.8.24 
  - history, 10.3.1 
  - homename, 9.1.9 
  - html-string, 8.3.16 
@@ -11481,7 +11639,7 @@ Index
  - INCLUDES, 12.4.1.6 
  - INSTALL, 12.3.2.1 
  - InChannel, 11.1.16 
- - InetAddr, 9.8.21 
+ - InetAddr, 9.8.23 
  - Int, 11.1.4 
  - if, 4.9, 8.2.5 
  - ignoreeof, 13.1.2 
@@ -11504,7 +11662,7 @@ Index
  - LD, 12.4.1.12 
  - LDFLAGS, 12.4.1.13 
  - LEX, 12.4.1.15 
- - Lexer, 9.11.7 
+ - Lexer, 9.11.9 
  - LIBS, 12.4.1.7 
  - LocalCGeneratedFiles, 12.4.2.1 
  - LocalOCamlGeneratedFiles, 12.6.0.5 
@@ -11513,15 +11671,17 @@ Index
  - land, 8.4.3 
  - le, 8.4.4 
  - length, 8.3.4 
+ - lex, 9.11.7 
+ - lex-search, 9.11.8 
  - link, 9.5.6 
  - link-order sorting, 9.3.5 
- - listen, 9.8.30 
+ - listen, 9.8.32 
  - lnot, 8.4.3 
- - lockf, 9.8.20 
+ - lockf, 9.8.22 
  - lor, 8.4.3 
  - lowercase, 8.3.36 
  - ls, 9.4.2 
- - lseek, 9.8.9 
+ - lseek, 9.8.11 
  - lsl, 8.4.3 
  - lsr, 8.4.3 
  - lt, 8.4.4 
@@ -11538,7 +11698,7 @@ Index
  - match, 4.10, 8.2.6 
  - mem, 8.3.27 
  - mkdir, 9.5.1 
- - mkfifo, 9.8.18 
+ - mkfifo, 9.8.20 
  - mod, 8.4.3 
  - mul, 8.4.3 
  
@@ -11605,15 +11765,18 @@ Index
  - objects, 4.11 
  - ocaml-escaped, 8.3.12 
  - ocamldep-omake, 12.6.0.6 
+ - open-in-string, 9.8.5 
+ - open-out-string, 9.8.6 
  - or, 8.2.4 
+ - out-string, 9.8.6 
  
  - PATHSEP, 12.3.2.2 
  - PDFLATEX, 12.7.1.10 
  - PDFLATEXFLAGS, 12.7.1.11 
  - PID, 8.1.10 
  - Position, 11.1.19 
- - Protocol, 9.8.24 
- - pipe, 9.8.17 
+ - Protocol, 9.8.26 
+ - pipe, 9.8.19 
  - print, 9.9 
  - println, 9.9 
  - printv, 9.10 
@@ -11632,7 +11795,7 @@ Index
  - Rule, 11.1.10 
  - RuntimeException, 11.1.21 
  - raise, 8.2.8 
- - read, 9.8.7 
+ - read, 9.8.9 
  - readlink, 9.5.8 
  - regular expressions, 9.11.1 
  - rehash, 9.2.3 
@@ -11642,7 +11805,7 @@ Index
  - rename, 9.5.5 
  - replacesuffixes, 8.3.22 
  - rev, 8.3.9 
- - rewind, 9.8.10 
+ - rewind, 9.8.12 
  - rootname, 9.1.5 
  - rule, 12.8.0.11 
  - rule, options, 7.5 
@@ -11652,7 +11815,7 @@ Index
  
  - SCANNER_MODE, 12.3.1.7 
  - Sequence, 11.1.6 
- - Service, 9.8.26 
+ - Service, 9.8.28 
  - Shell, 11.1.23 
  - STDROOT, 12.3.1.4 
  - Stat, 9.5.2 
@@ -11667,15 +11830,15 @@ Index
  - scan, 9.11.4 
  - section, 4.8, 7.3 
  - section rule, 7.4 
- - select, 9.8.19 
+ - select, 9.8.21 
  - set, 8.3.26 
- - set-close-on-exec-mode, 9.8.16 
+ - set-close-on-exec-mode, 9.8.18 
  - set-diff, 8.3.30 
- - set-nonblock, 9.8.15 
+ - set-nonblock, 9.8.17 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
  - shell, 8.3.38 
- - socket, 9.8.28 
+ - socket, 9.8.30 
  - sorting (link-order), 9.3.5 
  - split, 8.3.2 
  - stat, 9.5.3 
@@ -11704,9 +11867,10 @@ Index
  - target, 12.8.0.8 
  - target-exists, 9.3.1 
  - target-is-proper, 9.3.1 
- - tell, 9.8.11 
+ - tell, 9.8.13 
  - test, 9.7.1 
  - tmpfile, 9.1.2 
+ - truncate, 9.5.11 
  - try, 8.2.7 
  
  - UnbuildableException, 11.1.22 
@@ -11717,7 +11881,7 @@ Index
  - ugt, 8.4.4 
  - ule, 8.4.4 
  - ult, 8.4.4 
- - umask, 9.5.11 
+ - umask, 9.5.12 
  - uncapitalize, 8.3.34 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
@@ -11731,7 +11895,7 @@ Index
  - where, 9.2.2 
  - which, 9.2.1 
  - while, 8.3.39 
- - write, 9.8.8 
+ - write, 9.8.10 
  
  - YACC, 12.4.1.14 
 
@@ -11863,7 +12027,7 @@ Index of functions and special forms
   
   
  - absname, 9.1.8 
- - accept, 9.8.31 
+ - accept, 9.8.33 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
  - add-wrapper, 8.3.25 
@@ -11879,7 +12043,8 @@ Index of functions and special forms
  
  - basename, 9.1.4 
  - bg, 10.2.2 
- - bind, 9.8.29 
+ - bind, 9.8.31 
+ - break, 8.3.40 
  
  - CGeneratedFiles, 12.4.2.1 
  - CProgram, 12.4.3.5 
@@ -11893,10 +12058,10 @@ Index of functions and special forms
  - cd, 10.1.2 
  - chmod, 9.5.9 
  - chown, 9.5.10 
- - close, 9.8.6 
+ - close, 9.8.8 
  - cmp-versions, 12.2.0.3 
  - concat, 8.3.3 
- - connect, 9.8.32 
+ - connect, 9.8.34 
  - create-lazy-map, 8.5.4 
  - create-map, 8.5.4 
  
@@ -11910,8 +12075,8 @@ Index of functions and special forms
  - dir, 9.1.1 
  - dirof, 9.1.6 
  - div, 8.4.3 
- - dup, 9.8.13 
- - dup2, 9.8.14 
+ - dup, 9.8.15 
+ - dup2, 9.8.16 
  
  - echo, 10.1.1 
  - eprint, 9.9 
@@ -11924,7 +12089,7 @@ Index of functions and special forms
  - exit, 8.2.9 
  
  - fg, 10.2.3 
- - fgets, 9.8.35 
+ - fgets, 9.8.37 
  - file, 9.1.1 
  - file-check-sort, 9.3.6 
  - file-exists, 9.3.1 
@@ -11940,8 +12105,8 @@ Index of functions and special forms
  - find-targets-in-path, 9.3.4 
  - find-targets-in-path-optional, 9.3.4 
  - float, 8.4.2 
- - flush, 9.8.12 
- - fopen, 9.8.5 
+ - flush, 9.8.14 
+ - fopen, 9.8.7 
  - foreach, 8.6.1 
  - fprint, 9.9 
  - fprintln, 9.9 
@@ -11953,13 +12118,13 @@ Index of functions and special forms
  
  - ge, 8.4.4 
  - get-registry, 8.2.15 
- - getchar, 9.8.33 
+ - getchar, 9.8.35 
  - getenv, 8.2.12 
- - gethostbyname, 9.8.23 
- - getprotobyname, 9.8.25 
- - gets, 9.8.34 
- - getservbyname, 9.8.27 
- - gettimeofday, 9.11.15 
+ - gethostbyname, 9.8.25 
+ - getprotobyname, 9.8.27 
+ - gets, 9.8.36 
+ - getservbyname, 9.8.29 
+ - gettimeofday, 9.11.17 
  - getvar, 8.2.16 
  - glob, 9.4.1 
  - grep, 9.11.3 
@@ -11989,14 +12154,16 @@ Index of functions and special forms
  - land, 8.4.3 
  - le, 8.4.4 
  - length, 8.3.4 
+ - lex, 9.11.7 
+ - lex-search, 9.11.8 
  - link, 9.5.6 
- - listen, 9.8.30 
+ - listen, 9.8.32 
  - lnot, 8.4.3 
- - lockf, 9.8.20 
+ - lockf, 9.8.22 
  - lor, 8.4.3 
  - lowercase, 8.3.36 
  - ls, 9.4.2 
- - lseek, 9.8.9 
+ - lseek, 9.8.11 
  - lsl, 8.4.3 
  - lsr, 8.4.3 
  - lt, 8.4.4 
@@ -12007,7 +12174,7 @@ Index of functions and special forms
  - match, 4.10, 8.2.6 
  - mem, 8.3.27 
  - mkdir, 9.5.1 
- - mkfifo, 9.8.18 
+ - mkfifo, 9.8.20 
  - mod, 8.4.3 
  - mul, 8.4.3 
  
@@ -12028,9 +12195,12 @@ Index of functions and special forms
  - OMakeFlags, 12.2.0.1 
  - OMakeVersion, 12.2.0.2 
  - ocaml-escaped, 8.3.12 
+ - open-in-string, 9.8.5 
+ - open-out-string, 9.8.6 
  - or, 8.2.4 
+ - out-string, 9.8.6 
  
- - pipe, 9.8.17 
+ - pipe, 9.8.19 
  - print, 9.9 
  - println, 9.9 
  - printv, 9.10 
@@ -12041,7 +12211,7 @@ Index of functions and special forms
  - quote-argv, 8.3.15 
  
  - raise, 8.2.8 
- - read, 9.8.7 
+ - read, 9.8.9 
  - readlink, 9.5.8 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
@@ -12050,7 +12220,7 @@ Index of functions and special forms
  - rename, 9.5.5 
  - replacesuffixes, 8.3.22 
  - rev, 8.3.9 
- - rewind, 9.8.10 
+ - rewind, 9.8.12 
  - rootname, 9.1.5 
  - rule, 12.8.0.11 
  
@@ -12063,15 +12233,15 @@ Index of functions and special forms
  - scan, 9.11.4 
  - section, 7.3 
  - section rule, 7.4 
- - select, 9.8.19 
+ - select, 9.8.21 
  - set, 8.3.26 
- - set-close-on-exec-mode, 9.8.16 
+ - set-close-on-exec-mode, 9.8.18 
  - set-diff, 8.3.30 
- - set-nonblock, 9.8.15 
+ - set-nonblock, 9.8.17 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
  - shell, 8.3.38 
- - socket, 9.8.28 
+ - socket, 9.8.30 
  - split, 8.3.2 
  - stat, 9.5.3 
  - stat-reset, 9.3.2 
@@ -12090,16 +12260,17 @@ Index of functions and special forms
  - target, 12.8.0.8 
  - target-exists, 9.3.1 
  - target-is-proper, 9.3.1 
- - tell, 9.8.11 
+ - tell, 9.8.13 
  - test, 9.7.1 
  - tmpfile, 9.1.2 
+ - truncate, 9.5.11 
  - try, 8.2.7 
  
  - uge, 8.4.4 
  - ugt, 8.4.4 
  - ule, 8.4.4 
  - ult, 8.4.4 
- - umask, 9.5.11 
+ - umask, 9.5.12 
  - uncapitalize, 8.3.34 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
@@ -12111,7 +12282,7 @@ Index of functions and special forms
  - where, 9.2.2 
  - which, 9.2.1 
  - while, 8.3.39 
- - write, 9.8.8 
+ - write, 9.8.10 
 
 
 Index of objects
@@ -12130,13 +12301,13 @@ Index of objects
  - Float, 11.1.5 
  - Fun, 11.1.9 
  
- - Host, 9.8.22 
+ - Host, 9.8.24 
  
  - InChannel, 11.1.16 
- - InetAddr, 9.8.21 
+ - InetAddr, 9.8.23 
  - Int, 11.1.4 
  
- - Lexer, 9.11.7 
+ - Lexer, 9.11.9 
  - Location, 11.1.18 
  
  - Map, 11.1.2 
@@ -12148,13 +12319,13 @@ Index of objects
  - OutChannel, 11.1.17 
  
  - Position, 11.1.19 
- - Protocol, 9.8.24 
+ - Protocol, 9.8.26 
  
  - Rule, 11.1.10 
  - RuntimeException, 11.1.21 
  
  - Sequence, 11.1.6 
- - Service, 9.8.26 
+ - Service, 9.8.28 
  - Shell, 11.1.23 
  - Stat, 9.5.2 
  - String, 11.1.8 

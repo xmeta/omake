@@ -1,75 +1,5 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
-  
-
-9.4.2   ls
-==========
-
-<<
-     $(ls files) : Node Array
-        files : String Sequence
-     $(ls options, files) : Node Array
-        files : String Sequence
->>
-  
-  The `ls' function returns the filenames in a directory.
-  The . and .. entries are always ignored. The patterns are shell-style
-patterns, and are glob-expanded.
-  The options include all of the options to the `glob' function, plus
-the following.
-  
-  
- R  Perform a recursive listing. 
-  
-  The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
-the globbing behavior. The returned files are sorted by name. 
-
-Node: Subsection 9-4-3,	Next: Section 9-5,	Prev: Subsection 9-4-2,	Up: Section 9-4
-  
-
-9.4.3   subdirs
-===============
-
-<<
-     $(subdirs dirs) : Dir Array
-        dirs : String Sequence
-     $(subdirs options, dirs) : Dir Array
-        options : String
-        dirs : String Sequence
->>
-  
-  The `subdirs' function returns all the subdirectories of a list of
-directories, recursively.
-  The possible options are the following: 
-  
- A  Return directories that begin with a . 
- C  Ignore files according to .cvsignore rules. 
- P  Include only proper subdirectories. 
-   
-
-Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
-  
-
-9.5   Filesystem operations
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 9-5-1::	mkdir
-* Subsection 9-5-2::	Stat
-* Subsection 9-5-3::	stat
-* Subsection 9-5-4::	unlink
-* Subsection 9-5-5::	rename
-* Subsection 9-5-6::	link
-* Subsection 9-5-7::	symlink
-* Subsection 9-5-8::	readlink
-* Subsection 9-5-9::	chmod
-* Subsection 9-5-10::	chown
-* Subsection 9-5-11::	umask
-
-
 Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9-5
   
 
@@ -301,10 +231,25 @@ Node: Subsection 9-5-10,	Next: Subsection 9-5-11,	Prev: Subsection 9-5-9,	Up: Se
 `gid' is not specified, it is not changed. If either id is -1, that id
 is not changed. 
 
-Node: Subsection 9-5-11,	Next: Section 9-6,	Prev: Subsection 9-5-10,	Up: Section 9-5
+Node: Subsection 9-5-11,	Next: Subsection 9-5-12,	Prev: Subsection 9-5-10,	Up: Section 9-5
   
 
-9.5.11   umask
+9.5.11   truncate
+=================
+
+<<
+     truncate(length, node...)
+         length : Int
+         node : Node or Channel
+     raises RuntimeException
+>>
+  
+  The `truncate' function truncates a file to the given length. 
+
+Node: Subsection 9-5-12,	Next: Section 9-6,	Prev: Subsection 9-5-11,	Up: Section 9-5
+  
+
+9.5.12   umask
 ==============
 
 <<
@@ -557,37 +502,39 @@ Node: Section 9-8,	Next: Subsection 9-8-1,	Prev: Section 9-7,	Up: Chapter 9
 * Subsection 9-8-2::	stdin
 * Subsection 9-8-3::	stdout
 * Subsection 9-8-4::	stderr
-* Subsection 9-8-5::	fopen
-* Subsection 9-8-6::	close
-* Subsection 9-8-7::	read
-* Subsection 9-8-8::	write
-* Subsection 9-8-9::	lseek
-* Subsection 9-8-10::	rewind
-* Subsection 9-8-11::	tell
-* Subsection 9-8-12::	flush
-* Subsection 9-8-13::	dup
-* Subsection 9-8-14::	dup2
-* Subsection 9-8-15::	set-nonblock
-* Subsection 9-8-16::	set-close-on-exec-mode
-* Subsection 9-8-17::	pipe
-* Subsection 9-8-18::	mkfifo
-* Subsection 9-8-19::	select
-* Subsection 9-8-20::	lockf
-* Subsection 9-8-21::	InetAddr
-* Subsection 9-8-22::	Host
-* Subsection 9-8-23::	gethostbyname
-* Subsection 9-8-24::	Protocol
-* Subsection 9-8-25::	getprotobyname
-* Subsection 9-8-26::	Service
-* Subsection 9-8-27::	getservbyname
-* Subsection 9-8-28::	socket
-* Subsection 9-8-29::	bind
-* Subsection 9-8-30::	listen
-* Subsection 9-8-31::	accept
-* Subsection 9-8-32::	connect
-* Subsection 9-8-33::	getchar
-* Subsection 9-8-34::	gets
-* Subsection 9-8-35::	fgets
+* Subsection 9-8-5::	open-in-string
+* Subsection 9-8-6::	open-out-string, out-string
+* Subsection 9-8-7::	fopen
+* Subsection 9-8-8::	close
+* Subsection 9-8-9::	read
+* Subsection 9-8-10::	write
+* Subsection 9-8-11::	lseek
+* Subsection 9-8-12::	rewind
+* Subsection 9-8-13::	tell
+* Subsection 9-8-14::	flush
+* Subsection 9-8-15::	dup
+* Subsection 9-8-16::	dup2
+* Subsection 9-8-17::	set-nonblock
+* Subsection 9-8-18::	set-close-on-exec-mode
+* Subsection 9-8-19::	pipe
+* Subsection 9-8-20::	mkfifo
+* Subsection 9-8-21::	select
+* Subsection 9-8-22::	lockf
+* Subsection 9-8-23::	InetAddr
+* Subsection 9-8-24::	Host
+* Subsection 9-8-25::	gethostbyname
+* Subsection 9-8-26::	Protocol
+* Subsection 9-8-27::	getprotobyname
+* Subsection 9-8-28::	Service
+* Subsection 9-8-29::	getservbyname
+* Subsection 9-8-30::	socket
+* Subsection 9-8-31::	bind
+* Subsection 9-8-32::	listen
+* Subsection 9-8-33::	accept
+* Subsection 9-8-34::	connect
+* Subsection 9-8-35::	getchar
+* Subsection 9-8-36::	gets
+* Subsection 9-8-37::	fgets
 
 
 Node: Subsection 9-8-1,	Next: Subsection 9-8-2,	Prev: Section 9-8,	Up: Section 9-8
@@ -637,7 +584,34 @@ Node: Subsection 9-8-4,	Next: Subsection 9-8-5,	Prev: Subsection 9-8-3,	Up: Sect
 Node: Subsection 9-8-5,	Next: Subsection 9-8-6,	Prev: Subsection 9-8-4,	Up: Section 9-8
   
 
-9.8.5   fopen
+9.8.5   open-in-string
+======================
+ The
+`open-in-string' treats a string as if it were a file and returns a
+channel for reading.
+<<
+     $(open-in-string s) : Channel
+         s : String
+>>
+
+Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Section 9-8
+  
+
+9.8.6   open-out-string, out-string
+===================================
+ The `open-out-string'
+creates a channel that writes to a string instead of a file. The string
+may be retrieved with the `out-string' function.
+<<
+     $(open-out-string) : Channel
+     $(out-string chan) : String
+         chan : OutChannel
+>>
+
+Node: Subsection 9-8-7,	Next: Subsection 9-8-8,	Prev: Subsection 9-8-6,	Up: Section 9-8
+  
+
+9.8.7   fopen
 =============
 
   The `fopen' function opens a file for reading or writing.
@@ -665,10 +639,10 @@ combination of the following characters.
   Binary mode is not significant on Unix systems, where text and binary
 modes are equivalent. 
 
-Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Section 9-8
+Node: Subsection 9-8-8,	Next: Subsection 9-8-9,	Prev: Subsection 9-8-7,	Up: Section 9-8
   
 
-9.8.6   close
+9.8.8   close
 =============
 
 <<
@@ -679,10 +653,10 @@ Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Sect
   The `close' function closes a file that was previously opened with
 `fopen'. 
 
-Node: Subsection 9-8-7,	Next: Subsection 9-8-8,	Prev: Subsection 9-8-6,	Up: Section 9-8
+Node: Subsection 9-8-9,	Next: Subsection 9-8-10,	Prev: Subsection 9-8-8,	Up: Section 9-8
   
 
-9.8.7   read
+9.8.9   read
 ============
 
 <<
@@ -696,11 +670,11 @@ Node: Subsection 9-8-7,	Next: Subsection 9-8-8,	Prev: Subsection 9-8-6,	Up: Sect
 and returns the data that was read. If an end-of-file condition is
 reached, the function raises a `RuntimeException' exception. 
 
-Node: Subsection 9-8-8,	Next: Subsection 9-8-9,	Prev: Subsection 9-8-7,	Up: Section 9-8
+Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Section 9-8
   
 
-9.8.8   write
-=============
+9.8.10   write
+==============
 
 <<
      $(write channel, buffer, offset, amount) : String
@@ -724,11 +698,11 @@ length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception. 
 
-Node: Subsection 9-8-9,	Next: Subsection 9-8-10,	Prev: Subsection 9-8-8,	Up: Section 9-8
+Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: Section 9-8
   
 
-9.8.9   lseek
-=============
+9.8.11   lseek
+==============
 
 <<
       $(lseek channel, offset, whence) : Int
@@ -750,10 +724,10 @@ according to the `whence' directive, as follows:
   
   The `lseek' function returns the new position in the file. 
 
-Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Section 9-8
+Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: Section 9-8
   
 
-9.8.10   rewind
+9.8.12   rewind
 ===============
 
 <<
@@ -764,10 +738,10 @@ Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Se
   The `rewind' function set the current file position to the beginning
 of the file. 
 
-Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: Section 9-8
+Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: Section 9-8
   
 
-9.8.11   tell
+9.8.13   tell
 =============
 
 <<
@@ -778,10 +752,10 @@ Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: S
   
   The `tell' function returns the current position of the `channel'. 
 
-Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: Section 9-8
+Node: Subsection 9-8-14,	Next: Subsection 9-8-15,	Prev: Subsection 9-8-13,	Up: Section 9-8
   
 
-9.8.12   flush
+9.8.14   flush
 ==============
 
 <<
@@ -792,10 +766,10 @@ Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: S
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file. 
 
-Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: Section 9-8
+Node: Subsection 9-8-15,	Next: Subsection 9-8-16,	Prev: Subsection 9-8-14,	Up: Section 9-8
   
 
-9.8.13   dup
+9.8.15   dup
 ============
 
 <<
@@ -807,10 +781,10 @@ Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: S
   The `dup' function returns a new channel referencing the same file as
 the argument. 
 
-Node: Subsection 9-8-14,	Next: Subsection 9-8-15,	Prev: Subsection 9-8-13,	Up: Section 9-8
+Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: Section 9-8
   
 
-9.8.14   dup2
+9.8.16   dup2
 =============
 
 <<
@@ -823,10 +797,10 @@ Node: Subsection 9-8-14,	Next: Subsection 9-8-15,	Prev: Subsection 9-8-13,	Up: S
   The `dup2' function causes `channel2' to refer to the same file as
 `channel1'. 
 
-Node: Subsection 9-8-15,	Next: Subsection 9-8-16,	Prev: Subsection 9-8-14,	Up: Section 9-8
+Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: Section 9-8
   
 
-9.8.15   set-nonblock
+9.8.17   set-nonblock
 =====================
 
 <<
@@ -840,10 +814,10 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'. 
 
-Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: Section 9-8
+Node: Subsection 9-8-18,	Next: Subsection 9-8-19,	Prev: Subsection 9-8-17,	Up: Section 9-8
   
 
-9.8.16   set-close-on-exec-mode
+9.8.18   set-close-on-exec-mode
 ===============================
 
 <<
@@ -857,10 +831,10 @@ Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: S
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is. 
 
-Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: Section 9-8
+Node: Subsection 9-8-19,	Next: Subsection 9-8-20,	Prev: Subsection 9-8-18,	Up: Section 9-8
   
 
-9.8.17   pipe
+9.8.19   pipe
 =============
 
 <<
@@ -872,10 +846,10 @@ Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: S
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing. 
 
-Node: Subsection 9-8-18,	Next: Subsection 9-8-19,	Prev: Subsection 9-8-17,	Up: Section 9-8
+Node: Subsection 9-8-20,	Next: Subsection 9-8-21,	Prev: Subsection 9-8-19,	Up: Section 9-8
   
 
-9.8.18   mkfifo
+9.8.20   mkfifo
 ===============
 
 <<
@@ -886,10 +860,10 @@ Node: Subsection 9-8-18,	Next: Subsection 9-8-19,	Prev: Subsection 9-8-17,	Up: S
   
   The `mkfifo' function creates a named pipe. 
 
-Node: Subsection 9-8-19,	Next: Subsection 9-8-20,	Prev: Subsection 9-8-18,	Up: Section 9-8
+Node: Subsection 9-8-21,	Next: Subsection 9-8-22,	Prev: Subsection 9-8-20,	Up: Section 9-8
   
 
-9.8.19   select
+9.8.21   select
 ===============
 
 <<
@@ -914,10 +888,10 @@ the following fields:
  error  An array of channels on which an error has occurred. 
    
 
-Node: Subsection 9-8-20,	Next: Subsection 9-8-21,	Prev: Subsection 9-8-19,	Up: Section 9-8
+Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: Section 9-8
   
 
-9.8.20   lockf
+9.8.22   lockf
 ==============
 
 <<
@@ -940,10 +914,10 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
    
 
-Node: Subsection 9-8-21,	Next: Subsection 9-8-22,	Prev: Subsection 9-8-20,	Up: Section 9-8
+Node: Subsection 9-8-23,	Next: Subsection 9-8-24,	Prev: Subsection 9-8-22,	Up: Section 9-8
   
 
-9.8.21   InetAddr
+9.8.23   InetAddr
 =================
 
   The `InetAddr' object describes an Internet address. It contains the
@@ -954,10 +928,10 @@ following fields.
  port  `Int': the port number. 
   
 
-Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: Section 9-8
+Node: Subsection 9-8-24,	Next: Subsection 9-8-25,	Prev: Subsection 9-8-23,	Up: Section 9-8
   
 
-9.8.22   Host
+9.8.24   Host
 =============
 
   A `Host' object contains the following fields.
@@ -970,10 +944,10 @@ Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: S
    the host. 
   
 
-Node: Subsection 9-8-23,	Next: Subsection 9-8-24,	Prev: Subsection 9-8-22,	Up: Section 9-8
+Node: Subsection 9-8-25,	Next: Subsection 9-8-26,	Prev: Subsection 9-8-24,	Up: Section 9-8
   
 
-9.8.23   gethostbyname
+9.8.25   gethostbyname
 ======================
 
 <<
@@ -985,10 +959,10 @@ Node: Subsection 9-8-23,	Next: Subsection 9-8-24,	Prev: Subsection 9-8-22,	Up: S
   The `gethostbyname' function returns a `Host' object for the specified
 host. The `host' may specify a domain name or an Internet address.
 
-Node: Subsection 9-8-24,	Next: Subsection 9-8-25,	Prev: Subsection 9-8-23,	Up: Section 9-8
+Node: Subsection 9-8-26,	Next: Subsection 9-8-27,	Prev: Subsection 9-8-25,	Up: Section 9-8
   
 
-9.8.24   Protocol
+9.8.26   Protocol
 =================
 
   The `Protocol' object represents a protocol entry. It has the
@@ -1000,10 +974,10 @@ following fields.
  proto  `Int': the protocol number. 
   
 
-Node: Subsection 9-8-25,	Next: Subsection 9-8-26,	Prev: Subsection 9-8-24,	Up: Section 9-8
+Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: Section 9-8
   
 
-9.8.25   getprotobyname
+9.8.27   getprotobyname
 =======================
 
 <<
@@ -1016,10 +990,10 @@ Node: Subsection 9-8-25,	Next: Subsection 9-8-26,	Prev: Subsection 9-8-24,	Up: S
 specified protocol. The `name' may be a protocol name, or a protocol
 number. 
 
-Node: Subsection 9-8-26,	Next: Subsection 9-8-27,	Prev: Subsection 9-8-25,	Up: Section 9-8
+Node: Subsection 9-8-28,	Next: Subsection 9-8-29,	Prev: Subsection 9-8-27,	Up: Section 9-8
   
 
-9.8.26   Service
+9.8.28   Service
 ================
 
   The `Service' object represents a network service. It has the
@@ -1032,10 +1006,10 @@ following fields.
  proto  `Protocol': the protocol for the service. 
   
 
-Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: Section 9-8
+Node: Subsection 9-8-29,	Next: Subsection 9-8-30,	Prev: Subsection 9-8-28,	Up: Section 9-8
   
 
-9.8.27   getservbyname
+9.8.29   getservbyname
 ======================
 
 <<
@@ -1047,10 +1021,10 @@ Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: S
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number. 
 
-Node: Subsection 9-8-28,	Next: Subsection 9-8-29,	Prev: Subsection 9-8-27,	Up: Section 9-8
+Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: Section 9-8
   
 
-9.8.28   socket
+9.8.30   socket
 ===============
 
 <<
@@ -1079,10 +1053,10 @@ Node: Subsection 9-8-28,	Next: Subsection 9-8-29,	Prev: Subsection 9-8-27,	Up: S
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database. 
 
-Node: Subsection 9-8-29,	Next: Subsection 9-8-30,	Prev: Subsection 9-8-28,	Up: Section 9-8
+Node: Subsection 9-8-31,	Next: Subsection 9-8-32,	Prev: Subsection 9-8-30,	Up: Section 9-8
   
 
-9.8.29   bind
+9.8.31   bind
 =============
 
 <<
@@ -1102,10 +1076,10 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address. 
 
-Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: Section 9-8
+Node: Subsection 9-8-32,	Next: Subsection 9-8-33,	Prev: Subsection 9-8-31,	Up: Section 9-8
   
 
-9.8.30   listen
+9.8.32   listen
 ===============
 
 <<
@@ -1118,10 +1092,10 @@ Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: S
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests. 
 
-Node: Subsection 9-8-31,	Next: Subsection 9-8-32,	Prev: Subsection 9-8-30,	Up: Section 9-8
+Node: Subsection 9-8-33,	Next: Subsection 9-8-34,	Prev: Subsection 9-8-32,	Up: Section 9-8
   
 
-9.8.31   accept
+9.8.33   accept
 ===============
 
 <<
@@ -1132,10 +1106,10 @@ Node: Subsection 9-8-31,	Next: Subsection 9-8-32,	Prev: Subsection 9-8-30,	Up: S
   
   The `accept' function accepts a connection on a socket. 
 
-Node: Subsection 9-8-32,	Next: Subsection 9-8-33,	Prev: Subsection 9-8-31,	Up: Section 9-8
+Node: Subsection 9-8-34,	Next: Subsection 9-8-35,	Prev: Subsection 9-8-33,	Up: Section 9-8
   
 
-9.8.32   connect
+9.8.34   connect
 ================
 
 <<
@@ -1156,10 +1130,10 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket. 
 
-Node: Subsection 9-8-33,	Next: Subsection 9-8-34,	Prev: Subsection 9-8-32,	Up: Section 9-8
+Node: Subsection 9-8-35,	Next: Subsection 9-8-36,	Prev: Subsection 9-8-34,	Up: Section 9-8
   
 
-9.8.33   getchar
+9.8.35   getchar
 ================
 
 <<
@@ -1173,10 +1147,10 @@ Node: Subsection 9-8-33,	Next: Subsection 9-8-34,	Prev: Subsection 9-8-32,	Up: S
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'. 
 
-Node: Subsection 9-8-34,	Next: Subsection 9-8-35,	Prev: Subsection 9-8-33,	Up: Section 9-8
+Node: Subsection 9-8-36,	Next: Subsection 9-8-37,	Prev: Subsection 9-8-35,	Up: Section 9-8
   
 
-9.8.34   gets
+9.8.36   gets
 =============
 
 <<
@@ -1190,10 +1164,10 @@ Node: Subsection 9-8-34,	Next: Subsection 9-8-35,	Prev: Subsection 9-8-33,	Up: S
 returns the empty string if the end of file has been reached. The line
 terminator is removed. 
 
-Node: Subsection 9-8-35,	Next: Section 9-9,	Prev: Subsection 9-8-34,	Up: Section 9-8
+Node: Subsection 9-8-37,	Next: Section 9-9,	Prev: Subsection 9-8-36,	Up: Section 9-8
   
 
-9.8.35   fgets
+9.8.37   fgets
 ==============
 
 <<
@@ -1280,15 +1254,17 @@ Node: Section 9-11,	Next: Subsection 9-11-1,	Prev: Section 9-10,	Up: Chapter 9
 * Subsection 9-11-4::	scan
 * Subsection 9-11-5::	awk
 * Subsection 9-11-6::	fsubst
-* Subsection 9-11-7::	Lexer
-* Subsection 9-11-8::	Lexer matching
-* Subsection 9-11-9::	Extending lexer definitions
-* Subsection 9-11-10::	Threading the lexer object
-* Subsection 9-11-11::	Parser
-* Subsection 9-11-12::	Calling the parser
-* Subsection 9-11-13::	Parsing control
-* Subsection 9-11-14::	Extending parsers
-* Subsection 9-11-15::	gettimeofday
+* Subsection 9-11-7::	lex
+* Subsection 9-11-8::	lex-search
+* Subsection 9-11-9::	Lexer
+* Subsection 9-11-10::	Lexer matching
+* Subsection 9-11-11::	Extending lexer definitions
+* Subsection 9-11-12::	Threading the lexer object
+* Subsection 9-11-13::	Parser
+* Subsection 9-11-14::	Calling the parser
+* Subsection 9-11-15::	Parsing control
+* Subsection 9-11-16::	Extending parsers
+* Subsection 9-11-17::	gettimeofday
 
 
 Node: Subsection 9-11-1,	Next: Subsection 9-11-2,	Prev: Section 9-11,	Up: Section 9-11
@@ -1523,11 +1499,23 @@ Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: S
         bodyd
 >>
   
+  or
+<<
+     awk(options, input-files)
+     case pattern1:
+        body1
+     case pattern2:
+        body2
+     ...
+     default:
+        bodyd
+>>
+  
   The `awk' function provides input processing similar to awk(1), but
-more limited. The function takes filename arguments. If called with no
-arguments, the input is taken from `stdin'. If arguments are provided,
-each specifies an `InChannel', or the name of a file for input. Output
-is always to `stdout'.
+more limited. The `input-files' argument is a sequence of values, each
+specifies an `InChannel', or the name of a file for input. If called
+with no options and no file arguments, the input is taken from `stdin'.
+Output is always to `stdout'.
   The variables `RS' and `FS' define record and field separators as
 regular expressions. The default value of `RS' is the regular expression
 `\r|\n|\r\n'. The default value of `FS' is the regular expression `[
@@ -1577,6 +1565,14 @@ meaning of `stdout' outside the `filter' function.
              ...
           close(stdout)
 >>
+  
+  Options. 
+  
+ b  ``Break'' when evaluating cases. Only the first case that matches
+   will be selected. 
+  
+  The `break' function can be used to abort the loop
+8.3.40*Note Subsection 8-3-40::, exiting the `awk' function immediately. 
 
 Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: Section 9-11
   
@@ -1624,7 +1620,92 @@ expression `word.' with its capitalized form.
 Node: Subsection 9-11-7,	Next: Subsection 9-11-8,	Prev: Subsection 9-11-6,	Up: Section 9-11
   
 
-9.11.7   Lexer
+9.11.7   lex
+============
+
+<<
+     lex(files)
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `lex' function provides a simple lexical-style scanner function.
+The input is a sequence of files or channels. The cases specify regular
+expressions. Each time the input is read, the regular expression that
+matches the longest prefix of the input is selected, and the body is
+evaluated.
+  If two clauses both match the same input, the last one is selected for
+execution. The `default' case matches the regular expression `.'; you
+probably want to place it first in the pattern list.
+  If the body end with an `export' directive, the state is passed to the
+next clause.
+  For example, the following program collects all occurrences of
+alphanumeric words in an input file.
+<<
+      collect-words($(files)) =
+         words[] =
+         lex($(files))
+         default
+            # empty
+         case $"[[:alnum:]]+" g
+            words[] += $0
+            export
+>>
+  
+  The `default' case, if one exists, matches single characters. Since
+  It is an error if the input does not match any of the regular
+expressions.
+  The `break' function can be used to abort the loop
+8.3.40*Note Subsection 8-3-40::. 
+
+Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: Section 9-11
+  
+
+9.11.8   lex-search
+===================
+
+<<
+     lex-search(files)
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `lex-search' function is like the `lex' function, but input that
+does not match any of the regular expressions is skipped. If the clauses
+include a `default' case, then the `default' matches any skipped text.
+  For example, the following program collects all occurrences of
+alphanumeric words in an input file, skipping any other text.
+<<
+      collect-words($(files)) =
+         words[] =
+         lex-search($(files))
+         default
+            eprintln(Skipped $0)
+         case $"[[:alnum:]]+" g
+            words[] += $0
+            export
+>>
+  
+  The `default' case, if one exists, matches single characters. Since
+  It is an error if the input does not match any of the regular
+expressions.
+  The `break' function can be used to abort the loop
+8.3.40*Note Subsection 8-3-40::. 
+
+Node: Subsection 9-11-9,	Next: Subsection 9-11-10,	Prev: Subsection 9-11-8,	Up: Section 9-11
+  
+
+9.11.9   Lexer
 ==============
 
   The `Lexer' object defines a facility for lexical analysis, similar to
@@ -1700,63 +1781,3 @@ and value.
   Lexer object operate on `InChannel' objects. The method
 `lexer1.lex-channel(channel)' reads the next token from the channel
 argument.
-
-Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: Section 9-11
-  
-
-9.11.8   Lexer matching
-=======================
-  
-  During lexical analysis, clauses are selected by longest match. That
-is, the clause that matches the longest sequence of input characters is
-chosen for evaluation. If no clause matches, the lexer raises a
-`RuntimeException'. If more than one clause matches the same amount of
-input, the first one is chosen for evaluation.
-
-Node: Subsection 9-11-9,	Next: Subsection 9-11-10,	Prev: Subsection 9-11-8,	Up: Section 9-11
-  
-
-9.11.9   Extending lexer definitions
-====================================
-  
-  Suppose we wish to augment the lexer example so that it ignores
-comments. We will define comments as any text that begins with the
-string `(*', ends with `*)', and comments may be nested.
-  One convenient way to do this is to define a separate lexer just to
-skip comments.
-<<
-     lex-comment. =
-        extends $(Lexer)
-  
-        level = 0
-  
-        other: .
-           lex()
-  
-        term: $"[*][)]"
-           if $(not $(eq $(level), 0))
-              level = $(sub $(level), 1)
-              lex()
-  
-        next: $"[(][*]"
-           level = $(add $(level), 1)
-           lex()
-  
-        eof: $"\'"
-           eprintln(Unterminated comment)
->>
-  
-  This lexer contains a field `level' that keeps track of the nesting
-level. On encountering a `(*' string, it increments the level, and for
-`*)', it decrements the level if nonzero, and continues.
-  Next, we need to modify our previous lexer to skip comments. We can do
-this by extending the lexer object `lexer1' that we just created.
-<<
-     lexer1. +=
-        comment: $"[(][*]"
-           lex-comment.lex-channel($(channel))
-           lex()
->>
-  
-  The body for the comment clause calls the `lex-comment' lexer when a
-comment is encountered, and continues lexing when that lexer returns.

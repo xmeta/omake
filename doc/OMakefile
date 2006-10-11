@@ -52,19 +52,19 @@ Shell. +=
    extract-doc-text(argv) =
       print = false
 
-      awk($(argv))
+      awk(b, $(argv))
       case $'\\end\{doc\}'
          print = false
+         export
+      case $'\\begin\{doc\}'
+         print = true
          export
       default
          if $(print)
             println($0)
-      case $'\\begin\{doc\}'
-         print = true
-         export
 
    remove-leading-comment-text(argv) =
-      fsubst($(argv))
+      fsubst()
       case $'^[ \t]*[*#] ?'
          value
 

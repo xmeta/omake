@@ -649,9 +649,9 @@ let scan venv pos loc args =
  * \end{verbatim}
  *
  * The \verb+awk+ function provides input processing similar to \Cmd{awk}{1},
- * but more limited. The function takes filename arguments.  If called with no
- * arguments, the input is taken from \verb+stdin+. If arguments are provided,
+ * but more limited.  The \verb+input-files+ argument is a sequence of values,
  * each specifies an \verb+InChannel+, or the name of a file for input.
+ * If called with no options and no file arguments, the input is taken from \verb+stdin+.
  * Output is always to \verb+stdout+.
  *
  * The variables \verb+RS+ and \verb+FS+ define record and field separators
@@ -716,7 +716,8 @@ let scan venv pos loc args =
  * \item[b] ``Break'' when evaluating cases.  Only the first case that matches will be selected.
  * \end{description}
  *
- * The \hyperref{break}{break} function can be used to abort the loop.
+ * The \verb+break+ function can be used to abort the loop~\ref{fun:break},
+ * exiting the \verb+awk+ function immediately.
  * \end{doc}
  *)
 
@@ -734,16 +735,16 @@ let rec awk_eval_cases venv pos loc break line cases =
                awk_eval_cases venv pos loc break line cases
     | (Some lex, body) :: cases ->
          let channel = Lm_channel.of_string line in
-         let result =
+         let result, stop =
             match Lexer.search lex channel with
                Some (_, _, _, _, args) ->
                   let venv = venv_add_match_args venv args in
-                     eval_body_value venv pos body
+                     eval_body_value venv pos body, break
              | None ->
-                  ValNone
+                  ValNone, false
          in
          let venv, _ = add_exports venv pos result in
-            if break then
+            if stop then
                venv
             else
                awk_eval_cases venv pos loc break line cases
@@ -753,30 +754,27 @@ let rec awk_eval_cases venv pos loc break line cases =
 (*
  * The arguments.
  *)
-let awk_files_of_value venv pos loc files =
-   match values_of_value venv pos files with
-      [] ->
-         [venv_find_var venv ScopeGlobal pos loc stdin_sym]
-    | files ->
-         files
-
 let awk_args venv pos loc args =
    let pos = string_pos "awk_args" pos in
       match args with
-         [ValCases cases; files] ->
-            cases, awk_files_of_value venv pos loc files
+         [ValCases cases] ->
+            cases, [venv_find_var venv ScopeGlobal pos loc stdin_sym]
+       | [ValCases cases; files] ->
+            cases, values_of_value venv pos files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
 let awk_option_args venv pos loc args =
    let pos = string_pos "awk_args" pos in
       match args with
-         [ValCases cases; files] ->
-            cases, "", awk_files_of_value venv pos loc files
+         [ValCases cases] ->
+            cases, "", [venv_find_var venv ScopeGlobal pos loc stdin_sym]
+       | [ValCases cases; files] ->
+            cases, "", values_of_value venv pos files
        | [ValCases cases; options; files] ->
-            cases, string_of_value venv pos options, awk_files_of_value venv pos loc files
+            cases, string_of_value venv pos options, values_of_value venv pos files
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 3), List.length args)))
 
 type awk_flag =
    AwkBreak
@@ -1135,7 +1133,7 @@ let fsubst venv pos loc args =
  *
  * It is an error if the input does not match any of the regular expressions.
  *
- * The \hyperref{break}{break} function can be used to abort the loop.
+ * The \verb+break+ function can be used to abort the loop~\ref{fun:break}.
  * \end{doc}
  *)
 let eof_sym = Lm_symbol.add "eof"
@@ -1260,7 +1258,7 @@ let lex venv pos loc args =
  *
  * It is an error if the input does not match any of the regular expressions.
  *
- * The \hyperref{break}{break} function can be used to abort the loop.
+ * The \verb+break+ function can be used to abort the loop~\ref{fun:break}.
  * \end{doc}
  *)
 let lex_search venv pos loc args =
