@@ -1,5 +1,50 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 6-5,	Next: Subsection 6-5-1,	Prev: Section 6-4,	Up: Chapter 6
+  
+
+6.5   Lazy expressions
+*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Evaluation in omake is normally eager. That is, expressions are
+evaluated as soon as they are encountered by the evaluator. One effect
+of this is that the right-hand-side of a variable definition is expanded
+when the variable is defined.
+  There are two ways to control this behavior. The `$`(v)' form
+introduces lazy behavior, and the `$,(v)' form restores eager behavior.
+Consider the following sequence.
+<<
+      osh> A = 1
+      - : "1" : Sequence
+      osh> B = 2
+      - : "2" : Sequence
+      osh> C = $`(add $(A), $,(B))
+      - : $(apply add $(apply A) "2" : Sequence)
+      osh> println(C = $(C))
+      C = 3
+      osh> A = 5
+      - : "5" : Sequence
+      osh> B = 6
+      - : "6" : Sequence
+      osh> println(C = $(C))
+      C = 7
+>>
+  
+  The definition `C = $`(add $(A), $,(B))' defines a lazy application.
+The `add' function is not applied in this case until its value is
+needed. Within this expression, the value `$,(B)' specifies that `B' is
+to be evaluated immediately, even though it is defined in a lazy
+expression.
+  The first time that we print the value of `C', it evaluates to 3 since
+`A' is 1 and `B' is 2. The second time we evaluate `C', it evaluates to
+7 because `A' has been redefined to `5'. The second definition of `B'
+has no effect, since it was evaluated at definition time.
+* Menu:
+
+* Subsection 6-5-1::	A larger example of lazy expressions
+
+
 Node: Subsection 6-5-1,	Next: Section 6-6,	Prev: Section 6-5,	Up: Section 6-5
   
 
@@ -390,8 +435,8 @@ printf("Hello world\n"); }"")
               close($(FP))
 >>
   
-  This example uses the quotation `$""...""'
-B.1.6*Note Subsection B-1-6:: to quote the text being printed. These
+  This example uses the quotation `$""...""' (see also Section
+B.1.6*Note Subsection B-1-6::) to quote the text being printed. These
 quotes are not included in the output file. The `fopen', `fprintln', and
 `close' functions perform file IO as discussed in the IO section.
   In addition, commands that are function calls, or special expressions,
@@ -641,8 +686,9 @@ Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' 12.3.1.7*Note Subsection 12-3-1:: variable
-controls the usage of implicit scanner dependencies.
+  The `SCANNER_MODE' variable (see Section
+12.3.1.7*Note Subsection 12-3-1::) controls the usage of implicit
+scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
 idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
@@ -972,11 +1018,12 @@ Node: Section 7-14,	Next: Chapter 8,	Prev: Section 7-13,	Up: Chapter 7
 
   
   In rules, the targets and dependencies are first translated to file
-values (as in the `file' function 9.1.1*Note Subsection 9-1-1::). They are
-then translated to strings for the command line. This can cause some
-unexpected behavior. In the following example, the `absname' function
-9.1.8*Note Subsection 9-1-8:: is the absolute pathname for the file `a',
-but the rule still prints the relative pathname.
+values (as in the `file' function described in Section
+9.1.1*Note Subsection 9-1-1::). They are then translated to strings for the
+command line. This can cause some unexpected behavior. In the following
+example, the `absname' function (Section 9.1.8*Note Subsection 9-1-8::)
+is the absolute pathname for the file `a', but the rule still prints the
+relative pathname.
 <<
       .PHONY: demo
       demo: $(absname a)
@@ -1015,17 +1062,17 @@ literally.
   Alternately, you might wish that filenames be automatically expanded
 to absolute pathnames. For example, this might be useful when parsing
 the OMake output to look for errors. For this, you can use the
-`--absname' A.3.20*Note Subsection A-3-20:: option. If you call
-`omake' with the `--absname' option, all filenames will be exapnded to
-absolute names.
+`--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
+call `omake' with the `--absname' option, all filenames will be exapnded
+to absolute names.
 <<
       # omake --absname demo (on a Unix system)
       /home/.../a/b /home/.../c/d
 >>
   
   Alternately, the `--absname' option is scoped. If you want to use it
-for only a few rules, you can use the `OMakeFlags' function
-12.2.0.1*Note Section 12-2:: to control how it is applied.
+for only a few rules, you can use the `OMakeFlags' function (see Section
+12.2.0.1*Note Section 12-2::) to control how it is applied.
 <<
      section
         OMakeFlags(--absname)
@@ -1454,7 +1501,7 @@ Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Sect
   
   The `raise' function raises an exception. The `exn' object can be any
 object. However, the normal convention is to raise an `Exception' object
-11.1.20*Note Subsection 11-1-20::.
+(Section 11.1.20*Note Subsection 11-1-20::).
   If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an `Exception'
 one and contains a `message' field, only that field will be included in
@@ -1614,92 +1661,3 @@ also use the alternate form.
          default
 >>
   
-
-Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
-  
-
-8.2.16   getvar
-===============
-
-<<
-     $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<
-      NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
->>
-
-Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
-  
-
-8.2.17   setvar
-===============
-
-<<
-     setvar(name, value)
-        name : String
-        value : String
->>
-  
-  The `setvar' function defines a new variable. For example, the
-following code defines the variable `X' to be the string `abc'.
-<<
-     NAME = X
-     setvar($(NAME), abc)
->>
-
-Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
-  
-
-8.3   Arrays and sequences
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 8-3-1::	array
-* Subsection 8-3-2::	split
-* Subsection 8-3-3::	concat
-* Subsection 8-3-4::	length
-* Subsection 8-3-5::	nth
-* Subsection 8-3-6::	nth-hd
-* Subsection 8-3-7::	nth-tl
-* Subsection 8-3-8::	subrange
-* Subsection 8-3-9::	rev
-* Subsection 8-3-10::	string
-* Subsection 8-3-11::	string-escaped
-* Subsection 8-3-12::	ocaml-escaped
-* Subsection 8-3-13::	c-escaped
-* Subsection 8-3-14::	quote
-* Subsection 8-3-15::	quote-argv
-* Subsection 8-3-16::	html-string
-* Subsection 8-3-17::	addsuffix
-* Subsection 8-3-18::	mapsuffix
-* Subsection 8-3-19::	addsuffixes
-* Subsection 8-3-20::	removeprefix
-* Subsection 8-3-21::	removesuffix
-* Subsection 8-3-22::	replacesuffixes
-* Subsection 8-3-23::	addprefix
-* Subsection 8-3-24::	mapprefix
-* Subsection 8-3-25::	add-wrapper
-* Subsection 8-3-26::	set
-* Subsection 8-3-27::	mem
-* Subsection 8-3-28::	intersection
-* Subsection 8-3-29::	intersects
-* Subsection 8-3-30::	set-diff
-* Subsection 8-3-31::	filter
-* Subsection 8-3-32::	filter-out
-* Subsection 8-3-33::	capitalize
-* Subsection 8-3-34::	uncapitalize
-* Subsection 8-3-35::	uppercase
-* Subsection 8-3-36::	lowercase
-* Subsection 8-3-37::	system
-* Subsection 8-3-38::	shell
-* Subsection 8-3-39::	while
-* Subsection 8-3-40::	break
-

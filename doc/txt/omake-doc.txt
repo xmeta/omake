@@ -706,7 +706,7 @@ Contents
      
     - A.6  Functions 
         
-       - A.6.1  OMakeFlags 12.2.0.1 
+       - A.6.1  OMakeFlags 
      
     - A.7  Option processing 
     - A.8  .omakerc 
@@ -861,16 +861,16 @@ differences to keep in mind when using omake.
   
   
  - In omake, you are much less likely to define build rules of your own.
-    The system provides many standard functions (like `StaticCLibrary'
-   12.4.3.1 and `CProgram' 12.4.3.5)  to specify these builds more
-   simply. 
+    The system provides many standard functions (like `StaticCLibrary', 
+   described in Section 12.4.3.1 and `CProgram',  described in Section
+   12.4.3.5)  to specify these builds more simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
    %.suf1'. 
- - Scoping is significant: you should define variables and `.PHONY' 7.12
-   targets before they are used. 
- - Subdirectories are incorporated into a project using the `.SUBDIRS:'
-   7.10.  target. 
+ - Scoping is significant: you should define variables and `.PHONY' 
+   targets (see Section 7.12) before they are used. 
+ - Subdirectories are incorporated into a project using the  `.SUBDIRS:'
+   target (see Section 7.10). 
   
   
 
@@ -906,10 +906,10 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' 12.4.3.5 function. The OMakefile contains just one line that
-specifies that the program `hello' is to be built from the source code
-in the `hello_code.c' file (note that file suffixes are not passed to
-these functions).
+`CProgram' function (Section 12.4.3.5). The OMakefile contains just one
+line that specifies that the program `hello' is to be built from the
+source code in the `hello_code.c' file (note that file suffixes are not
+passed to these functions).
 <<
       CProgram(hello, hello_code)
 >>
@@ -937,11 +937,10 @@ MD5 digests were computed.
 >>
   
   If we want to change the compile options, we can redefine the `CC' and
-`CFLAGS' variables before the `CProgram' 12.4.3.5 line. In this example,
-we will use the `gcc' compiler with the `-g' option. In addition, we
-will specify a `.DEFAULT' target to be built by default. The `EXE'
-variable is defined to be `.exe' on `Win32' systems; it is empty
-otherwise.
+`CFLAGS' variables before the `CProgram' line. In this example, we will
+use the `gcc' compiler with the `-g' option. In addition, we will
+specify a `.DEFAULT' target to be built by default. The `EXE' variable
+is defined to be `.exe' on `Win32' systems; it is empty otherwise.
 <<
       CC = gcc
       CFLAGS += -g
@@ -1065,11 +1064,10 @@ can also place the change in the root OMakefile.
 >>
   
   Note that the way we have specified it, the `CFLAGS' variable also
-contains the `-O3' option for the `CProgram' 12.4.3.5, and
-`hello_code.c' and `hello_helper.c' file will both be compiled with the
-`-O3' option. If we want to make the change truly local to `libbar', we
-can put the `bar' subdirectory in its own scope using the `section'
-form.
+contains the `-O3' option for the `CProgram', and `hello_code.c' and
+`hello_helper.c' file will both be compiled with the `-O3' option. If we
+want to make the change truly local to `libbar', we can put the `bar'
+subdirectory in its own scope using the `section' form.
 <<
       # Default project configuration
       CC = gcc
@@ -1769,8 +1767,8 @@ standard library. Specifically, let's say we have the following setup.
 define the build rule as an implicit rule. To handle the include path,
 we'll define a variable `CAT_INCLUDES' that specifies the include path.
 This will be an array of directories. To define the options, we'll use a
-lazy variable 6.5. In case there are any other standard flags, we'll
-define a `CAT_FLAGS' variable.
+lazy variable (Section 6.5). In case there are any other standard flags,
+we'll define a `CAT_FLAGS' variable.
 <<
      # Define the catc command, in case we ever want to override it
      CATC = catc
@@ -1880,9 +1878,10 @@ print a line like the following.
 `neko.woof', we should scan `neko.cat', line-by-line, looking for lines
 of the form `open <name>'. We could do this by writing a program, but it
 is easy enough to do it in `omake' itself. We can use the builtin `awk'
-9.11.5 function to scan the source file. One slight complication is that
-the dependencies depend on the `INCLUDE' path. We'll use the
-`find-in-path' 9.2.6 function to find them. Here we go.
+function (Section 9.11.5) to scan the source file. One slight
+complication is that the dependencies depend on the `INCLUDE' path.
+We'll use the `find-in-path' function (Section 9.2.6) to find them. Here
+we go.
 <<
       .SCANNER: %.woof: %.cat
           section
@@ -2114,9 +2113,10 @@ see this if we add a statement that prints the current directory
   Of course, this specification is quite rigid. In practice, it is
 likely that each subdirectory will have a different set of images, and
 all should be included in the web page. One of the easier solutions is
-to use one of the directory-listing functions, like `glob' 9.4.1 or `ls'
-9.4.2. The `glob' function takes a shell pattern, and returns an array
-of file with matching filenames in the current directory.
+to use one of the directory-listing functions, like `glob' (Section
+9.4.1) or `ls' (Section 9.4.2). The `glob' function takes a shell
+pattern, and returns an array of file with matching filenames in the
+current directory.
 <<
       .SUBDIRS: page1 page2 page3 page4
           IMAGES = $(glob *.jpg)
@@ -3402,8 +3402,9 @@ elements; the kind is determined by the opening quote. The symbols `''
 (single-quote) and `"' (double-quote) introduce the normal shell-style
 quoted elements. The quotation symbols are included in the result
 string. Variables are always expanded within a quote of this kind. Note
-that the osh(1) 13 printer escapes double-quotes within the string;
-these are only for printing, they are not part of the string itself.
+that the osh(1) (Chapter 13) printer escapes double-quotes within the
+string; these are only for printing, they are not part of the string
+itself.
 <<
       osh> A = 'Hello "world"'
       - : "'Hello \"world\"'" : String
@@ -3996,10 +3997,10 @@ printf("Hello world\n"); }"")
               close($(FP))
 >>
   
-  This example uses the quotation `$""...""' B.1.6 to quote the text
-being printed. These quotes are not included in the output file. The
-`fopen', `fprintln', and `close' functions perform file IO as discussed
-in the IO section.
+  This example uses the quotation `$""...""' (see also Section B.1.6) to
+quote the text being printed. These quotes are not included in the
+output file. The `fopen', `fprintln', and `close' functions perform file
+IO as discussed in the IO section.
   In addition, commands that are function calls, or special expressions,
 are interpreted correctly. Since the `fprintln' function can take a file
 directly, the above rule can be abbreviated as follows.
@@ -4225,8 +4226,8 @@ end up being re-scanned.
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' 12.3.1.7 variable controls the usage of implicit
-scanner dependencies.
+  The `SCANNER_MODE' variable (see Section 12.3.1.7) controls the usage
+of implicit scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
 idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
@@ -4532,11 +4533,11 @@ project root.
 
   
   In rules, the targets and dependencies are first translated to file
-values (as in the `file' function 9.1.1). They are then translated to
-strings for the command line. This can cause some unexpected behavior.
-In the following example, the `absname' function 9.1.8 is the absolute
-pathname for the file `a', but the rule still prints the relative
-pathname.
+values (as in the `file' function described in Section 9.1.1). They are
+then translated to strings for the command line. This can cause some
+unexpected behavior. In the following example, the `absname' function
+(Section 9.1.8) is the absolute pathname for the file `a', but the rule
+still prints the relative pathname.
 <<
       .PHONY: demo
       demo: $(absname a)
@@ -4575,16 +4576,16 @@ literally.
   Alternately, you might wish that filenames be automatically expanded
 to absolute pathnames. For example, this might be useful when parsing
 the OMake output to look for errors. For this, you can use the
-`--absname' A.3.20 option. If you call `omake' with the `--absname'
-option, all filenames will be exapnded to absolute names.
+`--absname' option (Section A.3.20). If you call `omake' with the
+`--absname' option, all filenames will be exapnded to absolute names.
 <<
       # omake --absname demo (on a Unix system)
       /home/.../a/b /home/.../c/d
 >>
   
   Alternately, the `--absname' option is scoped. If you want to use it
-for only a few rules, you can use the `OMakeFlags' function 12.2.0.1 to
-control how it is applied.
+for only a few rules, you can use the `OMakeFlags' function (see Section
+12.2.0.1) to control how it is applied.
 <<
      section
         OMakeFlags(--absname)
@@ -4896,7 +4897,7 @@ optional.
   
   The `raise' function raises an exception. The `exn' object can be any
 object. However, the normal convention is to raise an `Exception' object
-11.1.20.
+(Section 11.1.20).
   If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an `Exception'
 one and contains a `message' field, only that field will be included in
@@ -5697,8 +5698,8 @@ value is printed.
          echo $i
 >>
   
-  The `break' function can be used to break out of the `while' loop
-early 8.3.40.
+  The `break' function (Section 8.3.40) can be used to break out of the
+`while' loop early.
 
 8.3.40  break
 =============
@@ -5853,8 +5854,8 @@ lazily. The following two definitions are equivalent.
           $|name2| = $`(yyy)
 >>
   
-  The `create-lazy-map' function is used in rule construction 12.8.0.11.
-
+  The `create-lazy-map' function (see Section 12.8.0.11) is used in rule
+construction.
 
 8.6  Iteration and mapping
 *=*=*=*=*=*=*=*=*=*=*=*=*=
@@ -5894,8 +5895,8 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function can be used to break out of the loop early
-8.3.40.
+  The `break' function (Section 8.3.40) can be used to break out of the
+loop early.
 
 Chapter 9    File operations
 ****************************
@@ -7858,8 +7859,8 @@ meaning of `stdout' outside the `filter' function.
  b  ``Break'' when evaluating cases. Only the first case that matches
    will be selected. 
   
-  The `break' function can be used to abort the loop 8.3.40, exiting the
-`awk' function immediately.
+  The `break' function (Section 8.3.40) can be used to abort the loop,
+exiting the `awk' function immediately.
 
 9.11.6  fsubst
 ==============
@@ -7942,7 +7943,7 @@ alphanumeric words in an input file.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function can be used to abort the loop 8.3.40.
+  The `break' function (Section 8.3.40) can be used to abort the loop.
 
 9.11.8  lex-search
 ==================
@@ -7977,7 +7978,7 @@ alphanumeric words in an input file, skipping any other text.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function can be used to abort the loop 8.3.40.
+  The `break' function (Section 8.3.40) can be used to abort the loop.
 
 9.11.9  Lexer
 =============
@@ -8340,6 +8341,8 @@ expanded before the function is executed.
      mv {hello,foo}.ml
 >>
   
+  A comprehensive description of OMake glob patterns is given in Section
+9.4.
   
 
 10.3  Background jobs
@@ -8450,7 +8453,7 @@ following:
   
   
   Commands may also be builtin (aliases). See the documentation for the
-`Shell' object 11.1.23 for more information.
+`Shell' object (Section 11.1.23) for more information.
   
 
 10.9  Basic builtin functions
@@ -9104,21 +9107,18 @@ single array containing an argument list.
     
     The `cat' function prints the contents of the files to stdout 
     - `test'
-      <<
-           test \emph{expression}
-           \verb+[+ \emph{expression} +]+
-           \verb+[ --help+
-           \verb+[ --version+
-      >>
-    
-    See the documentation for the `test' function.
+    `test' expression
+    `[' expression +]+
+    `[ --help'
+    `[ --version'
+    See the documentation for the `test' function (Section 9.7.1).
     
     - `find'
       <<
            find \emph{expression}
       >>
     
-    See the documentation for the `find' function.
+    See the documentation for the `find' function (Section 9.7.2).
  
   
 
@@ -9165,8 +9165,8 @@ Failed)) targets could not be built")
   
   Another common use is to define notifications to be performed when the
 build completes. For example, the following rule will create a new X
-terminal displaying the summary of the build (see `BUILD_SUMMARY'
-8.1.12).
+terminal displaying the summary of the build (see `BUILD_SUMMARY' in
+Section 8.1.12).
 <<
       .BUILD_FAILURE:
           xterm -e vi $(BUILD_SUMMARY)
@@ -9174,13 +9174,14 @@ terminal displaying the summary of the build (see `BUILD_SUMMARY'
   
   If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can define them in
-your `.omakerc' A.8.
-  The `find-build-targets' function 12.8.0.9 is useful for obtaining a
-firther summary of the build. Note that when output diversions are in
-effect (with the `--divert-*' options A), any output produced by the
-commands is copied to a file. The name of the file is specified by the
-`output-file' field of the `Target' 11.1.11 object. You may find this
-useful in defining custom build summaries.
+your `.omakerc' (see Section A.8).
+  The `find-build-targets' function (Section 12.8.0.9 is useful for
+obtaining a firther summary of the build. Note that when output
+diversions are in effect (with the `--divert-*' options --- see Chapter
+A), any output produced by the commands is copied to a file. The name of
+the file is specified by the `output-file' field of the `Target' object
+(Section 11.1.11). You may find this useful in defining custom build
+summaries.
 
 12.2  Options and versioning
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=
@@ -10199,10 +10200,10 @@ case-insensitive.
  Succeeded  The list of targets that were built successfully. 
  Failed  The list of targets that could not be built. 
   
-  These are used mainly in conjuction with the `.BUILD_SUCCESS' 12.1 and
-`.BUILD_FAILURE' 12.1 phony targets. For example, adding the following
-to your project `OMakefile' will print the number of targets that failed
-(if the build failed).
+  These are used mainly in conjuction with the `.BUILD_SUCCESS' (Section
+12.1) and `.BUILD_FAILURE' (Section 12.1) phony targets. For example,
+adding the following to your project `OMakefile' will print the number
+of targets that failed (if the build failed).
 <<
       .BUILD_FAILURE:
           echo "Failed target count: $(length $(failed-targets))"
@@ -10247,7 +10248,7 @@ exceptional cases.
    two-part rules. 
  sources  The sequence of dependencies. 
  options  An array of options. Each option is represented  as a `Map'
-   11.1.2 associating each specified option with  a value. 
+   (Section 11.1.2) associating each specified option with  a value. 
  body  The body expression of the rule. 
   
   Consider the following rule.
@@ -10259,7 +10260,7 @@ exceptional cases.
   
   This expression represents the following function call, where square
 brackets are used to indicate arrays, and the curly brackets represent a
-`Map' 11.1.2.
+`Map' (Section 11.1.2).
 <<
      rule(false, target, pattern, sources,
           { $|:name1:| = option1; $|:name2:| = option2 }
@@ -10446,9 +10447,9 @@ A.2.8  --divert-repeat
 ======================
    `--divert-repeat'
   When a rule finishes, print the output as a single block. This is
-useful in combination `-j' option A.3.12, where the output of multiple
-subprocesses can be garbled. The diversion is printed as a single
-coherent unit. Implies `--divert-errors'.
+useful in combination `-j' option (see Section A.3.12), where the output
+of multiple subprocesses can be garbled. The diversion is printed as a
+single coherent unit. Implies `--divert-errors'.
   
 
 A.2.9  --divert-only
@@ -10461,8 +10462,8 @@ the output from failed commands is delayed until the build completes and
 the summary is printed. May be used in combination with
 `--divert-repeat' (output from failed commands will be printed twice).
 Implies `--divert-errors'.
-  You might also consider using the `--progress' flag A.2.4 so that you
-can see when the build is active.
+  You might also consider using the `--progress' flag (see Section
+A.2.4) so that you can see when the build is active.
   
 
 A.2.10  --divert-discard-success
@@ -10727,14 +10728,14 @@ A.6  Functions
   
   
 
-A.6.1  OMakeFlags 12.2.0.1
-==========================
+A.6.1  OMakeFlags
+=================
   
-  The `OMakeFlags' function 12.2.0.1 can be used within an `OMakefile'
-to modify the set of options. The options should be specified exactly as
-they are on the command line. For example, if you want some specific
-project to be silent and display a progress bar, you can add the
-following line to your `OMakefile'.
+  The `OMakeFlags' function can be used within an `OMakefile' to modify
+the set of options. The options should be specified exactly as they are
+on the command line. For example, if you want some specific project to
+be silent and display a progress bar, you can add the following line to
+your `OMakefile'.
 <<
       OMakeFlags(-S --progress)
 >>
@@ -11040,7 +11041,8 @@ expressions.
    is called with argument `12'. 
   
   The additional dollar sequences specify evaluation order, `$`' (lazy)
-and `$,' (eager), as discussed in the section on dollar modifiers B.3.
+and `$,' (eager), as discussed in the section on dollar modifiers
+(Section B.3).
   
 
 B.2.2  Statements and programs
@@ -11150,10 +11152,10 @@ B.2.2.1  Special forms
 ----------------------
   
   The special forms include the following.
-  Conditionals (see the section on conditionals 4.9). The `if' command
-should be followed by an expression that represents the condition, and
-an indented body. The conditional may be followed by `elseif' and `else'
-blocks.
+  Conditionals (see the section on conditionals --- Section 4.9). The
+`if' command should be followed by an expression that represents the
+condition, and an indented body. The conditional may be followed by
+`elseif' and `else' blocks.
 <<
       if expr
           indented-body
@@ -11164,9 +11166,10 @@ blocks.
           indented-body
 >>
   
-  matching (see the section on matching 4.10). The `switch' and `match'
-commands perform pattern-matching. All cases are optional. Each case may
-include `when' clauses that specify additional matching conditions.
+  matching (see the section on matching --- Section 4.10). The `switch'
+and `match' commands perform pattern-matching. All cases are optional.
+Each case may include `when' clauses that specify additional matching
+conditions.
 <<
       match(expr)
       case expr
@@ -11180,10 +11183,11 @@ include `when' clauses that specify additional matching conditions.
          indented-body
 >>
   
-  Exceptions (see the `try' function 8.2.7). The `try' command
-introduces an exception handler. Each `name' is the name of a class. All
-cases, including `catch', `default', and `finally' are optional. The
-`catch' and `default' clauses contain optional `when' clauses.
+  Exceptions (see the `try' function in Section 8.2.7). The `try'
+command introduces an exception handler. Each `name' is the name of a
+class. All cases, including `catch', `default', and `finally' are
+optional. The `catch' and `default' clauses contain optional `when'
+clauses.
 <<
       try
           indented-body
@@ -11205,16 +11209,16 @@ cases, including `catch', `default', and `finally' are optional. The
       raise expr
 >>
   
-  section (see the `section' description 4.8). The `section' command
-introduces a new scope.
+  section (see the `section' description in Section 4.8). The `section'
+command introduces a new scope.
 <<
       section
           indented-body
 >>
   
-  include, open (see the `include' description 4.7). The `include'
-command performs file inclusion. The expression should evaluate to a
-file name.
+  include, open (see the `include' description in Section 4.7). The
+`include' command performs file inclusion. The expression should
+evaluate to a file name.
   The `open' form is like include, but it performs the inclusion only if
 the inclusion has not already been performed. The `open' form is usually
 used to include library files. [jyh-- this behavior will change in
@@ -11224,37 +11228,37 @@ subsequent revisions.]
       open expr
 >>
   
-  return (see the description of functions 4.5). The `return' command
-terminates execution and returns a value from a function.
+  return (see the description of functions in Section 4.5). The `return'
+command terminates execution and returns a value from a function.
 <<
       return expr
 >>
   
-  value (see the description of functions 4.5). The `value' command is
-an identity. Syntactically, it is used to coerce a n expression to a
-statement.
+  value (see the description of functions in Section 4.5). The `value'
+command is an identity. Syntactically, it is used to coerce a n
+expression to a statement.
 <<
       value expr
 >>
   
-  export (see the section on scoping 4.8). The `export' command exports
-a environment from a nested block. If no identifiers are specified, the
-entire environment is exported. Otherwise, the export is limited to the
-specified identifiers.
+  export (see the section on scoping --- Section 4.8). The `export'
+command exports a environment from a nested block. If no identifiers are
+specified, the entire environment is exported. Otherwise, the export is
+limited to the specified identifiers.
 <<
       export id ... id
 >>
   
-  while (see the `while' description 8.3.39). The `while' command
-introduces a `while' loop.
+  while (see the `while' description in Section 8.3.39). The `while'
+command introduces a `while' loop.
 <<
       while expr
           indented-body
 >>
   
-  class, extends (see the section on objects 4.11). The `class' command
-specifies an identifier for an object. The `extends' command specifies a
-parent object.
+  class, extends (see the section on objects --- Section 4.11). The
+`class' command specifies an identifier for an object. The `extends'
+command specifies a parent object.
 <<
       class id
       extends expr
@@ -11265,9 +11269,9 @@ parent object.
 B.2.2.2  Variable definitions
 -----------------------------
   
-  See the section on variables 4.1. The simplest variable definition has
-the following syntax. The `=' form is a new definition. The += form
-appends the value to an existing definition.
+  See the section on variables (Section 4.1). The simplest variable
+definition has the following syntax. The `=' form is a new definition.
+The += form appends the value to an existing definition.
 <<
       id = expr
       id += expr
@@ -11309,9 +11313,9 @@ these qualifiers is slightly changed.]
 B.2.2.3  Applications and function definitions
 ----------------------------------------------
   
-  See the section on functions 4.5. A function-application statement is
-specified as a function name, followed a parenthesized list of
-comma-separated arguments.
+  See the section on functions (Section 4.5). A function-application
+statement is specified as a function name, followed a parenthesized list
+of comma-separated arguments.
 <<
       osh> println($"Hello world")
   
@@ -11358,8 +11362,8 @@ function is indented.
 B.2.2.4  Objects
 ----------------
   
-  See the section on objects 4.11. Objects are defined as an identifier
-with a terminal period. The body of the object is indented.
+  See the section on objects (Section 4.11). Objects are defined as an
+identifier with a terminal period. The body of the object is indented.
 <<
       Obj. =
           class Obj
@@ -11426,7 +11430,7 @@ two methods `zoom' and `crazy'.
 B.2.2.5  Rules
 --------------
   
-  See the chapter on rules 7. A rule has the following parts. 
+  See the chapter on rules (Chapter 7). A rule has the following parts. 
   
  1. A sequence of targets; 
  2. one or two colons; 
@@ -11519,7 +11523,7 @@ the explicit targets `a.cmo' and `b.cmo'.
 B.2.2.6  Shell commands
 -----------------------
   
-  See the chapter on shell commands 10.
+  See the chapter on shell commands (Chapter 10).
   While it is possible to give a precise specification of shell
 commands, the informal description is simpler. Any non-empty statement
 where each prefix is not one of the other statements, is considered to
@@ -12583,7 +12587,7 @@ Appendix C    References
 C.0.1  See Also
 ===============
   
-  omake(1) 1, osh(1) 13, make(1)
+  omake(1) (Chapter 1), osh(1) (Chapter 13), make(1)
   
 
 C.0.2  Version

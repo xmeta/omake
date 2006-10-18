@@ -680,7 +680,7 @@ let try_fun venv pos loc args =
  * The \verb+raise+ function raises an exception.
  * The \verb+exn+ object can be any object.  However,
  * the normal convention is to raise an \verb+Exception+
- * object~\ref{obj:Exception}.
+ * object (Section~\ref{obj:Exception}).
  *
  * If the exception is never caught, the whole object will be verbosely
  * printed in the error message. However, if the object is an \verb+Exception+ one
@@ -2453,8 +2453,8 @@ let export venv pos loc args =
  *        echo $i
  * \end{verbatim}
  *
- * The \verb+break+ function can be used to break out of the \verb+while+ loop
- * early~\ref{fun:break}.
+ * The \verb+break+ function (Section~\ref{fun:break}) can be used to break out of the \verb+while+ loop
+ * early.
  * \end{doc}
  *)
 let rec eval_while_cases venv pos loc orig_cases arg cases =

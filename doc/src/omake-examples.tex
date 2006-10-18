@@ -44,13 +44,16 @@ differences to keep in mind when using \Prog{omake}.
 
 \begin{itemize}
 \item In \Prog{omake}, you are much less likely to define build rules of your own.
-  The system provides many standard functions (like \verb+StaticCLibrary+~\ref{fun:StaticCLibrary} and \verb+CProgram+~\ref{fun:CProgram})
+  The system provides many standard functions (like \verb+StaticCLibrary+,
+  described in Section~\ref{fun:StaticCLibrary} and \verb+CProgram+,
+  described in Section~\ref{fun:CProgram})
   to specify these builds more simply.
 \item Implicit rules using \verb+.SUFFIXES+ and the \verb+.suf1.suf2:+ are not supported.
   You should use wildcard patterns instead \verb+%.suf2: %.suf1+.
-\item Scoping is significant: you should define variables and \verb+.PHONY+~\ref{target:.PHONY} targets before they are used.
-\item Subdirectories are incorporated into a project using the \verb+.SUBDIRS:+~\ref{target:.SUBDIRS}.
-  target.
+\item Scoping is significant: you should define variables and \verb+.PHONY+
+  targets (see Section~\ref{target:.PHONY}) before they are used.
+\item Subdirectories are incorporated into a project using the
+  \verb+.SUBDIRS:+ target (see Section~\ref{target:.SUBDIRS}).
 \end{itemize}
 
 \section{Building a small C program}
@@ -82,7 +85,8 @@ Suppose we have a C file called \verb+hello_code.c+ containing the following cod
     }
 \end{verbatim}
 
-To build the program a program \verb+hello+ from this file, we can use the \verb+CProgram+~\ref{fun:CProgram} function.
+To build the program a program \verb+hello+ from this file, we can use the
+\verb+CProgram+ function (Section~\ref{fun:CProgram}).
 The \File{OMakefile} contains just one line that specifies that the program \verb+hello+ is
 to be built from the source code in the \verb+hello_code.c+ file (note that file suffixes
 are not passed to these functions).
@@ -114,7 +118,7 @@ were built, and how many MD5 digests were computed.
 \end{verbatim}
 
 If we want to change the compile options, we can redefine the \verb+CC+ and \verb+CFLAGS+
-variables \emph{before} the \verb+CProgram+~\ref{fun:CProgram} line.  In this example, we will use the \verb+gcc+
+variables \emph{before} the \verb+CProgram+ line.  In this example, we will use the \verb+gcc+
 compiler with the \verb+-g+ option.  In addition, we will specify a \verb+.DEFAULT+ target
 to be built by default.  The \verb+EXE+ variable is defined to be \verb+.exe+ on \verb+Win32+
 systems; it is empty otherwise.
@@ -238,7 +242,7 @@ Alternatively, we can also place the change in the root \File{OMakefile}.
 \end{verbatim}
 
 Note that the way we have specified it, the \verb+CFLAGS+ variable also contains the \verb+-O3+
-option for the \verb+CProgram+~\ref{fun:CProgram}, and \verb+hello_code.c+ and \verb+hello_helper.c+ file will both be
+option for the \verb+CProgram+, and \verb+hello_code.c+ and \verb+hello_helper.c+ file will both be
 compiled with the \verb+-O3+ option.  If we want to make the change truly local to \verb+libbar+, we
 can put the \verb+bar+ subdirectory in its own scope using the \verb+section+ form.
 

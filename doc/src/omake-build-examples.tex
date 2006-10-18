@@ -356,7 +356,7 @@ Initially, these definitions will be placed in the project root \verb+OMakefile+
 Let's start with part 2, defining a generic compilation rule.  We'll define the build rule as an
 \emph{implicit} rule.  To handle the include path, we'll define a variable \verb+CAT_INCLUDES+ that
 specifies the include path.  This will be an array of directories.  To define the options, we'll use
-a lazy variable~\ref{section:lazy}.  In case there
+a lazy variable (Section~\ref{section:lazy}).  In case there
 are any other standard flags, we'll define a \verb+CAT_FLAGS+ variable.
 
 \begin{verbatim}
@@ -462,9 +462,9 @@ like the following.
 \index{awk} Now, returning to the animal world, to compute the dependencies of \verb+neko.woof+, we
 should scan \verb+neko.cat+, line-by-line, looking for lines of the form \verb+open <name>+.  We
 could do this by writing a program, but it is easy enough to do it in \verb+omake+ itself.  We can
-use the builtin \verb+awk+~\ref{fun:awk} function to scan the source file.  One slight complication
+use the builtin \verb+awk+ function (Section~\ref{fun:awk}) to scan the source file.  One slight complication
 is that the dependencies depend on the \verb+INCLUDE+ path.  We'll use the
-\verb+find-in-path+~\ref{fun:find-in-path} function to find them.  Here we go.
+\verb+find-in-path+ function (Section~\ref{fun:find-in-path}) to find them.  Here we go.
 
 \begin{verbatim}
     .SCANNER: %.woof: %.cat
@@ -679,8 +679,9 @@ of the subdirectories.  We can see this if we add a statement that prints the cu
 
 Of course, this specification is quite rigid.  In practice, it is likely that each subdirectory will
 have a different set of images, and all should be included in the web page.  One of the easier
-solutions is to use one of the directory-listing functions, like \verb+glob+~\ref{fun:glob} or
-\verb+ls+~\ref{fun:ls}.  The \verb+glob+ function takes a shell pattern, and returns an array of
+solutions is to use one of the directory-listing functions, like
+\verb+glob+ (Section~\ref{fun:glob}) or \verb+ls+ (Section~\ref{fun:ls}).
+The \verb+glob+ function takes a shell pattern, and returns an array of
 file with matching filenames in the current directory.
 
 \begin{verbatim}

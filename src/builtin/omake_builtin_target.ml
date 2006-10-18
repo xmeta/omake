@@ -327,8 +327,8 @@ let target_optional = target_core true
  * \end{description}
  *
  * These are used mainly in conjuction with the
- * \verb+.BUILD_SUCCESS+~\ref{target:.BUILD_SUCCESS} and
- * \verb+.BUILD_FAILURE+~\ref{target:.BUILD_FAILURE} phony targets.
+ * \verb+.BUILD_SUCCESS+ (Section~\ref{target:.BUILD_SUCCESS}) and
+ * \verb+.BUILD_FAILURE+ (Section~\ref{target:.BUILD_FAILURE}) phony targets.
  * For example, adding the following to your project \verb+OMakefile+
  * will print the number of targets that failed (if the build failed).
  *
@@ -413,7 +413,7 @@ let project_directories venv pos loc args =
  *   for two-part rules.
  * \item[sources] The sequence of dependencies.
  * \item[options] An array of options.  Each option is represented
- *   as a \verb+Map+~\ref{obj:Map} associating each specified option with
+ *   as a \verb+Map+ (Section~\ref{obj:Map}) associating each specified option with
  *   a value.
  * \item[body] The body expression of the rule.
  * \end{description}
@@ -428,7 +428,7 @@ let project_directories venv pos loc args =
  *
  * This expression represents the following function call, where
  * square brackets are used to indicate arrays, and the curly
- * brackets represent a \verb+Map+~\ref{obj:Map}.
+ * brackets represent a \verb+Map+ (Section~\ref{obj:Map}).
  *
  * \begin{verbatim}
  *    rule(false, target, pattern, sources,

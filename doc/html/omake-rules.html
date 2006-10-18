@@ -154,7 +154,7 @@ the <TT>omake</TT> IO functions to produce the target <CODE>hello.c</CODE>.
             fprintln($(FP), $""#include &lt;stdio.h&gt; int main() { printf("Hello world\n"); }"")
             close($(FP))
 </PRE>
-This example uses the quotation <CODE>$""...""</CODE>&nbsp;<A HREF="omake-grammar.html#section:quotes">B.1.6</A> to quote the text being
+This example uses the quotation <CODE>$""...""</CODE> (see also Section&nbsp;<A HREF="omake-grammar.html#section:quotes">B.1.6</A>) to quote the text being
 printed. These quotes are not included in the output file. The <CODE>fopen</CODE>, <CODE>fprintln</CODE>, and
 <CODE>close</CODE> functions perform file IO as discussed in the IO section.<BR>
 <BR>
@@ -333,7 +333,7 @@ source file changes, all the files will end up being re-scanned.<BR>
 In most cases, you won't need to define scanners of your own. The standard installation includes
 default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.<BR>
 <BR>
-The <CODE>SCANNER_MODE</CODE>&nbsp;<A HREF="omake-rule.html#var:SCANNER_MODE">12.3.1.7</A> variable controls the usage of implicit scanner dependencies.<BR>
+The <CODE>SCANNER_MODE</CODE> variable (see Section&nbsp;<A HREF="omake-rule.html#var:SCANNER_MODE">12.3.1.7</A>) controls the usage of implicit scanner dependencies.<BR>
 <BR>
 The explicit <CODE>:scanner:</CODE> dependencies reduce the chances of scanner mis-specifications. In
 large complicated projects it might be a good idea to set <CODE>SCANNER_MODE</CODE> to <CODE>error</CODE> and
@@ -583,9 +583,9 @@ from the project root.
 <A NAME="toc64"></A>
 <H2 CLASS="section"><A NAME="htoc89">7.14</A>&nbsp;&nbsp;Pathnames in rules</H2>
 In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
-<CODE>file</CODE> function&nbsp;<A HREF="omake-system.html#fun:file">9.1.1</A>). They are then translated to strings for the command line.
+<CODE>file</CODE> function described in Section&nbsp;<A HREF="omake-system.html#fun:file">9.1.1</A>). They are then translated to strings for the command line.
 This can cause some unexpected behavior. In the following example, the <CODE>absname</CODE>
-function&nbsp;<A HREF="omake-system.html#fun:absname">9.1.8</A> is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
+function (Section&nbsp;<A HREF="omake-system.html#fun:absname">9.1.8</A>) is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
 the relative pathname.
 <PRE CLASS="verbatim">
     .PHONY: demo
@@ -619,14 +619,14 @@ One way to do this is to specify them literally.
 </PRE>
 Alternately, you might wish that filenames be automatically expanded to absolute pathnames. For
 example, this might be useful when parsing the OMake output to look for errors. For this, you can
-use the <CODE>--absname</CODE>&nbsp;<A HREF="omake-options.html#option:--absname">A.3.20</A> option. If you call <CODE>omake</CODE> with the
+use the <CODE>--absname</CODE> option (Section&nbsp;<A HREF="omake-options.html#option:--absname">A.3.20</A>). If you call <CODE>omake</CODE> with the
 <CODE>--absname</CODE> option, all filenames will be exapnded to absolute names.
 <PRE CLASS="verbatim">
     # omake --absname demo (on a Unix system)
     /home/.../a/b /home/.../c/d
 </PRE>
 Alternately, the <CODE>--absname</CODE> option is scoped. If you want to use it for only a few rules, you
-can use the <CODE>OMakeFlags</CODE> function&nbsp;<A HREF="omake-rule.html#fun:OMakeFlags">12.2.0.1</A> to control how it is applied.
+can use the <CODE>OMakeFlags</CODE> function (see Section&nbsp;<A HREF="omake-rule.html#fun:OMakeFlags">12.2.0.1</A>) to control how it is applied.
 <PRE CLASS="verbatim">
    section
       OMakeFlags(--absname)

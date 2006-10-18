@@ -247,17 +247,18 @@ differences to keep in mind when using omake.
   
   
  - In omake, you are much less likely to define build rules of your own.
-    The system provides many standard functions (like `StaticCLibrary'
-   12.4.3.1*Note Subsection 12-4-3:: and `CProgram'
-   12.4.3.5*Note Subsection 12-4-3::)  to specify these builds more
-   simply. 
+    The system provides many standard functions (like `StaticCLibrary', 
+   described in Section 12.4.3.1*Note Subsection 12-4-3:: and
+   `CProgram',  described in Section 12.4.3.5*Note Subsection 12-4-3::) 
+   to specify these builds more simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
    %.suf1'. 
- - Scoping is significant: you should define variables and `.PHONY'
-   7.12*Note Section 7-12:: targets before they are used. 
- - Subdirectories are incorporated into a project using the `.SUBDIRS:'
-   7.10*Note Section 7-10::.  target. 
+ - Scoping is significant: you should define variables and `.PHONY' 
+   targets (see Section 7.12*Note Section 7-12::) before they are
+   used. 
+ - Subdirectories are incorporated into a project using the  `.SUBDIRS:'
+   target (see Section 7.10*Note Section 7-10::). 
   
 
 Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
@@ -295,10 +296,10 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' 12.4.3.5*Note Subsection 12-4-3:: function. The OMakefile
-contains just one line that specifies that the program `hello' is to be
-built from the source code in the `hello_code.c' file (note that file
-suffixes are not passed to these functions).
+`CProgram' function (Section 12.4.3.5*Note Subsection 12-4-3::). The
+OMakefile contains just one line that specifies that the program `hello'
+is to be built from the source code in the `hello_code.c' file (note
+that file suffixes are not passed to these functions).
 <<
       CProgram(hello, hello_code)
 >>
@@ -326,11 +327,10 @@ MD5 digests were computed.
 >>
   
   If we want to change the compile options, we can redefine the `CC' and
-`CFLAGS' variables before the `CProgram'
-12.4.3.5*Note Subsection 12-4-3:: line. In this example, we will use the
-`gcc' compiler with the `-g' option. In addition, we will specify a
-`.DEFAULT' target to be built by default. The `EXE' variable is defined
-to be `.exe' on `Win32' systems; it is empty otherwise.
+`CFLAGS' variables before the `CProgram' line. In this example, we will
+use the `gcc' compiler with the `-g' option. In addition, we will
+specify a `.DEFAULT' target to be built by default. The `EXE' variable
+is defined to be `.exe' on `Win32' systems; it is empty otherwise.
 <<
       CC = gcc
       CFLAGS += -g
@@ -458,8 +458,7 @@ can also place the change in the root OMakefile.
 >>
   
   Note that the way we have specified it, the `CFLAGS' variable also
-contains the `-O3' option for the `CProgram'
-12.4.3.5*Note Subsection 12-4-3::, and `hello_code.c' and
+contains the `-O3' option for the `CProgram', and `hello_code.c' and
 `hello_helper.c' file will both be compiled with the `-O3' option. If we
 want to make the change truly local to `libbar', we can put the `bar'
 subdirectory in its own scope using the `section' form.
@@ -1201,8 +1200,8 @@ Node: Subsection 3-4-1,	Next: Subsection 3-4-2,	Prev: Section 3-4,	Up: Section 3
 define the build rule as an implicit rule. To handle the include path,
 we'll define a variable `CAT_INCLUDES' that specifies the include path.
 This will be an array of directories. To define the options, we'll use a
-lazy variable 6.5*Note Section 6-5::. In case there are any other
-standard flags, we'll define a `CAT_FLAGS' variable.
+lazy variable (Section 6.5*Note Section 6-5::). In case there are
+any other standard flags, we'll define a `CAT_FLAGS' variable.
 <<
      # Define the catc command, in case we ever want to override it
      CATC = catc
@@ -1316,10 +1315,10 @@ print a line like the following.
 dependencies of `neko.woof', we should scan `neko.cat', line-by-line,
 looking for lines of the form `open <name>'. We could do this by writing
 a program, but it is easy enough to do it in `omake' itself. We can use
-the builtin `awk' 9.11.5*Note Subsection 9-11-5:: function to scan the source
-file. One slight complication is that the dependencies depend on the
-`INCLUDE' path. We'll use the `find-in-path'
-9.2.6*Note Subsection 9-2-6:: function to find them. Here we go.
+the builtin `awk' function (Section 9.11.5*Note Subsection 9-11-5::) to scan
+the source file. One slight complication is that the dependencies depend
+on the `INCLUDE' path. We'll use the `find-in-path' function (Section
+9.2.6*Note Subsection 9-2-6::) to find them. Here we go.
 <<
       .SCANNER: %.woof: %.cat
           section
@@ -1507,52 +1506,3 @@ variable to ensure that `omake' knows how to find it.
   Better yet, if you are happy with your work, consider submitting it as
 a standard configuration (by sending a request to `omake@metaprl.org')
 so that others can make use of it too.
-
-Node: Section 3-5,	Next: Subsection 3-5-1,	Prev: Section 3-4,	Up: Chapter 3
-  
-
-3.5   Collapsing the hierarchy, .SUBDIRS bodies
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-  Some projects have many subdirectories that all have the same
-configuration. For instance, suppose you have a project with many
-subdirectories, each containing a set of images that are to be composed
-into a web page. Apart from the specific images, the configuration of
-each file is the same.
-  To make this more concrete, suppose the project hase four
-subdirectories `page1', `page2', `page3', and `page4'. Each contains two
-files `image1.jpg' and `image2.jpg' that are part of a web page
-generated by a program `genhtml'.
-  Instead of of defining a `OMakefile' in each directory, we can define
-it as a body to the `.SUBDIRS' command.
-<<
-      .SUBDIRS: page1 page2 page3 page4
-          index.html: image1.jpg image2jpg
-              genhtml $+ > $@
->>
-  
-  The body of the `.SUBDIRS' is interpreted exactly as if it were the
-`OMakefile', and it can contain any of the normal statements. The body
-is evaluated in the subdirectory for each of the subdirectories. We can
-see this if we add a statement that prints the current directory
-(`$(CWD)').
-<<
-      .SUBDIRS: page1 page2 page3 page4
-          println($(absname $(CWD)))
-          index.html: image1.jpg image2jpg
-              genhtml $+ > $@
-    # prints
-      /home/jyh/.../page1
-      /home/jyh/.../page2
-      /home/jyh/.../page3
-      /home/jyh/.../page4
->>
-  
-* Menu:
-
-* Subsection 3-5-1::	Using glob patterns
-* Subsection 3-5-2::	Simplified sub-configurations
-* Subsection 3-5-3::	Computing the subdirectory list
-* Subsection 3-5-4::	Temporary directories
-

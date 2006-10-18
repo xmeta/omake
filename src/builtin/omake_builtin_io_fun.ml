@@ -716,7 +716,7 @@ let scan venv pos loc args =
  * \item[b] ``Break'' when evaluating cases.  Only the first case that matches will be selected.
  * \end{description}
  *
- * The \verb+break+ function can be used to abort the loop~\ref{fun:break},
+ * The \verb+break+ function (Section~\ref{fun:break}) can be used to abort the loop,
  * exiting the \verb+awk+ function immediately.
  * \end{doc}
  *)
@@ -1133,7 +1133,7 @@ let fsubst venv pos loc args =
  *
  * It is an error if the input does not match any of the regular expressions.
  *
- * The \verb+break+ function can be used to abort the loop~\ref{fun:break}.
+ * The \verb+break+ function (Section~\ref{fun:break}) can be used to abort the loop.
  * \end{doc}
  *)
 let eof_sym = Lm_symbol.add "eof"
@@ -1258,7 +1258,7 @@ let lex venv pos loc args =
  *
  * It is an error if the input does not match any of the regular expressions.
  *
- * The \verb+break+ function can be used to abort the loop~\ref{fun:break}.
+ * The \verb+break+ function (Section~\ref{fun:break}) can be used to abort the loop.
  * \end{doc}
  *)
 let lex_search venv pos loc args =

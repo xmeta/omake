@@ -373,7 +373,7 @@ Initially, these definitions will be placed in the project root <CODE>OMakefile<
 Let's start with part 2, defining a generic compilation rule. We'll define the build rule as an
 <EM>implicit</EM> rule. To handle the include path, we'll define a variable <CODE>CAT_INCLUDES</CODE> that
 specifies the include path. This will be an array of directories. To define the options, we'll use
-a lazy variable&nbsp;<A HREF="omake-language-examples.html#section:lazy">6.5</A>. In case there
+a lazy variable (Section&nbsp;<A HREF="omake-language-examples.html#section:lazy">6.5</A>). In case there
 are any other standard flags, we'll define a <CODE>CAT_FLAGS</CODE> variable.
 <PRE CLASS="verbatim">
    # Define the catc command, in case we ever want to override it
@@ -467,9 +467,9 @@ like the following.
 <A NAME="@default9"></A> Now, returning to the animal world, to compute the dependencies of <CODE>neko.woof</CODE>, we
 should scan <CODE>neko.cat</CODE>, line-by-line, looking for lines of the form <CODE>open &lt;name&gt;</CODE>. We
 could do this by writing a program, but it is easy enough to do it in <CODE>omake</CODE> itself. We can
-use the builtin <CODE>awk</CODE>&nbsp;<A HREF="omake-system.html#fun:awk">9.11.5</A> function to scan the source file. One slight complication
+use the builtin <CODE>awk</CODE> function (Section&nbsp;<A HREF="omake-system.html#fun:awk">9.11.5</A>) to scan the source file. One slight complication
 is that the dependencies depend on the <CODE>INCLUDE</CODE> path. We'll use the
-<CODE>find-in-path</CODE>&nbsp;<A HREF="omake-system.html#fun:find-in-path">9.2.6</A> function to find them. Here we go.
+<CODE>find-in-path</CODE> function (Section&nbsp;<A HREF="omake-system.html#fun:find-in-path">9.2.6</A>) to find them. Here we go.
 <PRE CLASS="verbatim">
     .SCANNER: %.woof: %.cat
         section
@@ -674,8 +674,9 @@ of the subdirectories. We can see this if we add a statement that prints the cur
 <H3 CLASS="subsection"><A NAME="htoc26">3.5.1</A>&nbsp;&nbsp;Using glob patterns</H3>
 Of course, this specification is quite rigid. In practice, it is likely that each subdirectory will
 have a different set of images, and all should be included in the web page. One of the easier
-solutions is to use one of the directory-listing functions, like <CODE>glob</CODE>&nbsp;<A HREF="omake-system.html#fun:glob">9.4.1</A> or
-<CODE>ls</CODE>&nbsp;<A HREF="omake-system.html#fun:ls">9.4.2</A>. The <CODE>glob</CODE> function takes a shell pattern, and returns an array of
+solutions is to use one of the directory-listing functions, like
+<CODE>glob</CODE> (Section&nbsp;<A HREF="omake-system.html#fun:glob">9.4.1</A>) or <CODE>ls</CODE> (Section&nbsp;<A HREF="omake-system.html#fun:ls">9.4.2</A>).
+The <CODE>glob</CODE> function takes a shell pattern, and returns an array of
 file with matching filenames in the current directory.
 <PRE CLASS="verbatim">
     .SUBDIRS: page1 page2 page3 page4

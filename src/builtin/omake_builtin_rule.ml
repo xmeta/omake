@@ -105,7 +105,7 @@ open Pos
  * Another common use is to define notifications to be performed when
  * the build completes.  For example, the following rule will create
  * a new X terminal displaying the summary of the build
- * (see \verb+BUILD_SUMMARY+~\ref{var:BUILD_SUMMARY}).
+ * (see \verb+BUILD_SUMMARY+ in Section~\ref{var:BUILD_SUMMARY}).
  *
  * \begin{verbatim}
  *     .BUILD_FAILURE:
@@ -114,13 +114,13 @@ open Pos
  *
  * If you do not wish to add these rules directly to your project (which
  * is probably a good idea if you work with others), you can
- * define them in your \verb+.omakerc+~\ref{section:.omakerc}.
+ * define them in your \verb+.omakerc+ (see Section~\ref{section:.omakerc}).
  *
- * The \verb+find-build-targets+ function~\ref{fun:find-build-targets}
+ * The \verb+find-build-targets+ function (Section~\ref{fun:find-build-targets}
  * is useful for obtaining a firther summary of the build.  Note that
- * when output diversions are in effect (with the \verb+--divert-*+ options~\ref{chapter:options}),
+ * when output diversions are in effect (with the \verb+--divert-*+ options --- see Chapter~\ref{chapter:options}),
  * any output produced by the commands is copied to a file.  The name of the
- * file is specified by the \verb+output-file+ field of the \verb+Target+~\ref{obj:Target} object.
+ * file is specified by the \verb+output-file+ field of the \verb+Target+ object (Section~\ref{obj:Target}).
  * You may find this useful in defining custom build summaries.
  * \end{doc}
  *)
