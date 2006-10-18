@@ -2,11 +2,9 @@
  * Builtin shell operations.
  *
  * \begin{doc}
- * \chapter{Shell functions}
- * \label{chapter:shell}
- * \cutname{omake-shell.html}
+ * \include{omake-shell}
  *
- * \section{Basic functions}
+ * \section{Basic builtin functions}
  * \end{doc}
  *
  * ----------------------------------------------------------------
@@ -108,8 +106,10 @@ let signal_of_string pos s =
  *
  * The \verb+echo+ function prints a string.
  *
- * \verb+$(echo <args>)+
- * \verb+echo <args>+
+ * \begin{verbatim}
+ * $(echo <args>)
+ * echo <args>
+ * \end{verbatim}
  * \end{doc}
  *)
 let echo_fun venv pos loc args =
@@ -263,7 +263,7 @@ let cd_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \section{Job control}
+ * \section{Job control builtin functions}
  * \fun{jobs}
  *
  * The \verb+jobs+ function prints a list of jobs.

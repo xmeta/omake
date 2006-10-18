@@ -9,7 +9,7 @@
 <META name="GENERATOR" content="hevea 1.08">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>
-Shell functions
+Shell commands
 </TITLE>
 </HEAD>
 <BODY >
@@ -35,25 +35,155 @@ Shell functions
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD>
 </TR></TABLE>
 
-<H1 CLASS="chapter"><A NAME="htoc285">Chapter&nbsp;10</A>&nbsp;&nbsp;Shell functions</H1><UL>
-<LI><A HREF="omake-shell.html#toc82">Basic functions</A>
-<LI><A HREF="omake-shell.html#toc83">Job control</A>
-<LI><A HREF="omake-shell.html#toc84">Command history</A>
+<H1 CLASS="chapter"><A NAME="htoc285">Chapter&nbsp;10</A>&nbsp;&nbsp;Shell commands</H1><UL>
+<LI><A HREF="omake-shell.html#toc82">Simple commands</A>
+<LI><A HREF="omake-shell.html#toc83">Globbing</A>
+<LI><A HREF="omake-shell.html#toc84">Background jobs</A>
+<LI><A HREF="omake-shell.html#toc85">File redirection</A>
+<LI><A HREF="omake-shell.html#toc86">Pipelines</A>
+<LI><A HREF="omake-shell.html#toc87">Conditional execution</A>
+<LI><A HREF="omake-shell.html#toc88">Grouping</A>
+<LI><A HREF="omake-shell.html#toc89">What is a shell command?</A>
+<LI><A HREF="omake-shell.html#toc90">Basic built-in functions</A>
+<LI><A HREF="omake-shell.html#toc91">Job control</A>
+<LI><A HREF="omake-shell.html#toc92">Command history</A>
 </UL>
 
 <A NAME="chapter:shell"></A>
 <BR>
 <BR>
-<A NAME="toc82"></A>
-<H2 CLASS="section"><A NAME="htoc286">10.1</A>&nbsp;&nbsp;Basic functions</H2>
-
-<H3 CLASS="subsection"><A NAME="htoc287">10.1.1</A>&nbsp;&nbsp;echo</H3><A NAME="@default254"></A><A NAME="@fun191"></A><A NAME="fun:echo"></A>
-The <CODE>echo</CODE> function prints a string.<BR>
+Shell commands (commands to be executed by the operating system) can be freely mixed with other
+code.<BR>
 <BR>
-<CODE>$(echo &lt;args&gt;)</CODE>
-<CODE>echo &lt;args&gt;</CODE>
+<B>NOTE</B>: the syntax and shell usage is identical on all platforms, including Win32. To avoid
+portability problems on Win32, it is recommended that you avoid the use of the native shell
+interpreter <CODE>cmd</CODE>.
+<PRE CLASS="verbatim">
+    LIB = $(dir lib)
+    println(The contents of the $(LIB) directory is:)
+    ls $(LIB)
+</PRE>
+<A NAME="toc82"></A>
+<H2 CLASS="section"><A NAME="htoc286">10.1</A>&nbsp;&nbsp;Simple commands</H2>
+The syntax of shell commands is similar to the syntax used by the Unix shell <CODE>bash</CODE>. In
+general, a command is a <EM>pipeline</EM>. A basic command is part of a pipeline. It is specified
+with the name of an executable and some arguments. Here are some examples.
+<PRE CLASS="verbatim">
+    ls
+    ls -AF .
+    echo Hello world
+</PRE>
+The command is found using the current search path in the variable <CODE>PATH[]</CODE>, which should
+define an array of directories containing executables.<BR>
+<BR>
+A command may also be prefixed by environment variable definitions.
+<PRE CLASS="verbatim">
+    # Prints "Hello world"
+    env X="Hello world" Y=2 printenv X
+    # Pass the include path to the Visual C++
+    env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
+</PRE>
+<A NAME="toc83"></A>
+<H2 CLASS="section"><A NAME="htoc287">10.2</A>&nbsp;&nbsp;Globbing</H2>
+Commands may contain wildcard patterns. A pattern specifies a set of files through a limited kind
+of regular expression. Patterns are expanded before the function is executed.
+<PRE CLASS="verbatim">
+   # List all files with a .c suffix
+   ls *.c
 
-<H3 CLASS="subsection"><A NAME="htoc288">10.1.2</A>&nbsp;&nbsp;cd</H3><A NAME="@default255"></A><A NAME="@fun192"></A><A NAME="fun:cd"></A>
+   # List all files with a single character prefix, and .c suffix
+   ls ?.c
+
+   # Rename the file hello.ml to foo.ml
+   mv {hello,foo}.ml
+</PRE>
+<A NAME="toc84"></A>
+<H2 CLASS="section"><A NAME="htoc288">10.3</A>&nbsp;&nbsp;Background jobs</H2>
+The command may also be placed in the background by placing an ampersand after the command. Control
+returns to the shell without waiting for the job to complete. The job continues to run in the
+background.
+<PRE CLASS="verbatim">
+    gcc -o hugeprogram *.c &amp;
+</PRE>
+<A NAME="toc85"></A>
+<H2 CLASS="section"><A NAME="htoc289">10.4</A>&nbsp;&nbsp;File redirection</H2>
+Input and output can be redirected to files by using the <CODE>&lt;</CODE>, <CODE>&gt;</CODE>, and <CODE>&gt;&amp;</CODE>
+directives after the command.
+<PRE CLASS="verbatim">
+    # Write to the "foo" file
+    echo Hello world &gt; foo
+
+    # Redirect input from the foo file
+    cat &lt; foo
+
+    # Redirect standard output and errors to the foo file
+    gcc -o boo *.c &gt;&amp; foo
+</PRE>
+<A NAME="toc86"></A>
+<H2 CLASS="section"><A NAME="htoc290">10.5</A>&nbsp;&nbsp;Pipelines</H2>
+Pipelines are sequences of commands, where the output from each command is sent to the next.
+Pipelines are defined with the <CODE>|</CODE> and <CODE>|&amp;</CODE> syntax. With <CODE>|</CODE> the output is
+redirected, but errors are not. With <CODE>|&amp;</CODE> both output and errors are redirected.
+<PRE CLASS="verbatim">
+   # Send the output of the ls command to the printer
+   ls *.c | lpr
+
+   # Send output and errors to jyh as email
+   gcc -o hugefile *.c |&amp; mail jyh
+</PRE>
+<A NAME="toc87"></A>
+<H2 CLASS="section"><A NAME="htoc291">10.6</A>&nbsp;&nbsp;Conditional execution</H2>
+Commands may also be composed though conditional evaluation using the <CODE>||</CODE> and <CODE>&amp;&amp;</CODE>
+syntax. Every command has an integer exit code, which may be zero or some other integer. A command
+is said to <EM>succeed</EM> if its exit code is zero. The expression <CODE>command1 &amp;&amp; command2</CODE>
+executes <CODE>command2</CODE> only if <CODE>command1</CODE> succeeds. The expression
+<CODE>command1 || command2</CODE> executes <CODE>command2</CODE> only if <CODE>command1</CODE> fails.
+<PRE CLASS="verbatim">
+   # Display the x/y file if possible
+   cd x &amp;&amp; cat y
+
+   # Run foo.exe, or print an error message
+   (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
+</PRE>
+<A NAME="toc88"></A>
+<H2 CLASS="section"><A NAME="htoc292">10.7</A>&nbsp;&nbsp;Grouping</H2>
+Parenthesis are used for grouping in a pipeline or conditional command. In the following
+expression, the <CODE>test</CODE> function is used to test whether the <CODE>foo.exe</CODE> file is executable.
+If it is, the <CODE>foo.exe</CODE> file is executed. If the file is not executable (or if the
+<CODE>foo.exe</CODE> command fails), the message <CODE>"foo.exe is not executable"</CODE> is printed.
+<PRE CLASS="verbatim">
+   # Run foo.exe, or print an error message
+   (test -x foo.exe &amp;&amp; foo.exe) || echo "foo.exe is not executable"
+</PRE>
+<A NAME="toc89"></A>
+<H2 CLASS="section"><A NAME="htoc293">10.8</A>&nbsp;&nbsp;What is a shell command?</H2>
+Syntactially, shell commands are any line that is not one of the following:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+A variable definition of the form <CODE>VAR=string</CODE>
+<LI CLASS="li-itemize">A function call <CODE>f(...)</CODE> or method call <CODE>o.f(...)</CODE>
+<LI CLASS="li-itemize">A rule definition containing a colon <CODE>string: ...</CODE>
+<LI CLASS="li-itemize">A special command, including the following:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<CODE>if ...</CODE>
+<LI CLASS="li-itemize"><CODE>switch ...</CODE>
+<LI CLASS="li-itemize"><CODE>match ...</CODE>
+<LI CLASS="li-itemize"><CODE>section ...</CODE>
+<LI CLASS="li-itemize"><CODE>return ...</CODE>
+</UL>
+</UL>
+Commands may also be builtin (aliases). See the documentation for the
+<CODE>Shell</CODE> object&nbsp;<A HREF="omake-pervasives.html#obj:Shell">11.1.23</A> for more information.<BR>
+<BR>
+<A NAME="toc90"></A>
+<H2 CLASS="section"><A NAME="htoc294">10.9</A>&nbsp;&nbsp;Basic built-in functions</H2>
+
+<H3 CLASS="subsection"><A NAME="htoc295">10.9.1</A>&nbsp;&nbsp;echo</H3><A NAME="@default254"></A><A NAME="@fun191"></A><A NAME="fun:echo"></A>
+The <CODE>echo</CODE> function prints a string.
+<PRE CLASS="verbatim">
+$(echo &lt;args&gt;)
+echo &lt;args&gt;
+</PRE>
+<H3 CLASS="subsection"><A NAME="htoc296">10.9.2</A>&nbsp;&nbsp;cd</H3><A NAME="@default255"></A><A NAME="@fun192"></A><A NAME="fun:cd"></A>
 The <CODE>cd</CODE> function changes the current directory.
 <PRE CLASS="verbatim">
     cd(dir)
@@ -85,44 +215,44 @@ directory <CODE>./foo</CODE>, <CODE>~/dir1/foo</CODE>, <CODE>~/dir2/foo</CODE>.
        $(HOME)/dir2
     cd foo
 </PRE>
-<A NAME="toc83"></A>
-<H2 CLASS="section"><A NAME="htoc289">10.2</A>&nbsp;&nbsp;Job control</H2>
+<A NAME="toc91"></A>
+<H2 CLASS="section"><A NAME="htoc297">10.10</A>&nbsp;&nbsp;Job control</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc290">10.2.1</A>&nbsp;&nbsp;jobs</H3><A NAME="@default256"></A><A NAME="@fun193"></A><A NAME="fun:jobs"></A>
+<H3 CLASS="subsection"><A NAME="htoc298">10.10.1</A>&nbsp;&nbsp;jobs</H3><A NAME="@default256"></A><A NAME="@fun193"></A><A NAME="fun:jobs"></A>
 The <CODE>jobs</CODE> function prints a list of jobs.<BR>
 <BR>
 <CODE>jobs</CODE>
 
-<H3 CLASS="subsection"><A NAME="htoc291">10.2.2</A>&nbsp;&nbsp;bg</H3><A NAME="@default257"></A><A NAME="@fun194"></A><A NAME="fun:bg"></A>
+<H3 CLASS="subsection"><A NAME="htoc299">10.10.2</A>&nbsp;&nbsp;bg</H3><A NAME="@default257"></A><A NAME="@fun194"></A><A NAME="fun:bg"></A>
 The <CODE>bg</CODE> function places a job in the background.<BR>
 <BR>
 <CODE>bg &lt;pid...&gt;</CODE>
 
-<H3 CLASS="subsection"><A NAME="htoc292">10.2.3</A>&nbsp;&nbsp;fg</H3><A NAME="@default258"></A><A NAME="@fun195"></A><A NAME="fun:fg"></A>
+<H3 CLASS="subsection"><A NAME="htoc300">10.10.3</A>&nbsp;&nbsp;fg</H3><A NAME="@default258"></A><A NAME="@fun195"></A><A NAME="fun:fg"></A>
 The <CODE>fg</CODE> function brings a job to the foreground.<BR>
 <BR>
 <CODE>fg &lt;pid...&gt;</CODE>
 
-<H3 CLASS="subsection"><A NAME="htoc293">10.2.4</A>&nbsp;&nbsp;stop</H3><A NAME="@default259"></A><A NAME="@fun196"></A><A NAME="fun:stop"></A>
+<H3 CLASS="subsection"><A NAME="htoc301">10.10.4</A>&nbsp;&nbsp;stop</H3><A NAME="@default259"></A><A NAME="@fun196"></A><A NAME="fun:stop"></A>
 The <CODE>stop</CODE> function suspends a job.<BR>
 <BR>
 <CODE>stop &lt;pid...&gt;</CODE>
 
-<H3 CLASS="subsection"><A NAME="htoc294">10.2.5</A>&nbsp;&nbsp;wait</H3><A NAME="@default260"></A><A NAME="@fun197"></A><A NAME="fun:wait"></A>
+<H3 CLASS="subsection"><A NAME="htoc302">10.10.5</A>&nbsp;&nbsp;wait</H3><A NAME="@default260"></A><A NAME="@fun197"></A><A NAME="fun:wait"></A>
 The <CODE>wait</CODE> function waits for a job to finish.
 If no process identifiers are given, the shell waits for
 all jobs to complete.<BR>
 <BR>
 <CODE>wait &lt;pid...&gt;</CODE>
 
-<H3 CLASS="subsection"><A NAME="htoc295">10.2.6</A>&nbsp;&nbsp;kill</H3><A NAME="@default261"></A><A NAME="@fun198"></A><A NAME="fun:kill"></A>
+<H3 CLASS="subsection"><A NAME="htoc303">10.10.6</A>&nbsp;&nbsp;kill</H3><A NAME="@default261"></A><A NAME="@fun198"></A><A NAME="fun:kill"></A>
 The <CODE>kill</CODE> function signals a job.<BR>
 <BR>
 <CODE>kill [signal] &lt;pid...&gt;</CODE>
-<A NAME="toc84"></A>
-<H2 CLASS="section"><A NAME="htoc296">10.3</A>&nbsp;&nbsp;Command history</H2>
+<A NAME="toc92"></A>
+<H2 CLASS="section"><A NAME="htoc304">10.11</A>&nbsp;&nbsp;Command history</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc297">10.3.1</A>&nbsp;&nbsp;history</H3><A NAME="@default262"></A><A NAME="@fun199"></A><A NAME="fun:history"></A>
+<H3 CLASS="subsection"><A NAME="htoc305">10.11.1</A>&nbsp;&nbsp;history</H3><A NAME="@default262"></A><A NAME="@fun199"></A><A NAME="fun:history"></A>
 <PRE CLASS="verbatim">
     $(history-index) : Int
     $(history) : String Sequence

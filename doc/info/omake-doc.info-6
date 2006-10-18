@@ -242,42 +242,239 @@ January 1, 1970.
 Node: Chapter 10,	Next: Section 10-1,	Prev: Section 9-11,	Up: Top
   
 
-Chapter 10     Shell functions
-******************************
+Chapter 10     Shell commands
+*****************************
     
+  Shell commands (commands to be executed by the operating system) can
+be freely mixed with other code.
+  NOTE: the syntax and shell usage is identical on all platforms,
+including Win32. To avoid portability problems on Win32, it is
+recommended that you avoid the use of the native shell interpreter
+`cmd'.
+<<
+      LIB = $(dir lib)
+      println(The contents of the $(LIB) directory is:)
+      ls $(LIB)
+>>
+  
 * Menu:
 
-* Section 10-1::	Basic functions
-* Section 10-2::	Job control
-* Section 10-3::	Command history
+* Section 10-1::	Simple commands
+* Section 10-2::	Globbing
+* Section 10-3::	Background jobs
+* Section 10-4::	File redirection
+* Section 10-5::	Pipelines
+* Section 10-6::	Conditional execution
+* Section 10-7::	Grouping
+* Section 10-8::	What is a shell command?
+* Section 10-9::	Basic built-in functions
+* Section 10-10::	Job control
+* Section 10-11::	Command history
 
 
-Node: Section 10-1,	Next: Subsection 10-1-1,	Prev: Chapter 10,	Up: Chapter 10
+Node: Section 10-1,	Next: Section 10-2,	Prev: Chapter 10,	Up: Chapter 10
   
 
-10.1   Basic functions
+10.1   Simple commands
 *=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The syntax of shell commands is similar to the syntax used by the Unix
+shell `bash'. In general, a command is a pipeline. A basic command is
+part of a pipeline. It is specified with the name of an executable and
+some arguments. Here are some examples.
+<<
+      ls
+      ls -AF .
+      echo Hello world
+>>
+  
+  The command is found using the current search path in the variable
+`PATH[]', which should define an array of directories containing
+executables.
+  A command may also be prefixed by environment variable definitions.
+<<
+      # Prints "Hello world"
+      env X="Hello world" Y=2 printenv X
+      # Pass the include path to the Visual C++
+      env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
+>>
+  
+
+Node: Section 10-2,	Next: Section 10-3,	Prev: Section 10-1,	Up: Chapter 10
+  
+
+10.2   Globbing
+*=*=*=*=*=*=*=*
+
+  
+  Commands may contain wildcard patterns. A pattern specifies a set of
+files through a limited kind of regular expression. Patterns are
+expanded before the function is executed.
+<<
+     # List all files with a .c suffix
+     ls *.c
+  
+     # List all files with a single character prefix, and .c suffix
+     ls ?.c
+  
+     # Rename the file hello.ml to foo.ml
+     mv {hello,foo}.ml
+>>
+  
+
+Node: Section 10-3,	Next: Section 10-4,	Prev: Section 10-2,	Up: Chapter 10
+  
+
+10.3   Background jobs
+*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The command may also be placed in the background by placing an
+ampersand after the command. Control returns to the shell without
+waiting for the job to complete. The job continues to run in the
+background.
+<<
+      gcc -o hugeprogram *.c &
+>>
+  
+
+Node: Section 10-4,	Next: Section 10-5,	Prev: Section 10-3,	Up: Chapter 10
+  
+
+10.4   File redirection
+*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Input and output can be redirected to files by using the `<', `>', and
+`>&' directives after the command.
+<<
+      # Write to the "foo" file
+      echo Hello world > foo
+  
+      # Redirect input from the foo file
+      cat < foo
+  
+      # Redirect standard output and errors to the foo file
+      gcc -o boo *.c >& foo
+>>
+  
+
+Node: Section 10-5,	Next: Section 10-6,	Prev: Section 10-4,	Up: Chapter 10
+  
+
+10.5   Pipelines
+*=*=*=*=*=*=*=*=
+
+  
+  Pipelines are sequences of commands, where the output from each
+command is sent to the next. Pipelines are defined with the `|' and `|&'
+syntax. With `|' the output is redirected, but errors are not. With `|&'
+both output and errors are redirected.
+<<
+     # Send the output of the ls command to the printer
+     ls *.c | lpr
+  
+     # Send output and errors to jyh as email
+     gcc -o hugefile *.c |& mail jyh
+>>
+  
+
+Node: Section 10-6,	Next: Section 10-7,	Prev: Section 10-5,	Up: Chapter 10
+  
+
+10.6   Conditional execution
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Commands may also be composed though conditional evaluation using the
+`||' and `&&' syntax. Every command has an integer exit code, which may
+be zero or some other integer. A command is said to succeed if its exit
+code is zero. The expression `command1 && command2' executes `command2'
+only if `command1' succeeds. The expression `command1 || command2'
+executes `command2' only if `command1' fails.
+<<
+     # Display the x/y file if possible
+     cd x && cat y
+  
+     # Run foo.exe, or print an error message
+     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+>>
+  
+
+Node: Section 10-7,	Next: Section 10-8,	Prev: Section 10-6,	Up: Chapter 10
+  
+
+10.7   Grouping
+*=*=*=*=*=*=*=*
+
+  
+  Parenthesis are used for grouping in a pipeline or conditional
+command. In the following expression, the `test' function is used to
+test whether the `foo.exe' file is executable. If it is, the `foo.exe'
+file is executed. If the file is not executable (or if the `foo.exe'
+command fails), the message `"foo.exe is not executable"' is printed.
+<<
+     # Run foo.exe, or print an error message
+     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+>>
+  
+
+Node: Section 10-8,	Next: Section 10-9,	Prev: Section 10-7,	Up: Chapter 10
+  
+
+10.8   What is a shell command?
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Syntactially, shell commands are any line that is not one of the
+following:
+  
+  
+ - A variable definition of the form `VAR=string' 
+ - A function call `f(...)' or method call `o.f(...)' 
+ - A rule definition containing a colon `string: ...' 
+ - A special command, including the following: 
+     
+    - `if ...' 
+    - `switch ...' 
+    - `match ...' 
+    - `section ...' 
+    - `return ...' 
+  
+  
+  Commands may also be builtin (aliases). See the documentation for the
+`Shell' object 11.1.23*Note Subsection 11-1-23:: for more information.
+
+Node: Section 10-9,	Next: Subsection 10-9-1,	Prev: Section 10-8,	Up: Chapter 10
+  
+
+10.9   Basic built-in functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 10-1-1::	echo
-* Subsection 10-1-2::	cd
+* Subsection 10-9-1::	echo
+* Subsection 10-9-2::	cd
 
 
-Node: Subsection 10-1-1,	Next: Subsection 10-1-2,	Prev: Section 10-1,	Up: Section 10-1
+Node: Subsection 10-9-1,	Next: Subsection 10-9-2,	Prev: Section 10-9,	Up: Section 10-9
   
 
-10.1.1   echo
+10.9.1   echo
 =============
 
   The `echo' function prints a string.
-  `$(echo <args>)' `echo <args>' 
+<<
+  $(echo <args>)
+  echo <args>
+>>
 
-Node: Subsection 10-1-2,	Next: Section 10-2,	Prev: Subsection 10-1-1,	Up: Section 10-1
+Node: Subsection 10-9-2,	Next: Section 10-10,	Prev: Subsection 10-9-1,	Up: Section 10-9
   
 
-10.1.2   cd
+10.9.2   cd
 ===========
 
   The `cd' function changes the current directory.
@@ -313,95 +510,95 @@ directory `./foo', `~/dir1/foo', `~/dir2/foo'.
 >>
   
 
-Node: Section 10-2,	Next: Subsection 10-2-1,	Prev: Section 10-1,	Up: Chapter 10
+Node: Section 10-10,	Next: Subsection 10-10-1,	Prev: Section 10-9,	Up: Chapter 10
   
 
-10.2   Job control
-*=*=*=*=*=*=*=*=*=
+10.10   Job control
+*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 10-2-1::	jobs
-* Subsection 10-2-2::	bg
-* Subsection 10-2-3::	fg
-* Subsection 10-2-4::	stop
-* Subsection 10-2-5::	wait
-* Subsection 10-2-6::	kill
+* Subsection 10-10-1::	jobs
+* Subsection 10-10-2::	bg
+* Subsection 10-10-3::	fg
+* Subsection 10-10-4::	stop
+* Subsection 10-10-5::	wait
+* Subsection 10-10-6::	kill
 
 
-Node: Subsection 10-2-1,	Next: Subsection 10-2-2,	Prev: Section 10-2,	Up: Section 10-2
+Node: Subsection 10-10-1,	Next: Subsection 10-10-2,	Prev: Section 10-10,	Up: Section 10-10
   
 
-10.2.1   jobs
-=============
+10.10.1   jobs
+==============
 
   The `jobs' function prints a list of jobs.
   `jobs' 
 
-Node: Subsection 10-2-2,	Next: Subsection 10-2-3,	Prev: Subsection 10-2-1,	Up: Section 10-2
+Node: Subsection 10-10-2,	Next: Subsection 10-10-3,	Prev: Subsection 10-10-1,	Up: Section 10-10
   
 
-10.2.2   bg
-===========
+10.10.2   bg
+============
 
   The `bg' function places a job in the background.
   `bg <pid...>' 
 
-Node: Subsection 10-2-3,	Next: Subsection 10-2-4,	Prev: Subsection 10-2-2,	Up: Section 10-2
+Node: Subsection 10-10-3,	Next: Subsection 10-10-4,	Prev: Subsection 10-10-2,	Up: Section 10-10
   
 
-10.2.3   fg
-===========
+10.10.3   fg
+============
 
   The `fg' function brings a job to the foreground.
   `fg <pid...>' 
 
-Node: Subsection 10-2-4,	Next: Subsection 10-2-5,	Prev: Subsection 10-2-3,	Up: Section 10-2
+Node: Subsection 10-10-4,	Next: Subsection 10-10-5,	Prev: Subsection 10-10-3,	Up: Section 10-10
   
 
-10.2.4   stop
-=============
+10.10.4   stop
+==============
 
   The `stop' function suspends a job.
   `stop <pid...>' 
 
-Node: Subsection 10-2-5,	Next: Subsection 10-2-6,	Prev: Subsection 10-2-4,	Up: Section 10-2
+Node: Subsection 10-10-5,	Next: Subsection 10-10-6,	Prev: Subsection 10-10-4,	Up: Section 10-10
   
 
-10.2.5   wait
-=============
+10.10.5   wait
+==============
 
   The `wait' function waits for a job to finish. If no process
 identifiers are given, the shell waits for all jobs to complete.
   `wait <pid...>' 
 
-Node: Subsection 10-2-6,	Next: Section 10-3,	Prev: Subsection 10-2-5,	Up: Section 10-2
+Node: Subsection 10-10-6,	Next: Section 10-11,	Prev: Subsection 10-10-5,	Up: Section 10-10
   
 
-10.2.6   kill
-=============
+10.10.6   kill
+==============
 
   The `kill' function signals a job.
   `kill [signal] <pid...>' 
 
-Node: Section 10-3,	Next: Subsection 10-3-1,	Prev: Section 10-2,	Up: Chapter 10
+Node: Section 10-11,	Next: Subsection 10-11-1,	Prev: Section 10-10,	Up: Chapter 10
   
 
-10.3   Command history
-*=*=*=*=*=*=*=*=*=*=*=
+10.11   Command history
+*=*=*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 10-3-1::	history
+* Subsection 10-11-1::	history
 
 
-Node: Subsection 10-3-1,	Next: Chapter 11,	Prev: Section 10-3,	Up: Section 10-3
+Node: Subsection 10-11-1,	Next: Chapter 11,	Prev: Section 10-11,	Up: Section 10-11
   
 
-10.3.1   history
-================
+10.11.1   history
+=================
 
 <<
       $(history-index) : Int
@@ -422,7 +619,7 @@ command-line history to be saved. The default value is
 number of lines in the history that you want saved. The default value is
 `100'.   
 
-Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-3,	Up: Top
+Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-11,	Up: Top
   
 
 Chapter 11     Pervasives
@@ -978,7 +1175,9 @@ single array containing an argument list.
       >>
     
     The `grep' function calls the omake `grep' function. 
-  By default, omake uses internal versions of the following commands:
+  
+ - Internal versions of standard system commands.
+ By default, omake uses internal versions of the following commands:
    `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
    really want to use the standard system versions of these commands,
    set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
@@ -1596,179 +1795,3 @@ location to install, simultaneously.
   The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
 their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
 for linking instead of `$(CC)' and `$(CFLAGS)'. 
-
-Node: Section 12-5,	Next: Subsection 12-5-1,	Prev: Section 12-4,	Up: Chapter 12
-  
-
-12.5   Building OCaml programs
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 12-5-1::	Autoconfiguration variables for OCaml programs
-* Subsection 12-5-2::	Configuration variables for OCaml programs
-* Subsection 12-5-3::	OCaml command flags
-* Subsection 12-5-4::	Library variables
-
-
-Node: Subsection 12-5-1,	Next: Subsection 12-5-2,	Prev: Section 12-5,	Up: Section 12-5
-  
-
-12.5.1   Autoconfiguration variables for OCaml programs
-=======================================================
-   These variables will get defined based on the ``autoconf-style''
-tests executed when you run OMakefor the first time. You can use them to
-configure your project accordingly, and you should not redefine them.
-
-12.5.1.1   OCAMLOPT_EXISTS
---------------------------
- True when
-`ocamlopt' (or `ocamlopt.opt') is  available on your machine.
-
-12.5.1.2   OCAMLFIND_EXISTS
----------------------------
- True when
-the ocamlfind is available on your  machines.
-
-12.5.1.3   OCAMLDEP_MODULES_AVAILABLE
--------------------------------------
-
-True when a version of  `ocamldep' that understands the `-modules'
-option is available on your machine.
-
-12.5.1.4   MENHIR_AVAILABLE
----------------------------
- True when
-the Menhir parser-generator is available  on your machine.
-
-Node: Subsection 12-5-2,	Next: Subsection 12-5-3,	Prev: Subsection 12-5-1,	Up: Section 12-5
-  
-
-12.5.2   Configuration variables for OCaml programs
-===================================================
-  
-  The following variables can be redefined in your project.
-
-12.5.2.1   USE_OCAMLFIND
-------------------------
- Whether to
-use the `ocamlfind' utility (default `false\')
-
-12.5.2.2   OCAMLC
------------------
- The OCaml bytecode
-compiler (default `ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not
-set, otherwise `ocamlc').
-
-12.5.2.3   OCAMLOPT
--------------------
- The OCaml
-native-code compiler (default `ocamlopt.opt' if it  exists and
-`USE_OCAMLFIND' is not set, otherwise `ocamlopt').
-
-12.5.2.4   CAMLP4
------------------
- The `camlp4'
-preprocessor (default `camlp4').
-
-12.5.2.5   OCAMLLEX
--------------------
- The OCaml lexer
-generator (default `ocamllex').
-
-12.5.2.6   OCAMLLEXFLAGS
-------------------------
- The flags to
-pass to `ocamllex' (default `-q').
-
-12.5.2.7   OCAMLYACC
---------------------
- The OCaml parser
-generator (default `ocamlyacc').
-
-12.5.2.8   OCAMLYACCFLAGS
--------------------------
- Additional
-options to pass to `$(OCAMLYACC)'.
-
-12.5.2.9   OCAMLDEP
--------------------
- The OCaml
-dependency analyzer (default `ocamldep').
-
-12.5.2.10   OCAMLDEP_MODULES
-----------------------------
- The OCaml
-dependency analyzer that understands the  `-module' option (default
-`ocamldep', if `ocamldep -modules' works, or  `ocamlrun ocamldep-omake',
-if `ocamlrun ocamldep-omake -modules' works, and empty  when neither
-works).
-
-12.5.2.11   OCAMLDEP_MODULES_ENABLED
-------------------------------------
-
-Instead of using `OCAMLDEP'  in a traditional `make'-style fashion, run
-`$(OCAMLDEP_MODULES) -modules' and then  postprocess the output
-internally to discover all the relevant generated `.ml' and  `.mli'
-files. See Section 12.6*Note Section 12-6:: for
-more information on  interactions between OMake, `OCAMLDEP' and
-generated files. This feature is currently  considered highly
-experimental and is disabled by default.
-
-12.5.2.12   OCAMLMKTOP
-----------------------
- The OCaml
-toploop compiler (default `ocamlmktop').
-
-12.5.2.13   OCAMLLINK
----------------------
- The OCaml
-bytecode linker (default `$(OCAMLC)').
-
-12.5.2.14   OCAMLOPTLINK
-------------------------
- The OCaml
-native-code linker (default `$(OCAMLOPT)').
-
-12.5.2.15   OCAMLINCLUDES
--------------------------
- Search path
-to pass to the OCaml compilers (default `.').  The search path with the
-`-I' prefix is defined by the `PREFIXED_OCAMLINCLUDES'  variable.
-
-12.5.2.16   OCAMLFIND
----------------------
- The `ocamlfind'
-utility (default `ocamlfind' if  `USE_OCAMLFIND' is set, otherwise
-empty).
-
-12.5.2.17   OCAMLFINDFLAGS
---------------------------
- The flags to
-pass to `ocamlfind' (default empty, `USE_OCAMLFIND' must be set).
-
-12.5.2.18   OCAMLPACKS
-----------------------
- Package names to
-pass to `ocamlfind' (`USE_OCAMLFIND' must be set).
-
-12.5.2.19   BYTE_ENABLED
-------------------------
- Flag
-indicating whether to use the bytecode compiler (default `true', when no
-`ocamlopt' found, `false' otherwise).
-
-12.5.2.20   NATIVE_ENABLED
---------------------------
- Flag
-indicating whether to use the native-code compiler (default `true', when
-ocamlopt is found, `false' otherwise).  Both `BYTE_ENABLED' and
-`NATIVE_ENABLED' can be set to true;  at least one should be set to
-true.
-
-12.5.2.21   MENHIR_ENABLED
---------------------------
- Define this
-as `true' if you wish to use  `menhir' instead of `ocamlyacc' (default
-`false'). 

@@ -407,25 +407,33 @@ Contents
        - 9.11.17  gettimeofday 
      
   
- - Chapter 10  Shell functions 
+ - Chapter 10  Shell commands 
      
-    - 10.1  Basic functions 
+    - 10.1  Simple commands 
+    - 10.2  Globbing 
+    - 10.3  Background jobs 
+    - 10.4  File redirection 
+    - 10.5  Pipelines 
+    - 10.6  Conditional execution 
+    - 10.7  Grouping 
+    - 10.8  What is a shell command? 
+    - 10.9  Basic built-in functions 
         
-       - 10.1.1  echo 
-       - 10.1.2  cd 
+       - 10.9.1  echo 
+       - 10.9.2  cd 
      
-    - 10.2  Job control 
+    - 10.10  Job control 
         
-       - 10.2.1  jobs 
-       - 10.2.2  bg 
-       - 10.2.3  fg 
-       - 10.2.4  stop 
-       - 10.2.5  wait 
-       - 10.2.6  kill 
+       - 10.10.1  jobs 
+       - 10.10.2  bg 
+       - 10.10.3  fg 
+       - 10.10.4  stop 
+       - 10.10.5  wait 
+       - 10.10.6  kill 
      
-    - 10.3  Command history 
+    - 10.11  Command history 
         
-       - 10.3.1  history 
+       - 10.11.1  history 
      
   
  - Chapter 11  Pervasives 
@@ -8270,23 +8278,197 @@ for the new shift operations.
 January 1, 1970.
   
 
-Chapter 10    Shell functions
-*****************************
+Chapter 10    Shell commands
+****************************
     
+  Shell commands (commands to be executed by the operating system) can
+be freely mixed with other code.
+  NOTE: the syntax and shell usage is identical on all platforms,
+including Win32. To avoid portability problems on Win32, it is
+recommended that you avoid the use of the native shell interpreter
+`cmd'.
+<<
+      LIB = $(dir lib)
+      println(The contents of the $(LIB) directory is:)
+      ls $(LIB)
+>>
+  
   
 
-10.1  Basic functions
+10.1  Simple commands
 *=*=*=*=*=*=*=*=*=*=*
 
+  
+  The syntax of shell commands is similar to the syntax used by the Unix
+shell `bash'. In general, a command is a pipeline. A basic command is
+part of a pipeline. It is specified with the name of an executable and
+some arguments. Here are some examples.
+<<
+      ls
+      ls -AF .
+      echo Hello world
+>>
+  
+  The command is found using the current search path in the variable
+`PATH[]', which should define an array of directories containing
+executables.
+  A command may also be prefixed by environment variable definitions.
+<<
+      # Prints "Hello world"
+      env X="Hello world" Y=2 printenv X
+      # Pass the include path to the Visual C++
+      env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
+>>
+  
+  
+
+10.2  Globbing
+*=*=*=*=*=*=*=
+
+  
+  Commands may contain wildcard patterns. A pattern specifies a set of
+files through a limited kind of regular expression. Patterns are
+expanded before the function is executed.
+<<
+     # List all files with a .c suffix
+     ls *.c
+  
+     # List all files with a single character prefix, and .c suffix
+     ls ?.c
+  
+     # Rename the file hello.ml to foo.ml
+     mv {hello,foo}.ml
+>>
+  
+  
+
+10.3  Background jobs
+*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The command may also be placed in the background by placing an
+ampersand after the command. Control returns to the shell without
+waiting for the job to complete. The job continues to run in the
+background.
+<<
+      gcc -o hugeprogram *.c &
+>>
+  
+  
+
+10.4  File redirection
+*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Input and output can be redirected to files by using the `<', `>', and
+`>&' directives after the command.
+<<
+      # Write to the "foo" file
+      echo Hello world > foo
+  
+      # Redirect input from the foo file
+      cat < foo
+  
+      # Redirect standard output and errors to the foo file
+      gcc -o boo *.c >& foo
+>>
+  
+  
+
+10.5  Pipelines
+*=*=*=*=*=*=*=*
+
+  
+  Pipelines are sequences of commands, where the output from each
+command is sent to the next. Pipelines are defined with the `|' and `|&'
+syntax. With `|' the output is redirected, but errors are not. With `|&'
+both output and errors are redirected.
+<<
+     # Send the output of the ls command to the printer
+     ls *.c | lpr
+  
+     # Send output and errors to jyh as email
+     gcc -o hugefile *.c |& mail jyh
+>>
+  
+  
+
+10.6  Conditional execution
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Commands may also be composed though conditional evaluation using the
+`||' and `&&' syntax. Every command has an integer exit code, which may
+be zero or some other integer. A command is said to succeed if its exit
+code is zero. The expression `command1 && command2' executes `command2'
+only if `command1' succeeds. The expression `command1 || command2'
+executes `command2' only if `command1' fails.
+<<
+     # Display the x/y file if possible
+     cd x && cat y
+  
+     # Run foo.exe, or print an error message
+     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+>>
+  
+  
+
+10.7  Grouping
+*=*=*=*=*=*=*=
+
+  
+  Parenthesis are used for grouping in a pipeline or conditional
+command. In the following expression, the `test' function is used to
+test whether the `foo.exe' file is executable. If it is, the `foo.exe'
+file is executed. If the file is not executable (or if the `foo.exe'
+command fails), the message `"foo.exe is not executable"' is printed.
+<<
+     # Run foo.exe, or print an error message
+     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+>>
+  
+  
+
+10.8  What is a shell command?
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Syntactially, shell commands are any line that is not one of the
+following:
+  
+  
+ - A variable definition of the form `VAR=string' 
+ - A function call `f(...)' or method call `o.f(...)' 
+ - A rule definition containing a colon `string: ...' 
+ - A special command, including the following: 
+     
+    - `if ...' 
+    - `switch ...' 
+    - `match ...' 
+    - `section ...' 
+    - `return ...' 
+  
+  
+  Commands may also be builtin (aliases). See the documentation for the
+`Shell' object 11.1.23 for more information.
+  
+
+10.9  Basic built-in functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
 
-10.1.1  echo
+
+10.9.1  echo
 ============
   
   The `echo' function prints a string.
-  `$(echo <args>)' `echo <args>'
+<<
+  $(echo <args>)
+  echo <args>
+>>
+  
 
-10.1.2  cd
+10.9.2  cd
 ==========
   
   The `cd' function changes the current directory.
@@ -8323,55 +8505,55 @@ directory `./foo', `~/dir1/foo', `~/dir2/foo'.
   
   
 
-10.2  Job control
-*=*=*=*=*=*=*=*=*
+10.10  Job control
+*=*=*=*=*=*=*=*=*=
 
 
 
-10.2.1  jobs
-============
+10.10.1  jobs
+=============
   
   The `jobs' function prints a list of jobs.
   `jobs'
 
-10.2.2  bg
-==========
+10.10.2  bg
+===========
   
   The `bg' function places a job in the background.
   `bg <pid...>'
 
-10.2.3  fg
-==========
+10.10.3  fg
+===========
   
   The `fg' function brings a job to the foreground.
   `fg <pid...>'
 
-10.2.4  stop
-============
+10.10.4  stop
+=============
   
   The `stop' function suspends a job.
   `stop <pid...>'
 
-10.2.5  wait
-============
+10.10.5  wait
+=============
   
   The `wait' function waits for a job to finish. If no process
 identifiers are given, the shell waits for all jobs to complete.
   `wait <pid...>'
 
-10.2.6  kill
-============
+10.10.6  kill
+=============
   
   The `kill' function signals a job.
   `kill [signal] <pid...>'
 
-10.3  Command history
-*=*=*=*=*=*=*=*=*=*=*
+10.11  Command history
+*=*=*=*=*=*=*=*=*=*=*=
 
 
 
-10.3.1  history
-===============
+10.11.1  history
+================
   
 <<
       $(history-index) : Int
@@ -8847,7 +9029,9 @@ single array containing an argument list.
       >>
     
     The `grep' function calls the omake `grep' function. 
-  By default, omake uses internal versions of the following commands:
+  
+ - Internal versions of standard system commands.
+ By default, omake uses internal versions of the following commands:
    `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
    really want to use the standard system versions of these commands,
    set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
@@ -11513,7 +11697,7 @@ Index
  - BUILD_SUMMARY, 8.1.12 
  - BYTE_ENABLED, 12.5.2.19 
  - basename, 9.1.4 
- - bg, 10.2.2 
+ - bg, 10.10.2 
  - bind, 9.8.31 
  - break, 8.3.40 
  - build model, 3 
@@ -11536,7 +11720,7 @@ Index
  - capitalize, 8.3.33 
  - cat, 9.11.2 
  - cats and dogs, 3.4 
- - cd, 10.1.2 
+ - cd, 10.9.2 
  - chmod, 9.5.9 
  - chown, 9.5.10 
  - classes, 4.12 
@@ -11573,7 +11757,7 @@ Index
  - EXT_LIB, 12.3.2.4 
  - EXT_OBJ, 12.3.2.5 
  - Exception, 11.1.20 
- - echo, 10.1.1 
+ - echo, 10.9.1 
  - eprint, 9.9 
  - eprintln, 9.9 
  - eprintv, 9.10 
@@ -11586,7 +11770,7 @@ Index
  - File, 11.1.13 
  - Float, 11.1.5 
  - Fun, 11.1.9 
- - fg, 10.2.3 
+ - fg, 10.10.3 
  - fgets, 9.8.37 
  - file, 9.1.1 
  - file-check-sort, 9.3.6 
@@ -11632,7 +11816,7 @@ Index
  - HOME, 8.1.9 
  - HOST, 8.1.6 
  - Host, 9.8.24 
- - history, 10.3.1 
+ - history, 10.11.1 
  - homename, 9.1.9 
  - html-string, 8.3.16 
  
@@ -11650,9 +11834,9 @@ Index
  - intersection, 8.3.28 
  - intersects, 8.3.29 
  
- - jobs, 10.2.1 
+ - jobs, 10.10.1 
  
- - kill, 10.2.6 
+ - kill, 10.10.6 
  
  - LATEX, 12.7.1.1 
  - LATEXFLAGS, 12.7.1.3 
@@ -11847,7 +12031,7 @@ Index
  - stderr, 9.8.4 
  - stdin, 9.8.2 
  - stdout, 9.8.3 
- - stop, 10.2.4 
+ - stop, 10.10.4 
  - string, 8.3.10 
  - string-escaped, 8.3.11 
  - sub, 8.4.3 
@@ -11891,7 +12075,7 @@ Index
  - variable definition, A.3.21 
  - vmount, 2.9, 9.6.1 
  
- - wait, 10.2.5 
+ - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
  - while, 8.3.39 
@@ -12042,7 +12226,7 @@ Index of functions and special forms
  - awk, 9.11.5 
  
  - basename, 9.1.4 
- - bg, 10.2.2 
+ - bg, 10.10.2 
  - bind, 9.8.31 
  - break, 8.3.40 
  
@@ -12055,7 +12239,7 @@ Index of functions and special forms
  - c-escaped, 8.3.13 
  - capitalize, 8.3.33 
  - cat, 9.11.2 
- - cd, 10.1.2 
+ - cd, 10.9.2 
  - chmod, 9.5.9 
  - chown, 9.5.10 
  - close, 9.8.8 
@@ -12078,7 +12262,7 @@ Index of functions and special forms
  - dup, 9.8.15 
  - dup2, 9.8.16 
  
- - echo, 10.1.1 
+ - echo, 10.9.1 
  - eprint, 9.9 
  - eprintln, 9.9 
  - eprintv, 9.10 
@@ -12088,7 +12272,7 @@ Index of functions and special forms
  - exists-in-path, 9.2.4 
  - exit, 8.2.9 
  
- - fg, 10.2.3 
+ - fg, 10.10.3 
  - fgets, 9.8.37 
  - file, 9.1.1 
  - file-check-sort, 9.3.6 
@@ -12130,7 +12314,7 @@ Index of functions and special forms
  - grep, 9.11.3 
  - gt, 8.4.4 
  
- - history, 10.3.1 
+ - history, 10.11.1 
  - homename, 9.1.9 
  - html-string, 8.3.16 
  
@@ -12141,9 +12325,9 @@ Index of functions and special forms
  - intersection, 8.3.28 
  - intersects, 8.3.29 
  
- - jobs, 10.2.1 
+ - jobs, 10.10.1 
  
- - kill, 10.2.6 
+ - kill, 10.10.6 
  
  - LaTeXDocument, 12.7.2.1 
  - LaTeXDocumentCopy, 12.7.2.5 
@@ -12245,7 +12429,7 @@ Index of functions and special forms
  - split, 8.3.2 
  - stat, 9.5.3 
  - stat-reset, 9.3.2 
- - stop, 10.2.4 
+ - stop, 10.10.4 
  - string, 8.3.10 
  - string-escaped, 8.3.11 
  - sub, 8.4.3 
@@ -12278,7 +12462,7 @@ Index of functions and special forms
  
  - vmount, 9.6.1 
  
- - wait, 10.2.5 
+ - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
  - while, 8.3.39 
