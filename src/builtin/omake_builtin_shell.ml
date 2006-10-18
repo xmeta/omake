@@ -2,7 +2,7 @@
  * Builtin shell operations.
  *
  * \begin{doc}
- * \include{omake-shell}
+ * \input{omake-shell}
  *
  * \section{Basic builtin functions}
  * \end{doc}
