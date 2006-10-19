@@ -119,18 +119,11 @@ if $(equal $(OSTYPE), Win32)
     EXT_ASM = .asm
     EXE = .exe
 
-    #
-    # Use copy instead of symlinks on Windows.
-    #
-    symlink(src, dst) =
-        return(cp -f $(src) $(dst))
-
     export
 else
     #
     # Command names
     #
-    LN = ln -sf
     INSTALL = install
     PATHSEP = :
     DIRSEP = /
@@ -143,20 +136,19 @@ else
     EXT_ASM = .s
     EXE =
 
-    #
-    # When creating a symlink, make sure the path to
-    # the source is viewed from the directory of the
-    # destination.
-    #
-    symlink(src, dst) =
-       src = $(file $(src))
-       dst = $(file $(dst))
-       return($(LN) $(in $(dirof $(dst)), $(src)) $(dst))
-
     export
 
 if $(equal $(OSTYPE), Cygwin)
     EXE = .exe
+    export
+
+if $(not $(defined USE_SYSTEM_COMMANDS))
+    if $(not $(equal $(OSTYPE), Win32))
+        LN = ln -sf
+        export
+    export
+else
+    LN = ln-or-cp
     export
 
 # XXX: JYH: this is a total hack.

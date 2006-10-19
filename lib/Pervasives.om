@@ -961,6 +961,34 @@ Shell. +=
 
    #
    # \begin{doc}
+   # \item \verb+ln-or-cp+ \em{src} \em{dst}
+   #
+   # Links or copies \em{src} to \em{dst}, overwriting \em{dst}. Namely, \verb+ln-or-cp+ would first
+   # delete the \em{dst} file (unless it is a directory), if it exists. Next it would try to create
+   # a symbolic link \em{dst} poiting to \em{src} (it will make all the necessary adjustmnents of
+   # relative paths). If symbolic link can not be created (\emph{e.g.} the OS or the filesystem does
+   # not support symbolic links), it will try to create a hard link. If that fails too, it will try
+   # to forcibly copy \em{src} to \em{dst}.
+   # \end{doc}
+   #
+   ln-or-cp(argv) =
+      if $(not $(eq $(length $(argv)), 2))
+         eprintln($"Shell.ln-or-cp: expected 2 arguments, received $(length $(argv)) arguments")
+         exit 1
+      src = $(file $(nth 0, $(argv)))
+      dst = $(file $(nth 1, $(argv)))
+      if $(and $(test -e $(dst)), $(not $(test -d $(dst))))
+         rm($(array -f, $(dst)))   
+      try
+         symlink($(src), $(dst))
+      default
+         try
+            link($(src), $(dst))
+         default
+            return $(cp $(array -f, $(src), $(dst)))
+
+   #
+   # \begin{doc}
    # \item \verb+history+
    #
    # Print the current command-line history.

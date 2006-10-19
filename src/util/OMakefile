@@ -20,7 +20,7 @@ GENERATED_FILES[] =
 PATCH_FILE = $(if $(equal $(OSTYPE), Win32), ocaml_patch_win32.ml, ocaml_patch_unix.ml)
 
 ocaml_patch.ml: $(PATCH_FILE)
-    $(symlink $<, $@)
+    ln-or-cp $< $@
 
 clean:
     $(CLEAN) $(GENERATED_FILES)

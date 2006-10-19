@@ -46,7 +46,7 @@ MakeLinkExternalFile(dst, src) =
 
     # Perform the link
     $(dst): $(src)
-        $(symlink $<, $@)
+        ln-or-cp $< $@
 
     export
 
@@ -63,7 +63,7 @@ MakeLinkExternal(srcdir, files) =
 
         # Perform the link
         $(name): $(srcdir)/$(name)
-            $(symlink $<, $@)
+            ln-or-cp $< $@
 
         export
     export
@@ -250,7 +250,7 @@ private.MAKEFILE_HEAD_NT = $'''#
 #
 # Generic "nmake" configuration for bootstrapping.
 #
-LN = copy
+LN = copy /Y
 RM = del /F
 DOT =
 slash = \\

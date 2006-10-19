@@ -330,7 +330,7 @@ public.StaticCLibraryCopy(tag, lib, name) =
     # Linking the library into the root lib dir
     #
     $(LIBNORMAL): $(NORMALLIB) $(lib) :scanner: $(NOSCANNER)
-        $(symlink $<, $@)
+        ln-or-cp $< $@
 
     #
     # Add dependency to the tag
@@ -402,7 +402,7 @@ public.StaticCObjectCopy(tag, lib, name) =
     # Linking the library into the root lib dir
     #
     $(LIBNORMAL): $(NORMALLIB) $(lib) :scanner: $(NOSCANNER)
-        $(symlink $<, $@)
+        ln-or-cp $< $@
 
     #
     # Add dependency to the tag
@@ -508,7 +508,7 @@ public.CProgramCopy(tag, bin, name) =
    # Linking the program into the root bin dir
    #
    $(BINNAME): $(NAME) $(bin) :scanner: $(NOSCANNER)
-      $(symlink $<, $@)
+      ln-or-cp $< $@
 
    #
    # Add the dependency to the tag

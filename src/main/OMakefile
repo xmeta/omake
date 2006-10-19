@@ -48,7 +48,7 @@ OCAML_CLIBS[] =
 MakeOCamlProgram(omake, $(FILES))
 
 osh$(EXE): omake$(EXE)
-    $(symlink $<, $@)
+    ln-or-cp $< $@
 
 .DEFAULT: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
 all: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
@@ -59,7 +59,7 @@ all: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
 install: cvs_realclean$(EXE) omake$(EXE) osh$(EXE)
     mkdir -p $(INSTALL_BINDIR)
     cp -f -m 555 cvs_realclean$(EXE) omake$(EXE) $(INSTALL_BINDIR)/
-    $(symlink $(INSTALL_BINDIR)/omake$(EXE), $(INSTALL_BINDIR)/osh$(EXE))
+    ln-or-cp $(INSTALL_BINDIR)/omake$(EXE) $(INSTALL_BINDIR)/osh$(EXE)
 
 clean:
     $(CLEAN) $(addsuffixes $(array $(EXE), $(string $(EMPTY)), .opt, .run), cvs_realclean omake osh)

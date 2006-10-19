@@ -666,8 +666,8 @@ public.MenhirMulti(target, sources) =
 # Other common generated files
 #
 %.ml %.mli: %.mlz
-    $(symlink $<, $*.ml)
-    $(symlink $<, $*.mli)
+    ln-or-cp $< $*.ml
+    ln-or-cp $< $*.mli
 
 %.ml: %.mll
     $(OCAMLLEX) $(OCAMLLEXFLAGS) $<
@@ -871,7 +871,7 @@ public.OCamlLibraryCopy(tag, lib, name, ifiles) =
 
       foreach(src, $(MLIFILES) $(CMIFILES))
           $(lib)/$(basename $(src)): $(src) $(lib) :scanner: $(NOSCANNER)
-              $(symlink $<, $@)
+              ln-or-cp $< $@
 
       # Add to the install tag
       $(tag): $(file $(addprefix $(lib)/, $(basename $(MLIFILES) $(CMIFILES))))
@@ -891,13 +891,13 @@ public.OCamlLibraryCopy(tag, lib, name, ifiles) =
    # Link libraries into lib directory
    #
    $(LIBBYTE): $(BYTELIB)
-        $(symlink $<, $@)
+        ln-or-cp $< $@
 
    $(LIBNATIVE): $(NATIVELIB)
-        $(symlink $<, $@)
+        ln-or-cp $< $@
 
    $(LIBCLIB): $(CLIB)
-        $(symlink $<, $@)
+        ln-or-cp $< $@
 
    #
    # Add dependencies to the target tag
@@ -1013,10 +1013,10 @@ public.OCamlProgram(name, files) =
    #
    if $(NATIVE_ENABLED)
         $(PROG): $(OPTPROG)
-            $(symlink $<, $@)
+            ln-or-cp $< $@
    else
         $(PROG): $(BYTEPROG)
-            $(symlink $<, $@)
+            ln-or-cp $< $@
 
    return $(array $(PROG), $(if $(NATIVE_ENABLED), $(OPTPROG)), $(if $(BYTE_ENABLED), $(BYTEPROG)))
 
@@ -1051,7 +1051,7 @@ public.OCamlProgramCopy(tag, bin, name) =
    # Always prefer native executables.
    #
    $(BINNAME): $(SRCNAME) $(bin)
-      $(symlink $<, $@)
+      ln-or-cp $< $@
 
    # Add to phony tag.
    $(tag): $(BINNAME)

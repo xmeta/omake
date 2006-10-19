@@ -28,7 +28,7 @@ OCamlGeneratedFiles($(GENERATED_FILES))
 OMAKE_SHELL_SYS = $(if $(THREADS_ENABLED), omake_shell_sys_win32, omake_shell_sys_unix).ml
 
 omake_shell_sys.ml: $(OMAKE_SHELL_SYS)
-    $(symlink $<, $@)
+    ln-or-cp $< $@
 
 clean:
     $(CLEAN) $(GENERATED_FILES)
