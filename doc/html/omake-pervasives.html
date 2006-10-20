@@ -440,6 +440,14 @@ See the documentation for the corresponding functions.
 <LI CLASS="li-itemize"><CODE>rehash</CODE><BR>
 <BR>
 Reset the search path.
+<LI CLASS="li-itemize"><CODE>ln-or-cp</CODE> <EM>src </EM>dst<BR>
+<BR>
+Links or copies <EM>src to </EM>dst, overwriting <EM>dst. Namely, </EM><CODE><EM>ln-or-cp</EM></CODE><EM> would first
+delete the </EM>dst file (unless it is a directory), if it exists. Next it would try to create
+a symbolic link <EM>dst poiting to </EM>src (it will make all the necessary adjustmnents of
+relative paths). If symbolic link can not be created (<EM>e.g.</EM> the OS or the filesystem does
+not support symbolic links), it will try to create a hard link. If that fails too, it will try
+to forcibly copy <EM>src to </EM>dst.
 <LI CLASS="li-itemize"><CODE>history</CODE><BR>
 <BR>
 Print the current command-line history.

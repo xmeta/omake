@@ -1161,6 +1161,14 @@ single array containing an argument list.
  See the documentation for the corresponding functions. 
  - `rehash'
  Reset the search path. 
+ - `ln-or-cp' src dst
+ Links or copies src to dst, overwriting dst. Namely, `ln-or-cp' would
+   first delete the dst file (unless it is a directory), if it exists.
+   Next it would try to create a symbolic link dst poiting to src (it
+   will make all the necessary adjustmnents of relative paths). If
+   symbolic link can not be created (e.g. the OS or the filesystem does
+   not support symbolic links), it will try to create a hard link. If
+   that fails too, it will try to forcibly copy src to dst. 
  - `history'
  Print the current command-line history. 
  - `digest'
