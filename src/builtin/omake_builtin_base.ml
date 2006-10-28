@@ -1422,11 +1422,13 @@ let string venv pos loc args =
  * \fun{string-escaped}
  * \fun{ocaml-escaped}
  * \fun{c-escaped}
+ * \fun{id-escaped}
  *
  * \begin{verbatim}
  *    $(string-escaped sequence) : String Array
  *    $(ocaml-escaped sequence) : String Array
  *    $(c-escaped sequence) : String Array
+ *    $(hex-escaped sequence) : StringArray
  *       sequence : Array
  * \end{verbatim}
  *
@@ -1436,6 +1438,12 @@ let string venv pos loc args =
  *
  * The \verb+ocaml-escaped+ function converts each element of its
  * argument to a string, escaping characters that are special to OCaml.
+ *
+ * The \verb+c-escaped+ function converts a string to a form that
+ * can be used as a string constant in C.
+ *
+ * The \verb+id-escaped+ function turns a string into an identifier that
+ * may be used in OMake.
  *
  * \begin{verbatim}
  *     string-escaped($"a b" $"y:z")
@@ -1451,7 +1459,12 @@ let is_escape c =
     | ':'
     | ')'
     | '('
-    | ',' ->
+    | ','
+    | '$'
+    | '\''
+    | '\"'
+    | '\\'
+    | '#' ->
          true
     | _ ->
          false
@@ -1494,6 +1507,60 @@ let single_escaped s =
       else
          copy_string esc_length src_length s
 
+let id_is_escape c =
+   match c with
+      'A'..'Z'
+    | 'a'..'z'
+    | '0'..'9' ->
+         false
+    | _ ->
+         true
+
+let id_char c =
+   if c < 10 then
+      Char.chr (c + Char.code '0')
+   else
+      Char.chr (c + Char.code 'a')
+
+let id_escape_length s =
+   let len = String.length s in
+   let rec collect amount i =
+      if i = len then
+         amount
+      else if id_is_escape s.[i] then
+         collect (amount + 3) (i + 1)
+      else
+         collect (amount + 1) (i + 1)
+   in
+      collect 0 0
+
+let id_copy_string esc_length src_length s =
+   let esc_string = String.create esc_length in
+   let rec copy esc_index src_index =
+      if src_index <> src_length then
+         let c = s.[src_index] in
+            if id_is_escape c then begin
+               esc_string.[esc_index] <- '_';
+               esc_string.[esc_index + 1] <- id_char ((Char.code c) lsr 4);
+               esc_string.[esc_index + 2] <- id_char ((Char.code c) land 0x0f);
+               copy (esc_index + 3) (src_index + 1)
+            end
+            else begin
+               esc_string.[esc_index] <- c;
+               copy (esc_index + 1) (src_index + 1)
+            end
+   in
+      copy 0 0;
+      esc_string
+
+let id_single_escaped s =
+   let src_length = String.length s in
+   let esc_length = id_escape_length s in
+      if esc_length = src_length then
+         s
+      else
+         id_copy_string esc_length src_length s
+
 let any_escaped escaped venv pos loc args =
    let pos = string_pos "string-escaped" pos in
       match args with
@@ -1507,6 +1574,7 @@ let any_escaped escaped venv pos loc args =
 let string_escaped = any_escaped single_escaped
 let ocaml_escaped  = any_escaped String.escaped
 let c_escaped      = any_escaped Lm_string_util.c_escaped
+let id_escaped    = any_escaped id_single_escaped
 
 (*
  * \begin{doc}
@@ -2545,6 +2613,7 @@ let () =
        true,  "string-escaped",        string_escaped,      ArityExact 1;
        true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
        true,  "c-escaped",             c_escaped,           ArityExact 1;
+       true,  "id-escaped",            id_escaped,          ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
        true,  "quote-argv",            quote_argv,          ArityExact 1;
        true,  "html-string",           html_string,         ArityExact 1;

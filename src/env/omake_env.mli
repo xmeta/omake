@@ -468,6 +468,7 @@ val venv_add_object_file      : venv -> Node.t -> obj -> unit
  *)
 val venv_map_empty       : map
 val venv_map_add         : map -> pos -> value -> value -> map
+val venv_map_remove      : map -> pos -> value -> map
 val venv_map_find        : map -> pos -> value -> value
 val venv_map_mem         : map -> pos -> value -> bool
 val venv_map_iter        : (value -> value -> unit) -> map -> unit

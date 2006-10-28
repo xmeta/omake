@@ -218,6 +218,9 @@ Map. +=
     add(v, x) =
         return $(map-add $(this), $(v), $(x))
 
+    remove(v) =
+        return $(map-remove $(this), $(v))
+
     find(v) =
         return $(map-find $(this), $(v))
 
@@ -1235,6 +1238,10 @@ Token. =
       this.val = $(val)
       return $(this)
 
+   rename(name) =
+      this.name = $(name)
+      return $(this)
+
 Lexer. +=
    class Lexer
    extends $(Object)
@@ -1255,6 +1262,7 @@ Lexer. +=
       return $(lex-engine $(this.channel))
 
    lex-channel(channel) =
+      this.channel = $(channel)
       return $(lex-engine $(channel))
 
 Parser. +=

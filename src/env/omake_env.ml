@@ -639,6 +639,9 @@ let venv_map_empty = ValueTable.empty
 let venv_map_add map pos v1 v2 =
    ValueTable.add map (check_map_key pos v1) v2
 
+let venv_map_remove map pos v1 =
+   ValueTable.remove map (check_map_key pos v1)
+
 let venv_map_find map pos v =
    try ValueTable.find map (check_map_key pos v) with
       Not_found ->

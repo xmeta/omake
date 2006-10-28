@@ -289,6 +289,20 @@ let map_add venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
+ * Remove a field from an object.
+ *)
+let map_remove venv pos loc args =
+   let pos = string_pos "map-remove" pos in
+      match args with
+         [arg; v] ->
+            let obj = eval_object venv pos arg in
+            let map = map_of_object venv pos obj in
+            let key = key_of_value venv pos v in
+               wrap_map obj (venv_map_remove map pos key)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+(*
  * Iterate over the object.
  *)
 let map_map venv pos loc args =
@@ -690,6 +704,7 @@ let () =
        true, "map-mem",              map_mem,             ArityExact 2;
        true, "map-length",           map_length,          ArityExact 1;
        true, "map-map",              map_map,             ArityRange (3, 4);
+       true, "map-remove",           map_remove,          ArityExact 1;
        true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
        true, "sequence-length",      sequence_length,     ArityExact 1;
        true, "sequence-nth",         sequence_nth,        ArityExact 1;

@@ -606,7 +606,7 @@ let scan venv pos loc args =
          arg :: args ->
             let inp, close_in = in_channel_of_any_value venv pos arg in
             let inx = venv_find_channel venv pos inp in
-            let venv = 
+            let venv =
                try line_loop venv inx with
                   exn when close_in ->
                      venv_close_channel venv pos inp;
@@ -1542,21 +1542,8 @@ let lex_rule venv pos loc args =
             in
 
             (* Add the method *)
-            let venv =
-               match body with
-                  _ :: _ ->
-                     let body =
-                        SequenceExp (**)
-                           (loc, (LetVarExp (loc, ScopeProtected, name_sym, VarDefNormal, ConstString (loc, action_name))
-                                  :: LetVarExp (loc, ScopeProtected, val_sym, VarDefNormal, ConstString (loc, ""))
-                                  :: body))
-                     in
-                        venv_add_var venv ScopeProtected pos action_sym (ValFun (ArityExact 0, venv_get_env venv, [], body))
-                | [] ->
-                     venv
-            in
-
-            (* Add back the lexer *)
+            let body = SequenceExp (loc, body) in
+            let venv = venv_add_var venv ScopeProtected pos action_sym (ValFun (ArityExact 0, venv_get_env venv, [], body)) in
             let venv = venv_add_var venv ScopeProtected pos builtin_sym (ValOther (ValLexer lexer)) in
                ValEnv (venv, ExportAll)
 
@@ -1848,16 +1835,12 @@ let parse_build venv pos loc args =
  * Get the precedence option.
  *)
 let prec_option venv pos loc options =
-   match options with
-      [ValArray [optname; optval] as v] ->
-         if string_of_value venv pos optname = ":prec:" then
-            Some (Lm_symbol.add (string_of_value venv pos optval))
-         else
-            raise (OmakeException (pos, StringValueError ("illegal option", v)))
-    | [] ->
-         None
-    | v :: _ ->
-         raise (OmakeException (pos, StringValueError ("illegal option", v)))
+   venv_map_fold (fun pre optname optval ->
+         let s = string_of_value venv pos optname in
+            if s = ":prec:" then
+               Some (Lm_symbol.add (string_of_value venv pos optval))
+            else
+               raise (OmakeException (pos, StringValueError ("illegal option", optname)))) None options
 
 (*
  * Compute an action name that is not defined in the current object.
@@ -1874,7 +1857,7 @@ let parse_rule venv pos loc args =
    let pos = string_pos "parse-rule" pos in
    let action, head, rhs, options, body =
       match args with
-         [_; action; head; rhs; ValArray options; ValBody (_, SequenceExp (_, body))] ->
+         [_; action; head; rhs; ValMap options; ValBody (_, SequenceExp (_, body))] ->
             let action = string_of_value venv pos action in
             let head = string_of_value venv pos head in
                if head = "" then   (* Action name was omitted *)
