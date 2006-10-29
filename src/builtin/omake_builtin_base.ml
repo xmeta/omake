@@ -1421,12 +1421,16 @@ let string venv pos loc args =
  * \begin{doc}
  * \fun{string-escaped}
  * \fun{ocaml-escaped}
+ * \fun{html-escaped}
+ * \fun{html-pre-escaped}
  * \fun{c-escaped}
  * \fun{id-escaped}
  *
  * \begin{verbatim}
  *    $(string-escaped sequence) : String Array
  *    $(ocaml-escaped sequence) : String Array
+ *    $(html-escaped sequence) : String Array
+ *    $(html-pre-escaped sequence) : String Array
  *    $(c-escaped sequence) : String Array
  *    $(hex-escaped sequence) : StringArray
  *       sequence : Array
@@ -1445,13 +1449,17 @@ let string venv pos loc args =
  * The \verb+id-escaped+ function turns a string into an identifier that
  * may be used in OMake.
  *
+ * The \verb+html-escaped+ function turns a literal string into a form acceptable
+ * as HTML.  The \verb+html-pre-escaped+ function is similar, but it does not
+ * translate newlines into \verb+<br>+.
+ *
  * \begin{verbatim}
  *     string-escaped($"a b" $"y:z")
  *     a\ b y\:z
  * \end{verbatim}
  * \end{doc}
  *)
-let is_escape c =
+let is_escape_char c =
    match c with
       ' '
     | '\t'
@@ -1469,44 +1477,80 @@ let is_escape c =
     | _ ->
          false
 
-let escape_length s =
+let is_escape_string s =
    let len = String.length s in
-   let rec collect amount i =
-      if i = len then
-         amount
-      else if is_escape s.[i] then
-         collect (amount + 2) (i + 1)
-      else
-         collect (amount + 1) (i + 1)
+   let rec check i =
+      i = len || (not (is_escape_char s.[i]) && check (i + 1))
    in
-      collect 0 0
+      not (check 0)
 
-let copy_string esc_length src_length s =
-   let esc_string = String.create esc_length in
-   let rec copy esc_index src_index =
-      if src_index <> src_length then
-         let c = s.[src_index] in
-            if is_escape c then begin
-               esc_string.[esc_index] <- '\\';
-               esc_string.[esc_index + 1] <- c;
-               copy (esc_index + 2) (src_index + 1)
-            end
-            else begin
-               esc_string.[esc_index] <- c;
-               copy (esc_index + 1) (src_index + 1)
-            end
+(*
+ * Count the maximal sequence of single-quote characters.
+ *)
+let search_quote_left s =
+   let len = String.length s in
+   let rec search_left i =
+      if i = len || s.[i] <> '\'' then
+         i
+      else
+         search_left (i + 1)
    in
-      copy 0 0;
-      esc_string
+      search_left 0
+
+let search_quote_right s off =
+   let rec search_right i =
+      if i < off || s.[i] <> '\'' then
+         i + 1
+      else
+         search_right (i - 1)
+   in
+      search_right (String.length s - 1)
+
+let max_quote_length s off len =
+   let rec count i cur total =
+      if i = len then
+         max cur total
+      else if s.[i] = '\'' then
+         count (i + 1) (cur + 1) total
+      else
+         count (i + 1) 0 (max cur total)
+   in
+      count off 0 0
+
+(*
+ * Place the outer quotes outside the quotes.
+ *)
+let copy_string s =
+   let len = String.length s in
+   let buf = Buffer.create (String.length s + 6) in
+   let left = search_quote_left s in
+   let right = search_quote_right s left in
+   let quote = max_quote_length s left (right - left) in
+      for i = 0 to left - 1 do
+         Buffer.add_string buf "\\'"
+      done;
+      Buffer.add_char buf '$';
+      for i = 0 to quote do
+         Buffer.add_char buf '\''
+      done;
+      Buffer.add_substring buf s left (right - left);
+      for i = 0 to quote do
+         Buffer.add_char buf '\''
+      done;
+      for i = right to len - 1 do
+         Buffer.add_string buf "\\'"
+      done;
+      Buffer.contents buf
 
 let single_escaped s =
-   let src_length = String.length s in
-   let esc_length = escape_length s in
-      if esc_length = src_length then
-         s
-      else
-         copy_string esc_length src_length s
+   if is_escape_string s then
+      copy_string s
+   else
+      s
 
+(*
+ * Escape in a way that produces a valid identifier.
+ *)
 let id_is_escape c =
    match c with
       'A'..'Z'
@@ -1574,7 +1618,9 @@ let any_escaped escaped venv pos loc args =
 let string_escaped = any_escaped single_escaped
 let ocaml_escaped  = any_escaped String.escaped
 let c_escaped      = any_escaped Lm_string_util.c_escaped
-let id_escaped    = any_escaped id_single_escaped
+let id_escaped     = any_escaped id_single_escaped
+let html_escaped   = any_escaped Lm_string_util.html_escaped
+let html_pre_escaped = any_escaped Lm_string_util.html_pre_escaped
 
 (*
  * \begin{doc}
@@ -2614,6 +2660,8 @@ let () =
        true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
        true,  "c-escaped",             c_escaped,           ArityExact 1;
        true,  "id-escaped",            id_escaped,          ArityExact 1;
+       true,  "html-escaped",          html_escaped,        ArityExact 1;
+       true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
        true,  "quote-argv",            quote_argv,          ArityExact 1;
        true,  "html-string",           html_string,         ArityExact 1;
