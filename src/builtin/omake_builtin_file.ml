@@ -1270,6 +1270,7 @@ let sort_val_nodes nodes =
  * \item[i] If an expansion fails, it expands to nothing.
  * \item[.] Allow wildcard patterns to match files beginning with a .
  * \item[A] Return all files, including files that begin with a .
+ * \item[F] Match only normal files (any file that is not a directory).
  * \item[D] Match only directory files.
  * \item[C] Ignore files according to \Cmd{cvs}{1} rules.
  * \item[P] Include only proper subdirectories.

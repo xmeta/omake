@@ -464,6 +464,7 @@ let glob_options_of_string options s =
              | 'i' -> GlobIgnoreCheck :: options
              | 'A'
              | '.' -> GlobDot         :: options
+             | 'F' -> GlobOnlyFiles   :: options
              | 'D' -> GlobOnlyDirs    :: options
              | 'C' -> GlobCVSIgnore   :: options
              | 'P' -> GlobProperSubdirs :: options
