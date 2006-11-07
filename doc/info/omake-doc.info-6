@@ -1,5 +1,85 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-11-9,	Next: Subsection 9-11-10,	Prev: Subsection 9-11-8,	Up: Section 9-11
+  
+
+9.11.9   Lexer
+==============
+
+  The `Lexer' object defines a facility for lexical analysis, similar to
+the lex(1) and flex(1) programs.
+  In omake, lexical analyzers can be constructed dynamically by
+extending the `Lexer' class. A lexer definition consists of a set of
+directives specified with method calls, and set of clauses specified as
+rules.
+  For example, consider the following lexer definition, which is
+intended for lexical analysis of simple arithmetic expressions for a
+desktop calculator.
+<<
+     lexer1. =
+        extends $(Lexer)
+  
+        other: .
+           eprintln(Illegal character: $* )
+           lex()
+  
+        white: $"[[:space:]]+"
+           lex()
+  
+        op: $"[-+*/()]"
+           switch $*
+           case +
+              Token.unit($(loc), plus)
+           case -
+              Token.unit($(loc), minus)
+           case *
+              Token.unit($(loc), mul)
+           case /
+              Token.unit($(loc), div)
+           case $"("
+              Token.unit($(loc), lparen)
+           case $")"
+              Token.unit($(loc), rparen)
+  
+        number: $"[[:digit:]]+"
+           Token.pair($(loc), exp, $(int $* ))
+  
+        eof: $"\'"
+           Token.unit($(loc), eof)
+>>
+  
+  This program defines an object `lexer1' the extends the `Lexer'
+object, which defines lexing environment.
+  The remainder of the definition consists of a set of clauses, each
+with a method name before the colon; a regular expression after the
+colon; and in this case, a body. The body is optional, if it is not
+specified, the method with the given name should already exist in the
+lexer definition.
+  NB The clause that matches the longest prefix of the input is
+selected. If two clauses match the same input prefix, then the last one
+is selected. This is unlike most standard lexers, but makes more sense
+for extensible grammars.
+  The first clause matches any input that is not matched by the other
+clauses. In this case, an error message is printed for any unknown
+character, and the input is skipped. Note that this clause is selected
+only if no other clause matches.
+  The second clause is responsible for ignoring white space. If
+whitespace is found, it is ignored, and the lexer is called recursively.
+  The third clause is responsible for the arithmetic operators. It makes
+use of the `Token' object, which defines three fields: a `loc' field
+that represents the source location; a `name'; and a `value'.
+  The lexer defines the `loc' variable to be the location of the current
+lexeme in each of the method bodies, so we can use that value to create
+the tokens.
+  The `Token.unit($(loc), name)' method constructs a new `Token' object
+with the given name, and a default value.
+  The `number' clause matches nonnegative integer constants. The
+`Token.pair($(loc), name, value)' constructs a token with the given name
+and value.
+  Lexer object operate on `InChannel' objects. The method
+`lexer1.lex-channel(channel)' reads the next token from the channel
+argument.
+
 Node: Subsection 9-11-10,	Next: Subsection 9-11-11,	Prev: Subsection 9-11-9,	Up: Section 9-11
   
 
@@ -1653,155 +1733,3 @@ parser generator (default is `yacc' on `Unix', empty on `Win32').
 ---------------
  The name of the `lex'
 lexer generator (default is `lex' on `Unix', empty on `Win32'). 
-
-Node: Subsection 12-4-2,	Next: Subsection 12-4-3,	Prev: Subsection 12-4-1,	Up: Section 12-4
-  
-
-12.4.2   Generated C files
-==========================
-   Because the C scanners do not normally know anything about generated
-source files (such as generated header files), these files may need to
-be created before running the scanner.
-
-12.4.2.1   CGeneratedFiles, LocalCGeneratedFiles
-------------------------------------------------
- 
-<<
-  CGeneratedFiles(files)
-  LocalCGeneratedFiles(files)
->>
-  
-  The `CGeneratedFiles' and `LocalCGeneratedFiles' functions specify
-files that need to be generated before any C files are scanned for
-dependencies. For example, if `config.h' and `inputs.h' are both
-generated files, specify: 
-<<
-  CGeneratedFiles(config.h inputs.h)
->>
-  
-  The `CGeneratedFiles' function is global --- its arguments will be
-generated before any C files anywhere in the project are scanned for
-dependencies. The `LocalCGeneratedFiles' function follows the normal
-scoping rules of OMake.
-
-Node: Subsection 12-4-3,	Next: Section 12-5,	Prev: Subsection 12-4-2,	Up: Section 12-4
-  
-
-12.4.3   Building C programs and Libraries
-==========================================
-
-
-12.4.3.1   StaticCLibrary
--------------------------
-
-  The `StaticCLibrary' builds a static library.
-  `StaticCLibrary(<target>, <files>)'
-  The `<target>' does not include the library suffix, and The `<files>'
-list does not include the object suffix. These are obtained from the
-`EXT_LIB' and `EXT_OBJ' variables.
-  This function returns the library filename.
-  The following command builds the library `libfoo.a' from the files
-`a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
-`a.obj b.obj c.obj' on `Win32'.
-<<
-  StaticCLibrary(libfoo, a b c)
-  .DEFAULT: $(StaticCLibrary libbar, a b c d)
->>
-  
-
-12.4.3.2   StaticCLibraryCopy
------------------------------
-
-  The `StaticCLibraryCopy' function copies the static library to an
-install location.
-  `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
-  The `<tag>' is the name of a target (typically a `.PHONY' target); the
-`<dir>' is the installation directory, and `<lib>' is the library to be
-copied (without the library suffix).
-  This function returns the filename of the library in the target
-directory.
-  For example, the following code copies the library `libfoo.a' to the
-`/usr/lib' directory.
-<<
-  .PHONY: install
-  
-  StaticCLibraryCopy(install, /usr/lib, libfoo)
->>
-  
-
-12.4.3.3   StaticCLibraryInstall
---------------------------------
-
-  The `StaticCLibraryInstall' function builds a library, and sets the
-install location in one step. It returns the filename of the library in
-the target directory.
-  `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
-<<
-  StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
->>
-  
-
-12.4.3.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
------------------------------------------------------------------
-\@n
-ame{@fun211}
-  These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
-`StaticCLibraryInstall' functions, but they build an object file (a `.o'
-file on `Unix', and a `.obj' file on `Win32').
-
-12.4.3.5   CProgram
--------------------
-
-  The `CProgram' function builds a C program from a set of object files
-and libraries.
-  `CProgram(<name>, <files>)'
-  The `<name>' argument specifies the name of the program to be built;
-the `<files>' argument specifies the files to be linked. The function
-returns the filename of the executable.
-  Additional options can be passed through the following variables. 
-  
- CFLAGS  Flags used by the C compiler during the link step. 
- LDFLAGS  Flags to pass to the loader. 
- LIBS  Additional libraries to be linked. 
-  
-  For example, the following code specifies that the program `foo' is to
-be produced by linking the files `bar.o' and `baz.o' and libraries
-`libfoo.a'.
-<<
-  section
-     LIBS = libfoo
-     LDFLAGS += -lbar
-     CProgram(foo, bar baz)
->>
-  
-
-12.4.3.6   CProgramCopy
------------------------
-
-  The `CProgramCopy' function copies a file to an install location.
-  `CProgramCopy(<tag>, <dir>, <program>)'
-<<
-  CProgramCopy(install, /usr/bin, foo)
->>
-  
-
-12.4.3.7   CProgramInstall
---------------------------
-
-  The `CProgramInstall' function specifies a program to build, and a
-location to install, simultaneously.
-  `CProgramInstall(<tag>, <dir>, <name>, <files>)'
-<<
-  section
-     LIBS = libfoo
-     LDFLAGS += -lbar
-     CProgramInstall(install, /usr/bin, foo, bar baz)
->>
-  
-
-12.4.3.8   CXXProgram, CXXProgramInstall
-----------------------------------------
-
-  The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
-their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
-for linking instead of `$(CC)' and `$(CFLAGS)'. 

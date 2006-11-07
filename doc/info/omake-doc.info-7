@@ -1,5 +1,157 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 12-4-2,	Next: Subsection 12-4-3,	Prev: Subsection 12-4-1,	Up: Section 12-4
+  
+
+12.4.2   Generated C files
+==========================
+   Because the C scanners do not normally know anything about generated
+source files (such as generated header files), these files may need to
+be created before running the scanner.
+
+12.4.2.1   CGeneratedFiles, LocalCGeneratedFiles
+------------------------------------------------
+ 
+<<
+  CGeneratedFiles(files)
+  LocalCGeneratedFiles(files)
+>>
+  
+  The `CGeneratedFiles' and `LocalCGeneratedFiles' functions specify
+files that need to be generated before any C files are scanned for
+dependencies. For example, if `config.h' and `inputs.h' are both
+generated files, specify: 
+<<
+  CGeneratedFiles(config.h inputs.h)
+>>
+  
+  The `CGeneratedFiles' function is global --- its arguments will be
+generated before any C files anywhere in the project are scanned for
+dependencies. The `LocalCGeneratedFiles' function follows the normal
+scoping rules of OMake.
+
+Node: Subsection 12-4-3,	Next: Section 12-5,	Prev: Subsection 12-4-2,	Up: Section 12-4
+  
+
+12.4.3   Building C programs and Libraries
+==========================================
+
+
+12.4.3.1   StaticCLibrary
+-------------------------
+
+  The `StaticCLibrary' builds a static library.
+  `StaticCLibrary(<target>, <files>)'
+  The `<target>' does not include the library suffix, and The `<files>'
+list does not include the object suffix. These are obtained from the
+`EXT_LIB' and `EXT_OBJ' variables.
+  This function returns the library filename.
+  The following command builds the library `libfoo.a' from the files
+`a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
+`a.obj b.obj c.obj' on `Win32'.
+<<
+  StaticCLibrary(libfoo, a b c)
+  .DEFAULT: $(StaticCLibrary libbar, a b c d)
+>>
+  
+
+12.4.3.2   StaticCLibraryCopy
+-----------------------------
+
+  The `StaticCLibraryCopy' function copies the static library to an
+install location.
+  `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
+  The `<tag>' is the name of a target (typically a `.PHONY' target); the
+`<dir>' is the installation directory, and `<lib>' is the library to be
+copied (without the library suffix).
+  This function returns the filename of the library in the target
+directory.
+  For example, the following code copies the library `libfoo.a' to the
+`/usr/lib' directory.
+<<
+  .PHONY: install
+  
+  StaticCLibraryCopy(install, /usr/lib, libfoo)
+>>
+  
+
+12.4.3.3   StaticCLibraryInstall
+--------------------------------
+
+  The `StaticCLibraryInstall' function builds a library, and sets the
+install location in one step. It returns the filename of the library in
+the target directory.
+  `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
+<<
+  StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
+>>
+  
+
+12.4.3.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
+-----------------------------------------------------------------
+\@n
+ame{@fun214}
+  These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
+`StaticCLibraryInstall' functions, but they build an object file (a `.o'
+file on `Unix', and a `.obj' file on `Win32').
+
+12.4.3.5   CProgram
+-------------------
+
+  The `CProgram' function builds a C program from a set of object files
+and libraries.
+  `CProgram(<name>, <files>)'
+  The `<name>' argument specifies the name of the program to be built;
+the `<files>' argument specifies the files to be linked. The function
+returns the filename of the executable.
+  Additional options can be passed through the following variables. 
+  
+ CFLAGS  Flags used by the C compiler during the link step. 
+ LDFLAGS  Flags to pass to the loader. 
+ LIBS  Additional libraries to be linked. 
+  
+  For example, the following code specifies that the program `foo' is to
+be produced by linking the files `bar.o' and `baz.o' and libraries
+`libfoo.a'.
+<<
+  section
+     LIBS = libfoo
+     LDFLAGS += -lbar
+     CProgram(foo, bar baz)
+>>
+  
+
+12.4.3.6   CProgramCopy
+-----------------------
+
+  The `CProgramCopy' function copies a file to an install location.
+  `CProgramCopy(<tag>, <dir>, <program>)'
+<<
+  CProgramCopy(install, /usr/bin, foo)
+>>
+  
+
+12.4.3.7   CProgramInstall
+--------------------------
+
+  The `CProgramInstall' function specifies a program to build, and a
+location to install, simultaneously.
+  `CProgramInstall(<tag>, <dir>, <name>, <files>)'
+<<
+  section
+     LIBS = libfoo
+     LDFLAGS += -lbar
+     CProgramInstall(install, /usr/bin, foo, bar baz)
+>>
+  
+
+12.4.3.8   CXXProgram, CXXProgramInstall
+----------------------------------------
+
+  The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
+their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
+for linking instead of `$(CC)' and `$(CFLAGS)'. 
+
 Node: Section 12-5,	Next: Subsection 12-5-1,	Prev: Section 12-4,	Up: Chapter 12
   
 
@@ -979,7 +1131,7 @@ A.2   Output control
 * Subsection A-2-8::	--divert-repeat
 * Subsection A-2-9::	--divert-only
 * Subsection A-2-10::	--divert-discard-success
-* Subsection A-2-11::	-d
+* Subsection A-2-11::	-o
 
 
 Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
@@ -1093,9 +1245,9 @@ errors.
 Node: Subsection A-2-11,	Next: Section A-3,	Prev: Subsection A-2-10,	Up: Section A-2
   
 
-A.2.11   -d
+A.2.11   -o
 ===========
- `-d [01jwWpPxXsS]'
+ `-o [01jwWpPxXsS]'
   For brevity, the `-o' option is also provided to duplicate the above
 output options. The `-o' option takes a argument consisting of a
 sequence of characters. The characters are read from left-to-right; each
@@ -1544,182 +1696,3 @@ keywords, and few special symbols.
 * Subsection B-1-5::	Variable references
 * Subsection B-1-6::	String constants
 
-
-Node: Subsection B-1-1,	Next: Subsection B-1-2,	Prev: Section B-1,	Up: Section B-1
-  
-
-B.1.1   Comments
-================
-  
-  Comments begin with the `#' character and continue to the end-of-line.
-Text within a comment is unrestricted.
-  Examples.
-<<
-     # This is a comment
-     # This $comment contains a quote " character
->>
-  
-
-Node: Subsection B-1-2,	Next: Subsection B-1-3,	Prev: Subsection B-1-1,	Up: Section B-1
-  
-
-B.1.2   Special characters
-==========================
-  
-  The following characters are special in some contexts.
-<<
-     $    (    )    ,    .   =    :    "    '    `    \    #
->>
-  
-  
-  
- - `$' is used to denote a variable reference, or function application. 
- - Parentheses `)', `(' are argument deliminters. 
- - The command `,' is an argument separator. 
- - The period symbol `.' is a name separator. 
- - The equality symbol `=' denotes a definition. 
- - The colon symbol `:' is used to denote rules, and (optionally) to
-   indicate  that an expression is followed by an indented body. 
- - The quotation symbols `"' and `'' delimit character strings. 
- - The symbol `#' is the first character of a constant. 
- - The escape symbol `\' is special only when followed by another
-   special  character. In this case, the special status of the second
-   character is removed,  and the sequence denotes the second character.
-   Otherwise, the `\' is not special.
- Examples:
- 
-      
-    - `\$': the `$' character (as a normal character).  
-    - `\#': the `#' character (as a normal character).  
-    - `\\': the `\' character (as a normal character).  
-    - `c\:\Windows\moo\#boo': the string `c:\Windows\moo#boo'.  
-  
-  
-
-Node: Subsection B-1-3,	Next: Subsection B-1-4,	Prev: Subsection B-1-2,	Up: Section B-1
-  
-
-B.1.3   Identifiers
-===================
-  
-  Identifiers (variable names) are drawn from the ASCII alphanumeric
-characters as well as `_', `-', `~', `@'. Case is significant; the
-following identifiers are distinct: `FOO', `Foo', `foo'. The identifier
-may begin with any of the valid characters, including digits.
-  Using `egrep' notation, the regular expression for identifiers is
-defined as follows.
-<<
-      identifier ::= [-@~_A-Za-z0-9]+
->>
-  
-  The following are legal identifiers.
-<<
-      Xyz    hello_world    seventy@nine
-      79-32  Gnus~Gnats     CFLAGS
->>
-  
-  The following are not legal identifiers.
-<<
-      x+y    hello&world
->>
-  
-
-Node: Subsection B-1-4,	Next: Subsection B-1-5,	Prev: Subsection B-1-3,	Up: Section B-1
-  
-
-B.1.4   Command identifiers
-===========================
-  
-  The following words have special significance when they occur as the
-first word of a program line. They are not otherwise special.
-<<
-      case     catch  class    declare    default
-      do       else   elseif   export     extends
-      finally  if     import   include    match
-      open     raise  return   section    switch
-      try      value  when     while
->>
-  
-
-Node: Subsection B-1-5,	Next: Subsection B-1-6,	Prev: Subsection B-1-4,	Up: Section B-1
-  
-
-B.1.5   Variable references
-===========================
-  
-  A variable reference is denoted with the `$' special character
-followed by an identifier. If the identifier name has more than one
-character, it must be enclosed in parentheses. The parenthesized version
-is most common. The following are legal variable references.
-<<
-      $(Xyz)    $(hello_world)   $(seventy@nine)
-      $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
->>
-  
-  Single-character references also include several additional
-identifiers, including `&*<^?]['. The following are legal
-single-character references.
-<<
-     $@   $&   $*   $<   $^   $+   $?   $[   $]
-     $A   $_   $a   $b   $x   $1   $2   $3
->>
-  
-  Note that a non-parenthesized variable reference is limited to a
-single character, even if it is followed by additional legal identifier
-charqcters. Suppose the value of the `$x' variable is 17. The following
-examples illustrate evaluation.
-<<
-      $x           evaluates to    17
-      foo$xbar     evaluates to    foo17bar
-      foo$(x)bar   evaluates to    foo17bar
->>
-  
-  The special sequence `$$' represents the character literal `$'. That
-is, the two-character sequences `\$' and `$$' are normally equalivalent.
-
-Node: Subsection B-1-6,	Next: Section B-2,	Prev: Subsection B-1-5,	Up: Section B-1
-  
-
-B.1.6   String constants
-========================
-   
-  Literal strings are defined with matching string delimiters. A left
-string delimiter begins with the dollar-sign `$', and a non-zero number
-of single-quote or double-quote characters. The string is terminated
-with a matching sequence of quotation symbols. The delimiter quotation
-may not be mixed; it must contain only single-quote characters, or
-double-quote characters. The following are legal strings.
-<<
-      $'Hello world'
-      $"""printf("Hello world\n")"""
-      $''''
-  Large "block" of
-  text # spanning ''multiple'' lines''''
->>
-  
-  The string delimiters are not included in the string constant. In the
-single-quote form, the contents of the string are interpreted
-verbatim--there are no special characters.
-  The double-quote form permits expression evaluation within the string,
-denoted with the `$' symbol. The following are some examples.
-<<
-      X = Hello
-      Y = $""$X world""             # Hello world
-      Z = $'''$X world'''           # $X world
-      I = 3
-      W = $"6 > $(add $I, 2)"       # 6 > 5
->>
-  
-  Note that quotation symbols without a leading `$' are not treated
-specially by OMake. The quotation symbols is included in the sequence.
-<<
-      osh>println('Hello world')
-      'Hello world'
-      osh>println($'Hello world')
-      Hello world
-      osh>X = Hello
-      - : "Hello" : Sequence
-      osh>println('$X world')
-      Hello world
->>
-  

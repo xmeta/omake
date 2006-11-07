@@ -227,34 +227,37 @@ Contents
        - 8.3.10  string 
        - 8.3.11  string-escaped 
        - 8.3.12  ocaml-escaped 
-       - 8.3.13  c-escaped 
-       - 8.3.14  quote 
-       - 8.3.15  quote-argv 
-       - 8.3.16  html-string 
-       - 8.3.17  addsuffix 
-       - 8.3.18  mapsuffix 
-       - 8.3.19  addsuffixes 
-       - 8.3.20  removeprefix 
-       - 8.3.21  removesuffix 
-       - 8.3.22  replacesuffixes 
-       - 8.3.23  addprefix 
-       - 8.3.24  mapprefix 
-       - 8.3.25  add-wrapper 
-       - 8.3.26  set 
-       - 8.3.27  mem 
-       - 8.3.28  intersection 
-       - 8.3.29  intersects 
-       - 8.3.30  set-diff 
-       - 8.3.31  filter 
-       - 8.3.32  filter-out 
-       - 8.3.33  capitalize 
-       - 8.3.34  uncapitalize 
-       - 8.3.35  uppercase 
-       - 8.3.36  lowercase 
-       - 8.3.37  system 
-       - 8.3.38  shell 
-       - 8.3.39  while 
-       - 8.3.40  break 
+       - 8.3.13  html-escaped 
+       - 8.3.14  html-pre-escaped 
+       - 8.3.15  c-escaped 
+       - 8.3.16  id-escaped 
+       - 8.3.17  quote 
+       - 8.3.18  quote-argv 
+       - 8.3.19  html-string 
+       - 8.3.20  addsuffix 
+       - 8.3.21  mapsuffix 
+       - 8.3.22  addsuffixes 
+       - 8.3.23  removeprefix 
+       - 8.3.24  removesuffix 
+       - 8.3.25  replacesuffixes 
+       - 8.3.26  addprefix 
+       - 8.3.27  mapprefix 
+       - 8.3.28  add-wrapper 
+       - 8.3.29  set 
+       - 8.3.30  mem 
+       - 8.3.31  intersection 
+       - 8.3.32  intersects 
+       - 8.3.33  set-diff 
+       - 8.3.34  filter 
+       - 8.3.35  filter-out 
+       - 8.3.36  capitalize 
+       - 8.3.37  uncapitalize 
+       - 8.3.38  uppercase 
+       - 8.3.39  lowercase 
+       - 8.3.40  system 
+       - 8.3.41  shell 
+       - 8.3.42  while 
+       - 8.3.43  break 
      
     - 8.4  Arithmetic 
         
@@ -672,7 +675,7 @@ Contents
        - A.2.8  --divert-repeat 
        - A.2.9  --divert-only 
        - A.2.10  --divert-discard-success 
-       - A.2.11  -d 
+       - A.2.11  -o 
      
     - A.3  Build options 
         
@@ -5258,13 +5261,28 @@ whitespace. The result is treated as a unit; whitespace is significant.
 =====================
 
 
-8.3.13  c-escaped
+8.3.13  html-escaped
+====================
+
+
+8.3.14  html-pre-escaped
+========================
+
+
+8.3.15  c-escaped
 =================
+
+
+8.3.16  id-escaped
+==================
   
 <<
      $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
+     $(html-escaped sequence) : String Array
+     $(html-pre-escaped sequence) : String Array
      $(c-escaped sequence) : String Array
+     $(hex-escaped sequence) : StringArray
         sequence : Array
 >>
   
@@ -5273,13 +5291,20 @@ a string, escaping characters that are special to omake. The special
 characters include `:)(,' and shitespace.
   The `ocaml-escaped' function converts each element of its argument to
 a string, escaping characters that are special to OCaml.
+  The `c-escaped' function converts a string to a form that can be used
+as a string constant in C.
+  The `id-escaped' function turns a string into an identifier that may
+be used in OMake.
+  The `html-escaped' function turns a literal string into a form
+acceptable as HTML. The `html-pre-escaped' function is similar, but it
+does not translate newlines into `<br>'.
 <<
       string-escaped($"a b" $"y:z")
       a\ b y\:z
 >>
   
 
-8.3.14  quote
+8.3.17  quote
 =============
   
 <<
@@ -5292,7 +5317,7 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-8.3.15  quote-argv
+8.3.18  quote-argv
 ==================
   
 <<
@@ -5304,7 +5329,7 @@ c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-8.3.16  html-string
+8.3.19  html-string
 ===================
   
 <<
@@ -5317,7 +5342,7 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-8.3.17  addsuffix
+8.3.20  addsuffix
 =================
   
 <<
@@ -5332,7 +5357,7 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'.
 
-8.3.18  mapsuffix
+8.3.21  mapsuffix
 =================
   
 <<
@@ -5348,7 +5373,7 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'.
 
-8.3.19  addsuffixes
+8.3.22  addsuffixes
 ===================
   
 <<
@@ -5363,7 +5388,7 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-8.3.20  removeprefix
+8.3.23  removeprefix
 ====================
   
 <<
@@ -5375,7 +5400,7 @@ to `a.c a.o b.c b.o c.o c.a'.
   The `removeprefix' function removes a prefix from each component of a
 sequence.
 
-8.3.21  removesuffix
+8.3.24  removesuffix
 ====================
   
 <<
@@ -5388,7 +5413,7 @@ of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
 
-8.3.22  replacesuffixes
+8.3.25  replacesuffixes
 =======================
   
 <<
@@ -5404,7 +5429,7 @@ the same length.
   For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
 to `a.o b.o c.z'.
 
-8.3.23  addprefix
+8.3.26  addprefix
 =================
   
 <<
@@ -5419,7 +5444,7 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'.
 
-8.3.24  mapprefix
+8.3.27  mapprefix
 =================
   
 <<
@@ -5435,7 +5460,7 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'.
 
-8.3.25  add-wrapper
+8.3.28  add-wrapper
 ===================
   
 <<
@@ -5451,7 +5476,7 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence.
 
-8.3.26  set
+8.3.29  set
 ===========
   
 <<
@@ -5463,7 +5488,7 @@ sequence.
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-8.3.27  mem
+8.3.30  mem
 ===========
   
 <<
@@ -5476,7 +5501,7 @@ duplicates.
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-8.3.28  intersection
+8.3.31  intersection
 ====================
   
 <<
@@ -5492,7 +5517,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'.
 
-8.3.29  intersects
+8.3.32  intersects
 ==================
   
 <<
@@ -5507,7 +5532,7 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-8.3.30  set-diff
+8.3.33  set-diff
 ================
   
 <<
@@ -5524,7 +5549,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'.
 
-8.3.31  filter
+8.3.34  filter
 ==============
   
 <<
@@ -5539,7 +5564,7 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-8.3.32  filter-out
+8.3.35  filter-out
 ==================
   
 <<
@@ -5554,7 +5579,7 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-8.3.33  capitalize
+8.3.36  capitalize
 ==================
   
 <<
@@ -5566,7 +5591,7 @@ evaluates to `x.o y.o'.
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-8.3.34  uncapitalize
+8.3.37  uncapitalize
 ====================
   
 <<
@@ -5578,7 +5603,7 @@ The Looking Glass'.
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-8.3.35  uppercase
+8.3.38  uppercase
 =================
   
 <<
@@ -5590,7 +5615,7 @@ The Looking Glass'.
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-8.3.36  lowercase
+8.3.39  lowercase
 =================
   
 <<
@@ -5603,7 +5628,7 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-8.3.37  system
+8.3.40  system
 ==============
   
 <<
@@ -5620,7 +5645,7 @@ function is used internally by omake to evaluate shell commands.
 >>
   
 
-8.3.38  shell
+8.3.41  shell
 =============
   
 <<
@@ -5641,7 +5666,7 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-8.3.39  while
+8.3.42  while
 =============
   
 <<
@@ -5698,10 +5723,10 @@ value is printed.
          echo $i
 >>
   
-  The `break' function (Section 8.3.40) can be used to break out of the
+  The `break' function (Section 8.3.43) can be used to break out of the
 `while' loop early.
 
-8.3.40  break
+8.3.43  break
 =============
   
 <<
@@ -5895,7 +5920,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function (Section 8.3.40) can be used to break out of the
+  The `break' function (Section 8.3.43) can be used to break out of the
 loop early.
 
 Chapter 9    File operations
@@ -6487,6 +6512,7 @@ syntax, with the following rules.
  i  If an expansion fails, it expands to nothing. 
  .  Allow wildcard patterns to match files beginning with a . 
  A  Return all files, including files that begin with a . 
+ F  Match only normal files (any file that is not a directory). 
  D  Match only directory files. 
  C  Ignore files according to cvs(1) rules. 
  P  Include only proper subdirectories. 
@@ -7859,7 +7885,7 @@ meaning of `stdout' outside the `filter' function.
  b  ``Break'' when evaluating cases. Only the first case that matches
    will be selected. 
   
-  The `break' function (Section 8.3.40) can be used to abort the loop,
+  The `break' function (Section 8.3.43) can be used to abort the loop,
 exiting the `awk' function immediately.
 
 9.11.6  fsubst
@@ -7943,7 +7969,7 @@ alphanumeric words in an input file.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.40) can be used to abort the loop.
+  The `break' function (Section 8.3.43) can be used to abort the loop.
 
 9.11.8  lex-search
 ==================
@@ -7978,7 +8004,7 @@ alphanumeric words in an input file, skipping any other text.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.40) can be used to abort the loop.
+  The `break' function (Section 8.3.43) can be used to abort the loop.
 
 9.11.9  Lexer
 =============
@@ -10482,9 +10508,9 @@ useful in reducing unwanted output so that you can concentrate on any
 errors.
   
 
-A.2.11  -d
+A.2.11  -o
 ==========
-   `-d [01jwWpPxXsS]'
+   `-o [01jwWpPxXsS]'
   For brevity, the `-o' option is also provided to duplicate the above
 output options. The `-o' option takes a argument consisting of a
 sequence of characters. The characters are read from left-to-right; each
@@ -11257,7 +11283,7 @@ limited to the specified identifiers.
       export id ... id
 >>
   
-  while (see the `while' description in Section 8.3.39). The `while'
+  while (see the `while' description in Section 8.3.42). The `while'
 command introduces a `while' loop.
 <<
       while expr
@@ -11650,10 +11676,10 @@ Index
  - --progress, A.2.4 
  - --show-dependencies, A.3.14 
  - --verbose-dependencies, A.3.16 
- - -d, A.2.11 
  - -j, A.3.12 
  - -k, A.3.1 
  - -n, A.3.2 
+ - -o, A.2.11 
  - -P, A.3.4 
  - -p, A.3.3 
  - -R, A.3.5 
@@ -11692,10 +11718,10 @@ Index
  - accept, 9.8.33 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
- - add-wrapper, 8.3.25 
- - addprefix, 8.3.23 
- - addsuffix, 8.3.17 
- - addsuffixes, 8.3.19 
+ - add-wrapper, 8.3.28 
+ - addprefix, 8.3.26 
+ - addsuffix, 8.3.20 
+ - addsuffixes, 8.3.22 
  - aliases, 13.2 
  - and, 8.2.3 
  - apply, 8.5.2 
@@ -11711,7 +11737,7 @@ Index
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.31 
- - break, 8.3.40 
+ - break, 8.3.43 
  - build model, 3 
  
  - CAMLP4, 12.5.2.4 
@@ -11728,8 +11754,8 @@ Index
  - CXXFLAGS, 12.4.1.5 
  - CXXProgram, 12.4.3.8 
  - CXXProgramInstall, 12.4.3.8 
- - c-escaped, 8.3.13 
- - capitalize, 8.3.33 
+ - c-escaped, 8.3.15 
+ - capitalize, 8.3.36 
  - cat, 9.11.2 
  - cats and dogs, 3.4 
  - cd, 10.9.2 
@@ -11788,9 +11814,9 @@ Index
  - file-check-sort, 9.3.6 
  - file-exists, 9.3.1 
  - file-sort, 9.3.5 
- - filter, 8.3.31 
+ - filter, 8.3.34 
  - filter-exists, 9.3.3 
- - filter-out, 8.3.32 
+ - filter-out, 8.3.35 
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
@@ -11830,21 +11856,24 @@ Index
  - Host, 9.8.24 
  - history, 10.11.1 
  - homename, 9.1.9 
- - html-string, 8.3.16 
+ - html-escaped, 8.3.13 
+ - html-pre-escaped, 8.3.14 
+ - html-string, 8.3.19 
  
  - INCLUDES, 12.4.1.6 
  - INSTALL, 12.3.2.1 
  - InChannel, 11.1.16 
  - InetAddr, 9.8.23 
  - Int, 11.1.4 
+ - id-escaped, 8.3.16 
  - if, 4.9, 8.2.5 
  - ignoreeof, 13.1.2 
  - in, 9.1.3 
  - include, 4.7 
  - inheritance, 4.13 
  - int, 8.4.1 
- - intersection, 8.3.28 
- - intersects, 8.3.29 
+ - intersection, 8.3.31 
+ - intersects, 8.3.32 
  
  - jobs, 10.10.1 
  
@@ -11875,7 +11904,7 @@ Index
  - lnot, 8.4.3 
  - lockf, 9.8.22 
  - lor, 8.4.3 
- - lowercase, 8.3.36 
+ - lowercase, 8.3.39 
  - ls, 9.4.2 
  - lseek, 9.8.11 
  - lsl, 8.4.3 
@@ -11889,10 +11918,10 @@ Index
  - MENHIR_AVAILABLE, 12.5.1.4 
  - MENHIR_ENABLED, 12.5.2.21 
  - MENHIR_FLAGS, 12.5.3.9 
- - mapprefix, 8.3.24 
- - mapsuffix, 8.3.18 
+ - mapprefix, 8.3.27 
+ - mapsuffix, 8.3.21 
  - match, 4.10, 8.2.6 
- - mem, 8.3.27 
+ - mem, 8.3.30 
  - mkdir, 9.5.1 
  - mkfifo, 9.8.20 
  - mod, 8.4.3 
@@ -11984,8 +12013,8 @@ Index
  - public., 4.17 
  
  - quotations, 4.4 
- - quote, 8.3.14 
- - quote-argv, 8.3.15 
+ - quote, 8.3.17 
+ - quote-argv, 8.3.18 
  
  - ROOT, 12.3.1.1 
  - Rule, 11.1.10 
@@ -11996,10 +12025,10 @@ Index
  - regular expressions, 9.11.1 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
- - removeprefix, 8.3.20 
- - removesuffix, 8.3.21 
+ - removeprefix, 8.3.23 
+ - removesuffix, 8.3.24 
  - rename, 9.5.5 
- - replacesuffixes, 8.3.22 
+ - replacesuffixes, 8.3.25 
  - rev, 8.3.9 
  - rewind, 9.8.12 
  - rootname, 9.1.5 
@@ -12027,13 +12056,13 @@ Index
  - section, 4.8, 7.3 
  - section rule, 7.4 
  - select, 9.8.21 
- - set, 8.3.26 
+ - set, 8.3.29 
  - set-close-on-exec-mode, 9.8.18 
- - set-diff, 8.3.30 
+ - set-diff, 8.3.33 
  - set-nonblock, 9.8.17 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
- - shell, 8.3.38 
+ - shell, 8.3.41 
  - socket, 9.8.30 
  - sorting (link-order), 9.3.5 
  - split, 8.3.2 
@@ -12052,7 +12081,7 @@ Index
  - suffix, 9.1.10 
  - switch, 4.10, 8.2.6 
  - symlink, 9.5.7 
- - system, 8.3.37 
+ - system, 8.3.40 
  
  - TARGETS, 8.1.11 
  - Target, 11.1.11 
@@ -12078,10 +12107,10 @@ Index
  - ule, 8.4.4 
  - ult, 8.4.4 
  - umask, 9.5.12 
- - uncapitalize, 8.3.34 
+ - uncapitalize, 8.3.37 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
- - uppercase, 8.3.35 
+ - uppercase, 8.3.38 
  
  - VERBOSE, 12.3.1.5 
  - variable definition, A.3.21 
@@ -12090,7 +12119,7 @@ Index
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.39 
+ - while, 8.3.42 
  - write, 9.8.10 
  
  - YACC, 12.4.1.14 
@@ -12226,10 +12255,10 @@ Index of functions and special forms
  - accept, 9.8.33 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
- - add-wrapper, 8.3.25 
- - addprefix, 8.3.23 
- - addsuffix, 8.3.17 
- - addsuffixes, 8.3.19 
+ - add-wrapper, 8.3.28 
+ - addprefix, 8.3.26 
+ - addsuffix, 8.3.20 
+ - addsuffixes, 8.3.22 
  - and, 8.2.3 
  - apply, 8.5.2 
  - applya, 8.5.3 
@@ -12240,7 +12269,7 @@ Index of functions and special forms
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.31 
- - break, 8.3.40 
+ - break, 8.3.43 
  
  - CGeneratedFiles, 12.4.2.1 
  - CProgram, 12.4.3.5 
@@ -12248,8 +12277,8 @@ Index of functions and special forms
  - CProgramInstall, 12.4.3.7 
  - CXXProgram, 12.4.3.8 
  - CXXProgramInstall, 12.4.3.8 
- - c-escaped, 8.3.13 
- - capitalize, 8.3.33 
+ - c-escaped, 8.3.15 
+ - capitalize, 8.3.36 
  - cat, 9.11.2 
  - cd, 10.9.2 
  - chmod, 9.5.9 
@@ -12290,9 +12319,9 @@ Index of functions and special forms
  - file-check-sort, 9.3.6 
  - file-exists, 9.3.1 
  - file-sort, 9.3.5 
- - filter, 8.3.31 
+ - filter, 8.3.34 
  - filter-exists, 9.3.3 
- - filter-out, 8.3.32 
+ - filter-out, 8.3.35 
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
@@ -12328,14 +12357,17 @@ Index of functions and special forms
  
  - history, 10.11.1 
  - homename, 9.1.9 
- - html-string, 8.3.16 
+ - html-escaped, 8.3.13 
+ - html-pre-escaped, 8.3.14 
+ - html-string, 8.3.19 
  
+ - id-escaped, 8.3.16 
  - if, 8.2.5 
  - in, 9.1.3 
  - include, 4.7 
  - int, 8.4.1 
- - intersection, 8.3.28 
- - intersects, 8.3.29 
+ - intersection, 8.3.31 
+ - intersects, 8.3.32 
  
  - jobs, 10.10.1 
  
@@ -12357,7 +12389,7 @@ Index of functions and special forms
  - lnot, 8.4.3 
  - lockf, 9.8.22 
  - lor, 8.4.3 
- - lowercase, 8.3.36 
+ - lowercase, 8.3.39 
  - ls, 9.4.2 
  - lseek, 9.8.11 
  - lsl, 8.4.3 
@@ -12365,10 +12397,10 @@ Index of functions and special forms
  - lt, 8.4.4 
  - lxor, 8.4.3 
  
- - mapprefix, 8.3.24 
- - mapsuffix, 8.3.18 
+ - mapprefix, 8.3.27 
+ - mapsuffix, 8.3.21 
  - match, 4.10, 8.2.6 
- - mem, 8.3.27 
+ - mem, 8.3.30 
  - mkdir, 9.5.1 
  - mkfifo, 9.8.20 
  - mod, 8.4.3 
@@ -12403,18 +12435,18 @@ Index of functions and special forms
  - printvln, 9.10 
  - project-directories, 12.8.0.10 
  
- - quote, 8.3.14 
- - quote-argv, 8.3.15 
+ - quote, 8.3.17 
+ - quote-argv, 8.3.18 
  
  - raise, 8.2.8 
  - read, 9.8.9 
  - readlink, 9.5.8 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
- - removeprefix, 8.3.20 
- - removesuffix, 8.3.21 
+ - removeprefix, 8.3.23 
+ - removesuffix, 8.3.24 
  - rename, 9.5.5 
- - replacesuffixes, 8.3.22 
+ - replacesuffixes, 8.3.25 
  - rev, 8.3.9 
  - rewind, 9.8.12 
  - rootname, 9.1.5 
@@ -12430,13 +12462,13 @@ Index of functions and special forms
  - section, 7.3 
  - section rule, 7.4 
  - select, 9.8.21 
- - set, 8.3.26 
+ - set, 8.3.29 
  - set-close-on-exec-mode, 9.8.18 
- - set-diff, 8.3.30 
+ - set-diff, 8.3.33 
  - set-nonblock, 9.8.17 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
- - shell, 8.3.38 
+ - shell, 8.3.41 
  - socket, 9.8.30 
  - split, 8.3.2 
  - stat, 9.5.3 
@@ -12450,7 +12482,7 @@ Index of functions and special forms
  - suffix, 9.1.10 
  - switch, 4.10, 8.2.6 
  - symlink, 9.5.7 
- - system, 8.3.37 
+ - system, 8.3.40 
  
  - TeXGeneratedFiles, 12.7.2.4 
  - target, 12.8.0.8 
@@ -12467,17 +12499,17 @@ Index of functions and special forms
  - ule, 8.4.4 
  - ult, 8.4.4 
  - umask, 9.5.12 
- - uncapitalize, 8.3.34 
+ - uncapitalize, 8.3.37 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
- - uppercase, 8.3.35 
+ - uppercase, 8.3.38 
  
  - vmount, 9.6.1 
  
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.39 
+ - while, 8.3.42 
  - write, 9.8.10 
 
 
@@ -12570,10 +12602,10 @@ Index of options
  - --progress, A.2.4 
  - --show-dependencies, A.3.14 
  - --verbose-dependencies, A.3.16 
- - -d, A.2.11 
  - -j, A.3.12 
  - -k, A.3.1 
  - -n, A.3.2 
+ - -o, A.2.11 
  - -P, A.3.4 
  - -p, A.3.3 
  - -R, A.3.5 

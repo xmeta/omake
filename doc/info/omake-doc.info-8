@@ -1,5 +1,184 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection B-1-1,	Next: Subsection B-1-2,	Prev: Section B-1,	Up: Section B-1
+  
+
+B.1.1   Comments
+================
+  
+  Comments begin with the `#' character and continue to the end-of-line.
+Text within a comment is unrestricted.
+  Examples.
+<<
+     # This is a comment
+     # This $comment contains a quote " character
+>>
+  
+
+Node: Subsection B-1-2,	Next: Subsection B-1-3,	Prev: Subsection B-1-1,	Up: Section B-1
+  
+
+B.1.2   Special characters
+==========================
+  
+  The following characters are special in some contexts.
+<<
+     $    (    )    ,    .   =    :    "    '    `    \    #
+>>
+  
+  
+  
+ - `$' is used to denote a variable reference, or function application. 
+ - Parentheses `)', `(' are argument deliminters. 
+ - The command `,' is an argument separator. 
+ - The period symbol `.' is a name separator. 
+ - The equality symbol `=' denotes a definition. 
+ - The colon symbol `:' is used to denote rules, and (optionally) to
+   indicate  that an expression is followed by an indented body. 
+ - The quotation symbols `"' and `'' delimit character strings. 
+ - The symbol `#' is the first character of a constant. 
+ - The escape symbol `\' is special only when followed by another
+   special  character. In this case, the special status of the second
+   character is removed,  and the sequence denotes the second character.
+   Otherwise, the `\' is not special.
+ Examples:
+ 
+      
+    - `\$': the `$' character (as a normal character).  
+    - `\#': the `#' character (as a normal character).  
+    - `\\': the `\' character (as a normal character).  
+    - `c\:\Windows\moo\#boo': the string `c:\Windows\moo#boo'.  
+  
+  
+
+Node: Subsection B-1-3,	Next: Subsection B-1-4,	Prev: Subsection B-1-2,	Up: Section B-1
+  
+
+B.1.3   Identifiers
+===================
+  
+  Identifiers (variable names) are drawn from the ASCII alphanumeric
+characters as well as `_', `-', `~', `@'. Case is significant; the
+following identifiers are distinct: `FOO', `Foo', `foo'. The identifier
+may begin with any of the valid characters, including digits.
+  Using `egrep' notation, the regular expression for identifiers is
+defined as follows.
+<<
+      identifier ::= [-@~_A-Za-z0-9]+
+>>
+  
+  The following are legal identifiers.
+<<
+      Xyz    hello_world    seventy@nine
+      79-32  Gnus~Gnats     CFLAGS
+>>
+  
+  The following are not legal identifiers.
+<<
+      x+y    hello&world
+>>
+  
+
+Node: Subsection B-1-4,	Next: Subsection B-1-5,	Prev: Subsection B-1-3,	Up: Section B-1
+  
+
+B.1.4   Command identifiers
+===========================
+  
+  The following words have special significance when they occur as the
+first word of a program line. They are not otherwise special.
+<<
+      case     catch  class    declare    default
+      do       else   elseif   export     extends
+      finally  if     import   include    match
+      open     raise  return   section    switch
+      try      value  when     while
+>>
+  
+
+Node: Subsection B-1-5,	Next: Subsection B-1-6,	Prev: Subsection B-1-4,	Up: Section B-1
+  
+
+B.1.5   Variable references
+===========================
+  
+  A variable reference is denoted with the `$' special character
+followed by an identifier. If the identifier name has more than one
+character, it must be enclosed in parentheses. The parenthesized version
+is most common. The following are legal variable references.
+<<
+      $(Xyz)    $(hello_world)   $(seventy@nine)
+      $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
+>>
+  
+  Single-character references also include several additional
+identifiers, including `&*<^?]['. The following are legal
+single-character references.
+<<
+     $@   $&   $*   $<   $^   $+   $?   $[   $]
+     $A   $_   $a   $b   $x   $1   $2   $3
+>>
+  
+  Note that a non-parenthesized variable reference is limited to a
+single character, even if it is followed by additional legal identifier
+charqcters. Suppose the value of the `$x' variable is 17. The following
+examples illustrate evaluation.
+<<
+      $x           evaluates to    17
+      foo$xbar     evaluates to    foo17bar
+      foo$(x)bar   evaluates to    foo17bar
+>>
+  
+  The special sequence `$$' represents the character literal `$'. That
+is, the two-character sequences `\$' and `$$' are normally equalivalent.
+
+Node: Subsection B-1-6,	Next: Section B-2,	Prev: Subsection B-1-5,	Up: Section B-1
+  
+
+B.1.6   String constants
+========================
+   
+  Literal strings are defined with matching string delimiters. A left
+string delimiter begins with the dollar-sign `$', and a non-zero number
+of single-quote or double-quote characters. The string is terminated
+with a matching sequence of quotation symbols. The delimiter quotation
+may not be mixed; it must contain only single-quote characters, or
+double-quote characters. The following are legal strings.
+<<
+      $'Hello world'
+      $"""printf("Hello world\n")"""
+      $''''
+  Large "block" of
+  text # spanning ''multiple'' lines''''
+>>
+  
+  The string delimiters are not included in the string constant. In the
+single-quote form, the contents of the string are interpreted
+verbatim--there are no special characters.
+  The double-quote form permits expression evaluation within the string,
+denoted with the `$' symbol. The following are some examples.
+<<
+      X = Hello
+      Y = $""$X world""             # Hello world
+      Z = $'''$X world'''           # $X world
+      I = 3
+      W = $"6 > $(add $I, 2)"       # 6 > 5
+>>
+  
+  Note that quotation symbols without a leading `$' are not treated
+specially by OMake. The quotation symbols is included in the sequence.
+<<
+      osh>println('Hello world')
+      'Hello world'
+      osh>println($'Hello world')
+      Hello world
+      osh>X = Hello
+      - : "Hello" : Sequence
+      osh>println('$X world')
+      Hello world
+>>
+  
+
 Node: Section B-2,	Next: Subsection B-2-1,	Prev: Section B-1,	Up: Appendix B
   
 
@@ -294,7 +473,7 @@ specified identifiers.
 >>
   
   while (see the `while' description in Section
-8.3.39*Note Subsection 8-3-39::). The `while' command introduces a `while'
+8.3.42*Note Subsection 8-3-42::). The `while' command introduces a `while'
 loop.
 <<
       while expr
@@ -698,10 +877,10 @@ Appendix C     Index
  - --progress, A.2.4*Note Subsection A-2-4:: 
  - --show-dependencies, A.3.14*Note Subsection A-3-14:: 
  - --verbose-dependencies, A.3.16*Note Subsection A-3-16:: 
- - -d, A.2.11*Note Subsection A-2-11:: 
  - -j, A.3.12*Note Subsection A-3-12:: 
  - -k, A.3.1*Note Subsection A-3-1:: 
  - -n, A.3.2*Note Subsection A-3-2:: 
+ - -o, A.2.11*Note Subsection A-2-11:: 
  - -P, A.3.4*Note Subsection A-3-4:: 
  - -p, A.3.3*Note Subsection A-3-3:: 
  - -R, A.3.5*Note Subsection A-3-5:: 
@@ -740,10 +919,10 @@ Appendix C     Index
  - accept, 9.8.33*Note Subsection 9-8-33:: 
  - add, 8.4.3*Note Subsection 8-4-3:: 
  - add-project-directories, 9.6.2*Note Subsection 9-6-2:: 
- - add-wrapper, 8.3.25*Note Subsection 8-3-25:: 
- - addprefix, 8.3.23*Note Subsection 8-3-23:: 
- - addsuffix, 8.3.17*Note Subsection 8-3-17:: 
- - addsuffixes, 8.3.19*Note Subsection 8-3-19:: 
+ - add-wrapper, 8.3.28*Note Subsection 8-3-28:: 
+ - addprefix, 8.3.26*Note Subsection 8-3-26:: 
+ - addsuffix, 8.3.20*Note Subsection 8-3-20:: 
+ - addsuffixes, 8.3.22*Note Subsection 8-3-22:: 
  - aliases, 13.2*Note Section 13-2:: 
  - and, 8.2.3*Note Subsection 8-2-3:: 
  - apply, 8.5.2*Note Subsection 8-5-2:: 
@@ -759,7 +938,7 @@ Appendix C     Index
  - basename, 9.1.4*Note Subsection 9-1-4:: 
  - bg, 10.10.2*Note Subsection 10-10-2:: 
  - bind, 9.8.31*Note Subsection 9-8-31:: 
- - break, 8.3.40*Note Subsection 8-3-40:: 
+ - break, 8.3.43*Note Subsection 8-3-43:: 
  - build model, 3*Note Chapter 3:: 
  
  - CAMLP4, 12.5.2.4*Note Subsection 12-5-2:: 
@@ -776,8 +955,8 @@ Appendix C     Index
  - CXXFLAGS, 12.4.1.5*Note Subsection 12-4-1:: 
  - CXXProgram, 12.4.3.8*Note Subsection 12-4-3:: 
  - CXXProgramInstall, 12.4.3.8*Note Subsection 12-4-3:: 
- - c-escaped, 8.3.13*Note Subsection 8-3-13:: 
- - capitalize, 8.3.33*Note Subsection 8-3-33:: 
+ - c-escaped, 8.3.15*Note Subsection 8-3-15:: 
+ - capitalize, 8.3.36*Note Subsection 8-3-36:: 
  - cat, 9.11.2*Note Subsection 9-11-2:: 
  - cats and dogs, 3.4*Note Section 3-4:: 
  - cd, 10.9.2*Note Subsection 10-9-2:: 
@@ -836,9 +1015,9 @@ Appendix C     Index
  - file-check-sort, 9.3.6*Note Subsection 9-3-6:: 
  - file-exists, 9.3.1*Note Subsection 9-3-1:: 
  - file-sort, 9.3.5*Note Subsection 9-3-5:: 
- - filter, 8.3.31*Note Subsection 8-3-31:: 
+ - filter, 8.3.34*Note Subsection 8-3-34:: 
  - filter-exists, 9.3.3*Note Subsection 9-3-3:: 
- - filter-out, 8.3.32*Note Subsection 8-3-32:: 
+ - filter-out, 8.3.35*Note Subsection 8-3-35:: 
  - filter-proper-targets, 9.3.3*Note Subsection 9-3-3:: 
  - filter-targets, 9.3.3*Note Subsection 9-3-3:: 
  - find, 9.7.2*Note Subsection 9-7-2:: 
@@ -878,21 +1057,24 @@ Appendix C     Index
  - Host, 9.8.24*Note Subsection 9-8-24:: 
  - history, 10.11.1*Note Subsection 10-11-1:: 
  - homename, 9.1.9*Note Subsection 9-1-9:: 
- - html-string, 8.3.16*Note Subsection 8-3-16:: 
+ - html-escaped, 8.3.13*Note Subsection 8-3-13:: 
+ - html-pre-escaped, 8.3.14*Note Subsection 8-3-14:: 
+ - html-string, 8.3.19*Note Subsection 8-3-19:: 
  
  - INCLUDES, 12.4.1.6*Note Subsection 12-4-1:: 
  - INSTALL, 12.3.2.1*Note Subsection 12-3-2:: 
  - InChannel, 11.1.16*Note Subsection 11-1-16:: 
  - InetAddr, 9.8.23*Note Subsection 9-8-23:: 
  - Int, 11.1.4*Note Subsection 11-1-4:: 
+ - id-escaped, 8.3.16*Note Subsection 8-3-16:: 
  - if, 4.9*Note Section 4-9::, 8.2.5*Note Subsection 8-2-5:: 
  - ignoreeof, 13.1.2*Note Subsection 13-1-2:: 
  - in, 9.1.3*Note Subsection 9-1-3:: 
  - include, 4.7*Note Section 4-7:: 
  - inheritance, 4.13*Note Section 4-13:: 
  - int, 8.4.1*Note Subsection 8-4-1:: 
- - intersection, 8.3.28*Note Subsection 8-3-28:: 
- - intersects, 8.3.29*Note Subsection 8-3-29:: 
+ - intersection, 8.3.31*Note Subsection 8-3-31:: 
+ - intersects, 8.3.32*Note Subsection 8-3-32:: 
  
  - jobs, 10.10.1*Note Subsection 10-10-1:: 
  
@@ -923,7 +1105,7 @@ Appendix C     Index
  - lnot, 8.4.3*Note Subsection 8-4-3:: 
  - lockf, 9.8.22*Note Subsection 9-8-22:: 
  - lor, 8.4.3*Note Subsection 8-4-3:: 
- - lowercase, 8.3.36*Note Subsection 8-3-36:: 
+ - lowercase, 8.3.39*Note Subsection 8-3-39:: 
  - ls, 9.4.2*Note Subsection 9-4-2:: 
  - lseek, 9.8.11*Note Subsection 9-8-11:: 
  - lsl, 8.4.3*Note Subsection 8-4-3:: 
@@ -937,10 +1119,10 @@ Appendix C     Index
  - MENHIR_AVAILABLE, 12.5.1.4*Note Subsection 12-5-1:: 
  - MENHIR_ENABLED, 12.5.2.21*Note Subsection 12-5-2:: 
  - MENHIR_FLAGS, 12.5.3.9*Note Subsection 12-5-3:: 
- - mapprefix, 8.3.24*Note Subsection 8-3-24:: 
- - mapsuffix, 8.3.18*Note Subsection 8-3-18:: 
+ - mapprefix, 8.3.27*Note Subsection 8-3-27:: 
+ - mapsuffix, 8.3.21*Note Subsection 8-3-21:: 
  - match, 4.10*Note Section 4-10::, 8.2.6*Note Subsection 8-2-6:: 
- - mem, 8.3.27*Note Subsection 8-3-27:: 
+ - mem, 8.3.30*Note Subsection 8-3-30:: 
  - mkdir, 9.5.1*Note Subsection 9-5-1:: 
  - mkfifo, 9.8.20*Note Subsection 9-8-20:: 
  - mod, 8.4.3*Note Subsection 8-4-3:: 
@@ -1033,8 +1215,8 @@ Appendix C     Index
  - public., 4.17*Note Section 4-17:: 
  
  - quotations, 4.4*Note Section 4-4:: 
- - quote, 8.3.14*Note Subsection 8-3-14:: 
- - quote-argv, 8.3.15*Note Subsection 8-3-15:: 
+ - quote, 8.3.17*Note Subsection 8-3-17:: 
+ - quote-argv, 8.3.18*Note Subsection 8-3-18:: 
  
  - ROOT, 12.3.1.1*Note Subsection 12-3-1:: 
  - Rule, 11.1.10*Note Subsection 11-1-10:: 
@@ -1045,10 +1227,10 @@ Appendix C     Index
  - regular expressions, 9.11.1*Note Subsection 9-11-1:: 
  - rehash, 9.2.3*Note Subsection 9-2-3:: 
  - remove-project-directories, 9.6.3*Note Subsection 9-6-3:: 
- - removeprefix, 8.3.20*Note Subsection 8-3-20:: 
- - removesuffix, 8.3.21*Note Subsection 8-3-21:: 
+ - removeprefix, 8.3.23*Note Subsection 8-3-23:: 
+ - removesuffix, 8.3.24*Note Subsection 8-3-24:: 
  - rename, 9.5.5*Note Subsection 9-5-5:: 
- - replacesuffixes, 8.3.22*Note Subsection 8-3-22:: 
+ - replacesuffixes, 8.3.25*Note Subsection 8-3-25:: 
  - rev, 8.3.9*Note Subsection 8-3-9:: 
  - rewind, 9.8.12*Note Subsection 9-8-12:: 
  - rootname, 9.1.5*Note Subsection 9-1-5:: 
@@ -1076,13 +1258,13 @@ Appendix C     Index
  - section, 4.8*Note Section 4-8::, 7.3*Note Section 7-3:: 
  - section rule, 7.4*Note Section 7-4:: 
  - select, 9.8.21*Note Subsection 9-8-21:: 
- - set, 8.3.26*Note Subsection 8-3-26:: 
+ - set, 8.3.29*Note Subsection 8-3-29:: 
  - set-close-on-exec-mode, 9.8.18*Note Subsection 9-8-18:: 
- - set-diff, 8.3.30*Note Subsection 8-3-30:: 
+ - set-diff, 8.3.33*Note Subsection 8-3-33:: 
  - set-nonblock, 9.8.17*Note Subsection 9-8-17:: 
  - setenv, 8.2.13*Note Subsection 8-2-13:: 
  - setvar, 8.2.17*Note Subsection 8-2-17:: 
- - shell, 8.3.38*Note Subsection 8-3-38:: 
+ - shell, 8.3.41*Note Subsection 8-3-41:: 
  - socket, 9.8.30*Note Subsection 9-8-30:: 
  - sorting (link-order), 9.3.5*Note Subsection 9-3-5:: 
  - split, 8.3.2*Note Subsection 8-3-2:: 
@@ -1101,7 +1283,7 @@ Appendix C     Index
  - suffix, 9.1.10*Note Subsection 9-1-10:: 
  - switch, 4.10*Note Section 4-10::, 8.2.6*Note Subsection 8-2-6:: 
  - symlink, 9.5.7*Note Subsection 9-5-7:: 
- - system, 8.3.37*Note Subsection 8-3-37:: 
+ - system, 8.3.40*Note Subsection 8-3-40:: 
  
  - TARGETS, 8.1.11*Note Subsection 8-1-11:: 
  - Target, 11.1.11*Note Subsection 11-1-11:: 
@@ -1127,10 +1309,10 @@ Appendix C     Index
  - ule, 8.4.4*Note Subsection 8-4-4:: 
  - ult, 8.4.4*Note Subsection 8-4-4:: 
  - umask, 9.5.12*Note Subsection 9-5-12:: 
- - uncapitalize, 8.3.34*Note Subsection 8-3-34:: 
+ - uncapitalize, 8.3.37*Note Subsection 8-3-37:: 
  - unlink, 9.5.4*Note Subsection 9-5-4:: 
  - unsetenv, 8.2.14*Note Subsection 8-2-14:: 
- - uppercase, 8.3.35*Note Subsection 8-3-35:: 
+ - uppercase, 8.3.38*Note Subsection 8-3-38:: 
  
  - VERBOSE, 12.3.1.5*Note Subsection 12-3-1:: 
  - variable definition, A.3.21*Note Subsection A-3-21:: 
@@ -1139,7 +1321,7 @@ Appendix C     Index
  - wait, 10.10.5*Note Subsection 10-10-5:: 
  - where, 9.2.2*Note Subsection 9-2-2:: 
  - which, 9.2.1*Note Subsection 9-2-1:: 
- - while, 8.3.39*Note Subsection 8-3-39:: 
+ - while, 8.3.42*Note Subsection 8-3-42:: 
  - write, 9.8.10*Note Subsection 9-8-10:: 
  
  - YACC, 12.4.1.14*Note Subsection 12-4-1:: 
@@ -1268,270 +1450,4 @@ Appendix D     Index of variables
  - VERBOSE, 12.3.1.5*Note Subsection 12-3-1:: 
  
  - YACC, 12.4.1.14*Note Subsection 12-4-1:: 
-     
-
-Node: Appendix E,	Next: Appendix F,	Prev: Appendix D,	Up: Top
-  
-
-Appendix E     Index of functions and special forms
-***************************************************
-  
-  
- - absname, 9.1.8*Note Subsection 9-1-8:: 
- - accept, 9.8.33*Note Subsection 9-8-33:: 
- - add, 8.4.3*Note Subsection 8-4-3:: 
- - add-project-directories, 9.6.2*Note Subsection 9-6-2:: 
- - add-wrapper, 8.3.25*Note Subsection 8-3-25:: 
- - addprefix, 8.3.23*Note Subsection 8-3-23:: 
- - addsuffix, 8.3.17*Note Subsection 8-3-17:: 
- - addsuffixes, 8.3.19*Note Subsection 8-3-19:: 
- - and, 8.2.3*Note Subsection 8-2-3:: 
- - apply, 8.5.2*Note Subsection 8-5-2:: 
- - applya, 8.5.3*Note Subsection 8-5-3:: 
- - array, 8.3.1*Note Subsection 8-3-1:: 
- - asr, 8.4.3*Note Subsection 8-4-3:: 
- - awk, 9.11.5*Note Subsection 9-11-5:: 
- 
- - basename, 9.1.4*Note Subsection 9-1-4:: 
- - bg, 10.10.2*Note Subsection 10-10-2:: 
- - bind, 9.8.31*Note Subsection 9-8-31:: 
- - break, 8.3.40*Note Subsection 8-3-40:: 
- 
- - CGeneratedFiles, 12.4.2.1*Note Subsection 12-4-2:: 
- - CProgram, 12.4.3.5*Note Subsection 12-4-3:: 
- - CProgramCopy, 12.4.3.6*Note Subsection 12-4-3:: 
- - CProgramInstall, 12.4.3.7*Note Subsection 12-4-3:: 
- - CXXProgram, 12.4.3.8*Note Subsection 12-4-3:: 
- - CXXProgramInstall, 12.4.3.8*Note Subsection 12-4-3:: 
- - c-escaped, 8.3.13*Note Subsection 8-3-13:: 
- - capitalize, 8.3.33*Note Subsection 8-3-33:: 
- - cat, 9.11.2*Note Subsection 9-11-2:: 
- - cd, 10.9.2*Note Subsection 10-9-2:: 
- - chmod, 9.5.9*Note Subsection 9-5-9:: 
- - chown, 9.5.10*Note Subsection 9-5-10:: 
- - close, 9.8.8*Note Subsection 9-8-8:: 
- - cmp-versions, 12.2.0.3*Note Section 12-2:: 
- - concat, 8.3.3*Note Subsection 8-3-3:: 
- - connect, 9.8.34*Note Subsection 9-8-34:: 
- - create-lazy-map, 8.5.4*Note Subsection 8-5-4:: 
- - create-map, 8.5.4*Note Subsection 8-5-4:: 
- 
- - DefineCommandVars, 12.2.0.4*Note Section 12-2:: 
- - defined, 8.2.10*Note Subsection 8-2-10:: 
- - defined-env, 8.2.11*Note Subsection 8-2-11:: 
- - dependencies, 12.8.0.7*Note Section 12-8:: 
- - dependencies-all, 12.8.0.7*Note Section 12-8:: 
- - digest, 9.2.5*Note Subsection 9-2-5:: 
- - digest-path, 9.2.7*Note Subsection 9-2-7:: 
- - dir, 9.1.1*Note Subsection 9-1-1:: 
- - dirof, 9.1.6*Note Subsection 9-1-6:: 
- - div, 8.4.3*Note Subsection 8-4-3:: 
- - dup, 9.8.15*Note Subsection 9-8-15:: 
- - dup2, 9.8.16*Note Subsection 9-8-16:: 
- 
- - echo, 10.9.1*Note Subsection 10-9-1:: 
- - eprint, 9.9*Note Section 9-9:: 
- - eprintln, 9.9*Note Section 9-9:: 
- - eprintv, 9.10*Note Section 9-10:: 
- - eprintvln, 9.10*Note Section 9-10:: 
- - eq, 8.4.4*Note Subsection 8-4-4:: 
- - equal, 8.2.2*Note Subsection 8-2-2:: 
- - exists-in-path, 9.2.4*Note Subsection 9-2-4:: 
- - exit, 8.2.9*Note Subsection 8-2-9:: 
- 
- - fg, 10.10.3*Note Subsection 10-10-3:: 
- - fgets, 9.8.37*Note Subsection 9-8-37:: 
- - file, 9.1.1*Note Subsection 9-1-1:: 
- - file-check-sort, 9.3.6*Note Subsection 9-3-6:: 
- - file-exists, 9.3.1*Note Subsection 9-3-1:: 
- - file-sort, 9.3.5*Note Subsection 9-3-5:: 
- - filter, 8.3.31*Note Subsection 8-3-31:: 
- - filter-exists, 9.3.3*Note Subsection 9-3-3:: 
- - filter-out, 8.3.32*Note Subsection 8-3-32:: 
- - filter-proper-targets, 9.3.3*Note Subsection 9-3-3:: 
- - filter-targets, 9.3.3*Note Subsection 9-3-3:: 
- - find, 9.7.2*Note Subsection 9-7-2:: 
- - find-build-targets, 12.8.0.9*Note Section 12-8:: 
- - find-in-path, 9.2.6*Note Subsection 9-2-6:: 
- - find-targets-in-path, 9.3.4*Note Subsection 9-3-4:: 
- - find-targets-in-path-optional, 9.3.4*Note Subsection 9-3-4:: 
- - float, 8.4.2*Note Subsection 8-4-2:: 
- - flush, 9.8.14*Note Subsection 9-8-14:: 
- - fopen, 9.8.7*Note Subsection 9-8-7:: 
- - foreach, 8.6.1*Note Subsection 8-6-1:: 
- - fprint, 9.9*Note Section 9-9:: 
- - fprintln, 9.9*Note Section 9-9:: 
- - fprintv, 9.10*Note Section 9-10:: 
- - fprintvln, 9.10*Note Section 9-10:: 
- - fsubst, 9.11.6*Note Subsection 9-11-6:: 
- - fullname, 9.1.7*Note Subsection 9-1-7:: 
- - fun, 8.5.1*Note Subsection 8-5-1:: 
- 
- - ge, 8.4.4*Note Subsection 8-4-4:: 
- - get-registry, 8.2.15*Note Subsection 8-2-15:: 
- - getchar, 9.8.35*Note Subsection 9-8-35:: 
- - getenv, 8.2.12*Note Subsection 8-2-12:: 
- - gethostbyname, 9.8.25*Note Subsection 9-8-25:: 
- - getprotobyname, 9.8.27*Note Subsection 9-8-27:: 
- - gets, 9.8.36*Note Subsection 9-8-36:: 
- - getservbyname, 9.8.29*Note Subsection 9-8-29:: 
- - gettimeofday, 9.11.17*Note Subsection 9-11-17:: 
- - getvar, 8.2.16*Note Subsection 8-2-16:: 
- - glob, 9.4.1*Note Subsection 9-4-1:: 
- - grep, 9.11.3*Note Subsection 9-11-3:: 
- - gt, 8.4.4*Note Subsection 8-4-4:: 
- 
- - history, 10.11.1*Note Subsection 10-11-1:: 
- - homename, 9.1.9*Note Subsection 9-1-9:: 
- - html-string, 8.3.16*Note Subsection 8-3-16:: 
- 
- - if, 8.2.5*Note Subsection 8-2-5:: 
- - in, 9.1.3*Note Subsection 9-1-3:: 
- - include, 4.7*Note Section 4-7:: 
- - int, 8.4.1*Note Subsection 8-4-1:: 
- - intersection, 8.3.28*Note Subsection 8-3-28:: 
- - intersects, 8.3.29*Note Subsection 8-3-29:: 
- 
- - jobs, 10.10.1*Note Subsection 10-10-1:: 
- 
- - kill, 10.10.6*Note Subsection 10-10-6:: 
- 
- - LaTeXDocument, 12.7.2.1*Note Subsection 12-7-2:: 
- - LaTeXDocumentCopy, 12.7.2.5*Note Subsection 12-7-2:: 
- - LaTeXDocumentInstall, 12.7.2.6*Note Subsection 12-7-2:: 
- - LocalCGeneratedFiles, 12.4.2.1*Note Subsection 12-4-2:: 
- - LocalOCamlGeneratedFiles, 12.6.0.5*Note Section 12-6:: 
- - LocalTeXGeneratedFiles, 12.7.2.4*Note Subsection 12-7-2:: 
- - land, 8.4.3*Note Subsection 8-4-3:: 
- - le, 8.4.4*Note Subsection 8-4-4:: 
- - length, 8.3.4*Note Subsection 8-3-4:: 
- - lex, 9.11.7*Note Subsection 9-11-7:: 
- - lex-search, 9.11.8*Note Subsection 9-11-8:: 
- - link, 9.5.6*Note Subsection 9-5-6:: 
- - listen, 9.8.32*Note Subsection 9-8-32:: 
- - lnot, 8.4.3*Note Subsection 8-4-3:: 
- - lockf, 9.8.22*Note Subsection 9-8-22:: 
- - lor, 8.4.3*Note Subsection 8-4-3:: 
- - lowercase, 8.3.36*Note Subsection 8-3-36:: 
- - ls, 9.4.2*Note Subsection 9-4-2:: 
- - lseek, 9.8.11*Note Subsection 9-8-11:: 
- - lsl, 8.4.3*Note Subsection 8-4-3:: 
- - lsr, 8.4.3*Note Subsection 8-4-3:: 
- - lt, 8.4.4*Note Subsection 8-4-4:: 
- - lxor, 8.4.3*Note Subsection 8-4-3:: 
- 
- - mapprefix, 8.3.24*Note Subsection 8-3-24:: 
- - mapsuffix, 8.3.18*Note Subsection 8-3-18:: 
- - match, 4.10*Note Section 4-10::, 8.2.6*Note Subsection 8-2-6:: 
- - mem, 8.3.27*Note Subsection 8-3-27:: 
- - mkdir, 9.5.1*Note Subsection 9-5-1:: 
- - mkfifo, 9.8.20*Note Subsection 9-8-20:: 
- - mod, 8.4.3*Note Subsection 8-4-3:: 
- - mul, 8.4.3*Note Subsection 8-4-3:: 
- 
- - neg, 8.4.3*Note Subsection 8-4-3:: 
- - not, 8.2.1*Note Subsection 8-2-1:: 
- - nth, 8.3.5*Note Subsection 8-3-5:: 
- - nth-hd, 8.3.6*Note Subsection 8-3-6:: 
- - nth-tl, 8.3.7*Note Subsection 8-3-7:: 
- 
- - OCamlGeneratedFiles, 12.6.0.5*Note Section 12-6:: 
- - OCamlLibrary, 12.6.1.1*Note Subsection 12-6-1:: 
- - OCamlLibraryCopy, 12.6.1.4*Note Subsection 12-6-1:: 
- - OCamlLibraryInstall, 12.6.1.5*Note Subsection 12-6-1:: 
- - OCamlPackage, 12.6.1.3*Note Subsection 12-6-1:: 
- - OCamlProgram, 12.6.1.6*Note Subsection 12-6-1:: 
- - OCamlProgramCopy, 12.6.1.7*Note Subsection 12-6-1:: 
- - OCamlProgramInstall, 12.6.1.8*Note Subsection 12-6-1:: 
- - OMakeFlags, 12.2.0.1*Note Section 12-2:: 
- - OMakeVersion, 12.2.0.2*Note Section 12-2:: 
- - ocaml-escaped, 8.3.12*Note Subsection 8-3-12:: 
- - open-in-string, 9.8.5*Note Subsection 9-8-5:: 
- - open-out-string, 9.8.6*Note Subsection 9-8-6:: 
- - or, 8.2.4*Note Subsection 8-2-4:: 
- - out-string, 9.8.6*Note Subsection 9-8-6:: 
- 
- - pipe, 9.8.19*Note Subsection 9-8-19:: 
- - print, 9.9*Note Section 9-9:: 
- - println, 9.9*Note Section 9-9:: 
- - printv, 9.10*Note Section 9-10:: 
- - printvln, 9.10*Note Section 9-10:: 
- - project-directories, 12.8.0.10*Note Section 12-8:: 
- 
- - quote, 8.3.14*Note Subsection 8-3-14:: 
- - quote-argv, 8.3.15*Note Subsection 8-3-15:: 
- 
- - raise, 8.2.8*Note Subsection 8-2-8:: 
- - read, 9.8.9*Note Subsection 9-8-9:: 
- - readlink, 9.5.8*Note Subsection 9-5-8:: 
- - rehash, 9.2.3*Note Subsection 9-2-3:: 
- - remove-project-directories, 9.6.3*Note Subsection 9-6-3:: 
- - removeprefix, 8.3.20*Note Subsection 8-3-20:: 
- - removesuffix, 8.3.21*Note Subsection 8-3-21:: 
- - rename, 9.5.5*Note Subsection 9-5-5:: 
- - replacesuffixes, 8.3.22*Note Subsection 8-3-22:: 
- - rev, 8.3.9*Note Subsection 8-3-9:: 
- - rewind, 9.8.12*Note Subsection 9-8-12:: 
- - rootname, 9.1.5*Note Subsection 9-1-5:: 
- - rule, 12.8.0.11*Note Section 12-8:: 
- 
- - StaticCLibrary, 12.4.3.1*Note Subsection 12-4-3:: 
- - StaticCLibraryCopy, 12.4.3.2*Note Subsection 12-4-3:: 
- - StaticCLibraryInstall, 12.4.3.3*Note Subsection 12-4-3:: 
- - StaticCObject, 12.4.3.4*Note Subsection 12-4-3:: 
- - StaticCObjectCopy, 12.4.3.4*Note Subsection 12-4-3:: 
- - StaticCObjectInstall, 12.4.3.4*Note Subsection 12-4-3:: 
- - scan, 9.11.4*Note Subsection 9-11-4:: 
- - section, 7.3*Note Section 7-3:: 
- - section rule, 7.4*Note Section 7-4:: 
- - select, 9.8.21*Note Subsection 9-8-21:: 
- - set, 8.3.26*Note Subsection 8-3-26:: 
- - set-close-on-exec-mode, 9.8.18*Note Subsection 9-8-18:: 
- - set-diff, 8.3.30*Note Subsection 8-3-30:: 
- - set-nonblock, 9.8.17*Note Subsection 9-8-17:: 
- - setenv, 8.2.13*Note Subsection 8-2-13:: 
- - setvar, 8.2.17*Note Subsection 8-2-17:: 
- - shell, 8.3.38*Note Subsection 8-3-38:: 
- - socket, 9.8.30*Note Subsection 9-8-30:: 
- - split, 8.3.2*Note Subsection 8-3-2:: 
- - stat, 9.5.3*Note Subsection 9-5-3:: 
- - stat-reset, 9.3.2*Note Subsection 9-3-2:: 
- - stop, 10.10.4*Note Subsection 10-10-4:: 
- - string, 8.3.10*Note Subsection 8-3-10:: 
- - string-escaped, 8.3.11*Note Subsection 8-3-11:: 
- - sub, 8.4.3*Note Subsection 8-4-3:: 
- - subdirs, 9.4.3*Note Subsection 9-4-3:: 
- - subrange, 8.3.8*Note Subsection 8-3-8:: 
- - suffix, 9.1.10*Note Subsection 9-1-10:: 
- - switch, 4.10*Note Section 4-10::, 8.2.6*Note Subsection 8-2-6:: 
- - symlink, 9.5.7*Note Subsection 9-5-7:: 
- - system, 8.3.37*Note Subsection 8-3-37:: 
- 
- - TeXGeneratedFiles, 12.7.2.4*Note Subsection 12-7-2:: 
- - target, 12.8.0.8*Note Section 12-8:: 
- - target-exists, 9.3.1*Note Subsection 9-3-1:: 
- - target-is-proper, 9.3.1*Note Subsection 9-3-1:: 
- - tell, 9.8.13*Note Subsection 9-8-13:: 
- - test, 9.7.1*Note Subsection 9-7-1:: 
- - tmpfile, 9.1.2*Note Subsection 9-1-2:: 
- - truncate, 9.5.11*Note Subsection 9-5-11:: 
- - try, 8.2.7*Note Subsection 8-2-7:: 
- 
- - uge, 8.4.4*Note Subsection 8-4-4:: 
- - ugt, 8.4.4*Note Subsection 8-4-4:: 
- - ule, 8.4.4*Note Subsection 8-4-4:: 
- - ult, 8.4.4*Note Subsection 8-4-4:: 
- - umask, 9.5.12*Note Subsection 9-5-12:: 
- - uncapitalize, 8.3.34*Note Subsection 8-3-34:: 
- - unlink, 9.5.4*Note Subsection 9-5-4:: 
- - unsetenv, 8.2.14*Note Subsection 8-2-14:: 
- - uppercase, 8.3.35*Note Subsection 8-3-35:: 
- 
- - vmount, 9.6.1*Note Subsection 9-6-1:: 
- 
- - wait, 10.10.5*Note Subsection 10-10-5:: 
- - where, 9.2.2*Note Subsection 9-2-2:: 
- - which, 9.2.1*Note Subsection 9-2-1:: 
- - while, 8.3.39*Note Subsection 8-3-39:: 
- - write, 9.8.10*Note Subsection 9-8-10:: 
      
