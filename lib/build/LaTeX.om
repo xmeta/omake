@@ -189,6 +189,11 @@ Shell. +=
                 BIBS[] = $(BIBS) $(addsuffix .bib, $(BIBS))
                 DEPS += $(find-in-path-optional $(split \:, $(getenv BIBINPUTS)), $(BIBS))
                 export DEPS
+            case $'\\bibstyle\{.*\}'
+                BSTS = $(split \,, $2)
+                BSTS[] = $(BSTS) $(addsuffix .bst, $(BSTS))
+                DEPS += $(find-in-path-optional $(split \:, $(getenv BSTINPUTS)), $(BSTS))
+                export DEPS
             export DEPS
         DEPS = $(string $(set-diff $(DEPS), $(WRITES)))
         println($(dep): $(DEPS))
@@ -233,6 +238,9 @@ Shell. +=
 # The \LaTeX\ search path (an array of directories, default is
 #   taken from the \verb+TEXINPUTS+ environment variable).
 # \var{TEXDEPS} Additional files this document depends on.
+# \var{TEXVARS} An array of names of the environment variables
+#   that are to be updated based on the value of \OMake's \verb+TEXINPUTS+ variable.
+#   Defaults to \verb+TEXINPUTS+ \verb+BIBINPUTS+ \verb+BSTINPUTS+.
 # \end{doc}
 
 #
@@ -257,6 +265,11 @@ Shell. +=
 # \verb+LocalTeXGeneratedFiles+ function follows the normal scoping rules of OMake.
 #
 # \end{doc}
+
+public.TEXVARS[] =
+    TEXINPUTS
+    BIBINPUTS
+    BSTINPUTS
 
 .PHONY: TeXGeneratedFilesTarget
 
@@ -302,15 +315,17 @@ public.LaTeXDocument(name, texfiles) =
     # Setting the proper TEXINPUTS environment
     #
     private.INPUTS = $(concat $(PATHSEP), $(TEXINPUTS))$(PATHSEP)
-    setenv(TEXINPUTS, $(private.INPUTS))
-    setenv(BIBINPUTS, $(private.INPUTS))
+    foreach(var, $(TEXVARS))
+        setenv($(var), $(private.INPUTS))
+        export
 
     Rule(use_pdflatex) =
         private.prog = $(if $(use_pdflatex), $(PDFLATEX), $(LATEX))
         private.ext = $(if $(use_pdflatex), .pdf, .dvi)
 
         $(name)$(ext): $(TEXDEPS) $(TEXFILES) :effects: $(name).aux $(name).log $(name).ind $(name).out
-            echo "Enviroment variables TEXINPUT and BIBINPUTS set to $(getenv TEXINPUTS)"
+            if $(gt $(length $(TEXVARS)), 0)
+                echo "Enviroment variables $(concat $', ', $(TEXVARS)) set to $(getenv $(nth 0, $(TEXVARS)))"
             run-latex $(prog) $(LATEXFLAGS) $(name)
             if $(and $(file-exists  $(name).aux), $(grep q, $'\\citation', $(name).aux), $(grep q, $'\\bibdata', $(name).aux))
                 $(BIBTEX) $(name)

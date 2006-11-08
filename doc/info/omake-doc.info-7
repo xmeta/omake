@@ -769,7 +769,14 @@ environment variable).
  Additional files
 this document depends on.
 
-12.7.2.4   TeXGeneratedFiles, LocalTeXGeneratedFiles
+12.7.2.4   TEXVARS
+------------------
+ An array of names
+of the environment variables  that are to be updated based on the value
+of OMake's `TEXINPUTS' variable.  Defaults to `TEXINPUTS' `BIBINPUTS'
+`BSTINPUTS'.
+
+12.7.2.5   TeXGeneratedFiles, LocalTeXGeneratedFiles
 ----------------------------------------------------
  
 <<
@@ -791,14 +798,14 @@ dependencies. The `LocalTeXGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-12.7.2.5   LaTeXDocumentCopy
+12.7.2.6   LaTeXDocumentCopy
 ----------------------------
 
   The `LaTeXDocumentCopy' copies the document to an install location.
   `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
   This function copies just the `.pdf' and `.ps' files.
 
-12.7.2.6   LaTeXDocumentInstall
+12.7.2.7   LaTeXDocumentInstall
 -------------------------------
 
   The `LaTeXDocumentInstall' builds a document and copies it to an
@@ -814,7 +821,7 @@ Node: Section 12-8,	Next: Chapter 13,	Prev: Section 12-7,	Up: Chapter 12
 
 
 
-12.8.0.7   dependencies, dependencies-all
+12.8.0.8   dependencies, dependencies-all
 -----------------------------------------
 
 <<
@@ -854,7 +861,7 @@ For a shorter form, see the `filter-proper-targets' function.
   
   
 
-12.8.0.8   target
+12.8.0.9   target
 -----------------
  
 <<
@@ -866,8 +873,8 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-12.8.0.9   find-build-targets
------------------------------
+12.8.0.10   find-build-targets
+------------------------------
 
 <<
       $(build-targets tag) : Target Array
@@ -893,7 +900,7 @@ of targets that failed (if the build failed).
 >>
   
 
-12.8.0.10   project-directories
+12.8.0.11   project-directories
 -------------------------------
 
 <<
@@ -905,7 +912,7 @@ that are considered to be part of the project.
   To get the complete directory list, this function should be called
 from within a rule body.
 
-12.8.0.11   rule
+12.8.0.12   rule
 ----------------
 
   The `rule' function is called whenever a build rule is defined. It is
@@ -1675,24 +1682,4 @@ Appendix B     OMake grammar
 * Section B-1::	OMake lexical conventions
 * Section B-2::	The OMake grammar
 * Section B-3::	Dollar modifiers
-
-
-Node: Section B-1,	Next: Subsection B-1-1,	Prev: Appendix B,	Up: Appendix B
-  
-
-B.1   OMake lexical conventions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The OMake language is based on the language for GNU/BSD make, where
-there are few lexical conventions. Strictly speaking, there are no
-keywords, and few special symbols.
-* Menu:
-
-* Subsection B-1-1::	Comments
-* Subsection B-1-2::	Special characters
-* Subsection B-1-3::	Identifiers
-* Subsection B-1-4::	Command identifiers
-* Subsection B-1-5::	Variable references
-* Subsection B-1-6::	String constants
 

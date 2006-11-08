@@ -94,7 +94,7 @@ If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can
 define them in your <CODE>.omakerc</CODE> (see Section&nbsp;<A HREF="omake-options.html#section:.omakerc">A.8</A>).<BR>
 <BR>
-The <CODE>find-build-targets</CODE> function (Section&nbsp;<A HREF="#fun:find-build-targets">12.8.0.9</A>
+The <CODE>find-build-targets</CODE> function (Section&nbsp;<A HREF="#fun:find-build-targets">12.8.0.10</A>
 is useful for obtaining a firther summary of the build. Note that
 when output diversions are in effect (with the <CODE>--divert-*</CODE> options &mdash; see Chapter&nbsp;<A HREF="omake-options.html#chapter:options">A</A>),
 any output produced by the commands is copied to a file. The name of the
@@ -729,7 +729,11 @@ The L<sup>A</sup>T<sub>E</sub>X search path (an array of directories, default is
 
 <H4 CLASS="subsubsection"><A NAME="htoc458">12.7.2.3</A>&nbsp;&nbsp;TEXDEPS</H4><A NAME="@default402"></A><A NAME="@var96"></A><A NAME="var:TEXDEPS"></A> Additional files this document depends on.
 
-<H4 CLASS="subsubsection"><A NAME="htoc459">12.7.2.4</A>&nbsp;&nbsp;TeXGeneratedFiles, LocalTeXGeneratedFiles</H4><A NAME="@default403"></A><A NAME="@fun230"></A><A NAME="fun:TeXGeneratedFiles"></A><A NAME="@default404"></A><A NAME="@fun231"></A><A NAME="fun:LocalTeXGeneratedFiles"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc459">12.7.2.4</A>&nbsp;&nbsp;TEXVARS</H4><A NAME="@default403"></A><A NAME="@var97"></A><A NAME="var:TEXVARS"></A> An array of names of the environment variables
+ that are to be updated based on the value of OMake's <CODE>TEXINPUTS</CODE> variable.
+ Defaults to <CODE>TEXINPUTS</CODE> <CODE>BIBINPUTS</CODE> <CODE>BSTINPUTS</CODE>.
+
+<H4 CLASS="subsubsection"><A NAME="htoc460">12.7.2.5</A>&nbsp;&nbsp;TeXGeneratedFiles, LocalTeXGeneratedFiles</H4><A NAME="@default404"></A><A NAME="@fun230"></A><A NAME="fun:TeXGeneratedFiles"></A><A NAME="@default405"></A><A NAME="@fun231"></A><A NAME="fun:LocalTeXGeneratedFiles"></A>
 <PRE CLASS="verbatim">
 TeXGeneratedFiles(files)
 LocalTeXGeneratedFiles(files)
@@ -745,22 +749,22 @@ before any TeX files anywhere in the project are scanned for dependencies. The
 <CODE>LocalTeXGeneratedFiles</CODE> function follows the normal scoping rules of OMake.<BR>
 <BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc460">12.7.2.5</A>&nbsp;&nbsp;LaTeXDocumentCopy</H4><A NAME="@default405"></A><A NAME="@fun232"></A><A NAME="fun:LaTeXDocumentCopy"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc461">12.7.2.6</A>&nbsp;&nbsp;LaTeXDocumentCopy</H4><A NAME="@default406"></A><A NAME="@fun232"></A><A NAME="fun:LaTeXDocumentCopy"></A>
 The <CODE>LaTeXDocumentCopy</CODE> copies the document to an install location.<BR>
 <BR>
 <CODE>LaTeXDocumentCopy(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;)</CODE><BR>
 <BR>
 This function copies just the <CODE>.pdf</CODE> and <CODE>.ps</CODE> files.
 
-<H4 CLASS="subsubsection"><A NAME="htoc461">12.7.2.6</A>&nbsp;&nbsp;LaTeXDocumentInstall</H4><A NAME="@default406"></A><A NAME="@fun233"></A><A NAME="fun:LaTeXDocumentInstall"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc462">12.7.2.7</A>&nbsp;&nbsp;LaTeXDocumentInstall</H4><A NAME="@default407"></A><A NAME="@fun233"></A><A NAME="fun:LaTeXDocumentInstall"></A>
 The <CODE>LaTeXDocumentInstall</CODE> builds a document and copies it to an
 install location in one step.<BR>
 <BR>
 <CODE>LaTeXDocumentInstall(&lt;tag&gt;, &lt;libdir&gt;, &lt;installname&gt;, &lt;docname&gt;, &lt;files&gt;)</CODE>
 <A NAME="toc101"></A>
-<H2 CLASS="section"><A NAME="htoc462">12.8</A>&nbsp;&nbsp;Examining the dependency graph</H2>
+<H2 CLASS="section"><A NAME="htoc463">12.8</A>&nbsp;&nbsp;Examining the dependency graph</H2>
 
-<H4 CLASS="subsubsection"><A NAME="htoc463">12.8.0.7</A>&nbsp;&nbsp;dependencies, dependencies-all</H4><A NAME="@default407"></A><A NAME="@fun234"></A><A NAME="fun:dependencies"></A><A NAME="@default408"></A><A NAME="@fun235"></A><A NAME="fun:dependencies-all"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc464">12.8.0.8</A>&nbsp;&nbsp;dependencies, dependencies-all</H4><A NAME="@default408"></A><A NAME="@fun234"></A><A NAME="fun:dependencies"></A><A NAME="@default409"></A><A NAME="@fun235"></A><A NAME="fun:dependencies-all"></A>
 <PRE CLASS="verbatim">
    $(dependencies targets) : File Array
    $(dependencies-all targets) : File Array
@@ -799,7 +803,7 @@ building the project before it can be deleted. For a shorter form, see the
        rm $(dependencies-proper $(APP))
 </PRE>
 
-<H4 CLASS="subsubsection"><A NAME="htoc464">12.8.0.8</A>&nbsp;&nbsp;target</H4><A NAME="@default409"></A><A NAME="@fun236"></A><A NAME="fun:target"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc465">12.8.0.9</A>&nbsp;&nbsp;target</H4><A NAME="@default410"></A><A NAME="@fun236"></A><A NAME="fun:target"></A>
 <PRE CLASS="verbatim">
    $(target targets) : Target Array
       targets : File Sequence
@@ -808,7 +812,7 @@ building the project before it can be deleted. For a shorter form, see the
 The <CODE>target</CODE> function returns the Target object associated with each
 of the targets. See the <CODE>Target</CODE> object for more information.
 
-<H4 CLASS="subsubsection"><A NAME="htoc465">12.8.0.9</A>&nbsp;&nbsp;find-build-targets</H4><A NAME="@default410"></A><A NAME="@fun237"></A><A NAME="fun:find-build-targets"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc466">12.8.0.10</A>&nbsp;&nbsp;find-build-targets</H4><A NAME="@default411"></A><A NAME="@fun237"></A><A NAME="fun:find-build-targets"></A>
 <PRE CLASS="verbatim">
     $(build-targets tag) : Target Array
        tag : Succeeded | Failed
@@ -830,7 +834,7 @@ will print the number of targets that failed (if the build failed).
     .BUILD_FAILURE:
         echo "Failed target count: $(length $(failed-targets))"
 </PRE>
-<H4 CLASS="subsubsection"><A NAME="htoc466">12.8.0.10</A>&nbsp;&nbsp;project-directories</H4><A NAME="@default411"></A><A NAME="@fun238"></A><A NAME="fun:project-directories"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc467">12.8.0.11</A>&nbsp;&nbsp;project-directories</H4><A NAME="@default412"></A><A NAME="@fun238"></A><A NAME="fun:project-directories"></A>
 <PRE CLASS="verbatim">
    $(project-directories) : Dir Array
 </PRE>
@@ -840,7 +844,7 @@ that are considered to be part of the project.<BR>
 To get the complete directory list, this function should be called
 from within a rule body.
 
-<H4 CLASS="subsubsection"><A NAME="htoc467">12.8.0.11</A>&nbsp;&nbsp;rule</H4><A NAME="@default412"></A><A NAME="@fun239"></A><A NAME="fun:rule"></A>
+<H4 CLASS="subsubsection"><A NAME="htoc468">12.8.0.12</A>&nbsp;&nbsp;rule</H4><A NAME="@default413"></A><A NAME="@fun239"></A><A NAME="fun:rule"></A>
 The <CODE>rule</CODE> function is called whenever a build rule is defined.
 It is unlikely that you will need to redefine this function, except in
 very exceptional cases.

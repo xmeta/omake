@@ -634,19 +634,20 @@ Contents
           - 12.7.2.1  LaTeXDocument 
           - 12.7.2.2  TEXINPUTS 
           - 12.7.2.3  TEXDEPS 
-          - 12.7.2.4  TeXGeneratedFiles, LocalTeXGeneratedFiles 
-          - 12.7.2.5  LaTeXDocumentCopy 
-          - 12.7.2.6  LaTeXDocumentInstall 
+          - 12.7.2.4  TEXVARS 
+          - 12.7.2.5  TeXGeneratedFiles, LocalTeXGeneratedFiles 
+          - 12.7.2.6  LaTeXDocumentCopy 
+          - 12.7.2.7  LaTeXDocumentInstall 
         
      
     - 12.8  Examining the dependency graph 
         
            
-          - 12.8.0.7  dependencies, dependencies-all 
-          - 12.8.0.8  target 
-          - 12.8.0.9  find-build-targets 
-          - 12.8.0.10  project-directories 
-          - 12.8.0.11  rule 
+          - 12.8.0.8  dependencies, dependencies-all 
+          - 12.8.0.9  target 
+          - 12.8.0.10  find-build-targets 
+          - 12.8.0.11  project-directories 
+          - 12.8.0.12  rule 
         
      
   
@@ -5879,7 +5880,7 @@ lazily. The following two definitions are equivalent.
           $|name2| = $`(yyy)
 >>
   
-  The `create-lazy-map' function (see Section 12.8.0.11) is used in rule
+  The `create-lazy-map' function (see Section 12.8.0.12) is used in rule
 construction.
 
 8.6  Iteration and mapping
@@ -9209,7 +9210,7 @@ Section 8.1.12).
   If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can define them in
 your `.omakerc' (see Section A.8).
-  The `find-build-targets' function (Section 12.8.0.9 is useful for
+  The `find-build-targets' function (Section 12.8.0.10 is useful for
 obtaining a firther summary of the build. Note that when output
 diversions are in effect (with the `--divert-*' options --- see Chapter
 A), any output produced by the commands is copied to a file. The name of
@@ -10124,7 +10125,13 @@ from the `TEXINPUTS' environment variable).
 -----------------
    Additional files this document depends on.
 
-12.7.2.4  TeXGeneratedFiles, LocalTeXGeneratedFiles
+12.7.2.4  TEXVARS
+-----------------
+   An array of names of the environment variables  that are to be
+updated based on the value of OMake's `TEXINPUTS' variable.  Defaults to
+`TEXINPUTS' `BIBINPUTS' `BSTINPUTS'.
+
+12.7.2.5  TeXGeneratedFiles, LocalTeXGeneratedFiles
 ---------------------------------------------------
    
 <<
@@ -10146,14 +10153,14 @@ dependencies. The `LocalTeXGeneratedFiles' function follows the normal
 scoping rules of OMake.
   
 
-12.7.2.5  LaTeXDocumentCopy
+12.7.2.6  LaTeXDocumentCopy
 ---------------------------
   
   The `LaTeXDocumentCopy' copies the document to an install location.
   `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
   This function copies just the `.pdf' and `.ps' files.
 
-12.7.2.6  LaTeXDocumentInstall
+12.7.2.7  LaTeXDocumentInstall
 ------------------------------
   
   The `LaTeXDocumentInstall' builds a document and copies it to an
@@ -10166,7 +10173,7 @@ install location in one step.
 
 
 
-12.8.0.7  dependencies, dependencies-all
+12.8.0.8  dependencies, dependencies-all
 ----------------------------------------
   
 <<
@@ -10206,7 +10213,7 @@ For a shorter form, see the `filter-proper-targets' function.
   
   
 
-12.8.0.8  target
+12.8.0.9  target
 ----------------
    
 <<
@@ -10218,8 +10225,8 @@ For a shorter form, see the `filter-proper-targets' function.
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information.
 
-12.8.0.9  find-build-targets
-----------------------------
+12.8.0.10  find-build-targets
+-----------------------------
   
 <<
       $(build-targets tag) : Target Array
@@ -10244,7 +10251,7 @@ of targets that failed (if the build failed).
 >>
   
 
-12.8.0.10  project-directories
+12.8.0.11  project-directories
 ------------------------------
   
 <<
@@ -10256,7 +10263,7 @@ that are considered to be part of the project.
   To get the complete directory list, this function should be called
 from within a rule body.
 
-12.8.0.11  rule
+12.8.0.12  rule
 ---------------
   
   The `rule' function is called whenever a build rule is defined. It is
@@ -11779,8 +11786,8 @@ Index
  - DVIPSFLAGS, 12.7.1.7 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
- - dependencies, 12.8.0.7 
- - dependencies-all, 12.8.0.7 
+ - dependencies, 12.8.0.8 
+ - dependencies-all, 12.8.0.8 
  - digest, 9.2.5 
  - digest-path, 9.2.7 
  - dir, 9.1.1 
@@ -11820,7 +11827,7 @@ Index
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
- - find-build-targets, 12.8.0.9 
+ - find-build-targets, 12.8.0.10 
  - find-in-path, 9.2.6 
  - find-targets-in-path, 9.3.4 
  - find-targets-in-path-optional, 9.3.4 
@@ -11882,8 +11889,8 @@ Index
  - LATEX, 12.7.1.1 
  - LATEXFLAGS, 12.7.1.3 
  - LaTeXDocument, 12.7.2.1 
- - LaTeXDocumentCopy, 12.7.2.5 
- - LaTeXDocumentInstall, 12.7.2.6 
+ - LaTeXDocumentCopy, 12.7.2.6 
+ - LaTeXDocumentInstall, 12.7.2.7 
  - LD, 12.4.1.12 
  - LDFLAGS, 12.4.1.13 
  - LEX, 12.4.1.15 
@@ -11891,7 +11898,7 @@ Index
  - LIBS, 12.4.1.7 
  - LocalCGeneratedFiles, 12.4.2.1 
  - LocalOCamlGeneratedFiles, 12.6.0.5 
- - LocalTeXGeneratedFiles, 12.7.2.4 
+ - LocalTeXGeneratedFiles, 12.7.2.5 
  - Location, 11.1.18 
  - land, 8.4.3 
  - le, 8.4.4 
@@ -12007,7 +12014,7 @@ Index
  - printv, 9.10 
  - printvln, 9.10 
  - private., 4.15 
- - project-directories, 12.8.0.10 
+ - project-directories, 12.8.0.11 
  - prompt, 13.1.1 
  - protected., 4.16 
  - public., 4.17 
@@ -12032,7 +12039,7 @@ Index
  - rev, 8.3.9 
  - rewind, 9.8.12 
  - rootname, 9.1.5 
- - rule, 12.8.0.11 
+ - rule, 12.8.0.12 
  - rule, options, 7.5 
  - rule, scoping, 7.13 
  - rules, bounded implicit, 7.2 
@@ -12088,8 +12095,9 @@ Index
  - TETEX2_ENABLED, 12.7.1.2 
  - TEXDEPS, 12.7.2.3 
  - TEXINPUTS, 12.7.2.2 
- - TeXGeneratedFiles, 12.7.2.4 
- - target, 12.8.0.8 
+ - TEXVARS, 12.7.2.4 
+ - TeXGeneratedFiles, 12.7.2.5 
+ - target, 12.8.0.9 
  - target-exists, 9.3.1 
  - target-is-proper, 9.3.1 
  - tell, 9.8.13 
@@ -12237,6 +12245,7 @@ Index of variables
  - TETEX2_ENABLED, 12.7.1.2 
  - TEXDEPS, 12.7.2.3 
  - TEXINPUTS, 12.7.2.2 
+ - TEXVARS, 12.7.2.4 
  
  - USE_OCAMLFIND, 12.5.2.1 
  - USEPDFLATEX, 12.7.1.12 
@@ -12293,8 +12302,8 @@ Index of functions and special forms
  - DefineCommandVars, 12.2.0.4 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
- - dependencies, 12.8.0.7 
- - dependencies-all, 12.8.0.7 
+ - dependencies, 12.8.0.8 
+ - dependencies-all, 12.8.0.8 
  - digest, 9.2.5 
  - digest-path, 9.2.7 
  - dir, 9.1.1 
@@ -12325,7 +12334,7 @@ Index of functions and special forms
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
- - find-build-targets, 12.8.0.9 
+ - find-build-targets, 12.8.0.10 
  - find-in-path, 9.2.6 
  - find-targets-in-path, 9.3.4 
  - find-targets-in-path-optional, 9.3.4 
@@ -12374,11 +12383,11 @@ Index of functions and special forms
  - kill, 10.10.6 
  
  - LaTeXDocument, 12.7.2.1 
- - LaTeXDocumentCopy, 12.7.2.5 
- - LaTeXDocumentInstall, 12.7.2.6 
+ - LaTeXDocumentCopy, 12.7.2.6 
+ - LaTeXDocumentInstall, 12.7.2.7 
  - LocalCGeneratedFiles, 12.4.2.1 
  - LocalOCamlGeneratedFiles, 12.6.0.5 
- - LocalTeXGeneratedFiles, 12.7.2.4 
+ - LocalTeXGeneratedFiles, 12.7.2.5 
  - land, 8.4.3 
  - le, 8.4.4 
  - length, 8.3.4 
@@ -12433,7 +12442,7 @@ Index of functions and special forms
  - println, 9.9 
  - printv, 9.10 
  - printvln, 9.10 
- - project-directories, 12.8.0.10 
+ - project-directories, 12.8.0.11 
  
  - quote, 8.3.17 
  - quote-argv, 8.3.18 
@@ -12450,7 +12459,7 @@ Index of functions and special forms
  - rev, 8.3.9 
  - rewind, 9.8.12 
  - rootname, 9.1.5 
- - rule, 12.8.0.11 
+ - rule, 12.8.0.12 
  
  - StaticCLibrary, 12.4.3.1 
  - StaticCLibraryCopy, 12.4.3.2 
@@ -12484,8 +12493,8 @@ Index of functions and special forms
  - symlink, 9.5.7 
  - system, 8.3.40 
  
- - TeXGeneratedFiles, 12.7.2.4 
- - target, 12.8.0.8 
+ - TeXGeneratedFiles, 12.7.2.5 
+ - target, 12.8.0.9 
  - target-exists, 9.3.1 
  - target-is-proper, 9.3.1 
  - tell, 9.8.13 
