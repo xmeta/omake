@@ -2534,7 +2534,7 @@ let create options dir exec cache =
             List.map (fun s -> ValString s) path
       with
          Not_found ->
-            [ValString "."; ValString "lib"; ValDir Dir.lib]
+            [ValString "."; ValDir Dir.lib]
    in
    let omakepath = ValArray omakepath in
    let venv = venv_add_var_dynamic venv omakepath_sym omakepath in
