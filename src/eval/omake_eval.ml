@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_debug
@@ -50,7 +50,6 @@ open Omake_exec_util
 open Omake_cache_type
 open Omake_command_type
 open Omake_command_digest
-open Omake_options_type
 open Omake_symbol
 
 module Pos = MakePos (struct let name = "Omake_eval" end)
@@ -1954,12 +1953,9 @@ let compile_deps venv node buf =
             let sources = strings_of_value venv pos source in
                targets, sources) deps
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

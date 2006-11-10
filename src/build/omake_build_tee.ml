@@ -35,7 +35,7 @@ open Omake_node
 open Omake_exec_util
 open Omake_exec_print
 open Omake_build_type
-open Omake_options_type
+open Omake_options
 
 (*
  * The empty tee.
@@ -79,12 +79,12 @@ let env_close_success_tee env command =
          command_tee  = tee
        } = command
    in
-   let options = (venv_options venv).opt_divert in
+   let options = venv_options venv in
       match tee_file tee with
          Some name ->
             tee_close tee;
-            if not (List.mem DivertDiscardSuccess options)
-               && (List.mem DivertRepeat options || List.mem DivertOnly options) then
+            if not (opt_divert options DivertDiscardSuccess)
+               && (opt_divert options DivertRepeat || opt_divert options DivertOnly) then
             begin
                print_flush ();
                eprint_file name
@@ -106,11 +106,10 @@ let env_close_failed_tee env command =
          command_tee  = tee
        } = command
    in
-   let options = (venv_options venv).opt_divert in
       match tee_file tee with
          Some name ->
             tee_close tee;
-            if List.mem DivertRepeat options then begin
+            if opt_divert (venv_options venv) DivertRepeat then begin
                print_flush ();
                eprint_file name
             end

@@ -33,7 +33,7 @@ open Omake_exec_id
 open Omake_exec_util
 open Omake_exec_type
 open Omake_cache_type
-open Omake_options_type
+open Omake_options
 
 (*
  * Flush the progress meter.
@@ -78,12 +78,9 @@ val print_status_lines :
    'exp list ->                         (* What to print *)
    unit
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

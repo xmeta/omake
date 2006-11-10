@@ -93,8 +93,8 @@ open Omake_ir_print
 open Omake_node_sig
 open Omake_print_util
 open Omake_shell_type
-open Omake_options_type
 open Omake_command_type
+open Omake_options
 open Omake_ir_free_vars
 
 (*
@@ -1408,8 +1408,8 @@ struct
            db_name         = source;
            db_digest       = digest;
            db_env          = venv;
-           db_flush_ir     = venv.venv_inner.venv_options.opt_flush_include;
-           db_flush_static = venv.venv_inner.venv_options.opt_flush_static
+           db_flush_ir     = opt_flush_include venv.venv_inner.venv_options;
+           db_flush_static = opt_flush_static venv.venv_inner.venv_options;
          }
 
    let create_in = create_mode Unix.F_RLOCK
@@ -2012,13 +2012,13 @@ let node_set_of_names venv phony_flag names =
  * Convert back to a string.
  *)
 let venv_dirname venv dir =
-   if venv.venv_inner.venv_options.opt_absname then
+   if opt_absname venv.venv_inner.venv_options then
       Dir.absname dir
    else
       Dir.name venv.venv_inner.venv_dir dir
 
 let venv_nodename venv dir =
-   if venv.venv_inner.venv_options.opt_absname then
+   if opt_absname venv.venv_inner.venv_options then
       Node.absname dir
    else
       Node.name venv.venv_inner.venv_dir dir

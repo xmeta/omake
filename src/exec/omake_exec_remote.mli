@@ -29,7 +29,7 @@
  * @end[license]
  *)
 open Omake_exec_type
-open Omake_options_type
+open Omake_options
 
 (*
  * Debugging.
@@ -46,12 +46,9 @@ val main : ('exp, 'pid, 'value) shell -> omake_options -> unit
  *)
 module Remote : ExecServer
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

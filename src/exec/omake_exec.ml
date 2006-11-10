@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,8 +25,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 
@@ -43,7 +43,7 @@ open Omake_exec_print
 open Omake_exec_local
 open Omake_exec_remote
 open Omake_exec_notify
-open Omake_options_type
+open Omake_options
 open Omake_command_type
 
 external sync : unit -> unit = "caml_sync"
@@ -97,7 +97,7 @@ struct
     *)
    let start_local local options =
       { server_host    = "localhost";
-        server_count   = options.opt_job_count;
+        server_count   = opt_job_count options;
         server_running = 0;
         server_enabled = true;
         server_handle  = LocalServer local
@@ -125,7 +125,7 @@ struct
       let servers =
          start_local local options
          :: start_notify notify options
-         :: List.map (start_remote root) options.opt_remote_servers
+         :: List.map (start_remote root) (opt_remote_servers options)
       in
          { server_root = root;
            server_local = local;
@@ -386,7 +386,7 @@ struct
                         server.server_running <- pred running;
                         WaitExited (id, status, value)
                    | WaitInternalStarted true ->
-                        if options.opt_print_status then
+                        if opt_print_status options then
                            begin
                               print_flush ();
                               printf "# server %s started@." host
@@ -394,7 +394,7 @@ struct
                         server.server_enabled <- true;
                         WaitServer count
                    | WaitInternalStarted false ->
-                        if options.opt_print_status then
+                        if opt_print_status options then
                            begin
                               print_flush ();
                               printf "# server %s failed@." host
@@ -431,12 +431,9 @@ struct
       Notify.next_event server.server_notify
 end
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

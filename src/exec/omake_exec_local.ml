@@ -37,8 +37,8 @@ open Omake_command
 open Omake_exec_id
 open Omake_exec_util
 open Omake_exec_type
-open Omake_options_type
 open Omake_command_type
+open Omake_options
 
 let unix_close debug fd =
    if !debug_thread then
@@ -418,12 +418,9 @@ struct
             WaitInternalNone
 end
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

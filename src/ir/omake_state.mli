@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,11 +24,10 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
-open Omake_options_type
 
 (*
  * Error codes for various actions.
@@ -54,26 +53,10 @@ val makeroot_short_name : string
 val omake_file_suffix : string
 
 (*
- * Initial options.
- *)
-val default_options : omake_options
-
-(*
- * Check if the options are a parallel build.
- *)
-val is_parallel : omake_options -> bool
-
-(*
  * Cache management.
  *)
 val always_use_dotomake : bool ref
 val set_omake_dir : string -> unit
-
-(*
- * Argument specifier.
- *)
-val options_spec : (string * omake_options Lm_arg.poly_spec * string) list
-val output_spec  : (string * omake_options Lm_arg.poly_spec * string) list
 
 (*
  * Files.
@@ -93,12 +76,9 @@ val oshrc_file     : string
 val get_cache_file  : string -> string -> string * Unix.file_descr
 val lock_file       : Unix.file_descr -> Unix.lock_command -> unit
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

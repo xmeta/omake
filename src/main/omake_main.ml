@@ -40,7 +40,7 @@ open Omake_rule
 open Omake_state
 open Omake_symbol
 open Omake_exec_type
-open Omake_options_type
+open Omake_options
 
 module Pos = MakePos (struct let name = "Omake_main" end)
 open Pos
@@ -187,7 +187,7 @@ let spec =
               "Debug the FAM (-p filesystem watch) operations";
            "-debug-db", Lm_arg.Set Omake_env.debug_db, (**)
               "Debug the file database";
-           "-allow-exceptions", Lm_arg.SetFold (fun options b -> { options with opt_allow_exceptions = b }),
+           "-allow-exceptions", Lm_arg.SetFold set_allow_exceptions_opt, (**)
               "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)"];
        "Internal flags", (**)
           ["-server", Lm_arg.String (fun s -> server_flag := Some s), (**)
@@ -267,7 +267,7 @@ let main options =
    in
    let path = chroot () in
    let path =
-      if options.opt_cd_root then
+      if opt_cd_root options then
          "."
       else
          path
@@ -341,7 +341,7 @@ let _ =
                   Omake_install.install_subdirs !install_force
                else
                   Omake_install.install_current !install_force
-            else if options.opt_allow_exceptions then
+            else if opt_allow_exceptions options then
                main options
             else
                Omake_exn_print.catch main options

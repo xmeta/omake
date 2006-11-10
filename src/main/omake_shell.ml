@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_debug
@@ -45,7 +45,7 @@ open Omake_ir_ast
 open Omake_exn_print
 open Omake_shell_type
 open Omake_shell_job
-open Omake_options_type
+open Omake_options
 
 module Pos = MakePos (struct let name = "Omake_shell" end)
 open Pos;;
@@ -388,7 +388,7 @@ let create_venv options targets =
 let shell options command targets =
    let venv =
       try create_venv options targets with
-         exn when not options.opt_allow_exceptions ->
+         exn when not (opt_allow_exceptions options) ->
             eprintf "%a@." pp_print_exn exn;
             raise exn
    in
@@ -402,12 +402,9 @@ let shell options command targets =
              | filename :: args ->
                   shell_script venv filename args
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

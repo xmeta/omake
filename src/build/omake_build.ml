@@ -63,7 +63,7 @@ open Omake_cache_type
 open Omake_build_tee
 open Omake_build_type
 open Omake_builtin_util
-open Omake_options_type
+open Omake_options
 open Omake_command_digest
 
 module Pos = MakePos (struct let name = "Omake_build" end);;
@@ -325,7 +325,7 @@ let rec pp_print_dependencies_aux show_all env buf command =
    in
    let options = venv_options env.env_venv in
    let total, build_deps, scanner_deps =
-      if show_all && options.opt_all_dependencies then
+      if show_all && opt_all_dependencies options then
          "all transitive ", all_build_dependencies env build_deps, all_scanner_dependencies env scanner_deps
       else
          "", build_deps, scanner_deps
@@ -340,7 +340,7 @@ let rec pp_print_dependencies_aux show_all env buf command =
          pp_print_node_set effects
          pp_print_node_set inverse;
 
-      if show_all && options.opt_verbose_dependencies then
+      if show_all && opt_verbose_dependencies options then
          let nodes = NodeSet.union scanner_deps build_deps in
             fprintf buf "@ @ --- Complete dependency listing ---@ ";
             NodeSet.iter (fun node ->
@@ -815,7 +815,7 @@ let build_null_command env pos loc venv target =
          eprintf "build_null_command: %a@." pp_print_node target;
       if target_is_phony target || target_exists env target then begin
          build_any_command env pos loc venv target NodeSet.empty NodeSet.empty NodeSet.empty NodeSet.empty [];
-         if (env_options env).opt_poll && not (target_is_phony target) then
+         if opt_poll (env_options env) && not (target_is_phony target) then
             Exec.monitor env.env_exec target
       end
       else
@@ -1208,17 +1208,15 @@ let unlink_file filename =
  * A command finished with an error.
  *)
 let abort_command env command code =
-   let options = env_options env in
-      if options.opt_terminate_on_error then
-         env.env_error_code <- code;
-      reclassify_command env command (CommandFailed code)
+   if opt_terminate_on_error (env_options env) then
+      env.env_error_code <- code;
+   reclassify_command env command (CommandFailed code)
 
 let abort_commands env targets code =
-   let options = env_options env in
-      if options.opt_terminate_on_error then
-         env.env_error_code <- code;
-      NodeSet.iter (fun target ->
-            reclassify_command env (find_command env target) (CommandFailed code)) targets
+   if opt_terminate_on_error (env_options env) then
+      env.env_error_code <- code;
+   NodeSet.iter (fun target ->
+         reclassify_command env (find_command env target) (CommandFailed code)) targets
 
 (************************************************************************
  * Scanner execution.
@@ -1455,8 +1453,8 @@ let execute_scanner env command =
    (* Save errors to the tee *)
    let options = venv_options venv in
    let () = unlink_tee command in
-   let tee = tee_create (options.opt_divert <> []) in
-   let divert_only = List.mem DivertOnly options.opt_divert in
+   let tee = tee_create (opt_diverts options) in
+   let divert_only = opt_divert options DivertOnly in
    let copy_stderr = tee_stderr tee divert_only in
 
    (* Save output into a temporary file *)
@@ -1649,8 +1647,8 @@ let run_rule env command =
    (* Set up the tee *)
    let options = venv_options venv in
    let () = unlink_tee command in
-   let tee = tee_create (options.opt_divert <> []) in
-   let divert_only = List.mem DivertOnly options.opt_divert in
+   let tee = tee_create (opt_diverts options) in
+   let divert_only = opt_divert options DivertOnly in
    let copy_stdout = tee_stdout tee divert_only in
    let copy_stderr = tee_stderr tee divert_only in
       command.command_tee <- tee;
@@ -1719,13 +1717,13 @@ let execute_rule env command =
                      pp_print_node_set build_deps;
                finish_rule_failed env command code
           | StatusUnknown ->
-               if options.opt_touch_only then begin
-                  if options.opt_print_file then
+               if opt_touch_only options then begin
+                  if opt_print_file options then
                      printf "updating %a@." pp_print_node target;
                   save_and_finish_rule_success env command
                end
-               else if options.opt_dry_run then begin
-                  if options.opt_print_command <> EvalNever then
+               else if opt_dry_run options then begin
+                  if opt_print_command options <> EvalNever then
                      List.iter (fun command ->
                            if not (List.mem Omake_command_type.QuietFlag command.Omake_command_type.command_flags) then
                               printf "+ %a@." pp_print_arg_command_inst command.Omake_command_type.command_inst)
@@ -1764,7 +1762,7 @@ let empty_env venv cache exec ~summary deps targets dirs includes =
         env_commands           = NodeTable.empty;
         env_inverse            = NodeTable.empty;
         env_error_code         = 0;
-        env_idle_count         = options.opt_job_count;
+        env_idle_count         = opt_job_count options;
         env_print_dependencies = NodeSet.empty;
 
         env_current_wl         = wl;
@@ -1822,7 +1820,7 @@ let save_aux env =
     * This is bogus, but let's hope that we don't
     * get interrupted while writing the .omakedb
     *)
-   let db_win32_bug = Sys.os_type = "Win32" && options.opt_poll in
+   let db_win32_bug = Sys.os_type = "Win32" && opt_poll options in
    let db_tmp =
       if db_win32_bug then
          db_name
@@ -2110,7 +2108,7 @@ and invalidate_event_core env event =
    in
       (* If it really changed, perform the invalidation *)
       if changed_flag then begin
-         let verbose = (venv_options venv).opt_print_status in
+         let verbose = opt_print_status (venv_options venv) in
             print_flush ();
             if verbose then
                eprintf "*** omake: file %s changed@." (Node.fullname node);
@@ -2260,7 +2258,7 @@ let print_stats env message start_time =
    let total_time = Unix.gettimeofday () -. start_time in
    let options = venv_options venv in
       print_leaving_current_directory options;
-      if options.opt_print_status then begin
+      if opt_print_status options then begin
          if message <> "done" then begin
             let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
                printf "*** omake: %i/%i targets are up to date@." env.env_succeeded_count total
@@ -2373,7 +2371,7 @@ let print_deadlock env buf state =
  * Print the failed commands.
  *)
 let print_failed_targets env buf =
-   if (venv_options env.env_venv).opt_print_status then begin
+   if opt_print_status (venv_options env.env_venv) then begin
       fprintf buf "@[<v 3>*** omake: targets were not rebuilt because of errors:";
       command_iter env CommandFailedTag (fun command ->
             fprintf buf "@ @[<v 3>%a" pp_print_node command.command_target;
@@ -2422,15 +2420,15 @@ let create_env exec options cache targets =
    let venv = Omake_builtin.venv_include_rc_file venv omakerc_file in
    let now = Unix.gettimeofday () in
    let _ =
-      if options.opt_print_dir then
+      if opt_print_dir options then
          printf "make[0]: Entering directory `%s'@." (Dir.absname (venv_dir venv));
-      if options.opt_print_status then
+      if opt_print_status options then
          printf "*** omake: reading %ss@." makefile_name;
       Omake_eval.compile venv
    in
    let now' = Unix.gettimeofday () in
    let () =
-      if options.opt_print_status then
+      if opt_print_status options then
          printf "*** omake: finished reading %ss (%.1f sec)@." makefile_name (now' -. now)
    in
    let env = create exec venv cache summary in
@@ -2450,7 +2448,7 @@ let load_env_aux options inx exec targets =
    (* Load the cache *)
    let cache = Omake_cache.from_channel inx in
    let () =
-      if options.opt_flush_dependencies then
+      if opt_flush_dependencies options then
          Omake_cache.clear cache scanner_fun
    in
       create_env exec options cache targets
@@ -2470,7 +2468,7 @@ let load_env options inx exec targets : env =
  * Load cache and environment.
  *)
 let load_aux exec options targets =
-   if options.opt_flush_cache then
+   if opt_flush_cache options then
       create_empty exec options targets
    else
       let inx = open_in_bin db_name in
@@ -2683,7 +2681,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
          in
             if begin_success then begin
                (* Build the core *)
-               if parallel || is_parallel options then begin
+               if parallel || opt_parallel options then begin
                   (* Add commands to build the targets *)
                   List.iter (build_target env print) targets;
 
@@ -2721,13 +2719,13 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                close_out outx;
                print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
                print_summary env;
-               if not options.opt_dry_run then
+               if not (opt_dry_run options) then
                   save env;
                close env;
                exit exn_error_code
    in
       (* Save database before exiting *)
-      if save_flag && not options.opt_dry_run then
+      if save_flag && not (opt_dry_run options) then
          save env;
 
       (* Return error if that happened *)
@@ -2763,7 +2761,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
          print_summary env
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
-   if not options.opt_poll then
+   if not (opt_poll options) then
       exit error_code
    else begin
       notify_wait env;
@@ -2778,7 +2776,7 @@ let rec notify_loop env options targets =
 
    (* Build the targets again *)
    let start_time = Unix.gettimeofday () in
-      build_targets env true start_time false options.opt_print_dependencies targets;
+      build_targets env true start_time false (opt_print_dependencies options) targets;
       print_stats env "done" start_time;
       notify_loop env options targets
 
@@ -2788,7 +2786,7 @@ let rec notify_loop env options targets =
 let rec build_time start_time options dir_name targets =
    let env = load options targets in
    let dir_name =
-      if options.opt_project then
+      if opt_project options then
          "."
       else
          dir_name
@@ -2797,7 +2795,7 @@ let rec build_time start_time options dir_name targets =
 
    (* Monitor the full tree if polling *)
    let () =
-      if options.opt_poll then
+      if opt_poll options then
          let root = env.env_cwd in
             try Exec.monitor_tree env.env_exec root with
                Failure _ ->
@@ -2807,7 +2805,7 @@ let rec build_time start_time options dir_name targets =
 
    (* Check that this directory is actually a .SUBDIR *)
    let () =
-      if not (options.opt_project || DirTable.mem env.env_explicit_directories dir) then begin
+      if not (opt_project options || DirTable.mem env.env_explicit_directories dir) then begin
          eprintf "*** omake: the current directory %s@." (Dir.absname dir);
          eprintf "*** omake: is not part of the root project in %s@." (Dir.absname env.env_cwd);
          exit 1
@@ -2829,7 +2827,7 @@ let rec build_time start_time options dir_name targets =
 and build_core env dir_name dir start_time options targets =
    (* First, build all the included files *)
    let changed =
-      if options.opt_dry_run then
+      if opt_dry_run options then
          false
       else
          let includes = NodeTable.fold (fun includes node _ -> node :: includes) [] env.env_includes in
@@ -2846,13 +2844,13 @@ and build_core env dir_name dir start_time options targets =
    in
 
    let targets = List.map (Node.intern no_mount_points PhonyOK dir) targets in
-   let () = List.iter (fun s -> print_node_dependencies env (Node.intern no_mount_points PhonyOK dir s)) options.opt_show_dependencies in
+   let () = List.iter (fun s -> print_node_dependencies env (Node.intern no_mount_points PhonyOK dir s)) (opt_show_dependencies options) in
    let options = env_options env in
-      build_targets env true start_time false options.opt_print_dependencies targets;
+      build_targets env true start_time false (opt_print_dependencies options) targets;
       print_stats env "done" start_time;
 
       (* Polling loop *)
-      if options.opt_poll_on_done then
+      if opt_poll_on_done options then
          if not Lm_notify.enabled then
             eprintf "*** omake: Polling is not enabled@."
          else

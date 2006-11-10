@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Mojave Group, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,8 +23,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -34,7 +34,7 @@ open Omake_state
 open Omake_command
 open Omake_exec_type
 open Omake_exec_util
-open Omake_options_type
+open Omake_options
 open Omake_command_type
 
 (*
@@ -50,7 +50,7 @@ let message = ref None
 let message_count = ref 0
 
 let print_progress options count total =
-   if options.opt_print_progress then
+   if opt_print_progress options then
       let blobs = count * 60 / total in
       let () = print_char '[' in
       let off =
@@ -94,7 +94,7 @@ let print_flush () =
  * Print a short message.
  *)
 let print_message options s =
-   if options.opt_print_progress then begin
+   if opt_print_progress options then begin
       message := Some s;
       message_count := 2
    end
@@ -117,7 +117,7 @@ let print_saving options =
 let current_dir = ref None
 
 let print_entering_current_directory options dir =
-   if options.opt_print_dir then
+   if opt_print_dir options then
       match !current_dir with
          Some cwd ->
             if not (Dir.equal dir cwd) then begin
@@ -130,7 +130,7 @@ let print_entering_current_directory options dir =
             printf "make[1]: Entering directory `%s'@." (Dir.absname dir)
 
 let print_leaving_current_directory options =
-   if options.opt_print_dir then
+   if opt_print_dir options then
       match !current_dir with
          Some cwd ->
             printf "make[1]: Leaving directory `%s'@." (Dir.absname cwd);
@@ -142,13 +142,13 @@ let print_leaving_current_directory options =
  * Print a status line.
  *)
 let should_print options flags flag =
-   match flag, options.opt_print_command with
+   match flag, opt_print_command options with
        PrintEager _, EvalEager ->
           true
      | PrintLazy _, EvalLazy ->
           not (List.mem AllowOutputFlag flags)
      | PrintExit _, _ ->
-          options.opt_print_exit
+          opt_print_exit options
      | _ ->
           false
 
@@ -168,14 +168,14 @@ let print_status_stdout options shell remote name flag =
                   let dirname = Dir.fullname dir in
                      print_flush ();
                      print_entering_current_directory options dir;
-                     if options.opt_print_file then
+                     if opt_print_file options then
                         printf "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
                      if not (List.mem QuietFlag flags) then
                         printf "+%t %a@." pp_print_host shell.shell_print_exp exp
        | PrintExit (exp, code, _) ->
             let flags, dir, target = shell.shell_info exp in
             let dirname = Dir.fullname dir in
-               if should_print options flags flag && options.opt_print_file then begin
+               if should_print options flags flag && opt_print_file options then begin
                   print_flush ();
                   printf "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
                end
@@ -208,7 +208,7 @@ let print_status tee options shell remote name flag =
        | PrintExit _ ->
             ()
    in
-      if not (List.mem DivertOnly options.opt_divert) then
+      if not (opt_divert options DivertOnly) then
          print_status_stdout options shell remote name flag
 
 (*
@@ -221,16 +221,13 @@ let print_status_lines options shell name el =
    (* Print the commands *)
    List.iter (fun exp ->
          let flags, dir, target = shell.shell_info exp in
-            if options.opt_print_file then
+            if opt_print_file options then
                printf "- %s %s %s@." name (Dir.fullname dir) (Node.name dir target);
             printf "+ %a@." shell.shell_print_exp exp) el
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

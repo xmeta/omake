@@ -34,7 +34,7 @@ open Lm_location
 open Omake_node
 open Omake_exec_id
 open Omake_exec_util
-open Omake_options_type
+open Omake_options
 open Omake_command_type
 
 (*
@@ -195,12 +195,9 @@ sig
    val next_event : ('exp, 'pid, 'value) t -> Lm_notify.event
 end
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
