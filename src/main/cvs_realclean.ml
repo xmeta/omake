@@ -6,7 +6,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,8 +26,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -81,7 +81,7 @@ let ignore_file name =
 (*
  * Get the entries in a CVS/Entries file.
  *)
-let cvs_entries_aux dirname =
+let cvs_entries dirname =
    let filename = dirname ^ "/CVS/Entries" in
    let inx = open_in_bin filename in
    let rec collect_entries files dirs =
@@ -107,11 +107,6 @@ let cvs_entries_aux dirname =
    let files, dirs = collect_entries StringSet.empty StringSet.empty in
       close_in inx;
       files, dirs
-
-let cvs_entries dirname =
-   try cvs_entries_aux dirname with
-      Sys_error _ ->
-         StringSet.empty, StringSet.empty
 
 (*
  * Arguments.
@@ -160,21 +155,29 @@ let main () =
     * Remove all entries that are not known to CVS.
     *)
    let rec clean dirname =
-      let files, dirs = cvs_entries dirname in
-      let names = ls dirname in
-      let subdirs =
-         List.fold_left (fun subdirs name ->
-               if StringSet.mem files name then
-                  subdirs
-               else if StringSet.mem dirs name then
-                  Filename.concat dirname name :: subdirs
-               else
-                  begin
-                     rm dirname name;
-                     subdirs
-                  end) [] names
-      in
-         List.iter clean subdirs
+      match
+         try Some (cvs_entries dirname)
+         with Sys_error _ ->
+            eprintf "WARNING: Directory ``%s'' does not have a readable CVS/Entries file!\n         Ignoring (skipping) directory ``%s''.\n" dirname dirname;
+            None
+      with
+         Some (files, dirs) ->
+            let names = ls dirname in
+            let subdirs =
+               List.fold_left (fun subdirs name ->
+                     if StringSet.mem files name then
+                        subdirs
+                     else if StringSet.mem dirs name then
+                        Filename.concat dirname name :: subdirs
+                     else
+                        begin
+                           rm dirname name;
+                           subdirs
+                        end) [] names
+            in
+               List.iter clean subdirs
+       | None ->
+            ()
    in
    let dirs =
       match !root_dirs with
@@ -187,12 +190,9 @@ let _ =
    Arg.parse args add_dir "cvs_realclean removes all files not known by CVS.\nUsage: cvs_realclean <options> [dir1 [dir2 ...]]\nOptions are:";
    Printexc.catch main ()
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
