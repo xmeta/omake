@@ -2594,6 +2594,8 @@ let while_fun venv pos loc args =
       match args with
          [ValCases cases; arg] ->
             cases, arg
+       | [_; _] ->
+            raise (OmakeException (loc_pos loc pos, SyntaxError "while loop"))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
