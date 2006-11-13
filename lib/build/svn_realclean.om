@@ -76,14 +76,14 @@ If no directories are given, . is used.
                     DIRS[] = $(dir $(argv)) 
             if $(FORCE)
                 Shell. +=
-                    do_clean(argv) =
+                    do_clean(IGNORES) =
                         awk()
                         case $'^[I?] '
                             f = $(file $2)
                             if $(not $(mem $f, $(IGNORES)))
                                 println($"Removing $f...")
                                 rm -rf $f
-                svn st --no-ignore $(DIRS) | do_clean
+                svn st --no-ignore $(DIRS) | do_clean $(IGNORES)
             else
                 # rm -ri will require a real stdin, so we can not use the same
                 # "svn ... | do_clean" pipeline here.
