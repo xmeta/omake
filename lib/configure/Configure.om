@@ -96,8 +96,9 @@ public.VerboseCheckLib(libs, funs) =
 #
 public.CheckProg(prog) =
    print($"--- Testing for $(prog)... ")
-   if $(where $(prog))
-      println($"($(prog) found)")
+   WHERE = $(where $(prog))
+   if $(WHERE)
+      println($"(found $(nth 0, $(WHERE)))")
       return true
    else
       println($"(FAILED - no $(prog) found)")

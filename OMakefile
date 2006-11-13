@@ -2,10 +2,11 @@
 # Configuration.
 #
 open build/C
+open build/svn_realclean.om
 include mk/defaults
 include mk/make_gen
 
-.PHONY: clean install all main
+.PHONY: realclean clean install all main
 
 #
 # Architecture-specific configuration
@@ -112,6 +113,13 @@ CLEAN = rm -rf *.cm* *~ .\#* *.o *.obj *.a *.lib *.exe *.omc *.install *.tmp
 
 clean:
     $(CLEAN) boot .config.omc .omakedb* mk/*.omc .omake omake-boot$(EXE) lib/*.default
+
+if $(not $(defined FORCE_REALCLEAN))
+    FORCE_REALCLEAN = false
+    export
+
+realclean: clean
+    svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock -i .config -i .config.local
 
 ########################################################################
 # Source code
