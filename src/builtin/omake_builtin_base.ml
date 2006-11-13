@@ -67,8 +67,8 @@ open Pos
  * \var{OSTYPE}
  *    Set to the machine architecture \Prog{omake} is running on.  Possible values are
  *    \verb+Unix+ (for all  Unix  versions, including Linux and Mac OS X), \verb+Win32+
- *    (for MS-Windows, OMake compiled with MSVC++ or Mingw), and \verb+Cygwin+ (for
- *    MS-Windows, OMake compiled with Cygwin).
+ *    (for MS-Windows, \OMake{} compiled with MSVC++ or Mingw), and \verb+Cygwin+ (for
+ *    MS-Windows, \OMake{} compiled with Cygwin).
  * \var{SYSNAME}
  *    The name of the operating system for the current machine.
  * \var{NODENAME}
@@ -80,13 +80,13 @@ open Pos
  * \var{HOST}
  *    Same as \verb+NODENAME+.
  * \varlabel{OMAKE_VERSION}{OMAKE\_VERSION}
- *    Version of OMake.
+ *    Version of \OMake.
  * \var{USER}
  *    The login name of the user executing the process.
  * \var{HOME}
  *    The home directory of the user executing the process.
  * \var{PID}
- *    The OMake process id.
+ *    The \OMake{} process id.
  * \var{TARGETS}
  *    The command-line target strings.  For example, if \verb+omake+ is invoked with the
  *    following command line,
@@ -1447,7 +1447,7 @@ let string venv pos loc args =
  * can be used as a string constant in C.
  *
  * The \verb+id-escaped+ function turns a string into an identifier that
- * may be used in OMake.
+ * may be used in \OMake.
  *
  * The \verb+html-escaped+ function turns a literal string into a form acceptable
  * as HTML.  The \verb+html-pre-escaped+ function is similar, but it does not

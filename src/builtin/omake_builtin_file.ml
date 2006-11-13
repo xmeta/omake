@@ -798,7 +798,7 @@ let node_exists node_exists venv pos loc args =
  *        files : File Sequence
  * \end{verbatim}
  *
- * OMake uses a stat-cache.  The \verb+stat-reset+ function reset the \verb+stat+
+ * \OMake{} uses a stat-cache.  The \verb+stat-reset+ function reset the \verb+stat+
  * information for the given files, forcing the \verb+stat+ information to
  * be recomputed the next time it is requested.
  * \end{doc}
@@ -1147,7 +1147,7 @@ let sort_val_nodes nodes =
  * \section{Globbing and file listings}
  * \label{section:globbing}
  *
- * OMake commands are ``glob-expanded'' before being executed.  That is,
+ * \OMake{} commands are ``glob-expanded'' before being executed.  That is,
  * names may contain \emph{patterns} that are expanded to sequences of
  * file and directory names.  The syntax follows the standard bash(1), csh(1),
  * syntax, with the following rules.

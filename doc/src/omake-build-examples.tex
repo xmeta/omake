@@ -6,8 +6,8 @@
 \index{build model}
 \cutname{omake-build-examples.html}
 
-Let's explain the OMake build model a bit more.
-One issue that dominates this discussion is that OMake is based on global project analysis.  That
+Let's explain the \OMake{} build model a bit more.
+One issue that dominates this discussion is that \OMake{} is based on global project analysis.  That
 means you define a configuration for the \emph{entire} project, and you run \emph{one} instance of omake.
 
 For single-directory projects this doesn't mean much.  For multi-directory projects it means a lot.
@@ -42,7 +42,7 @@ Furthermore, suppose the programmer runs \verb+make+ in the \verb+main/+ directo
 \verb+lib/+ is out-of-date.  In this case, \verb+make+ would happily crank away, perhaps trying to
 rebuild files in \verb+lib/+, perhaps just giving up.
 
-With OMake this changes entirely.  Well, not entirely.  The source structure is quite similar, we
+With \OMake{} this changes entirely.  Well, not entirely.  The source structure is quite similar, we
 merely add some Os to the ASCII art.
 
 \begin{verbatim}
@@ -71,7 +71,7 @@ invoked from a subdirectory).  The \verb+OMakeroot+ serves as the bootstrap file
 reading this file first.  Otherwise, the syntax and evaluation of \verb+OMakeroot+ is no different
 from any other \verb+OMakefile+.
 
-The \emph{big} difference is that OMake performs a \emph{global} analysis.  Here is what happens
+The \emph{big} difference is that \OMake{} performs a \emph{global} analysis.  Here is what happens
 when \verb+omake+ starts.
 
 \index{.SUBDIRS}
@@ -111,14 +111,14 @@ Some notes to the GNU/BSD make user.
 \begin{itemize}
 \item OMakefiles are a lot like Makefiles.  The syntax is similar, and there many of the builtin
 functions are similar.  However, the two build systems are not the same.  Some evil features (in the authors'
-opinions) have been dropped in OMake, and some new features have been added.
+opinions) have been dropped in \OMake{}, and some new features have been added.
 
-\item OMake works the same way on all platforms, including Win32.  The standard configuration does
+\item \OMake{} works the same way on all platforms, including Win32.  The standard configuration does
 the right thing, but if you care about porting your code to multiple platforms, and you use some
 tricky features, you may need to condition parts of your build config on the \verb+$(OSTYPE)+
 variable.
 
-\item A minor issue is that OMake dependency analysis is based on MD5 file digests.  That is,
+\item A minor issue is that \OMake{} dependency analysis is based on MD5 file digests.  That is,
 dependencies are based on file \emph{contents}, not file \emph{modification times}.  Say goodbye to
 false rebuilds based on spurious timestamp changes and mismatches between local time and fileserver
 time.
@@ -219,7 +219,7 @@ my_project/src/main/OMakefile:
     .DEFAULT: horsefly$(EXE)
 \end{verbatim}
 
-Most of the configuration here is defined in the file \verb+build/C.om+ (which is part of the OMake
+Most of the configuration here is defined in the file \verb+build/C.om+ (which is part of the \OMake{}
 distribution).  This file takes care of a lot of work, including:
 \begin{itemize}
 \item Defining the \verb+StaticCLibrary+ and \verb+CProgram+ functions, which describe the canonical
@@ -321,12 +321,12 @@ option \verb+-inline 10+, but files in \verb+my_project/src/lib+ are compiled no
 \section{Handling new languages}
 \index{cats and dogs}
 
-The previous two examples seem to be easy enough, but they rely on the OMake standard library (the
+The previous two examples seem to be easy enough, but they rely on the \OMake{} standard library (the
 files \verb+build/C+ and \verb+build/OCaml+) to do all the work.  What happens if we want to write a
-build configuration for a language that is not already supported in the OMake standard library?
+build configuration for a language that is not already supported in the \OMake{} standard library?
 
 For this example, let's suppose we are adopting a new language.  The language uses the standard
-compile/link model, but is not in the OMake standard library.  Specifically, let's say we have the
+compile/link model, but is not in the \OMake{} standard library.  Specifically, let's say we have the
 following setup.
 
 \begin{itemize}
@@ -422,7 +422,7 @@ and the \verb+CatProgram+ function specifies how to build the executable.
 \index{.SCANNER}
 
 That's it, almost.  The part we left out was automated dependency scanning.  This is one of the
-nicer features of OMake, and one that makes build specifications easier to write and more robust.
+nicer features of \OMake{}, and one that makes build specifications easier to write and more robust.
 Strictly speaking, it isn't required, but you definitely want to do it.
 
 The mechanism is to define a \verb+.SCANNER+ rule, which is like a normal rule, but it specifies how
@@ -436,7 +436,7 @@ rule of the following form.
 
 This rule specifies that a \verb+.woof+ file may have additional dependencies that can be extracted
 from the corresponding \verb+.cat+ file by executing the \verb+<commands>+.  The \emph{result} of
-executing the \verb+<commands>+ should be a sequence of dependencies in OMake format, printed to the
+executing the \verb+<commands>+ should be a sequence of dependencies in \OMake{} format, printed to the
 standard output.
 
 As we mentioned, each \verb+.cat+ file specifies dependencies on \verb+.woof+ files with an
@@ -451,7 +451,7 @@ the following line.
 For an analogy that might make this clearer, consider the C programming language, where a \verb+.o+
 file is produced by compiling a \verb+.c+ file.  If a file \verb+foo.c+ contains a line like
 \verb+#include "fum.h"+, then \verb+foo.c+ should be recompiled whenever \verb+fum.h+ changes.  That
-is, the file \verb+foo.o+ \emph{depends} on the file \verb+fum.h+.  In the OMake parlance, this is
+is, the file \verb+foo.o+ \emph{depends} on the file \verb+fum.h+.  In the \OMake{} parlance, this is
 called an \emph{implicit} dependency, and the \verb+.SCANNER+ \verb+<commands>+ would print a line
 like the following.
 
@@ -632,7 +632,7 @@ First, the rules for building cat programs is defined in the project \verb+OMake
 another cat project somewhere, you would need to copy the \verb+OMakeroot+ (and modify it as
 needed).  Instead of that, you should consider moving the configuration to a shared library
 directory, in a file like \verb+Cat.om+.  That way, instead of copying the code, you could include
-the shared copy with an \OMake command \verb+open Cat+.  The share directory should be added to your
+the shared copy with an \OMake{} command \verb+open Cat+.  The share directory should be added to your
 \verb+OMAKEPATH+ environment variable to ensure that \verb+omake+ knows how to find it.
 
 Better yet, if you are happy with your work, consider submitting it as a standard configuration (by

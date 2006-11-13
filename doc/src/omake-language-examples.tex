@@ -13,7 +13,7 @@ values printed by \verb+osh+ have been abbreviated.
 
 \section{Strings and arrays}
 
-The basic OMake values are strings, sequences, and arrays of values.  Sequences are like arrays of
+The basic \OMake{} values are strings, sequences, and arrays of values.  Sequences are like arrays of
 values separated by whitespace; the sequences are split on demand by functions that expect arrays.
 
 \begin{verbatim}
@@ -141,7 +141,7 @@ Arrays are quite helpful on systems where filenames often contain whitespace.
 
 \section{Files and directories}
 
-OMake projects usually span multiple directories, and different parts of the project execute
+\OMake{} projects usually span multiple directories, and different parts of the project execute
 commands in different directories.  There is a need to define a location-independent name for a file
 or directory.
 
@@ -357,14 +357,14 @@ could equivalently define \verb+PREFIXED_INCLUDES+ as a function with zero argum
 
 \section{Scoping and exports}
 
-The OMake language is functional (apart from IO and shell commands).  This comes in two parts:
+The \OMake{} language is functional (apart from IO and shell commands).  This comes in two parts:
 functions are first-class, and variables are immutable (there is no assignment operator).  The
 latter property may seem strange to users used to GNU make, but it is actually a central point of
-OMake.  Since variables can't be modified, it is impossible (or at least hard) for one part of the
+\OMake{}.  Since variables can't be modified, it is impossible (or at least hard) for one part of the
 project to interfere with another.
 
-To be sure, pure functional programming can be awkward.  In OMake, each new indentation level
-introduces a new scope, and new definitions in that scope are lost when the scope ends.  If OMake
+To be sure, pure functional programming can be awkward.  In \OMake{}, each new indentation level
+introduces a new scope, and new definitions in that scope are lost when the scope ends.  If \OMake{}
 were overly strict about scoping, we would wind up with a lot of convoluted code.
 
 \begin{verbatim}
@@ -428,7 +428,7 @@ A \verb+while+ loop is another form of loop, with an auto-export.
 
 \section{Shell aliases}
 
-Sometimes you may want to define an \emph{alias}, an OMake command that masquerades as a real shell
+Sometimes you may want to define an \emph{alias}, an \OMake{} command that masquerades as a real shell
 command.  You can do this by adding your function as a method to the \verb+Shell+ object.
 
 For an example, suppose we use the \verb+awk+ function to print out all the comments in a file.

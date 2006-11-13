@@ -439,7 +439,7 @@ let builtin_grep venv pos loc args =
  *        ls -l "Program Files"
  *    \end{verbatim}
  * \item[O] Parse each line using white space as the separator, using the
- *    usual OMake algorithm for string parsing.  This is the default.
+ *    usual \OMake{} algorithm for string parsing.  This is the default.
  * \item[x] Once each line is split, reduce each word using the
  *    hex representation.  This is the usual hex representation used
  *    in URL specifiers, so the string ``Program Files'' may be
