@@ -333,11 +333,11 @@ public.LaTeXDocument(name, texfiles) =
             if $(and $(file-exists $(name).idx), $(grep q, $'\\indexentry', $(name).idx))
                 $(MAKEINDEX) $(name)
                 run-latex $(prog) $(LATEXFLAGS) $(name)
-            if $(grep q, $'Label.s. may have changed', $(name).log)
+            if $(grep q, $'Rerun to get', $(name).log)
                 run-latex $(prog) $(LATEXFLAGS) $(name)
-            if $(grep q, $'Label.s. may have changed', $(name).log)
+            if $(grep q, $'Rerun to get', $(name).log)
                 run-latex $(prog) $(LATEXFLAGS) $(name)
-            if $(grep q, $'Label.s. may have changed', $(name).log)
+            if $(grep q, $'Rerun to get', $(name).log)
                 run-latex $(prog) $(LATEXFLAGS) $(name)
 
         #
