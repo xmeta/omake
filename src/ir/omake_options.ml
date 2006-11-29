@@ -48,12 +48,19 @@ type divert_flag =
  | DivertDiscardSuccess
 
 (*
+ * Make the default state explicit (the actual value may depend on the value of other settings).
+ *)
+type 'a setting =
+   Default
+ | Set of 'a
+
+(*
  * The basic make flags.
  *)
 type omake_options =
    { opt_job_count            : int;
      opt_remote_servers       : (string * int) list;
-     opt_terminate_on_error   : bool;
+     opt_terminate_on_error   : bool setting;
      opt_dry_run              : bool;
      opt_print_command        : eval_flag;
      opt_print_dir            : bool;
@@ -70,7 +77,7 @@ type omake_options =
      opt_verbose_dependencies : bool;
      opt_cd_root              : bool;
      opt_project              : bool;
-     opt_poll                 : bool;
+     opt_poll                 : bool setting;
      opt_poll_on_done         : bool;
      opt_flush_include        : bool;
      opt_flush_static         : bool;
@@ -122,12 +129,6 @@ let set_job_count options s =
    in
    let job_count, remote_servers = List.fold_left set_job (1, []) (Lm_string_util.split ":" s) in
       set_job_count_and_servers_opt options job_count (List.rev remote_servers)
-
-let opt_terminate_on_error opts =
-   opts.opt_terminate_on_error
-
-let set_terminate_on_error_opt opts flag =
-   { opts with opt_terminate_on_error = flag }
 
 let opt_dry_run opts =
    opts.opt_dry_run
@@ -225,17 +226,27 @@ let opt_project opts =
 let set_project_opt opts flag =
    { opts with opt_project = flag }
 
-let opt_poll opts =
-   opts.opt_poll
-
-let set_poll_opt opts b =
-   { opts with opt_poll = b; opt_terminate_on_error = not b }
-
 let opt_poll_on_done opts =
    opts.opt_poll_on_done
 
 let set_poll_on_done_opt opts b =
-   { opts with opt_poll_on_done = b; opt_poll = b; opt_terminate_on_error = not b }
+   { opts with opt_poll_on_done = b }
+
+let opt_poll opts =
+   match opts.opt_poll with
+      Set v -> v
+    | Default -> (opt_poll_on_done opts)
+
+let set_poll_opt opts b =
+   { opts with opt_poll = Set b }
+
+let opt_terminate_on_error opts =
+   match opts.opt_terminate_on_error with
+      Set v  -> v
+    | Default -> not (opt_poll opts)
+
+let set_terminate_on_error_opt opts flag =
+   { opts with opt_terminate_on_error = Set flag }
 
 let opt_flush_include opts =
    opts.opt_flush_include
@@ -333,7 +344,7 @@ let set_divert_opt flag opts on =
 let default_options =
    { opt_job_count            = 1;
      opt_remote_servers       = [];
-     opt_terminate_on_error   = true;
+     opt_terminate_on_error   = Default;
      opt_dry_run              = false;
      opt_print_command        = EvalEager;
      opt_print_dir            = false;
@@ -350,7 +361,7 @@ let default_options =
      opt_verbose_dependencies = false;
      opt_cd_root              = false;
      opt_project              = false;
-     opt_poll                 = false;
+     opt_poll                 = Default;
      opt_poll_on_done         = false;
      opt_flush_include        = false;
      opt_flush_static         = false;
@@ -370,11 +381,11 @@ let options_spec =
    ["-j", Lm_arg.StringFold set_job_count, (**)
        "Specify parallel jobs and remote servers";
     "-k", Lm_arg.ClearFold set_terminate_on_error_opt, (**)
-       "Do not stop when an error occurs";
+       "Do not stop when an error occurs; implied by -p and -P";
     "-p", Lm_arg.SetFold set_poll_opt, (**)
        "Poll filesystem for changes (until build succeeds); implies -k";
     "-P", Lm_arg.SetFold set_poll_on_done_opt, (**)
-       "Poll filesystem for changes (keep polling \"forever\"); implies -k";
+       "Poll filesystem for changes (keep polling \"forever\"); implies -k and -p";
     "-n", Lm_arg.SetFold set_dry_run_opt, (**)
        "Print commands, but do not execute them";
     "--project", Lm_arg.SetFold set_project_opt, (**)
