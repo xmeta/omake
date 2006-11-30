@@ -1412,6 +1412,7 @@ let save_and_finish_scanner_success env command filename =
                eprintf "@[<v 3>Saving dependencies: %a@ @[<b 3>scanned deps:%a@]@]@." (**)
                   pp_print_node target
                   pp_print_deps result;
+            env_close_success_tee env command;
             save_and_finish_scanner_results env command result
 
        | None ->
@@ -1464,7 +1465,7 @@ let execute_scanner env command =
    let shell = eval_shell venv pos in
       command.command_tee <- tee;
       env.env_scan_exec_count <- succ env.env_scan_exec_count;
-      match Exec.spawn env.env_exec shell (venv_options venv) tee_none handle_out copy_stderr "scan" target scanner with
+      match Exec.spawn env.env_exec shell (venv_options venv) tee handle_out copy_stderr "scan" target scanner with
          ProcessFailed ->
             (* The fork failed *)
             abort_command env command fork_error_code
