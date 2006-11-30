@@ -1210,6 +1210,7 @@ let unlink_file filename =
 let abort_command env command code =
    if opt_terminate_on_error (env_options env) then
       env.env_error_code <- code;
+   env_close_failed_tee env command;
    reclassify_command env command (CommandFailed code)
 
 let abort_commands env targets code =
@@ -1637,7 +1638,6 @@ let run_rule env command =
          command_target  = target;
          command_effects = effects;
          command_venv    = venv;
-         command_tee     = tee
        } = command
    in
    let pos = string_pos "run_rule" (loc_exp_pos loc) in
