@@ -1419,12 +1419,7 @@ let string venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{string-escaped}
- * \fun{ocaml-escaped}
- * \fun{html-escaped}
- * \fun{html-pre-escaped}
- * \fun{c-escaped}
- * \fun{id-escaped}
+ * \sixfuns{string-escaped}{ocaml-escaped}{html-escaped}{html-pre-escaped}{c-escaped}{id-escaped}
  *
  * \begin{verbatim}
  *    $(string-escaped sequence) : String Array
@@ -1437,8 +1432,11 @@ let string venv pos loc args =
  * \end{verbatim}
  *
  * The \verb+string-escaped+ function converts each element of its
- * argument to a string, escaping characters that are special to omake.
- * The special characters include \verb+:)(,+ and shitespace.
+ * argument to a string, escaping it, if it contains symbols that are
+ * special to \OMake.
+ * The special characters include \verb+:()\,$'"#+ and whitespace.
+ * This function can be used in scanner rules to escape file names before
+ * printing then to \verb+stdout+.
  *
  * The \verb+ocaml-escaped+ function converts each element of its
  * argument to a string, escaping characters that are special to OCaml.
@@ -1454,10 +1452,48 @@ let string venv pos loc args =
  * translate newlines into \verb+<br>+.
  *
  * \begin{verbatim}
- *     string-escaped($"a b" $"y:z")
+ *     println($(string $(string-escaped $"a b" $"y:z")))
  *     a\ b y\:z
  * \end{verbatim}
  * \end{doc}
+ *"
+ *)
+
+(*
+ * Generic escaping functions
+ *)
+let escape_length test extra s =
+   let len = String.length s in
+   let rec collect amount i =
+      if i = len then
+         amount
+      else if test s.[i] then
+         collect (amount + extra) (i + 1)
+      else
+         collect (amount + 1) (i + 1)
+   in
+      collect 0 0
+
+let copy_string test add_escape esc_length src_length s =
+   let esc_string = String.create esc_length in
+   let rec copy esc_index src_index =
+      if src_index <> src_length then
+         let c = s.[src_index] in
+            if test c then begin
+               let extra_length = add_escape esc_string esc_index c in
+                  copy (esc_index + extra_length) (src_index + 1)
+            end
+            else begin
+               esc_string.[esc_index] <- c;
+               copy (esc_index + 1) (src_index + 1)
+            end
+   in
+      copy 0 0;
+      esc_string
+
+(*
+ * Escape special symbols. 
+ * NB: Must be compatible with the Omake_ast_lex.parse_deps function!
  *)
 let is_escape_char c =
    match c with
@@ -1477,76 +1513,18 @@ let is_escape_char c =
     | _ ->
          false
 
-let is_escape_string s =
-   let len = String.length s in
-   let rec check i =
-      i = len || (not (is_escape_char s.[i]) && check (i + 1))
-   in
-      not (check 0)
-
-(*
- * Count the maximal sequence of single-quote characters.
- *)
-let search_quote_left s =
-   let len = String.length s in
-   let rec search_left i =
-      if i = len || s.[i] <> '\'' then
-         i
-      else
-         search_left (i + 1)
-   in
-      search_left 0
-
-let search_quote_right s off =
-   let rec search_right i =
-      if i < off || s.[i] <> '\'' then
-         i + 1
-      else
-         search_right (i - 1)
-   in
-      search_right (String.length s - 1)
-
-let max_quote_length s off len =
-   let rec count i cur total =
-      if i = len then
-         max cur total
-      else if s.[i] = '\'' then
-         count (i + 1) (cur + 1) total
-      else
-         count (i + 1) 0 (max cur total)
-   in
-      count off 0 0
-
-(*
- * Place the outer quotes outside the quotes.
- *)
-let copy_string s =
-   let len = String.length s in
-   let buf = Buffer.create (String.length s + 6) in
-   let left = search_quote_left s in
-   let right = search_quote_right s left in
-   let quote = max_quote_length s left (right - left) in
-      for i = 0 to left - 1 do
-         Buffer.add_string buf "\\'"
-      done;
-      Buffer.add_char buf '$';
-      for i = 0 to quote do
-         Buffer.add_char buf '\''
-      done;
-      Buffer.add_substring buf s left (right - left);
-      for i = 0 to quote do
-         Buffer.add_char buf '\''
-      done;
-      for i = right to len - 1 do
-         Buffer.add_string buf "\\'"
-      done;
-      Buffer.contents buf
+let add_single_escape s i c =
+   s.[i] <- '\\';
+   s.[i + 1] <- c;
+   2
 
 let single_escaped s =
-   if is_escape_string s then
-      copy_string s
-   else
-      s
+   let src_length = String.length s in
+   let esc_length = escape_length is_escape_char 2 s in
+      if esc_length = src_length then
+         s
+      else
+         copy_string is_escape_char add_single_escape esc_length src_length s
 
 (*
  * Escape in a way that produces a valid identifier.
@@ -1566,44 +1544,19 @@ let id_char c =
    else
       Char.chr (c + Char.code 'a')
 
-let id_escape_length s =
-   let len = String.length s in
-   let rec collect amount i =
-      if i = len then
-         amount
-      else if id_is_escape s.[i] then
-         collect (amount + 3) (i + 1)
-      else
-         collect (amount + 1) (i + 1)
-   in
-      collect 0 0
-
-let id_copy_string esc_length src_length s =
-   let esc_string = String.create esc_length in
-   let rec copy esc_index src_index =
-      if src_index <> src_length then
-         let c = s.[src_index] in
-            if id_is_escape c then begin
-               esc_string.[esc_index] <- '_';
-               esc_string.[esc_index + 1] <- id_char ((Char.code c) lsr 4);
-               esc_string.[esc_index + 2] <- id_char ((Char.code c) land 0x0f);
-               copy (esc_index + 3) (src_index + 1)
-            end
-            else begin
-               esc_string.[esc_index] <- c;
-               copy (esc_index + 1) (src_index + 1)
-            end
-   in
-      copy 0 0;
-      esc_string
+let id_add_quote s i c =
+   s.[i] <- '_';
+   s.[i + 1] <- id_char ((Char.code c) lsr 4);
+   s.[i + 2] <- id_char ((Char.code c) land 0x0f);
+   3
 
 let id_single_escaped s =
    let src_length = String.length s in
-   let esc_length = id_escape_length s in
+   let esc_length = escape_length id_is_escape 3 s in
       if esc_length = src_length then
          s
       else
-         id_copy_string esc_length src_length s
+         copy_string id_is_escape id_add_quote esc_length src_length s
 
 let any_escaped escaped venv pos loc args =
    let pos = string_pos "string-escaped" pos in
@@ -2735,12 +2688,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
