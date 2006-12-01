@@ -19,16 +19,19 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiDirsComponent">
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1"/>
+    <ROW Directory="C_DIR" Directory_Parent="parse_DIR" DefaultDir="C"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
     <ROW Directory="bin_DIR" Directory_Parent="APPDIR" DefaultDir="bin"/>
     <ROW Directory="build_DIR" Directory_Parent="omake_DIR" DefaultDir="build"/>
     <ROW Directory="configure_DIR" Directory_Parent="omake_DIR" DefaultDir="config~1|configure"/>
     <ROW Directory="lib_DIR" Directory_Parent="APPDIR" DefaultDir="lib"/>
     <ROW Directory="omake_DIR" Directory_Parent="lib_DIR" DefaultDir="omake"/>
+    <ROW Directory="parse_DIR" Directory_Parent="omake_DIR" DefaultDir="parse"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="C.om" ComponentId="{92CD6123-E38A-4481-A460-35C05F50869C}" Directory_="build_DIR" Attributes="0" KeyPath="C.om" FullKeyPath="APPDIR\lib\omake\build"/>
     <ROW Component="Configure.om" ComponentId="{AB865338-2FB9-4BC8-BE15-87D1389A4EF5}" Directory_="configure_DIR" Attributes="0" KeyPath="Configure.om" FullKeyPath="APPDIR\lib\omake\configure"/>
+    <ROW Component="Lex.om" ComponentId="{8A9CAA10-5F0C-42FB-8B9B-E9D95C07BC20}" Directory_="C_DIR" Attributes="0" KeyPath="Lex.om" FullKeyPath="APPDIR\lib\omake\parse\C"/>
     <ROW Component="OMAKEDIR" ComponentId="{451A709A-2057-4846-A997-7E0AEA1EF58F}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEDIR" FullKeyPath="HK_CU\Software\[Manufacturer]\[ProductName]\OMAKEDIR"/>
     <ROW Component="OMAKEDIR_1" ComponentId="{7AE2C887-5364-435B-BF6C-BD2F60B1761C}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEDIR_1" FullKeyPath="HK_LM\Software\[Manufacturer]\[ProductName]\OMAKEDIR"/>
     <ROW Component="OMAKEROOT" ComponentId="{DC3184BC-5067-4A66-8B92-0D684546D1A2}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEROOT" FullKeyPath="HK_CU\Software\[Manufacturer]\[ProductName]\OMAKEROOT"/>
@@ -40,7 +43,7 @@
     <ROW Component="osh.exe" ComponentId="{A8DD6CC6-F8B8-4897-A563-7377D8F3E789}" Directory_="bin_DIR" Attributes="0" KeyPath="osh.exe" FullKeyPath="APPDIR\bin\osh.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="lib lib_1 OMAKEROOT OMAKEDIR OMAKEDIR_1 cvs_realclean.exe omake.exe osh.exe C.om Configure.om OMakefile.default"/>
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="lib lib_1 OMAKEROOT OMAKEDIR OMAKEDIR_1 cvs_realclean.exe omake.exe osh.exe C.om Configure.om OMakefile.default Lex.om"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
@@ -48,10 +51,12 @@
     <ROW File="Common.om" Component_="C.om" FileName="Common.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\build\Common.om" SelfReg="false" Sequence="5"/>
     <ROW File="Configure.om" Component_="Configure.om" FileName="Config~1.om|Configure.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\Configure.om" SelfReg="false" Sequence="8"/>
     <ROW File="LaTeX.om" Component_="C.om" FileName="LaTeX.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\build\LaTeX.om" SelfReg="false" Sequence="6"/>
+    <ROW File="Lex.om" Component_="Lex.om" FileName="Lex.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\parse\C\Lex.om" SelfReg="false" Sequence="16"/>
     <ROW File="OCaml.om" Component_="C.om" FileName="OCaml.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\build\OCaml.om" SelfReg="false" Sequence="7"/>
     <ROW File="OMakefile.default" Component_="OMakefile.default" FileName="OMakef~1.def|OMakefile.default" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\OMakefile.default" SelfReg="false" Sequence="12"/>
     <ROW File="OMakeroot.default" Component_="OMakefile.default" FileName="OMaker~1.def|OMakeroot.default" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\OMakeroot.default" SelfReg="false" Sequence="13"/>
     <ROW File="OMakeroot.om" Component_="OMakefile.default" FileName="OMaker~1.om|OMakeroot.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\OMakeroot.om" SelfReg="false" Sequence="14"/>
+    <ROW File="Parse.om" Component_="Lex.om" FileName="Parse.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\parse\C\Parse.om" SelfReg="false" Sequence="17"/>
     <ROW File="Pervasives.om" Component_="OMakefile.default" FileName="Pervas~1.om|Pervasives.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\Pervasives.om" SelfReg="false" Sequence="15"/>
     <ROW File="cvs_realclean.exe" Component_="cvs_realclean.exe" FileName="cvs_re~1.exe|cvs_realclean.exe" Attributes="1" SourcePath="C:\Program Files\OMake\bin\cvs_realclean.exe" SelfReg="false" Sequence="1"/>
     <ROW File="fam.om" Component_="Configure.om" FileName="fam.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\fam.om" SelfReg="false" Sequence="9"/>
@@ -59,6 +64,8 @@
     <ROW File="omake.exe" Component_="omake.exe" FileName="omake.exe" Attributes="1" SourcePath="C:\Program Files\OMake\bin\omake.exe" SelfReg="false" Sequence="2"/>
     <ROW File="osh.exe" Component_="osh.exe" FileName="osh.exe" Attributes="1" SourcePath="C:\Program Files\OMake\bin\osh.exe" SelfReg="false" Sequence="3"/>
     <ROW File="readline.om" Component_="Configure.om" FileName="readline.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\readline.om" SelfReg="false" Sequence="11"/>
+    <ROW File="snprintf.om" Component_="Configure.om" FileName="snprintf.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\snprintf.om" SelfReg="false" Sequence="19"/>
+    <ROW File="svn_realclean.om" Component_="C.om" FileName="svn_re~1.om|svn_realclean.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\build\svn_realclean.om" SelfReg="false" Sequence="18"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
     <ROW Path="&lt;ui.ail&gt;"/>
