@@ -57,39 +57,34 @@ Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
 * Subsection 8-3-8::	subrange
 * Subsection 8-3-9::	rev
 * Subsection 8-3-10::	string
-* Subsection 8-3-11::	string-escaped
-* Subsection 8-3-12::	ocaml-escaped
-* Subsection 8-3-13::	html-escaped
-* Subsection 8-3-14::	html-pre-escaped
-* Subsection 8-3-15::	c-escaped
-* Subsection 8-3-16::	id-escaped
-* Subsection 8-3-17::	quote
-* Subsection 8-3-18::	quote-argv
-* Subsection 8-3-19::	html-string
-* Subsection 8-3-20::	addsuffix
-* Subsection 8-3-21::	mapsuffix
-* Subsection 8-3-22::	addsuffixes
-* Subsection 8-3-23::	removeprefix
-* Subsection 8-3-24::	removesuffix
-* Subsection 8-3-25::	replacesuffixes
-* Subsection 8-3-26::	addprefix
-* Subsection 8-3-27::	mapprefix
-* Subsection 8-3-28::	add-wrapper
-* Subsection 8-3-29::	set
-* Subsection 8-3-30::	mem
-* Subsection 8-3-31::	intersection
-* Subsection 8-3-32::	intersects
-* Subsection 8-3-33::	set-diff
-* Subsection 8-3-34::	filter
-* Subsection 8-3-35::	filter-out
-* Subsection 8-3-36::	capitalize
-* Subsection 8-3-37::	uncapitalize
-* Subsection 8-3-38::	uppercase
-* Subsection 8-3-39::	lowercase
-* Subsection 8-3-40::	system
-* Subsection 8-3-41::	shell
-* Subsection 8-3-42::	while
-* Subsection 8-3-43::	break
+* Subsection 8-3-11::	string-escaped, ocaml-escaped, html-escaped, html-pre-escaped, c-escaped, id-escaped
+* Subsection 8-3-12::	quote
+* Subsection 8-3-13::	quote-argv
+* Subsection 8-3-14::	html-string
+* Subsection 8-3-15::	addsuffix
+* Subsection 8-3-16::	mapsuffix
+* Subsection 8-3-17::	addsuffixes
+* Subsection 8-3-18::	removeprefix
+* Subsection 8-3-19::	removesuffix
+* Subsection 8-3-20::	replacesuffixes
+* Subsection 8-3-21::	addprefix
+* Subsection 8-3-22::	mapprefix
+* Subsection 8-3-23::	add-wrapper
+* Subsection 8-3-24::	set
+* Subsection 8-3-25::	mem
+* Subsection 8-3-26::	intersection
+* Subsection 8-3-27::	intersects
+* Subsection 8-3-28::	set-diff
+* Subsection 8-3-29::	filter
+* Subsection 8-3-30::	filter-out
+* Subsection 8-3-31::	capitalize
+* Subsection 8-3-32::	uncapitalize
+* Subsection 8-3-33::	uppercase
+* Subsection 8-3-34::	lowercase
+* Subsection 8-3-35::	system
+* Subsection 8-3-36::	shell
+* Subsection 8-3-37::	while
+* Subsection 8-3-38::	break
 
 
 Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
@@ -289,44 +284,12 @@ whitespace. The result is treated as a unit; whitespace is significant.
 Node: Subsection 8-3-11,	Next: Subsection 8-3-12,	Prev: Subsection 8-3-10,	Up: Section 8-3
   
 
-8.3.11   string-escaped
-=======================
- 
-
-Node: Subsection 8-3-12,	Next: Subsection 8-3-13,	Prev: Subsection 8-3-11,	Up: Section 8-3
-  
-
-8.3.12   ocaml-escaped
-======================
- 
-
-Node: Subsection 8-3-13,	Next: Subsection 8-3-14,	Prev: Subsection 8-3-12,	Up: Section 8-3
-  
-
-8.3.13   html-escaped
+8.3.11   string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
+=======================================================================
+c-escaped, id-escaped
 =====================
- 
-
-Node: Subsection 8-3-14,	Next: Subsection 8-3-15,	Prev: Subsection 8-3-13,	Up: Section 8-3
-  
-
-8.3.14   html-pre-escaped
-=========================
- 
-
-Node: Subsection 8-3-15,	Next: Subsection 8-3-16,	Prev: Subsection 8-3-14,	Up: Section 8-3
-  
-
-8.3.15   c-escaped
-==================
- 
-
-Node: Subsection 8-3-16,	Next: Subsection 8-3-17,	Prev: Subsection 8-3-15,	Up: Section 8-3
-  
-
-8.3.16   id-escaped
-===================
-
+\@na
+me{@default87}
 <<
      $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
@@ -338,8 +301,10 @@ Node: Subsection 8-3-16,	Next: Subsection 8-3-17,	Prev: Subsection 8-3-15,	Up: S
 >>
   
   The `string-escaped' function converts each element of its argument to
-a string, escaping characters that are special to omake. The special
-characters include `:)(,' and shitespace.
+a string, escaping it, if it contains symbols that are special to OMake.
+The special characters include `:()\,$'"#' and whitespace. This function
+can be used in scanner rules to escape file names before printing then
+to `stdout'.
   The `ocaml-escaped' function converts each element of its argument to
 a string, escaping characters that are special to OCaml.
   The `c-escaped' function converts a string to a form that can be used
@@ -350,14 +315,14 @@ be used in OMake.
 acceptable as HTML. The `html-pre-escaped' function is similar, but it
 does not translate newlines into `<br>'.
 <<
-      string-escaped($"a b" $"y:z")
+      println($(string $(string-escaped $"a b" $"y:z")))
       a\ b y\:z
 >>
 
-Node: Subsection 8-3-17,	Next: Subsection 8-3-18,	Prev: Subsection 8-3-16,	Up: Section 8-3
+Node: Subsection 8-3-12,	Next: Subsection 8-3-13,	Prev: Subsection 8-3-11,	Up: Section 8-3
   
 
-8.3.17   quote
+8.3.12   quote
 ==============
 
 <<
@@ -370,10 +335,10 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'. 
 
-Node: Subsection 8-3-18,	Next: Subsection 8-3-19,	Prev: Subsection 8-3-17,	Up: Section 8-3
+Node: Subsection 8-3-13,	Next: Subsection 8-3-14,	Prev: Subsection 8-3-12,	Up: Section 8-3
   
 
-8.3.18   quote-argv
+8.3.13   quote-argv
 ===================
 
 <<
@@ -385,10 +350,10 @@ Node: Subsection 8-3-18,	Next: Subsection 8-3-19,	Prev: Subsection 8-3-17,	Up: S
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components. 
 
-Node: Subsection 8-3-19,	Next: Subsection 8-3-20,	Prev: Subsection 8-3-18,	Up: Section 8-3
+Node: Subsection 8-3-14,	Next: Subsection 8-3-15,	Prev: Subsection 8-3-13,	Up: Section 8-3
   
 
-8.3.19   html-string
+8.3.14   html-string
 ====================
 
 <<
@@ -401,10 +366,10 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant. 
 
-Node: Subsection 8-3-20,	Next: Subsection 8-3-21,	Prev: Subsection 8-3-19,	Up: Section 8-3
+Node: Subsection 8-3-15,	Next: Subsection 8-3-16,	Prev: Subsection 8-3-14,	Up: Section 8-3
   
 
-8.3.20   addsuffix
+8.3.15   addsuffix
 ==================
 
 <<
@@ -419,10 +384,10 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'. 
 
-Node: Subsection 8-3-21,	Next: Subsection 8-3-22,	Prev: Subsection 8-3-20,	Up: Section 8-3
+Node: Subsection 8-3-16,	Next: Subsection 8-3-17,	Prev: Subsection 8-3-15,	Up: Section 8-3
   
 
-8.3.21   mapsuffix
+8.3.16   mapsuffix
 ==================
 
 <<
@@ -438,10 +403,10 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'. 
 
-Node: Subsection 8-3-22,	Next: Subsection 8-3-23,	Prev: Subsection 8-3-21,	Up: Section 8-3
+Node: Subsection 8-3-17,	Next: Subsection 8-3-18,	Prev: Subsection 8-3-16,	Up: Section 8-3
   
 
-8.3.22   addsuffixes
+8.3.17   addsuffixes
 ====================
 
 <<
@@ -456,10 +421,10 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'. 
 
-Node: Subsection 8-3-23,	Next: Subsection 8-3-24,	Prev: Subsection 8-3-22,	Up: Section 8-3
+Node: Subsection 8-3-18,	Next: Subsection 8-3-19,	Prev: Subsection 8-3-17,	Up: Section 8-3
   
 
-8.3.23   removeprefix
+8.3.18   removeprefix
 =====================
 
 <<
@@ -471,10 +436,10 @@ Node: Subsection 8-3-23,	Next: Subsection 8-3-24,	Prev: Subsection 8-3-22,	Up: S
   The `removeprefix' function removes a prefix from each component of a
 sequence. 
 
-Node: Subsection 8-3-24,	Next: Subsection 8-3-25,	Prev: Subsection 8-3-23,	Up: Section 8-3
+Node: Subsection 8-3-19,	Next: Subsection 8-3-20,	Prev: Subsection 8-3-18,	Up: Section 8-3
   
 
-8.3.24   removesuffix
+8.3.19   removesuffix
 =====================
 
 <<
@@ -486,10 +451,10 @@ Node: Subsection 8-3-24,	Next: Subsection 8-3-25,	Prev: Subsection 8-3-23,	Up: S
 of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
-Node: Subsection 8-3-25,	Next: Subsection 8-3-26,	Prev: Subsection 8-3-24,	Up: Section 8-3
+Node: Subsection 8-3-20,	Next: Subsection 8-3-21,	Prev: Subsection 8-3-19,	Up: Section 8-3
   
 
-8.3.25   replacesuffixes
+8.3.20   replacesuffixes
 ========================
 
 <<
@@ -505,10 +470,10 @@ the same length.
   For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
 to `a.o b.o c.z'. 
 
-Node: Subsection 8-3-26,	Next: Subsection 8-3-27,	Prev: Subsection 8-3-25,	Up: Section 8-3
+Node: Subsection 8-3-21,	Next: Subsection 8-3-22,	Prev: Subsection 8-3-20,	Up: Section 8-3
   
 
-8.3.26   addprefix
+8.3.21   addprefix
 ==================
 
 <<
@@ -523,10 +488,10 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'. 
 
-Node: Subsection 8-3-27,	Next: Subsection 8-3-28,	Prev: Subsection 8-3-26,	Up: Section 8-3
+Node: Subsection 8-3-22,	Next: Subsection 8-3-23,	Prev: Subsection 8-3-21,	Up: Section 8-3
   
 
-8.3.27   mapprefix
+8.3.22   mapprefix
 ==================
 
 <<
@@ -542,10 +507,10 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'. 
 
-Node: Subsection 8-3-28,	Next: Subsection 8-3-29,	Prev: Subsection 8-3-27,	Up: Section 8-3
+Node: Subsection 8-3-23,	Next: Subsection 8-3-24,	Prev: Subsection 8-3-22,	Up: Section 8-3
   
 
-8.3.28   add-wrapper
+8.3.23   add-wrapper
 ====================
 
 <<
@@ -561,10 +526,10 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence. 
 
-Node: Subsection 8-3-29,	Next: Subsection 8-3-30,	Prev: Subsection 8-3-28,	Up: Section 8-3
+Node: Subsection 8-3-24,	Next: Subsection 8-3-25,	Prev: Subsection 8-3-23,	Up: Section 8-3
   
 
-8.3.29   set
+8.3.24   set
 ============
 
 <<
@@ -576,10 +541,10 @@ Node: Subsection 8-3-29,	Next: Subsection 8-3-30,	Prev: Subsection 8-3-28,	Up: S
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'. 
 
-Node: Subsection 8-3-30,	Next: Subsection 8-3-31,	Prev: Subsection 8-3-29,	Up: Section 8-3
+Node: Subsection 8-3-25,	Next: Subsection 8-3-26,	Prev: Subsection 8-3-24,	Up: Section 8-3
   
 
-8.3.30   mem
+8.3.25   mem
 ============
 
 <<
@@ -592,10 +557,10 @@ Node: Subsection 8-3-30,	Next: Subsection 8-3-31,	Prev: Subsection 8-3-29,	Up: S
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'. 
 
-Node: Subsection 8-3-31,	Next: Subsection 8-3-32,	Prev: Subsection 8-3-30,	Up: Section 8-3
+Node: Subsection 8-3-26,	Next: Subsection 8-3-27,	Prev: Subsection 8-3-25,	Up: Section 8-3
   
 
-8.3.31   intersection
+8.3.26   intersection
 =====================
 
 <<
@@ -611,10 +576,10 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'. 
 
-Node: Subsection 8-3-32,	Next: Subsection 8-3-33,	Prev: Subsection 8-3-31,	Up: Section 8-3
+Node: Subsection 8-3-27,	Next: Subsection 8-3-28,	Prev: Subsection 8-3-26,	Up: Section 8-3
   
 
-8.3.32   intersects
+8.3.27   intersects
 ===================
 
 <<
@@ -629,10 +594,10 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'. 
 
-Node: Subsection 8-3-33,	Next: Subsection 8-3-34,	Prev: Subsection 8-3-32,	Up: Section 8-3
+Node: Subsection 8-3-28,	Next: Subsection 8-3-29,	Prev: Subsection 8-3-27,	Up: Section 8-3
   
 
-8.3.33   set-diff
+8.3.28   set-diff
 =================
 
 <<
@@ -649,10 +614,10 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'. 
 
-Node: Subsection 8-3-34,	Next: Subsection 8-3-35,	Prev: Subsection 8-3-33,	Up: Section 8-3
+Node: Subsection 8-3-29,	Next: Subsection 8-3-30,	Prev: Subsection 8-3-28,	Up: Section 8-3
   
 
-8.3.34   filter
+8.3.29   filter
 ===============
 
 <<
@@ -667,10 +632,10 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'. 
 
-Node: Subsection 8-3-35,	Next: Subsection 8-3-36,	Prev: Subsection 8-3-34,	Up: Section 8-3
+Node: Subsection 8-3-30,	Next: Subsection 8-3-31,	Prev: Subsection 8-3-29,	Up: Section 8-3
   
 
-8.3.35   filter-out
+8.3.30   filter-out
 ===================
 
 <<
@@ -685,10 +650,10 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'. 
 
-Node: Subsection 8-3-36,	Next: Subsection 8-3-37,	Prev: Subsection 8-3-35,	Up: Section 8-3
+Node: Subsection 8-3-31,	Next: Subsection 8-3-32,	Prev: Subsection 8-3-30,	Up: Section 8-3
   
 
-8.3.36   capitalize
+8.3.31   capitalize
 ===================
 
 <<
@@ -700,10 +665,10 @@ Node: Subsection 8-3-36,	Next: Subsection 8-3-37,	Prev: Subsection 8-3-35,	Up: S
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'. 
 
-Node: Subsection 8-3-37,	Next: Subsection 8-3-38,	Prev: Subsection 8-3-36,	Up: Section 8-3
+Node: Subsection 8-3-32,	Next: Subsection 8-3-33,	Prev: Subsection 8-3-31,	Up: Section 8-3
   
 
-8.3.37   uncapitalize
+8.3.32   uncapitalize
 =====================
 
 <<
@@ -715,10 +680,10 @@ Node: Subsection 8-3-37,	Next: Subsection 8-3-38,	Prev: Subsection 8-3-36,	Up: S
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'. 
 
-Node: Subsection 8-3-38,	Next: Subsection 8-3-39,	Prev: Subsection 8-3-37,	Up: Section 8-3
+Node: Subsection 8-3-33,	Next: Subsection 8-3-34,	Prev: Subsection 8-3-32,	Up: Section 8-3
   
 
-8.3.38   uppercase
+8.3.33   uppercase
 ==================
 
 <<
@@ -730,10 +695,10 @@ Node: Subsection 8-3-38,	Next: Subsection 8-3-39,	Prev: Subsection 8-3-37,	Up: S
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'. 
 
-Node: Subsection 8-3-39,	Next: Subsection 8-3-40,	Prev: Subsection 8-3-38,	Up: Section 8-3
+Node: Subsection 8-3-34,	Next: Subsection 8-3-35,	Prev: Subsection 8-3-33,	Up: Section 8-3
   
 
-8.3.39   lowercase
+8.3.34   lowercase
 ==================
 
 <<
@@ -746,10 +711,10 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'. 
 
-Node: Subsection 8-3-40,	Next: Subsection 8-3-41,	Prev: Subsection 8-3-39,	Up: Section 8-3
+Node: Subsection 8-3-35,	Next: Subsection 8-3-36,	Prev: Subsection 8-3-34,	Up: Section 8-3
   
 
-8.3.40   system
+8.3.35   system
 ===============
 
 <<
@@ -765,10 +730,10 @@ function is used internally by omake to evaluate shell commands.
      ls foo
 >>
 
-Node: Subsection 8-3-41,	Next: Subsection 8-3-42,	Prev: Subsection 8-3-40,	Up: Section 8-3
+Node: Subsection 8-3-36,	Next: Subsection 8-3-37,	Prev: Subsection 8-3-35,	Up: Section 8-3
   
 
-8.3.41   shell
+8.3.36   shell
 ==============
 
 <<
@@ -789,10 +754,10 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).  
 
-Node: Subsection 8-3-42,	Next: Subsection 8-3-43,	Prev: Subsection 8-3-41,	Up: Section 8-3
+Node: Subsection 8-3-37,	Next: Subsection 8-3-38,	Prev: Subsection 8-3-36,	Up: Section 8-3
   
 
-8.3.42   while
+8.3.37   while
 ==============
 
 <<
@@ -849,13 +814,13 @@ value is printed.
          echo $i
 >>
   
-  The `break' function (Section 8.3.43*Note Subsection 8-3-43::) can be
+  The `break' function (Section 8.3.38*Note Subsection 8-3-38::) can be
 used to break out of the `while' loop early.  
 
-Node: Subsection 8-3-43,	Next: Section 8-4,	Prev: Subsection 8-3-42,	Up: Section 8-3
+Node: Subsection 8-3-38,	Next: Section 8-4,	Prev: Subsection 8-3-37,	Up: Section 8-3
   
 
-8.3.43   break
+8.3.38   break
 ==============
 
 <<
@@ -1119,7 +1084,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function (Section 8.3.43*Note Subsection 8-3-43::) can be
+  The `break' function (Section 8.3.38*Note Subsection 8-3-38::) can be
 used to break out of the loop early. 
 
 Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-6,	Up: Top
@@ -1824,3 +1789,45 @@ syntax, with the following rules.
 * Subsection 9-4-2::	ls
 * Subsection 9-4-3::	subdirs
 
+
+Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
+  
+
+9.4.1   glob
+============
+
+<<
+     $(glob strings) : Node Array
+        strings : String Sequence
+     $(glob options, strings) : Node Array
+        options : String
+        strings : String Sequence
+>>
+  
+  The `glob' function performs glob-expansion.
+  The . and .. entries are always ignored.
+  The options are: 
+  
+ b  Do not perform csh(1)-style brace expansion. 
+ e  The `\' character does not escape special characters. 
+ n  If an expansion fails, return the expansion literally instead of
+   aborting. 
+ i  If an expansion fails, it expands to nothing. 
+ .  Allow wildcard patterns to match files beginning with a . 
+ A  Return all files, including files that begin with a . 
+ F  Match only normal files (any file that is not a directory). 
+ D  Match only directory files. 
+ C  Ignore files according to cvs(1) rules. 
+ P  Include only proper subdirectories. 
+  
+  In addition, the following variables may be defined that affect the
+behavior of `glob'.
+  
+  
+ GLOB_OPTIONS  A string containing default options. 
+ GLOB_IGNORE  A list of shell patterns for filenames that `glob' should
+   ignore. 
+ GLOB_ALLOW  A list of shell patterns. If a file does not match a
+   pattern in  `GLOB_ALLOW', it is ignored. 
+  
+  The returned files are sorted by name. 
