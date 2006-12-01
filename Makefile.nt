@@ -7,7 +7,9 @@ default:
 	@echo " - 'nmake -f Makefile.nt bootstrap',"
 	@echo "       to build the bootstrapping (feature-limited) OMake binary './omake-boot'."
 	@echo " - 'nmake -f Makefile.nt all',"
-	@echo "       to bootstrap and then build everything"
+	@echo "       to bootstrap and then build everything."
+	@echo " - 'nmake -f Makefile.nt install',"
+	@echo "       to bootstrap, build, and install everything."
 	@exit 1
 
 NMAKE = $(MAKE) /nologo -f Makefile.nt
@@ -25,6 +27,11 @@ all: bootstrap
 	set OMAKEPATH=lib
 	.\omake-boot --dotomake .omake --force-dotomake -j2 -S --progress main
 	src\main\omake --dotomake .omake --force-dotomake -j2 -S --progress all
+
+install: all
+	set OMAKEFLAGS=
+	set OMAKEPATH=lib
+	.\omake-boot --dotomake .omake --force-dotomake -j2 -S --progress install
 
 boot\Makefile.nt: src\Makefile.nt
 	-mkdir boot
