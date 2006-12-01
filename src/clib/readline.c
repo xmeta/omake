@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Jason Hickey, Caltech
+ * Copyright (C) 2004-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +36,10 @@
 #include <caml/custom.h>
 
 #ifdef WIN32
+#  include <caml/signals.h>
 #  include <windows.h>
+   /* Disable some of the warnings */
+#  pragma warning( disable : 4100 4127 4505 )
 #else
 #  include <unistd.h>
 #  include <string.h>
@@ -736,8 +739,8 @@ static void UpdateCursor(ReadLine *readp, int index)
     }
 
     /* Set the cursor */
-    pos.X = x;
-    pos.Y = y;
+    pos.X = (SHORT) x;
+    pos.Y = (SHORT) y;
     SetConsoleCursorPosition(readp->console_out, pos);
 }
 
@@ -913,8 +916,8 @@ static ProcessCode processor(ReadLine *readp)
     INPUT_RECORD *event;
     KEY_EVENT_RECORD *key;
     ProcessCode code;
-    int i, status;
-    DWORD count;
+    int status;
+    DWORD count, i;
     char c;
 
     /* Input loop */
@@ -972,8 +975,6 @@ static void readline_cooked(ReadLine *readp)
  */
 static void readline_raw(ReadLine *readp)
 {
-    LineBuffer *linep;
-
     /* Process in raw mode */
     ConsoleRaw(readp);
     processor(readp);
@@ -1038,7 +1039,6 @@ static readline_done(ReadLine *readp)
  */
 static void readline(ReadLine *readp, const char *promptp)
 {
-    LineBuffer *linep;
     int len;
 
     /* Get the prompt */
@@ -1072,7 +1072,6 @@ static int do_readline_load_history(ReadLine *readp, const char *filenamep)
 {
     char line[MAX_LINE_LENGTH + 32];
     LineBuffer *linep;
-    int i, offset;
     FILE *filep;
     char *strp;
 

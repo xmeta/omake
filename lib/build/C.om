@@ -196,10 +196,12 @@ if $(equal $(OSTYPE), Win32)
         builtin-cc-depend(argv) =
            filename = $(nth 0, $(argv))
            depends[] =
-           awk($(stdin))
+           awk(b, $(stdin))
            case $'Note:.*including file: *\(.*\)$'
-              depends[] += $"$1"
+              depends[] += $(file $"$1")
               export
+           case $'.[(][0-9][0-9]*[)] : (warning|(fatal |)error) [A-Z][0-9]*: '
+              eprintln($0)
            depends = $(string-escaped $(set $(depends)))
            objname = $(string-escaped $(rootname $(filename))$(EXT_OBJ))
            println($"$(objname): $(depends)")

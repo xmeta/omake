@@ -36,6 +36,10 @@
 #include <caml/custom.h>
 
 #ifdef WIN32
+#include <caml/signals.h>
+
+/* Disable some of the warnings */
+#pragma warning( disable : 4127 4189 4702 4706 )
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0400
@@ -209,7 +213,7 @@ static int string_escape_length(const char *strp)
  */
 static void string_copy_escaped(char *dstp, const char *srcp)
 {
-    int c;
+    char c;
 
     *dstp++ = '"';
     while(c = *srcp) {
@@ -390,10 +394,6 @@ static int resume_process(Process *processp)
  */
 static int kill_process(Process *processp)
 {
-    DWORD threads[MAX_THREAD_COUNT];
-    HANDLE handle;
-    int i, count;
-
     /*
      * Set the killed flag.
      * For threads, this will generate an exception
@@ -466,6 +466,7 @@ static int alloc_pid(void)
  * Fixup the process list, and
  * return a wait code.
  */
+#pragma warning( disable : 4100 )
 static value handle_wait(const char *debug, Process **processpp)
 {
     CAMLparam0();
@@ -512,8 +513,7 @@ static value handle_wait(const char *debug, Process **processpp)
 static void terminate_and_exit(void)
 {
     Process *processp;
-    int wait, i;
-    DWORD code;
+    int wait;
 
     /* Send all processes the termination signal */
     wait = 0;
@@ -578,7 +578,7 @@ value omake_shell_sys_suspend(value v_pgrp)
     fflush(stderr);
 #endif
     if(process_group_map(suspend_process, Int_val(v_pgrp)) < 0)
-        failwith("suspend");
+        failwith("omake_shell_sys_suspend");
     CAMLreturn(Val_unit);
 }
 
@@ -590,7 +590,7 @@ value omake_shell_sys_resume(value v_pgrp)
     fflush(stderr);
 #endif
     if(process_group_map(resume_process, Int_val(v_pgrp)) < 0)
-        failwith("suspend");
+        failwith("omake_shell_sys_resume");
     CAMLreturn(Val_unit);
 }
 
@@ -602,7 +602,7 @@ value omake_shell_sys_kill(value v_pgrp)
     fflush(stderr);
 #endif
     if(process_group_map(kill_process, Int_val(v_pgrp)) < 0)
-        failwith("suspend");
+        failwith("omake_shell_sys_kill");
     CAMLreturn(Val_unit);
 }
 
@@ -728,7 +728,7 @@ value omake_shell_sys_check_thread(value v_unit)
 {
     CAMLparam1(v_unit);
     Process *processp;
-    int id;
+    DWORD id;
 
 #ifdef OSH_DEBUG
     fprintf(stderr, "omake_shell_sys_check_thread\n");
@@ -763,8 +763,8 @@ static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_noha
     int processes[MAXIMUM_WAIT_OBJECTS];
     HANDLE handles[MAXIMUM_WAIT_OBJECTS];
     Process **processpp, *processp;
-    int ncount, index, code, pid, pgrp, leader;
-    DWORD exitcode, timeout;
+    int ncount, code, pid, pgrp, leader;
+    DWORD exitcode, timeout, index;
 
 #ifdef OSH_DEBUG
     fprintf(stderr, "omake_shell_sys_wait\n");
@@ -808,7 +808,7 @@ static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_noha
         /* Perform the wait */
         enter_blocking_section();
         index = WaitForMultipleObjects(ncount, handles, FALSE, timeout);
-        if(index == -1)
+        if(index == WAIT_FAILED)
             code = GetLastError();
         leave_blocking_section();
 
