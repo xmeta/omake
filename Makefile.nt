@@ -4,24 +4,27 @@
 default:
 	@echo "If you have already built omake, you should use it instead of make."
 	@echo "If you need to bootstrap, use "
-	@echo " - 'make boot',"
+	@echo " - 'nmake -f Makefile.nt bootstrap',"
 	@echo "       to build the bootstrapping (feature-limited) OMake binary './omake-boot'."
-	@echo " - 'make all',"
+	@echo " - 'nmake -f Makefile.nt all',"
 	@echo "       to bootstrap and then build everything"
 	@exit 1
 
 NMAKE = $(MAKE) /nologo -f Makefile.nt
 
-boot: boot\Makefile.nt boot\Makefile.dep
+bootstrap: boot\Makefile.nt boot\Makefile.dep
 	cd boot
 	$(NMAKE) Makefile.dep
 	$(NMAKE) omake.exe
 	copy omake.exe ..\omake-boot.exe
+	cd ..
 
-all: boot
+all: bootstrap
 	echo # Empty config > .config
-	OMAKEFLAGS= OMAKEPATH=lib .\omake-boot --dotomake .omake --force-dotomake -j2 -S --progress main
-	OMAKEFLAGS= OMAKEPATH=lib src\main\omake --dotomake .omake --force-dotomake -j2 -S --progress all
+	set OMAKEFLAGS=
+	set OMAKEPATH=lib
+	.\omake-boot --dotomake .omake --force-dotomake -j2 -S --progress main
+	src\main\omake --dotomake .omake --force-dotomake -j2 -S --progress all
 
 boot\Makefile.nt: src\Makefile.nt
 	-mkdir boot

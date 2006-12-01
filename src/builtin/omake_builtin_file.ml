@@ -2259,7 +2259,7 @@ let symlink venv pos loc args =
             let dst = Node.fullname dst in
             let () =
                try Unix.symlink src dst with
-                  Unix.Unix_error _ as exn ->
+                  (Unix.Unix_error _ | Invalid_argument _) as exn ->
                      raise (UncaughtException (pos, exn))
             in
                ValNone
