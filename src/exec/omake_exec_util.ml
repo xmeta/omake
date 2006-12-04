@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -87,18 +87,21 @@ let with_pipe f =
 (*
  * Write the data in the buffer to the channel.
  *)
-let rec write_all fd id buf off len =
+let rec write_all name fd id buf off len =
    if len <> 0 then
       let amount =
          try Unix.write fd buf off len with
-            Unix.Unix_error _ ->
+            Unix.Unix_error (err1, err2, err3) ->
+               eprintf "Writing to %s resulted in an error: %s: %s: %s@." name err2 err3 (Unix.error_message err1);
                0
       in
-         if amount <> 0 then
-            write_all fd id buf (off + amount) (len - amount)
+         if (amount <> 0) && (amount <> len) then begin
+            eprintf "Writing to %s was only partially successful (%i out of %i written)@." name amount len;
+            raise (Invalid_argument "Omake_exec_util.write_all")
+         end
 
-let copy_stdout = write_all Unix.stdout
-let copy_stderr = write_all Unix.stderr
+let copy_stdout = write_all "Unix.stdout" Unix.stdout
+let copy_stderr = write_all "Unix.stderr" Unix.stderr
 
 (*
  * Copy output to a file.
@@ -110,7 +113,7 @@ let copy_file name =
       if len = 0 then
          Unix.close fd_out
       else
-         write_all fd_out id buf off len
+         write_all name fd_out id buf off len
    in
       copy
 
@@ -165,10 +168,10 @@ let tee_create b =
    else
       tee_none
 
-let tee_copy fd tee tee_only id buf off len =
+let tee_copy name fd tee tee_only id buf off len =
    if len <> 0 then begin
       if not tee_only then
-         write_all fd id buf off len;
+         write_all name fd id buf off len;
       match tee_channel tee with
          Some outx ->
             Pervasives.output outx buf off len
@@ -176,15 +179,12 @@ let tee_copy fd tee tee_only id buf off len =
             ()
    end
 
-let tee_stdout = tee_copy Unix.stdout
-let tee_stderr = tee_copy Unix.stderr
+let tee_stdout = tee_copy "Unix.stdout" Unix.stdout
+let tee_stderr = tee_copy "Unix.stderr" Unix.stderr
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

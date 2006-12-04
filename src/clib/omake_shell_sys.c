@@ -114,7 +114,7 @@
 #define MAX_PID                 29999
 
 /*
- * The process is grou leader if pid and pgrp are the same.
+ * The process is group leader if pid and pgrp are the same.
  */
 typedef struct _process {
     int pid;                            // Process identifier
@@ -141,7 +141,7 @@ typedef struct _shell_state {
 /*
  * The state.
  */
-static ShellState *state;
+static ShellState *state = NULL;
 
 /************************************************
  * Utilities.

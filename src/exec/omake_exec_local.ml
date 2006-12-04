@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -83,7 +83,11 @@ struct
 
         (* The commnds to be run after the current command is done *)
         mutable job_command    : 'exp;
-        mutable job_commands   : 'exp list
+        mutable job_commands   : 'exp list;
+
+        (* A temporary buffer for copying. *)
+        job_buffer_len         : int;
+        job_buffer             : string;
       }
 
    (*
@@ -202,7 +206,9 @@ struct
                     job_command = command;
                     job_commands = commands;
                     job_print_flag = false;
-                    job_shell = shell
+                    job_shell = shell;
+                    job_buffer_len = 1024;
+                    job_buffer = String.make 1024 '\000';
                   }
                in
                let table = FdTable.add table out_read job in
@@ -324,12 +330,6 @@ struct
             end
 
    (*
-    * A temporary buffer for copying.
-    *)
-   let buffer_len = 1024
-   let buffer = String.make buffer_len '\000'
-
-   (*
     * Handle data on a channel.
     *)
    let handle server options fd =
@@ -344,7 +344,9 @@ struct
             job_handle_out = handle_out;
             job_handle_err = handle_err;
             job_handle_status = handle_status;
-            job_command = command
+            job_command = command;
+            job_buffer_len = buffer_len;
+            job_buffer = buffer;
           } = job
       in
       let handle =

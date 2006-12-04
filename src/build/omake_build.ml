@@ -1444,14 +1444,6 @@ let execute_scanner env command =
    let pos = string_pos "execute_scanner" (loc_exp_pos loc) in
    let scanner, _ = command_lines command in
 
-   (* Debugging *)
-   let _ =
-      if debug debug_scanner then
-         eprintf "@[<v 3>run_scanner %a:%a@]@." (**)
-            pp_print_node target
-            pp_print_arg_command_lines scanner
-   in
-
    (* Save errors to the tee *)
    let options = venv_options venv in
    let () = unlink_tee command in
@@ -1462,6 +1454,16 @@ let execute_scanner env command =
    (* Save output into a temporary file *)
    let tmpfile = Filename.temp_file "omake" ".deps" in
    let handle_out = copy_file tmpfile in
+
+   (* Debugging *)
+   let () =
+      if debug debug_scanner then
+         eprintf "@[<v 3>run_scanner %a@ to tmp file %s:%a@]@." (**)
+            pp_print_node target
+            tmpfile
+            pp_print_arg_command_lines scanner
+
+   in
    let shell = eval_shell venv pos in
       command.command_tee <- tee;
       env.env_scan_exec_count <- succ env.env_scan_exec_count;
