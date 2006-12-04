@@ -256,7 +256,6 @@ public.OCAML_LIB_FLAGS =
 #
 static. =
     print($"--- Testing if ocamldep understands -modules... ")
-    OCAMLDEP_MODULES_ENABLED = false
     OCAMLDEP_MODULES_AVAILABLE = false
     OCAMLDEP_MODULES =
     if $(shell-success-null ocamldep -modules)
@@ -266,15 +265,27 @@ static. =
         export
     else
         println($"(no)")
-        print($"--- Testing if ocamldep-omake runs... ")
-        if $(shell-success-null ocamlrun ocamldep-omake -modules)
-            println($"(yes)")
-            OCAMLDEP_MODULES_AVAILABLE = true
-            OCAMLDEP_MODULES = ocamlrun ocamldep-omake
+        print($"--- Looking for ocamldep-omake bytecode file... ")
+        OCAMLDEP_OMAKE = $(find-in-path-optional $(PATH), ocamldep-omake)
+        if $(OCAMLDEP_OMAKE)
+            OCAMLDEP_OMAKE = $(absname $(OCAMLDEP_OMAKE))
+            println($"(found $(OCAMLDEP_OMAKE))")
+            
+            print($"--- Testing if ocamldep-omake runs... ")
+            if $(shell-success-null ocamlrun $(OCAMLDEP_OMAKE) -modules)
+                println($"(yes)")
+                OCAMLDEP_MODULES_AVAILABLE = true
+                OCAMLDEP_MODULES = ocamlrun $(OCAMLDEP_OMAKE)
+                export
+            else
+                println($"(no)")
             export
         else
-            println($"(no)")
-        export
+            println($"(NOT FOUND)")
+        export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
+
+public.OCAMLDEP_MODULES_ENABLED = false
+# public.OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
 .PHONY: OCamlGeneratedFilesTarget
 
@@ -322,31 +333,38 @@ public.LocalOCamlGeneratedFiles(files) =
 public.OCAMLDEP_PRESERVE_TARGETS = false
 
 public.PrintMLIDependencies(filename, cmideps) =
-    private.base = $(string-escaped $(removesuffix $(filename)))
-    private.cmideps = $(string-escaped $(cmideps))
-    println($"""$(base).cmi: $(cmideps)""")
+    if $(cmideps)
+        private.base = $(string-escaped $(removesuffix $(filename)))
+        println($"""$(base).cmi: $(string-escaped $(cmideps))""")
 
 public.PrintMLDependencies(filename, cmideps, cmxdeps) =
     private.base = $(string-escaped $(removesuffix $(filename)))
-    private.cmideps = $(string-escaped $(cmideps))
-    private.odeps = $(string-escaped $(addsuffix $(EXT_OBJ), $(removesuffix $(cmxdeps))))
-    private.cmxdeps = $(string-escaped $(cmxdeps))
     private.esc = $' \'
-    private.text = $"""\
+    private.text =
+    if $(cmideps)
+        cmideps = $(string-escaped $(cmideps))
+        private.text = $"""
 $(base).cmo: $(cmideps)
 $(base).cmx $(base)$(EXT_OBJ):$(esc)
-    $(cmideps)$(esc)
-    $(cmxdeps)$(esc)
+    $(cmideps)"""
+        export text
+    if $(cmxdeps)
+        private.odeps = $(string-escaped $(addsuffix $(EXT_OBJ), $(removesuffix $(cmxdeps))))
+        if $(not $(text))
+            text = $"""$(base).cmx $(base)$(EXT_OBJ):"""
+            export
+        text += $"""$(esc)
+    $(string-escaped $(cmxdeps))$(esc)
     $(odeps)"""
+        export text
     # eprintln($(text))
     println($(text))
 
 public.PrintFileDependencies(filename, cmideps) =
-    private.filename = $(string-escaped $(filename))
-    private.cmideps = $(string-escaped $(cmideps))
-    private.text = $"""$(filename): $(cmideps)"""
-    # eprintln($(text))
-    println($(text))
+    if $(cmideps)
+        private.text = $"""$(string-escaped $(filename)): $(string-escaped $(cmideps))"""
+        # eprintln($(text))
+        println($(text))
 
 #
 # Given a set of literal dependencies, compute
@@ -392,7 +410,7 @@ public.OCamlScannerPostproc() =
     #
     protected.filename =
     protected.modules[] =
-    awk($(stdin))
+    awk(b, $(stdin))
     case $'^\(.*\):$'
         PrintDependencies($(filename), $(modules))
         filename = $1
@@ -402,10 +420,12 @@ public.OCamlScannerPostproc() =
         # Add the dependency
         modules[] += $1
         export
+    default
+        eprintln(Unrecognized ocamldep output: $0)
     PrintDependencies($(filename), $(modules))
 
 Shell. +=
-    public.ocamldep-postproc(argv) =
+    ocamldep-postproc(argv) =
         if $(mem -preserve-targets, $(argv))
            OCAMLDEP_PRESERVE_TARGETS = true
            export

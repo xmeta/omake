@@ -93,16 +93,24 @@ FAM_ENABLED = $(FAM_ENABLED)
 # a floating point number).
 #
 DEFAULT_SAVE_INTERVAL = $(DEFAULT_SAVE_INTERVAL)
-
+"""$(if $(OCAMLDEP_MODULES_AVAILABLE), $"""
 #
 # The OCAMLDEP_MODULES_ENABLED variable specifies whether to use the -modules
 # option to ocamldep.  Dependency analysis is much better with this option,
-# but it is also a little slower.  Also, the -modules option is not yet available
-# with the standard OCaml distribution.  OMake includes a patched ocamldep,
-# in case you want to use it anyway.
+# but it is also a little slower.  Also, the -modules option is not yet
+# available with the standard OCaml distribution (this option is expected to be
+# included in OCaml 3.10 release).  OMake includes a patched ocamldep, in case
+# you want to use it anyway.
 #
-OCAMLDEP_MODULES_ENABLED = $(and $(OCAMLDEP_MODULES_AVAILABLE), $(OCAMLDEP_MODULES_ENABLED))
-"""
+OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_ENABLED)
+""", $"""
+#
+# Your system does not seem to have a version of the ocamldep that supports the
+# new -modules option. Will use the traditional (potentially less precise)
+# dependency analysis.
+#
+# OCAMLDEP_MODULES_ENABLED is false
+""")
 
     # Save the text in the output file
     exists = $(file-exists $(CONFIG_FILE))
