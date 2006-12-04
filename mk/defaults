@@ -62,6 +62,11 @@ open configure/readline
 public.FAM_ENABLED = $(FAM_AVAILABLE)
 public.READLINE_ENABLED = $(READLINE_AVAILABLE)
 
+#
+# ocamldep -modules is enabled by default.
+#
+OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
+
 include mk/make_config
 
 if $(file-exists $(CONFIG_FILE))
@@ -72,11 +77,6 @@ PREFIX = $(dir $(PREFIX))
 BINDIR = $(dir $(BINDIR))
 LIBDIR = $(dir $(LIBDIR))
 MANDIR = $(dir $(MANDIR))
-
-#
-# ocamldep -modules is enabled by default.
-#
-OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
 #
 # XXX This is a big hack.

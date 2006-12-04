@@ -268,8 +268,8 @@ static. =
         print($"--- Looking for ocamldep-omake bytecode file... ")
         OCAMLDEP_OMAKE = $(find-in-path-optional $(PATH), ocamldep-omake)
         if $(OCAMLDEP_OMAKE)
-            OCAMLDEP_OMAKE = $(absname $(OCAMLDEP_OMAKE))
-            println($"(found $(OCAMLDEP_OMAKE))")
+            OCAMLDEP_OMAKE = $(file $(OCAMLDEP_OMAKE))
+            println($"(found $(absname $(OCAMLDEP_OMAKE)))")
             
             print($"--- Testing if ocamldep-omake runs... ")
             if $(shell-success-null ocamlrun $(OCAMLDEP_OMAKE) -modules)
@@ -373,13 +373,16 @@ public.PrintFileDependencies(filename, cmideps) =
 #
 public.PrintDependencies(filename, modules) =
     if $(filename)
-        private.modules = $(uncapitalize $(modules))
+        #
+        # The module Foo can come from both foo.mli and Foo.mli
+        #
+        private.all_modules = $(set $(uncapitalize $(modules)) $(modules))
 
         #
         # Find the .cmi files that can be built
         #
-        private.cmideps = $(addsuffix .cmi, $(modules))
-        private.cmideps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmideps))
+        private.cmideps = $(addsuffix .cmi, $(all_modules))
+        cmideps = $(set $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmideps)))
 
         # Now produce the dependencies
         if $(OCAMLDEP_PRESERVE_TARGETS)
@@ -389,8 +392,8 @@ public.PrintDependencies(filename, modules) =
             case .ml
                 private.cmxdeps[] =
                 if $(NATIVE_ENABLED)
-                    cmxdeps = $(addsuffix .cmx, $(modules))
-                    cmxdeps = $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmxdeps))
+                    cmxdeps = $(addsuffix .cmx, $(all_modules))
+                    cmxdeps = $(set $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmxdeps)))
                     export
                 PrintMLDependencies($(filename), $(cmideps), $(cmxdeps))
             case .mli
