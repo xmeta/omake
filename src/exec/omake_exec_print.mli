@@ -60,7 +60,7 @@ val print_leaving_current_directory  : omake_options -> unit
  * Print a status line.
  *)
 val print_status :
-   tee ->                               (* Diversion *)
+   (string -> int -> int -> unit) ->    (* Diversion *)
    omake_options ->                     (* Options currently in effect *)
    ('exp, 'pid, 'value) shell ->        (* The context *)
    string option ->                     (* Remote host name *)

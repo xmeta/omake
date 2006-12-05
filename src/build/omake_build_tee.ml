@@ -109,7 +109,7 @@ let env_close_success_tee env command =
          Some name ->
             tee_close tee;
             if opt_output (venv_options venv) OutputPostponeSuccess then begin
-               print_flush ();
+               pp_print_flush stderr ();
                eprint_file name
             end;
             unlink_file name;
@@ -134,7 +134,7 @@ let env_close_failed_tee env command =
          Some name ->
             tee_close tee;
             if opt_output options OutputPostponeError then begin
-               print_flush ();
+               pp_print_flush stderr ();
                eprint_file name;
                if not (opt_output options OutputRepeatErrors) then begin
                   unlink_file name;

@@ -70,17 +70,13 @@ type tee
 val tee_none        : tee
 val tee_create      : bool -> tee
 val tee_close       : tee -> unit
-val tee_channel     : tee -> Pervasives.out_channel option
 val tee_file        : tee -> string option
 val tee_stdout      : tee -> bool -> id -> string -> int -> int -> unit
 val tee_stderr      : tee -> bool -> id -> string -> int -> int -> unit
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

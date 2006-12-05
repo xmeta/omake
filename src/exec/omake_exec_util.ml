@@ -169,7 +169,13 @@ let tee_create b =
       tee_none
 
 let tee_copy name fd tee tee_only id buf off len =
-   if len <> 0 then begin
+   if len = 0 then
+      match !tee with
+         TeeChannel (_, outx) ->
+            Pervasives.flush outx
+      | _ ->
+            ()
+   else begin
       if not tee_only then
          write_all name fd id buf off len;
       match tee_channel tee with

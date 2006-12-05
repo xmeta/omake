@@ -1449,6 +1449,7 @@ let execute_scanner env command =
    let () = unlink_tee command in
    let tee = tee_create (opt_divert options) in
    let divert_only = not (opt_output options OutputNormal) in
+   let copy_stdout = tee_stdout tee divert_only in
    let copy_stderr = tee_stderr tee divert_only in
 
    (* Save output into a temporary file *)
@@ -1467,7 +1468,7 @@ let execute_scanner env command =
    let shell = eval_shell venv pos in
       command.command_tee <- tee;
       env.env_scan_exec_count <- succ env.env_scan_exec_count;
-      match Exec.spawn env.env_exec shell (venv_options venv) tee handle_out copy_stderr "scan" target scanner with
+      match Exec.spawn env.env_exec shell (venv_options venv) copy_stdout handle_out copy_stderr "scan" target scanner with
          ProcessFailed ->
             (* The fork failed *)
             abort_command env command fork_error_code
@@ -1656,7 +1657,7 @@ let run_rule env command =
    let copy_stderr = tee_stderr tee divert_only in
       command.command_tee <- tee;
       env.env_rule_exec_count <- succ env.env_rule_exec_count;
-      match Exec.spawn env.env_exec shell (venv_options venv) tee copy_stdout copy_stderr "build" target commands with
+      match Exec.spawn env.env_exec shell (venv_options venv) copy_stdout copy_stdout copy_stderr "build" target commands with
          ProcessFailed ->
             (* The fork failed *)
             abort_command env command fork_error_code

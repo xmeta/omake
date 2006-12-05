@@ -207,7 +207,7 @@ struct
    (*
     * Start a job.
     *)
-   let spawn server_main shell options tee handle_out handle_err name target commands =
+   let spawn server_main shell options handle_sys_out handle_out handle_err name target commands =
       (* Start the job *)
       let id = Omake_exec_id.create () in
       let server = find_best_server server_main in
@@ -217,7 +217,7 @@ struct
       in
 
       (* Handle a status message *)
-      let handle_status = print_status tee options shell server name in
+      let handle_status = print_status (handle_sys_out id) options shell server name in
 
       (* Start the job *)
       let status =

@@ -152,7 +152,10 @@ let should_print options flags flag =
      | _ ->
           false
 
-let print_status_stdout options shell remote name flag =
+let print_status handle_out options shell remote name flag =
+   let out = formatter_of_out_channel Pervasives.stdout in
+   let print_flush () = handle_out "" 0 0 in
+   let () = pp_set_formatter_output_functions out handle_out print_flush in
    let pp_print_host buf =
       match remote with
          Some host ->
@@ -169,47 +172,16 @@ let print_status_stdout options shell remote name flag =
                      print_flush ();
                      print_entering_current_directory options dir;
                      if opt_print_file options then
-                        printf "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
+                        fprintf out "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
                      if not (List.mem QuietFlag flags) then
-                        printf "+%t %a@." pp_print_host shell.shell_print_exp exp
+                        fprintf out "+%t %a@." pp_print_host shell.shell_print_exp exp
        | PrintExit (exp, code, _) ->
             let flags, dir, target = shell.shell_info exp in
             let dirname = Dir.fullname dir in
                if should_print options flags flag && opt_print_file options then begin
                   print_flush ();
-                  printf "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
+                  fprintf out "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
                end
-
-let print_status_tee tee shell remote name exp =
-   let pp_print_host buf =
-      match remote with
-         Some host ->
-            fprintf buf "[%s]" host
-       | None ->
-            ()
-   in
-   let tee = formatter_of_out_channel tee in
-   let flags, dir, target = shell.shell_info exp in
-   let dirname = Dir.fullname dir in
-      fprintf tee "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
-      if not (List.mem QuietFlag flags) then
-         fprintf tee "+%t %a@." pp_print_host shell.shell_print_exp exp
-
-let print_status tee options shell remote name flag =
-   let () =
-      match flag with
-         PrintLazy exp ->
-            (match tee_channel tee with
-                Some tee ->
-                   print_status_tee tee shell remote name exp
-              | None ->
-                   ())
-       | PrintEager _
-       | PrintExit _ ->
-            ()
-   in
-      if opt_output options OutputNormal then
-         print_status_stdout options shell remote name flag
 
 (*
  * Print a list of lines.
