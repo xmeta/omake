@@ -50,18 +50,19 @@ Synopsis
 <BR>
 <BR>
 <TT>omake</TT>
- [<TT>-k</TT>]
  [<TT>-j &lt;count&gt;</TT>]
- [<TT>-n</TT>]
- [<TT>-s</TT>] [<TT>-S</TT>]
+ [<TT>-k</TT>]
  [<TT>-p</TT>]
  [<TT>-P</TT>]
+ [<TT>-n</TT>]
+ [<TT>-s</TT>] [<TT>-S</TT>]
  [<TT>-w</TT>]
  [<TT>-t</TT>]
  [<TT>-u</TT>]
  [<TT>-U</TT>]
  [<TT>-R</TT>]
  [<TT>--project</TT>]
+ [<TT>--depend</TT>]
  [<TT>--progress</TT>]
  [<TT>--print-status</TT>]
  [<TT>--print-exit</TT>]
@@ -73,14 +74,16 @@ Synopsis
  [<TT>--dotomake &lt;dir&gt;</TT>]
  [<TT>--flush-includes</TT>]
  [<TT>--configure</TT>]
+ [<TT>--save-interval &lt;seconds&gt;</TT>]
  [<TT>--install</TT>]
  [<TT>--install-all</TT>]
  [<TT>--install-force</TT>]
  [<TT>--version</TT>]
  [<TT>--absname</TT>]
- [<TT>--divert-errors</TT>]
- [<TT>--divert-repeat</TT>]
- [<TT>--divert-only</TT>]
+ [<TT>--output-normal</TT>]
+ [<TT>--output-postpone</TT>]
+ [<TT>--output-only-errors</TT>]
+ [<TT>--output-at-end</TT>]
  <TT>filename...</TT>
  [<TT>var-definition...</TT>]<BR>
 <BR>
@@ -133,36 +136,44 @@ Print status lines (the <CODE>+</CODE> and <CODE>-</CODE> lines).<BR>
 Print termination codes when commands complete.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc479">A.2.7</A>&nbsp;&nbsp;<TT>&ndash;divert-errors</TT></H3><A NAME="@default423"></A><A NAME="@opt6"></A><A NAME="option:--divert-errors"></A> <CODE>--divert-errors</CODE><BR>
+<H3 CLASS="subsection"><A NAME="htoc479">A.2.7</A>&nbsp;&nbsp;<TT>&ndash;output-normal</TT></H3><A NAME="@default423"></A><A NAME="@opt6"></A><A NAME="option:--output-normal"></A> <CODE>--output-normal</CODE><BR>
 <BR>
-&#8220;Divert&#8221; command output. The effect of this option to save the output of any commands so that it
-can be printed at the end of the build. If any rules/commands fail, then OMake will re-print the
-output of the failed commands when it finishes the build. Off by default.<BR>
-<BR>
-
-<H3 CLASS="subsection"><A NAME="htoc480">A.2.8</A>&nbsp;&nbsp;<TT>&ndash;divert-repeat</TT></H3><A NAME="@default424"></A><A NAME="@opt7"></A><A NAME="option:--divert-repeat"></A> <CODE>--divert-repeat</CODE><BR>
-<BR>
-When a rule finishes, print the output as a single block. This is useful
-in combination <CODE>-j</CODE> option (see Section&nbsp;<A HREF="#option:-j">A.3.12</A>), where the output of multiple subprocesses can be
-garbled. The diversion is printed as a single coherent unit. Implies <CODE>--divert-errors</CODE>.<BR>
+As rule commands are executed, relay their output to the OMake output right away. This is enabled
+by default, unless <CODE>--output-postpone</CODE> or <CODE>--output-only-errors</CODE> is enabled.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc481">A.2.9</A>&nbsp;&nbsp;<TT>&ndash;divert-only</TT></H3><A NAME="@default425"></A><A NAME="@opt8"></A><A NAME="option:--divert-only"></A> <CODE>--divert-only</CODE> <BR>
+<H3 CLASS="subsection"><A NAME="htoc480">A.2.8</A>&nbsp;&nbsp;<TT>&ndash;output-postpone</TT></H3><A NAME="@default424"></A><A NAME="@opt7"></A><A NAME="option:--output-postpone"></A> <CODE>--output-postpone</CODE><BR>
 <BR>
-Print diversions <EM>only</EM>. This forces OMake to be much more quiet,
-printing output only when a command produces output. With this option alone, the output from
-successful commands is echoed immediately, and the output from failed commands is delayed until the
-build completes and the summary is printed. May be used in combination with <CODE>--divert-repeat</CODE>
-(output from failed commands will be printed twice). Implies <CODE>--divert-errors</CODE>.<BR>
+When a rule finishes, print the output as a single block. This is useful in combination <CODE>-j</CODE>
+option (see Section&nbsp;<A HREF="#option:-j">A.3.12</A>), where the output of multiple subprocesses can be garbled. The
+diversion is printed as a single coherent unit.<BR>
 <BR>
-You might also consider using the <CODE>--progress</CODE> flag (see Section&nbsp;<A HREF="#option:--progress">A.2.4</A>) so that you can see
-when the build is active.<BR>
+Note that enabling <CODE>--output-postpone</CODE> will by default disable the <CODE>--output-normal</CODE>
+option. This might be problematic if you have a command that decides to ask for interactive input.
+If the <CODE>--output-postpone</CODE> is enabled, but the <CODE>--output-normal</CODE> is not, the prompt of
+such a command will not be visible and it may be hard to figure out why the build appears &#8220;stuck&#8221;.
+You might also consider using the <CODE>--progress</CODE> flag (see Section&nbsp;<A HREF="#option:--progress">A.2.4</A>) so
+that you can see when the build is active. <BR>
+<BR>
+This option is <B>experimental</B>.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc482">A.2.10</A>&nbsp;&nbsp;<TT>&ndash;divert-discard-success</TT></H3><A NAME="@default426"></A><A NAME="@opt9"></A><A NAME="option:--divert-discard-success"></A> <CODE>--divert-discard-success</CODE><BR>
+<H3 CLASS="subsection"><A NAME="htoc481">A.2.9</A>&nbsp;&nbsp;<TT>&ndash;output-only-errors</TT></H3><A NAME="@default425"></A><A NAME="@opt8"></A><A NAME="option:--output-only-errors"></A> <CODE>--output-only-errors</CODE> <BR>
 <BR>
-Discard the output from commands that were successful. This can be useful in reducing
-unwanted output so that you can concentrate on any errors.<BR>
+Similar to <CODE>--output-postpone</CODE>, except that the postponed output from commands that were
+successful will be discarded. This can be useful in reducing unwanted output so that you can
+concentrate on any errors.<BR>
+<BR>
+This option is <B>experimental</B>.<BR>
+<BR>
+
+<H3 CLASS="subsection"><A NAME="htoc482">A.2.10</A>&nbsp;&nbsp;<TT>&ndash;output-at-end</TT></H3><A NAME="@default426"></A><A NAME="@opt9"></A><A NAME="option:--output-at-end"></A> <CODE>--output-at-end</CODE><BR>
+<BR>
+If any rules/commands fail, re-print the output of the failed commands when OMake finishes the
+build. This is especially useful when any of the <CODE>-k</CODE>, <CODE>-p</CODE>, or <CODE>-P</CODE> options are
+enabled.<BR>
+<BR>
+This option is <B>experimental</B>.<BR>
 <BR>
 
 <H3 CLASS="subsection"><A NAME="htoc483">A.2.11</A>&nbsp;&nbsp;<TT>-o</TT></H3><A NAME="@default427"></A><A NAME="@opt10"></A><A NAME="option:-o"></A> <CODE>-o [01jwWpPxXsS]</CODE><BR>
@@ -172,13 +183,13 @@ For brevity, the <CODE>-o</CODE> option is also provided to duplicate the above 
 from left-to-right; each specifies a set of output options. In general, an uppercase character turns
 the option <EM>on</EM>; a lowercase character turns the option <EM>off</EM>.
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B>0</B><DD CLASS="dd-description"> Equivalent to <CODE>-s --divert-only --divert-discard-success</CODE><BR>
+<B>0</B><DD CLASS="dd-description"> Equivalent to <CODE>-s --output-only-errors</CODE><BR>
 <BR>
 This option specifies that <CODE>omake</CODE> should be as quiet as possible. If any errors occur
 during the build, the output is delayed until the build terminates. Output from successful commands
 is discarded.<BR>
 <BR>
-<DT CLASS="dt-description"><B>1</B><DD CLASS="dd-description"> Equivalent to <CODE>-S --progress --divert-only --divert-repeat --divert-discard-success</CODE><BR>
+<DT CLASS="dt-description"><B>1</B><DD CLASS="dd-description"> Equivalent to <CODE>-S --progress --output-only-errors</CODE><BR>
 <BR>
 This is a slightly more relaxed version of &#8220;quiet&#8221; output. The output from successful commands is
 discarded. The output from failed commands is printed immediately after the command complete. The
@@ -187,7 +198,7 @@ again when the build completes. A progress bar is displayed so that you know whe
 active. Include the `<CODE>p</CODE>' option if you want to turn off the progress bar (for example
 <CODE>omake -o 1p</CODE>).<BR>
 <BR>
-<DT CLASS="dt-description"><B>2</B><DD CLASS="dd-description"> Equivalent to <CODE>--progress --divert-only --divert-repeat</CODE><BR>
+<DT CLASS="dt-description"><B>2</B><DD CLASS="dd-description"> Equivalent to <CODE>--progress --output-postpone</CODE><BR>
 <BR>
 The is even more relaxed, output from successful commands is printed.
 This is often useful for deinterleaving the output when using <CODE>-j</CODE>.<BR>

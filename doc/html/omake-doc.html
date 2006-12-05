@@ -670,10 +670,10 @@ BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
 <LI CLASS="li-toc"><A HREF="#htoc476">A.2.4&nbsp;&nbsp;<TT>&ndash;progress</TT></A>
 <LI CLASS="li-toc"><A HREF="#htoc477">A.2.5&nbsp;&nbsp;<TT>&ndash;print-status</TT></A>
 <LI CLASS="li-toc"><A HREF="#htoc478">A.2.6&nbsp;&nbsp;<TT>&ndash;print-exit</TT></A>
-<LI CLASS="li-toc"><A HREF="#htoc479">A.2.7&nbsp;&nbsp;<TT>&ndash;divert-errors</TT></A>
-<LI CLASS="li-toc"><A HREF="#htoc480">A.2.8&nbsp;&nbsp;<TT>&ndash;divert-repeat</TT></A>
-<LI CLASS="li-toc"><A HREF="#htoc481">A.2.9&nbsp;&nbsp;<TT>&ndash;divert-only</TT></A>
-<LI CLASS="li-toc"><A HREF="#htoc482">A.2.10&nbsp;&nbsp;<TT>&ndash;divert-discard-success</TT></A>
+<LI CLASS="li-toc"><A HREF="#htoc479">A.2.7&nbsp;&nbsp;<TT>&ndash;output-normal</TT></A>
+<LI CLASS="li-toc"><A HREF="#htoc480">A.2.8&nbsp;&nbsp;<TT>&ndash;output-postpone</TT></A>
+<LI CLASS="li-toc"><A HREF="#htoc481">A.2.9&nbsp;&nbsp;<TT>&ndash;output-only-errors</TT></A>
+<LI CLASS="li-toc"><A HREF="#htoc482">A.2.10&nbsp;&nbsp;<TT>&ndash;output-at-end</TT></A>
 <LI CLASS="li-toc"><A HREF="#htoc483">A.2.11&nbsp;&nbsp;<TT>-o</TT></A>
 </UL>
 <LI CLASS="li-toc"><A HREF="#htoc484">A.3&nbsp;&nbsp;Build options</A>
@@ -8424,7 +8424,7 @@ a specific target file.
  with the build.
 <LI CLASS="li-itemize"><CODE>build-commands</CODE>: the commands to build the target.
 <LI CLASS="li-itemize"><CODE>output-file</CODE>: if output was diverted to a file,
- with one of the <CODE>--divert-*</CODE> options&nbsp;<A HREF="#chapter:options">A</A>,
+ with one of the <CODE>--output-*</CODE> options&nbsp;<A HREF="#chapter:options">A</A>,
  this field names that file. Otherwise it is <CODE>false</CODE>.
 </UL>
 The object supports the following methods.
@@ -8821,7 +8821,7 @@ define them in your <CODE>.omakerc</CODE> (see Section&nbsp;<A HREF="#section:.o
 <BR>
 The <CODE>find-build-targets</CODE> function (Section&nbsp;<A HREF="#fun:find-build-targets">12.8.0.10</A>
 is useful for obtaining a firther summary of the build. Note that
-when output diversions are in effect (with the <CODE>--divert-*</CODE> options &mdash; see Chapter&nbsp;<A HREF="#chapter:options">A</A>),
+when output diversions are in effect (with the <CODE>--output-*</CODE> options &mdash; see Chapter&nbsp;<A HREF="#chapter:options">A</A>),
 any output produced by the commands is copied to a file. The name of the
 file is specified by the <CODE>output-file</CODE> field of the <CODE>Target</CODE> object (Section&nbsp;<A HREF="#obj:Target">11.1.11</A>).
 You may find this useful in defining custom build summaries.
@@ -9967,18 +9967,19 @@ The colon signifier is also allowed in files, although it is not required.<BR>
 <BR>
 <BR>
 <TT>omake</TT>
- [<TT>-k</TT>]
  [<TT>-j &lt;count&gt;</TT>]
- [<TT>-n</TT>]
- [<TT>-s</TT>] [<TT>-S</TT>]
+ [<TT>-k</TT>]
  [<TT>-p</TT>]
  [<TT>-P</TT>]
+ [<TT>-n</TT>]
+ [<TT>-s</TT>] [<TT>-S</TT>]
  [<TT>-w</TT>]
  [<TT>-t</TT>]
  [<TT>-u</TT>]
  [<TT>-U</TT>]
  [<TT>-R</TT>]
  [<TT>--project</TT>]
+ [<TT>--depend</TT>]
  [<TT>--progress</TT>]
  [<TT>--print-status</TT>]
  [<TT>--print-exit</TT>]
@@ -9990,14 +9991,16 @@ The colon signifier is also allowed in files, although it is not required.<BR>
  [<TT>--dotomake &lt;dir&gt;</TT>]
  [<TT>--flush-includes</TT>]
  [<TT>--configure</TT>]
+ [<TT>--save-interval &lt;seconds&gt;</TT>]
  [<TT>--install</TT>]
  [<TT>--install-all</TT>]
  [<TT>--install-force</TT>]
  [<TT>--version</TT>]
  [<TT>--absname</TT>]
- [<TT>--divert-errors</TT>]
- [<TT>--divert-repeat</TT>]
- [<TT>--divert-only</TT>]
+ [<TT>--output-normal</TT>]
+ [<TT>--output-postpone</TT>]
+ [<TT>--output-only-errors</TT>]
+ [<TT>--output-at-end</TT>]
  <TT>filename...</TT>
  [<TT>var-definition...</TT>]<BR>
 <BR>
@@ -10065,45 +10068,53 @@ Print status lines (the <CODE>+</CODE> and <CODE>-</CODE> lines).<BR>
 <BR>
 Print termination codes when commands complete.<BR>
 <BR>
-<!--TOC subsection <TT>&ndash;divert-errors</TT>-->
+<!--TOC subsection <TT>&ndash;output-normal</TT>-->
 
-<H3 CLASS="subsection"><A NAME="htoc479">A.2.7</A>&nbsp;&nbsp;<TT>&ndash;divert-errors</TT></H3><!--SEC END -->
-<A NAME="@default423"></A><A NAME="@opt6"></A><A NAME="option:--divert-errors"></A> <CODE>--divert-errors</CODE><BR>
+<H3 CLASS="subsection"><A NAME="htoc479">A.2.7</A>&nbsp;&nbsp;<TT>&ndash;output-normal</TT></H3><!--SEC END -->
+<A NAME="@default423"></A><A NAME="@opt6"></A><A NAME="option:--output-normal"></A> <CODE>--output-normal</CODE><BR>
 <BR>
-&#8220;Divert&#8221; command output. The effect of this option to save the output of any commands so that it
-can be printed at the end of the build. If any rules/commands fail, then OMake will re-print the
-output of the failed commands when it finishes the build. Off by default.<BR>
+As rule commands are executed, relay their output to the OMake output right away. This is enabled
+by default, unless <CODE>--output-postpone</CODE> or <CODE>--output-only-errors</CODE> is enabled.<BR>
 <BR>
-<!--TOC subsection <TT>&ndash;divert-repeat</TT>-->
+<!--TOC subsection <TT>&ndash;output-postpone</TT>-->
 
-<H3 CLASS="subsection"><A NAME="htoc480">A.2.8</A>&nbsp;&nbsp;<TT>&ndash;divert-repeat</TT></H3><!--SEC END -->
-<A NAME="@default424"></A><A NAME="@opt7"></A><A NAME="option:--divert-repeat"></A> <CODE>--divert-repeat</CODE><BR>
+<H3 CLASS="subsection"><A NAME="htoc480">A.2.8</A>&nbsp;&nbsp;<TT>&ndash;output-postpone</TT></H3><!--SEC END -->
+<A NAME="@default424"></A><A NAME="@opt7"></A><A NAME="option:--output-postpone"></A> <CODE>--output-postpone</CODE><BR>
 <BR>
-When a rule finishes, print the output as a single block. This is useful
-in combination <CODE>-j</CODE> option (see Section&nbsp;<A HREF="#option:-j">A.3.12</A>), where the output of multiple subprocesses can be
-garbled. The diversion is printed as a single coherent unit. Implies <CODE>--divert-errors</CODE>.<BR>
+When a rule finishes, print the output as a single block. This is useful in combination <CODE>-j</CODE>
+option (see Section&nbsp;<A HREF="#option:-j">A.3.12</A>), where the output of multiple subprocesses can be garbled. The
+diversion is printed as a single coherent unit.<BR>
 <BR>
-<!--TOC subsection <TT>&ndash;divert-only</TT>-->
+Note that enabling <CODE>--output-postpone</CODE> will by default disable the <CODE>--output-normal</CODE>
+option. This might be problematic if you have a command that decides to ask for interactive input.
+If the <CODE>--output-postpone</CODE> is enabled, but the <CODE>--output-normal</CODE> is not, the prompt of
+such a command will not be visible and it may be hard to figure out why the build appears &#8220;stuck&#8221;.
+You might also consider using the <CODE>--progress</CODE> flag (see Section&nbsp;<A HREF="#option:--progress">A.2.4</A>) so
+that you can see when the build is active. <BR>
+<BR>
+This option is <B>experimental</B>.<BR>
+<BR>
+<!--TOC subsection <TT>&ndash;output-only-errors</TT>-->
 
-<H3 CLASS="subsection"><A NAME="htoc481">A.2.9</A>&nbsp;&nbsp;<TT>&ndash;divert-only</TT></H3><!--SEC END -->
-<A NAME="@default425"></A><A NAME="@opt8"></A><A NAME="option:--divert-only"></A> <CODE>--divert-only</CODE> <BR>
+<H3 CLASS="subsection"><A NAME="htoc481">A.2.9</A>&nbsp;&nbsp;<TT>&ndash;output-only-errors</TT></H3><!--SEC END -->
+<A NAME="@default425"></A><A NAME="@opt8"></A><A NAME="option:--output-only-errors"></A> <CODE>--output-only-errors</CODE> <BR>
 <BR>
-Print diversions <EM>only</EM>. This forces OMake to be much more quiet,
-printing output only when a command produces output. With this option alone, the output from
-successful commands is echoed immediately, and the output from failed commands is delayed until the
-build completes and the summary is printed. May be used in combination with <CODE>--divert-repeat</CODE>
-(output from failed commands will be printed twice). Implies <CODE>--divert-errors</CODE>.<BR>
+Similar to <CODE>--output-postpone</CODE>, except that the postponed output from commands that were
+successful will be discarded. This can be useful in reducing unwanted output so that you can
+concentrate on any errors.<BR>
 <BR>
-You might also consider using the <CODE>--progress</CODE> flag (see Section&nbsp;<A HREF="#option:--progress">A.2.4</A>) so that you can see
-when the build is active.<BR>
+This option is <B>experimental</B>.<BR>
 <BR>
-<!--TOC subsection <TT>&ndash;divert-discard-success</TT>-->
+<!--TOC subsection <TT>&ndash;output-at-end</TT>-->
 
-<H3 CLASS="subsection"><A NAME="htoc482">A.2.10</A>&nbsp;&nbsp;<TT>&ndash;divert-discard-success</TT></H3><!--SEC END -->
-<A NAME="@default426"></A><A NAME="@opt9"></A><A NAME="option:--divert-discard-success"></A> <CODE>--divert-discard-success</CODE><BR>
+<H3 CLASS="subsection"><A NAME="htoc482">A.2.10</A>&nbsp;&nbsp;<TT>&ndash;output-at-end</TT></H3><!--SEC END -->
+<A NAME="@default426"></A><A NAME="@opt9"></A><A NAME="option:--output-at-end"></A> <CODE>--output-at-end</CODE><BR>
 <BR>
-Discard the output from commands that were successful. This can be useful in reducing
-unwanted output so that you can concentrate on any errors.<BR>
+If any rules/commands fail, re-print the output of the failed commands when OMake finishes the
+build. This is especially useful when any of the <CODE>-k</CODE>, <CODE>-p</CODE>, or <CODE>-P</CODE> options are
+enabled.<BR>
+<BR>
+This option is <B>experimental</B>.<BR>
 <BR>
 <!--TOC subsection <TT>-o</TT>-->
 
@@ -10115,13 +10126,13 @@ For brevity, the <CODE>-o</CODE> option is also provided to duplicate the above 
 from left-to-right; each specifies a set of output options. In general, an uppercase character turns
 the option <EM>on</EM>; a lowercase character turns the option <EM>off</EM>.
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B>0</B><DD CLASS="dd-description"> Equivalent to <CODE>-s --divert-only --divert-discard-success</CODE><BR>
+<B>0</B><DD CLASS="dd-description"> Equivalent to <CODE>-s --output-only-errors</CODE><BR>
 <BR>
 This option specifies that <CODE>omake</CODE> should be as quiet as possible. If any errors occur
 during the build, the output is delayed until the build terminates. Output from successful commands
 is discarded.<BR>
 <BR>
-<DT CLASS="dt-description"><B>1</B><DD CLASS="dd-description"> Equivalent to <CODE>-S --progress --divert-only --divert-repeat --divert-discard-success</CODE><BR>
+<DT CLASS="dt-description"><B>1</B><DD CLASS="dd-description"> Equivalent to <CODE>-S --progress --output-only-errors</CODE><BR>
 <BR>
 This is a slightly more relaxed version of &#8220;quiet&#8221; output. The output from successful commands is
 discarded. The output from failed commands is printed immediately after the command complete. The
@@ -10130,7 +10141,7 @@ again when the build completes. A progress bar is displayed so that you know whe
 active. Include the `<CODE>p</CODE>' option if you want to turn off the progress bar (for example
 <CODE>omake -o 1p</CODE>).<BR>
 <BR>
-<DT CLASS="dt-description"><B>2</B><DD CLASS="dd-description"> Equivalent to <CODE>--progress --divert-only --divert-repeat</CODE><BR>
+<DT CLASS="dt-description"><B>2</B><DD CLASS="dd-description"> Equivalent to <CODE>--progress --output-postpone</CODE><BR>
 <BR>
 The is even more relaxed, output from successful commands is printed.
 This is often useful for deinterleaving the output when using <CODE>-j</CODE>.<BR>
@@ -11288,15 +11299,15 @@ osh&gt; println($"$X")  # force the evaluation and print
 <LI CLASS="li-itemize">&ndash;all-dependencies, <A HREF="#@default442">A.3.15</A>
 <LI CLASS="li-itemize">&ndash;configure, <A HREF="#@default436">A.3.9</A>
 <LI CLASS="li-itemize">&ndash;depend, <A HREF="#@default435">A.3.8</A>
-<LI CLASS="li-itemize">&ndash;divert-discard-success, <A HREF="#@default426">A.2.10</A>
-<LI CLASS="li-itemize">&ndash;divert-errors, <A HREF="#@default423">A.2.7</A>
-<LI CLASS="li-itemize">&ndash;divert-only, <A HREF="#@default425">A.2.9</A>
-<LI CLASS="li-itemize">&ndash;divert-repeat, <A HREF="#@default424">A.2.8</A>
 <LI CLASS="li-itemize">&ndash;dotomake, <A HREF="#@default438">A.3.11</A>
 <LI CLASS="li-itemize">&ndash;force-dotomake, <A HREF="#@default437">A.3.10</A>
 <LI CLASS="li-itemize">&ndash;install, <A HREF="#@default444">A.3.17</A>
 <LI CLASS="li-itemize">&ndash;install-all, <A HREF="#@default445">A.3.18</A>
 <LI CLASS="li-itemize">&ndash;install-force, <A HREF="#@default446">A.3.19</A>
+<LI CLASS="li-itemize">&ndash;output-at-end, <A HREF="#@default426">A.2.10</A>
+<LI CLASS="li-itemize">&ndash;output-normal, <A HREF="#@default423">A.2.7</A>
+<LI CLASS="li-itemize">&ndash;output-only-errors, <A HREF="#@default425">A.2.9</A>
+<LI CLASS="li-itemize">&ndash;output-postpone, <A HREF="#@default424">A.2.8</A>
 <LI CLASS="li-itemize">&ndash;print-dependencies, <A HREF="#@default440">A.3.13</A>
 <LI CLASS="li-itemize">&ndash;print-exit, <A HREF="#@default422">A.2.6</A>
 <LI CLASS="li-itemize">&ndash;print-status, <A HREF="#@default421">A.2.5</A>
@@ -12329,15 +12340,15 @@ Array, <A HREF="#@obj12">11.1.7</A>
 <LI CLASS="li-itemize">&ndash;all-dependencies, <A HREF="#@opt25">A.3.15</A>
 <LI CLASS="li-itemize">&ndash;configure, <A HREF="#@opt19">A.3.9</A>
 <LI CLASS="li-itemize">&ndash;depend, <A HREF="#@opt18">A.3.8</A>
-<LI CLASS="li-itemize">&ndash;divert-discard-success, <A HREF="#@opt9">A.2.10</A>
-<LI CLASS="li-itemize">&ndash;divert-errors, <A HREF="#@opt6">A.2.7</A>
-<LI CLASS="li-itemize">&ndash;divert-only, <A HREF="#@opt8">A.2.9</A>
-<LI CLASS="li-itemize">&ndash;divert-repeat, <A HREF="#@opt7">A.2.8</A>
 <LI CLASS="li-itemize">&ndash;dotomake, <A HREF="#@opt21">A.3.11</A>
 <LI CLASS="li-itemize">&ndash;force-dotomake, <A HREF="#@opt20">A.3.10</A>
 <LI CLASS="li-itemize">&ndash;install, <A HREF="#@opt27">A.3.17</A>
 <LI CLASS="li-itemize">&ndash;install-all, <A HREF="#@opt28">A.3.18</A>
 <LI CLASS="li-itemize">&ndash;install-force, <A HREF="#@opt29">A.3.19</A>
+<LI CLASS="li-itemize">&ndash;output-at-end, <A HREF="#@opt9">A.2.10</A>
+<LI CLASS="li-itemize">&ndash;output-normal, <A HREF="#@opt6">A.2.7</A>
+<LI CLASS="li-itemize">&ndash;output-only-errors, <A HREF="#@opt8">A.2.9</A>
+<LI CLASS="li-itemize">&ndash;output-postpone, <A HREF="#@opt7">A.2.8</A>
 <LI CLASS="li-itemize">&ndash;print-dependencies, <A HREF="#@opt23">A.3.13</A>
 <LI CLASS="li-itemize">&ndash;print-exit, <A HREF="#@opt5">A.2.6</A>
 <LI CLASS="li-itemize">&ndash;print-status, <A HREF="#@opt4">A.2.5</A>

@@ -928,13 +928,15 @@ Node: Appendix A,	Next: Section A-1,	Prev: Chapter 13,	Up: Top
 Appendix A     Synopsis
 ***********************
     
-  omake  [-k]  [-j <count>]  [-n]  [-s] [-S]  [-p]  [-P]  [-w]  [-t] 
-[-u]  [-U]  [-R]  [--project]  [--progress]  [--print-status] 
-[--print-exit]  [--print-dependencies]  [--show-dependencies <target>] 
-[--all-dependencies]  [--verbose-dependencies]  [--force-dotomake] 
-[--dotomake <dir>]  [--flush-includes]  [--configure]  [--install] 
-[--install-all]  [--install-force]  [--version]  [--absname] 
-[--divert-errors]  [--divert-repeat]  [--divert-only]  filename... 
+  omake  [-j <count>]  [-k]  [-p]  [-P]  [-n]  [-s] [-S]  [-w]  [-t] 
+[-u]  [-U]  [-R]  [--project]  [--depend]  [--progress] 
+[--print-status]  [--print-exit]  [--print-dependencies] 
+[--show-dependencies <target>]  [--all-dependencies] 
+[--verbose-dependencies]  [--force-dotomake]  [--dotomake <dir>] 
+[--flush-includes]  [--configure]  [--save-interval <seconds>] 
+[--install]  [--install-all]  [--install-force]  [--version] 
+[--absname]  [--output-normal]  [--output-postpone] 
+[--output-only-errors]  [--output-at-end]  filename... 
 [var-definition...]
 * Menu:
 
@@ -983,10 +985,10 @@ A.2   Output control
 * Subsection A-2-4::	--progress
 * Subsection A-2-5::	--print-status
 * Subsection A-2-6::	--print-exit
-* Subsection A-2-7::	--divert-errors
-* Subsection A-2-8::	--divert-repeat
-* Subsection A-2-9::	--divert-only
-* Subsection A-2-10::	--divert-discard-success
+* Subsection A-2-7::	--output-normal
+* Subsection A-2-8::	--output-postpone
+* Subsection A-2-9::	--output-only-errors
+* Subsection A-2-10::	--output-at-end
 * Subsection A-2-11::	-o
 
 
@@ -1047,56 +1049,59 @@ A.2.6   --print-exit
 Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
   
 
-A.2.7   --divert-errors
+A.2.7   --output-normal
 =======================
 
-`--divert-errors'
-  ``Divert'' command output. The effect of this option to save the
-output of any commands so that it can be printed at the end of the
-build. If any rules/commands fail, then OMake will re-print the output
-of the failed commands when it finishes the build. Off by default.
+`--output-normal'
+  As rule commands are executed, relay their output to the OMake output
+right away. This is enabled by default, unless `--output-postpone' or
+`--output-only-errors' is enabled.
 
 Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
   
 
-A.2.8   --divert-repeat
-=======================
+A.2.8   --output-postpone
+=========================
 
-`--divert-repeat'
+`--output-postpone'
   When a rule finishes, print the output as a single block. This is
 useful in combination `-j' option (see Section
 A.3.12*Note Subsection A-3-12::), where the output of multiple subprocesses
 can be garbled. The diversion is printed as a single coherent unit.
-Implies `--divert-errors'.
+  Note that enabling `--output-postpone' will by default disable the
+`--output-normal' option. This might be problematic if you have a
+command that decides to ask for interactive input. If the
+`--output-postpone' is enabled, but the `--output-normal' is not, the
+prompt of such a command will not be visible and it may be hard to
+figure out why the build appears ``stuck''. You might also consider
+using the `--progress' flag (see Section
+A.2.4*Note Subsection A-2-4::) so that you can see when the build
+is active. 
+  This option is experimental.
 
 Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
   
 
-A.2.9   --divert-only
-=====================
+A.2.9   --output-only-errors
+============================
 
-`--divert-only' 
-  Print diversions only. This forces OMake to be much more quiet,
-printing output only when a command produces output. With this option
-alone, the output from successful commands is echoed immediately, and
-the output from failed commands is delayed until the build completes and
-the summary is printed. May be used in combination with
-`--divert-repeat' (output from failed commands will be printed twice).
-Implies `--divert-errors'.
-  You might also consider using the `--progress' flag (see Section
-A.2.4*Note Subsection A-2-4::) so that you can see when the build
-is active.
+`--output-only-errors' 
+  Similar to `--output-postpone', except that the postponed output from
+commands that were successful will be discarded. This can be useful in
+reducing unwanted output so that you can concentrate on any errors.
+  This option is experimental.
 
 Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
   
 
-A.2.10   --divert-discard-success
-=================================
+A.2.10   --output-at-end
+========================
 
-`--divert-discard-success'
-  Discard the output from commands that were successful. This can be
-useful in reducing unwanted output so that you can concentrate on any
-errors.
+`--output-at-end'
+  If any rules/commands fail, re-print the output of the failed commands
+when OMake finishes the build. This is especially useful when any of the
+`-k', `-p', or `-P' options are enabled.
+  This option is experimental.
 
 Node: Subsection A-2-11,	Next: Section A-3,	Prev: Subsection A-2-10,	Up: Section A-2
   
@@ -1111,13 +1116,12 @@ specifies a set of output options. In general, an uppercase character
 turns the option on; a lowercase character turns the option off.
   
   
- 0  Equivalent to `-s --divert-only --divert-discard-success'
+ 0  Equivalent to `-s --output-only-errors'
  This option specifies that `omake' should be as quiet as possible. If
    any errors occur during the build, the output is delayed until the
    build terminates. Output from successful commands is discarded.
  
- 1  Equivalent to `-S --progress --divert-only --divert-repeat
-   --divert-discard-success'
+ 1  Equivalent to `-S --progress --output-only-errors'
  This is a slightly more relaxed version of ``quiet'' output. The output
    from successful commands is discarded. The output from failed
    commands is printed immediately after the command complete. The
@@ -1127,7 +1131,7 @@ turns the option on; a lowercase character turns the option off.
    Include the ``p'' option if you want to turn off the progress bar
    (for example `omake -o 1p').
  
- 2  Equivalent to `--progress --divert-only --divert-repeat'
+ 2  Equivalent to `--progress --output-postpone'
  The is even more relaxed, output from successful commands is printed.
    This is often useful for deinterleaving the output when using `-j'.
  
