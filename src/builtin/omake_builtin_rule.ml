@@ -118,7 +118,7 @@ open Pos
  *
  * The \verb+find-build-targets+ function (Section~\ref{fun:find-build-targets}
  * is useful for obtaining a firther summary of the build.  Note that
- * when output diversions are in effect (with the \verb+--divert-*+ options --- see Chapter~\ref{chapter:options}),
+ * when output diversions are in effect (with the \verb+--output-*+ options --- see Chapter~\ref{chapter:options}),
  * any output produced by the commands is copied to a file.  The name of the
  * file is specified by the \verb+output-file+ field of the \verb+Target+ object (Section~\ref{obj:Target}).
  * You may find this useful in defining custom build summaries.

@@ -40,11 +40,11 @@ type eval_flag =
 (*
  * Diversion control.
  *)
-type divert_flag =
-   DivertErrors
- | DivertRepeat
- | DivertOnly
- | DivertDiscardSuccess
+type output_flag =
+   OutputNormal
+ | OutputPostponeSuccess
+ | OutputPostponeError
+ | OutputRepeatErrors
 
 (*
  * The basic make flags.
@@ -93,8 +93,8 @@ val opt_flush_include : omake_options -> bool
 val opt_flush_static : omake_options -> bool
 val opt_absname : omake_options -> bool
 
-val opt_diverts : omake_options -> bool (* true when some diversions are enabled *)
-val opt_divert : omake_options -> divert_flag -> bool
+val opt_divert : omake_options -> bool (* true when some --output-* diversions other than --output-normal are enabled *)
+val opt_output : omake_options -> output_flag -> bool
 
 val opt_allow_exceptions : omake_options -> bool
 val set_allow_exceptions_opt : omake_options -> bool -> omake_options

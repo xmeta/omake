@@ -6,18 +6,19 @@
 \cutname{omake-options.html}
 
 \Prog{omake}
-    \oOpt{-k}
     \oOptArg{-j}{count}
-    \oOpt{-n}
-    \oOpt{-s} \oOpt{-S}
+    \oOpt{-k}
     \oOpt{-p}
     \oOpt{-P}
+    \oOpt{-n}
+    \oOpt{-s} \oOpt{-S}
     \oOpt{-w}
     \oOpt{-t}
     \oOpt{-u}
     \oOpt{-U}
     \oOpt{-R}
     \oOpt{-{}-project}
+    \oOpt{-{}-depend}
     \oOpt{-{}-progress}
     \oOpt{-{}-print-status}
     \oOpt{-{}-print-exit}
@@ -29,14 +30,16 @@
     \oOptArg{-{}-dotomake}{dir}
     \oOpt{-{}-flush-includes}
     \oOpt{-{}-configure}
+    \oOptArg{-{}-save-interval}{seconds}
     \oOpt{-{}-install}
     \oOpt{-{}-install-all}
     \oOpt{-{}-install-force}
     \oOpt{-{}-version}
     \oOpt{-{}-absname}
-    \oOpt{-{}-divert-errors}
-    \oOpt{-{}-divert-repeat}
-    \oOpt{-{}-divert-only}
+    \oOpt{-{}-output-normal}
+    \oOpt{-{}-output-postpone}
+    \oOpt{-{}-output-only-errors}
+    \oOpt{-{}-output-at-end}
     \oArg{filename...}
     \oOpt{var-definition...}
 
@@ -87,33 +90,41 @@ Print status lines (the \verb/+/ and \verb/-/ lines).
 
 Print termination codes when commands complete.
 
-\option{--divert-errors} \verb+--divert-errors+
+\option{--output-normal} \verb+--output-normal+
 
-``Divert'' command output.  The effect of this option to save the output of any commands so that it
-can be printed at the end of the build.  If any rules/commands fail, then \OMake{} will re-print the
-output of the failed commands when it finishes the build.  Off by default.
+As rule commands are executed, relay their output to the \OMake{} output right away. This is enabled
+by default, unless \verb+--output-postpone+ or \verb+--output-only-errors+ is enabled.
 
-\option{--divert-repeat} \verb+--divert-repeat+
+\option{--output-postpone} \verb+--output-postpone+
 
-When a rule finishes, print the output as a single block.  This is useful
-in combination \verb+-j+ option (see Section~\ref{option:-j}), where the output of multiple subprocesses can be
-garbled.  The diversion is printed as a single coherent unit.  Implies \verb+--divert-errors+.
+When a rule finishes, print the output as a single block.  This is useful in combination \verb+-j+
+option (see Section~\ref{option:-j}), where the output of multiple subprocesses can be garbled.  The
+diversion is printed as a single coherent unit.
 
-\option{--divert-only} \verb+--divert-only+ 
+Note that enabling \verb+--output-postpone+ will by default disable the \verb+--output-normal+
+option. This might be problematic if you have a command that decides to ask for interactive input.
+If the \verb+--output-postpone+ is enabled, but the \verb+--output-normal+ is not, the prompt of
+such a command will not be visible and it may be hard to figure out why the build appears ``stuck''.
+You might also consider using the \verb+--progress+ flag (see Section~\ref{option:--progress}) so
+that you can see when the build is active. 
 
-Print diversions \emph{only}.  This forces \OMake{} to be much more quiet,
-printing output only when a command produces output.  With this option alone, the output from
-successful commands is echoed immediately, and the output from failed commands is delayed until the
-build completes and the summary is printed.  May be used in combination with \verb+--divert-repeat+
-(output from failed commands will be printed twice).  Implies \verb+--divert-errors+.
+This option is \textbf{experimental} and is known to be somewhat buggy.
 
-You might also consider using the \verb+--progress+ flag (see Section~\ref{option:--progress}) so that you can see
-when the build is active.
+\option{--output-only-errors} \verb+--output-only-errors+ 
 
-\option{--divert-discard-success} \verb+--divert-discard-success+
+Similar to \verb+--output-postpone+, except that the postponed output from commands that were
+successful will be discarded. This can be useful in reducing unwanted output so that you can
+concentrate on any errors.
 
-Discard the output from commands that were successful.  This can be useful in reducing
-unwanted output so that you can concentrate on any errors.
+This option is \textbf{experimental} and is known to be somewhat buggy.
+
+\option{--output-at-end} \verb+--output-at-end+
+
+If any rules/commands fail, re-print the output of the failed commands when \OMake{} finishes the
+build. This is especially useful when any of the \verb+-k+, \verb+-p+, or \verb+-P+ options are
+enabled.
+
+This option is \textbf{experimental} and is known to be somewhat buggy.
 
 \option{-o} \verb+-o [01jwWpPxXsS]+
 
@@ -123,13 +134,13 @@ from left-to-right; each specifies a set of output options.  In general, an uppe
 the option \emph{on}; a lowercase character turns the option \emph{off}.
 
 \begin{description}
-\item[0] Equivalent to \verb+-s --divert-only --divert-discard-success+
+\item[0] Equivalent to \verb+-s --output-only-errors+
 
 This option specifies that \verb+omake+ should be as quiet as possible.  If any errors occur
 during the build, the output is delayed until the build terminates.  Output from successful commands
 is discarded.
 
-\item[1] Equivalent to \verb+-S --progress --divert-only --divert-repeat --divert-discard-success+
+\item[1] Equivalent to \verb+-S --progress --output-only-errors+
 
 This is a slightly more relaxed version of ``quiet'' output.  The output from successful commands is
 discarded.  The output from failed commands is printed immediately after the command complete.  The
@@ -138,7 +149,7 @@ again when the build completes.  A progress bar is displayed so that you know wh
 active.  Include the `\verb+p+' option if you want to turn off the progress bar (for example
 \verb+omake -o 1p+).
 
-\item[2] Equivalent to \verb+--progress --divert-only --divert-repeat+
+\item[2] Equivalent to \verb+--progress --output-postpone+
 
 The is even more relaxed, output from successful commands is printed.
 This is often useful for deinterleaving the output when using \verb+-j+.

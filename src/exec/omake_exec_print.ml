@@ -208,7 +208,7 @@ let print_status tee options shell remote name flag =
        | PrintExit _ ->
             ()
    in
-      if not (opt_divert options DivertOnly) then
+      if opt_output options OutputNormal then
          print_status_stdout options shell remote name flag
 
 (*

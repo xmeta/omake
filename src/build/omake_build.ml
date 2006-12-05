@@ -1447,8 +1447,8 @@ let execute_scanner env command =
    (* Save errors to the tee *)
    let options = venv_options venv in
    let () = unlink_tee command in
-   let tee = tee_create (opt_diverts options) in
-   let divert_only = opt_divert options DivertOnly in
+   let tee = tee_create (opt_divert options) in
+   let divert_only = not (opt_output options OutputNormal) in
    let copy_stderr = tee_stderr tee divert_only in
 
    (* Save output into a temporary file *)
@@ -1650,8 +1650,8 @@ let run_rule env command =
    (* Set up the tee *)
    let options = venv_options venv in
    let () = unlink_tee command in
-   let tee = tee_create (opt_diverts options) in
-   let divert_only = opt_divert options DivertOnly in
+   let tee = tee_create (opt_divert options) in
+   let divert_only = not (opt_output options OutputNormal) in
    let copy_stdout = tee_stdout tee divert_only in
    let copy_stderr = tee_stderr tee divert_only in
       command.command_tee <- tee;

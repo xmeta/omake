@@ -105,13 +105,10 @@ let env_close_success_tee env command =
          command_tee  = tee
        } = command
    in
-   let options = venv_options venv in
       match tee_file tee with
          Some name ->
             tee_close tee;
-            if not (opt_divert options DivertDiscardSuccess)
-               && (opt_divert options DivertRepeat || opt_divert options DivertOnly) then
-            begin
+            if opt_output (venv_options venv) OutputPostponeSuccess then begin
                print_flush ();
                eprint_file name
             end;
@@ -132,12 +129,17 @@ let env_close_failed_tee env command =
          command_tee  = tee
        } = command
    in
+   let options = venv_options venv in
       match tee_file tee with
          Some name ->
             tee_close tee;
-            if opt_divert (venv_options venv) DivertRepeat then begin
+            if opt_output options OutputPostponeError then begin
                print_flush ();
-               eprint_file name
+               eprint_file name;
+               if not (opt_output options OutputRepeatErrors) then begin
+                  unlink_file name;
+                  command.command_tee <- tee_none;
+               end;
             end
        | None ->
             ()

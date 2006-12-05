@@ -41,11 +41,11 @@ type eval_flag =
 (*
  * Diversion control.
  *)
-type divert_flag =
-   DivertErrors
- | DivertRepeat
- | DivertOnly
- | DivertDiscardSuccess
+type output_flag =
+   OutputNormal
+ | OutputPostponeSuccess
+ | OutputPostponeError
+ | OutputRepeatErrors
 
 (*
  * Make the default state explicit (the actual value may depend on the value of other settings).
@@ -83,7 +83,7 @@ type omake_options =
      opt_flush_static         : bool;
      opt_allow_exceptions     : bool;
      opt_absname              : bool;
-     opt_divert               : divert_flag list;
+     opt_output               : (output_flag * bool) list;
    }
 
 let opt_job_count opts =
@@ -278,24 +278,24 @@ let set_absname_opt opts flag =
 let output_opt_char options c =
    match c with
       '0' ->
-         (* -s --divert-only --divert-discard-success *)
+         (* -s --output-errors-only *)
          { options with opt_print_status   = false;
                         opt_print_dir      = false;
                         opt_print_file     = false;
                         opt_print_exit     = false;
                         opt_print_command  = EvalNever;
-                        opt_divert         = [DivertOnly; DivertDiscardSuccess]
+                        opt_output         = [(OutputPostponeError, true)]
          }
     | '1' ->
-         (* -S --progress --divert-only --divert-repeat --divert-discard-success *)
+         (* -S --progress --output-errors-only *)
          { options with opt_print_command = EvalLazy;
                         opt_print_progress = true;
-                        opt_divert = [DivertOnly; DivertRepeat; DivertDiscardSuccess]
+                        opt_output = [(OutputPostponeError, true)]
          }
     | '2' ->
-         (* --progress --divert-only --divert-repeat *)
+         (* --progress --output-postpone *)
          { options with opt_print_progress = true;
-                        opt_divert = [DivertOnly; DivertRepeat]
+                        opt_output = [(OutputPostponeSuccess, true); (OutputPostponeError, true)]
          }
     | 'W' ->
          set_print_dir_opt options true
@@ -327,16 +327,37 @@ let set_output_opts options s =
    in
       loop options 0
 
-let opt_diverts opts =
-   opts.opt_divert <> []
+let opt_divert opts =
+   (* Do diversions, unless the only enabled output option is OutputNormal *)
+   match List.filter snd opts.opt_output with
+      []
+    | [OutputNormal, _] ->
+         false
+    | _ ->
+         true
 
-let opt_divert opts flag =
-   List.mem flag opts.opt_divert
+let rec opt_output opts flag =
+   let answer = try Some(List.assoc flag opts.opt_output) with Not_found -> None in
+   (* A few extra wrinkles *)
+   match answer, flag with
+      Some true, _ ->
+         (* Everything should be on when explicitly enabled *)
+         true
+    | (Some false | None), OutputPostponeError ->
+         (* If successes are printed, errors should be too, no matter what *)
+         opt_output opts OutputPostponeSuccess
+    | Some false, _ ->
+         (* Everything else should be off when explicitly disabled *)
+         false
+    | None, OutputNormal ->
+         not (opt_output opts OutputPostponeSuccess || opt_output opts OutputPostponeError)
+    | None, (OutputPostponeSuccess | OutputRepeatErrors) ->
+         (* off by default *)
+         false
 
-let set_divert_opt flag opts on =
-   let flags = Lm_list_util.tryremove flag opts.opt_divert in
-   let flags = if on then flag :: flags else flags in
-      { opts with opt_divert = flags }
+let set_output_opt flag opts on =
+   let flags = (flag, on) :: (List.remove_assoc flag opts.opt_output) in
+      { opts with opt_output = flags }
 
 (*
  * Default options.
@@ -367,7 +388,7 @@ let default_options =
      opt_flush_static         = false;
      opt_allow_exceptions     = false;
      opt_absname              = false;
-     opt_divert               = [];
+     opt_output               = [];
    }
 
 (*
@@ -434,16 +455,17 @@ let output_spec =
        "Print the directory in \"make format\" as commands are executed";
     "--print-exit", Lm_arg.SetFold set_print_exit_opt, (**)
        "Print the exit codes of commands";
-    "--divert-errors", Lm_arg.SetFold (set_divert_opt DivertErrors), (**)
-       "The final summary will re-print errors";
-    "--divert-repeat", Lm_arg.SetFold (set_divert_opt DivertRepeat), (**)
-       "Re-print command output when a rule terminates";
-    "--divert-only", Lm_arg.SetFold (set_divert_opt DivertOnly), (**)
-       "Print only diversions -- be silent otherwise";
-    "--divert-discard-success", Lm_arg.SetFold (set_divert_opt DivertDiscardSuccess), (**)
-       "Do not print diverted output from commands that are successful";
+    "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal), (**)
+       "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";
+    "--output-postpone", Lm_arg.SetFold (fun opt flag ->
+            set_output_opt OutputPostponeSuccess (set_output_opt OutputPostponeError opt flag) flag), (**)
+       "[EXPERIMENTAL] Postpone printing command output until a rule terminates.";
+    "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError), (**)
+       "[EXPERIMENTAL] Same as --output-postpone, but postponed output will only be printed for commands that fail.";
+    "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors), (**)
+       "[EXPERIMENTAL] The output of the failed commands will be printed after OMake have stopped.";
     "-o", Lm_arg.StringFold set_output_opts, (**)
-       "Short diversion options [01jwWpPxXsS] (see the manual)"]
+       "Short output options [01jwWpPxXsS] (see the manual)"]
 
 (*
  * -*-
