@@ -24,10 +24,12 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
+open Lm_printf
+ 
 open Omake_env
 open Omake_exec_util
 open Omake_build_type
@@ -36,6 +38,7 @@ val env_close_success_tee  : env -> command -> unit
 val env_close_failed_tee   : env -> command -> unit
 
 val eprint_tee             : command -> unit
+val format_tee_with_nl     : formatter -> command -> unit
 val unlink_tee             : command -> unit
 
 (*

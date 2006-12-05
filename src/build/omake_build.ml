@@ -2377,14 +2377,15 @@ let print_failed_targets env buf =
    if opt_print_status (venv_options env.env_venv) then begin
       fprintf buf "@[<v 3>*** omake: targets were not rebuilt because of errors:";
       command_iter env CommandFailedTag (fun command ->
-            fprintf buf "@ @[<v 3>%a" pp_print_node command.command_target;
+            fprintf buf "@ @[<v 3>@[<v 3>%a" pp_print_node command.command_target;
             NodeSet.iter (fun dep ->
                   if Node.is_real dep && is_leaf_node env dep then
                      fprintf buf "@ depends on: %a" pp_print_node dep) command.command_static_deps;
+            fprintf buf "@]";
+            format_tee_with_nl buf command;
             fprintf buf "@]");
       fprintf buf "@]@."
-   end;
-   command_iter env CommandFailedTag eprint_tee
+   end
 
 let print_failed env buf state =
    if not (command_list_is_empty env CommandFailedTag) then
