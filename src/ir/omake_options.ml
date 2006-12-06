@@ -30,6 +30,8 @@
  * @end[license]
  *)
 
+open Lm_printf
+
 (*
  * When to print output.
  *)
@@ -67,7 +69,7 @@ type omake_options =
      opt_print_file           : bool;
      opt_print_status         : bool;
      opt_print_exit           : bool;
-     opt_print_progress       : bool;
+     mutable opt_print_progress : bool setting;
      opt_touch_only           : bool;
      opt_flush_cache          : bool;
      opt_flush_dependencies   : bool;
@@ -167,10 +169,30 @@ let set_print_exit_opt opts flag =
    { opts with opt_print_exit = flag }
 
 let opt_print_progress opts =
-   opts.opt_print_progress
+   match opts.opt_print_progress with
+      Set b ->
+         b
+    | Default ->
+         let ok_to_print =
+            try
+               ignore (Unix.tcgetattr Unix.stdout); true
+            with
+               Unix.Unix_error _ ->
+                  eprintf "*** omake: warning: stdout is not a tty, disabling the progress bar@.";
+                  false
+             | Invalid_argument "Unix.tcgetattr not implemented" ->
+                  (* We are on Windows :-( *)
+                  true
+             | exn ->
+                  eprintf "@[<hv3>*** omake: warning: tcgetattr failed for unknown reason:@ %s@]@." (Printexc.to_string
+                  exn);
+                  true
+         in
+            opts.opt_print_progress <- Set ok_to_print;
+            ok_to_print
 
 let set_print_progress_opt opts flag =
-   { opts with opt_print_progress = flag }
+   { opts with opt_print_progress = Set flag }
 
 let opt_touch_only opts =
    opts.opt_touch_only
@@ -289,12 +311,12 @@ let output_opt_char options c =
     | '1' ->
          (* -S --progress --output-errors-only *)
          { options with opt_print_command = EvalLazy;
-                        opt_print_progress = true;
+                        opt_print_progress = Set true;
                         opt_output = [(OutputPostponeError, true)]
          }
     | '2' ->
          (* --progress --output-postpone *)
-         { options with opt_print_progress = true;
+         { options with opt_print_progress = Set true;
                         opt_output = [(OutputPostponeSuccess, true); (OutputPostponeError, true)]
          }
     | 'W' ->
@@ -367,12 +389,12 @@ let default_options =
      opt_remote_servers       = [];
      opt_terminate_on_error   = Default;
      opt_dry_run              = false;
-     opt_print_command        = EvalEager;
+     opt_print_command        = EvalLazy;
      opt_print_dir            = false;
      opt_print_file           = true;
      opt_print_status         = true;
      opt_print_exit           = false;
-     opt_print_progress       = false;
+     opt_print_progress       = Default;
      opt_touch_only           = false;
      opt_flush_cache          = false;
      opt_flush_dependencies   = false;
@@ -434,6 +456,15 @@ let options_spec =
     "--absname", Lm_arg.SetFold set_absname_opt, (**)
        "Filenames are always displayed as absolute paths"]
 
+let progress_usage =
+   match Sys.os_type with
+      "Unix" | "Cygwin" ->
+         "(enabled by default when the stdout is a terminal)"
+    | "Windows" ->
+         "(default)"
+    | _ -> (* Should not happen *)
+         "(may be enabled by default)"
+
 (*
  * Output control.
  *)
@@ -446,11 +477,11 @@ let output_spec =
                          opt_print_command = if b then EvalEager else EvalNever }), (**)
        "Do not print commands as they are executed";
     "-S", Lm_arg.SetFold (fun options b -> { options with opt_print_command = if b then EvalLazy else EvalEager }), (**)
-       "Print command only if the command prints output";
+       "Print command only if the command prints output (default)";
     "--progress", Lm_arg.SetFold set_print_progress_opt, (**)
-       "Print a progress indicator";
+       ("Print a progress indicator " ^ progress_usage);
     "--print-status", Lm_arg.SetFold set_print_status_opt, (**)
-       "Print status lines";
+       "Print status lines (default)";
     "-w", Lm_arg.SetFold set_print_dir_opt, (**)
        "Print the directory in \"make format\" as commands are executed";
     "--print-exit", Lm_arg.SetFold set_print_exit_opt, (**)
