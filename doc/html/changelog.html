@@ -59,39 +59,6 @@
     <li>There are now a number of indices, including a index of variables, an
     index of functions, and an overall index.
   </ul>
-  <li>Implicit rules can no longer have target patterns referring to another
-  directories. See <a
-    href="http://bugzilla.metaprl.org/show_bug.cgi?id=456">bug #456</a> for
-  detail.
-  <li>OMake will now save the <tt>.omakedb</tt> periodically, preventing the
-  state loss in case the OMake process dies unexpectedly (for example, when Cygwin
-  kills OMake after user presses Ctrl-C). The checkpointing interval may be
-  configured both at  compile time and via the command line.
-  <li>The variables such as <tt>$&lt;</tt> and <tt>$@</tt> in rules and
-  <tt>%</tt> in implicit rules will no longer be expanded to strings.
-  <li>Much better handling of the <tt>exit</tt> function, a number of bugs fixed.
-  <ll>More control over the OMake output and verbosity.
-  <ul>
-    <li>An ability to postpone and/or repeat the rule execution output (so that, for example,
-    only the output of the rules that fail is printed, or the output of the
-    rules that failed is repeated at the end of the <tt>omake -k</tt>
-    execution). This feature is somewhat experimental and might change in the
-    future versions of OMake.
-    <li>Added the <tt>-o</tt> option for better control of OMake verbosity.
-  </ul>
-  <li>Added three special <tt>.PHONY</tt> targets: <tt>.BUILD_BEGIN</tt>,
-    <tt>.BUILD_SUCCESS</tt>, and <tt>.BUILD_FAILURE</tt>.
-    <tt>.BUILD_BEGIN</tt> is built before anything else in your project. One
-    of <tt>.BUILD_SUCCESS</tt> or <tt>.BUILD_FAILURE</tt> is built when the
-    build for your project terminates.<br>
-    Note:
-    <ul>
-      <li>This feature is considered experimental and it might change in the
-      future versions of OMake.
-      <li>If you want to use these targets, you should probably add them to
-      your <tt>~/.omakerc</tt>, rather than adding them directly to each of
-      the projects you work on.
-    </ul>
   <li><tt>OCaml.om</tt> improvements:
     <ul>
     <li>Implemented a new approach to computing the dependencies in OCaml
@@ -116,6 +83,39 @@
      <tt>TEXINPUTS</tt> variable.
      <li>The list of such variables is now configurable (<tt>TEXVARS</tt> variable
           contains an array of names).</ul>
+  <ll>More control over the OMake output and verbosity.
+  <ul>
+    <li>An ability to postpone and/or repeat the rule execution output (so that, for example,
+    only the output of the rules that fail is printed, or the output of the
+    rules that failed is repeated at the end of the <tt>omake -k</tt>
+    execution). This feature is somewhat experimental and might change in the
+    future versions of OMake.
+    <li>Added the <tt>-o</tt> option for better control of OMake verbosity.
+  </ul>
+  <li>Added three special <tt>.PHONY</tt> targets: <tt>.BUILD_BEGIN</tt>,
+    <tt>.BUILD_SUCCESS</tt>, and <tt>.BUILD_FAILURE</tt>.
+    <tt>.BUILD_BEGIN</tt> is built before anything else in your project. One
+    of <tt>.BUILD_SUCCESS</tt> or <tt>.BUILD_FAILURE</tt> is built when the
+    build for your project terminates.<br>
+    Note:
+    <ul>
+      <li>This feature is considered experimental and it might change in the
+      future versions of OMake.
+      <li>If you want to use these targets, you should probably add them to
+      your <tt>~/.omakerc</tt>, rather than adding them directly to each of
+      the projects you work on.
+    </ul>
+  <li>OMake will now save the <tt>.omakedb</tt> periodically, preventing the
+  state loss in case the OMake process dies unexpectedly (for example, when Cygwin
+  kills OMake after user presses Ctrl-C). The checkpointing interval may be
+  configured both at  compile time and via the command line.
+  <li>The variables such as <tt>$&lt;</tt> and <tt>$@</tt> in rules and
+  <tt>%</tt> in implicit rules will no longer be expanded to strings.
+  <li>Much better handling of the <tt>exit</tt> function, a number of bugs fixed.
+  <li>Implicit rules can no longer have target patterns referring to another
+  directories. See <a
+    href="http://bugzilla.metaprl.org/show_bug.cgi?id=456">bug #456</a> for
+  detail.
   <li>New functions: <tt>Shell.ln-or-cp</tt>, <tt>html-escaped</tt>, 
   <li>Added an ability to turn a string into an input channel. This allows,
   for example, to use an OMake variable as an input to built-in <tt>awk</tt> without having to
