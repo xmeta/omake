@@ -76,18 +76,16 @@ let add_object_value obj x =
  * Concatenate.
  *)
 let concat_array = function
-   [v] ->
+   [ValString s] ->
+      ValData s
+ | [ValSequence _] as vl ->
+      ValQuote vl
+ | [v] ->
       v
  | vl ->
       ValArray vl
 
 let concat_strings = function
-   [s] ->
-      ValString s
- | sl ->
-      ValArray (List.map (fun s -> ValString s) sl)
-
-let concat_data = function
    [s] ->
       ValData s
  | sl ->

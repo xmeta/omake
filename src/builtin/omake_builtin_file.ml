@@ -211,7 +211,7 @@ let ind venv pos loc args =
             let dir = dir_of_value venv pos dir in
             let venv = venv_chdir_tmp venv dir in
             let strings = strings_of_value venv pos arg in
-               concat_data strings
+               concat_strings strings
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -239,6 +239,39 @@ let basename venv pos loc args =
          [arg] ->
             let args = strings_of_value venv pos arg in
             let args = List.map Filename.basename args in
+               concat_strings args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * Strip the directory.
+ *
+ * \begin{doc}
+ * \fun{dirname}
+ *
+ * \begin{verbatim}
+ *    $(dirname files) : String Sequence
+ *       files : String Sequence
+ * \end{verbatim}
+ *
+ * The \verb+dirname+ function returns the directory name for a list of files.
+ * The directory name is the filename with the basename removed.  If a name
+ * does not have a directory part, the directory is ``.''
+ *
+ * For example, the expression \verb+$(dirname dir1\dir2\a.out /etc/modules.conf /foo.ml bar.ml)+ evaluates to
+ * \verb+dir1/dir2 /etc / .+.
+ *
+ * \textbf{Note}: this function is different from the \verb+dirof+ function.
+ * The function \verb+dirname+ is simple a function over strings, while
+ * \verb+dirof+ is a function on filenames.
+ * \end{doc}
+ *)
+let dirname venv pos loc args =
+   let pos = string_pos "dirname" pos in
+      match args with
+         [arg] ->
+            let args = strings_of_value venv pos arg in
+            let args = List.map Filename.dirname args in
                concat_strings args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2717,6 +2750,7 @@ let () =
        true, "glob",                    glob,                     ArityRange (1, 2);
        true, "subdirs",                 subdirs,                  ArityRange (1, 2);
        true, "basename",                basename,                 ArityExact 1;
+       true, "dirname",                 dirname,                  ArityExact 1;
        true, "homename",                homename,                 ArityExact 1;
        true, "rootname",                rootname,                 ArityExact 1;
        true, "fullname",                fullname,                 ArityExact 1;

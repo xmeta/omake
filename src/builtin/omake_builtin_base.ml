@@ -1838,7 +1838,7 @@ let removesuffix venv pos loc args =
                         else
                            s) args
             in
-               concat_data args
+               concat_strings args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 

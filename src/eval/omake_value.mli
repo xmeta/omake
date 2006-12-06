@@ -48,7 +48,6 @@ val concat_array : value list -> value
  * If there is only 1 value, do not create the array.
  *)
 val concat_strings : string list -> value
-val concat_data    : string list -> value
 
 (*
  * Expand a value so that the outermost constructor
