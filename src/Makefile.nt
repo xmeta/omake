@@ -128,13 +128,13 @@ clib$(EXT_LIB): $(OFILES_clib)
 
 SRC_clib = ..$(slash)src$(slash)clib
 
-readline.c: $(SRC_clib)$(slash)readline.c
-	$(LN) $(SRC_clib)$(slash)readline.c readline.c
-
 omake_shell_sys.c: $(SRC_clib)$(slash)omake_shell_sys.c
 	$(LN) $(SRC_clib)$(slash)omake_shell_sys.c omake_shell_sys.c
 
-ALLFILES_clib = readline.c omake_shell_sys.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify-test.c inotify.om
+readline.c: $(SRC_clib)$(slash)readline.c
+	$(LN) $(SRC_clib)$(slash)readline.c readline.c
+
+ALLFILES_clib = omake_shell_sys.c readline.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify-test.c inotify.om
 
 
 lm_printf.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.ml
@@ -340,32 +340,11 @@ SRC_util = ..$(slash)src$(slash)util
 fmarshal.ml: $(SRC_util)$(slash)fmarshal.ml
 	$(LN) $(SRC_util)$(slash)fmarshal.ml fmarshal.ml
 
-omake_util.ml: $(SRC_util)$(slash)omake_util.ml
-	$(LN) $(SRC_util)$(slash)omake_util.ml omake_util.ml
-
-omake_wild.ml: $(SRC_util)$(slash)omake_wild.ml
-	$(LN) $(SRC_util)$(slash)omake_wild.ml omake_wild.ml
-
-omake_util.mli: $(SRC_util)$(slash)omake_util.mli
-	$(LN) $(SRC_util)$(slash)omake_util.mli omake_util.mli
-
-omake_wild.mli: $(SRC_util)$(slash)omake_wild.mli
-	$(LN) $(SRC_util)$(slash)omake_wild.mli omake_wild.mli
-
 ocaml_patch.mli: $(SRC_util)$(slash)ocaml_patch.mli
 	$(LN) $(SRC_util)$(slash)ocaml_patch.mli ocaml_patch.mli
 
-omake_printf.ml: $(SRC_util)$(slash)omake_printf.ml
-	$(LN) $(SRC_util)$(slash)omake_printf.ml omake_printf.ml
-
 omake_marshal.ml: $(SRC_util)$(slash)omake_marshal.ml
 	$(LN) $(SRC_util)$(slash)omake_marshal.ml omake_marshal.ml
-
-omake_readline.ml: $(SRC_util)$(slash)omake_readline.ml
-	$(LN) $(SRC_util)$(slash)omake_readline.ml omake_readline.ml
-
-omake_readline.mli: $(SRC_util)$(slash)omake_readline.mli
-	$(LN) $(SRC_util)$(slash)omake_readline.mli omake_readline.mli
 
 omake_print_util.ml: $(SRC_util)$(slash)omake_print_util.ml
 	$(LN) $(SRC_util)$(slash)omake_print_util.ml omake_print_util.ml
@@ -373,7 +352,28 @@ omake_print_util.ml: $(SRC_util)$(slash)omake_print_util.ml
 omake_print_util.mli: $(SRC_util)$(slash)omake_print_util.mli
 	$(LN) $(SRC_util)$(slash)omake_print_util.mli omake_print_util.mli
 
-ALLFILES_util = fmarshal.ml omake_util.ml omake_wild.ml omake_util.mli omake_wild.mli ocaml_patch.mli omake_printf.ml omake_marshal.ml omake_readline.ml omake_readline.mli omake_print_util.ml omake_print_util.mli ocaml_patch.ml
+omake_printf.ml: $(SRC_util)$(slash)omake_printf.ml
+	$(LN) $(SRC_util)$(slash)omake_printf.ml omake_printf.ml
+
+omake_readline.ml: $(SRC_util)$(slash)omake_readline.ml
+	$(LN) $(SRC_util)$(slash)omake_readline.ml omake_readline.ml
+
+omake_readline.mli: $(SRC_util)$(slash)omake_readline.mli
+	$(LN) $(SRC_util)$(slash)omake_readline.mli omake_readline.mli
+
+omake_util.ml: $(SRC_util)$(slash)omake_util.ml
+	$(LN) $(SRC_util)$(slash)omake_util.ml omake_util.ml
+
+omake_util.mli: $(SRC_util)$(slash)omake_util.mli
+	$(LN) $(SRC_util)$(slash)omake_util.mli omake_util.mli
+
+omake_wild.ml: $(SRC_util)$(slash)omake_wild.ml
+	$(LN) $(SRC_util)$(slash)omake_wild.ml omake_wild.ml
+
+omake_wild.mli: $(SRC_util)$(slash)omake_wild.mli
+	$(LN) $(SRC_util)$(slash)omake_wild.mli omake_wild.mli
+
+ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_marshal.ml omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
 
 
 CMOFILES_omake_gen_magic = omake_gen_magic.cmo
@@ -415,23 +415,68 @@ omake_options.cmo omake_symbol.cmo omake_state.cmo omake_node_type.cmo omake_nod
 
 SRC_ir = ..$(slash)src$(slash)ir
 
+omake_cache.ml: $(SRC_ir)$(slash)omake_cache.ml
+	$(LN) $(SRC_ir)$(slash)omake_cache.ml omake_cache.ml
+
+omake_cache.mli: $(SRC_ir)$(slash)omake_cache.mli
+	$(LN) $(SRC_ir)$(slash)omake_cache.mli omake_cache.mli
+
+omake_cache_type.ml: $(SRC_ir)$(slash)omake_cache_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_cache_type.ml omake_cache_type.ml
+
+omake_command.ml: $(SRC_ir)$(slash)omake_command.ml
+	$(LN) $(SRC_ir)$(slash)omake_command.ml omake_command.ml
+
+omake_command.mli: $(SRC_ir)$(slash)omake_command.mli
+	$(LN) $(SRC_ir)$(slash)omake_command.mli omake_command.mli
+
+omake_command_type.ml: $(SRC_ir)$(slash)omake_command_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_command_type.ml omake_command_type.ml
+
+omake_install.ml: $(SRC_ir)$(slash)omake_install.ml
+	$(LN) $(SRC_ir)$(slash)omake_install.ml omake_install.ml
+
+omake_install.mli: $(SRC_ir)$(slash)omake_install.mli
+	$(LN) $(SRC_ir)$(slash)omake_install.mli omake_install.mli
+
 omake_ir.ml: $(SRC_ir)$(slash)omake_ir.ml
 	$(LN) $(SRC_ir)$(slash)omake_ir.ml omake_ir.ml
+
+omake_ir_print.ml: $(SRC_ir)$(slash)omake_ir_print.ml
+	$(LN) $(SRC_ir)$(slash)omake_ir_print.ml omake_ir_print.ml
+
+omake_ir_print.mli: $(SRC_ir)$(slash)omake_ir_print.mli
+	$(LN) $(SRC_ir)$(slash)omake_ir_print.mli omake_ir_print.mli
+
+omake_ir_util.ml: $(SRC_ir)$(slash)omake_ir_util.ml
+	$(LN) $(SRC_ir)$(slash)omake_ir_util.ml omake_ir_util.ml
+
+omake_ir_util.mli: $(SRC_ir)$(slash)omake_ir_util.mli
+	$(LN) $(SRC_ir)$(slash)omake_ir_util.mli omake_ir_util.mli
 
 omake_node.ml: $(SRC_ir)$(slash)omake_node.ml
 	$(LN) $(SRC_ir)$(slash)omake_node.ml omake_node.ml
 
-omake_cache.ml: $(SRC_ir)$(slash)omake_cache.ml
-	$(LN) $(SRC_ir)$(slash)omake_cache.ml omake_cache.ml
-
 omake_node.mli: $(SRC_ir)$(slash)omake_node.mli
 	$(LN) $(SRC_ir)$(slash)omake_node.mli omake_node.mli
 
+omake_node_sig.ml: $(SRC_ir)$(slash)omake_node_sig.ml
+	$(LN) $(SRC_ir)$(slash)omake_node_sig.ml omake_node_sig.ml
+
+omake_node_type.ml: $(SRC_ir)$(slash)omake_node_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_node_type.ml omake_node_type.ml
+
+omake_options.ml: $(SRC_ir)$(slash)omake_options.ml
+	$(LN) $(SRC_ir)$(slash)omake_options.ml omake_options.ml
+
+omake_options.mli: $(SRC_ir)$(slash)omake_options.mli
+	$(LN) $(SRC_ir)$(slash)omake_options.mli omake_options.mli
+
+omake_shell_type.ml: $(SRC_ir)$(slash)omake_shell_type.ml
+	$(LN) $(SRC_ir)$(slash)omake_shell_type.ml omake_shell_type.ml
+
 omake_state.ml: $(SRC_ir)$(slash)omake_state.ml
 	$(LN) $(SRC_ir)$(slash)omake_state.ml omake_state.ml
-
-omake_cache.mli: $(SRC_ir)$(slash)omake_cache.mli
-	$(LN) $(SRC_ir)$(slash)omake_cache.mli omake_cache.mli
 
 omake_state.mli: $(SRC_ir)$(slash)omake_state.mli
 	$(LN) $(SRC_ir)$(slash)omake_state.mli omake_state.mli
@@ -439,58 +484,13 @@ omake_state.mli: $(SRC_ir)$(slash)omake_state.mli
 omake_symbol.ml: $(SRC_ir)$(slash)omake_symbol.ml
 	$(LN) $(SRC_ir)$(slash)omake_symbol.ml omake_symbol.ml
 
-omake_command.ml: $(SRC_ir)$(slash)omake_command.ml
-	$(LN) $(SRC_ir)$(slash)omake_command.ml omake_command.ml
-
-omake_install.ml: $(SRC_ir)$(slash)omake_install.ml
-	$(LN) $(SRC_ir)$(slash)omake_install.ml omake_install.ml
-
-omake_ir_util.ml: $(SRC_ir)$(slash)omake_ir_util.ml
-	$(LN) $(SRC_ir)$(slash)omake_ir_util.ml omake_ir_util.ml
-
-omake_options.ml: $(SRC_ir)$(slash)omake_options.ml
-	$(LN) $(SRC_ir)$(slash)omake_options.ml omake_options.ml
-
-omake_command.mli: $(SRC_ir)$(slash)omake_command.mli
-	$(LN) $(SRC_ir)$(slash)omake_command.mli omake_command.mli
-
-omake_install.mli: $(SRC_ir)$(slash)omake_install.mli
-	$(LN) $(SRC_ir)$(slash)omake_install.mli omake_install.mli
-
-omake_ir_print.ml: $(SRC_ir)$(slash)omake_ir_print.ml
-	$(LN) $(SRC_ir)$(slash)omake_ir_print.ml omake_ir_print.ml
-
-omake_ir_util.mli: $(SRC_ir)$(slash)omake_ir_util.mli
-	$(LN) $(SRC_ir)$(slash)omake_ir_util.mli omake_ir_util.mli
-
-omake_node_sig.ml: $(SRC_ir)$(slash)omake_node_sig.ml
-	$(LN) $(SRC_ir)$(slash)omake_node_sig.ml omake_node_sig.ml
-
-omake_options.mli: $(SRC_ir)$(slash)omake_options.mli
-	$(LN) $(SRC_ir)$(slash)omake_options.mli omake_options.mli
-
-omake_ir_print.mli: $(SRC_ir)$(slash)omake_ir_print.mli
-	$(LN) $(SRC_ir)$(slash)omake_ir_print.mli omake_ir_print.mli
-
-omake_node_type.ml: $(SRC_ir)$(slash)omake_node_type.ml
-	$(LN) $(SRC_ir)$(slash)omake_node_type.ml omake_node_type.ml
-
-omake_cache_type.ml: $(SRC_ir)$(slash)omake_cache_type.ml
-	$(LN) $(SRC_ir)$(slash)omake_cache_type.ml omake_cache_type.ml
-
-omake_shell_type.ml: $(SRC_ir)$(slash)omake_shell_type.ml
-	$(LN) $(SRC_ir)$(slash)omake_shell_type.ml omake_shell_type.ml
-
 omake_virtual_id.ml: $(SRC_ir)$(slash)omake_virtual_id.ml
 	$(LN) $(SRC_ir)$(slash)omake_virtual_id.ml omake_virtual_id.ml
 
 omake_virtual_id.mli: $(SRC_ir)$(slash)omake_virtual_id.mli
 	$(LN) $(SRC_ir)$(slash)omake_virtual_id.mli omake_virtual_id.mli
 
-omake_command_type.ml: $(SRC_ir)$(slash)omake_command_type.ml
-	$(LN) $(SRC_ir)$(slash)omake_command_type.ml omake_command_type.ml
-
-ALLFILES_ir = omake_ir.ml omake_node.ml omake_cache.ml omake_node.mli omake_state.ml omake_cache.mli omake_state.mli omake_symbol.ml omake_command.ml omake_install.ml omake_ir_util.ml omake_options.ml omake_command.mli omake_install.mli omake_ir_print.ml omake_ir_util.mli omake_node_sig.ml omake_options.mli omake_ir_print.mli omake_node_type.ml omake_cache_type.ml omake_shell_type.ml omake_virtual_id.ml omake_virtual_id.mli omake_command_type.ml
+ALLFILES_ir = omake_cache.ml omake_cache.mli omake_cache_type.ml omake_command.ml omake_command.mli omake_command_type.ml omake_install.ml omake_install.mli omake_ir.ml omake_ir_print.ml omake_ir_print.mli omake_ir_util.ml omake_ir_util.mli omake_node.ml omake_node.mli omake_node_sig.ml omake_node_type.ml omake_options.ml omake_options.mli omake_shell_type.ml omake_state.ml omake_state.mli omake_symbol.ml omake_virtual_id.ml omake_virtual_id.mli
 
 
 CMOFILES_exec = omake_exec_util.cmo omake_exec_id.cmo omake_exec_type.cmo omake_exec_print.cmo omake_exec_local.cmo omake_exec_remote.cmo omake_exec_notify.cmo omake_exec.cmo
@@ -513,20 +513,8 @@ omake_exec_id.ml: $(SRC_exec)$(slash)omake_exec_id.ml
 omake_exec_id.mli: $(SRC_exec)$(slash)omake_exec_id.mli
 	$(LN) $(SRC_exec)$(slash)omake_exec_id.mli omake_exec_id.mli
 
-omake_exec_type.ml: $(SRC_exec)$(slash)omake_exec_type.ml
-	$(LN) $(SRC_exec)$(slash)omake_exec_type.ml omake_exec_type.ml
-
-omake_exec_util.ml: $(SRC_exec)$(slash)omake_exec_util.ml
-	$(LN) $(SRC_exec)$(slash)omake_exec_util.ml omake_exec_util.ml
-
 omake_exec_local.ml: $(SRC_exec)$(slash)omake_exec_local.ml
 	$(LN) $(SRC_exec)$(slash)omake_exec_local.ml omake_exec_local.ml
-
-omake_exec_print.ml: $(SRC_exec)$(slash)omake_exec_print.ml
-	$(LN) $(SRC_exec)$(slash)omake_exec_print.ml omake_exec_print.ml
-
-omake_exec_util.mli: $(SRC_exec)$(slash)omake_exec_util.mli
-	$(LN) $(SRC_exec)$(slash)omake_exec_util.mli omake_exec_util.mli
 
 omake_exec_local.mli: $(SRC_exec)$(slash)omake_exec_local.mli
 	$(LN) $(SRC_exec)$(slash)omake_exec_local.mli omake_exec_local.mli
@@ -534,19 +522,31 @@ omake_exec_local.mli: $(SRC_exec)$(slash)omake_exec_local.mli
 omake_exec_notify.ml: $(SRC_exec)$(slash)omake_exec_notify.ml
 	$(LN) $(SRC_exec)$(slash)omake_exec_notify.ml omake_exec_notify.ml
 
+omake_exec_notify.mli: $(SRC_exec)$(slash)omake_exec_notify.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_notify.mli omake_exec_notify.mli
+
+omake_exec_print.ml: $(SRC_exec)$(slash)omake_exec_print.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_print.ml omake_exec_print.ml
+
 omake_exec_print.mli: $(SRC_exec)$(slash)omake_exec_print.mli
 	$(LN) $(SRC_exec)$(slash)omake_exec_print.mli omake_exec_print.mli
 
 omake_exec_remote.ml: $(SRC_exec)$(slash)omake_exec_remote.ml
 	$(LN) $(SRC_exec)$(slash)omake_exec_remote.ml omake_exec_remote.ml
 
-omake_exec_notify.mli: $(SRC_exec)$(slash)omake_exec_notify.mli
-	$(LN) $(SRC_exec)$(slash)omake_exec_notify.mli omake_exec_notify.mli
-
 omake_exec_remote.mli: $(SRC_exec)$(slash)omake_exec_remote.mli
 	$(LN) $(SRC_exec)$(slash)omake_exec_remote.mli omake_exec_remote.mli
 
-ALLFILES_exec = omake_exec.ml omake_exec.mli omake_exec_id.ml omake_exec_id.mli omake_exec_type.ml omake_exec_util.ml omake_exec_local.ml omake_exec_print.ml omake_exec_util.mli omake_exec_local.mli omake_exec_notify.ml omake_exec_print.mli omake_exec_remote.ml omake_exec_notify.mli omake_exec_remote.mli
+omake_exec_type.ml: $(SRC_exec)$(slash)omake_exec_type.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_type.ml omake_exec_type.ml
+
+omake_exec_util.ml: $(SRC_exec)$(slash)omake_exec_util.ml
+	$(LN) $(SRC_exec)$(slash)omake_exec_util.ml omake_exec_util.ml
+
+omake_exec_util.mli: $(SRC_exec)$(slash)omake_exec_util.mli
+	$(LN) $(SRC_exec)$(slash)omake_exec_util.mli omake_exec_util.mli
+
+ALLFILES_exec = omake_exec.ml omake_exec.mli omake_exec_id.ml omake_exec_id.mli omake_exec_local.ml omake_exec_local.mli omake_exec_notify.ml omake_exec_notify.mli omake_exec_print.ml omake_exec_print.mli omake_exec_remote.ml omake_exec_remote.mli omake_exec_type.ml omake_exec_util.ml omake_exec_util.mli
 
 
 CMOFILES_ast = omake_ast.cmo omake_ast_util.cmo omake_ast_print.cmo
@@ -560,19 +560,19 @@ SRC_ast = ..$(slash)src$(slash)ast
 omake_ast.ml: $(SRC_ast)$(slash)omake_ast.ml
 	$(LN) $(SRC_ast)$(slash)omake_ast.ml omake_ast.ml
 
-omake_ast_util.ml: $(SRC_ast)$(slash)omake_ast_util.ml
-	$(LN) $(SRC_ast)$(slash)omake_ast_util.ml omake_ast_util.ml
-
 omake_ast_print.ml: $(SRC_ast)$(slash)omake_ast_print.ml
 	$(LN) $(SRC_ast)$(slash)omake_ast_print.ml omake_ast_print.ml
-
-omake_ast_util.mli: $(SRC_ast)$(slash)omake_ast_util.mli
-	$(LN) $(SRC_ast)$(slash)omake_ast_util.mli omake_ast_util.mli
 
 omake_ast_print.mli: $(SRC_ast)$(slash)omake_ast_print.mli
 	$(LN) $(SRC_ast)$(slash)omake_ast_print.mli omake_ast_print.mli
 
-ALLFILES_ast = omake_ast.ml omake_ast_util.ml omake_ast_print.ml omake_ast_util.mli omake_ast_print.mli
+omake_ast_util.ml: $(SRC_ast)$(slash)omake_ast_util.ml
+	$(LN) $(SRC_ast)$(slash)omake_ast_util.ml omake_ast_util.ml
+
+omake_ast_util.mli: $(SRC_ast)$(slash)omake_ast_util.mli
+	$(LN) $(SRC_ast)$(slash)omake_ast_util.mli omake_ast_util.mli
+
+ALLFILES_ast = omake_ast.ml omake_ast_print.ml omake_ast_print.mli omake_ast_util.ml omake_ast_util.mli
 
 
 CMOFILES_omake_gen_parse = omake_gen_parse.cmo
@@ -612,47 +612,8 @@ Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast
 
 SRC_env = ..$(slash)src$(slash)env
 
-omake_env.ml: $(SRC_env)$(slash)omake_env.ml
-	$(LN) $(SRC_env)$(slash)omake_env.ml omake_env.ml
-
-omake_env.mli: $(SRC_env)$(slash)omake_env.mli
-	$(LN) $(SRC_env)$(slash)omake_env.mli omake_env.mli
-
-omake_lexer.ml: $(SRC_env)$(slash)omake_lexer.ml
-	$(LN) $(SRC_env)$(slash)omake_lexer.ml omake_lexer.ml
-
-omake_ir_ast.ml: $(SRC_env)$(slash)omake_ir_ast.ml
-	$(LN) $(SRC_env)$(slash)omake_ir_ast.ml omake_ir_ast.ml
-
-omake_parser.ml: $(SRC_env)$(slash)omake_parser.ml
-	$(LN) $(SRC_env)$(slash)omake_parser.ml omake_parser.ml
-
-omake_ir_ast.mli: $(SRC_env)$(slash)omake_ir_ast.mli
-	$(LN) $(SRC_env)$(slash)omake_ir_ast.mli omake_ir_ast.mli
-
 omake_ast_lex.mli: $(SRC_env)$(slash)omake_ast_lex.mli
 	$(LN) $(SRC_env)$(slash)omake_ast_lex.mli omake_ast_lex.mli
-
-omake_exn_print.ml: $(SRC_env)$(slash)omake_exn_print.ml
-	$(LN) $(SRC_env)$(slash)omake_exn_print.ml omake_exn_print.ml
-
-omake_gen_parse.ml: $(SRC_env)$(slash)omake_gen_parse.ml
-	$(LN) $(SRC_env)$(slash)omake_gen_parse.ml omake_gen_parse.ml
-
-omake_ir_semant.ml: $(SRC_env)$(slash)omake_ir_semant.ml
-	$(LN) $(SRC_env)$(slash)omake_ir_semant.ml omake_ir_semant.ml
-
-omake_exn_print.mli: $(SRC_env)$(slash)omake_exn_print.mli
-	$(LN) $(SRC_env)$(slash)omake_exn_print.mli omake_exn_print.mli
-
-omake_ir_semant.mli: $(SRC_env)$(slash)omake_ir_semant.mli
-	$(LN) $(SRC_env)$(slash)omake_ir_semant.mli omake_ir_semant.mli
-
-omake_ir_free_vars.ml: $(SRC_env)$(slash)omake_ir_free_vars.ml
-	$(LN) $(SRC_env)$(slash)omake_ir_free_vars.ml omake_ir_free_vars.ml
-
-omake_ir_free_vars.mli: $(SRC_env)$(slash)omake_ir_free_vars.mli
-	$(LN) $(SRC_env)$(slash)omake_ir_free_vars.mli omake_ir_free_vars.mli
 
 omake_command_digest.ml: $(SRC_env)$(slash)omake_command_digest.ml
 	$(LN) $(SRC_env)$(slash)omake_command_digest.ml omake_command_digest.ml
@@ -660,7 +621,46 @@ omake_command_digest.ml: $(SRC_env)$(slash)omake_command_digest.ml
 omake_command_digest.mli: $(SRC_env)$(slash)omake_command_digest.mli
 	$(LN) $(SRC_env)$(slash)omake_command_digest.mli omake_command_digest.mli
 
-ALLFILES_env = omake_env.ml omake_env.mli omake_lexer.ml omake_ir_ast.ml omake_parser.ml omake_ir_ast.mli omake_ast_lex.mli omake_exn_print.ml omake_gen_parse.ml omake_ir_semant.ml omake_exn_print.mli omake_ir_semant.mli omake_ir_free_vars.ml omake_ir_free_vars.mli omake_command_digest.ml omake_command_digest.mli omake_ast_lex.mll omake_ast_parse.input
+omake_env.ml: $(SRC_env)$(slash)omake_env.ml
+	$(LN) $(SRC_env)$(slash)omake_env.ml omake_env.ml
+
+omake_env.mli: $(SRC_env)$(slash)omake_env.mli
+	$(LN) $(SRC_env)$(slash)omake_env.mli omake_env.mli
+
+omake_exn_print.ml: $(SRC_env)$(slash)omake_exn_print.ml
+	$(LN) $(SRC_env)$(slash)omake_exn_print.ml omake_exn_print.ml
+
+omake_exn_print.mli: $(SRC_env)$(slash)omake_exn_print.mli
+	$(LN) $(SRC_env)$(slash)omake_exn_print.mli omake_exn_print.mli
+
+omake_gen_parse.ml: $(SRC_env)$(slash)omake_gen_parse.ml
+	$(LN) $(SRC_env)$(slash)omake_gen_parse.ml omake_gen_parse.ml
+
+omake_ir_ast.ml: $(SRC_env)$(slash)omake_ir_ast.ml
+	$(LN) $(SRC_env)$(slash)omake_ir_ast.ml omake_ir_ast.ml
+
+omake_ir_ast.mli: $(SRC_env)$(slash)omake_ir_ast.mli
+	$(LN) $(SRC_env)$(slash)omake_ir_ast.mli omake_ir_ast.mli
+
+omake_ir_free_vars.ml: $(SRC_env)$(slash)omake_ir_free_vars.ml
+	$(LN) $(SRC_env)$(slash)omake_ir_free_vars.ml omake_ir_free_vars.ml
+
+omake_ir_free_vars.mli: $(SRC_env)$(slash)omake_ir_free_vars.mli
+	$(LN) $(SRC_env)$(slash)omake_ir_free_vars.mli omake_ir_free_vars.mli
+
+omake_ir_semant.ml: $(SRC_env)$(slash)omake_ir_semant.ml
+	$(LN) $(SRC_env)$(slash)omake_ir_semant.ml omake_ir_semant.ml
+
+omake_ir_semant.mli: $(SRC_env)$(slash)omake_ir_semant.mli
+	$(LN) $(SRC_env)$(slash)omake_ir_semant.mli omake_ir_semant.mli
+
+omake_lexer.ml: $(SRC_env)$(slash)omake_lexer.ml
+	$(LN) $(SRC_env)$(slash)omake_lexer.ml omake_lexer.ml
+
+omake_parser.ml: $(SRC_env)$(slash)omake_parser.ml
+	$(LN) $(SRC_env)$(slash)omake_parser.ml omake_parser.ml
+
+ALLFILES_env = omake_ast_lex.mli omake_command_digest.ml omake_command_digest.mli omake_env.ml omake_env.mli omake_exn_print.ml omake_exn_print.mli omake_gen_parse.ml omake_ir_ast.ml omake_ir_ast.mli omake_ir_free_vars.ml omake_ir_free_vars.mli omake_ir_semant.ml omake_ir_semant.mli omake_lexer.ml omake_parser.ml omake_ast_lex.mll omake_ast_parse.input
 
 
 CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo
@@ -686,11 +686,11 @@ SRC_shell = ..$(slash)src$(slash)shell
 omake_shell_job.ml: $(SRC_shell)$(slash)omake_shell_job.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_job.ml omake_shell_job.ml
 
-omake_shell_lex.ml: $(SRC_shell)$(slash)omake_shell_lex.ml
-	$(LN) $(SRC_shell)$(slash)omake_shell_lex.ml omake_shell_lex.ml
-
 omake_shell_job.mli: $(SRC_shell)$(slash)omake_shell_job.mli
 	$(LN) $(SRC_shell)$(slash)omake_shell_job.mli omake_shell_job.mli
+
+omake_shell_lex.ml: $(SRC_shell)$(slash)omake_shell_lex.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_lex.ml omake_shell_lex.ml
 
 omake_shell_lex.mli: $(SRC_shell)$(slash)omake_shell_lex.mli
 	$(LN) $(SRC_shell)$(slash)omake_shell_lex.mli omake_shell_lex.mli
@@ -701,7 +701,7 @@ omake_shell_sys.mli: $(SRC_shell)$(slash)omake_shell_sys.mli
 omake_shell_sys_type.ml: $(SRC_shell)$(slash)omake_shell_sys_type.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_sys_type.ml omake_shell_sys_type.ml
 
-ALLFILES_shell = omake_shell_job.ml omake_shell_lex.ml omake_shell_job.mli omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
+ALLFILES_shell = omake_shell_job.ml omake_shell_job.mli omake_shell_lex.ml omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
 
 
 CMOFILES_eval = omake_eval.cmo omake_value.cmo
@@ -737,29 +737,11 @@ omake_rule.cmo omake_build_type.cmo omake_build_util.cmo omake_builtin_type.cmo 
 
 SRC_build = ..$(slash)src$(slash)build
 
-omake_rule.ml: $(SRC_build)$(slash)omake_rule.ml
-	$(LN) $(SRC_build)$(slash)omake_rule.ml omake_rule.ml
-
 omake_build.ml: $(SRC_build)$(slash)omake_build.ml
 	$(LN) $(SRC_build)$(slash)omake_build.ml omake_build.ml
 
-omake_rule.mli: $(SRC_build)$(slash)omake_rule.mli
-	$(LN) $(SRC_build)$(slash)omake_rule.mli omake_rule.mli
-
 omake_build.mli: $(SRC_build)$(slash)omake_build.mli
 	$(LN) $(SRC_build)$(slash)omake_build.mli omake_build.mli
-
-omake_target.ml: $(SRC_build)$(slash)omake_target.ml
-	$(LN) $(SRC_build)$(slash)omake_target.ml omake_target.ml
-
-omake_builtin.ml: $(SRC_build)$(slash)omake_builtin.ml
-	$(LN) $(SRC_build)$(slash)omake_builtin.ml omake_builtin.ml
-
-omake_target.mli: $(SRC_build)$(slash)omake_target.mli
-	$(LN) $(SRC_build)$(slash)omake_target.mli omake_target.mli
-
-omake_builtin.mli: $(SRC_build)$(slash)omake_builtin.mli
-	$(LN) $(SRC_build)$(slash)omake_builtin.mli omake_builtin.mli
 
 omake_build_tee.ml: $(SRC_build)$(slash)omake_build_tee.ml
 	$(LN) $(SRC_build)$(slash)omake_build_tee.ml omake_build_tee.ml
@@ -776,6 +758,12 @@ omake_build_util.ml: $(SRC_build)$(slash)omake_build_util.ml
 omake_build_util.mli: $(SRC_build)$(slash)omake_build_util.mli
 	$(LN) $(SRC_build)$(slash)omake_build_util.mli omake_build_util.mli
 
+omake_builtin.ml: $(SRC_build)$(slash)omake_builtin.ml
+	$(LN) $(SRC_build)$(slash)omake_builtin.ml omake_builtin.ml
+
+omake_builtin.mli: $(SRC_build)$(slash)omake_builtin.mli
+	$(LN) $(SRC_build)$(slash)omake_builtin.mli omake_builtin.mli
+
 omake_builtin_type.ml: $(SRC_build)$(slash)omake_builtin_type.ml
 	$(LN) $(SRC_build)$(slash)omake_builtin_type.ml omake_builtin_type.ml
 
@@ -785,7 +773,19 @@ omake_builtin_util.ml: $(SRC_build)$(slash)omake_builtin_util.ml
 omake_builtin_util.mli: $(SRC_build)$(slash)omake_builtin_util.mli
 	$(LN) $(SRC_build)$(slash)omake_builtin_util.mli omake_builtin_util.mli
 
-ALLFILES_build = omake_rule.ml omake_build.ml omake_rule.mli omake_build.mli omake_target.ml omake_builtin.ml omake_target.mli omake_builtin.mli omake_build_tee.ml omake_build_tee.mli omake_build_type.ml omake_build_util.ml omake_build_util.mli omake_builtin_type.ml omake_builtin_util.ml omake_builtin_util.mli
+omake_rule.ml: $(SRC_build)$(slash)omake_rule.ml
+	$(LN) $(SRC_build)$(slash)omake_rule.ml omake_rule.ml
+
+omake_rule.mli: $(SRC_build)$(slash)omake_rule.mli
+	$(LN) $(SRC_build)$(slash)omake_rule.mli omake_rule.mli
+
+omake_target.ml: $(SRC_build)$(slash)omake_target.ml
+	$(LN) $(SRC_build)$(slash)omake_target.ml omake_target.ml
+
+omake_target.mli: $(SRC_build)$(slash)omake_target.mli
+	$(LN) $(SRC_build)$(slash)omake_target.mli omake_target.mli
+
+ALLFILES_build = omake_build.ml omake_build.mli omake_build_tee.ml omake_build_tee.mli omake_build_type.ml omake_build_util.ml omake_build_util.mli omake_builtin.ml omake_builtin.mli omake_builtin_type.ml omake_builtin_util.ml omake_builtin_util.mli omake_rule.ml omake_rule.mli omake_target.ml omake_target.mli
 
 
 CMOFILES_builtin = omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_builtin_fun.cmo omake_builtin_io.cmo omake_builtin_io_fun.cmo omake_builtin_sys.cmo omake_builtin_target.cmo omake_builtin_shell.cmo omake_builtin_rule.cmo omake_builtin_test.cmo omake_builtin_object.cmo
@@ -798,44 +798,50 @@ omake_builtin_base.cmo omake_builtin_arith.cmo omake_builtin_file.cmo omake_buil
 
 SRC_builtin = ..$(slash)src$(slash)builtin
 
-omake_builtin_io.ml: $(SRC_builtin)$(slash)omake_builtin_io.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_io.ml omake_builtin_io.ml
+omake_builtin_arith.ml: $(SRC_builtin)$(slash)omake_builtin_arith.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_arith.ml omake_builtin_arith.ml
 
-omake_builtin_fun.ml: $(SRC_builtin)$(slash)omake_builtin_fun.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_fun.ml omake_builtin_fun.ml
-
-omake_builtin_io.mli: $(SRC_builtin)$(slash)omake_builtin_io.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_io.mli omake_builtin_io.mli
-
-omake_builtin_sys.ml: $(SRC_builtin)$(slash)omake_builtin_sys.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_sys.ml omake_builtin_sys.ml
+omake_builtin_arith.mli: $(SRC_builtin)$(slash)omake_builtin_arith.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_arith.mli omake_builtin_arith.mli
 
 omake_builtin_base.ml: $(SRC_builtin)$(slash)omake_builtin_base.ml
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_base.ml omake_builtin_base.ml
 
+omake_builtin_base.mli: $(SRC_builtin)$(slash)omake_builtin_base.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_base.mli omake_builtin_base.mli
+
 omake_builtin_file.ml: $(SRC_builtin)$(slash)omake_builtin_file.ml
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_file.ml omake_builtin_file.ml
+
+omake_builtin_file.mli: $(SRC_builtin)$(slash)omake_builtin_file.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_file.mli omake_builtin_file.mli
+
+omake_builtin_fun.ml: $(SRC_builtin)$(slash)omake_builtin_fun.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_fun.ml omake_builtin_fun.ml
 
 omake_builtin_fun.mli: $(SRC_builtin)$(slash)omake_builtin_fun.mli
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_fun.mli omake_builtin_fun.mli
 
+omake_builtin_io.ml: $(SRC_builtin)$(slash)omake_builtin_io.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io.ml omake_builtin_io.ml
+
+omake_builtin_io.mli: $(SRC_builtin)$(slash)omake_builtin_io.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io.mli omake_builtin_io.mli
+
+omake_builtin_io_fun.ml: $(SRC_builtin)$(slash)omake_builtin_io_fun.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io_fun.ml omake_builtin_io_fun.ml
+
+omake_builtin_io_fun.mli: $(SRC_builtin)$(slash)omake_builtin_io_fun.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_io_fun.mli omake_builtin_io_fun.mli
+
+omake_builtin_object.ml: $(SRC_builtin)$(slash)omake_builtin_object.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.ml omake_builtin_object.ml
+
+omake_builtin_object.mli: $(SRC_builtin)$(slash)omake_builtin_object.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.mli omake_builtin_object.mli
+
 omake_builtin_rule.ml: $(SRC_builtin)$(slash)omake_builtin_rule.ml
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_rule.ml omake_builtin_rule.ml
-
-omake_builtin_sys.mli: $(SRC_builtin)$(slash)omake_builtin_sys.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_sys.mli omake_builtin_sys.mli
-
-omake_builtin_test.ml: $(SRC_builtin)$(slash)omake_builtin_test.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.ml omake_builtin_test.ml
-
-omake_builtin_arith.ml: $(SRC_builtin)$(slash)omake_builtin_arith.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_arith.ml omake_builtin_arith.ml
-
-omake_builtin_base.mli: $(SRC_builtin)$(slash)omake_builtin_base.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_base.mli omake_builtin_base.mli
-
-omake_builtin_file.mli: $(SRC_builtin)$(slash)omake_builtin_file.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_file.mli omake_builtin_file.mli
 
 omake_builtin_rule.mli: $(SRC_builtin)$(slash)omake_builtin_rule.mli
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_rule.mli omake_builtin_rule.mli
@@ -843,34 +849,28 @@ omake_builtin_rule.mli: $(SRC_builtin)$(slash)omake_builtin_rule.mli
 omake_builtin_shell.ml: $(SRC_builtin)$(slash)omake_builtin_shell.ml
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_shell.ml omake_builtin_shell.ml
 
-omake_builtin_test.mli: $(SRC_builtin)$(slash)omake_builtin_test.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.mli omake_builtin_test.mli
-
-omake_builtin_arith.mli: $(SRC_builtin)$(slash)omake_builtin_arith.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_arith.mli omake_builtin_arith.mli
-
-omake_builtin_io_fun.ml: $(SRC_builtin)$(slash)omake_builtin_io_fun.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_io_fun.ml omake_builtin_io_fun.ml
-
-omake_builtin_object.ml: $(SRC_builtin)$(slash)omake_builtin_object.ml
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.ml omake_builtin_object.ml
-
 omake_builtin_shell.mli: $(SRC_builtin)$(slash)omake_builtin_shell.mli
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_shell.mli omake_builtin_shell.mli
+
+omake_builtin_sys.ml: $(SRC_builtin)$(slash)omake_builtin_sys.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_sys.ml omake_builtin_sys.ml
+
+omake_builtin_sys.mli: $(SRC_builtin)$(slash)omake_builtin_sys.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_sys.mli omake_builtin_sys.mli
 
 omake_builtin_target.ml: $(SRC_builtin)$(slash)omake_builtin_target.ml
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_target.ml omake_builtin_target.ml
 
-omake_builtin_io_fun.mli: $(SRC_builtin)$(slash)omake_builtin_io_fun.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_io_fun.mli omake_builtin_io_fun.mli
-
-omake_builtin_object.mli: $(SRC_builtin)$(slash)omake_builtin_object.mli
-	$(LN) $(SRC_builtin)$(slash)omake_builtin_object.mli omake_builtin_object.mli
-
 omake_builtin_target.mli: $(SRC_builtin)$(slash)omake_builtin_target.mli
 	$(LN) $(SRC_builtin)$(slash)omake_builtin_target.mli omake_builtin_target.mli
 
-ALLFILES_builtin = omake_builtin_io.ml omake_builtin_fun.ml omake_builtin_io.mli omake_builtin_sys.ml omake_builtin_base.ml omake_builtin_file.ml omake_builtin_fun.mli omake_builtin_rule.ml omake_builtin_sys.mli omake_builtin_test.ml omake_builtin_arith.ml omake_builtin_base.mli omake_builtin_file.mli omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_test.mli omake_builtin_arith.mli omake_builtin_io_fun.ml omake_builtin_object.ml omake_builtin_shell.mli omake_builtin_target.ml omake_builtin_io_fun.mli omake_builtin_object.mli omake_builtin_target.mli
+omake_builtin_test.ml: $(SRC_builtin)$(slash)omake_builtin_test.ml
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.ml omake_builtin_test.ml
+
+omake_builtin_test.mli: $(SRC_builtin)$(slash)omake_builtin_test.mli
+	$(LN) $(SRC_builtin)$(slash)omake_builtin_test.mli omake_builtin_test.mli
+
+ALLFILES_builtin = omake_builtin_arith.ml omake_builtin_arith.mli omake_builtin_base.ml omake_builtin_base.mli omake_builtin_file.ml omake_builtin_file.mli omake_builtin_fun.ml omake_builtin_fun.mli omake_builtin_io.ml omake_builtin_io.mli omake_builtin_io_fun.ml omake_builtin_io_fun.mli omake_builtin_object.ml omake_builtin_object.mli omake_builtin_rule.ml omake_builtin_rule.mli omake_builtin_shell.ml omake_builtin_shell.mli omake_builtin_sys.ml omake_builtin_sys.mli omake_builtin_target.ml omake_builtin_target.mli omake_builtin_test.ml omake_builtin_test.mli
 
 
 CMOFILES_cvs_realclean = cvs_realclean.cmo
@@ -895,6 +895,9 @@ omake_shell.cmo omake_main.cmo omake_shell.cmi omake_main.cmi: magic.cma
 
 SRC_main = ..$(slash)src$(slash)main
 
+cvs_realclean.ml: $(SRC_main)$(slash)cvs_realclean.ml
+	$(LN) $(SRC_main)$(slash)cvs_realclean.ml cvs_realclean.ml
+
 omake_main.ml: $(SRC_main)$(slash)omake_main.ml
 	$(LN) $(SRC_main)$(slash)omake_main.ml omake_main.ml
 
@@ -907,10 +910,7 @@ omake_shell.ml: $(SRC_main)$(slash)omake_shell.ml
 omake_shell.mli: $(SRC_main)$(slash)omake_shell.mli
 	$(LN) $(SRC_main)$(slash)omake_shell.mli omake_shell.mli
 
-cvs_realclean.ml: $(SRC_main)$(slash)cvs_realclean.ml
-	$(LN) $(SRC_main)$(slash)cvs_realclean.ml cvs_realclean.ml
-
-ALLFILES_main = omake_main.ml omake_main.mli omake_shell.ml omake_shell.mli cvs_realclean.ml
+ALLFILES_main = cvs_realclean.ml omake_main.ml omake_main.mli omake_shell.ml omake_shell.mli
 
 ALLFILES = $(ALLFILES_clib) $(ALLFILES_libmojave) $(ALLFILES_util) $(ALLFILES_magic) $(ALLFILES_ir) $(ALLFILES_exec) $(ALLFILES_ast) $(ALLFILES_env) $(ALLFILES_shell) $(ALLFILES_eval) $(ALLFILES_build) $(ALLFILES_builtin) $(ALLFILES_main)
 

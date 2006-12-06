@@ -87,6 +87,12 @@ let concat_strings = function
  | sl ->
       ValArray (List.map (fun s -> ValString s) sl)
 
+let concat_data = function
+   [s] ->
+      ValData s
+ | sl ->
+      ValArray (List.map (fun s -> ValData s) sl)
+
 (************************************************************************
  * Conversions.
  *)

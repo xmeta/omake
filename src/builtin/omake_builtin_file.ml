@@ -211,7 +211,7 @@ let ind venv pos loc args =
             let dir = dir_of_value venv pos dir in
             let venv = venv_chdir_tmp venv dir in
             let strings = strings_of_value venv pos arg in
-               concat_strings strings
+               concat_data strings
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 

@@ -1492,7 +1492,7 @@ let copy_string test add_escape esc_length src_length s =
       esc_string
 
 (*
- * Escape special symbols. 
+ * Escape special symbols.
  * NB: Must be compatible with the Omake_ast_lex.parse_deps function!
  *)
 let is_escape_char c =
@@ -1838,7 +1838,7 @@ let removesuffix venv pos loc args =
                         else
                            s) args
             in
-               concat_strings args
+               concat_data args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
