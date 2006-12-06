@@ -1073,8 +1073,8 @@ and eval_rule venv loc target sources sloppy_deps values commands =
    let venv         = venv_add_var venv ScopeGlobal pos at_sym   (ValNode target) in
    let source_all   = ValArray (List.map (fun v -> ValNode v) sources) in
    let source_names = List.map (venv_nodename venv) sources in
-   let source_set   = List.fold_left StringSet.add StringSet.empty source_names in
-   let source_set   = StringSet.to_list source_set in
+   let source_set   = List.fold_left LexStringSet.add LexStringSet.empty source_names in
+   let source_set   = LexStringSet.to_list source_set in
    let source_set   = ValArray (List.map (fun s -> ValData s) source_set) in
    let source =
       match sources with

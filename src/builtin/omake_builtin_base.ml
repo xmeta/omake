@@ -1996,20 +1996,13 @@ let add_wrapper venv pos loc args =
  * For example, \verb+$(set z y z "m n" w a)+ expands to \verb+"m n" a w y z+.
  * \end{doc}
  *)
-module StrCompare =
-struct
-   type t = string
-   let compare (s1 : string) (s2 : string) = Pervasives.compare s1 s2
-end;;
-module StrSet = Lm_set.LmMake (StrCompare);;
-
 let set venv pos loc args =
    let pos = string_pos "set" pos in
       match args with
          [files] ->
             let files = strings_of_value venv pos files in
-            let files = List.fold_left StrSet.add StrSet.empty files in
-            let files = StrSet.fold (fun strings s -> ValString s :: strings) [] files in
+            let files = List.fold_left LexStringSet.add LexStringSet.empty files in
+            let files = LexStringSet.fold (fun strings s -> ValString s :: strings) [] files in
                ValArray (List.rev files)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
