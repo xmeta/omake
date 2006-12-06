@@ -178,14 +178,14 @@ let opt_print_progress opts =
                ignore (Unix.tcgetattr Unix.stdout); true
             with
                Unix.Unix_error _ ->
-                  eprintf "*** omake: warning: stdout is not a tty, disabling the progress bar@.";
+                  eprintf "@[<hov3>*** omake: warning:@ stdout is not a tty,@ disabling the progress bar@ (use --progress to override).@]@.";
                   false
              | Invalid_argument "Unix.tcgetattr not implemented" ->
                   (* We are on Windows :-( *)
                   true
              | exn ->
-                  eprintf "@[<hv3>*** omake: warning: tcgetattr failed for unknown reason:@ %s@]@." (Printexc.to_string
-                  exn);
+                  eprintf "@[<hov3>*** omake: warning:@ tcgetattr failed for unknown reason:@ %s@]@." (**)
+                  (Printexc.to_string exn);
                   true
          in
             opts.opt_print_progress <- Set ok_to_print;
