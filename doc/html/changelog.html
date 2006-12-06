@@ -72,7 +72,7 @@
   <li>Much better handling of the <tt>exit</tt> function, a number of bugs fixed.
   <ll>More control over the OMake output and verbosity.
   <ul>
-    <li>An ability to divert the rule exacution output (so that, for example,
+    <li>An ability to postpone and/or repeat the rule execution output (so that, for example,
     only the output of the rules that fail is printed, or the output of the
     rules that failed is repeated at the end of the <tt>omake -k</tt>
     execution). This feature is somewhat experimental and might change in the
@@ -92,7 +92,7 @@
       your <tt>~/.omakerc</tt>, rather than adding them directly to each of
       the projects you work on.
     </ul>
-    <li><tt>OCaml.om</tt> improvements:
+  <li><tt>OCaml.om</tt> improvements:
     <ul>
     <li>Implemented a new approach to computing the dependencies in OCaml
     projects in OMake. In this approach a special version of <tt>ocamldep</tt>
@@ -104,6 +104,23 @@
     the <tt>OCAMLDEP_MODULES_ENABLED</tt> variable to enable.
     <li>Added support for the Menhir parser-generator (experimental).
   </ul>
+  <li><tt>C.om</tt> improvements:
+     <ul>
+     <li>Changed the <tt>CProgram</tt> function to consider <tt>LIBS</tt> to be the actual
+     library files (_without_ the extension) that need to be linked in.
+     <li>Improved the C scanner rule on Windows.
+     </ul>
+  <li><tt>LaTeX.om</tt> improvements:
+     <ul><li><tt>BSTINPUTS</tt> environment variable joins <tt>TEXINPUTS</tt> and
+     <tt>BIBINPUTS</tt> in the list of variables initialized from the OMake's
+     <tt>TEXINPUTS</tt> variable.
+     <li>The list of such variables is now configurable (<tt>TEXVARS</tt> variable
+          contains an array of names).</ul>
+  <li>New functions: <tt>Shell.ln-or-cp</tt>, <tt>html-escaped</tt>, 
+  <li>Added an ability to turn a string into an input channel. This allows,
+  for example, to use an OMake variable as an input to built-in <tt>awk</tt> without having to
+  write it to a temporaty file first.
+  <li>New flags added to built-in <tt>awk</tt> and <tt>grep</tt>.
   <li>A number of other bug fixes and improvements.
 
 
