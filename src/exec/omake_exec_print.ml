@@ -48,10 +48,11 @@ let print_flush_flag = ref false
  *)
 let message = ref None
 let message_count = ref 0
+let progress_width = Lm_termsize.stdout_width - 20
 
 let print_progress options count total =
    if opt_print_progress options then
-      let blobs = count * 60 / total in
+      let blobs = count * progress_width / total in
       let () = print_char '[' in
       let off =
          match !message with
@@ -73,7 +74,7 @@ let print_progress options count total =
          for i = off to blobs do
             print_char '='
          done;
-         for i = 0 to 60 - max off blobs do
+         for i = 0 to progress_width - max off blobs do
             print_char ' '
          done;
          printf "] %05d / %05d\r@?" count total;
@@ -82,7 +83,7 @@ let print_progress options count total =
 (*
  * Flush the print line if needed.
  *)
-let flush_buf = String.make 80 ' '
+let flush_buf = String.make Lm_termsize.stdout_width ' '
 
 let print_flush () =
    if !print_flush_flag then  begin
