@@ -154,7 +154,10 @@ let should_print options flags flag =
 
 let print_status handle_out options shell remote name flag =
    let out = formatter_of_out_channel Pervasives.stdout in
-   let print_flush () = handle_out "" 0 0 in
+   let print_flush () = 
+      handle_out "" 0 0;
+      print_flush ()
+   in
    let () = pp_set_formatter_output_functions out handle_out print_flush in
    let pp_print_host buf =
       match remote with
