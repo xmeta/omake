@@ -1577,6 +1577,30 @@ let html_pre_escaped = any_escaped Lm_string_util.html_pre_escaped
 
 (*
  * \begin{doc}
+ * \fun{decode-uri}
+ * \fun{encode-uri}
+ *
+ * \begin{verbatim}
+ *     $(decode-uri sequence) : sequence
+ *         sequence : Sequence
+ * \end{verbatim}
+ *
+ * These two functions perform URI encoding, where special characters
+ * are represented by hexadecimal characters.
+ *
+ * \begin{verbatim}
+ *     osh> s = $(encode-uri $'a b~c')
+ *     "a+b%7ec"
+ *     osh> decode-uri($s)
+ *     "a b~c"
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let decode_uri = any_escaped Lm_string_util.decode_hex_name
+let encode_uri = any_escaped Lm_string_util.encode_hex_name
+
+(*
+ * \begin{doc}
  * \fun{quote}
  *
  * \begin{verbatim}
@@ -1972,14 +1996,21 @@ let add_wrapper venv pos loc args =
  * For example, \verb+$(set z y z "m n" w a)+ expands to \verb+"m n" a w y z+.
  * \end{doc}
  *)
+module StrCompare =
+struct
+   type t = string
+   let compare (s1 : string) (s2 : string) = Pervasives.compare s1 s2
+end;;
+module StrSet = Lm_set.LmMake (StrCompare);;
+
 let set venv pos loc args =
    let pos = string_pos "set" pos in
       match args with
          [files] ->
             let files = strings_of_value venv pos files in
-            let files = List.fold_left StringSet.add StringSet.empty files in
-            let files = StringSet.to_list files in
-               ValArray (List.map (fun s -> ValString s) files)
+            let files = List.fold_left StrSet.add StrSet.empty files in
+            let files = StrSet.fold (fun strings s -> ValString s :: strings) [] files in
+               ValArray (List.rev files)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -2574,6 +2605,40 @@ let while_fun venv pos loc args =
 let break venv pos loc args =
    raise (Break (loc, venv))
 
+(*
+ * \begin{doc}
+ * \fun{random}
+ * \fun{random-init}
+ *
+ * \begin{verbatim}
+ *     random-init(i)
+ *         i : Int
+ *     random() : Int
+ * \end{verbatim}
+ *
+ * Produce a random number.  The numbers are pseudo-random,
+ * and are not cryptographically secure.
+ *
+ * The generator is initialized form semi-random system data.
+ * Subsequent runs should produce different results.
+ * The \verb+rando-init+ function can be used to return
+ * the generator to a known state.
+ *)
+let () = Random.self_init ()
+
+let random venv pos loc args =
+   ValInt (Random.bits ())
+
+let random_init venv pos loc args =
+   let pos = string_pos "random-init" pos in
+      match args with
+         [arg] ->
+            let i = int_of_value venv pos arg in
+               Random.init i;
+               ValNone
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
 (************************************************************************
  * Register.
  *)
@@ -2617,6 +2682,8 @@ let () =
        true,  "id-escaped",            id_escaped,          ArityExact 1;
        true,  "html-escaped",          html_escaped,        ArityExact 1;
        true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;
+       true,  "decode-uri",            decode_uri,          ArityExact 1;
+       true,  "encode-uri",            encode_uri,          ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
        true,  "quote-argv",            quote_argv,          ArityExact 1;
        true,  "html-string",           html_string,         ArityExact 1;
@@ -2679,7 +2746,10 @@ let () =
        true,  "export",                export,              ArityRange (0, 1);
 
        false, "while",                 while_fun,           ArityExact 2;
-       true,  "break",                 break,               ArityExact 0]
+       true,  "break",                 break,               ArityExact 0;
+
+       true,  "random",                random,              ArityExact 0;
+       true,  "random-init",           random_init,         ArityExact 1]
    in
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;

@@ -1800,10 +1800,14 @@ let unlink_aux rm_fun venv pos loc args =
       match args with
          [arg] ->
             let args = values_of_value venv pos arg in
+            let cache = venv_cache venv in
             let () =
                try
                   List.iter (fun arg ->
-                        rm_fun (filename_of_value venv pos arg)) args
+                        let name = filename_of_value venv pos arg in
+                        let node = venv_intern_cd venv PhonyProhibited (Dir.cwd ()) name in
+                           rm_fun name;
+                           ignore (Omake_cache.reset cache node)) args
                with
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (pos, exn))
@@ -1923,11 +1927,13 @@ let rm_command rm_fun venv pos loc args =
          Failure s ->
             raise (OmakeException (loc_pos loc pos, StringError s))
    in
-   let files =
-      List.map (fun name ->
-            Dir.fullname (venv_intern_dir venv name)) info.rm_files
-   in
+   let nodes = List.map (venv_intern venv PhonyProhibited) info.rm_files in
+   let files = List.map Node.fullname nodes in
+   let cache = venv_cache venv in
    let () =
+      List.iter (fun node ->
+            Omake_cache.reset cache node) nodes;
+
       try
          if info.rm_recursive then
             List.iter (rm_rec info) files
