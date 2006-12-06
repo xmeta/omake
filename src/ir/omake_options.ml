@@ -373,7 +373,10 @@ let rec opt_output opts flag =
          false
     | None, OutputNormal ->
          not (opt_output opts OutputPostponeSuccess || opt_output opts OutputPostponeError)
-    | None, (OutputPostponeSuccess | OutputRepeatErrors) ->
+    | None, OutputRepeatErrors ->
+         (* default is "on iff -k/-p/-P" *)
+         not (opt_terminate_on_error opts)
+    | None, OutputPostponeSuccess ->
          (* off by default *)
          false
 
@@ -490,11 +493,12 @@ let output_spec =
        "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";
     "--output-postpone", Lm_arg.SetFold (fun opt flag ->
             set_output_opt OutputPostponeSuccess (set_output_opt OutputPostponeError opt flag) flag), (**)
-       "[EXPERIMENTAL] Postpone printing command output until a rule terminates.";
+       "Postpone printing command output until a rule terminates.";
     "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError), (**)
-       "[EXPERIMENTAL] Same as --output-postpone, but postponed output will only be printed for commands that fail.";
+       "Same as --output-postpone, but postponed output will only be printed for commands that fail.";
     "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors), (**)
-       "[EXPERIMENTAL] The output of the failed commands will be printed after OMake have stopped.";
+       "The output of the failed commands will be printed after OMake have stopped. Off by default, unless -k is enabled
+       (directly or via -p/-P).";
     "-o", Lm_arg.StringFold set_output_opts, (**)
        "Short output options [01jwWpPxXsS] (see the manual)"]
 

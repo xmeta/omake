@@ -108,15 +108,11 @@ such a command will not be visible and it may be hard to figure out why the buil
 You might also consider using the \verb+--progress+ flag (see Section~\ref{option:--progress}) so
 that you can see when the build is active. 
 
-This option is \textbf{experimental}.
-
 \option{--output-only-errors} \verb+--output-only-errors+ 
 
 Similar to \verb+--output-postpone+, except that the postponed output from commands that were
 successful will be discarded. This can be useful in reducing unwanted output so that you can
 concentrate on any errors.
-
-This option is \textbf{experimental}.
 
 \option{--output-at-end} \verb+--output-at-end+
 
@@ -124,7 +120,8 @@ If any rules/commands fail, re-print the output of the failed commands when \OMa
 build. This is especially useful when any of the \verb+-k+, \verb+-p+, or \verb+-P+ options are
 enabled.
 
-This option is \textbf{experimental}.
+This option is off by default. However, when \verb+-k+ is enabled --- either explicitly or via one
+of the \verb+-p+/\verb+-P+ options --- \verb+--output-at-end+ will be enabled by default.
 
 \option{-o} \verb+-o [01jwWpPxXsS]+
 
@@ -168,8 +165,9 @@ This is often useful for deinterleaving the output when using \verb+-j+.
 
 \option{-k} \verb+-k+
 
-Do not abort when a build command fails;
-continue to build as much of the project as possible.
+Do not abort when a build command fails; continue to build as much of the project as possible. This
+option is implied by both \verb+-p+ and \verb+-P+ options. In turn, this option would imply the
+\verb+--output-at-end+ option.
 
 \option{-n} \verb+-n+
 
