@@ -85,7 +85,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -105,8 +105,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_debug
@@ -329,10 +329,7 @@ let grep venv pos loc args =
    in
    let b = List.fold_left grep_file false files in
       Lm_channel.flush outx;
-      if b then
-         val_true
-      else
-         val_false
+      val_of_bool b
 
 let builtin_grep venv pos loc args =
    let pos = string_pos "builtin-grep" pos in
@@ -2015,12 +2012,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

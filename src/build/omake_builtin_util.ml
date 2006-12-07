@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -104,6 +104,9 @@ let sequence_list sl =
 let val_true  = ValData "true"
 let val_false = ValData "false"
 
+let val_of_bool b =
+   if b then val_true else val_false
+
 (*
  * Maintaining the environment.
  *)
@@ -155,12 +158,9 @@ let object_of_file venv pos loc s =
                venv_add_object_file venv node obj;
                obj
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

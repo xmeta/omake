@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005 Mojave Group, Caltech
+ * Copyright (C) 2005-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -875,10 +875,7 @@ let test venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
-      if code then
-         val_true
-      else
-         val_false
+      val_of_bool code
 
 let shell_test cmd venv pos loc args =
    let pos = string_pos "shell-test" pos in
@@ -996,12 +993,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

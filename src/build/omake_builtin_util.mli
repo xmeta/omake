@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -61,6 +61,7 @@ val sequence_list : value list -> value list
  *)
 val val_true : value
 val val_false : value
+val val_of_bool : bool -> value
 
 (*
  * Unfortunately, we have to specify the environment imperatively.
@@ -80,12 +81,9 @@ val is_leaf_node    : env -> Node.t -> bool
  *)
 val object_of_file : venv -> pos -> loc -> string -> obj
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

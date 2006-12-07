@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -128,10 +128,7 @@ let object_mem venv pos loc args =
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
             let v = Lm_symbol.add s in
-               if venv_object_mem obj v then
-                  val_true
-               else
-                  val_false
+               val_of_bool (venv_object_mem obj v)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -245,10 +242,7 @@ let map_mem venv pos loc args =
          [arg; v] ->
             let map = map_of_value venv pos arg in
             let v = key_of_value venv pos v in
-               if venv_map_mem map pos v then
-                  val_true
-               else
-                  val_false
+               val_of_bool (venv_map_mem map pos v)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 

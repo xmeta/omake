@@ -607,10 +607,7 @@ let exists_in_path venv pos loc args =
                       | Not_found ->
                            false) args
             in
-               if test then
-                  val_true
-               else
-                  val_false
+               val_of_bool test
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -815,10 +812,7 @@ let node_exists node_exists venv pos loc args =
                List.for_all (fun arg ->
                      node_exists cache venv pos (file_of_value venv pos arg)) args
             in
-               if b then
-                  val_true
-               else
-                  val_false
+               val_of_bool b
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 

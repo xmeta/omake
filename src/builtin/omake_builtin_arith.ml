@@ -6,7 +6,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -251,10 +251,7 @@ let compare op_int op_float venv pos loc args =
    in
       match args with
          arg :: args ->
-            if collect (number_of_value venv pos arg) args then
-               val_true
-            else
-               val_false
+            val_of_bool (collect (number_of_value venv pos arg) args)
        | [] ->
             val_true
 
@@ -287,12 +284,9 @@ let () =
    let builtin_info = { builtin_empty with builtin_funs = builtin_funs } in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

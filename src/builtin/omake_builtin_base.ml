@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,8 +30,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
  * @end[license]
  *)
 open Lm_printf
@@ -141,10 +141,7 @@ let not_fun venv pos loc args =
    let pos = string_pos "not" pos in
       match args with
          [s] ->
-            if bool_of_value venv pos s then
-               val_false
-            else
-               val_true
+            val_of_bool(not (bool_of_value venv pos s))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -169,10 +166,7 @@ let equal venv pos loc args =
    let _pos = string_pos "equal" pos in
       match args with
          [s1; s2] ->
-            if strings_of_value venv pos s1 = strings_of_value venv pos s2 then
-               val_true
-            else
-               val_false
+            val_of_bool (strings_of_value venv pos s1 = strings_of_value venv pos s2)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -201,12 +195,9 @@ let equal venv pos loc args =
  *)
 let and_fun venv pos loc args =
    let pos = string_pos "and" pos in
-      if List.for_all (fun arg ->
-               List.for_all (bool_of_value venv pos) (values_of_value venv pos arg)) args
-      then
-         val_true
-      else
-         val_false
+      val_of_bool (**)
+         (List.for_all (fun arg ->
+               List.for_all (bool_of_value venv pos) (values_of_value venv pos arg)) args)
 
 (*
  * Disjunction.
@@ -233,12 +224,9 @@ let and_fun venv pos loc args =
  *)
 let or_fun venv pos loc args =
    let pos = string_pos "or" pos in
-      if List.exists (fun arg ->
-               List.exists (bool_of_value venv pos) (values_of_value venv pos arg)) args
-      then
-         val_true
-      else
-         val_false
+      val_of_bool (**)
+         (List.exists (fun arg ->
+               List.exists (bool_of_value venv pos) (values_of_value venv pos arg)) args)
 
 (*
  * Conditionals.
@@ -769,10 +757,7 @@ let defined venv pos loc args =
                List.for_all (fun s ->
                      venv_defined venv ScopeGlobal (Lm_symbol.add s)) args
             in
-               if b then
-                  val_true
-               else
-                  val_false
+               val_of_bool b
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -807,10 +792,7 @@ let defined_env venv pos loc args =
                List.for_all (fun s ->
                      venv_defined_env venv (Lm_symbol.add s)) args
             in
-               if b then
-                  val_true
-               else
-                  val_false
+               val_of_bool b
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -2031,10 +2013,7 @@ let mem venv pos loc args =
          [s; set] ->
             let s = Lm_string_util.trim (string_of_value venv pos s) in
             let set = strings_of_value venv pos set in
-               if List.mem s set then
-                  val_true
-               else
-                  val_false
+               val_of_bool (List.mem s set)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -2109,10 +2088,7 @@ let intersects venv pos loc args =
          [files1; files2] ->
             let files1 = strings_of_value venv pos files1 in
             let files2 = strings_of_value venv pos files2 in
-               if intersects files1 files2 then
-                  val_true
-               else
-                  val_false
+               val_of_bool (intersects files1 files2)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
