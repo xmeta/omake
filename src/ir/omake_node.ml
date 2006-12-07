@@ -775,7 +775,7 @@ struct
     * Building a new path.
     *)
    let chdir dir1 dir2 =
-      new_dir dir1 (Lm_filename_util.unescape_string dir2)
+      new_dir dir1 dir2
 
    (*
     * Name, relative to the cwd.
@@ -1062,7 +1062,6 @@ struct
       let { base_nodes = nodes } = base in
 
       (* Parse the .PHONY syntax *)
-      let name = Lm_filename_util.unescape_string name in
          match parse_phony_name name, phony_ok with
             PhonyDirString name, PhonyOK
           | PhonyDirString name, PhonyExplicit ->
