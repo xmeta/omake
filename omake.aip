@@ -30,21 +30,23 @@
     <ROW Directory="parse_DIR" Directory_Parent="omake_DIR" DefaultDir="parse"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
+    <ROW Component="C" ComponentId="{034FFE67-1BB5-4030-889C-E7E505B0B03C}" Directory_="C_DIR" Attributes="0"/>
     <ROW Component="C.om" ComponentId="{92CD6123-E38A-4481-A460-35C05F50869C}" Directory_="build_DIR" Attributes="0" KeyPath="C.om" FullKeyPath="APPDIR\lib\omake\build"/>
     <ROW Component="Configure.om" ComponentId="{AB865338-2FB9-4BC8-BE15-87D1389A4EF5}" Directory_="configure_DIR" Attributes="0" KeyPath="Configure.om" FullKeyPath="APPDIR\lib\omake\configure"/>
     <ROW Component="Lex.om" ComponentId="{8A9CAA10-5F0C-42FB-8B9B-E9D95C07BC20}" Directory_="C_DIR" Attributes="0" KeyPath="Lex.om" FullKeyPath="APPDIR\lib\omake\parse\C"/>
-    <ROW Component="OMAKEDIR" ComponentId="{451A709A-2057-4846-A997-7E0AEA1EF58F}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEDIR" FullKeyPath="HK_CU\Software\[Manufacturer]\[ProductName]\OMAKEDIR"/>
-    <ROW Component="OMAKEDIR_1" ComponentId="{7AE2C887-5364-435B-BF6C-BD2F60B1761C}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEDIR_1" FullKeyPath="HK_LM\Software\[Manufacturer]\[ProductName]\OMAKEDIR"/>
-    <ROW Component="OMAKEROOT" ComponentId="{DC3184BC-5067-4A66-8B92-0D684546D1A2}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEROOT" FullKeyPath="HK_CU\Software\[Manufacturer]\[ProductName]\OMAKEROOT"/>
+    <ROW Component="OMAKEDIR" ComponentId="{51B1B2CF-84DB-47E9-B9ED-9E52056FC457}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKEDIR" FullKeyPath="HK_UM\Software\[Manufacturer]\[ProductName]\OMAKEDIR"/>
+    <ROW Component="OMAKELIB" ComponentId="{BAE0D8DE-6599-4BEE-B9FF-A6E6C71B2075}" Directory_="APPDIR" Attributes="4" KeyPath="OMAKELIB" FullKeyPath="HK_UM\Software\[Manufacturer]\[ProductName]\OMAKELIB"/>
     <ROW Component="OMakefile.default" ComponentId="{4F49A3B7-9058-44F1-A5DA-02AE930A83D3}" Directory_="omake_DIR" Attributes="0" KeyPath="OMakefile.default" FullKeyPath="APPDIR\lib\omake"/>
+    <ROW Component="bin" ComponentId="{BE2E311B-84CE-4E43-978B-60DE42748A5D}" Directory_="bin_DIR" Attributes="0"/>
     <ROW Component="cvs_realclean.exe" ComponentId="{09E94909-31AE-4515-AC91-FBA4A5E7814E}" Directory_="bin_DIR" Attributes="0" KeyPath="cvs_realclean.exe" FullKeyPath="APPDIR\bin\cvs_realclean.exe"/>
-    <ROW Component="lib" ComponentId="{8F9DD99B-0C5B-449B-9B33-35F6353F7F48}" Directory_="lib_DIR" Attributes="0"/>
-    <ROW Component="lib_1" ComponentId="{C0FEAEBD-6CDE-4E4A-830A-0D2881A05870}" Directory_="APPDIR" Attributes="4" KeyPath="lib" FullKeyPath="HK_LM\Software\[Manufacturer]\[ProductName]\lib"/>
+    <ROW Component="ocamldep_omake" ComponentId="{56ABA81E-5431-4AA7-9142-4B5F131EC7E1}" Directory_="bin_DIR" Attributes="0" KeyPath="ocamldep_omake" FullKeyPath="APPDIR\bin"/>
+    <ROW Component="omake" ComponentId="{9EE12742-73EA-4779-93D3-1811C924D9FC}" Directory_="omake_DIR" Attributes="0"/>
     <ROW Component="omake.exe" ComponentId="{19BEBBCC-0038-41DA-B65E-0A9EA8B1B70C}" Directory_="bin_DIR" Attributes="0" KeyPath="omake.exe" FullKeyPath="APPDIR\bin\omake.exe"/>
     <ROW Component="osh.exe" ComponentId="{A8DD6CC6-F8B8-4897-A563-7377D8F3E789}" Directory_="bin_DIR" Attributes="0" KeyPath="osh.exe" FullKeyPath="APPDIR\bin\osh.exe"/>
+    <ROW Component="parse" ComponentId="{1D206D14-6A48-4770-9651-FDE8ADEEC9D9}" Directory_="parse_DIR" Attributes="0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
-    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="lib lib_1 OMAKEROOT OMAKEDIR OMAKEDIR_1 cvs_realclean.exe omake.exe osh.exe C.om Configure.om OMakefile.default Lex.om"/>
+    <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0" Components="cvs_realclean.exe omake.exe osh.exe C.om Configure.om OMakefile.default Lex.om ocamldep_omake omake parse C OMAKEDIR OMAKELIB bin"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
@@ -62,6 +64,7 @@
     <ROW File="cvs_realclean.exe" Component_="cvs_realclean.exe" FileName="cvs_re~1.exe|cvs_realclean.exe" Attributes="1" SourcePath="C:\Program Files\OMake\bin\cvs_realclean.exe" SelfReg="false" Sequence="1"/>
     <ROW File="fam.om" Component_="Configure.om" FileName="fam.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\fam.om" SelfReg="false" Sequence="9"/>
     <ROW File="ncurses.om" Component_="Configure.om" FileName="ncurses.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\ncurses.om" SelfReg="false" Sequence="10"/>
+    <ROW File="ocamldep_omake" Component_="ocamldep_omake" FileName="ocamld~1|ocamldep-omake" Attributes="1" SourcePath="C:\Program Files\OMake\bin\ocamldep-omake" SelfReg="false" Sequence="20"/>
     <ROW File="omake.exe" Component_="omake.exe" FileName="omake.exe" Attributes="1" SourcePath="C:\Program Files\OMake\bin\omake.exe" SelfReg="false" Sequence="2"/>
     <ROW File="osh.exe" Component_="osh.exe" FileName="osh.exe" Attributes="1" SourcePath="C:\Program Files\OMake\bin\osh.exe" SelfReg="false" Sequence="3"/>
     <ROW File="readline.om" Component_="Configure.om" FileName="readline.om" Attributes="1" SourcePath="C:\Program Files\OMake\lib\omake\configure\readline.om" SelfReg="false" Sequence="11"/>
@@ -96,7 +99,10 @@
     <ROW Dialog_="PatchWelcomeDlg" Control_="Next" Event="NewDialog" Argument="VerifyReadyDlg" Condition="AI_PATCH" Ordering="3"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
-    <ROW Directory_="lib_DIR" Component_="lib"/>
+    <ROW Directory_="omake_DIR" Component_="omake"/>
+    <ROW Directory_="parse_DIR" Component_="parse"/>
+    <ROW Directory_="C_DIR" Component_="C"/>
+    <ROW Directory_="bin_DIR" Component_="bin"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_DOWNGRADE" Type="19" Target="4010"/>
@@ -133,10 +139,8 @@
     <ATTRIBUTE name="PackageName" value="omake"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiRegsComponent">
-    <ROW Registry="OMAKEDIR" Root="1" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKEDIR" Value="[APPDIR]" Component_="OMAKEDIR"/>
-    <ROW Registry="OMAKEDIR_1" Root="2" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKEDIR" Value="[APPDIR]" Component_="OMAKEDIR_1"/>
-    <ROW Registry="OMAKEROOT" Root="1" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKELIB" Value="[omake_DIR]" Component_="OMAKEROOT"/>
-    <ROW Registry="lib" Root="2" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKELIB" Value="[omake_DIR]" Component_="lib_1"/>
+    <ROW Registry="OMAKEDIR" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKEDIR" Value="[APPDIR]" Component_="OMAKEDIR"/>
+    <ROW Registry="OMAKELIB" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKELIB" Value="[omake_DIR]" Component_="OMAKELIB"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
     <ROW UpgradeCode="UpgradeCode" VersionMax="ProductVersion" Attributes="1025"/>
