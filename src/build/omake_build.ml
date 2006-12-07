@@ -608,6 +608,11 @@ let command_lines command =
 let command_is_scanner command =
    Node.kind command.command_target = NodeScanner
 
+let set_tee env command tee =
+   NodeSet.iter (fun target -> unlink_tee (find_command env target)) command.command_effects;
+   unlink_tee command;
+   command.command_tee <- tee
+
 (************************************************************************
  * Command creation.
  *)
@@ -1446,7 +1451,6 @@ let execute_scanner env command =
 
    (* Save errors to the tee *)
    let options = venv_options venv in
-   let () = unlink_tee command in
    let tee = tee_create (opt_divert options) in
    let divert_only = not (opt_output options OutputNormal) in
    let copy_stdout = tee_stdout tee divert_only in
@@ -1466,7 +1470,7 @@ let execute_scanner env command =
 
    in
    let shell = eval_shell venv pos in
-      command.command_tee <- tee;
+      set_tee env command tee;
       env.env_scan_exec_count <- succ env.env_scan_exec_count;
       match Exec.spawn env.env_exec shell (venv_options venv) copy_stdout handle_out copy_stderr "scan" target scanner with
          ProcessFailed ->
@@ -1650,12 +1654,11 @@ let run_rule env command =
 
    (* Set up the tee *)
    let options = venv_options venv in
-   let () = unlink_tee command in
    let tee = tee_create (opt_divert options) in
    let divert_only = not (opt_output options OutputNormal) in
    let copy_stdout = tee_stdout tee divert_only in
    let copy_stderr = tee_stderr tee divert_only in
-      command.command_tee <- tee;
+      set_tee env command tee;
       env.env_rule_exec_count <- succ env.env_rule_exec_count;
       match Exec.spawn env.env_exec shell (venv_options venv) copy_stdout copy_stdout copy_stderr "build" target commands with
          ProcessFailed ->
