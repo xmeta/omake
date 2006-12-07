@@ -110,7 +110,7 @@ let read_version () =
          let release = String.sub version (dash + 1) ((String.length version) - dash - 1) in
             sprintf "%s (release %s)" (String.sub version 0 dash) release
       else
-         version ^ "(development snapshot)"
+         version ^ " (development snapshot)"
 
 (************************************************************************
  * File copying.
