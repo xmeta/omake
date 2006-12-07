@@ -69,12 +69,18 @@ open Omake_command_digest
 module Pos = MakePos (struct let name = "Omake_build" end);;
 open Pos
 
+type prompt_state = {
+   ps_count : int; (* success count *)
+   ps_save : float; (* next .omakedb save time *)
+   ps_progress : float; (* next progress bar update time *)
+}
+
 let save_interval = ref Omake_magic.default_save_interval
 
 (*
  * XXX: Should these be options as well?
  *)
-let prompt_interval = 1.0
+let prompt_interval = 0.5
 let prompt_long_interval = 3.0
 
 (*
@@ -2019,7 +2025,7 @@ let process_pending env =
  * Process the running queue.
  * Wait until a process exits.
  *)
-let rec process_running env notify timeout_prompt timeout_save =
+let rec process_running env notify =
    match Exec.wait env.env_exec (env_options env) with
       WaitExited (pid, code, _) ->
          begin
@@ -2039,45 +2045,27 @@ let rec process_running env notify timeout_prompt timeout_save =
                    | _ ->
                         raise (Invalid_argument "process_running")
                in
-               let options = venv_options command.command_venv in
-               let now = Unix.gettimeofday () in
-               let timeout_prompt, timeout_save =
-                  if notify && ! save_interval > 0.0 && now > timeout_save then begin
-                     print_saving options;
-                     save env;
-                     now +. prompt_long_interval, now +. ! save_interval
-                  end
-                  else if notify && now > timeout_prompt then
-                     let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
-                        print_progress options env.env_succeeded_count total;
-                        now +. prompt_interval, timeout_save
-                  else
-                     timeout_prompt, timeout_save
-               in
-                  process_pending env;
-                  timeout_prompt, timeout_save
+                  process_pending env
             with
                Not_found ->
-                  timeout_prompt, timeout_save
+                  ()
          end
     | WaitServer additional_jobs ->
          if !debug_remote then
             eprintf "# new idle count: %d + %d@." env.env_idle_count additional_jobs;
-         env.env_idle_count <- env.env_idle_count + additional_jobs;
-         timeout_prompt, timeout_save
+         env.env_idle_count <- env.env_idle_count + additional_jobs
     | WaitNotify event ->
          if notify then
-            ignore (invalidate_event env event);
-         timeout_prompt, timeout_save
+            ignore (invalidate_event env event)
     | WaitNone ->
-         timeout_prompt, timeout_save
+         ()
 
 (*
  * Wait for all jobs to finish.
  *)
 and wait_all env =
    if not (command_list_is_empty env CommandRunningTag) then begin
-      ignore (process_running env false 0.0 0.0);
+      ignore (process_running env false);
       wait_all env
    end
 
@@ -2190,7 +2178,7 @@ let with_fresh_wl env f =
 (************************************************************************
  * Main processing loop.
  *)
-let rec main_loop env timeout_prompt timeout_save =
+let rec main_loop env progress =
    if debug debug_build then begin
       eprintf "@[<hv 3>Initial:";
       command_iter env CommandInitialTag (fun command ->
@@ -2222,25 +2210,49 @@ let rec main_loop env timeout_prompt timeout_save =
       eprintf "@]@.";
    end;
 
+   let progress =
+      if progress.ps_count <> env.env_succeeded_count then
+         let progress = { progress with ps_count = env.env_succeeded_count } in
+         let options = venv_options env.env_venv in
+         let now = Unix.gettimeofday () in
+         let will_save = ! save_interval > 0.0 && now > progress.ps_save in
+         let progress = 
+            if now > progress.ps_progress || will_save then begin
+               let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
+                  print_progress options env.env_succeeded_count total;
+                  { progress with ps_progress = now +. prompt_interval }
+            end else
+               progress
+         in
+            if will_save then begin
+               print_saving options;
+               save env;
+               { progress with ps_progress = now +. prompt_long_interval; ps_save = now +. ! save_interval }
+            end else
+               progress
+      else
+         progress
+   in
+
    if not (command_list_is_empty env CommandInitialTag) then begin
       process_initial env;
-      main_loop env timeout_prompt timeout_save
+      main_loop env progress
    end
    else if not (command_list_is_empty env CommandScannedTag) then begin
       process_scanned env;
-      main_loop env timeout_prompt timeout_save
+      main_loop env progress
    end
    else if (env.env_idle_count > 0)
            && (env.env_error_code = 0)
            && not (command_list_is_empty env CommandReadyTag)
    then begin
       process_ready env;
-      main_loop env timeout_prompt timeout_save
+      main_loop env progress
    end
-   else if env.env_idle_count == 0 || not (command_list_is_empty env CommandRunningTag) then
-      let timeout_prompt, timeout_save = process_running env true timeout_prompt timeout_save in
-         main_loop env timeout_prompt timeout_save
-   else begin
+   else if env.env_idle_count == 0 || not (command_list_is_empty env CommandRunningTag) then begin
+      process_running env true;
+      main_loop env progress
+   end else begin
       assert (env.env_idle_count >= 0);
       print_flush ()
    end
@@ -2618,7 +2630,12 @@ let build_target env print target =
  *)
 let make env =
    let now = Unix.gettimeofday () in
-      main_loop env (now +. prompt_interval) (now +. !save_interval)
+   let progress = {
+      ps_count = env.env_succeeded_count;
+      ps_progress =  now +. prompt_interval;
+      ps_save = now +. !save_interval;
+   } in
+      main_loop env progress
 
 (*
  * Wait for notifications.
