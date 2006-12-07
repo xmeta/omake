@@ -25,13 +25,13 @@ all: bootstrap
 	echo # Empty config > .config
 	set OMAKEFLAGS=
 	set OMAKEPATH=lib
-	.\omake-boot --dotomake .omake --force-dotomake -j2 -S --progress main
-	src\main\omake --dotomake .omake --force-dotomake -j2 -S --progress all
+	.\omake-boot --dotomake .omake --force-dotomake -j2 main
+	src\main\omake --dotomake .omake --force-dotomake -j2 all
 
 install: all
 	set OMAKEFLAGS=
 	set OMAKEPATH=lib
-	.\omake-boot --dotomake .omake --force-dotomake -j2 -S --progress install
+	.\omake-boot --dotomake .omake --force-dotomake -j2 install
 
 boot\Makefile.nt: src\Makefile.nt
 	-mkdir boot
