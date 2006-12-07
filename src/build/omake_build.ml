@@ -2042,12 +2042,12 @@ let rec process_running env notify timeout_prompt timeout_save =
                let options = venv_options command.command_venv in
                let now = Unix.gettimeofday () in
                let timeout_prompt, timeout_save =
-                  if ! save_interval > 0.0 && now > timeout_save then begin
+                  if notify && ! save_interval > 0.0 && now > timeout_save then begin
                      print_saving options;
                      save env;
                      now +. prompt_long_interval, now +. ! save_interval
                   end
-                  else if now > timeout_prompt then
+                  else if notify && now > timeout_prompt then
                      let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
                         print_progress options env.env_succeeded_count total;
                         now +. prompt_interval, timeout_save
@@ -2076,9 +2076,10 @@ let rec process_running env notify timeout_prompt timeout_save =
  * Wait for all jobs to finish.
  *)
 and wait_all env =
-   if not (command_list_is_empty env CommandRunningTag) then
-      let _ = process_running env false 0.0 in
-         wait_all env
+   if not (command_list_is_empty env CommandRunningTag) then begin
+      ignore (process_running env false 0.0 0.0);
+      wait_all env
+   end
 
 (************************************************************************
  * Invalidation when a file is updated.
