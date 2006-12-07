@@ -77,24 +77,34 @@ let rec copy_stderr buf fd =
 
 let eprint_file = eprint_file_exn copy_stderr
 
+(* Will omit the trailing newline. Will return a bool indicating whether the newline was omited *)
 let rec format_string_with_nl buf s =
    if String.contains s '\n' then begin
       let i = String.index s '\n' in
+      let len = String.length s - 1 in
          pp_print_string buf (String.sub s 0 i);
-         pp_force_newline buf ();
-         format_string_with_nl buf (String.sub s (i + 1) (String.length s - i - 1))
-   end else
-      pp_print_string buf s
+         if len > i then begin
+            pp_force_newline buf ();
+            format_string_with_nl buf (String.sub s (i + 1) (len - i))
+         end else
+            (* Omit the trailing newline *)
+            true
+   end else begin
+      pp_print_string buf s;
+      false
+   end
 
-let rec copy_with_nl_exn out buf fd =
+let rec copy_with_nl_exn out pending_nl buf fd =
    let amount = Unix.read fd buf 0 (String.length buf) in
       if amount > 0 then begin
-         format_string_with_nl out (String.sub buf 0 amount);
-         copy_with_nl_exn out buf fd
+         if pending_nl then
+            pp_force_newline out ();
+         let pending_nl = format_string_with_nl out (String.sub buf 0 amount) in
+            copy_with_nl_exn out pending_nl buf fd
       end
 
 let format_file_with_nl buf name =
-   eprint_file_exn (copy_with_nl_exn buf) name
+   eprint_file_exn (copy_with_nl_exn buf true) name
 
 (*
  * Close tee channels.
@@ -158,7 +168,6 @@ let eprint_tee command =
 let format_tee_with_nl buf command =
    match tee_file command.command_tee with
       Some name ->
-         fprintf buf "@ ";
          format_file_with_nl buf name
     | None ->
          ()

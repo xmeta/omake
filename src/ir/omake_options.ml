@@ -349,15 +349,6 @@ let set_output_opts options s =
    in
       loop options 0
 
-let opt_divert opts =
-   (* Do diversions, unless the only enabled output option is OutputNormal *)
-   match List.filter snd opts.opt_output with
-      []
-    | [OutputNormal, _] ->
-         false
-    | _ ->
-         true
-
 let rec opt_output opts flag =
    let answer = try Some(List.assoc flag opts.opt_output) with Not_found -> None in
    (* A few extra wrinkles *)
@@ -383,6 +374,9 @@ let rec opt_output opts flag =
 let set_output_opt flag opts on =
    let flags = (flag, on) :: (List.remove_assoc flag opts.opt_output) in
       { opts with opt_output = flags }
+
+let opt_divert opts =
+   List.exists (opt_output opts) [OutputPostponeSuccess; OutputPostponeError; OutputRepeatErrors]
 
 (*
  * Default options.
