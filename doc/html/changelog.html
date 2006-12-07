@@ -49,6 +49,8 @@
     shell command line as is, not the string-expanded version. Also, if some
     of the arguments are the result of a glob-expansion, the alias function
     will receive the appropriate file values, not the strings.
+    <li>OMake 0.9.8 <b>will not be fully backwards-compatible</b> with the earlier
+    releases.
   </ul>
   <li>Major redesign of the OMake documentation (using <a
     href="http://pauillac.inria.fr/~maranget/hevea/">H<FONT
@@ -86,10 +88,11 @@
   <li>More control over the OMake output and verbosity.
   <ul>
     <li>By default, OMake is now much more silent (&quot;<tt>-S
-    --progress</tt>&quot; is enabled by default when it outputs to a terminal
-    and &quot;<tt>-S</tt>&quot; is enabled in all other cases). Added a
+    --progress</tt>&quot; is enabled by default when it outputs to a terminal,
+    and &quot;<tt>-S</tt>&quot; is enabled in all other cases).
+    <li>Added a
     <tt>--verbose</tt> option that would make OMake very verbose, when needed.
-    <li>An ability to postpone and/or repeat the rule execution output (so that, for example,
+    <li>Added an ability to postpone and/or repeat the rule execution output (so that, for example,
     only the output of the rules that fail is printed, or the output of the
     rules that failed is repeated at the end of the <tt>omake -k</tt>
     execution). This feature is somewhat experimental and might change in the
@@ -103,7 +106,7 @@
     build for your project terminates.<br>
     Note:
     <ul>
-      <li>This feature is considered experimental and it might change in the
+      <li>This feature is experimental and is likely to change in the
       future versions of OMake.
       <li>If you want to use these targets, you should probably add them to
       your <tt>~/.omakerc</tt>, rather than adding them directly to each of
@@ -114,7 +117,8 @@
   kills OMake after user presses Ctrl-C). The checkpointing interval may be
   configured both at  compile time and via the command line.
   <li>The variables such as <tt>$&lt;</tt> and <tt>$@</tt> in rules and
-  <tt>%</tt> in implicit rules will no longer be expanded to strings.
+  <tt>%</tt> in implicit rules will no longer be expanded to strings; instead
+  they will be passed as <tt>Node</tt> (&quot;file&quot;) values.
   <li>Much better handling of the <tt>exit</tt> function, a number of bugs fixed.
   <li>Implicit rules can no longer have target patterns referring to another
   directories. See <a
@@ -127,9 +131,7 @@
   for example, to use an OMake variable as an input to built-in <tt>awk</tt> without having to
   write it to a temporaty file first.
   <li>New flags added to built-in <tt>awk</tt> and <tt>grep</tt>.
-  <li>A number of other bug fixes and improvements.
-
-
+  <li>A large number of other bug fixes and improvements.
 </ul>
 
 
