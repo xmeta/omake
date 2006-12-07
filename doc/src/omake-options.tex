@@ -17,6 +17,7 @@
     \oOpt{-u}
     \oOpt{-U}
     \oOpt{-R}
+    \oOpt{-{}-verbose}
     \oOpt{-{}-project}
     \oOpt{-{}-depend}
     \oOpt{-{}-progress}
@@ -64,12 +65,13 @@ In the following command line, the final \verb+--no-S+ cancels the earlier \verb
 
 \option{-s} \verb+-s+
 
-Do not print commands as they are executed (be ``silent'').
+Never not print commands as they are executed (be ``silent'').
+
 
 \option{-S} \verb+-S+
 
 Do not print commands as they are executed \emph{unless} they produce output and/or
-fail.
+fail. This is the default.
 
 \option{-w} \verb+-w+
 
@@ -79,8 +81,9 @@ directory information for determining the location of errors.
 
 \option{--progress} \verb+--progress+
 
-Print a progress indicator.
-This is normally used with the \Opt{-s} or \Opt{-S} options.
+Print a progress indicator. This option is enabled by default when the \OMake's output
+(\verb+stdout+) is on a terminal and disabled by default (except on Windows) when the \OMake's
+output is redirected.
 
 \option{--print-status} \verb+--print-status+
 
@@ -89,6 +92,11 @@ Print status lines (the \verb/+/ and \verb/-/ lines).
 \option{--print-exit} \verb+--print-exit+
 
 Print termination codes when commands complete.
+
+\option{--verbose} \verb+--verbose+
+
+Make \OMake{} very verbose. This option is equivalent to
+\verb+--no-S --print-status --print-exit VERBOSE=true+
 
 \option{--output-normal} \verb+--output-normal+
 

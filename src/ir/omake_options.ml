@@ -70,6 +70,7 @@ type omake_options =
      opt_print_status         : bool;
      opt_print_exit           : bool;
      mutable opt_print_progress : bool setting;
+     opt_verbose              : bool;
      opt_touch_only           : bool;
      opt_flush_cache          : bool;
      opt_flush_dependencies   : bool;
@@ -229,6 +230,9 @@ let opt_all_dependencies opts =
 
 let set_all_dependencies_opt opts flag =
    { opts with opt_all_dependencies = flag }
+
+let opt_verbose opts =
+   opts.opt_verbose
 
 let opt_verbose_dependencies opts =
    opts.opt_verbose_dependencies
@@ -392,6 +396,7 @@ let default_options =
      opt_print_status         = true;
      opt_print_exit           = false;
      opt_print_progress       = Default;
+     opt_verbose              = false;
      opt_touch_only           = false;
      opt_flush_cache          = false;
      opt_flush_dependencies   = false;
@@ -466,23 +471,33 @@ let progress_usage =
  * Output control.
  *)
 let output_spec =
-   ["-s", Lm_arg.ClearFold (fun options b ->
+   [
+    "--verbose", Lm_arg.UnitFold (fun options ->
+            { options with
+              opt_print_command = EvalEager;
+              opt_verbose = true;
+              opt_print_status = true;
+              opt_print_exit = true;
+              opt_print_file = true
+            }),
+       "Verbose output (equivalent to \"--no-S --print-status --print-exit VERBOSE=true\")";
+    "--print-exit", Lm_arg.SetFold set_print_exit_opt, (**)
+       "Print the exit codes of commands";
+    "-S", Lm_arg.SetFold (fun options b -> { options with opt_print_command = if b then EvalLazy else EvalEager }), (**)
+       "Print command only if the command prints output (default)";
+    "-s", Lm_arg.ClearFold (fun options b ->
           { options with opt_print_status  = b;
                          opt_print_dir     = b;
                          opt_print_file    = b;
                          opt_print_exit    = b;
                          opt_print_command = if b then EvalEager else EvalNever }), (**)
-       "Do not print commands as they are executed";
-    "-S", Lm_arg.SetFold (fun options b -> { options with opt_print_command = if b then EvalLazy else EvalEager }), (**)
-       "Print command only if the command prints output (default)";
+       "Never print commands before they are executed";
     "--progress", Lm_arg.SetFold set_print_progress_opt, (**)
        ("Print a progress indicator " ^ progress_usage);
     "--print-status", Lm_arg.SetFold set_print_status_opt, (**)
        "Print status lines (default)";
     "-w", Lm_arg.SetFold set_print_dir_opt, (**)
        "Print the directory in \"make format\" as commands are executed";
-    "--print-exit", Lm_arg.SetFold set_print_exit_opt, (**)
-       "Print the exit codes of commands";
     "--output-normal", Lm_arg.SetFold (set_output_opt OutputNormal), (**)
        "Relay the output of the rule commands to the OMake output right away. This is the default when no --output-postpone and no --output-only-errors flags are given.";
     "--output-postpone", Lm_arg.SetFold (fun opt flag ->
@@ -491,10 +506,10 @@ let output_spec =
     "--output-only-errors", Lm_arg.SetFold (set_output_opt OutputPostponeError), (**)
        "Same as --output-postpone, but postponed output will only be printed for commands that fail.";
     "--output-at-end", Lm_arg.SetFold (set_output_opt OutputRepeatErrors), (**)
-       "The output of the failed commands will be printed after OMake have stopped. Off by default, unless -k is enabled
-       (directly or via -p/-P).";
+       "The output of the failed commands will be printed after OMake have stopped. Off by default, unless -k is enabled (directly or via -p/-P).";
     "-o", Lm_arg.StringFold set_output_opts, (**)
-       "Short output options [01jwWpPxXsS] (see the manual)"]
+       "Short output options [01jwWpPxXsS] (see the manual)";
+    ]
 
 (*
  * -*-

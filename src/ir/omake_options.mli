@@ -92,6 +92,7 @@ val opt_project : omake_options -> bool
 val opt_flush_include : omake_options -> bool
 val opt_flush_static : omake_options -> bool
 val opt_absname : omake_options -> bool
+val opt_verbose : omake_options -> bool
 
 val opt_divert : omake_options -> bool (* true when some --output-* diversions other than --output-normal are enabled *)
 val opt_output : omake_options -> output_flag -> bool

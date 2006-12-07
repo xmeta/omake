@@ -88,7 +88,7 @@ open Pos
  * \var{PID}
  *    The \OMake{} process id.
  * \var{TARGETS}
- *    The command-line target strings.  For example, if \verb+omake+ is invoked with the
+ *    The command-line target strings.  For example, if \OMake{} is invoked with the
  *    following command line,
  * \begin{verbatim}
  *       omake CFLAGS=1 foo bar.c
@@ -110,6 +110,11 @@ open Pos
  *        echo "The file foo was built" >> $(BUILD_SUMMARY)
  *        ...build foo...
  * \end{verbatim}
+ *
+ * \var{VERBOSE}
+ *    Whether certain commands should be verbose. A boolean flag that is \verb+false+
+ *    by default and is set to \verb+true+ when \OMake{} is invoked with the
+ *    \verb+--verbose+ option.
  * \end{doc}
  *)
 
@@ -2630,7 +2635,9 @@ let () =
           "OMAKE_VERSION",  (fun _ -> ValData Omake_magic.version);
           "USER",           (fun _ -> ValData user);
           "PID",            (fun _ -> ValInt (Unix.getpid ()));
-          "HOME",           (fun venv -> ValDir (venv_intern_dir venv home_dir))]
+          "HOME",           (fun venv -> ValDir (venv_intern_dir venv home_dir));
+          "VERBOSE",        (fun venv -> val_of_bool (Omake_options.opt_verbose (venv_options venv)))
+         ]
    in
    let builtin_funs =
       [true,  "addprefix",             addprefix,           ArityExact 2;
