@@ -862,9 +862,19 @@ let build_explicit_command env pos loc target effects locks venv sources scanner
    in
    let _ =
       if not (NodeSet.is_empty bogus) then
-         eprintf "@[<v 3>*** omake:@ These file are targeted separately, but appear as effects of a single rule.@ This is likely to lead to unpredictable behavior.@ @[<v 3>targets:@ %a%a@]@]@." (**)
-            pp_print_node target
-            pp_print_node_set bogus
+         let pp_print_target_loc buf (target, loc) =
+            fprintf buf "@ @[<hv3>%a@ (%a)@]" pp_print_node target pp_print_location loc
+         in
+         let rec pp_print_bogus_set buf bogus =
+            if not (NodeSet.is_empty bogus) then begin
+               let effect = NodeSet.choose bogus in
+                  pp_print_target_loc buf (effect, (NodeTable.find env.env_explicit_targets effect).rule_loc);
+                  pp_print_bogus_set buf (NodeSet.remove bogus effect)
+            end
+         in        
+         eprintf "@[<v 3>*** omake:@ These file are targeted separately, but appear as effects of a single rule.@ This is likely to lead to unpredictable behavior.@ @[<v 3>targets:%a%a@]@]@." (**)
+            pp_print_target_loc (target, loc)
+            pp_print_bogus_set bogus
    in
       build_any_command env pos loc venv target effects locks sources scanners commands
 
