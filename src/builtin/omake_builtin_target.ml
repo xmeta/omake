@@ -67,7 +67,7 @@ open Pos
  * Find dependencies of a target.
  *
  * \begin{doc}
- * \twofuns{dependencies}{dependencies-all}
+ * \threefuns{dependencies}{dependencies-all}{dependencies-proper}
  *
  * \begin{verbatim}
  *    $(dependencies targets) : File Array
@@ -312,11 +312,11 @@ let target_optional = target_core true
  * \fun{find-build-targets}
  *
  * \begin{verbatim}
- *     $(build-targets tag) : Target Array
+ *     $(find-build-targets tag) : Target Array
  *        tag : Succeeded | Failed
  * \end{verbatim}
  *
- * The \verb+build-targets+ allow the results
+ * The \verb+find-build-targets+ allow the results
  * of the build to be examined.  The \verb+tag+ must
  * specifies which targets are to be returned; the comparison
  * is case-insensitive.
@@ -334,8 +334,10 @@ let target_optional = target_core true
  *
  * \begin{verbatim}
  *     .BUILD_FAILURE:
- *         echo "Failed target count: $(length $(failed-targets))"
+ *         echo "Failed target count: $(length $(find-build-targets Failed))"
  * \end{verbatim}
+ *
+ * \textbf{Warning:} this function is experimental and may not work in some situations.
  * \end{doc}
  *)
 let find_build_targets venv pos loc args =
@@ -347,7 +349,7 @@ let find_build_targets venv pos loc args =
                   "succeeded" -> CommandSucceededTag
                 | "failed" -> CommandFailedTag
                 | tag ->
-                     raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", tag)))
+                     raise (OmakeException (loc_pos loc pos, StringStringError ("find-build-targets: unknown option", tag)))
             in
             let env = get_env pos loc in
             let targets =
