@@ -81,7 +81,7 @@ let print_progress options count total =
 (*
  * Flush the print line if needed.
  *)
-let flush_buf = String.make Lm_termsize.stdout_width ' '
+let flush_buf = String.make (Lm_termsize.stdout_width - 1) ' '
 
 let print_flush () =
    if !print_flush_flag then  begin
