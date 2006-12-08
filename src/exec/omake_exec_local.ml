@@ -222,9 +222,17 @@ struct
                   server.server_jobs <- job :: jobs;
                   ProcessStarted id))
 
+   let err_print_status commands handle_status id =
+      match commands with
+         command :: commands ->
+            handle_status id (PrintLazy command)
+       | [] ->
+            ()
+
    let spawn server shell id handle_out handle_err handle_status target commands =
       try spawn_exn server shell id handle_out handle_err handle_status target commands with
          exn ->
+            err_print_status commands handle_status id;
             handle_exn handle_err shell.shell_print_exn id exn;
             if shell.shell_is_failure_exn exn then
                ProcessFailed
@@ -285,6 +293,7 @@ struct
       try spawn_next_part_exn server job with
          exn ->
             let shell = job.job_shell in
+               err_print_status job.job_commands job.job_handle_status job.job_id;
                handle_exn job.job_handle_err shell.shell_print_exn job.job_id exn;
                job.job_state <- JobFinished (fork_error_code, shell.shell_error_value);
                if not (shell.shell_is_failure_exn exn) then
