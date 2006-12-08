@@ -119,7 +119,7 @@ let env_close_success_tee env command =
          Some name ->
             tee_close tee;
             if opt_output (venv_options venv) OutputPostponeSuccess then begin
-               pp_print_flush stderr ();
+               progress_flush();
                eprint_file name
             end;
             unlink_file name;
@@ -144,7 +144,7 @@ let env_close_failed_tee env command =
          Some name ->
             tee_close tee;
             if opt_output options OutputPostponeError then begin
-               pp_print_flush stderr ();
+               progress_flush();
                eprint_file name;
                if not (opt_output options OutputRepeatErrors) then begin
                   unlink_file name;
@@ -160,6 +160,7 @@ let env_close_failed_tee env command =
 let eprint_tee command =
    match tee_file command.command_tee with
       Some name ->
+         progress_flush ();
          eprintf "*** omake: failed: %a@." pp_print_node command.command_target;
          eprint_file name
     | None ->

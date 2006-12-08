@@ -388,7 +388,7 @@ struct
                    | WaitInternalStarted true ->
                         if opt_print_status options then
                            begin
-                              print_flush ();
+                              progress_flush ();
                               printf "# server %s started@." host
                            end;
                         server.server_enabled <- true;
@@ -396,7 +396,7 @@ struct
                    | WaitInternalStarted false ->
                         if opt_print_status options then
                            begin
-                              print_flush ();
+                              progress_flush ();
                               printf "# server %s failed@." host
                            end;
                         server.server_enabled <- false;

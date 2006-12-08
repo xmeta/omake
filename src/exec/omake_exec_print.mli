@@ -38,7 +38,7 @@ open Omake_options
 (*
  * Flush the progress meter.
  *)
-val print_flush : unit -> unit
+val progress_flush : unit -> unit
 
 (*
  * Print a progress indicator.

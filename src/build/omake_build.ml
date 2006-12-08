@@ -2114,9 +2114,10 @@ and invalidate_event_core env event =
       (* If it really changed, perform the invalidation *)
       if changed_flag then begin
          let verbose = opt_print_status (venv_options venv) in
-            print_flush ();
-            if verbose then
-               eprintf "*** omake: file %s changed@." (Node.fullname node);
+            if verbose then begin
+               progress_flush ();
+               eprintf "*** omake: file %s changed@." (Node.fullname node)
+            end;
 
             (* If this is an OMakefile, abort and restart *)
             if NodeTable.mem env.env_includes node then begin
@@ -2263,7 +2264,7 @@ let rec main_loop env progress =
       main_loop env progress
    end else begin
       assert (env.env_idle_count >= 0);
-      print_flush ()
+      progress_flush ()
    end
 
 (************************************************************************
