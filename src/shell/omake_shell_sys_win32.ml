@@ -112,6 +112,7 @@ let create_thread info =
          create_thread_fun = f
        } = info
    in
+   Pervasives.flush_all();
    let pid    = create_thread_pid pgrp in
    let stdin  = Unix.dup stdin  in
    let stdout = Unix.dup stdout in

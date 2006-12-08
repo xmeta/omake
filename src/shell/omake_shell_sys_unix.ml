@@ -181,6 +181,7 @@ let create_thread info =
          create_thread_background = bg
        } = info
    in
+   Pervasives.flush_all();
    let pid = Unix.fork () in
       if pid = 0 then
          let code =
