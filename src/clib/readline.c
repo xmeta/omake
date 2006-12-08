@@ -39,7 +39,7 @@
 #  include <caml/signals.h>
 #  include <windows.h>
    /* Disable some of the warnings */
-#  pragma warning( disable : 4100 4127 4505 )
+#  pragma warning( disable : 4100 4127 4505 4996 )
 #else
 #  include <unistd.h>
 #  include <string.h>
@@ -984,7 +984,7 @@ static void readline_raw(ReadLine *readp)
 /*
  * Once reading is done, reset all the buffers.
  */
-static readline_done(ReadLine *readp)
+static void readline_done(ReadLine *readp)
 {
     LineBuffer *linep;
     char *strp;

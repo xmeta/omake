@@ -39,7 +39,7 @@
 #include <caml/signals.h>
 
 /* Disable some of the warnings */
-#pragma warning( disable : 4127 4189 4702 4706 )
+#pragma warning( disable : 4127 4189 4702 4706 4996 )
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0400
@@ -126,7 +126,7 @@ typedef struct _process {
     unsigned status    : 2;             // Process status
     unsigned code      : 8;             // Exit code, if the process exited
     HANDLE handle;                      // The actual process (or event if this is a thread)
-    DWORD wid;				// Process identifier
+    DWORD wid;          // Process identifier
     struct _process *next;              // Linked list
 } Process;
 
