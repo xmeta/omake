@@ -655,8 +655,6 @@ let find_alias_exn shell_obj venv pos loc exe =
          venv_close_channel venv pos stdin;
          venv_close_channel venv pos stdout;
          venv_close_channel venv pos stderr;
-         if !debug_eval then
-            eprintf "normalize_apply: returning value: %d, %a@." code pp_print_value value;
          match reraise with
             Some exn ->
                raise exn
