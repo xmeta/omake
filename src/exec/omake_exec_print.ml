@@ -183,16 +183,18 @@ let print_status handle_out options shell remote name flag =
 (*
  * Print a list of lines.
  *)
-let print_status_lines options shell name el =
-   (* Print the header *)
-   print_flush ();
-
+let pp_status_lines out options shell name el =
    (* Print the commands *)
-   List.iter (fun exp ->
-         let flags, dir, target = shell.shell_info exp in
-            if opt_print_file options then
-               printf "- %s %s %s@." name (Dir.fullname dir) (Node.name dir target);
-            printf "+ %a@." shell.shell_print_exp exp) el
+   let first = ref true in
+      fprintf out "   @[<v0>";
+      List.iter (fun exp ->
+            let flags, dir, target = shell.shell_info exp in
+               if !first then begin
+                  fprintf out "- %s %s %s" name (Dir.fullname dir) (Node.name dir target);
+                  first := false;
+               end;
+               fprintf out "@ + %a" shell.shell_print_exp exp) el;
+      fprintf out "   @]@."
 
 (*
  * -*-

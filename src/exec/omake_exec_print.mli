@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Mojave Group, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,8 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
+open Lm_printf
+
 open Omake_node
 open Omake_exec_id
 open Omake_exec_util
@@ -71,7 +73,8 @@ val print_status :
 (*
  * Print a status lines.
  *)
-val print_status_lines :
+val pp_status_lines :
+   formatter ->                         (* Output channel *)
    omake_options ->                     (* Options currently in effect *)
    ('exp, 'pid, 'value) shell ->        (* The current shell *)
    string ->                            (* Name of operation being performed *)

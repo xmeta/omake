@@ -57,6 +57,7 @@ open Omake_command
 open Omake_node_sig
 open Omake_exec_type
 open Omake_exec_util
+open Omake_exec_id
 open Omake_exec_print
 open Omake_exec_remote
 open Omake_cache_type
@@ -227,8 +228,8 @@ let pp_print_command_state buf state =
     | CommandBlocked                   -> pp_print_string buf "blocked"
     | CommandPending                   -> pp_print_string buf "pending"
     | CommandReady                     -> pp_print_string buf "ready"
-    | CommandRunning (pid, None)       -> fprintf buf "running(%a)" Omake_exec_id.pp_print_pid pid
-    | CommandRunning (pid, Some name)  -> fprintf buf "scanning(%a, %s)" Omake_exec_id.pp_print_pid pid name
+    | CommandRunning (pid, None)       -> fprintf buf "running(%a)" pp_print_pid pid
+    | CommandRunning (pid, Some name)  -> fprintf buf "scanning(%a, %s)" pp_print_pid pid name
     | CommandSucceeded _               -> pp_print_string buf "succeeded"
     | CommandFailed code               -> fprintf buf "failed(%d)" code
 
@@ -1440,9 +1441,13 @@ let save_and_finish_scanner_success env command filename =
             let pos = string_pos "save_and_finish_scanner" (loc_exp_pos loc) in
             let lines, _ = command_lines command in
             let shell = eval_shell venv pos in
-               eprintf "*** omake: scanner produced ill-formed output@.";
-               print_status_lines (env_options env) shell "scan" lines;
-               eprintf "*** omake: scanner output is saved in %s@." filename;
+            let options = env_options env in
+            let divert_only = not (opt_output options OutputNormal) in
+            let handle_err = tee_stderr command.command_tee divert_only null_id in
+            let out = make_formatter handle_err (fun () -> handle_err "" 0 0) in
+               fprintf out "@?*** omake: scanner produced ill-formed output@.";
+               pp_status_lines out options shell "scan" lines;
+               fprintf out "*** omake: @[<hv0>scanner output is saved in@ %s@]@." filename;
                abort_command env command scanner_error_code
 
 (*

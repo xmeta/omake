@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Mojave Group, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -61,6 +61,8 @@ let pp_print_pid = pp_print_int
 (*
  * Id allocation.
  *)
+let null_id = 0
+ 
 let index = ref 1
 
 let create () =
@@ -81,12 +83,9 @@ let unmarshal_id l =
     | _ ->
          raise MarshalError
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

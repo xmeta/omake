@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Mojave Group, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,6 +43,11 @@ type id
 module IdTable : Lm_map_sig.LmMap with type key = id
 
 (*
+ * "Null" id for the "master" process.
+ *)
+val null_id : id
+
+(*
  * Get a new id.
  *)
 val create : unit -> id
@@ -58,12 +63,9 @@ val pp_print_pid : formatter -> id -> unit
 val marshal_id : id -> msg
 val unmarshal_id : msg -> id
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
