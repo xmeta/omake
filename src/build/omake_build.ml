@@ -78,10 +78,9 @@ type prompt_state = {
 let save_interval = ref Omake_magic.default_save_interval
 
 (*
- * XXX: Should these be options as well?
+ * XXX: Should this be an option as well?
  *)
 let prompt_interval = 0.5
-let prompt_long_interval = 3.0
 
 (*
  * Maximum number of events that can be queued during
@@ -2227,17 +2226,17 @@ let rec main_loop env progress =
          let now = Unix.gettimeofday () in
          let will_save = ! save_interval > 0.0 && now > progress.ps_save in
          let progress = 
+            if will_save then begin
+               save env;
+               print_saving options;
+               { progress with ps_save = now +. ! save_interval }
+            end else
+               progress
+         in
             if now > progress.ps_progress || will_save then begin
                let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
                   print_progress options env.env_succeeded_count total;
                   { progress with ps_progress = now +. prompt_interval }
-            end else
-               progress
-         in
-            if will_save then begin
-               print_saving options;
-               save env;
-               { progress with ps_progress = now +. prompt_long_interval; ps_save = now +. ! save_interval }
             end else
                progress
       else

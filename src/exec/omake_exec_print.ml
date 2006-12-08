@@ -47,7 +47,7 @@ let print_flush_flag = ref false
  * Print the progress bar.
  *)
 let message = ref None
-let message_count = ref 0
+let message_timeout = ref 0.0
 let progress_width = Lm_termsize.stdout_width - 20
 
 let print_progress options count total =
@@ -58,10 +58,8 @@ let print_progress options count total =
          match !message with
             Some s ->
                (* The message has a finite lifetime *)
-               if !message_count = 0 then
-                  message := None
-               else
-                  decr message_count;
+               if Unix.gettimeofday () >= !message_timeout then
+                  message := None;
 
                (* Print the message first *)
                print_string s;
@@ -93,13 +91,13 @@ let print_flush () =
 
 (*
  * Print a short message.
+ * XXX: Should the message_timeout delay be an option?
  *)
 let print_message options s =
    if opt_print_progress options then begin
       message := Some s;
-      message_count := 2
-   end
-   else
+      message_timeout := Unix.gettimeofday () +. 3.0
+   end else
       printf "*** omake: %s@." s
 
 (*
