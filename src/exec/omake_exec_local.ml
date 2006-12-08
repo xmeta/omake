@@ -87,7 +87,7 @@ struct
 
         (* A temporary buffer for copying. *)
         job_buffer_len         : int;
-        job_buffer             : string;
+        job_buffer             : string * string;
       }
 
    (*
@@ -208,7 +208,7 @@ struct
                     job_print_flag = false;
                     job_shell = shell;
                     job_buffer_len = 1024;
-                    job_buffer = String.make 1024 '\000';
+                    job_buffer = String.create 1024, String.create 1024;
                   }
                in
                let table = FdTable.add table out_read job in
@@ -355,14 +355,14 @@ struct
             job_handle_status = handle_status;
             job_command = command;
             job_buffer_len = buffer_len;
-            job_buffer = buffer;
+            job_buffer = buffer_stdout, buffer_stderr;
           } = job
       in
-      let handle =
+      let handle, buffer =
          if fd = stdout then
-            handle_out
+            handle_out, buffer_stdout
          else if fd = stderr then
-            handle_err
+            handle_err, buffer_stderr
          else
             raise (Invalid_argument "Omake_exec.handle_channel: unknown file descriptor")
       in
