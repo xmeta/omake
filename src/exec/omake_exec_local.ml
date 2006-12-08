@@ -109,16 +109,16 @@ struct
     *)
    let pp_print_pid = pp_print_int
 
+   let allow_output shell command =
+      let flags, dir, target = shell.shell_info command in
+         List.mem AllowOutputFlag flags
+         
    (*
     * Print an error to the error channel.
     *)
    let handle_exn handle_err pp_print_exn id exn =
-      let s =
-         let buf = Buffer.create 32 in
-            bprintf buf "@[<v 3>   *** process creation failed:@ %a@]@." pp_print_exn exn;
-            Buffer.contents buf
-      in
-         handle_err id s 0 (String.length s)
+      let out = make_formatter (handle_err id) ignore in
+         fprintf out "@[<v 3>   *** process creation failed:@ %a@]@." pp_print_exn exn
 
    (*
     * When the server is closed, kill all the jobs.
@@ -383,11 +383,11 @@ struct
             end
          else
             begin
-               if not job.job_print_flag then
-                  begin
-                     handle_status id (PrintLazy command);
-                     job.job_print_flag <- true
-                  end;
+               (* For "AllowOutputFlag" commands (e.g. scanner) stdout does not "count", but stderr still does *)
+               if not (job.job_print_flag || (fd = stdout && allow_output job.job_shell command)) then begin
+                  handle_status id (PrintLazy command);
+                  job.job_print_flag <- true
+               end;
                handle id buffer 0 count
             end
 

@@ -142,12 +142,11 @@ let print_leaving_current_directory options =
 (*
  * Print a status line.
  *)
-let should_print options flags flag =
+let should_print options flag =
    match flag, opt_print_command options with
-       PrintEager _, EvalEager ->
-          true
+       PrintEager _, EvalEager
      | PrintLazy _, EvalLazy ->
-          not (List.mem AllowOutputFlag flags)
+          true
      | PrintExit _, _ ->
           opt_print_exit options
      | _ ->
@@ -170,7 +169,7 @@ let print_status handle_out options shell remote name flag =
          PrintEager exp
        | PrintLazy exp ->
             let flags, dir, target = shell.shell_info exp in
-               if should_print options flags flag then
+               if should_print options flag then
                   let dirname = Dir.fullname dir in
                      print_flush ();
                      print_entering_current_directory options dir;
@@ -181,7 +180,7 @@ let print_status handle_out options shell remote name flag =
        | PrintExit (exp, code, _) ->
             let flags, dir, target = shell.shell_info exp in
             let dirname = Dir.fullname dir in
-               if should_print options flags flag && opt_print_file options then begin
+               if should_print options flag && opt_print_file options then begin
                   print_flush ();
                   fprintf out "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
                end
