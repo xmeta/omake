@@ -35,6 +35,7 @@ open Lm_debug
 open Omake_node
 open Omake_state
 open Omake_cache_type
+open Omake_exec_print
 
 (*
  * Build debugging.
@@ -169,13 +170,15 @@ let tee_create b =
       tee_none
 
 let tee_copy name fd tee tee_only id buf off len =
-   if len = 0 then
+   if len = 0 then begin
+      if not tee_only then
+         progress_flush ();
       match !tee with
          TeeChannel (_, outx) ->
             Pervasives.flush outx
       | _ ->
             ()
-   else begin
+   end else begin
       if not tee_only then
          write_all name fd id buf off len;
       match tee_channel tee with
