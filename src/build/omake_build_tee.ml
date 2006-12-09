@@ -29,6 +29,7 @@
  * @end[license]
  *)
 open Lm_printf
+open Lm_string_set
 
 open Omake_env
 open Omake_node
@@ -44,11 +45,23 @@ let tee_none = tee_create false
 
 (*
  * Unlink all the tee files.
+ *
+ * XXX: HACK: It is hard to convince Windows not to hold on to these files,
+ * so we keep track of those that we have failed to unlink and delete them
+ * later on.
  *)
-let unlink_file name =
-   try Unix.unlink name with
-      Unix.Unix_error _ ->
-         ()
+let failed_unlink = ref StringSet.empty
+
+let try_unlink table name =
+   try Unix.unlink name; table with
+      Unix.Unix_error(Unix.ENOENT, _, _) ->
+         table
+    | Unix.Unix_error _ ->
+         StringSet.add table name 
+
+let rec unlink_file name =
+   let table = StringSet.add (!failed_unlink) name in
+      failed_unlink := StringSet.fold try_unlink StringSet.empty table
 
 (*
  * Print all tees.
@@ -131,7 +144,7 @@ let env_close_success_tee env command =
  * For failed commands, repeat the diversion immediately
  * if the DivertRepeat flag is specified.
  *
- * Don't remove the diversion, we'll print it again
+ * Don't remove the diversion if we are going to print it again
  * at the end of the run.
  *)
 let env_close_failed_tee env command =
@@ -139,9 +152,9 @@ let env_close_failed_tee env command =
          command_tee  = tee
        } = command
    in
-   let options = venv_options venv in
       match tee_file tee with
          Some name ->
+            let options = venv_options venv in
             tee_close tee;
             if opt_output options OutputPostponeError then begin
                progress_flush();
