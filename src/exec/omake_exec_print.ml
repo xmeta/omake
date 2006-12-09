@@ -33,7 +33,6 @@ open Omake_node
 open Omake_state
 open Omake_command
 open Omake_exec_type
-open Omake_exec_util
 open Omake_options
 open Omake_command_type
 
