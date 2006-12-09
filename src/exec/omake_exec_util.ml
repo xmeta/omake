@@ -169,18 +169,23 @@ let tee_create b =
    else
       tee_none
 
-let tee_copy name fd tee tee_only id buf off len =
+let tee_copy name fd flush_flag tee tee_only id buf off len =
    if len = 0 then begin
       if not tee_only then
-         progress_flush ();
+         flush_flag := true;
       match !tee with
          TeeChannel (_, outx) ->
             Pervasives.flush outx
       | _ ->
             ()
    end else begin
-      if not tee_only then
+      if not tee_only then begin
+         if !flush_flag then begin
+            progress_flush ();
+            flush_flag := false;
+         end;
          write_all name fd id buf off len;
+      end;
       match tee_channel tee with
          Some outx ->
             Pervasives.output outx buf off len
@@ -188,8 +193,8 @@ let tee_copy name fd tee tee_only id buf off len =
             ()
    end
 
-let tee_stdout = tee_copy "Unix.stdout" Unix.stdout
-let tee_stderr = tee_copy "Unix.stderr" Unix.stderr
+let tee_stdout = tee_copy "Unix.stdout" Unix.stdout (ref true)
+let tee_stderr = tee_copy "Unix.stderr" Unix.stderr (ref true)
 
 (*
  * -*-

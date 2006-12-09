@@ -41,6 +41,7 @@ open Omake_command_type
  * Remember if this text should be deleted.
  *)
 let progress_flush_flag = ref false
+let progress_flushed_flag = ref false
 
 (*
  * Print the progress bar.
@@ -75,7 +76,8 @@ let print_progress options count total =
             print_char ' '
          done;
          printf "] %05d / %05d\r@?" count total;
-         progress_flush_flag := true
+         progress_flush_flag := true;
+         progress_flushed_flag := false
 
 (*
  * Flush the print line if needed.
@@ -85,8 +87,11 @@ let flush_buf = String.make (Lm_termsize.stdout_width - 1) ' '
 let progress_flush () =
    if !progress_flush_flag then  begin
       printf "%s\r@?" flush_buf;
-      progress_flush_flag := false
+      progress_flush_flag := false;
+      progress_flushed_flag := true
    end
+
+let progress_flushed () = !progress_flushed_flag
 
 (*
  * Print a short message.

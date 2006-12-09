@@ -2226,7 +2226,8 @@ let rec main_loop env progress =
    end;
 
    let progress =
-      if progress.ps_count <> env.env_succeeded_count then
+      let flushed = progress_flushed () in
+      if flushed || progress.ps_count <> env.env_succeeded_count then
          let progress = { progress with ps_count = env.env_succeeded_count } in
          let options = venv_options env.env_venv in
          let now = Unix.gettimeofday () in
@@ -2239,7 +2240,7 @@ let rec main_loop env progress =
             end else
                progress
          in
-            if now > progress.ps_progress || will_save then begin
+            if flushed || will_save || now > progress.ps_progress then begin
                let total = NodeTable.cardinal env.env_commands - env.env_optional_count in
                   print_progress options env.env_succeeded_count total;
                   { progress with ps_progress = now +. prompt_interval }
