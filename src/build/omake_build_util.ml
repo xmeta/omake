@@ -174,7 +174,7 @@ let check_sort pos graph domain =
             IntNodeSet.iter (fun (index', dep) ->
                   if index' > index then
                      let print_problem buf =
-                        eprintf "@[<hv 3>IntNodes are out of order:@ IntNode %a@ Depends on %a@]" (**)
+                        fprintf buf "@[<hv 3>IntNodes are out of order:@ IntNode %a@ Depends on %a@]" (**)
                            pp_print_node node
                            pp_print_node dep
                      in
