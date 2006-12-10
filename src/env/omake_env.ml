@@ -2399,20 +2399,20 @@ let venv_add_match_args venv args =
    let venv, _ =
       List.fold_left (fun (venv, i) arg ->
             let v = Lm_symbol.add (string_of_int i) in
-            let venv = venv_add_var_tmp venv v (ValString arg) in
+            let venv = venv_add_var_tmp venv v (ValData arg) in
                venv, succ i) (venv, 1) args
    in
       venv
 
 let venv_add_match venv line args =
-   let args = List.map (fun s -> ValString s) args in
+   let args = List.map (fun s -> ValData s) args in
    let venv, _ =
       List.fold_left (fun (venv, i) arg ->
             let v = Lm_symbol.add (string_of_int i) in
             let venv = venv_add_var_tmp venv v arg in
                venv, succ i) (venv, 1) args
    in
-   let venv = venv_add_var_tmp venv zero_sym (ValString line) in
+   let venv = venv_add_var_tmp venv zero_sym (ValData line) in
    let venv = venv_add_var_tmp venv star_sym (ValArray args) in
    let venv = venv_add_var_tmp venv nf_sym   (ValInt (List.length args)) in
       venv
