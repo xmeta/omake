@@ -1,6 +1,6 @@
 %define index 1
 Version: 0.9.8
-Release: %{index}
+Release: %{index}%{?dist}
 Summary: The omake build system.
 Name: omake
 URL: http://omake.metaprl.org/
