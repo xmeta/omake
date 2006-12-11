@@ -192,6 +192,7 @@ Contents
        - 8.1.10  PID 
        - 8.1.11  TARGETS 
        - 8.1.12  BUILD_SUMMARY 
+       - 8.1.13  VERBOSE 
      
     - 8.2  Logic, Boolean functions, and control flow 
         
@@ -227,33 +228,35 @@ Contents
        - 8.3.10  string 
        - 8.3.11  string-escaped, ocaml-escaped, html-escaped,
          html-pre-escaped, c-escaped, id-escaped 
-       - 8.3.12  quote 
-       - 8.3.13  quote-argv 
-       - 8.3.14  html-string 
-       - 8.3.15  addsuffix 
-       - 8.3.16  mapsuffix 
-       - 8.3.17  addsuffixes 
-       - 8.3.18  removeprefix 
-       - 8.3.19  removesuffix 
-       - 8.3.20  replacesuffixes 
-       - 8.3.21  addprefix 
-       - 8.3.22  mapprefix 
-       - 8.3.23  add-wrapper 
-       - 8.3.24  set 
-       - 8.3.25  mem 
-       - 8.3.26  intersection 
-       - 8.3.27  intersects 
-       - 8.3.28  set-diff 
-       - 8.3.29  filter 
-       - 8.3.30  filter-out 
-       - 8.3.31  capitalize 
-       - 8.3.32  uncapitalize 
-       - 8.3.33  uppercase 
-       - 8.3.34  lowercase 
-       - 8.3.35  system 
-       - 8.3.36  shell 
-       - 8.3.37  while 
-       - 8.3.38  break 
+       - 8.3.12  decode-uri, encode-uri 
+       - 8.3.13  quote 
+       - 8.3.14  quote-argv 
+       - 8.3.15  html-string 
+       - 8.3.16  addsuffix 
+       - 8.3.17  mapsuffix 
+       - 8.3.18  addsuffixes 
+       - 8.3.19  removeprefix 
+       - 8.3.20  removesuffix 
+       - 8.3.21  replacesuffixes 
+       - 8.3.22  addprefix 
+       - 8.3.23  mapprefix 
+       - 8.3.24  add-wrapper 
+       - 8.3.25  set 
+       - 8.3.26  mem 
+       - 8.3.27  intersection 
+       - 8.3.28  intersects 
+       - 8.3.29  set-diff 
+       - 8.3.30  filter 
+       - 8.3.31  filter-out 
+       - 8.3.32  capitalize 
+       - 8.3.33  uncapitalize 
+       - 8.3.34  uppercase 
+       - 8.3.35  lowercase 
+       - 8.3.36  system 
+       - 8.3.37  shell 
+       - 8.3.38  while 
+       - 8.3.39  break 
+       - 8.3.40  random, random-init 
      
     - 8.4  Arithmetic 
         
@@ -282,12 +285,13 @@ Contents
        - 9.1.2  tmpfile 
        - 9.1.3  in 
        - 9.1.4  basename 
-       - 9.1.5  rootname 
-       - 9.1.6  dirof 
-       - 9.1.7  fullname 
-       - 9.1.8  absname 
-       - 9.1.9  homename 
-       - 9.1.10  suffix 
+       - 9.1.5  dirname 
+       - 9.1.6  rootname 
+       - 9.1.7  dirof 
+       - 9.1.8  fullname 
+       - 9.1.9  absname 
+       - 9.1.10  homename 
+       - 9.1.11  suffix 
      
     - 9.2  Path search 
         
@@ -484,9 +488,8 @@ Contents
           - 12.3.1.2  CWD 
           - 12.3.1.3  EMPTY 
           - 12.3.1.4  STDROOT 
-          - 12.3.1.5  VERBOSE 
-          - 12.3.1.6  ABORT_ON_COMMAND_ERROR 
-          - 12.3.1.7  SCANNER_MODE 
+          - 12.3.1.5  ABORT_ON_COMMAND_ERROR 
+          - 12.3.1.6  SCANNER_MODE 
         
        - 12.3.2  System variables 
            
@@ -639,7 +642,8 @@ Contents
     - 12.8  Examining the dependency graph 
         
            
-          - 12.8.0.8  dependencies, dependencies-all 
+          - 12.8.0.8  dependencies, dependencies-all,
+            dependencies-proper 
           - 12.8.0.9  target 
           - 12.8.0.10  find-build-targets 
           - 12.8.0.11  project-directories 
@@ -668,11 +672,12 @@ Contents
        - A.2.4  --progress 
        - A.2.5  --print-status 
        - A.2.6  --print-exit 
-       - A.2.7  --output-normal 
-       - A.2.8  --output-postpone 
-       - A.2.9  --output-only-errors 
-       - A.2.10  --output-at-end 
-       - A.2.11  -o 
+       - A.2.7  --verbose 
+       - A.2.8  --output-normal 
+       - A.2.9  --output-postpone 
+       - A.2.10  --output-only-errors 
+       - A.2.11  --output-at-end 
+       - A.2.12  -o 
      
     - A.3  Build options 
         
@@ -4226,7 +4231,7 @@ end up being re-scanned.
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' variable (see Section 12.3.1.7) controls the usage
+  The `SCANNER_MODE' variable (see Section 12.3.1.6) controls the usage
 of implicit scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
@@ -4536,7 +4541,7 @@ project root.
 values (as in the `file' function described in Section 9.1.1). They are
 then translated to strings for the command line. This can cause some
 unexpected behavior. In the following example, the `absname' function
-(Section 9.1.8) is the absolute pathname for the file `a', but the rule
+(Section 9.1.9) is the absolute pathname for the file `a', but the rule
 still prints the relative pathname.
 <<
       .PHONY: demo
@@ -4653,7 +4658,7 @@ are  `Unix' (for all Unix versions, including Linux and Mac OS X),
 
 8.1.11  TARGETS
 ===============
-    The command-line target strings. For example, if `omake' is invoked
+    The command-line target strings. For example, if OMake is invoked
 with the  following command line, 
 <<
         omake CFLAGS=1 foo bar.c
@@ -4677,6 +4682,13 @@ can append a message to the build summary.
          ...build foo...
 >>
   
+  
+
+8.1.13  VERBOSE
+===============
+    Whether certain commands should be verbose. A boolean flag that is
+`false'  by default and is set to `true' when OMake is invoked with the 
+`--verbose' option.
 
 8.2  Logic, Boolean functions, and control flow
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
@@ -5285,7 +5297,25 @@ does not translate newlines into `<br>'.
 >>
   
 
-8.3.12  quote
+8.3.12  decode-uri, encode-uri
+==============================
+  
+<<
+      $(decode-uri sequence) : sequence
+          sequence : Sequence
+>>
+  
+  These two functions perform URI encoding, where special characters are
+represented by hexadecimal characters.
+<<
+      osh> s = $(encode-uri $'a b~c')
+      "a+b%7ec"
+      osh> decode-uri($s)
+      "a b~c"
+>>
+  
+
+8.3.13  quote
 =============
   
 <<
@@ -5298,7 +5328,7 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-8.3.13  quote-argv
+8.3.14  quote-argv
 ==================
   
 <<
@@ -5310,7 +5340,7 @@ c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-8.3.14  html-string
+8.3.15  html-string
 ===================
   
 <<
@@ -5323,7 +5353,7 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-8.3.15  addsuffix
+8.3.16  addsuffix
 =================
   
 <<
@@ -5338,7 +5368,7 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'.
 
-8.3.16  mapsuffix
+8.3.17  mapsuffix
 =================
   
 <<
@@ -5354,7 +5384,7 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'.
 
-8.3.17  addsuffixes
+8.3.18  addsuffixes
 ===================
   
 <<
@@ -5369,7 +5399,7 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-8.3.18  removeprefix
+8.3.19  removeprefix
 ====================
   
 <<
@@ -5381,7 +5411,7 @@ to `a.c a.o b.c b.o c.o c.a'.
   The `removeprefix' function removes a prefix from each component of a
 sequence.
 
-8.3.19  removesuffix
+8.3.20  removesuffix
 ====================
   
 <<
@@ -5394,7 +5424,7 @@ of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
 
-8.3.20  replacesuffixes
+8.3.21  replacesuffixes
 =======================
   
 <<
@@ -5410,7 +5440,7 @@ the same length.
   For example, `$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)' expands
 to `a.o b.o c.z'.
 
-8.3.21  addprefix
+8.3.22  addprefix
 =================
   
 <<
@@ -5425,7 +5455,7 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'.
 
-8.3.22  mapprefix
+8.3.23  mapprefix
 =================
   
 <<
@@ -5441,7 +5471,7 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'.
 
-8.3.23  add-wrapper
+8.3.24  add-wrapper
 ===================
   
 <<
@@ -5457,7 +5487,7 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence.
 
-8.3.24  set
+8.3.25  set
 ===========
   
 <<
@@ -5469,7 +5499,7 @@ sequence.
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-8.3.25  mem
+8.3.26  mem
 ===========
   
 <<
@@ -5482,7 +5512,7 @@ duplicates.
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-8.3.26  intersection
+8.3.27  intersection
 ====================
   
 <<
@@ -5498,7 +5528,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'.
 
-8.3.27  intersects
+8.3.28  intersects
 ==================
   
 <<
@@ -5513,7 +5543,7 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-8.3.28  set-diff
+8.3.29  set-diff
 ================
   
 <<
@@ -5530,7 +5560,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'.
 
-8.3.29  filter
+8.3.30  filter
 ==============
   
 <<
@@ -5545,7 +5575,7 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-8.3.30  filter-out
+8.3.31  filter-out
 ==================
   
 <<
@@ -5560,7 +5590,7 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-8.3.31  capitalize
+8.3.32  capitalize
 ==================
   
 <<
@@ -5572,7 +5602,7 @@ evaluates to `x.o y.o'.
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-8.3.32  uncapitalize
+8.3.33  uncapitalize
 ====================
   
 <<
@@ -5584,7 +5614,7 @@ The Looking Glass'.
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-8.3.33  uppercase
+8.3.34  uppercase
 =================
   
 <<
@@ -5596,7 +5626,7 @@ The Looking Glass'.
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-8.3.34  lowercase
+8.3.35  lowercase
 =================
   
 <<
@@ -5609,7 +5639,7 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-8.3.35  system
+8.3.36  system
 ==============
   
 <<
@@ -5626,7 +5656,7 @@ function is used internally by omake to evaluate shell commands.
 >>
   
 
-8.3.36  shell
+8.3.37  shell
 =============
   
 <<
@@ -5647,7 +5677,7 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-8.3.37  while
+8.3.38  while
 =============
   
 <<
@@ -5704,10 +5734,10 @@ value is printed.
          echo $i
 >>
   
-  The `break' function (Section 8.3.38) can be used to break out of the
+  The `break' function (Section 8.3.39) can be used to break out of the
 `while' loop early.
 
-8.3.38  break
+8.3.39  break
 =============
   
 <<
@@ -5716,6 +5746,21 @@ value is printed.
   
   Terminate execution of the innermost loop, returning the current
 state.
+
+8.3.40  random, random-init
+===========================
+  
+<<
+      random-init(i)
+          i : Int
+      random() : Int
+>>
+  
+  Produce a random number. The numbers are pseudo-random, and are not
+cryptographically secure.
+  The generator is initialized form semi-random system data. Subsequent
+runs should produce different results. The `rando-init' function can be
+used to return the generator to a known state.
 
 8.4  Arithmetic
 *=*=*=*=*=*=*=*
@@ -5901,7 +5946,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function (Section 8.3.38) can be used to break out of the
+  The `break' function (Section 8.3.39) can be used to break out of the
 loop early.
 
 Chapter 9    File operations
@@ -6008,7 +6053,24 @@ removed.
   For example, the expression `$(basename dir1/dir2/a.out
 /etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'.
 
-9.1.5  rootname
+9.1.5  dirname
+==============
+  
+<<
+     $(dirname files) : String Sequence
+        files : String Sequence
+>>
+  
+  The `dirname' function returns the directory name for a list of files.
+The directory name is the filename with the basename removed. If a name
+does not have a directory part, the directory is ``.''
+  For example, the expression `$(dirname dir1\dir2\a.out
+/etc/modules.conf /foo.ml bar.ml)' evaluates to `dir1/dir2 /etc / .'.
+  Note: this function is different from the `dirof' function. The
+function `dirname' is simple a function over strings, while `dirof' is a
+function on filenames.
+
+9.1.6  rootname
 ===============
   
 <<
@@ -6021,7 +6083,7 @@ rootname is the filename with the final suffix removed.
   For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
 /foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'.
 
-9.1.6  dirof
+9.1.7  dirof
 ============
   
 <<
@@ -6034,7 +6096,7 @@ files.
   For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
 /foo.ml)' evaluates to the directories `dir1/dir2 /etc /'.
 
-9.1.7  fullname
+9.1.8  fullname
 ===============
   
 <<
@@ -6045,7 +6107,7 @@ files.
   The `fullname' function returns the pathname relative to the project
 root for each of the files or directories.
 
-9.1.8  absname
+9.1.9  absname
 ==============
   
 <<
@@ -6056,8 +6118,8 @@ root for each of the files or directories.
   The `absname' function returns the absolute pathname for each of the
 files or directories.
 
-9.1.9  homename
-===============
+9.1.10  homename
+================
   
 <<
      $(homename files) : String Sequence
@@ -6069,7 +6131,7 @@ possible. The unexpanded forms are computed lazily: the `homename'
 function will usually evaluate to an absolute pathname until the first
 tilde-expansion for the same directory.
 
-9.1.10  suffix
+9.1.11  suffix
 ==============
   
 <<
@@ -7866,7 +7928,7 @@ meaning of `stdout' outside the `filter' function.
  b  ``Break'' when evaluating cases. Only the first case that matches
    will be selected. 
   
-  The `break' function (Section 8.3.38) can be used to abort the loop,
+  The `break' function (Section 8.3.39) can be used to abort the loop,
 exiting the `awk' function immediately.
 
 9.11.6  fsubst
@@ -7950,7 +8012,7 @@ alphanumeric words in an input file.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.38) can be used to abort the loop.
+  The `break' function (Section 8.3.39) can be used to abort the loop.
 
 9.11.8  lex-search
 ==================
@@ -7985,7 +8047,7 @@ alphanumeric words in an input file, skipping any other text.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.38) can be used to abort the loop.
+  The `break' function (Section 8.3.39) can be used to abort the loop.
 
 9.11.9  Lexer
 =============
@@ -9293,18 +9355,14 @@ OMakefile in the project).
 -----------------
    The name of the standard installed OMakeroot file.
 
-12.3.1.5  VERBOSE
------------------
-   Whether certain commands should be verbose (`false' by default).
-
-12.3.1.6  ABORT_ON_COMMAND_ERROR
+12.3.1.5  ABORT_ON_COMMAND_ERROR
 --------------------------------
    If set to true, the construction of a target should  be aborted
 whenever one of the commands to build it fail. This defaults to true, 
 and should normally be left that way.
   
 
-12.3.1.7  SCANNER_MODE
+12.3.1.6  SCANNER_MODE
 ----------------------
    This variable should be defined as one of four values  (defaults to
 `enabled'). 
@@ -10154,8 +10212,8 @@ install location in one step.
 
 
 
-12.8.0.8  dependencies, dependencies-all
-----------------------------------------
+12.8.0.8  dependencies, dependencies-all, dependencies-proper
+-------------------------------------------------------------
   
 <<
      $(dependencies targets) : File Array
@@ -10210,13 +10268,13 @@ of the targets. See the `Target' object for more information.
 -----------------------------
   
 <<
-      $(build-targets tag) : Target Array
+      $(find-build-targets tag) : Target Array
          tag : Succeeded | Failed
 >>
   
-  The `build-targets' allow the results of the build to be examined. The
-`tag' must specifies which targets are to be returned; the comparison is
-case-insensitive.
+  The `find-build-targets' allow the results of the build to be
+examined. The `tag' must specifies which targets are to be returned; the
+comparison is case-insensitive.
   
   
  Succeeded  The list of targets that were built successfully. 
@@ -10228,9 +10286,12 @@ adding the following to your project `OMakefile' will print the number
 of targets that failed (if the build failed).
 <<
       .BUILD_FAILURE:
-          echo "Failed target count: $(length $(failed-targets))"
+          echo "Failed target count: $(length $(find-build-targets
+Failed))"
 >>
   
+  Warning: this function is experimental and may not work in some
+situations.
 
 12.8.0.11  project-directories
 ------------------------------
@@ -10383,7 +10444,7 @@ Appendix A    Synopsis
 **********************
     
   omake  [-j <count>]  [-k]  [-p]  [-P]  [-n]  [-s] [-S]  [-w]  [-t] 
-[-u]  [-U]  [-R]  [--project]  [--depend]  [--progress] 
+[-u]  [-U]  [-R]  [--verbose]  [--project]  [--depend]  [--progress] 
 [--print-status]  [--print-exit]  [--print-dependencies] 
 [--show-dependencies <target>]  [--all-dependencies] 
 [--verbose-dependencies]  [--force-dotomake]  [--dotomake <dir>] 
@@ -10421,14 +10482,14 @@ A.2  Output control
 A.2.1  -s
 =========
    `-s'
-  Do not print commands as they are executed (be ``silent'').
+  Never not print commands as they are executed (be ``silent'').
   
 
 A.2.2  -S
 =========
    `-S'
   Do not print commands as they are executed unless they produce output
-and/or fail.
+and/or fail. This is the default.
   
 
 A.2.3  -w
@@ -10442,8 +10503,9 @@ information for determining the location of errors.
 A.2.4  --progress
 =================
    `--progress'
-  Print a progress indicator. This is normally used with the -s or -S
-options.
+  Print a progress indicator. This option is enabled by default when the
+OMake's output (`stdout') is on a terminal and disabled by default
+(except on Windows) when the OMake's output is redirected.
   
 
 A.2.5  --print-status
@@ -10458,7 +10520,14 @@ A.2.6  --print-exit
   Print termination codes when commands complete.
   
 
-A.2.7  --output-normal
+A.2.7  --verbose
+================
+   `--verbose'
+  Make OMake very verbose. This option is equivalent to `--no-S
+--print-status --print-exit VERBOSE=true'
+  
+
+A.2.8  --output-normal
 ======================
    `--output-normal'
   As rule commands are executed, relay their output to the OMake output
@@ -10466,7 +10535,7 @@ right away. This is enabled by default, unless `--output-postpone' or
 `--output-only-errors' is enabled.
   
 
-A.2.8  --output-postpone
+A.2.9  --output-postpone
 ========================
    `--output-postpone'
   When a rule finishes, print the output as a single block. This is
@@ -10481,28 +10550,28 @@ prompt of such a command will not be visible and it may be hard to
 figure out why the build appears ``stuck''. You might also consider
 using the `--progress' flag (see Section A.2.4) so that you can see when
 the build is active. 
-  This option is experimental.
   
 
-A.2.9  --output-only-errors
-===========================
+A.2.10  --output-only-errors
+============================
    `--output-only-errors' 
   Similar to `--output-postpone', except that the postponed output from
 commands that were successful will be discarded. This can be useful in
 reducing unwanted output so that you can concentrate on any errors.
-  This option is experimental.
   
 
-A.2.10  --output-at-end
+A.2.11  --output-at-end
 =======================
    `--output-at-end'
   If any rules/commands fail, re-print the output of the failed commands
 when OMake finishes the build. This is especially useful when any of the
 `-k', `-p', or `-P' options are enabled.
-  This option is experimental.
+  This option is off by default. However, when `-k' is enabled ---
+either explicitly or via one of the `-p'/`-P' options ---
+`--output-at-end' will be enabled by default.
   
 
-A.2.11  -o
+A.2.12  -o
 ==========
    `-o [01jwWpPxXsS]'
   For brevity, the `-o' option is also provided to duplicate the above
@@ -10552,7 +10621,8 @@ A.3.1  -k
 =========
    `-k'
   Do not abort when a build command fails; continue to build as much of
-the project as possible.
+the project as possible. This option is implied by both `-p' and `-P'
+options. In turn, this option would imply the `--output-at-end' option.
   
 
 A.3.2  -n
@@ -11276,7 +11346,7 @@ limited to the specified identifiers.
       export id ... id
 >>
   
-  while (see the `while' description in Section 8.3.37). The `while'
+  while (see the `while' description in Section 8.3.38). The `while'
 command introduces a `while' loop.
 <<
       while expr
@@ -11659,20 +11729,21 @@ Index
  - --install, A.3.17 
  - --install-all, A.3.18 
  - --install-force, A.3.19 
- - --output-at-end, A.2.10 
- - --output-normal, A.2.7 
- - --output-only-errors, A.2.9 
- - --output-postpone, A.2.8 
+ - --output-at-end, A.2.11 
+ - --output-normal, A.2.8 
+ - --output-only-errors, A.2.10 
+ - --output-postpone, A.2.9 
  - --print-dependencies, A.3.13 
  - --print-exit, A.2.6 
  - --print-status, A.2.5 
  - --progress, A.2.4 
  - --show-dependencies, A.3.14 
+ - --verbose, A.2.7 
  - --verbose-dependencies, A.3.16 
  - -j, A.3.12 
  - -k, A.3.1 
  - -n, A.3.2 
- - -o, A.2.11 
+ - -o, A.2.12 
  - -P, A.3.4 
  - -p, A.3.3 
  - -R, A.3.5 
@@ -11700,21 +11771,21 @@ Index
  - :scanner:, 7.7 
  - :value:, 7.5.3 
  
- - ABORT_ON_COMMAND_ERROR, 12.3.1.6 
+ - ABORT_ON_COMMAND_ERROR, 12.3.1.5 
  - ABORT_ON_DEPENDENCY_ERRORS, 12.6.1.2 
  - AR, 12.4.1.10 
  - AROUT, 12.4.1.11 
  - Array, 11.1.7 
  - AS, 12.4.1.8 
  - ASFLAGS, 12.4.1.9 
- - absname, 9.1.8 
+ - absname, 9.1.9 
  - accept, 9.8.33 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
- - add-wrapper, 8.3.23 
- - addprefix, 8.3.21 
- - addsuffix, 8.3.15 
- - addsuffixes, 8.3.17 
+ - add-wrapper, 8.3.24 
+ - addprefix, 8.3.22 
+ - addsuffix, 8.3.16 
+ - addsuffixes, 8.3.18 
  - aliases, 13.2 
  - and, 8.2.3 
  - apply, 8.5.2 
@@ -11730,7 +11801,7 @@ Index
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.31 
- - break, 8.3.38 
+ - break, 8.3.39 
  - build model, 3 
  
  - CAMLP4, 12.5.2.4 
@@ -11748,7 +11819,7 @@ Index
  - CXXProgram, 12.4.3.8 
  - CXXProgramInstall, 12.4.3.8 
  - c-escaped, 8.3.11 
- - capitalize, 8.3.31 
+ - capitalize, 8.3.32 
  - cat, 9.11.2 
  - cats and dogs, 3.4 
  - cd, 10.9.2 
@@ -11770,14 +11841,17 @@ Index
  - DVIPDFMFLAGS, 12.7.1.9 
  - DVIPS, 12.7.1.6 
  - DVIPSFLAGS, 12.7.1.7 
+ - decode-uri, 8.3.12 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
  - dependencies, 12.8.0.8 
  - dependencies-all, 12.8.0.8 
+ - dependencies-proper, 12.8.0.8 
  - digest, 9.2.5 
  - digest-path, 9.2.7 
  - dir, 9.1.1 
- - dirof, 9.1.6 
+ - dirname, 9.1.5 
+ - dirof, 9.1.7 
  - div, 8.4.3 
  - dup, 9.8.15 
  - dup2, 9.8.16 
@@ -11789,6 +11863,7 @@ Index
  - EXT_OBJ, 12.3.2.5 
  - Exception, 11.1.20 
  - echo, 10.9.1 
+ - encode-uri, 8.3.12 
  - eprint, 9.9 
  - eprintln, 9.9 
  - eprintv, 9.10 
@@ -11807,9 +11882,9 @@ Index
  - file-check-sort, 9.3.6 
  - file-exists, 9.3.1 
  - file-sort, 9.3.5 
- - filter, 8.3.29 
+ - filter, 8.3.30 
  - filter-exists, 9.3.3 
- - filter-out, 8.3.30 
+ - filter-out, 8.3.31 
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
@@ -11826,7 +11901,7 @@ Index
  - fprintv, 9.10 
  - fprintvln, 9.10 
  - fsubst, 9.11.6 
- - fullname, 9.1.7 
+ - fullname, 9.1.8 
  - fun, 8.5.1 
  - functions, 4.5 
  
@@ -11848,10 +11923,10 @@ Index
  - HOST, 8.1.6 
  - Host, 9.8.24 
  - history, 10.11.1 
- - homename, 9.1.9 
+ - homename, 9.1.10 
  - html-escaped, 8.3.11 
  - html-pre-escaped, 8.3.11 
- - html-string, 8.3.14 
+ - html-string, 8.3.15 
  
  - INCLUDES, 12.4.1.6 
  - INSTALL, 12.3.2.1 
@@ -11865,8 +11940,8 @@ Index
  - include, 4.7 
  - inheritance, 4.13 
  - int, 8.4.1 
- - intersection, 8.3.26 
- - intersects, 8.3.27 
+ - intersection, 8.3.27 
+ - intersects, 8.3.28 
  
  - jobs, 10.10.1 
  
@@ -11897,7 +11972,7 @@ Index
  - lnot, 8.4.3 
  - lockf, 9.8.22 
  - lor, 8.4.3 
- - lowercase, 8.3.34 
+ - lowercase, 8.3.35 
  - ls, 9.4.2 
  - lseek, 9.8.11 
  - lsl, 8.4.3 
@@ -11911,10 +11986,10 @@ Index
  - MENHIR_AVAILABLE, 12.5.1.4 
  - MENHIR_ENABLED, 12.5.2.21 
  - MENHIR_FLAGS, 12.5.3.9 
- - mapprefix, 8.3.22 
- - mapsuffix, 8.3.16 
+ - mapprefix, 8.3.23 
+ - mapsuffix, 8.3.17 
  - match, 4.10, 8.2.6 
- - mem, 8.3.25 
+ - mem, 8.3.26 
  - mkdir, 9.5.1 
  - mkfifo, 9.8.20 
  - mod, 8.4.3 
@@ -12006,32 +12081,34 @@ Index
  - public., 4.17 
  
  - quotations, 4.4 
- - quote, 8.3.12 
- - quote-argv, 8.3.13 
+ - quote, 8.3.13 
+ - quote-argv, 8.3.14 
  
  - ROOT, 12.3.1.1 
  - Rule, 11.1.10 
  - RuntimeException, 11.1.21 
  - raise, 8.2.8 
+ - random, 8.3.40 
+ - random-init, 8.3.40 
  - read, 9.8.9 
  - readlink, 9.5.8 
  - regular expressions, 9.11.1 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
- - removeprefix, 8.3.18 
- - removesuffix, 8.3.19 
+ - removeprefix, 8.3.19 
+ - removesuffix, 8.3.20 
  - rename, 9.5.5 
- - replacesuffixes, 8.3.20 
+ - replacesuffixes, 8.3.21 
  - rev, 8.3.9 
  - rewind, 9.8.12 
- - rootname, 9.1.5 
+ - rootname, 9.1.6 
  - rule, 12.8.0.12 
  - rule, options, 7.5 
  - rule, scoping, 7.13 
  - rules, bounded implicit, 7.2 
  - rules, implicit, 7.1 
  
- - SCANNER_MODE, 12.3.1.7 
+ - SCANNER_MODE, 12.3.1.6 
  - Sequence, 11.1.6 
  - Service, 9.8.28 
  - Shell, 11.1.23 
@@ -12049,13 +12126,13 @@ Index
  - section, 4.8, 7.3 
  - section rule, 7.4 
  - select, 9.8.21 
- - set, 8.3.24 
+ - set, 8.3.25 
  - set-close-on-exec-mode, 9.8.18 
- - set-diff, 8.3.28 
+ - set-diff, 8.3.29 
  - set-nonblock, 9.8.17 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
- - shell, 8.3.36 
+ - shell, 8.3.37 
  - socket, 9.8.30 
  - sorting (link-order), 9.3.5 
  - split, 8.3.2 
@@ -12071,10 +12148,10 @@ Index
  - sub, 8.4.3 
  - subdirs, 9.4.3 
  - subrange, 8.3.8 
- - suffix, 9.1.10 
+ - suffix, 9.1.11 
  - switch, 4.10, 8.2.6 
  - symlink, 9.5.7 
- - system, 8.3.35 
+ - system, 8.3.36 
  
  - TARGETS, 8.1.11 
  - Target, 11.1.11 
@@ -12101,19 +12178,19 @@ Index
  - ule, 8.4.4 
  - ult, 8.4.4 
  - umask, 9.5.12 
- - uncapitalize, 8.3.32 
+ - uncapitalize, 8.3.33 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
- - uppercase, 8.3.33 
+ - uppercase, 8.3.34 
  
- - VERBOSE, 12.3.1.5 
+ - VERBOSE, 8.1.13 
  - variable definition, A.3.21 
  - vmount, 2.9, 9.6.1 
  
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.37 
+ - while, 8.3.38 
  - write, 9.8.10 
  
  - YACC, 12.4.1.14 
@@ -12123,7 +12200,7 @@ Index of variables
 ******************
   
   
- - ABORT_ON_COMMAND_ERROR, 12.3.1.6 
+ - ABORT_ON_COMMAND_ERROR, 12.3.1.5 
  - ABORT_ON_DEPENDENCY_ERRORS, 12.6.1.2 
  - AR, 12.4.1.10 
  - AROUT, 12.4.1.11 
@@ -12220,7 +12297,7 @@ Index of variables
  
  - ROOT, 12.3.1.1 
  
- - SCANNER_MODE, 12.3.1.7 
+ - SCANNER_MODE, 12.3.1.6 
  - STDROOT, 12.3.1.4 
  - SYSNAME, 8.1.2 
  - stderr, 9.8.4 
@@ -12237,7 +12314,7 @@ Index of variables
  - USEPDFLATEX, 12.7.1.12 
  - USER, 8.1.8 
  
- - VERBOSE, 12.3.1.5 
+ - VERBOSE, 8.1.13 
  
  - YACC, 12.4.1.14 
 
@@ -12246,14 +12323,14 @@ Index of functions and special forms
 ************************************
   
   
- - absname, 9.1.8 
+ - absname, 9.1.9 
  - accept, 9.8.33 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
- - add-wrapper, 8.3.23 
- - addprefix, 8.3.21 
- - addsuffix, 8.3.15 
- - addsuffixes, 8.3.17 
+ - add-wrapper, 8.3.24 
+ - addprefix, 8.3.22 
+ - addsuffix, 8.3.16 
+ - addsuffixes, 8.3.18 
  - and, 8.2.3 
  - apply, 8.5.2 
  - applya, 8.5.3 
@@ -12264,7 +12341,7 @@ Index of functions and special forms
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.31 
- - break, 8.3.38 
+ - break, 8.3.39 
  
  - CGeneratedFiles, 12.4.2.1 
  - CProgram, 12.4.3.5 
@@ -12273,7 +12350,7 @@ Index of functions and special forms
  - CXXProgram, 12.4.3.8 
  - CXXProgramInstall, 12.4.3.8 
  - c-escaped, 8.3.11 
- - capitalize, 8.3.31 
+ - capitalize, 8.3.32 
  - cat, 9.11.2 
  - cd, 10.9.2 
  - chmod, 9.5.9 
@@ -12286,19 +12363,23 @@ Index of functions and special forms
  - create-map, 8.5.4 
  
  - DefineCommandVars, 12.2.0.4 
+ - decode-uri, 8.3.12 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
  - dependencies, 12.8.0.8 
  - dependencies-all, 12.8.0.8 
+ - dependencies-proper, 12.8.0.8 
  - digest, 9.2.5 
  - digest-path, 9.2.7 
  - dir, 9.1.1 
- - dirof, 9.1.6 
+ - dirname, 9.1.5 
+ - dirof, 9.1.7 
  - div, 8.4.3 
  - dup, 9.8.15 
  - dup2, 9.8.16 
  
  - echo, 10.9.1 
+ - encode-uri, 8.3.12 
  - eprint, 9.9 
  - eprintln, 9.9 
  - eprintv, 9.10 
@@ -12314,9 +12395,9 @@ Index of functions and special forms
  - file-check-sort, 9.3.6 
  - file-exists, 9.3.1 
  - file-sort, 9.3.5 
- - filter, 8.3.29 
+ - filter, 8.3.30 
  - filter-exists, 9.3.3 
- - filter-out, 8.3.30 
+ - filter-out, 8.3.31 
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
@@ -12333,7 +12414,7 @@ Index of functions and special forms
  - fprintv, 9.10 
  - fprintvln, 9.10 
  - fsubst, 9.11.6 
- - fullname, 9.1.7 
+ - fullname, 9.1.8 
  - fun, 8.5.1 
  
  - ge, 8.4.4 
@@ -12351,18 +12432,18 @@ Index of functions and special forms
  - gt, 8.4.4 
  
  - history, 10.11.1 
- - homename, 9.1.9 
+ - homename, 9.1.10 
  - html-escaped, 8.3.11 
  - html-pre-escaped, 8.3.11 
- - html-string, 8.3.14 
+ - html-string, 8.3.15 
  
  - id-escaped, 8.3.11 
  - if, 8.2.5 
  - in, 9.1.3 
  - include, 4.7 
  - int, 8.4.1 
- - intersection, 8.3.26 
- - intersects, 8.3.27 
+ - intersection, 8.3.27 
+ - intersects, 8.3.28 
  
  - jobs, 10.10.1 
  
@@ -12384,7 +12465,7 @@ Index of functions and special forms
  - lnot, 8.4.3 
  - lockf, 9.8.22 
  - lor, 8.4.3 
- - lowercase, 8.3.34 
+ - lowercase, 8.3.35 
  - ls, 9.4.2 
  - lseek, 9.8.11 
  - lsl, 8.4.3 
@@ -12392,10 +12473,10 @@ Index of functions and special forms
  - lt, 8.4.4 
  - lxor, 8.4.3 
  
- - mapprefix, 8.3.22 
- - mapsuffix, 8.3.16 
+ - mapprefix, 8.3.23 
+ - mapsuffix, 8.3.17 
  - match, 4.10, 8.2.6 
- - mem, 8.3.25 
+ - mem, 8.3.26 
  - mkdir, 9.5.1 
  - mkfifo, 9.8.20 
  - mod, 8.4.3 
@@ -12430,21 +12511,23 @@ Index of functions and special forms
  - printvln, 9.10 
  - project-directories, 12.8.0.11 
  
- - quote, 8.3.12 
- - quote-argv, 8.3.13 
+ - quote, 8.3.13 
+ - quote-argv, 8.3.14 
  
  - raise, 8.2.8 
+ - random, 8.3.40 
+ - random-init, 8.3.40 
  - read, 9.8.9 
  - readlink, 9.5.8 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
- - removeprefix, 8.3.18 
- - removesuffix, 8.3.19 
+ - removeprefix, 8.3.19 
+ - removesuffix, 8.3.20 
  - rename, 9.5.5 
- - replacesuffixes, 8.3.20 
+ - replacesuffixes, 8.3.21 
  - rev, 8.3.9 
  - rewind, 9.8.12 
- - rootname, 9.1.5 
+ - rootname, 9.1.6 
  - rule, 12.8.0.12 
  
  - StaticCLibrary, 12.4.3.1 
@@ -12457,13 +12540,13 @@ Index of functions and special forms
  - section, 7.3 
  - section rule, 7.4 
  - select, 9.8.21 
- - set, 8.3.24 
+ - set, 8.3.25 
  - set-close-on-exec-mode, 9.8.18 
- - set-diff, 8.3.28 
+ - set-diff, 8.3.29 
  - set-nonblock, 9.8.17 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
- - shell, 8.3.36 
+ - shell, 8.3.37 
  - socket, 9.8.30 
  - split, 8.3.2 
  - stat, 9.5.3 
@@ -12474,10 +12557,10 @@ Index of functions and special forms
  - sub, 8.4.3 
  - subdirs, 9.4.3 
  - subrange, 8.3.8 
- - suffix, 9.1.10 
+ - suffix, 9.1.11 
  - switch, 4.10, 8.2.6 
  - symlink, 9.5.7 
- - system, 8.3.35 
+ - system, 8.3.36 
  
  - TeXGeneratedFiles, 12.7.2.5 
  - target, 12.8.0.9 
@@ -12494,17 +12577,17 @@ Index of functions and special forms
  - ule, 8.4.4 
  - ult, 8.4.4 
  - umask, 9.5.12 
- - uncapitalize, 8.3.32 
+ - uncapitalize, 8.3.33 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
- - uppercase, 8.3.33 
+ - uppercase, 8.3.34 
  
  - vmount, 9.6.1 
  
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.37 
+ - while, 8.3.38 
  - write, 9.8.10 
 
 
@@ -12587,20 +12670,21 @@ Index of options
  - --install, A.3.17 
  - --install-all, A.3.18 
  - --install-force, A.3.19 
- - --output-at-end, A.2.10 
- - --output-normal, A.2.7 
- - --output-only-errors, A.2.9 
- - --output-postpone, A.2.8 
+ - --output-at-end, A.2.11 
+ - --output-normal, A.2.8 
+ - --output-only-errors, A.2.10 
+ - --output-postpone, A.2.9 
  - --print-dependencies, A.3.13 
  - --print-exit, A.2.6 
  - --print-status, A.2.5 
  - --progress, A.2.4 
  - --show-dependencies, A.3.14 
+ - --verbose, A.2.7 
  - --verbose-dependencies, A.3.16 
  - -j, A.3.12 
  - -k, A.3.1 
  - -n, A.3.2 
- - -o, A.2.11 
+ - -o, A.2.12 
  - -P, A.3.4 
  - -p, A.3.3 
  - -R, A.3.5 
@@ -12628,7 +12712,7 @@ C.0.1  See Also
 C.0.2  Version
 ==============
   
-  Version: 0.9.6.9 of 
+  Version: 0.9.8 of 
   
 
 C.0.3  License and Copyright

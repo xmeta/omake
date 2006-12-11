@@ -687,7 +687,7 @@ Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
   The `SCANNER_MODE' variable (see Section
-12.3.1.7*Note Subsection 12-3-1::) controls the usage of implicit
+12.3.1.6*Note Subsection 12-3-1::) controls the usage of implicit
 scanner dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
@@ -1021,7 +1021,7 @@ Node: Section 7-14,	Next: Chapter 8,	Prev: Section 7-13,	Up: Chapter 7
 values (as in the `file' function described in Section
 9.1.1*Note Subsection 9-1-1::). They are then translated to strings for the
 command line. This can cause some unexpected behavior. In the following
-example, the `absname' function (Section 9.1.8*Note Subsection 9-1-8::)
+example, the `absname' function (Section 9.1.9*Note Subsection 9-1-9::)
 is the absolute pathname for the file `a', but the rule still prints the
 relative pathname.
 <<
@@ -1123,6 +1123,7 @@ Node: Section 8-1,	Next: Subsection 8-1-1,	Prev: Chapter 8,	Up: Chapter 8
 * Subsection 8-1-10::	PID
 * Subsection 8-1-11::	TARGETS
 * Subsection 8-1-12::	BUILD_SUMMARY
+* Subsection 8-1-13::	VERBOSE
 
 
 Node: Subsection 8-1-1,	Next: Subsection 8-1-2,	Prev: Section 8-1,	Up: Section 8-1
@@ -1212,7 +1213,7 @@ Node: Subsection 8-1-11,	Next: Subsection 8-1-12,	Prev: Subsection 8-1-10,	Up: S
 8.1.11   TARGETS
 ================
   The command-line
-target strings. For example, if `omake' is invoked with the  following
+target strings. For example, if OMake is invoked with the  following
 command line, 
 <<
         omake CFLAGS=1 foo bar.c
@@ -1220,7 +1221,7 @@ command line,
   
    then `TARGETS' is defined as `foo bar.c'.
 
-Node: Subsection 8-1-12,	Next: Section 8-2,	Prev: Subsection 8-1-11,	Up: Section 8-1
+Node: Subsection 8-1-12,	Next: Subsection 8-1-13,	Prev: Subsection 8-1-11,	Up: Section 8-1
   
 
 8.1.12   BUILD_SUMMARY
@@ -1238,6 +1239,16 @@ can append a message to the build summary.
          echo "The file foo was built" >> $(BUILD_SUMMARY)
          ...build foo...
 >>
+  
+
+Node: Subsection 8-1-13,	Next: Section 8-2,	Prev: Subsection 8-1-12,	Up: Section 8-1
+  
+
+8.1.13   VERBOSE
+================
+  Whether certain
+commands should be verbose. A boolean flag that is `false'  by default
+and is set to `true' when OMake is invoked with the  `--verbose' option.
 
 Node: Section 8-2,	Next: Subsection 8-2-1,	Prev: Section 8-1,	Up: Chapter 8
   

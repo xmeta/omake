@@ -1564,8 +1564,7 @@ let html_pre_escaped = any_escaped Lm_string_util.html_pre_escaped
 
 (*
  * \begin{doc}
- * \fun{decode-uri}
- * \fun{encode-uri}
+ * \twofuns{decode-uri}{encode-uri}
  *
  * \begin{verbatim}
  *     $(decode-uri sequence) : sequence
@@ -2581,8 +2580,7 @@ let break venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{random}
- * \fun{random-init}
+ * \twofuns{random}{random-init}
  *
  * \begin{verbatim}
  *     random-init(i)
@@ -2597,6 +2595,7 @@ let break venv pos loc args =
  * Subsequent runs should produce different results.
  * The \verb+rando-init+ function can be used to return
  * the generator to a known state.
+ * \end{doc}
  *)
 let () = Random.self_init ()
 

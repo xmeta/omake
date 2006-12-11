@@ -1,5 +1,47 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
+  
+
+9.4.1   glob
+============
+
+<<
+     $(glob strings) : Node Array
+        strings : String Sequence
+     $(glob options, strings) : Node Array
+        options : String
+        strings : String Sequence
+>>
+  
+  The `glob' function performs glob-expansion.
+  The . and .. entries are always ignored.
+  The options are: 
+  
+ b  Do not perform csh(1)-style brace expansion. 
+ e  The `\' character does not escape special characters. 
+ n  If an expansion fails, return the expansion literally instead of
+   aborting. 
+ i  If an expansion fails, it expands to nothing. 
+ .  Allow wildcard patterns to match files beginning with a . 
+ A  Return all files, including files that begin with a . 
+ F  Match only normal files (any file that is not a directory). 
+ D  Match only directory files. 
+ C  Ignore files according to cvs(1) rules. 
+ P  Include only proper subdirectories. 
+  
+  In addition, the following variables may be defined that affect the
+behavior of `glob'.
+  
+  
+ GLOB_OPTIONS  A string containing default options. 
+ GLOB_IGNORE  A list of shell patterns for filenames that `glob' should
+   ignore. 
+ GLOB_ALLOW  A list of shell patterns. If a file does not match a
+   pattern in  `GLOB_ALLOW', it is ignored. 
+  
+  The returned files are sorted by name. 
+
 Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
   
 
@@ -1642,7 +1684,7 @@ meaning of `stdout' outside the `filter' function.
  b  ``Break'' when evaluating cases. Only the first case that matches
    will be selected. 
   
-  The `break' function (Section 8.3.38*Note Subsection 8-3-38::) can be
+  The `break' function (Section 8.3.39*Note Subsection 8-3-39::) can be
 used to abort the loop, exiting the `awk' function immediately. 
 
 Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: Section 9-11
@@ -1731,7 +1773,7 @@ alphanumeric words in an input file.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.38*Note Subsection 8-3-38::) can be
+  The `break' function (Section 8.3.39*Note Subsection 8-3-39::) can be
 used to abort the loop. 
 
 Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: Section 9-11
@@ -1770,85 +1812,5 @@ alphanumeric words in an input file, skipping any other text.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.38*Note Subsection 8-3-38::) can be
+  The `break' function (Section 8.3.39*Note Subsection 8-3-39::) can be
 used to abort the loop. 
-
-Node: Subsection 9-11-9,	Next: Subsection 9-11-10,	Prev: Subsection 9-11-8,	Up: Section 9-11
-  
-
-9.11.9   Lexer
-==============
-
-  The `Lexer' object defines a facility for lexical analysis, similar to
-the lex(1) and flex(1) programs.
-  In omake, lexical analyzers can be constructed dynamically by
-extending the `Lexer' class. A lexer definition consists of a set of
-directives specified with method calls, and set of clauses specified as
-rules.
-  For example, consider the following lexer definition, which is
-intended for lexical analysis of simple arithmetic expressions for a
-desktop calculator.
-<<
-     lexer1. =
-        extends $(Lexer)
-  
-        other: .
-           eprintln(Illegal character: $* )
-           lex()
-  
-        white: $"[[:space:]]+"
-           lex()
-  
-        op: $"[-+*/()]"
-           switch $*
-           case +
-              Token.unit($(loc), plus)
-           case -
-              Token.unit($(loc), minus)
-           case *
-              Token.unit($(loc), mul)
-           case /
-              Token.unit($(loc), div)
-           case $"("
-              Token.unit($(loc), lparen)
-           case $")"
-              Token.unit($(loc), rparen)
-  
-        number: $"[[:digit:]]+"
-           Token.pair($(loc), exp, $(int $* ))
-  
-        eof: $"\'"
-           Token.unit($(loc), eof)
->>
-  
-  This program defines an object `lexer1' the extends the `Lexer'
-object, which defines lexing environment.
-  The remainder of the definition consists of a set of clauses, each
-with a method name before the colon; a regular expression after the
-colon; and in this case, a body. The body is optional, if it is not
-specified, the method with the given name should already exist in the
-lexer definition.
-  NB The clause that matches the longest prefix of the input is
-selected. If two clauses match the same input prefix, then the last one
-is selected. This is unlike most standard lexers, but makes more sense
-for extensible grammars.
-  The first clause matches any input that is not matched by the other
-clauses. In this case, an error message is printed for any unknown
-character, and the input is skipped. Note that this clause is selected
-only if no other clause matches.
-  The second clause is responsible for ignoring white space. If
-whitespace is found, it is ignored, and the lexer is called recursively.
-  The third clause is responsible for the arithmetic operators. It makes
-use of the `Token' object, which defines three fields: a `loc' field
-that represents the source location; a `name'; and a `value'.
-  The lexer defines the `loc' variable to be the location of the current
-lexeme in each of the method bodies, so we can use that value to create
-the tokens.
-  The `Token.unit($(loc), name)' method constructs a new `Token' object
-with the given name, and a default value.
-  The `number' clause matches nonnegative integer constants. The
-`Token.pair($(loc), name, value)' constructs a token with the given name
-and value.
-  Lexer object operate on `InChannel' objects. The method
-`lexer1.lex-channel(channel)' reads the next token from the channel
-argument.
