@@ -2589,13 +2589,14 @@ let wait_for_lock () =
           * XXX: When lockf is not supported, we just print a warning and keep going.
           *      .omakedb locking is only convenience, not safety, so it's not a huge problem.
           *)
-         Unix.Unix_error (Unix.EOPNOTSUPP, _, _) ->
+         Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
             eprintf "*** omake WARNING: Can not lock the project database file .omakedb:
-\tThe operation is not supported.
+\t%s. Will proceed anyway.
 \tWARNING: Be aware that simultaneously running more than one instance
 \t\tof OMake on the same project is not recommended.  It may
 \t\tresult in some OMake instances failing to record their
 \t\tprogress in the database@."
+               (Unix.error_message err)
        | Unix.Unix_error (err, _, _) ->
             raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ (Unix.error_message err)))
        | Failure err ->
