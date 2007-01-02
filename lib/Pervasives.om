@@ -42,8 +42,13 @@ shell-success(argv) =
 
 shell-success-null(argv) =
    # XXX: HACK: Is there a portable /dev/null?
+   #            Perhaps we should fix http://bugzilla.metaprl.org/show_bug.cgi?id=619
+   #            and use a string out channel?
    tmp = $(tmpfile omake.shell-success-null)
-   res = $(shell-success $(argv) >& $(tmp))
+   stdout = $(fopen $(tmp), w)
+   stderr = $(stdout)
+   res = $(shell-success $(argv))
+   close($(stdout))
    rm(-f $(tmp))
    return $(res)
 

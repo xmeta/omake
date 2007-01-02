@@ -995,9 +995,9 @@ value omake_shell_sys_create_process(value v_info)
     if(status == FALSE) {
 #ifdef OSH_DEBUG
         print_error("CreateProcess");
-#endif
         fprintf(stderr, "Command: %s\n", command);
         fflush(stderr);
+#endif
         failwith("omake_shell_sys_create_process: process creation failed");
     }
     CloseHandle(process.hThread);
