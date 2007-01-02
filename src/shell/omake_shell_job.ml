@@ -588,7 +588,7 @@ let create_command venv pgrp bg stdin stdout stderr command =
             begin match exn with
                Failure err ->
                   let format_error buf =
-                     fprintf buf "@[<hv3>Spawning %s failed:@ %s@]@." exe err
+                     fprintf buf "@[<hv3>Spawning %s failed:@ %s@]" exe err
                   in
                      raise (OmakeException(pos, LazyError format_error))
              | Unix.Unix_error(err, cmd, arg) ->
@@ -596,7 +596,7 @@ let create_command venv pgrp bg stdin stdout stderr command =
                      fprintf buf "@[<hv3>Spawning %s failed:@ @[<hv3>%s" exe cmd;
                      if (arg <> "") then
                         fprintf buf "@ %s" arg;
-                     fprintf buf ":@ %s@]@]@." (Unix.error_message err)
+                     fprintf buf ":@ %s@]@]" (Unix.error_message err)
                   in
                      raise (OmakeException(pos, LazyError format_error))
              | _ ->
