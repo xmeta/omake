@@ -425,20 +425,20 @@ let create_apply_top venv stdin stdout stderr apply =
       (* The function will close its files on its own *)
       try
          if !debug_shell then
-            eprintf "create_apply_top: duplicating channels@.";
+            eprintf "create_apply_top: %i duplicating channels@." (Unix.getpid ());
          let stdin  = Unix.dup stdin in
          let stdout = Unix.dup stdout in
          let stderr = Unix.dup stderr in
          let code, v = f venv stdin stdout stderr env args in
          let v = unexport venv v restore_vars in
             if !debug_shell then
-               eprintf "create_apply_top: done@.";
+               eprintf "create_apply_top %i: done@." (Unix.getpid ());
             cleanup ();
             code, v
       with
          exn ->
             if !debug_shell then
-               eprintf "create_apply_top: error: %a@." Omake_exn_print.pp_print_exn exn;
+               eprintf "create_apply_top %i: error: %a@." (Unix.getpid ()) Omake_exn_print.pp_print_exn exn;
             cleanup ();
             raise exn
 
@@ -718,7 +718,7 @@ and create_group venv pgrp stdin stdout stderr group =
  *)
 and create_pipe_aux venv pgrp fork stdin stdout stderr pipe =
    if !debug_shell then
-      eprintf "create_pipe_aux: %a@." pp_print_string_pipe pipe;
+      eprintf "create_pipe_aux (fork: %b): %a@." fork pp_print_string_pipe pipe;
    match pipe with
       PipeApply (loc, apply) ->
          if fork then
@@ -786,19 +786,20 @@ and create_thread venv f stdin stdout stderr =
  * is exit.
  *)
 and wait_exp pgrp exp =
-   let exp = eval_exp pgrp exp 0 (JobExited 0) in
-      match exp with
-         SubjobFinished (JobExited code, _)
-       | SubjobFinished (JobSignaled code, _) ->
-            if !debug_shell then
-               eprintf "wait_exp: exiting %d@." code;
-            code
-       | exp ->
-            wait_exp2 pgrp exp
+   match eval_exp_top pgrp exp with
+      SubjobFinished (JobExited code, _)
+    | SubjobFinished (JobSignaled code, _) ->
+         if !debug_shell then
+            eprintf "wait_exp: %i exiting %d@." (Unix.getpid()) code;
+         code
+    | exp ->
+         wait_exp2 pgrp exp
 
 and wait_exp2 pgrp exp =
    (* Wait for a job to complete; ignore stopped processes *)
    let rec wait () =
+      if !debug_shell then
+         eprintf "wait_exp2: %i waiting for pgrp %i@." (Unix.getpid()) pgrp;
       let code =
          try Some (Omake_shell_sys.wait pgrp false false) with
             Unix.Unix_error (Unix.EINTR, _, _) ->
@@ -818,13 +819,13 @@ and wait_exp2 pgrp exp =
    let pid, code = wait () in
       (* Evaluate the expression *)
       if !debug_shell then
-         eprintf "wait_exp: handling event: pid=%d@." pid;
+         eprintf "wait_exp2: %i handling event: pid=%d@." (Unix.getpid()) pid;
       let exp = eval_exp pgrp exp pid code in
          match exp with
             SubjobFinished (JobExited code, _)
           | SubjobFinished (JobSignaled code, _) ->
                if !debug_shell then
-                  eprintf "wait_exp: exiting %d@." code;
+                  eprintf "wait_exp2: %i exiting %d@." (Unix.getpid()) code;
                code
           | exp ->
                wait_exp2 pgrp exp
@@ -832,7 +833,12 @@ and wait_exp2 pgrp exp =
 (*
  * Evaluate the expression.
  *)
+and eval_exp_top pgrp e =
+   eval_exp pgrp e 0 (JobExited 0)
+ 
 and eval_exp pgrp e pid code =
+   if !debug_shell then
+      eprintf "eval_exp in %i: pgrp=%i, pid=%i@." (Unix.getpid()) pgrp pid;
    let rec eval e =
       match e with
          SubjobProcess (pid', venv) ->
@@ -847,6 +853,7 @@ and eval_exp pgrp e pid code =
               | e1, e2 ->
                    SubjobPipe (e1, e2))
        | SubjobCond (e, cond) ->
+            if !debug_shell then eprintf "eval_exp in %i: evaluating SubjobCond@." (Unix.getpid());
             (match eval e with
                 SubjobFinished (code, venv) ->
                    let { cond_op     = op;
@@ -876,7 +883,7 @@ and eval_exp pgrp e pid code =
                             false
                    in
                       if cont then
-                         create_pipe_aux venv pgrp false stdin stdout stderr pipe
+                         eval_exp_top pgrp (create_pipe_aux venv pgrp false stdin stdout stderr pipe)
                       else
                          SubjobFinished (code, venv)
               | e ->
@@ -954,7 +961,7 @@ let create_job venv pipe stdin stdout stderr =
             if not bg then
                begin
                   if !debug_shell then
-                     eprintf "Running pgrp %d@." pgrp;
+                     eprintf "Running pgrp %d (my pid = %i)@." pgrp (Unix.getpid());
                   Omake_shell_sys.set_tty_pgrp pgrp;
                   ValOther (ValExitCode (int_of_code (wait_top venv job)))
                end
@@ -1127,6 +1134,8 @@ let waitpid venv pos pid =
    let pos = string_pos "waitpid" pos in
       match pid with
          ExternalPid pid ->
+            if !debug_shell then
+               eprintf "Omake_shell_job.waitpid: external id %i@." pid;
             let _, status = Unix.waitpid [] pid in
                pid, status, ValNone
        | InternalPid pid ->
