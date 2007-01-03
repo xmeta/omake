@@ -6403,7 +6403,7 @@ The <CODE>mv</CODE> and <CODE>cp</CODE> functions take the following options.
 The <CODE>link</CODE> function creates a hard link named <CODE>dst</CODE> to the file
 or directory <CODE>src</CODE>.<BR>
 <BR>
-Hard links are not supported in Win32.<BR>
+Hard links may work under Win32 when NTFS is used.<BR>
 <BR>
 Normally, only the superuser can create hard links to directories.
 <!--TOC subsection symlink-->
@@ -6424,7 +6424,8 @@ the target directory. For example, the expression
 <CODE>$(symlink a/b, c/d)</CODE> creates a link named
 <CODE>c/d -&gt; ../a/b</CODE>.<BR>
 <BR>
-Symbolic links are not supported in Win32.
+Symbolic links are not supported in Win32. Consider using the <CODE>ln-or-cp</CODE>
+<CODE>Shell</CODE> alias for cross-platform portable linking/copying.
 <!--TOC subsection readlink-->
 
 <H3 CLASS="subsection"><A NAME="htoc217">9.5.8</A>&nbsp;&nbsp;readlink</H3><!--SEC END -->
@@ -6447,8 +6448,7 @@ The <CODE>readlink</CODE> function reads the value of a symbolic link.
       dst : Node Sequence
    raises RuntimeException
 </PRE>
-The <CODE>chmod</CODE> function changes the permissions of the targets.
-The <CODE>chmod</CODE> function does nothing on Win32 platforms.<BR>
+The <CODE>chmod</CODE> function changes the permissions of the targets.<BR>
 <BR>
 Options:
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">

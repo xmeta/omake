@@ -6750,7 +6750,7 @@ directory. If not, the behavior of `mv' is identical to `rename'. The
   
   The `link' function creates a hard link named `dst' to the file or
 directory `src'.
-  Hard links are not supported in Win32.
+  Hard links may work under Win32 when NTFS is used.
   Normally, only the superuser can create hard links to directories.
 
 9.5.7  symlink
@@ -6768,7 +6768,8 @@ the `src' file.
   The link name is computed relative to the target directory. For
 example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
 -> ../a/b'.
-  Symbolic links are not supported in Win32.
+  Symbolic links are not supported in Win32. Consider using the
+`ln-or-cp' `Shell' alias for cross-platform portable linking/copying.
 
 9.5.8  readlink
 ===============
@@ -6793,8 +6794,7 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
      raises RuntimeException
 >>
   
-  The `chmod' function changes the permissions of the targets. The
-`chmod' function does nothing on Win32 platforms.
+  The `chmod' function changes the permissions of the targets.
   Options: 
   
  -v  Explain what is happening. 
