@@ -2240,7 +2240,7 @@ let mv = mv_aux mv_file
  * The \verb+link+ function creates a hard link named \verb+dst+ to the file
  * or directory \verb+src+.
  *
- * Hard links are not supported in Win32.
+ * Hard links may work under Win32 when NTFS is used.
  *
  * Normally, only the superuser can create hard links to directories.
  * \end{doc}
@@ -2279,7 +2279,8 @@ let link venv pos loc args =
  * \verb+$(symlink a/b, c/d)+ creates a link named
  * \verb+c/d -> ../a/b+.
  *
- * Symbolic links are not supported in Win32.
+ * Symbolic links are not supported in Win32. Consider using the \verb+ln-or-cp+
+ * \verb+Shell+ alias for cross-platform portable linking/copying.
  * \end{doc}
  *)
 let symlink venv pos loc args =
@@ -2351,7 +2352,6 @@ let readlink venv pos loc args =
  * \end{verbatim}
  *
  * The \verb+chmod+ function changes the permissions of the targets.
- * The \verb+chmod+ function does nothing on Win32 platforms.
  *
  * Options:
  * \begin{description}
@@ -2466,9 +2466,7 @@ let chmod venv pos loc args =
             Dir.fullname (venv_intern_dir venv name)) files
    in
    let () =
-      if Sys.os_type = "Win32" then
-         ()
-      else if info.chmod_rec then
+      if info.chmod_rec then
          List.iter (chmod_rec info) files
       else
          List.iter (chmod info) files
