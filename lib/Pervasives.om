@@ -985,17 +985,33 @@ Shell. +=
    ln-or-cp(argv) =
       if $(not $(eq $(length $(argv)), 2))
          eprintln($"Shell.ln-or-cp: expected 2 arguments, received $(length $(argv)) arguments")
-         exit 1
-      src = $(file $(nth 0, $(argv)))
-      dst = $(file $(nth 1, $(argv)))
+         exit(1)
+      src = $(file $"$(nth 0, $(argv))")
+      dst = $(file $"$(nth 1, $(argv))")
       if $(and $(test -e $(dst)), $(not $(test -d $(dst))))
          rm($(array -f, $(dst)))   
+         if $(test -e $(dst))
+            # The dst might be read-only; on Windows this will prevent deletion.
+            # Will try to fix the permissions and rm again.
+            # If dst and src are already hardliked, this will break
+            # the permissions on src, so we will try to restore them.
+            src_was_ro = $(not $(test -w $(src)))
+            chmod -f -m u+w $(dst)
+            rm($(array -f, $(dst)))   
+            if $(and $(src_was_ro), $(test -w $(src)))
+                chmod -f -m u-w $(src)
       try
          symlink($(src), $(dst))
       default
          try
             link($(src), $(dst))
          default
+            if $(and $(test -e $(dst)), $(not $(test -d $(dst))))
+                # NB: $(dst) might already be a hardlink and we failed to delete it
+                # Trying to cp in that case might cause both $(src) and $(dst) to
+                # get truncated!
+                eprintln($"ln-or-cp: failed to remove the destination file $(dst) before overwriting; giving up.")
+                exit(1)
             return $(cp $(array -f, $(src), $(dst)))
 
    #
