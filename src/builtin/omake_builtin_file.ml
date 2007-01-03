@@ -2400,7 +2400,7 @@ let chmod_spec =
 let chmod_default info s =
    { info with chmod_files = s :: info.chmod_files }, false
 
-let chmod_usage = "Create a directory"
+let chmod_usage = "Change file permissions"
 
 (*
  * Actual chmod command.
