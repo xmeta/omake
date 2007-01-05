@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -148,7 +148,7 @@ let dfs_check pos marked graph =
          IntNodeSet.iter (fun (_, node) -> fprintf buf "@ %a" pp_print_node node) nodes;
          fprintf buf "@]"
       in
-         raise (OmakeException (pos, LazyError print_error))
+         raise (OmakeFatalErr (pos, LazyError print_error))
    else if IntNodeSet.cardinal marked < IntNodeTable.cardinal graph then
       let nodes = IntNodeSet.fold IntNodeTable.remove graph marked in
          raise (OmakeException (pos, LazyError (print_cycle graph nodes)))
@@ -207,12 +207,9 @@ let sort_aux sorter env venv pos name nodes =
 let check_sort = sort_aux check_sort
 let sort = sort_aux dfs_sort
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

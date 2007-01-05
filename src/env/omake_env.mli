@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -592,6 +592,7 @@ exception Break             of loc * venv
  * Omake's internal version of the Invalid_argument
  *)
 exception OmakeFatal of string
+exception OmakeFatalErr of pos * omake_error
 
 (*
  * Module for creating positions.

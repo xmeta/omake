@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1458,7 +1458,7 @@ let rec squash_value pos buf v =
             let print_error buf =
                fprintf buf "@[<v 3>Non digestable value:@ @[<hv 3>%a@]@ Contact the OMake team at omake@@metaprl.org if you think this should be supported@]@." pp_print_value v
             in
-               raise (OmakeException (pos, LazyError print_error))
+               raise (OmakeFatalErr (pos, LazyError print_error))
    end;
    Hash.add_code buf CodeEnd
 
@@ -1713,12 +1713,9 @@ let digest_of_commands pos commands =
          let () = squash_commands pos buf commands in
             Some (Hash.digest buf)
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

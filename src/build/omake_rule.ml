@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -772,7 +772,7 @@ let lazy_commands venv pos commands =
     | ValBody (env, e) ->
          [lazy_command (venv_with_env venv env) pos e]
     | _ ->
-         raise (OmakeException (pos, StringValueError ("unknown rule commands", commands)))
+         raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
 let exp_list_of_commands venv pos commands =
    match eval_value venv pos commands with
@@ -781,7 +781,7 @@ let exp_list_of_commands venv pos commands =
     | ValBody (_, e) ->
          [e]
     | _ ->
-         raise (OmakeException (pos, StringValueError ("unknown rule commands", commands)))
+         raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
 (*
  * Evaluate a rule.  This is the most complicated part of evaluation.
@@ -890,7 +890,7 @@ and eval_subdir venv loc (kind, dir) commands =
    let dir = venv_intern_dir venv (string_of_target venv dir) in
    let () =
       if kind <> NodeNormal then
-         eprintf "*** omake: .SUBDIR kind %a not implemented@." pp_print_node_kind kind;
+         eprintf "*** omake: .SUBDIRS kind %a not implemented@." pp_print_node_kind kind;
 
       (* Check that the directory exists *)
       if not (Omake_cache.exists_dir cache dir) then

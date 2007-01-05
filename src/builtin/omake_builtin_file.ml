@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -368,7 +368,7 @@ let fullname venv pos loc args =
                          | ValNode node ->
                               Node.fullname node
                          | v ->
-                              raise (OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
+                              raise (OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
                      in
                         ValString s) values
             in
@@ -403,7 +403,7 @@ let absname venv pos loc args =
                          | ValNode node ->
                               Node.absname node
                          | v ->
-                              raise (OmakeException (loc_pos loc pos, StringValueError ("not a file", v)))
+                              raise (OmakeFatalErr (loc_pos loc pos, StringValueError ("not a file", v)))
                      in
                         ValString s) values
             in

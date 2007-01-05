@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -82,6 +82,10 @@ let pp_print_exn buf exn =
          fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
             pp_print_pos pos
             pp_print_exn exn
+    | OmakeFatalErr (pos, exn) ->
+         fprintf buf "@[<v 3>*** omake fatal error:@ %a@ %a@]" (**)
+            pp_print_pos pos
+            pp_print_exn exn
     | UncaughtException (pos, exn) ->
          fprintf buf "@[<v 3>*** omake error:@ %a@ %a@]" (**)
             pp_print_pos pos
@@ -110,6 +114,7 @@ let pp_print_exn buf exn =
 let is_shell_exn exn =
    match exn with
       OmakeException _
+    | OmakeFatalErr _
     | OmakeFatal _
     | UncaughtException _
     | RaiseException _
@@ -128,6 +133,7 @@ let is_shell_exn exn =
 let catch f x =
    try f x with
       OmakeException _
+    | OmakeFatalErr _
     | OmakeFatal _
     | UncaughtException _
     | RaiseException _
@@ -140,12 +146,9 @@ let catch f x =
          eprintf "%a@." pp_print_exn exn;
          exit code
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
