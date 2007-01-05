@@ -211,6 +211,14 @@ let venv_find_scanner_mode venv pos =
       Not_found ->
          DefaultScannerIsError
 
+let restartable_exn = function
+ | OmakeException _
+ | UncaughtException _
+ | RaiseException _ ->
+      true
+ | _ ->
+      false
+
 (************************************************************************
  * Printing.
  *)
@@ -2771,8 +2779,12 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
       with
          Sys_error _
        | ExitException _
-       | Unix.Unix_error _
        | OmakeException _
+       | UncaughtException _
+       | RaiseException _
+       | Unix.Unix_error _
+       | OmakeFatalErr _
+       | OmakeFatal _
        | Sys.Break
        | Failure _
        | Return _ as exn ->
@@ -2781,10 +2793,15 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                close_out outx;
                print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
                print_summary env;
-               if not (opt_dry_run options) then
-                  save env;
-               close env;
-               exit exn_error_code
+               if opt_poll options && restartable_exn exn then begin
+                  notify_wait_omakefile env;
+                  raise Restart
+               end else begin
+                  if not (opt_dry_run options) then
+                     save env;
+                  close env;
+                  exit exn_error_code
+               end
    in
       (* Save database before exiting *)
       if save_flag && not (opt_dry_run options) then
@@ -2918,14 +2935,13 @@ let rec build_time start_time options dir_name targets =
       try build_core env dir_name dir start_time options targets with
          Restart ->
             restart ()
-       | (OmakeException _ | UncaughtException _| RaiseException _) as exn
-            when opt_poll options ->
-               eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-               notify_wait_omakefile env;
-               restart ()
        | Sys.Break ->
             close env;
             save env
+       | exn when opt_poll options && restartable_exn exn ->
+            eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+            notify_wait_omakefile env;
+            restart ()
 
 let build options dir_name targets =
    Omake_shell_sys.set_interactive false;
