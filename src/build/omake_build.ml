@@ -2656,7 +2656,8 @@ let notify_wait env =
    in
       eprintf "*** omake: polling for filesystem changes@.";
       loop false;
-      eprintf "*** omake: rebuilding@."
+      if opt_print_status (env_options env) then
+         eprintf "*** omake: rebuilding@."
 
 let notify_wait_omakefile env =
    eprintf "*** omake: polling for filesystem changes (OMakefiles only)@.";
@@ -2897,7 +2898,8 @@ let rec build_time start_time options dir_name targets =
       end
    in
    let restart () =
-      printf "*** omake: a configuration file changed, restarting@.";
+      if opt_print_status options then
+         printf "*** omake: a configuration file changed, restarting@.";
       close env;
       save env;
       build_time start_time options dir_name targets
