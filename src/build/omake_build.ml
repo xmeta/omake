@@ -43,6 +43,7 @@ open Lm_symbol
 open Lm_notify
 open Lm_location
 open Lm_string_util
+open Lm_string_set
 
 open Omake_ir
 open Omake_env
@@ -2410,15 +2411,21 @@ let print_deadlock env buf state =
 let print_failed_targets env buf =
    if opt_print_status (venv_options env.env_venv) then begin
       fprintf buf "*** omake: targets were not rebuilt because of errors:";
-      command_iter env CommandFailedTag (fun command ->
+      (* We use table to get an alphabetical order here - see http://bugzilla.metaprl.org/show_bug.cgi?id=621 *)
+      let table = ref LexStringMTable.empty in
+      let add_command command =
+         table := LexStringMTable.add !table (Node.absname command.command_target) command
+      in
+      let () = command_iter env CommandFailedTag add_command in
+         LexStringMTable.iter (fun _ command ->
             fprintf buf "@\n   @[<v 3>@[<v 3>%a" pp_print_node command.command_target;
             NodeSet.iter (fun dep ->
                   if Node.is_real dep && is_leaf_node env dep then
                      fprintf buf "@ depends on: %a" pp_print_node dep) command.command_static_deps;
             fprintf buf "@]";
             format_tee_with_nl buf command;
-            fprintf buf "@]");
-      fprintf buf "@."
+            fprintf buf "@]") !table;
+         fprintf buf "@."
    end
 
 let print_failed env buf state =
