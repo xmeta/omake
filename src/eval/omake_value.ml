@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -277,10 +277,10 @@ let node_value_of_value venv pos v =
        | ValClass _
        | ValCases _
        | ValOther _ ->
-            raise (OmakeException (pos, StringError "not a file"))
+            raise (OmakeException (pos, StringValueError("not a file", v)))
 
 let dir_value_of_value venv pos v =
-   let pos = string_pos "node_value_of_value" pos in
+   let pos = string_pos "dir_value_of_value" pos in
    let arg = eval_prim_value venv pos v in
       match arg with
          ValNode _
@@ -314,7 +314,7 @@ let dir_value_of_value venv pos v =
        | ValClass _
        | ValCases _
        | ValOther _ ->
-            raise (OmakeException (pos, StringError "not a file"))
+            raise (OmakeException (pos, StringValueError("not a file", v)))
 
 let filename_of_value venv pos v =
    let pos = string_pos "filename_of_value" pos in
@@ -584,12 +584,9 @@ let loc_of_value venv pos v =
     | _ ->
          raise (OmakeException (pos, StringValueError ("not a location", v)))
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
