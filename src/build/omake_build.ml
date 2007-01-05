@@ -2489,56 +2489,41 @@ let create_env exec options cache targets =
       env
 
 (*
- * Create from scratch.
- *)
-let create_empty exec options targets : env =
-   create_env exec options (Omake_cache.create ()) targets
-
-(*
- * Load cache and environment from the database.
- *)
-let load_env_aux options inx exec targets =
-   (* Load the cache *)
-   let cache = Omake_cache.from_channel inx in
-   let () =
-      if opt_flush_dependencies options then
-         Omake_cache.clear cache scanner_fun
-   in
-      create_env exec options cache targets
-
-(*
- * If a marshal exception happens, create from scratch.
- *)
-let load_env options inx exec targets : env =
-   try load_env_aux options inx exec targets with
-      Unix.Unix_error _
-    | End_of_file
-    | Sys_error _
-    | Failure _ ->
-         create_empty exec options targets
-
-(*
- * Load cache and environment.
- *)
-let load_aux exec options targets =
-   if opt_flush_cache options then
-      create_empty exec options targets
-   else
-      let inx = open_in_bin db_name in
-      let env = load_env options inx exec targets in
-         close_in inx;
-         env
-
-(*
  * Load the environment if possible.
  * If not, create a new one.
  *)
 let load options targets =
    let cwd  = Dir.cwd () in
    let exec = Exec.create cwd options in
-      try load_aux exec options targets with
-         Sys_error _ ->
-            create_empty exec options targets
+   let cache =
+      match
+         if opt_flush_cache options then
+            None
+         else
+            (* Load cache from the db file *)
+            try 
+               let inx = open_in_bin db_name in
+               let cache = 
+                  try Omake_cache.from_channel inx with
+                     exn ->
+                        close_in inx;
+                        raise exn
+               in
+                  if opt_flush_dependencies options then
+                     Omake_cache.clear cache scanner_fun;
+                  close_in inx;
+                  Some cache
+            with
+               Unix.Unix_error _
+             | End_of_file
+             | Sys_error _
+             | Failure _ ->
+                  None
+      with
+         None -> Omake_cache.create ()
+       | Some cache -> cache
+   in
+      create_env exec options cache targets
 
 (************************************************************************
  * Main build command.
