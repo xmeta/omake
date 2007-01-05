@@ -120,6 +120,8 @@ let env_target  = Omake_cache.env_target
 
 exception Restart
 exception UnknownTarget of Node.t
+exception PollOnError
+
 
 type default_scanner_mode =
    DefaultScannerIsEnabled
@@ -189,6 +191,16 @@ let flatten_deps table =
          NodeSet.union deps1 deps2) NodeSet.empty table
 
 (*
+ * Handle a potentially fatal error that may be handled by polling for OMakefile changes.
+ *)
+let raise_recoverable venv exn =
+   if opt_poll (venv_options venv) then begin
+      eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+      raise PollOnError
+   end else
+      raise exn
+
+(*
  * Get the scanner mode.
  *)
 let venv_find_scanner_mode venv pos =
@@ -204,7 +216,7 @@ let venv_find_scanner_mode venv pos =
           | "error" ->
                DefaultScannerIsError
           | s ->
-               raise (OmakeException (pos, StringStringError ("bad scanner mode (should be enabled, disabled, error, or warning)", s)))
+               raise_recoverable venv (OmakeException (pos, StringStringError ("bad scanner mode (should be enabled, disabled, error, or warning)", s)))
    with
       Not_found ->
          DefaultScannerIsError
@@ -715,7 +727,7 @@ let create_command env venv target effects lock_deps static_deps scanner_deps lo
             fprintf buf "@ @[<b 3>scanner_deps:%a@]" pp_print_node_set scanner_deps;
             fprintf buf "@]"
          in
-            raise (OmakeException (loc_exp_pos loc, LazyError print_error))
+            raise_recoverable venv (OmakeException (loc_exp_pos loc, LazyError print_error))
    in
    let effects = NodeSet.add effects target in
    let locks = NodeSet.union lock_deps effects in
@@ -782,7 +794,7 @@ let build_any_command env pos loc venv target effects locks sources scanners com
                            eprintf "*** omake: warning: using default scanner %a@." pp_print_node scanner_target;
                            NodeSet.add scanner_deps scanner_target
                       | DefaultScannerIsError ->
-                           raise (OmakeException (loc_pos loc pos, StringNodeError ("default scanners are not allowed", scanner_target)))
+                           raise_recoverable venv (OmakeException (loc_pos loc pos, StringNodeError ("default scanners are not allowed", scanner_target)))
                       | DefaultScannerIsEnabled ->
                            NodeSet.add scanner_deps scanner_target
                       | DefaultScannerIsDisabled ->
@@ -1003,7 +1015,7 @@ let start_or_build_commands env pos loc parent targets =
                          let print_error buf =
                             Lm_printf.fprintf buf "Do not know how to build \"%a\" required for \"%a\"" pp_print_node target pp_print_node parent
                          in
-                            raise (OmakeException (pos, LazyError print_error)))) targets
+                            raise_recoverable env.env_venv (OmakeException (pos, LazyError print_error)))) targets
 
 (*
  * Start scanners.  The difference is that a scanner inherits
@@ -1028,7 +1040,7 @@ let start_or_build_scanners env pos loc parent targets venv =
                          let print_error buf =
                             Lm_printf.fprintf buf "Do not know how to build \"%a\" required for \"%a\"" pp_print_node target pp_print_node parent
                          in
-                            raise (OmakeException (pos, LazyError print_error)))) targets
+                            raise_recoverable env.env_venv (OmakeException (pos, LazyError print_error)))) targets
 
 (*
  * Make sure the effect sets form equivalence classes.
@@ -1062,7 +1074,7 @@ let start_or_build_effects env pos loc target effects =
 let build_command env pos loc target =
    try build_command env pos loc target with
       UnknownTarget _ ->
-         raise (OmakeException (pos, StringNodeError ("Do not know how to build", target)))
+         raise_recoverable env.env_venv (OmakeException (pos, StringNodeError ("Do not know how to build", target)))
 
 (************************************************************************
  * Dependency management
@@ -1622,7 +1634,7 @@ let save_and_finish_rule_success env command =
    (* Check that the target actually got built *)
    let digest = Omake_cache.stat cache target in
       if not (Node.is_phony target) && digest = None then
-         raise (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build target", target)));
+         raise_recoverable env.env_venv (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build target", target)));
 
       (* Add a memo for a specific target *)
       if debug debug_rule then
@@ -2077,10 +2089,12 @@ let rec process_running env notify =
 (*
  * Wait for all jobs to finish.
  *)
-and wait_all env =
+and wait_all env verbose =
    if not (command_list_is_empty env CommandRunningTag) then begin
+      if verbose then
+         eprintf "*** omake: waiting for all jobs to finish@.";
       ignore (process_running env false);
-      wait_all env
+      wait_all env false
    end
 
 (************************************************************************
@@ -2126,9 +2140,7 @@ and invalidate_event_core env event =
 
             (* If this is an OMakefile, abort and restart *)
             if NodeTable.mem env.env_includes node then begin
-               if verbose then
-                  eprintf "*** omake: waiting for all jobs to finish@.";
-               wait_all env;
+               wait_all env verbose;
                raise Restart
             end
             else
@@ -2328,7 +2340,7 @@ let print_deadlock_exn env buf state =
             (pp_print_node_states env) build_deps
             (pp_print_node_states env) scanner_deps
             (pp_print_node_states env) static_deps;
-         raise (OmakeException (loc_exp_pos loc, StringNodeError ("failed on target", target)))
+         raise_recoverable env.env_venv (OmakeException (loc_exp_pos loc, StringNodeError ("failed on target", target)))
    in
 
    (* Deadlock *)
@@ -2344,7 +2356,7 @@ let print_deadlock_exn env buf state =
       in
          fprintf buf "*** omake: deadlock on %a@." pp_print_node target;
          print_marked marked;
-         raise (OmakeException (loc_exp_pos loc, StringNodeError ("failed on target", target)))
+         raise_recoverable env.env_venv (OmakeException (loc_exp_pos loc, StringNodeError ("failed on target", target)))
    in
 
    (*
@@ -2668,9 +2680,20 @@ let notify_wait env =
          let changed = invalidate_event env event in
             loop (changed || found)
    in
-      eprintf "*** omake: done: polling for filesystem changes@.";
+      eprintf "*** omake: polling for filesystem changes@.";
       loop false;
       eprintf "*** omake: rebuilding@."
+
+let notify_wait_omakefile env =
+   eprintf "*** omake: polling for filesystem changes (OMakefiles only)@.";
+   let rec loop () =
+      ignore (invalidate_event env (Exec.next_event env.env_exec));
+      loop ()
+   in
+      try
+         loop ()
+      with
+         Restart -> ()
 
 (*
  * Summary management.
@@ -2854,12 +2877,18 @@ let rec build_time start_time options dir_name targets =
          exit 1
       end
    in
+   let restart () =
+      printf "*** omake: a configuration file changed, restarting@.";
+      close env;
+      save env;
+      build_time start_time options dir_name targets
+   in
       try build_core env dir_name dir start_time options targets with
          Restart ->
-            printf "*** omake: a configuration file changed, restarting@.";
-            close env;
-            save env;
-            build_time start_time options dir_name targets
+            restart ()
+       | PollOnError ->
+            notify_wait_omakefile env;
+            restart ()
        | Sys.Break ->
             close env;
             save env
