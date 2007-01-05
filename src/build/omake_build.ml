@@ -219,6 +219,27 @@ let restartable_exn = function
  | _ ->
       false
 
+(*
+ * JYH: the overhead of scanning directories every time
+ * it changes is pretty high.  We may want to think of
+ * other ways of doing this.
+ *
+ * Intercept directory change events and pretend that every file
+ * in the directory has changed.
+ *)
+let process_changes f venv cwd cache = function
+   { notify_code = DirectoryChanged; notify_name = name } ->
+      List.fold_left
+         (fun changed name ->
+            let node = venv_intern_cd venv PhonyProhibited cwd name in
+               (Omake_cache.stat_changed cache node && f node) || changed)
+         false (list_directory name)
+ | { notify_code = (Changed | Created); notify_name = name } ->
+      let node = venv_intern_cd venv PhonyProhibited cwd name in
+         f node
+ | _ ->
+      false
+
 (************************************************************************
  * Printing.
  *)
@@ -2103,34 +2124,16 @@ and wait_all env verbose =
  * If the event is really a file change and it refers to a leaf
  * node, reset the command and all its ancestors to the initial state.
  *)
-and invalidate_event_core env event =
-   let { env_cwd = cwd;
-         env_exec = exec;
-         env_venv = venv;
-         env_cache = cache;
-         env_inverse = inverse;
-         env_commands = commands
-       } = env
-   in
-
+and invalidate_event_core env node =
    (* Check whether the event refers to an update we care about *)
-   let { notify_code = code;
-         notify_name = name
-       } = event
-   in
-   let node = venv_intern_cd venv PhonyProhibited cwd name in
    let () =
       if !debug_notify then
          eprintf "Omake_build.invalidate_event_core: received event for node: %a@." pp_print_node node
    in
-   let changed_flag =
-      (code = Lm_notify.Changed || code = Lm_notify.Created)
-      && is_leaf_node env node
-      && Omake_cache.stat_changed cache node
-   in
+   let changed_flag = is_leaf_node env node in
       (* If it really changed, perform the invalidation *)
       if changed_flag then begin
-         let verbose = opt_print_status (venv_options venv) in
+         let verbose = opt_print_status (env_options env) in
             if verbose then begin
                progress_flush ();
                eprintf "*** omake: file %s changed@." (Node.fullname node)
@@ -2146,26 +2149,8 @@ and invalidate_event_core env event =
       end;
       changed_flag
 
-(*
- * JYH: the overhead of scanning directories every time
- * it changes is pretty high.  We may want to think of
- * other ways of doing this.
- *
- * Intercept directory change events and pretend that every file
- * in the directory has changed.
- *)
 and invalidate_event_dir env event =
-   match event with
-      { notify_code = DirectoryChanged; notify_name = name } ->
-         List.fold_left (fun changed name ->
-               let event =
-                  { notify_code = Changed;
-                    notify_name = name
-                  }
-               in
-                  invalidate_event_core env event || changed) false (list_directory name)
-    | _ ->
-         invalidate_event_core env event
+   process_changes (invalidate_event_core env) env.env_venv env.env_cwd env.env_cache event
 
 (*
  * Block FAM events during when performing a build phase
