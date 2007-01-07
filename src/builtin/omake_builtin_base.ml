@@ -1381,6 +1381,25 @@ let rev_fun venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{join}
+ *
+ * \begin{verbatim}
+ *    $(join sequence1, sequence2) : Sequence
+ *       sequence1 : Sequence
+ *       sequence2 : Sequence
+ * \end{verbatim}
+ *
+ * The \verb+join+ function joins together the elements of the two sequences. For example,
+ * \verb+$(join a b c, .c .cpp .h)+ evaluates to \verb+a.c b.cpp c.h+. If the two input
+ * sequences have different lengths, the remainder of the longer sequence is copied at the end
+ * of the output unmodified.
+ * \end{doc}
+ *
+ * The function is implemented in Pervasives.om, but it's more appropriate to documment it here.
+ *)
+
+(*
+ * \begin{doc}
  * \fun{string}
  *
  * \begin{verbatim}

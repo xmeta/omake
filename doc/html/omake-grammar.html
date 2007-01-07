@@ -35,7 +35,7 @@ OMake grammar
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD>
 </TR></TABLE>
 
-<H1 CLASS="chapter"><A NAME="htoc518">Appendix&nbsp;B</A>&nbsp;&nbsp;OMake grammar</H1><UL>
+<H1 CLASS="chapter"><A NAME="htoc519">Appendix&nbsp;B</A>&nbsp;&nbsp;OMake grammar</H1><UL>
 <LI><A HREF="omake-grammar.html#toc113">OMake lexical conventions</A>
 <LI><A HREF="omake-grammar.html#toc114">The OMake grammar</A>
 <LI><A HREF="omake-grammar.html#toc115">Dollar modifiers</A>
@@ -45,12 +45,12 @@ OMake grammar
 <BR>
 <BR>
 <A NAME="toc113"></A>
-<H2 CLASS="section"><A NAME="htoc519">B.1</A>&nbsp;&nbsp;OMake lexical conventions</H2>
+<H2 CLASS="section"><A NAME="htoc520">B.1</A>&nbsp;&nbsp;OMake lexical conventions</H2>
 The OMake language is based on the language for GNU/BSD make, where there are few lexical
 conventions. Strictly speaking, there are no keywords, and few special symbols.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc520">B.1.1</A>&nbsp;&nbsp;Comments</H3>
+<H3 CLASS="subsection"><A NAME="htoc521">B.1.1</A>&nbsp;&nbsp;Comments</H3>
 Comments begin with the <CODE>#</CODE> character and continue to the end-of-line.
 Text within a comment is unrestricted.<BR>
 <BR>
@@ -60,7 +60,7 @@ Examples.
    # This $comment contains a quote " character
 </PRE>
 
-<H3 CLASS="subsection"><A NAME="htoc521">B.1.2</A>&nbsp;&nbsp;Special characters</H3>
+<H3 CLASS="subsection"><A NAME="htoc522">B.1.2</A>&nbsp;&nbsp;Special characters</H3>
 The following characters are special in some contexts.
 <PRE CLASS="verbatim">
    $    (    )    ,    .   =    :    "    '    `    \    #
@@ -88,7 +88,7 @@ Examples:
  </UL>
 </UL>
 
-<H3 CLASS="subsection"><A NAME="htoc522">B.1.3</A>&nbsp;&nbsp;Identifiers</H3>
+<H3 CLASS="subsection"><A NAME="htoc523">B.1.3</A>&nbsp;&nbsp;Identifiers</H3>
 Identifiers (variable names) are drawn from the ASCII alphanumeric characters as well as <CODE>_</CODE>,
 <CODE>-</CODE>, <CODE>~</CODE>, <CODE>@</CODE>. Case is significant; the following identifiers are distinct:
 <CODE>FOO</CODE>, <CODE>Foo</CODE>, <CODE>foo</CODE>. The identifier may begin with any of the valid characters,
@@ -108,7 +108,7 @@ The following are not legal identifiers.
     x+y    hello&amp;world
 </PRE>
 
-<H3 CLASS="subsection"><A NAME="htoc523">B.1.4</A>&nbsp;&nbsp;Command identifiers</H3>
+<H3 CLASS="subsection"><A NAME="htoc524">B.1.4</A>&nbsp;&nbsp;Command identifiers</H3>
 The following words have special significance when they occur as the <EM>first</EM> word
 of a program line. They are not otherwise special.
 <PRE CLASS="verbatim">
@@ -119,7 +119,7 @@ of a program line. They are not otherwise special.
     try      value  when     while
 </PRE>
 
-<H3 CLASS="subsection"><A NAME="htoc524">B.1.5</A>&nbsp;&nbsp;Variable references</H3>
+<H3 CLASS="subsection"><A NAME="htoc525">B.1.5</A>&nbsp;&nbsp;Variable references</H3>
 A variable reference is denoted with the <CODE>$</CODE> special character followed by an identifier. If
 the identifier name has more than one character, it must be enclosed in parentheses. The
 parenthesized version is most common. The following are legal variable references.
@@ -145,7 +145,7 @@ The special sequence <CODE>$$</CODE> represents the character literal <CODE>$</C
 two-character sequences <CODE>\$</CODE> and <CODE>$$</CODE> are normally equalivalent.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc525">B.1.6</A>&nbsp;&nbsp;String constants</H3>
+<H3 CLASS="subsection"><A NAME="htoc526">B.1.6</A>&nbsp;&nbsp;String constants</H3>
 <A NAME="section:quotes"></A>
 Literal strings are defined with matching string delimiters. A left string delimiter begins with
 the dollar-sign <CODE>$</CODE>, and a non-zero number of single-quote or double-quote characters. The
@@ -184,14 +184,14 @@ quotation symbols is included in the sequence.
     Hello world
 </PRE>
 <A NAME="toc114"></A>
-<H2 CLASS="section"><A NAME="htoc526">B.2</A>&nbsp;&nbsp;The OMake grammar</H2>
+<H2 CLASS="section"><A NAME="htoc527">B.2</A>&nbsp;&nbsp;The OMake grammar</H2>
 OMake programs are constructed from expressions and statements. Generally, an input program
 consists of a sequence of statements, each of which consists of one or more lines. Indentation is
 significant&ndash;if a statement consists of more than one line, the second and remaining lines (called
 the <EM>body</EM>) are usually indented relative to the first line.<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc527">B.2.1</A>&nbsp;&nbsp;Expressions</H3>
+<H3 CLASS="subsection"><A NAME="htoc528">B.2.1</A>&nbsp;&nbsp;Expressions</H3>
 The following table lists the syntax for expressions.<BR>
 <TABLE CELLSPACING=2 CELLPADDING=0>
 <TR><TD ALIGN=right NOWRAP><EM>expr</EM></TD>
@@ -266,7 +266,7 @@ An <EM>expression</EM> is a sequence composed of text, string-literals, variable
 function applications. Text is any sequence of non-special characters.<BR>
 <BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc528">B.2.1.1</A>&nbsp;&nbsp;Inline applications</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc529">B.2.1.1</A>&nbsp;&nbsp;Inline applications</H4>
 An <EM>application</EM> is the application of a function to zero-or-more arguments. Inline
 applications begin with one of the &#8220;dollar&#8221; sequences <CODE>$</CODE>, <CODE>$`</CODE>, or <CODE>$,</CODE>. The
 application itself is specified as a single character (in which case it is a variable reference), or
@@ -296,7 +296,7 @@ The additional dollar sequences specify evaluation order, <CODE>$`</CODE> (lazy)
 discussed in the section on dollar modifiers (Section&nbsp;<A HREF="#section:dollar">B.3</A>).<BR>
 <BR>
 
-<H3 CLASS="subsection"><A NAME="htoc529">B.2.2</A>&nbsp;&nbsp;Statements and programs</H3>
+<H3 CLASS="subsection"><A NAME="htoc530">B.2.2</A>&nbsp;&nbsp;Statements and programs</H3>
 The following table lists the syntax of statements and programs.<BR>
 <TABLE CELLSPACING=2 CELLPADDING=0>
 <TR><TD ALIGN=right NOWRAP><EM>params</EM></TD>
@@ -468,7 +468,7 @@ The following table lists the syntax of statements and programs.<BR>
 <TD ALIGN=left NOWRAP><EM>rule-options</EM> <EM>rule-option</EM></TD>
 </TR></TABLE><BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc530">B.2.2.1</A>&nbsp;&nbsp;Special forms</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc531">B.2.2.1</A>&nbsp;&nbsp;Special forms</H4>
 The special forms include the following.<BR>
 <BR>
 <B>Conditionals</B> (see the section on conditionals &mdash; Section&nbsp;<A HREF="omake-language.html#section:conditionals">4.9</A>). The <CODE>if</CODE> command
@@ -553,7 +553,7 @@ Otherwise, the export is limited to the specified identifiers.
 <PRE CLASS="verbatim">
     export id ... id
 </PRE>
-<B>while</B> (see the <CODE>while</CODE> description in Section&nbsp;<A HREF="omake-base.html#fun:while">8.3.38</A>). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.
+<B>while</B> (see the <CODE>while</CODE> description in Section&nbsp;<A HREF="omake-base.html#fun:while">8.3.39</A>). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.
 <PRE CLASS="verbatim">
     while expr
         indented-body
@@ -565,7 +565,7 @@ specifies an identifier for an object. The <CODE>extends</CODE> command specifie
     extends expr
 </PRE>
 
-<H4 CLASS="subsubsection"><A NAME="htoc531">B.2.2.2</A>&nbsp;&nbsp;Variable definitions</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc532">B.2.2.2</A>&nbsp;&nbsp;Variable definitions</H4>
 See the section on variables (Section&nbsp;<A HREF="omake-language.html#section:variables">4.1</A>). The simplest variable definition has the
 following syntax. The <CODE>=</CODE> form is a new definition. The += form appends the value to
 an existing definition.
@@ -601,7 +601,7 @@ object. Private variables are statically scoped.<BR>
     private.Z = $"Hello world"
 </PRE>
 
-<H4 CLASS="subsubsection"><A NAME="htoc532">B.2.2.3</A>&nbsp;&nbsp;Applications and function definitions</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc533">B.2.2.3</A>&nbsp;&nbsp;Applications and function definitions</H4>
 See the section on functions (Section&nbsp;<A HREF="omake-language.html#section:functions">4.5</A>). A function-application statement is specified as a
 function name, followed a parenthesized list of comma-separated arguments.
 <PRE CLASS="verbatim">
@@ -641,7 +641,7 @@ list of identifiers, and the body of the function is indented.
     - : 10 : Int
 </PRE>
 
-<H4 CLASS="subsubsection"><A NAME="htoc533">B.2.2.4</A>&nbsp;&nbsp;Objects</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc534">B.2.2.4</A>&nbsp;&nbsp;Objects</H4>
 See the section on objects (Section&nbsp;<A HREF="omake-language.html#section:objects">4.11</A>). Objects are defined as an identifier with a
 terminal period. The body of the object is indented.
 <PRE CLASS="verbatim">
@@ -703,7 +703,7 @@ In this example, the <CODE>triple</CODE> object has three fields x, y, and z; an
 and <CODE>crazy</CODE>.<BR>
 <BR>
 
-<H4 CLASS="subsubsection"><A NAME="htoc534">B.2.2.5</A>&nbsp;&nbsp;Rules</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc535">B.2.2.5</A>&nbsp;&nbsp;Rules</H4>
 See the chapter on rules (Chapter&nbsp;<A HREF="omake-rules.html#chapter:rules">7</A>). A rule has the following parts.
 <OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
 A sequence of targets;
@@ -777,7 +777,7 @@ Several variables are defined during rule evaluation.
 <LI CLASS="li-itemize"><CODE>$&amp;</CODE> : the free values of the rule (often used in <CODE>:value:</CODE> dependencies).
 </UL>
 
-<H4 CLASS="subsubsection"><A NAME="htoc535">B.2.2.6</A>&nbsp;&nbsp;Shell commands</H4>
+<H4 CLASS="subsubsection"><A NAME="htoc536">B.2.2.6</A>&nbsp;&nbsp;Shell commands</H4>
 See the chapter on shell commands (Chapter&nbsp;<A HREF="omake-shell.html#chapter:shell">10</A>).<BR>
 <BR>
 While it is possible to give a precise specification of shell commands, the informal description is
@@ -796,7 +796,7 @@ considered to be a shell command. Here are some examples.
     "if" true                          -- shell command
 </PRE>
 <A NAME="toc115"></A>
-<H2 CLASS="section"><A NAME="htoc536">B.3</A>&nbsp;&nbsp;Dollar modifiers</H2>
+<H2 CLASS="section"><A NAME="htoc537">B.3</A>&nbsp;&nbsp;Dollar modifiers</H2>
 <A NAME="section:dollar"></A>
 Inline applications have a function and zero-or-more arguments. Evaluation is normally strict: when
 an application is evaluated, the function identifier is evaluated to a function, the arguments are
