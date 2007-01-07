@@ -1845,7 +1845,7 @@ let removesuffix venv pos loc args =
  * in  sequence.  The \verb+old-suffixes+ and \verb+new-suffixes+ sequences
  * should have the same length.
  *
- * For example, \verb+$(replacesuffixes, .h .c, .o .o, a.c b.h c.z)+ expands to \verb+a.o b.o c.z+.
+ * For example, \verb+$(replacesuffixes .h .c, .o .o, a.c b.h c.z)+ expands to \verb+a.o b.o c.z+.
  * \end{doc}
  *)
 let replacesuffixes venv pos loc args =
