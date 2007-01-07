@@ -58,6 +58,24 @@ last(array) =
 Bool(v) =
    value $(not $(not $v))
 
+nonempty(l) =
+    gt($(length $l), 0)
+
+# GNU Make - like join function
+join(l1, l2) =
+    result[] =
+    while $(and $(nonempty $(l1)), $(nonempty $(l2)))
+        x = $(nth 0, $(l1))
+        y = $(nth 0, $(l2))
+        l1 = $(nth-tl 1, $(l1))
+        l2 = $(nth-tl 1, $(l2))
+        result[] += $x$y
+    # From GNU Make docs: If one argument has more words that the other,
+    # the extra words are copied unchanged into the result
+    result[] += $(l1)
+    result[] += $(l2)
+    value $(result) 
+
 ########################################################################
 # \begin{doc}
 #
