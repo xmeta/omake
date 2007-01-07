@@ -1068,6 +1068,8 @@ It returns a <CODE>Float</CODE> object.<BR>
 <A NAME="@default133"></A><A NAME="@fun83"></A><A NAME="fun:lsl"></A>
 <A NAME="@default134"></A><A NAME="@fun84"></A><A NAME="fun:lsr"></A>
 <A NAME="@default135"></A><A NAME="@fun85"></A><A NAME="fun:asr"></A>
+<A NAME="@default136"></A><A NAME="@fun86"></A><A NAME="fun:min"></A>
+<A NAME="@default137"></A><A NAME="@fun87"></A><A NAME="fun:max"></A>
 The following functions can be used to perform basic arithmetic.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(neg &lt;numbers&gt;)</CODE>: arithmetic inverse
@@ -1083,18 +1085,20 @@ The following functions can be used to perform basic arithmetic.
 <LI CLASS="li-itemize"><CODE>$(lsl &lt;numbers&gt;)</CODE>: logical shift left.
 <LI CLASS="li-itemize"><CODE>$(lsr &lt;numbers&gt;)</CODE>: logical shift right.
 <LI CLASS="li-itemize"><CODE>$(asr &lt;numbers&gt;)</CODE>: arithmetic shift right.
+<LI CLASS="li-itemize"><CODE>$(min &lt;numbers&gt;)</CODE>: smallest element.
+<LI CLASS="li-itemize"><CODE>$(max &lt;numbers&gt;)</CODE>: largest element.
 </UL>
 
 <H3 CLASS="subsection"><A NAME="htoc169">8.4.4</A>&nbsp;&nbsp;Comparisons</H3>
-<A NAME="@default136"></A><A NAME="@fun86"></A><A NAME="fun:lt"></A>
-<A NAME="@default137"></A><A NAME="@fun87"></A><A NAME="fun:le"></A>
-<A NAME="@default138"></A><A NAME="@fun88"></A><A NAME="fun:eq"></A>
-<A NAME="@default139"></A><A NAME="@fun89"></A><A NAME="fun:ge"></A>
-<A NAME="@default140"></A><A NAME="@fun90"></A><A NAME="fun:gt"></A>
-<A NAME="@default141"></A><A NAME="@fun91"></A><A NAME="fun:ult"></A>
-<A NAME="@default142"></A><A NAME="@fun92"></A><A NAME="fun:ule"></A>
-<A NAME="@default143"></A><A NAME="@fun93"></A><A NAME="fun:uge"></A>
-<A NAME="@default144"></A><A NAME="@fun94"></A><A NAME="fun:ugt"></A>
+<A NAME="@default138"></A><A NAME="@fun88"></A><A NAME="fun:lt"></A>
+<A NAME="@default139"></A><A NAME="@fun89"></A><A NAME="fun:le"></A>
+<A NAME="@default140"></A><A NAME="@fun90"></A><A NAME="fun:eq"></A>
+<A NAME="@default141"></A><A NAME="@fun91"></A><A NAME="fun:ge"></A>
+<A NAME="@default142"></A><A NAME="@fun92"></A><A NAME="fun:gt"></A>
+<A NAME="@default143"></A><A NAME="@fun93"></A><A NAME="fun:ult"></A>
+<A NAME="@default144"></A><A NAME="@fun94"></A><A NAME="fun:ule"></A>
+<A NAME="@default145"></A><A NAME="@fun95"></A><A NAME="fun:uge"></A>
+<A NAME="@default146"></A><A NAME="@fun96"></A><A NAME="fun:ugt"></A>
 The following functions can be used to perform numerical comparisons.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(lt &lt;numbers&gt;)</CODE>: less then.
@@ -1110,7 +1114,7 @@ The following functions can be used to perform numerical comparisons.
 <A NAME="toc69"></A>
 <H2 CLASS="section"><A NAME="htoc170">8.5</A>&nbsp;&nbsp;First-class functions</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc171">8.5.1</A>&nbsp;&nbsp;fun</H3><A NAME="@default145"></A><A NAME="@fun95"></A><A NAME="fun:fun"></A>
+<H3 CLASS="subsection"><A NAME="htoc171">8.5.1</A>&nbsp;&nbsp;fun</H3><A NAME="@default147"></A><A NAME="@fun97"></A><A NAME="fun:fun"></A>
 The <CODE>fun</CODE> form introduces anonymous functions.<BR>
 <BR>
 <CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</CODE><BR>
@@ -1129,7 +1133,7 @@ The three following definitions are equivalent.
        fun(X, Y)
           value $(addsuffix $(Y), $(X))
 </PRE>
-<H3 CLASS="subsection"><A NAME="htoc172">8.5.2</A>&nbsp;&nbsp;apply</H3><A NAME="@default146"></A><A NAME="@fun96"></A><A NAME="fun:apply"></A>
+<H3 CLASS="subsection"><A NAME="htoc172">8.5.2</A>&nbsp;&nbsp;apply</H3><A NAME="@default148"></A><A NAME="@fun98"></A><A NAME="fun:apply"></A>
 The <CODE>apply</CODE> operator is used to apply a function.<BR>
 <BR>
 <CODE>$(apply &lt;fun&gt;, &lt;args&gt;)</CODE><BR>
@@ -1144,7 +1148,7 @@ The the two expressions below are equivalent.
     X = F(a b c, .c)
     X = $(apply $(F), a b c, .c)
 </PRE>
-<H3 CLASS="subsection"><A NAME="htoc173">8.5.3</A>&nbsp;&nbsp;applya</H3><A NAME="@default147"></A><A NAME="@fun97"></A><A NAME="fun:applya"></A>
+<H3 CLASS="subsection"><A NAME="htoc173">8.5.3</A>&nbsp;&nbsp;applya</H3><A NAME="@default149"></A><A NAME="@fun99"></A><A NAME="fun:applya"></A>
 The <CODE>applya</CODE> operator is used to apply a function to
 an array of arguments.<BR>
 <BR>
@@ -1160,7 +1164,7 @@ of <CODE>Z</CODE> is <CODE>file.c</CODE>.
        .c
     Z = $(applya $(F), $(args))
 </PRE>
-<H3 CLASS="subsection"><A NAME="htoc174">8.5.4</A>&nbsp;&nbsp;create-map, create-lazy-map</H3><A NAME="@default148"></A><A NAME="@fun98"></A><A NAME="fun:create-map"></A><A NAME="@default149"></A><A NAME="@fun99"></A><A NAME="fun:create-lazy-map"></A>
+<H3 CLASS="subsection"><A NAME="htoc174">8.5.4</A>&nbsp;&nbsp;create-map, create-lazy-map</H3><A NAME="@default150"></A><A NAME="@fun100"></A><A NAME="fun:create-map"></A><A NAME="@default151"></A><A NAME="@fun101"></A><A NAME="fun:create-lazy-map"></A>
 The <CODE>create-map</CODE> is a simplified form for creating <CODE>Map</CODE> objects.
 The <CODE>create-map</CODE> function takes an even number of arguments that specify
 key/value pairs. For example, the following values are equivalent.
@@ -1186,7 +1190,7 @@ The <CODE>create-lazy-map</CODE> function (see Section&nbsp;<A HREF="omake-rule.
 <A NAME="toc70"></A>
 <H2 CLASS="section"><A NAME="htoc175">8.6</A>&nbsp;&nbsp;Iteration and mapping</H2>
 
-<H3 CLASS="subsection"><A NAME="htoc176">8.6.1</A>&nbsp;&nbsp;foreach</H3><A NAME="@default150"></A><A NAME="@fun100"></A><A NAME="fun:foreach"></A>
+<H3 CLASS="subsection"><A NAME="htoc176">8.6.1</A>&nbsp;&nbsp;foreach</H3><A NAME="@default152"></A><A NAME="@fun102"></A><A NAME="fun:foreach"></A>
 The <CODE>foreach</CODE> function maps a function over a sequence.
 <PRE CLASS="verbatim">
     $(foreach &lt;fun&gt;, &lt;args&gt;)
