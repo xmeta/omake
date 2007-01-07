@@ -106,6 +106,8 @@ let float_fun venv pos loc args =
  * \funref{lsl}
  * \funref{lsr}
  * \funref{asr}
+ * \funref{min}
+ * \funref{max}
  *
  * The following functions can be used to perform basic arithmetic.
  *
@@ -123,6 +125,8 @@ let float_fun venv pos loc args =
  * \item \verb+$(lsl <numbers>)+: logical shift left.
  * \item \verb+$(lsr <numbers>)+: logical shift right.
  * \item \verb+$(asr <numbers>)+: arithmetic shift right.
+ * \item \verb+$(min <numbers>)+: smallest element.
+ * \item \verb+$(max <numbers>)+: largest element.
  * \end{itemize}
  * \end{doc}
  *)
@@ -267,6 +271,9 @@ let () =
        true, "sub",             arith 0 ( - ) ( -. ),        ArityAny;
        true, "mul",             arith 1 ( * ) ( *. ),        ArityAny;
        true, "div",             arith 1 ( / ) ( /. ),        ArityAny;
+       true, "mod",             arith 1 (mod) (mod_float),   ArityAny;
+       true, "min",             arith max_int min min,       ArityAny;
+       true, "max",             arith min_int max max,       ArityAny;
        true, "mod",             arith 1 (mod) (mod_float),   ArityAny;
        true, "lnot",            unary_int (lnot),            ArityExact 1;
        true, "land",            arith_int 0 (land),          ArityAny;
