@@ -2434,15 +2434,15 @@ let notify_wait_simple venv cwd exec cache =
          Exec.monitor exec node) files
    in
    let pstatus = opt_print_status (venv_options venv) in
-   let changed node =
-      let changed = NodeSet.mem files node in
-         if changed && pstatus then
-            printf "*** omake: file %s changed@." (Node.fullname node);
-         changed
+   let print_msg = 
+      if pstatus then
+         fun node -> printf "*** omake: file %s changed@." (Node.fullname node)
+      else
+         fun node -> ()
    in
    let rec loop () =
       let event = Exec.next_event exec in
-      let changed = process_changes changed (fun _ -> ()) venv cwd cache event in
+      let changed = process_changes (NodeSet.mem files) print_msg venv cwd cache event in
          if (not changed || Exec.pending exec) then
             loop ()
    in
