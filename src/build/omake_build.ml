@@ -1662,8 +1662,10 @@ let save_and_finish_rule_success env command =
 
    (* Check that the target actually got built *)
    let digest = Omake_cache.stat cache target in
-      if not (Node.is_phony target) && digest = None then
+      if not (Node.is_phony target) && digest = None then begin
+         abort_command env command exn_error_code;
          raise (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build target", target)));
+      end;
 
       (* Add a memo for a specific target *)
       if debug debug_rule then
