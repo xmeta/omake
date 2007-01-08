@@ -234,7 +234,8 @@ let process_changes is_node_relevant process_node venv cwd cache event =
          if !debug_notify then
             eprintf "Omake_build.process_changes: received %s event for node: %a@."
                (if changed then "relevant" else "ignored") pp_print_node node;
-         process_node node;
+         if changed then
+            process_node node;
          changed
    in
       match event with
