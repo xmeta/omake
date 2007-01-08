@@ -245,6 +245,13 @@ let process_changes is_node_relevant process_node venv cwd cache event =
        | _ ->
             false
 
+(*
+ * Find a command from a target.
+ * May raise Not_found.
+ *)
+let find_command env target =
+   NodeTable.find env.env_commands target
+
 (************************************************************************
  * Printing.
  *)
@@ -302,7 +309,7 @@ let pp_print_command buf command =
 let pp_print_node_states env buf nodes =
    NodeSet.iter (fun target ->
          try
-            let command = NodeTable.find env.env_commands target in
+            let command = find_command env target in
                fprintf buf "@ %a(%a)" (**)
                   pp_print_node target
                   pp_print_command_state command.command_state
@@ -386,7 +393,7 @@ let rec pp_print_dependencies_aux show_all env buf command =
          let nodes = NodeSet.union scanner_deps build_deps in
             fprintf buf "@ @ --- Complete dependency listing ---@ ";
             NodeSet.iter (fun node ->
-                  let command = NodeTable.find env.env_commands node in
+                  let command = find_command env node in
                      fprintf buf "@ %a" (pp_print_dependencies_aux false env) command) nodes
 
 let pp_print_dependencies =
@@ -605,13 +612,6 @@ let env_options env =
  *)
 let print_node_dependencies env target =
    env.env_print_dependencies <- NodeSet.add env.env_print_dependencies target
-
-(*
- * Find a command from a target.
- * May raise Not_found.
- *)
-let find_command env target =
-   NodeTable.find env.env_commands target
 
 (*
  * Start command if it is idle.
