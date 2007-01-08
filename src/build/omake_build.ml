@@ -253,6 +253,17 @@ let process_changes is_node_relevant process_node venv cwd cache event =
 let find_command env target =
    NodeTable.find env.env_commands target
 
+(*
+ * Find the immediate parents of a node in the dependency DAG
+ *)
+let find_parents env node =
+   try
+      let inverse = NodeTable.find env.env_inverse node in
+         NodeTable.fold (fun nodes node _ -> NodeSet.add nodes node) NodeSet.empty inverse
+   with
+      Not_found ->
+         NodeSet.empty
+
 (************************************************************************
  * Printing.
  *)
@@ -365,14 +376,7 @@ let rec pp_print_dependencies_aux show_all env buf command =
          command_build_deps   = build_deps
        } = command
    in
-   let inverse =
-      try
-         let inverse = NodeTable.find env.env_inverse target in
-            NodeTable.fold (fun nodes node _ -> NodeSet.add nodes node) NodeSet.empty inverse
-      with
-         Not_found ->
-            NodeSet.empty
-   in
+   let inverse = find_parents env target in
    let options = venv_options env.env_venv in
    let total, build_deps, scanner_deps =
       if show_all && opt_all_dependencies options then
@@ -1947,17 +1951,11 @@ let close env =
 (*
  * Forms for walking up and down the tree.
  *)
-let invalidate_parents env nodes command =
-   try
-      let inverse = NodeTable.find env.env_inverse command.command_target in
-         NodeTable.fold (fun nodes node _ ->
-               NodeSet.add nodes node) nodes inverse
-   with
-      Not_found ->
-         nodes
+let invalidate_parents env command =
+   find_parents env command.command_target
 
-let invalidate_children env nodes command =
-   NodeSet.union nodes command.command_build_deps
+let invalidate_children env command =
+   command.command_build_deps
 
 (*
  * General invalidation function.
@@ -1971,7 +1969,7 @@ let rec invalidate_aux invalidate_next env nodes =
       let nodes =
          if command.command_state <> CommandInitial then
             let nodes = NodeSet.union nodes command.command_effects in
-            let nodes = invalidate_next env nodes command in
+            let nodes = NodeSet.union nodes (invalidate_next env command) in
 
             (* Recompute the commands if they have value dependencies *)
             let () =
@@ -2073,6 +2071,16 @@ let process_pending env =
             reclassify_command env command CommandReady)
 
 (*
+ * Leaf dependency - a leaf node, or a node that appears as optional/exists node
+ *)
+let is_leaf_file env node =
+   if NodeTable.mem env.env_commands node then
+      is_leaf_node env node
+   else
+      (NodeTable.mem env.env_commands (Node.escape NodeOptional node) ||
+       NodeTable.mem env.env_commands (Node.escape NodeExists node))
+
+(*
  * Process the running queue.
  * Wait until a process exits.
  *)
@@ -2141,12 +2149,14 @@ and invalidate_event_core env node =
       if NodeTable.mem env.env_includes node then begin
          wait_all env verbose;
          raise Restart
-      end
-      else
-         invalidate_ancestors env (NodeSet.singleton node)
+      end else
+         let nodes = if is_leaf_node env node then NodeSet.singleton node else NodeSet.empty in
+         let nodes = NodeSet.union nodes (find_parents env (Node.escape NodeOptional node)) in
+         let nodes = NodeSet.union nodes (find_parents env (Node.escape NodeExists node)) in
+            invalidate_ancestors env nodes
 
 and do_invalidate_event env event =
-   process_changes (is_leaf_node env) (invalidate_event_core env) env.env_venv env.env_cwd env.env_cache event
+   process_changes (is_leaf_file env) (invalidate_event_core env) env.env_venv env.env_cwd env.env_cache event
 
 (*
  * Block FAM events during when performing a build phase
