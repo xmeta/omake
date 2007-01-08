@@ -2184,7 +2184,7 @@ let compile_patterns venv loc pos patterns =
     | pattern :: patterns ->
          let f = f patterns in
             if is_wild pattern then
-               let wild = wild_compile pattern in
+               let wild = wild_compile_in pattern in
                   (fun s -> wild_matches wild s || f s)
             else
                (fun s -> s = pattern || f s)

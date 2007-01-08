@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -36,16 +36,19 @@ open Lm_printf
 val wild_string : string
 
 (*
- * Wildcard matching.
+ * Wildcard matching. "Incoming" patterns must have exactly one instance
+ * of the pattern symbol %. "Outgoing" patterns may have any number.
  *)
-type wild
+type wild_in_patt
+type wild_out_patt
 type wild_subst
 type wild_value
 
 (*
  * Printing.
  *)
-val pp_print_wild : formatter -> wild -> unit
+val pp_print_wild_in : formatter -> wild_in_patt -> unit
+val pp_print_wild_out : formatter -> wild_out_patt -> unit
 
 (*
  * Check if a string is a wild pattern.
@@ -55,28 +58,27 @@ val is_wild : string -> bool
 (*
  * Compile a pattern.
  *)
-val wild_compile : string -> wild
+val wild_compile_in : string -> wild_in_patt
+val wild_compile_out : string -> wild_out_patt
 
 (*
  * Perform a match.  Returns None if there
  * was no match.
  *)
-val wild_matches : wild -> string -> bool
-val wild_match : wild -> string -> wild_subst option
+val wild_matches : wild_in_patt -> string -> bool
+val wild_match : wild_in_patt -> string -> wild_subst option
 val wild_core : wild_subst -> string
 val wild_of_core : string -> wild_subst
 
 (*
  * Perform a substitution.
  *)
-val wild_subst : wild_subst -> wild -> string
 
-(*!
- * @docoff
- *
+val wild_subst_in : wild_subst -> wild_in_patt -> string
+val wild_subst : wild_subst -> wild_out_patt -> string
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

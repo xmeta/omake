@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Lm_printf
@@ -40,7 +40,9 @@ let wild_string = "%"
  * We have very simple regular expressions of the form, where
  * a single % is a wildcard.
  *)
-type wild = int * string * int * string
+type wild_in_patt = int * string * int * string
+
+type wild_out_patt = string list
 
 type wild_subst = int * string
 
@@ -49,8 +51,11 @@ type wild_value = string
 (*
  * Printing.
  *)
-let pp_print_wild buf (_, s1, _, s2) =
+let pp_print_wild_in buf (_, s1, _, s2) =
    fprintf buf "%s%c%s" s1 wild_char s2
+
+let pp_print_wild_out buf strs =
+   pp_print_string buf (String.concat wild_string strs)
 
 (*
  * Check if a string is a wild pattern.
@@ -61,18 +66,22 @@ let is_wild s =
 (*
  * Compile a pattern to make searching easier.
  *)
-let wild_compile s =
+let wild_compile_in s =
    let len = String.length s in
       try
          let index = String.index s wild_char in
          let prefix = String.sub s 0 index in
          let slen = len - index - 1 in
          let suffix = String.sub s (succ index) slen in
+            if String.contains suffix wild_char then
+               raise (Failure "Only one wildcard symbol % allowed in a match pattern");
             index, prefix, slen, suffix
       with
          Not_found ->
-            (* Node will be in escaped format *)
             raise (Invalid_argument "Omake_wild.wild_compile")
+
+let wild_compile_out s =
+   Lm_string_util.split wild_string s
 
 (*
  * Perform a match.
@@ -116,15 +125,15 @@ let wild_of_core s =
 (*
  * Perform a substitution.
  *)
-let wild_subst (_, s) (_, prefix, _, suffix) =
+let wild_subst_in (_, s) (_, prefix, _, suffix) =
    prefix ^ s ^ suffix
 
-(*!
- * @docoff
- *
+let wild_subst (_, s) strs =
+   String.concat s strs
+
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

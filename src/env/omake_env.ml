@@ -140,7 +140,7 @@ type ir = symbol list * scope_kind SymbolTable.t * Omake_ir.exp
  *   4. A squashed source
  *)
 type source_core =
-   SourceWild of wild
+   SourceWild of wild_out_patt
  | SourceNode of Node.t
 
 type 'a source = node_kind * 'a
@@ -282,7 +282,7 @@ and command_info =
 and irule =
    { irule_loc        : loc;
      irule_multiple   : rule_multiple;
-     irule_patterns   : wild list;
+     irule_patterns   : wild_in_patt list;
      irule_locks      : source_core source list;
      irule_sources    : source_core source list;
      irule_scanners   : source_core source list;
@@ -297,7 +297,7 @@ and irule =
 and inrule =
    { inrule_loc        : loc;
      inrule_multiple   : rule_multiple;
-     inrule_patterns   : wild list;
+     inrule_patterns   : wild_in_patt list;
      inrule_locks      : source_core source list;
      inrule_sources    : source_core source list;
      inrule_scanners   : source_core source list;
@@ -345,7 +345,7 @@ and erule_info =
 and orule =
    { orule_loc      : loc;
      orule_name     : symbol;
-     orule_pattern  : wild;
+     orule_pattern  : wild_in_patt;
      orule_sources  : source_core list
    }
 
@@ -691,12 +691,12 @@ let pp_print_node_set buf set =
    NodeSet.iter (fun s -> fprintf buf "@ %a" pp_print_node s) set
 
 let pp_print_wild_list buf wl =
-   List.iter (fun w -> fprintf buf "@ %a" pp_print_wild w) wl
+   List.iter (fun w -> fprintf buf "@ %a" pp_print_wild_in w) wl
 
 let pp_print_source buf (_, source) =
    match source with
       SourceWild wild ->
-         pp_print_wild buf wild
+         pp_print_wild_out buf wild
     | SourceNode node ->
          pp_print_node buf node
 
@@ -2059,7 +2059,7 @@ let compile_wild_pattern venv pos loc target =
       TargetString s when is_wild s ->
          if Lm_string_util.contains_any s Lm_filename_util.separators then
             raise (OmakeException (loc_pos loc pos, StringStringError ("filename pattern is a path", s)));
-         wild_compile s
+         wild_compile_in s
     | _ ->
          raise (OmakeException (loc_pos loc pos, StringTargetError ("patterns must be wildcards", target)))
 
@@ -2072,7 +2072,7 @@ let compile_source_core venv s =
          SourceNode node
     | TargetString s ->
          if is_wild s then
-            SourceWild (wild_compile s)
+            SourceWild (wild_compile_out s)
          else
             SourceNode (venv_intern venv PhonyOK s)
 
@@ -2870,7 +2870,7 @@ let venv_add_explicit3_rules venv pos loc multiple targets locks patterns source
                       let scanners     = node_set_of_list scanner_args in
                       let effects =
                          List.fold_left (fun effects pattern ->
-                               let effect = wild_subst subst pattern in
+                               let effect = wild_subst_in subst pattern in
                                let effect = venv_intern_rule_target venv multiple (TargetString effect) in
                                   NodeSet.add effects effect) NodeSet.empty patterns_wild
                       in
@@ -2909,7 +2909,7 @@ let venv_add_explicit3_rules venv pos loc multiple targets locks patterns source
  *)
 let venv_add_rule venv pos loc multiple targets patterns locks sources scanners values commands =
    let pos = string_pos "venv_add_rule" pos in
-      match targets, patterns, commands with
+      try match targets, patterns, commands with
          [], [], _ ->
             raise (OmakeException (loc_exp_pos loc, StringError "invalid null rule"))
        | _, [], [] ->
@@ -2924,6 +2924,9 @@ let venv_add_rule venv pos loc multiple targets patterns locks sources scanners 
                venv_add_explicit2_rules venv pos loc multiple targets locks sources scanners values commands
        | _ ->
             venv_add_explicit3_rules venv pos loc multiple targets locks patterns sources scanners values commands
+      with
+         Failure err ->
+            raise (OmakeException (loc_exp_pos loc, StringError err))
 
 (*
  * Flush the explicit list.
@@ -3165,7 +3168,7 @@ let venv_find_implicit_rules_inner venv target =
                         let commands = make_command_info venv source_args values body in
                         let effects =
                            List.fold_left (fun effects pattern ->
-                                 let effect = wild_subst subst pattern in
+                                 let effect = wild_subst_in subst pattern in
                                  let effect = venv_intern_rule_target venv multiple (TargetString effect) in
                                     NodeSet.add effects effect) NodeSet.empty patterns
                         in
