@@ -227,18 +227,23 @@ let restartable_exn = function
  * Intercept directory change events and pretend that every file
  * in the directory has changed.
  *)
-let process_changes f venv cwd cache = function
-   { notify_code = DirectoryChanged; notify_name = name } ->
-      List.fold_left
-         (fun changed name ->
-            let node = venv_intern_cd venv PhonyProhibited cwd name in
-               (Omake_cache.stat_changed cache node && f node) || changed)
-         false (list_directory name)
- | { notify_code = (Changed | Created); notify_name = name } ->
+let process_changes is_node_relevant process_node venv cwd cache event =
+   let process_node name =
       let node = venv_intern_cd venv PhonyProhibited cwd name in
-         f node
- | _ ->
-      false
+      let changed = is_node_relevant node && Omake_cache.stat_changed cache node in
+         if !debug_notify then
+            eprintf "Omake_build.process_changes: received %s event for node: %a@."
+               (if changed then "relevant" else "ignored") pp_print_node node;
+         process_node node;
+         changed
+   in
+      match event with
+         { notify_code = DirectoryChanged; notify_name = name } ->
+            List.fold_left (fun changed name -> process_node name || changed) false (list_directory name)
+       | { notify_code = (Changed | Created); notify_name = name } ->
+            process_node name
+       | _ ->
+            false
 
 (************************************************************************
  * Printing.
@@ -2125,32 +2130,22 @@ and wait_all env verbose =
  * node, reset the command and all its ancestors to the initial state.
  *)
 and invalidate_event_core env node =
-   (* Check whether the event refers to an update we care about *)
-   let () =
-      if !debug_notify then
-         eprintf "Omake_build.invalidate_event_core: received event for node: %a@." pp_print_node node
-   in
-   let changed_flag = is_leaf_node env node in
-      (* If it really changed, perform the invalidation *)
-      if changed_flag then begin
-         let verbose = opt_print_status (env_options env) in
-            if verbose then begin
-               progress_flush ();
-               eprintf "*** omake: file %s changed@." (Node.fullname node)
-            end;
-
-            (* If this is an OMakefile, abort and restart *)
-            if NodeTable.mem env.env_includes node then begin
-               wait_all env verbose;
-               raise Restart
-            end
-            else
-               invalidate_ancestors env (NodeSet.singleton node)
+   let verbose = opt_print_status (env_options env) in
+      if verbose then begin
+         progress_flush ();
+         eprintf "*** omake: file %s changed@." (Node.fullname node)
       end;
-      changed_flag
 
-and invalidate_event_dir env event =
-   process_changes (invalidate_event_core env) env.env_venv env.env_cwd env.env_cache event
+      (* If this is an OMakefile, abort and restart *)
+      if NodeTable.mem env.env_includes node then begin
+         wait_all env verbose;
+         raise Restart
+      end
+      else
+         invalidate_ancestors env (NodeSet.singleton node)
+
+and do_invalidate_event env event =
+   process_changes (is_leaf_node env) (invalidate_event_core env) env.env_venv env.env_cwd env.env_cache event
 
 (*
  * Block FAM events during when performing a build phase
@@ -2164,14 +2159,14 @@ and invalidate_event env event =
       false
    end
    else
-      invalidate_event_dir env event
+      do_invalidate_event env event
 
 (*
  * Worklist switching.
  *)
 let process_events env =
    env.env_current_wl <- env.env_main_wl;
-   Queue.iter (fun event -> ignore (invalidate_event_dir env event)) env.env_pending_events;
+   Queue.iter (fun event -> ignore (do_invalidate_event env event)) env.env_pending_events;
    Queue.clear env.env_pending_events
 
 let with_fresh_wl env f =
@@ -2430,6 +2425,30 @@ let print_failed env buf state =
 (************************************************************************
  * Loading state from .omakedb
  *)
+let notify_wait_simple venv cwd exec cache =
+   eprintf "*** omake: polling for filesystem changes (OMakefiles only)@.";
+   let files = venv_files venv in
+   let () =
+      NodeSet.iter (fun node ->
+         ignore (Omake_cache.stat cache node);
+         Exec.monitor exec node) files
+   in
+   let pstatus = opt_print_status (venv_options venv) in
+   let changed node =
+      let changed = NodeSet.mem files node in
+         if changed && pstatus then
+            printf "*** omake: file %s changed@." (Node.fullname node);
+         changed
+   in
+   let rec loop () =
+      let event = Exec.next_event exec in
+      let changed = process_changes changed (fun _ -> ()) venv cwd cache event in
+         if (not changed || Exec.pending exec) then
+            loop ()
+   in
+      loop ();
+      if pstatus then
+         printf "*** omake: a configuration file changed, restarting@."
 
 (*
  * Create and parse, given a cache.
@@ -2441,8 +2460,6 @@ let create_env exec options cache targets =
    let targets_value = ValArray (List.map (fun v -> ValData v) targets) in
    let venv = Omake_env.venv_add_var venv ScopeGlobal pos targets_sym targets_value in
    let venv = Omake_builtin.venv_add_builtins venv in
-   let venv = Omake_builtin.venv_include_rc_file venv omakeinit_file in
-   let venv = Omake_builtin.venv_add_pervasives venv in
 
    (* Summary file *)
    let summary =
@@ -2455,23 +2472,50 @@ let create_env exec options cache targets =
 
    (* Ignore match errors *)
    let venv = venv_add_var venv ScopeGlobal pos glob_options_sym (ValString "n") in
-   let venv = Omake_builtin.venv_include_rc_file venv omakerc_file in
+
+   (* Start reading files *)
    let now = Unix.gettimeofday () in
-   let _ =
+   let cwd = venv_dir venv in
+   let () =
       if opt_print_dir options then
-         printf "make[0]: Entering directory `%s'@." (Dir.absname (venv_dir venv));
+         printf "make[0]: Entering directory `%s'@." (Dir.absname cwd);
       if opt_print_status options then
-         printf "*** omake: reading %ss@." makefile_name;
-      Omake_eval.compile venv
+         printf "*** omake: reading %ss@." makefile_name
    in
-   let now' = Unix.gettimeofday () in
+   let venv =
+      try
+         let venv = Omake_builtin.venv_include_rc_file venv omakeinit_file in
+         let venv = Omake_builtin.venv_add_pervasives venv in
+         let venv = Omake_builtin.venv_include_rc_file venv omakerc_file in
+            Omake_eval.compile venv;
+            venv
+      with exn ->
+         venv_save_static_values venv;
+         if opt_poll options && restartable_exn exn && not (NodeSet.is_empty (venv_files venv)) then begin
+            if opt_print_status options then begin
+               let now' = Unix.gettimeofday () in
+                  printf "*** omake: reading %ss failed (%.1f sec)@." makefile_name (now' -. now);
+            end;
+            eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+            notify_wait_simple venv cwd exec cache;
+            raise Restart
+         end else
+            raise exn
+   in
    let () =
       if opt_print_status options then
-         printf "*** omake: finished reading %ss (%.1f sec)@." makefile_name (now' -. now)
+         let now' = Unix.gettimeofday () in
+            printf "*** omake: finished reading %ss (%.1f sec)@." makefile_name (now' -. now)
    in
    let env = create exec venv cache summary in
       Omake_builtin_util.set_env env;
       env
+
+let rec create_env_loop exec options cache targets =
+   try
+      create_env exec options cache targets
+   with Restart ->
+      create_env_loop exec options cache targets
 
 (*
  * Load the environment if possible.
@@ -2508,7 +2552,7 @@ let load options targets =
          None -> Omake_cache.create ()
        | Some cache -> cache
    in
-      create_env exec options cache targets
+      create_env_loop exec options cache targets
 
 (************************************************************************
  * Main build command.
