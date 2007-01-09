@@ -232,10 +232,10 @@ following form.
 \end{verbatim}
 
 The rule is used to compute additional dependencies that might be defined in the source files for
-the specified target.  The scanner produces dependencies for the specified target (which may be a
-pattern) by running the commands, which \emph{must} produce output that is compatible with omake.
-For example, on GNU systems the \verb+gcc -MM foo.c+ produces dependencies for the file \verb+foo.c+
-(based on \verb+#include+ information).
+the specified target. The result of executing the scanner commands \emph{must} be a sequence of
+dependencies in OMake format, printed to the standard output.  For example, on GNU systems the
+\verb+gcc -MM foo.c+ produces dependencies for the file \verb+foo.c+ (based on \verb+#include+
+information).
 
 We can use this to specify a scanner for C files that adds the scanned dependencies for the
 \verb+.o+ file.  The following scanner specifies that dependencies for a file, say \verb+foo.o+ can
@@ -286,7 +286,16 @@ giving us a solution that works.
        gcc -MM $(addprefix -I, $(INCLUDES)) $<
 \end{verbatim}
 
-\section{Named scanners, and the :scanner: target}
+The standard output of the scanner rules will be captured by OMake and is not allowed to contain any
+content that OMake will not be able to parse as a dependency. The output is allowed to contain
+dependency specifications for unrelated targets, however such dependencies will be ignored. The
+scanner rules are allowed to produce arbitrary output on the standard error channel --- such output
+will be handled in the same way as the output of the ordinary rules (in other words, it will be
+presented to the user, when dictated by the \verb+--output-+$\ldots$ options enabled).
+
+Additional examples of the \verb+.SCANNER+ rules can be found in Section~\ref{sec:scanner-exm}.
+
+\subsection{Named scanners, and the :scanner: target}
 \index{:scanner:}
 
 Sometimes it may be useful to specify explicitly which scanner should be used in a rule.  For
@@ -327,7 +336,7 @@ Explicit \verb+:scanner:+ scanner specification may also be used to state that a
 The above has the advantage of only running \Prog{gcc} once and a disadvantage that when a single
 source file changes, all the files will end up being re-scanned.
 
-\section{Notes}
+\subsection{Notes}
 
 In most cases, you won't need to define scanners of your own.  The standard installation includes
 default scanners (both explicitly and implicitly named ones) for C, OCaml, and \LaTeX{} files.

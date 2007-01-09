@@ -167,19 +167,21 @@ BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
 <LI CLASS="li-toc"><A HREF="#htoc77">7.5.3&nbsp;&nbsp;:value:</A>
 </UL>
 <LI CLASS="li-toc"><A HREF="#htoc78">7.6&nbsp;&nbsp;.SCANNER rules</A>
-<LI CLASS="li-toc"><A HREF="#htoc79">7.7&nbsp;&nbsp;Named scanners, and the :scanner: target</A>
-<LI CLASS="li-toc"><A HREF="#htoc80">7.8&nbsp;&nbsp;Notes</A>
-<LI CLASS="li-toc"><A HREF="#htoc81">7.9&nbsp;&nbsp;.DEFAULT</A>
-<LI CLASS="li-toc"><A HREF="#htoc82">7.10&nbsp;&nbsp;.SUBDIRS</A>
-<LI CLASS="li-toc"><A HREF="#htoc83">7.11&nbsp;&nbsp;.INCLUDE</A>
-<LI CLASS="li-toc"><A HREF="#htoc84">7.12&nbsp;&nbsp;.PHONY</A>
-<LI CLASS="li-toc"><A HREF="#htoc85">7.13&nbsp;&nbsp;Rule scoping</A>
 <UL CLASS="toc"><LI CLASS="li-toc">
-<A HREF="#htoc86">7.13.1&nbsp;&nbsp;Scoping of implicit rules</A>
-<LI CLASS="li-toc"><A HREF="#htoc87">7.13.2&nbsp;&nbsp;Scoping of .SCANNER rules</A>
-<LI CLASS="li-toc"><A HREF="#htoc88">7.13.3&nbsp;&nbsp;Scoping for .PHONY targets</A>
+<A HREF="#htoc79">7.6.1&nbsp;&nbsp;Named scanners, and the :scanner: target</A>
+<LI CLASS="li-toc"><A HREF="#htoc80">7.6.2&nbsp;&nbsp;Notes</A>
 </UL>
-<LI CLASS="li-toc"><A HREF="#htoc89">7.14&nbsp;&nbsp;Pathnames in rules</A>
+<LI CLASS="li-toc"><A HREF="#htoc81">7.7&nbsp;&nbsp;.DEFAULT</A>
+<LI CLASS="li-toc"><A HREF="#htoc82">7.8&nbsp;&nbsp;.SUBDIRS</A>
+<LI CLASS="li-toc"><A HREF="#htoc83">7.9&nbsp;&nbsp;.INCLUDE</A>
+<LI CLASS="li-toc"><A HREF="#htoc84">7.10&nbsp;&nbsp;.PHONY</A>
+<LI CLASS="li-toc"><A HREF="#htoc85">7.11&nbsp;&nbsp;Rule scoping</A>
+<UL CLASS="toc"><LI CLASS="li-toc">
+<A HREF="#htoc86">7.11.1&nbsp;&nbsp;Scoping of implicit rules</A>
+<LI CLASS="li-toc"><A HREF="#htoc87">7.11.2&nbsp;&nbsp;Scoping of .SCANNER rules</A>
+<LI CLASS="li-toc"><A HREF="#htoc88">7.11.3&nbsp;&nbsp;Scoping for .PHONY targets</A>
+</UL>
+<LI CLASS="li-toc"><A HREF="#htoc89">7.12&nbsp;&nbsp;Pathnames in rules</A>
 </UL>
 <LI CLASS="li-toc"><A HREF="#htoc90">Chapter&nbsp;8&nbsp;&nbsp;Base library</A>
 <UL CLASS="toc"><LI CLASS="li-toc">
@@ -869,9 +871,9 @@ In <TT>omake</TT>, you are much less likely to define build rules of your own.
 <LI CLASS="li-itemize">Implicit rules using <CODE>.SUFFIXES</CODE> and the <CODE>.suf1.suf2:</CODE> are not supported.
  You should use wildcard patterns instead <CODE>%.suf2: %.suf1</CODE>.
 <LI CLASS="li-itemize">Scoping is significant: you should define variables and <CODE>.PHONY</CODE>
- targets (see Section&nbsp;<A HREF="#target:.PHONY">7.12</A>) before they are used.
+ targets (see Section&nbsp;<A HREF="#target:.PHONY">7.10</A>) before they are used.
 <LI CLASS="li-itemize">Subdirectories are incorporated into a project using the
- <CODE>.SUBDIRS:</CODE> target (see Section&nbsp;<A HREF="#target:.SUBDIRS">7.10</A>).
+ <CODE>.SUBDIRS:</CODE> target (see Section&nbsp;<A HREF="#target:.SUBDIRS">7.8</A>).
 </UL>
 <!--TOC section Building a small C program-->
 
@@ -1757,7 +1759,7 @@ and the <CODE>CatProgram</CODE> function specifies how to build the executable.
 
 <H3 CLASS="subsection"><A NAME="htoc22">3.4.3</A>&nbsp;&nbsp;Dependency scanning</H3><!--SEC END -->
 
-<A NAME="@default8"></A>
+<A NAME="sec:scanner-exm"></A><A NAME="@default8"></A>
 That's it, almost. The part we left out was automated dependency scanning. This is one of the
 nicer features of OMake, and one that makes build specifications easier to write and more robust.
 Strictly speaking, it isn't required, but you definitely want to do it.<BR>
@@ -3837,10 +3839,10 @@ following form.
         commands
 </PRE>
 The rule is used to compute additional dependencies that might be defined in the source files for
-the specified target. The scanner produces dependencies for the specified target (which may be a
-pattern) by running the commands, which <EM>must</EM> produce output that is compatible with omake.
-For example, on GNU systems the <CODE>gcc -MM foo.c</CODE> produces dependencies for the file <CODE>foo.c</CODE>
-(based on <CODE>#include</CODE> information).<BR>
+the specified target. The result of executing the scanner commands <EM>must</EM> be a sequence of
+dependencies in OMake format, printed to the standard output. For example, on GNU systems the
+<CODE>gcc -MM foo.c</CODE> produces dependencies for the file <CODE>foo.c</CODE> (based on <CODE>#include</CODE>
+information).<BR>
 <BR>
 We can use this to specify a scanner for C files that adds the scanned dependencies for the
 <CODE>.o</CODE> file. The following scanner specifies that dependencies for a file, say <CODE>foo.o</CODE> can
@@ -3883,9 +3885,18 @@ giving us a solution that works.
     .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES), $&amp;)
        gcc -MM $(addprefix -I, $(INCLUDES)) $&lt;
 </PRE>
-<!--TOC section Named scanners, and the :scanner: target-->
+The standard output of the scanner rules will be captured by OMake and is not allowed to contain any
+content that OMake will not be able to parse as a dependency. The output is allowed to contain
+dependency specifications for unrelated targets, however such dependencies will be ignored. The
+scanner rules are allowed to produce arbitrary output on the standard error channel &mdash; such output
+will be handled in the same way as the output of the ordinary rules (in other words, it will be
+presented to the user, when dictated by the <CODE>--output-</CODE>&hellip; options enabled).<BR>
+<BR>
+Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&nbsp;<A HREF="#sec:scanner-exm">3.4.3</A>.<BR>
+<BR>
+<!--TOC subsection Named scanners, and the :scanner: target-->
 
-<H2 CLASS="section"><A NAME="htoc79">7.7</A>&nbsp;&nbsp;Named scanners, and the :scanner: target</H2><!--SEC END -->
+<H3 CLASS="subsection"><A NAME="htoc79">7.6.1</A>&nbsp;&nbsp;Named scanners, and the :scanner: target</H3><!--SEC END -->
 
 <A NAME="@default36"></A>
 Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
@@ -3920,9 +3931,9 @@ Explicit <CODE>:scanner:</CODE> scanner specification may also be used to state 
 The above has the advantage of only running <TT>gcc</TT> once and a disadvantage that when a single
 source file changes, all the files will end up being re-scanned.<BR>
 <BR>
-<!--TOC section Notes-->
+<!--TOC subsection Notes-->
 
-<H2 CLASS="section"><A NAME="htoc80">7.8</A>&nbsp;&nbsp;Notes</H2><!--SEC END -->
+<H3 CLASS="subsection"><A NAME="htoc80">7.6.2</A>&nbsp;&nbsp;Notes</H3><!--SEC END -->
 
 In most cases, you won't need to define scanners of your own. The standard installation includes
 default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.<BR>
@@ -3935,7 +3946,7 @@ use only the named <CODE>.SCANNER</CODE> rules and explicit <CODE>:scanner:</COD
 <BR>
 <!--TOC section .DEFAULT-->
 
-<H2 CLASS="section"><A NAME="htoc81">7.9</A>&nbsp;&nbsp;.DEFAULT</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc81">7.7</A>&nbsp;&nbsp;.DEFAULT</H2><!--SEC END -->
 
 <A NAME="@default37"></A><A NAME="@target1"></A><A NAME="target:.DEFAULT"></A>
 The <CODE>.DEFAULT</CODE> target specifies a target to be built by default
@@ -3946,7 +3957,7 @@ instructs <TT>omake</TT> to build the program <CODE>hello</CODE> by default
 </PRE>
 <!--TOC section .SUBDIRS-->
 
-<H2 CLASS="section"><A NAME="htoc82">7.10</A>&nbsp;&nbsp;.SUBDIRS</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc82">7.8</A>&nbsp;&nbsp;.SUBDIRS</H2><!--SEC END -->
 
 <A NAME="@default38"></A><A NAME="@target2"></A><A NAME="target:.SUBDIRS"></A>
 The <CODE>.SUBDIRS</CODE> target is used to specify a set of subdirectories
@@ -3977,7 +3988,7 @@ Furthermore, if one exists, it is ignored. The following includes the file if it
 </PRE>
 <!--TOC section .INCLUDE-->
 
-<H2 CLASS="section"><A NAME="htoc83">7.11</A>&nbsp;&nbsp;.INCLUDE</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc83">7.9</A>&nbsp;&nbsp;.INCLUDE</H2><!--SEC END -->
 
 <A NAME="@default39"></A><A NAME="@target3"></A><A NAME="target:.INCLUDE"></A>
 The <CODE>.INCLUDE</CODE> target is like the <CODE>include</CODE> directive, but it specifies a rule to build
@@ -4016,7 +4027,7 @@ overwrite it), you should make the rule evaluation conditional on whether the ta
 </PRE>
 <!--TOC section .PHONY-->
 
-<H2 CLASS="section"><A NAME="htoc84">7.12</A>&nbsp;&nbsp;.PHONY</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc84">7.10</A>&nbsp;&nbsp;.PHONY</H2><!--SEC END -->
 
 <A NAME="@default40"></A><A NAME="@target4"></A><A NAME="target:.PHONY"></A>
 A &#8220;phony&#8221; target is a target that is not a real file, but exists to collect a set of dependencies.
@@ -4031,7 +4042,7 @@ be run whenever the <CODE>install</CODE> target is built (for example, by runnin
 </PRE>
 <!--TOC section Rule scoping-->
 
-<H2 CLASS="section"><A NAME="htoc85">7.13</A>&nbsp;&nbsp;Rule scoping</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc85">7.11</A>&nbsp;&nbsp;Rule scoping</H2><!--SEC END -->
 
 <A NAME="@default41"></A>
 As we have mentioned before, <TT>omake</TT> is a <EM>scoped</EM> language. This provides great
@@ -4090,7 +4101,7 @@ implicit rule for building <CODE>.o</CODE> files (in a context where <CODE>CFLAG
 <BR>
 <!--TOC subsection Scoping of implicit rules-->
 
-<H3 CLASS="subsection"><A NAME="htoc86">7.13.1</A>&nbsp;&nbsp;Scoping of implicit rules</H3><!--SEC END -->
+<H3 CLASS="subsection"><A NAME="htoc86">7.11.1</A>&nbsp;&nbsp;Scoping of implicit rules</H3><!--SEC END -->
 
 Implicit rules (rules containing wildcard patterns) are <EM>not</EM> global, they follow the normal
 scoping convention. This allows different parts of a project to have different sets of implicit
@@ -4118,7 +4129,7 @@ normal.<BR>
 <BR>
 <!--TOC subsection Scoping of .SCANNER rules-->
 
-<H3 CLASS="subsection"><A NAME="htoc87">7.13.2</A>&nbsp;&nbsp;Scoping of .SCANNER rules</H3><!--SEC END -->
+<H3 CLASS="subsection"><A NAME="htoc87">7.11.2</A>&nbsp;&nbsp;Scoping of .SCANNER rules</H3><!--SEC END -->
 
 <A NAME="@target5"></A>
 Scanner rules are scoped the same way as normal rules. If the <CODE>.SCANNER</CODE> rule is explicit
@@ -4155,7 +4166,7 @@ is called with <CODE>CFLAGS=-g -DLIBRARY</CODE>, and for <CODE>hello_code.o</COD
 <BR>
 <!--TOC subsection Scoping for .PHONY targets-->
 
-<H3 CLASS="subsection"><A NAME="htoc88">7.13.3</A>&nbsp;&nbsp;Scoping for .PHONY targets</H3><!--SEC END -->
+<H3 CLASS="subsection"><A NAME="htoc88">7.11.3</A>&nbsp;&nbsp;Scoping for .PHONY targets</H3><!--SEC END -->
 
 <A NAME="@target6"></A>
 Phony targets (targets that do not correspond to files) are defined with a <CODE>.PHONY:</CODE> rule.
@@ -4192,7 +4203,7 @@ from the project root.
 </PRE>
 <!--TOC section Pathnames in rules-->
 
-<H2 CLASS="section"><A NAME="htoc89">7.14</A>&nbsp;&nbsp;Pathnames in rules</H2><!--SEC END -->
+<H2 CLASS="section"><A NAME="htoc89">7.12</A>&nbsp;&nbsp;Pathnames in rules</H2><!--SEC END -->
 
 In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
 <CODE>file</CODE> function described in Section&nbsp;<A HREF="#fun:file">9.1.1</A>). They are then translated to strings for the command line.
@@ -8856,11 +8867,11 @@ See the documentation for the <CODE>find</CODE> function (Section&nbsp;<A HREF="
 
 The complete set of builtin <CODE>.PHONY</CODE> targets include the following.
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B>.PHONY</B><DD CLASS="dd-description"> Declares new phony targets (Section&nbsp;<A HREF="#target:.PHONY">7.12</A>).
-<DT CLASS="dt-description"><B>.DEFAULT</B><DD CLASS="dd-description"> Declare the default build targets (Section&nbsp;<A HREF="#target:.DEFAULT">7.9</A>).
-<DT CLASS="dt-description"><B>.SUBDIRS</B><DD CLASS="dd-description"> Include a directory as part of the project (Section&nbsp;<A HREF="#target:.SUBDIRS">7.10</A>).
-<DT CLASS="dt-description"><B>.SCANNER</B><DD CLASS="dd-description"> Define a dependency scanner (Section&nbsp;<A HREF="#target:.SUBDIRS">7.10</A>).
-<DT CLASS="dt-description"><B>.INCLUDE</B><DD CLASS="dd-description"> Include a file (Section&nbsp;<A HREF="#target:.INCLUDE">7.11</A>).
+<B>.PHONY</B><DD CLASS="dd-description"> Declares new phony targets (Section&nbsp;<A HREF="#target:.PHONY">7.10</A>).
+<DT CLASS="dt-description"><B>.DEFAULT</B><DD CLASS="dd-description"> Declare the default build targets (Section&nbsp;<A HREF="#target:.DEFAULT">7.7</A>).
+<DT CLASS="dt-description"><B>.SUBDIRS</B><DD CLASS="dd-description"> Include a directory as part of the project (Section&nbsp;<A HREF="#target:.SUBDIRS">7.8</A>).
+<DT CLASS="dt-description"><B>.SCANNER</B><DD CLASS="dd-description"> Define a dependency scanner (Section&nbsp;<A HREF="#target:.SUBDIRS">7.8</A>).
+<DT CLASS="dt-description"><B>.INCLUDE</B><DD CLASS="dd-description"> Include a file (Section&nbsp;<A HREF="#target:.INCLUDE">7.9</A>).
 <DT CLASS="dt-description"><B>.ORDER</B><DD CLASS="dd-description"> Define a file-dependency ordering rule (Section&nbsp;<A HREF="#target:.ORDER">9.3.5</A>).
 <DT CLASS="dt-description"><B>.BUILD_BEGIN</B><DD CLASS="dd-description"> Commands to be executed at the beginning of a build.
 <DT CLASS="dt-description"><B>.BUILD_SUCCESS</B><DD CLASS="dd-description"> Commands to be executed if the build is successful.
@@ -11418,19 +11429,19 @@ osh&gt; println($"$X")  # force the evaluation and print
 <LI CLASS="li-itemize">.BUILD_FAILURE, <A HREF="#@default300">12.1</A>
 <LI CLASS="li-itemize">.BUILD_SUCCESS, <A HREF="#@default299">12.1</A>
 <LI CLASS="li-itemize">.BUILDORDER, <A HREF="#@default185">9.3.5</A>
-<LI CLASS="li-itemize">.DEFAULT, <A HREF="#@default37">7.9</A>
-<LI CLASS="li-itemize">.INCLUDE, <A HREF="#@default39">7.11</A>
+<LI CLASS="li-itemize">.DEFAULT, <A HREF="#@default37">7.7</A>
+<LI CLASS="li-itemize">.INCLUDE, <A HREF="#@default39">7.9</A>
 <LI CLASS="li-itemize">.ORDER, <A HREF="#@default184">9.3.5</A>
 <LI CLASS="li-itemize">.omakerc, <A HREF="#@default461">A.8</A>
-<LI CLASS="li-itemize">.PHONY, <A HREF="#@default40">7.12</A>
+<LI CLASS="li-itemize">.PHONY, <A HREF="#@default40">7.10</A>
 <LI CLASS="li-itemize">.SCANNER, <A HREF="#@default8">3.4.3</A>, <A HREF="#@default35">7.6</A>
-<LI CLASS="li-itemize">.SUBDIRS, <A HREF="#@default6">3</A>, <A HREF="#@default38">7.10</A>
+<LI CLASS="li-itemize">.SUBDIRS, <A HREF="#@default6">3</A>, <A HREF="#@default38">7.8</A>
 <LI CLASS="li-itemize">.SUBDIRS bodies, <A HREF="#@default10">3.5</A>
 <BR>
 <BR>
 <LI CLASS="li-itemize">:effects:, <A HREF="#@default33">7.5.2</A>
 <LI CLASS="li-itemize">:exists:, <A HREF="#@default32">7.5.1</A>
-<LI CLASS="li-itemize">:scanner:, <A HREF="#@default36">7.7</A>
+<LI CLASS="li-itemize">:scanner:, <A HREF="#@default36">7.6.1</A>
 <LI CLASS="li-itemize">:value:, <A HREF="#@default34">7.5.3</A>
 <BR>
 <BR>
@@ -11788,7 +11799,7 @@ osh&gt; println($"$X")  # force the evaluation and print
 <LI CLASS="li-itemize">rootname, <A HREF="#@default159">9.1.6</A>
 <LI CLASS="li-itemize">rule, <A HREF="#@default422">12.8.0.12</A>
 <LI CLASS="li-itemize">rule, options, <A HREF="#@default31">7.5</A>
-<LI CLASS="li-itemize">rule, scoping, <A HREF="#@default41">7.13</A>
+<LI CLASS="li-itemize">rule, scoping, <A HREF="#@default41">7.11</A>
 <LI CLASS="li-itemize">rules, bounded implicit, <A HREF="#@default28">7.2</A>
 <LI CLASS="li-itemize">rules, implicit, <A HREF="#@default27">7.1</A>
 <BR>
@@ -12421,13 +12432,13 @@ Array, <A HREF="#@obj12">11.1.7</A>
 <LI CLASS="li-itemize">.BUILD_FAILURE, <A HREF="#@target11">12.1</A>
 <LI CLASS="li-itemize">.BUILD_SUCCESS, <A HREF="#@target10">12.1</A>
 <LI CLASS="li-itemize">.BUILDORDER, <A HREF="#@target8">9.3.5</A>
-<LI CLASS="li-itemize">.DEFAULT, <A HREF="#@target1">7.9</A>
+<LI CLASS="li-itemize">.DEFAULT, <A HREF="#@target1">7.7</A>
 </UL></TD>
-<TD VALIGN=top ALIGN=left><UL CLASS="itemize"><LI CLASS="li-itemize">.INCLUDE, <A HREF="#@target3">7.11</A>
+<TD VALIGN=top ALIGN=left><UL CLASS="itemize"><LI CLASS="li-itemize">.INCLUDE, <A HREF="#@target3">7.9</A>
 <LI CLASS="li-itemize">.ORDER, <A HREF="#@target7">9.3.5</A>
-<LI CLASS="li-itemize">.PHONY, <A HREF="#@target4">7.12</A>, <A HREF="#@target6">7.13.3</A>
-<LI CLASS="li-itemize">.SCANNER, <A HREF="#@target0">7.6</A>, <A HREF="#@target5">7.13.2</A>
-<LI CLASS="li-itemize">.SUBDIRS, <A HREF="#@target2">7.10</A>
+<LI CLASS="li-itemize">.PHONY, <A HREF="#@target4">7.10</A>, <A HREF="#@target6">7.11.3</A>
+<LI CLASS="li-itemize">.SCANNER, <A HREF="#@target0">7.6</A>, <A HREF="#@target5">7.11.2</A>
+<LI CLASS="li-itemize">.SUBDIRS, <A HREF="#@target2">7.8</A>
 </UL></TD>
 </TR></TABLE>
 

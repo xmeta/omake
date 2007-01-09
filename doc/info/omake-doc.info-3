@@ -359,14 +359,12 @@ scope (see also the section on Scoping).
 * Section 7-4::	section rule
 * Section 7-5::	Special dependencies
 * Section 7-6::	.SCANNER rules
-* Section 7-7::	Named scanners, and the :scanner: target
-* Section 7-8::	Notes
-* Section 7-9::	.DEFAULT
-* Section 7-10::	.SUBDIRS
-* Section 7-11::	.INCLUDE
-* Section 7-12::	.PHONY
-* Section 7-13::	Rule scoping
-* Section 7-14::	Pathnames in rules
+* Section 7-7::	.DEFAULT
+* Section 7-8::	.SUBDIRS
+* Section 7-9::	.INCLUDE
+* Section 7-10::	.PHONY
+* Section 7-11::	Rule scoping
+* Section 7-12::	Pathnames in rules
 
 
 Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
@@ -555,7 +553,7 @@ For example, the following rule:
    containing variables like `$@', `$^', etc are legal. 
   
 
-Node: Section 7-6,	Next: Section 7-7,	Prev: Section 7-5,	Up: Chapter 7
+Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
   
 
 7.6   .SCANNER rules
@@ -570,11 +568,11 @@ Node: Section 7-6,	Next: Section 7-7,	Prev: Section 7-5,	Up: Chapter 7
 >>
   
   The rule is used to compute additional dependencies that might be
-defined in the source files for the specified target. The scanner
-produces dependencies for the specified target (which may be a pattern)
-by running the commands, which must produce output that is compatible
-with omake. For example, on GNU systems the `gcc -MM foo.c' produces
-dependencies for the file `foo.c' (based on `#include' information).
+defined in the source files for the specified target. The result of
+executing the scanner commands must be a sequence of dependencies in
+OMake format, printed to the standard output. For example, on GNU
+systems the `gcc -MM foo.c' produces dependencies for the file `foo.c'
+(based on `#include' information).
   We can use this to specify a scanner for C files that adds the scanned
 dependencies for the `.o' file. The following scanner specifies that
 dependencies for a file, say `foo.o' can be computed by running `gcc -MM
@@ -624,13 +622,28 @@ $&)
          gcc -MM $(addprefix -I, $(INCLUDES)) $<
 >>
   
+  The standard output of the scanner rules will be captured by OMake and
+is not allowed to contain any content that OMake will not be able to
+parse as a dependency. The output is allowed to contain dependency
+specifications for unrelated targets, however such dependencies will be
+ignored. The scanner rules are allowed to produce arbitrary output on
+the standard error channel --- such output will be handled in the same
+way as the output of the ordinary rules (in other words, it will be
+presented to the user, when dictated by the `--output-'... options
+enabled).
+  Additional examples of the `.SCANNER' rules can be found in Section
+3.4.3*Note Subsection 3-4-3::.
+* Menu:
+
+* Subsection 7-6-1::	Named scanners, and the :scanner: target
+* Subsection 7-6-2::	Notes
+
 
-Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
+Node: Subsection 7-6-1,	Next: Subsection 7-6-2,	Prev: Section 7-6,	Up: Section 7-6
   
 
-7.7   Named scanners, and the :scanner: target
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
+7.6.1   Named scanners, and the :scanner: target
+================================================
    
   Sometimes it may be useful to specify explicitly which scanner should
 be used in a rule. For example, we might compile `.c' files with
@@ -676,12 +689,11 @@ $(digest-in-path-optional $(INCLUDES), $&)
 disadvantage that when a single source file changes, all the files will
 end up being re-scanned.
 
-Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
+Node: Subsection 7-6-2,	Next: Section 7-7,	Prev: Subsection 7-6-1,	Up: Section 7-6
   
 
-7.8   Notes
-*=*=*=*=*=*
-
+7.6.2   Notes
+=============
   
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
@@ -694,10 +706,10 @@ mis-specifications. In large complicated projects it might be a good
 idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
 rules and explicit `:scanner:' specifications.
 
-Node: Section 7-9,	Next: Section 7-10,	Prev: Section 7-8,	Up: Chapter 7
+Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
   
 
-7.9   .DEFAULT
+7.7   .DEFAULT
 *=*=*=*=*=*=*=
 
    
@@ -709,11 +721,11 @@ omake to build the program `hello' by default
 >>
   
 
-Node: Section 7-10,	Next: Section 7-11,	Prev: Section 7-9,	Up: Chapter 7
+Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
   
 
-7.10   .SUBDIRS
-*=*=*=*=*=*=*=*
+7.8   .SUBDIRS
+*=*=*=*=*=*=*=
 
    
   The `.SUBDIRS' target is used to specify a set of subdirectories that
@@ -746,11 +758,11 @@ includes the file if it exists.
 >>
   
 
-Node: Section 7-11,	Next: Section 7-12,	Prev: Section 7-10,	Up: Chapter 7
+Node: Section 7-9,	Next: Section 7-10,	Prev: Section 7-8,	Up: Chapter 7
   
 
-7.11   .INCLUDE
-*=*=*=*=*=*=*=*
+7.9   .INCLUDE
+*=*=*=*=*=*=*=
 
    
   The `.INCLUDE' target is like the `include' directive, but it
@@ -796,10 +808,10 @@ already exists.
 >>
   
 
-Node: Section 7-12,	Next: Section 7-13,	Prev: Section 7-11,	Up: Chapter 7
+Node: Section 7-10,	Next: Section 7-11,	Prev: Section 7-9,	Up: Chapter 7
   
 
-7.12   .PHONY
+7.10   .PHONY
 *=*=*=*=*=*=*
 
    
@@ -817,10 +829,10 @@ run whenever the `install' target is built (for example, by running
 >>
   
 
-Node: Section 7-13,	Next: Subsection 7-13-1,	Prev: Section 7-12,	Up: Chapter 7
+Node: Section 7-11,	Next: Subsection 7-11-1,	Prev: Section 7-10,	Up: Chapter 7
   
 
-7.13   Rule scoping
+7.11   Rule scoping
 *=*=*=*=*=*=*=*=*=*
 
    
@@ -887,15 +899,15 @@ it is compiled using the usual implicit rule for building `.o' files (in
 a context where `CFLAGS=-g -DLIBRARY').
 * Menu:
 
-* Subsection 7-13-1::	Scoping of implicit rules
-* Subsection 7-13-2::	Scoping of .SCANNER rules
-* Subsection 7-13-3::	Scoping for .PHONY targets
+* Subsection 7-11-1::	Scoping of implicit rules
+* Subsection 7-11-2::	Scoping of .SCANNER rules
+* Subsection 7-11-3::	Scoping for .PHONY targets
 
 
-Node: Subsection 7-13-1,	Next: Subsection 7-13-2,	Prev: Section 7-13,	Up: Section 7-13
+Node: Subsection 7-11-1,	Next: Subsection 7-11-2,	Prev: Section 7-11,	Up: Section 7-11
   
 
-7.13.1   Scoping of implicit rules
+7.11.1   Scoping of implicit rules
 ==================================
   
   Implicit rules (rules containing wildcard patterns) are not global,
@@ -924,10 +936,10 @@ implicit rule for building `%.o' files. The implicit rule adds the
 `-DLIBRARY' option. This implicit rule is defined only for the target
 `hello_lib.o'; the target `hello_code.o' is built as normal.
 
-Node: Subsection 7-13-2,	Next: Subsection 7-13-3,	Prev: Subsection 7-13-1,	Up: Section 7-13
+Node: Subsection 7-11-2,	Next: Subsection 7-11-3,	Prev: Subsection 7-11-1,	Up: Section 7-11
   
 
-7.13.2   Scoping of .SCANNER rules
+7.11.2   Scoping of .SCANNER rules
 ==================================
    
   Scanner rules are scoped the same way as normal rules. If the
@@ -965,10 +977,10 @@ write a complicated configuration like this! In this case, the
 scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
 
-Node: Subsection 7-13-3,	Next: Section 7-14,	Prev: Subsection 7-13-2,	Up: Section 7-13
+Node: Subsection 7-11-3,	Next: Section 7-12,	Prev: Subsection 7-11-2,	Up: Section 7-11
   
 
-7.13.3   Scoping for .PHONY targets
+7.11.3   Scoping for .PHONY targets
 ===================================
    
   Phony targets (targets that do not correspond to files) are defined
@@ -1010,10 +1022,10 @@ project root.
 >>
   
 
-Node: Section 7-14,	Next: Chapter 8,	Prev: Section 7-13,	Up: Chapter 7
+Node: Section 7-12,	Next: Chapter 8,	Prev: Section 7-11,	Up: Chapter 7
   
 
-7.14   Pathnames in rules
+7.12   Pathnames in rules
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1619,56 +1631,3 @@ Node: Subsection 8-2-13,	Next: Subsection 8-2-14,	Prev: Subsection 8-2-12,	Up: S
   
   The `setenv' function sets the value of a variable in the process
 environment. Environment variables are scoped like normal variables.
-
-Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
-  
-
-8.2.14   unsetenv
-=================
-
-<<
-     unsetenv(names)
-        names : String Array
->>
-  
-  The `unsetenv' function removes some variable definitions from the
-process environment. Environment variables are scoped like normal
-variables.
-
-Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
-  
-
-8.2.15   get-registry
-=====================
-
-<<
-     get-registry(hkey, key, field) : String
-     get-registry(hkey, key, field, default) : String
-         hkey : String
-         key : String
-         field : String
->>
-  
-  The `get-registry' function retrieves a string value from the system
-registry on Win32. On other architectures, there is no registry.
-  The `hive' (I think that is the right word), indicates which part of
-the registry to use. It should be one of the following values.
-  
-  
- - `HKEY_CLASSES_ROOT' 
- - `HKEY_CURRENT_CONFIG' 
- - `HKEY_CURRENT_USER' 
- - `HKEY_LOCAL_MACHINE' 
- - `HKEY_USERS' 
-   Refer to the Microsoft documentation if you want to know what these
-mean.
-  The `key' is the field you want to get from the registry. It should
-have a form like `A\B\C' (if you use forward slashes, they will be
-converted to backslashes). The field is the sub-field of the key.
-  In the 4-argument form, the `default' is returned on failure. You may
-also use the alternate form.
-<<
-      get-registry(hkey, key, field)
-         default
->>
-  

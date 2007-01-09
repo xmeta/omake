@@ -162,19 +162,21 @@ Contents
        - 7.5.3  :value: 
      
     - 7.6  .SCANNER rules 
-    - 7.7  Named scanners, and the :scanner: target 
-    - 7.8  Notes 
-    - 7.9  .DEFAULT 
-    - 7.10  .SUBDIRS 
-    - 7.11  .INCLUDE 
-    - 7.12  .PHONY 
-    - 7.13  Rule scoping 
         
-       - 7.13.1  Scoping of implicit rules 
-       - 7.13.2  Scoping of .SCANNER rules 
-       - 7.13.3  Scoping for .PHONY targets 
+       - 7.6.1  Named scanners, and the :scanner: target 
+       - 7.6.2  Notes 
      
-    - 7.14  Pathnames in rules 
+    - 7.7  .DEFAULT 
+    - 7.8  .SUBDIRS 
+    - 7.9  .INCLUDE 
+    - 7.10  .PHONY 
+    - 7.11  Rule scoping 
+        
+       - 7.11.1  Scoping of implicit rules 
+       - 7.11.2  Scoping of .SCANNER rules 
+       - 7.11.3  Scoping for .PHONY targets 
+     
+    - 7.12  Pathnames in rules 
   
  - Chapter 8  Base library 
      
@@ -874,9 +876,9 @@ differences to keep in mind when using omake.
    supported.  You should use wildcard patterns instead `%.suf2:
    %.suf1'. 
  - Scoping is significant: you should define variables and `.PHONY' 
-   targets (see Section 7.12) before they are used. 
+   targets (see Section 7.10) before they are used. 
  - Subdirectories are incorporated into a project using the  `.SUBDIRS:'
-   target (see Section 7.10). 
+   target (see Section 7.8). 
   
   
 
@@ -4120,11 +4122,11 @@ For example, the following rule:
 >>
   
   The rule is used to compute additional dependencies that might be
-defined in the source files for the specified target. The scanner
-produces dependencies for the specified target (which may be a pattern)
-by running the commands, which must produce output that is compatible
-with omake. For example, on GNU systems the `gcc -MM foo.c' produces
-dependencies for the file `foo.c' (based on `#include' information).
+defined in the source files for the specified target. The result of
+executing the scanner commands must be a sequence of dependencies in
+OMake format, printed to the standard output. For example, on GNU
+systems the `gcc -MM foo.c' produces dependencies for the file `foo.c'
+(based on `#include' information).
   We can use this to specify a scanner for C files that adds the scanned
 dependencies for the `.o' file. The following scanner specifies that
 dependencies for a file, say `foo.o' can be computed by running `gcc -MM
@@ -4174,11 +4176,21 @@ $&)
          gcc -MM $(addprefix -I, $(INCLUDES)) $<
 >>
   
+  The standard output of the scanner rules will be captured by OMake and
+is not allowed to contain any content that OMake will not be able to
+parse as a dependency. The output is allowed to contain dependency
+specifications for unrelated targets, however such dependencies will be
+ignored. The scanner rules are allowed to produce arbitrary output on
+the standard error channel --- such output will be handled in the same
+way as the output of the ordinary rules (in other words, it will be
+presented to the user, when dictated by the `--output-'... options
+enabled).
+  Additional examples of the `.SCANNER' rules can be found in Section
+3.4.3.
   
 
-7.7  Named scanners, and the :scanner: target
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
+7.6.1  Named scanners, and the :scanner: target
+===============================================
    
   Sometimes it may be useful to specify explicitly which scanner should
 be used in a rule. For example, we might compile `.c' files with
@@ -4225,9 +4237,8 @@ disadvantage that when a single source file changes, all the files will
 end up being re-scanned.
   
 
-7.8  Notes
-*=*=*=*=*=
-
+7.6.2  Notes
+============
   
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
@@ -4240,7 +4251,7 @@ idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
 rules and explicit `:scanner:' specifications.
   
 
-7.9  .DEFAULT
+7.7  .DEFAULT
 *=*=*=*=*=*=*
 
    
@@ -4253,8 +4264,8 @@ omake to build the program `hello' by default
   
   
 
-7.10  .SUBDIRS
-*=*=*=*=*=*=*=
+7.8  .SUBDIRS
+*=*=*=*=*=*=*
 
    
   The `.SUBDIRS' target is used to specify a set of subdirectories that
@@ -4288,8 +4299,8 @@ includes the file if it exists.
   
   
 
-7.11  .INCLUDE
-*=*=*=*=*=*=*=
+7.9  .INCLUDE
+*=*=*=*=*=*=*
 
    
   The `.INCLUDE' target is like the `include' directive, but it
@@ -4336,7 +4347,7 @@ already exists.
   
   
 
-7.12  .PHONY
+7.10  .PHONY
 *=*=*=*=*=*=
 
    
@@ -4355,7 +4366,7 @@ run whenever the `install' target is built (for example, by running
   
   
 
-7.13  Rule scoping
+7.11  Rule scoping
 *=*=*=*=*=*=*=*=*=
 
    
@@ -4422,7 +4433,7 @@ it is compiled using the usual implicit rule for building `.o' files (in
 a context where `CFLAGS=-g -DLIBRARY').
   
 
-7.13.1  Scoping of implicit rules
+7.11.1  Scoping of implicit rules
 =================================
   
   Implicit rules (rules containing wildcard patterns) are not global,
@@ -4452,7 +4463,7 @@ implicit rule for building `%.o' files. The implicit rule adds the
 `hello_lib.o'; the target `hello_code.o' is built as normal.
   
 
-7.13.2  Scoping of .SCANNER rules
+7.11.2  Scoping of .SCANNER rules
 =================================
    
   Scanner rules are scoped the same way as normal rules. If the
@@ -4491,7 +4502,7 @@ scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
   
 
-7.13.3  Scoping for .PHONY targets
+7.11.3  Scoping for .PHONY targets
 ==================================
    
   Phony targets (targets that do not correspond to files) are defined
@@ -4534,7 +4545,7 @@ project root.
   
   
 
-7.14  Pathnames in rules
+7.12  Pathnames in rules
 *=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -9228,11 +9239,11 @@ Chapter 12    Build functions
   The complete set of builtin `.PHONY' targets include the following.
   
   
- .PHONY  Declares new phony targets (Section 7.12). 
- .DEFAULT  Declare the default build targets (Section 7.9). 
- .SUBDIRS  Include a directory as part of the project (Section 7.10). 
- .SCANNER  Define a dependency scanner (Section 7.10). 
- .INCLUDE  Include a file (Section 7.11). 
+ .PHONY  Declares new phony targets (Section 7.10). 
+ .DEFAULT  Declare the default build targets (Section 7.7). 
+ .SUBDIRS  Include a directory as part of the project (Section 7.8). 
+ .SCANNER  Define a dependency scanner (Section 7.8). 
+ .INCLUDE  Include a file (Section 7.9). 
  .ORDER  Define a file-dependency ordering rule (Section 9.3.5). 
  .BUILD_BEGIN  Commands to be executed at the beginning of a build. 
  .BUILD_SUCCESS  Commands to be executed if the build is successful. 
@@ -11774,18 +11785,18 @@ Index
  - .BUILD_FAILURE, 12.1 
  - .BUILD_SUCCESS, 12.1 
  - .BUILDORDER, 9.3.5 
- - .DEFAULT, 7.9 
- - .INCLUDE, 7.11 
+ - .DEFAULT, 7.7 
+ - .INCLUDE, 7.9 
  - .ORDER, 9.3.5 
  - .omakerc, A.8 
- - .PHONY, 7.12 
+ - .PHONY, 7.10 
  - .SCANNER, 3.4.3, 7.6 
- - .SUBDIRS, 3, 7.10 
+ - .SUBDIRS, 3, 7.8 
  - .SUBDIRS bodies, 3.5 
  
  - :effects:, 7.5.2 
  - :exists:, 7.5.1 
- - :scanner:, 7.7 
+ - :scanner:, 7.6.1 
  - :value:, 7.5.3 
  
  - ABORT_ON_COMMAND_ERROR, 12.3.1.5 
@@ -12124,7 +12135,7 @@ Index
  - rootname, 9.1.6 
  - rule, 12.8.0.12 
  - rule, options, 7.5 
- - rule, scoping, 7.13 
+ - rule, scoping, 7.11 
  - rules, bounded implicit, 7.2 
  - rules, implicit, 7.1 
  
@@ -12672,12 +12683,12 @@ Index of special targets
  - .BUILD_FAILURE, 12.1 
  - .BUILD_SUCCESS, 12.1 
  - .BUILDORDER, 9.3.5 
- - .DEFAULT, 7.9 
- - .INCLUDE, 7.11 
+ - .DEFAULT, 7.7 
+ - .INCLUDE, 7.9 
  - .ORDER, 9.3.5 
- - .PHONY, 7.12, 7.13.3 
- - .SCANNER, 7.6, 7.13.2 
- - .SUBDIRS, 7.10 
+ - .PHONY, 7.10, 7.11.3 
+ - .SCANNER, 7.6, 7.11.2 
+ - .SUBDIRS, 7.8 
 
 
 Index of options

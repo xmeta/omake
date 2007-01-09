@@ -1,5 +1,58 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
+  
+
+8.2.14   unsetenv
+=================
+
+<<
+     unsetenv(names)
+        names : String Array
+>>
+  
+  The `unsetenv' function removes some variable definitions from the
+process environment. Environment variables are scoped like normal
+variables.
+
+Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
+  
+
+8.2.15   get-registry
+=====================
+
+<<
+     get-registry(hkey, key, field) : String
+     get-registry(hkey, key, field, default) : String
+         hkey : String
+         key : String
+         field : String
+>>
+  
+  The `get-registry' function retrieves a string value from the system
+registry on Win32. On other architectures, there is no registry.
+  The `hive' (I think that is the right word), indicates which part of
+the registry to use. It should be one of the following values.
+  
+  
+ - `HKEY_CLASSES_ROOT' 
+ - `HKEY_CURRENT_CONFIG' 
+ - `HKEY_CURRENT_USER' 
+ - `HKEY_LOCAL_MACHINE' 
+ - `HKEY_USERS' 
+   Refer to the Microsoft documentation if you want to know what these
+mean.
+  The `key' is the field you want to get from the registry. It should
+have a form like `A\B\C' (if you use forward slashes, they will be
+converted to backslashes). The field is the sub-field of the key.
+  In the 4-argument form, the `default' is returned on failure. You may
+also use the alternate form.
+<<
+      get-registry(hkey, key, field)
+         default
+>>
+  
+
 Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
   
 
