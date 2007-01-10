@@ -1,4 +1,4 @@
-
+  
   OMake manual:  
                                      
                The OMake user guide and reference manual
@@ -129,7 +129,7 @@ Contents
      
     - 5.1  Dynamic scoping 
     - 5.2  Functional evaluation 
-    - 5.3  Exporting the evnironment 
+    - 5.3  Exporting the environment 
     - 5.4  Eager evaluation 
     - 5.5  Objects 
     - 5.6  Field and method calls 
@@ -3146,7 +3146,7 @@ information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.
   
 
-5.3  Exporting the evnironment
+5.3  Exporting the environment
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
     The `export' directive can be used to propagate all or part of an
@@ -3167,33 +3167,34 @@ not redefined.
          export
 >>
   
-  If the `export' directive is used without an argument, the following
-is exported: 
+  If the `export' directive is used without an argument, all of the
+following is exported: 
   
- - All the dynamically scoped variables (as described in Section 4.17). 
+ - The values of all the dynamically scoped variables (as described in
+   Section 4.17). 
  - The current working directory. 
- - The current state of the Unix environment. 
+ - The current Unix environment. 
  - The current implicit rules and implicit dependencies (see also
    Section 7.11.1). 
  - The current set of ``phony'' target declarations (see Sections 7.10
    and 7.11.3). 
   
   If the `export' directive is used with an argument, the argument
-expression will be evaluated and the resulting value will be interpreted
-as follows: 
+expression is evaluated and the resulting value is interpreted as
+follows: 
   
- - If the value is empty, the whole environment will be exported as
-   described above. 
- - If the value represents an environment (or a partial environment)
+ - If the value is empty, everything is exported, as described above. 
+ - If the value represents a environment (or a partial environment)
    captured using the `export' function (Section 8.3.39), then the
    corresponding environment or partial environment is exported. 
- - Otherwise, the value must be a sequence of strings. Each string will
-   be interpreted as a name of a variable to be exported. In addition,
-   the following strings have special meaning: 
+ - Otherwise, the value must be a sequence of strings specifying which
+   items are to be propagated back. The following strings have special
+   meaning: 
      
-    - `.RULE' --- export implicit rules and implicit dependencies. 
-    - `.PHONY' --- export the set of ``phony'' target declarations. 
-  
+    - `.RULE' --- implicit rules and implicit dependencies. 
+    - `.PHONY' --- the set of ``phony'' target declarations. 
+  All other strings are interpreted as names of the variables that need
+   to be propagated back. 
   
   For example, in the following (somewhat artificial) example, the
 variables `A' and `B' will be exported, and the implicit rule will

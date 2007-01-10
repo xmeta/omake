@@ -38,7 +38,7 @@ Expressions and values
 <H1 CLASS="chapter"><A NAME="htoc51">Chapter&nbsp;5</A>&nbsp;&nbsp;Expressions and values</H1><UL>
 <LI><A HREF="omake-detail.html#toc36">Dynamic scoping</A>
 <LI><A HREF="omake-detail.html#toc37">Functional evaluation</A>
-<LI><A HREF="omake-detail.html#toc38">Exporting the evnironment</A>
+<LI><A HREF="omake-detail.html#toc38">Exporting the environment</A>
 <LI><A HREF="omake-detail.html#toc39">Eager evaluation</A>
 <LI><A HREF="omake-detail.html#toc40">Objects</A>
 <LI><A HREF="omake-detail.html#toc41">Field and method calls</A>
@@ -183,7 +183,7 @@ information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.<BR>
 <BR>
 <A NAME="toc38"></A>
-<H2 CLASS="section"><A NAME="htoc54">5.3</A>&nbsp;&nbsp;Exporting the evnironment</H2>
+<H2 CLASS="section"><A NAME="htoc54">5.3</A>&nbsp;&nbsp;Exporting the environment</H2>
 <A NAME="section:export"></A><A NAME="@default27"></A>
 The <CODE>export</CODE> directive can be used to propagate all or part of an inner scope back to its
 parent. The <CODE>export</CODE> directive should be the last statement in a block. If used without
@@ -200,29 +200,31 @@ conditional. The <CODE>A</CODE> variable is not redefined.
        B = 2
        export
 </PRE>
-If the <CODE>export</CODE> directive is used without an argument, the following is exported:
+If the <CODE>export</CODE> directive is used without an argument, all of the following is exported:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
-All the dynamically scoped variables (as described in Section&nbsp;<A HREF="omake-language.html#section:public">4.17</A>).
+The values of all the dynamically scoped variables (as described in
+Section&nbsp;<A HREF="omake-language.html#section:public">4.17</A>).
 <LI CLASS="li-itemize">The current working directory.
-<LI CLASS="li-itemize">The current state of the Unix environment.
+<LI CLASS="li-itemize">The current Unix environment.
 <LI CLASS="li-itemize">The current implicit rules and implicit dependencies (see also
 Section&nbsp;<A HREF="omake-rules.html#section:implicit-scoping">7.11.1</A>).
 <LI CLASS="li-itemize">The current set of &#8220;phony&#8221; target declarations (see Sections&nbsp;<A HREF="omake-rules.html#target:.PHONY">7.10</A>
 and&nbsp;<A HREF="omake-rules.html#section:PHONY-scoping">7.11.3</A>).
 </UL>
-If the <CODE>export</CODE> directive is used with an argument, the argument expression will be evaluated
-and the resulting value will be interpreted as follows:
+If the <CODE>export</CODE> directive is used with an argument, the argument expression is evaluated
+and the resulting value is interpreted as follows:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
-If the value is empty, the whole environment will be exported as described above.
-<LI CLASS="li-itemize">If the value represents an environment (or a partial environment) captured using the
+If the value is empty, everything is exported, as described above.
+<LI CLASS="li-itemize">If the value represents a environment (or a partial environment) captured using the
 <CODE>export</CODE> function (Section&nbsp;<A HREF="omake-base.html#fun:export">8.3.39</A>), then the corresponding environment or partial
 environment is exported.
-<LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings. Each string will be interpreted as a name
-of a variable to be exported. In addition, the following strings have special meaning:
+<LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings specifying which items are to be propagated
+back. The following strings have special meaning:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
-<A NAME="@default28"></A><CODE>.RULE</CODE> &mdash; export implicit rules and implicit dependencies.
-<LI CLASS="li-itemize"><A NAME="@default29"></A><CODE>.PHONY</CODE> &mdash; export the set of &#8220;phony&#8221; target declarations.
+<A NAME="@default28"></A><CODE>.RULE</CODE> &mdash; implicit rules and implicit dependencies.
+<LI CLASS="li-itemize"><A NAME="@default29"></A><CODE>.PHONY</CODE> &mdash; the set of &#8220;phony&#8221; target declarations.
 </UL>
+All other strings are interpreted as names of the variables that need to be propagated back.
 </UL>
 For example, in the following (somewhat artificial) example, the variables <CODE>A</CODE> and <CODE>B</CODE>
 will be exported, and the implicit rule will remain in the environment after the section ends, but
