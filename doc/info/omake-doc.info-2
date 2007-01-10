@@ -457,7 +457,7 @@ Node: Section 4-7,	Next: Section 4-8,	Prev: Section 4-6,	Up: Chapter 4
 4.7   File inclusion
 *=*=*=*=*=*=*=*=*=*=
 
-     
+    
   Files may be included with the `include' form. The included file must
 use the same syntax as an OMakefile.
 <<
@@ -488,11 +488,12 @@ line `X = 1'.
   
   This result may seem surprising--the variable definition within the
 `section' is not visible outside the scope of the `section'.
-  The `export' form can be used to circumvent this restriction by
-exporting variable values from an inner scope. It must be the final
-expression in a scope. For example, if we modify the previous example by
-adding an `export' expression, the new value for the `X' variable is
-retained, and the code prints the line `X = 2' twice.
+  The `export' form, which will be described in detail in Section
+5.3*Note Section 5-3::, can be used to circumvent this
+restriction by exporting variable values from an inner scope. It must be
+the final expression in a scope. For example, if we modify the previous
+example by adding an `export' expression, the new value for the `X'
+variable is retained, and the code prints the line `X = 2' twice.
 <<
       X = 1
       section
@@ -584,8 +585,8 @@ Node: Section 4-10,	Next: Section 4-11,	Prev: Section 4-9,	Up: Chapter 4
 4.10   Matching
 *=*=*=*=*=*=*=*
 
-     
- 
+    
+
   Pattern matching is performed with the `switch' and `match' forms.
 <<
       switch <string>
@@ -1041,11 +1042,12 @@ the `value' form to evaluate an expression directly.
 
 * Section 5-1::	Dynamic scoping
 * Section 5-2::	Functional evaluation
-* Section 5-3::	Eager evaluation
-* Section 5-4::	Objects
-* Section 5-5::	Field and method calls
-* Section 5-6::	Method override
-* Section 5-7::	Super calls
+* Section 5-3::	Exporting the evnironment
+* Section 5-4::	Eager evaluation
+* Section 5-5::	Objects
+* Section 5-6::	Field and method calls
+* Section 5-7::	Method override
+* Section 5-8::	Super calls
 
 
 Node: Section 5-1,	Next: Section 5-2,	Prev: Chapter 5,	Up: Chapter 5
@@ -1169,14 +1171,21 @@ subprojects do not interfere with one another.
   However, there are times when a subproject needs to propagate
 information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.
-  The `export' directive can be used to propagate all or part of an
-inner scope back to its parent. The `export' directive should be the
-last statement in a block. If used without arguments, the entire scope
-is propagated back to the parent; otherwise the arguments should be the
-names of variables to propagate. The most common usage is to export the
-definitions in a conditional block. In the following example, the
-variable `B' is bound to 2 after the conditional. The `A' variable is
-not redefined.
+
+Node: Section 5-3,	Next: Section 5-4,	Prev: Section 5-2,	Up: Chapter 5
+  
+
+5.3   Exporting the evnironment
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+    The `export' directive can
+be used to propagate all or part of an inner scope back to its parent.
+The `export' directive should be the last statement in a block. If used
+without arguments, the entire scope is propagated back to the parent;
+otherwise the arguments specify which part of the environment to
+propagate. The most common usage is to export the definitions in a
+conditional block. In the following example, the variable `B' is bound
+to 2 after the conditional. The `A' variable is not redefined.
 <<
       if $(test)
          A = 1
@@ -1187,11 +1196,65 @@ not redefined.
          export
 >>
   
+  If the `export' directive is used without an argument, the following
+is exported: 
+  
+ - All the dynamically scoped variables (as described in Section
+   4.17*Note Section 4-17::). 
+ - The current working directory. 
+ - The current state of the Unix environment. 
+ - The current implicit rules and implicit dependencies (see also
+   Section 7.11.1*Note Subsection 7-11-1::). 
+ - The current set of ``phony'' target declarations (see Sections
+   7.10*Note Section 7-10:: and
+   7.11.3*Note Subsection 7-11-3::). 
+  
+  If the `export' directive is used with an argument, the argument
+expression will be evaluated and the resulting value will be interpreted
+as follows: 
+  
+ - If the value is empty, the whole environment will be exported as
+   described above. 
+ - If the value represents an environment (or a partial environment)
+   captured using the `export' function (Section
+   8.3.39*Note Subsection 8-3-39::), then the corresponding environment or
+   partial environment is exported. 
+ - Otherwise, the value must be a sequence of strings. Each string will
+   be interpreted as a name of a variable to be exported. In addition,
+   the following strings have special meaning: 
+     
+    - `.RULE' --- export implicit rules and implicit
+      dependencies. 
+    - `.PHONY' --- export the set of ``phony'' target
+      declarations. 
+  
+  
+  For example, in the following (somewhat artificial) example, the
+variables `A' and `B' will be exported, and the implicit rule will
+remain in the environment after the section ends, but the variable `TMP'
+and the target `tmp_phony' will remain unchanged.
+<<
+  WANT_TO_EXPORT[] = A B .RULE
+  section
+     A = 1
+     B = 2
+     TMP = $(add $(A), $(B))
+  
+     .PHONY: tmp_phony
+  
+     tmp_phony:
+        prepare_foo
+  
+     %.foo: %.bar tmp_phony
+        compute_foo $(TMP) $< $@
+     export $(WANT_TO_EXPORT)
+>>
+  
 
-Node: Section 5-3,	Next: Section 5-4,	Prev: Section 5-2,	Up: Chapter 5
+Node: Section 5-4,	Next: Section 5-5,	Prev: Section 5-3,	Up: Chapter 5
   
 
-5.3   Eager evaluation
+5.4   Eager evaluation
 *=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -1244,10 +1307,10 @@ prints the original value, `1'.
   See also Section 6.5*Note Section 6-5:: for further ways to
 control the evaluation order through the use of ``lazy'' expressions.
 
-Node: Section 5-4,	Next: Section 5-5,	Prev: Section 5-3,	Up: Chapter 5
+Node: Section 5-5,	Next: Section 5-6,	Prev: Section 5-4,	Up: Chapter 5
   
 
-5.4   Objects
+5.5   Objects
 *=*=*=*=*=*=*
 
   
@@ -1288,10 +1351,10 @@ scoping directives discussed below.
 defined in the body of the object become its fields, and the functions
 defined in the body become its methods.
 
-Node: Section 5-5,	Next: Section 5-6,	Prev: Section 5-4,	Up: Chapter 5
+Node: Section 5-6,	Next: Section 5-7,	Prev: Section 5-5,	Up: Chapter 5
   
 
-5.5   Field and method calls
+5.6   Field and method calls
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -1333,10 +1396,10 @@ which returns a new object at position 16.
 fields or methods of an existing object in place. Thus, the `new' and
 `move' methods return new objects.
 
-Node: Section 5-6,	Next: Section 5-7,	Prev: Section 5-5,	Up: Chapter 5
+Node: Section 5-7,	Next: Section 5-8,	Prev: Section 5-6,	Up: Chapter 5
   
 
-5.6   Method override
+5.7   Method override
 *=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1360,10 +1423,10 @@ of just 1. We can do it by overriding the `move' method.
   However, by doing this, we have completely replaced the old `move'
 method.
 
-Node: Section 5-7,	Next: Chapter 6,	Prev: Section 5-6,	Up: Chapter 5
+Node: Section 5-8,	Next: Chapter 6,	Prev: Section 5-7,	Up: Chapter 5
   
 
-5.7   Super calls
+5.8   Super calls
 *=*=*=*=*=*=*=*=*
 
   

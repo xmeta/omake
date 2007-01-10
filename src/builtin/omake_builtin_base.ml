@@ -2472,7 +2472,7 @@ let shell_code venv pos loc args =
  * will print \verb+1 1 2+.
  *
  * The arguments to this function are interpreted the exact same way as the arguments to the \verb+export+
- * special form (see Section~\ref{section:section}).
+ * special form (see Section~\ref{section:export}).
  * \end{doc}
  *)
 let export venv pos loc args =

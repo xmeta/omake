@@ -138,9 +138,10 @@ Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
 * Subsection 8-3-36::	lowercase
 * Subsection 8-3-37::	system
 * Subsection 8-3-38::	shell
-* Subsection 8-3-39::	while
-* Subsection 8-3-40::	break
-* Subsection 8-3-41::	random, random-init
+* Subsection 8-3-39::	export
+* Subsection 8-3-40::	while
+* Subsection 8-3-41::	break
+* Subsection 8-3-42::	random, random-init
 
 
 Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8-3
@@ -362,7 +363,7 @@ Node: Subsection 8-3-12,	Next: Subsection 8-3-13,	Prev: Subsection 8-3-11,	Up: S
 c-escaped, id-escaped
 =====================
 \@na
-me{@default89}
+me{@default94}
 <<
      $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
@@ -846,12 +847,36 @@ separate items in the array.
 diverted.
   For example, if the current directory contains the files `OMakeroot',
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
-OMakefile OMakeroot' (on a Unix system).  
+OMakefile OMakeroot' (on a Unix system). 
 
 Node: Subsection 8-3-39,	Next: Subsection 8-3-40,	Prev: Subsection 8-3-38,	Up: Section 8-3
   
 
-8.3.39   while
+8.3.39   export
+===============
+ The `export'
+function allows one to capture the current environment in a variable.
+  For example, the following code: 
+<<
+  A = 1
+  B = 1
+  C = 1
+  SAVE_ENV = $(export A B)
+  A = 2
+  B = 2
+  C = 2
+  export $(SAVE_ENV)
+  println($A $B $C)
+>>
+  will print `1 1 2'.
+  The arguments to this function are interpreted the exact same way as
+the arguments to the `export' special form (see Section
+5.3*Note Section 5-3::).  
+
+Node: Subsection 8-3-40,	Next: Subsection 8-3-41,	Prev: Subsection 8-3-39,	Up: Section 8-3
+  
+
+8.3.40   while
 ==============
 
 <<
@@ -908,13 +933,13 @@ value is printed.
          echo $i
 >>
   
-  The `break' function (Section 8.3.40*Note Subsection 8-3-40::) can be
+  The `break' function (Section 8.3.41*Note Subsection 8-3-41::) can be
 used to break out of the `while' loop early.  
 
-Node: Subsection 8-3-40,	Next: Subsection 8-3-41,	Prev: Subsection 8-3-39,	Up: Section 8-3
+Node: Subsection 8-3-41,	Next: Subsection 8-3-42,	Prev: Subsection 8-3-40,	Up: Section 8-3
   
 
-8.3.40   break
+8.3.41   break
 ==============
 
 <<
@@ -924,13 +949,13 @@ Node: Subsection 8-3-40,	Next: Subsection 8-3-41,	Prev: Subsection 8-3-39,	Up: S
   Terminate execution of the innermost loop, returning the current
 state. 
 
-Node: Subsection 8-3-41,	Next: Section 8-4,	Prev: Subsection 8-3-40,	Up: Section 8-3
+Node: Subsection 8-3-42,	Next: Section 8-4,	Prev: Subsection 8-3-41,	Up: Section 8-3
   
 
-8.3.41   random, random-init
+8.3.42   random, random-init
 ============================
 \@
-name{@fun70}
+name{@fun71}
 <<
       random-init(i)
           i : Int
@@ -1201,7 +1226,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function (Section 8.3.40*Note Subsection 8-3-40::) can be
+  The `break' function (Section 8.3.41*Note Subsection 8-3-41::) can be
 used to break out of the loop early. 
 
 Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-6,	Up: Top
@@ -1253,7 +1278,7 @@ Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9
 9.1.1   file, dir
 =================
 \@n
-ame{@fun104}
+ame{@fun105}
 <<
      $(file sequence) : File Sequence
         sequence : Sequence
@@ -1661,7 +1686,7 @@ Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Sect
 9.3.3   filter-exists, filter-targets, filter-proper-targets
 ============================================================
 \@name
-{@fun128}
+{@fun129}
 <<
      $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
@@ -1703,7 +1728,7 @@ Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Sect
 9.3.4   find-targets-in-path, find-targets-in-path-optional
 ===========================================================
 \@name
-{@default180}
+{@default186}
 <<
       $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array

@@ -38,11 +38,12 @@ Expressions and values
 <H1 CLASS="chapter"><A NAME="htoc51">Chapter&nbsp;5</A>&nbsp;&nbsp;Expressions and values</H1><UL>
 <LI><A HREF="omake-detail.html#toc36">Dynamic scoping</A>
 <LI><A HREF="omake-detail.html#toc37">Functional evaluation</A>
-<LI><A HREF="omake-detail.html#toc38">Eager evaluation</A>
-<LI><A HREF="omake-detail.html#toc39">Objects</A>
-<LI><A HREF="omake-detail.html#toc40">Field and method calls</A>
-<LI><A HREF="omake-detail.html#toc41">Method override</A>
-<LI><A HREF="omake-detail.html#toc42">Super calls</A>
+<LI><A HREF="omake-detail.html#toc38">Exporting the evnironment</A>
+<LI><A HREF="omake-detail.html#toc39">Eager evaluation</A>
+<LI><A HREF="omake-detail.html#toc40">Objects</A>
+<LI><A HREF="omake-detail.html#toc41">Field and method calls</A>
+<LI><A HREF="omake-detail.html#toc42">Method override</A>
+<LI><A HREF="omake-detail.html#toc43">Super calls</A>
 </UL>
 
 <A NAME="chapter:extra"></A>
@@ -181,14 +182,15 @@ However, there are times when a subproject needs to propagate
 information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.<BR>
 <BR>
-The <CODE>export</CODE> directive can be used to propagate all or part of an
-inner scope back to its parent. The <CODE>export</CODE> directive should be
-the last statement in a block. If used without arguments, the entire
-scope is propagated back to the parent; otherwise the arguments should
-be the names of variables to propagate. The most common usage is
-to export the definitions in a conditional block. In the following
-example, the variable <CODE>B</CODE> is bound to 2 after the conditional.
-The <CODE>A</CODE> variable is not redefined.
+<A NAME="toc38"></A>
+<H2 CLASS="section"><A NAME="htoc54">5.3</A>&nbsp;&nbsp;Exporting the evnironment</H2>
+<A NAME="section:export"></A><A NAME="@default27"></A>
+The <CODE>export</CODE> directive can be used to propagate all or part of an inner scope back to its
+parent. The <CODE>export</CODE> directive should be the last statement in a block. If used without
+arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
+part of the environment to propagate. The most common usage is to export the definitions in a
+conditional block. In the following example, the variable <CODE>B</CODE> is bound to 2 after the
+conditional. The <CODE>A</CODE> variable is not redefined.
 <PRE CLASS="verbatim">
     if $(test)
        A = 1
@@ -198,8 +200,51 @@ The <CODE>A</CODE> variable is not redefined.
        B = 2
        export
 </PRE>
-<A NAME="toc38"></A>
-<H2 CLASS="section"><A NAME="htoc54">5.3</A>&nbsp;&nbsp;Eager evaluation</H2>
+If the <CODE>export</CODE> directive is used without an argument, the following is exported:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+All the dynamically scoped variables (as described in Section&nbsp;<A HREF="omake-language.html#section:public">4.17</A>).
+<LI CLASS="li-itemize">The current working directory.
+<LI CLASS="li-itemize">The current state of the Unix environment.
+<LI CLASS="li-itemize">The current implicit rules and implicit dependencies (see also
+Section&nbsp;<A HREF="omake-rules.html#section:implicit-scoping">7.11.1</A>).
+<LI CLASS="li-itemize">The current set of &#8220;phony&#8221; target declarations (see Sections&nbsp;<A HREF="omake-rules.html#target:.PHONY">7.10</A>
+and&nbsp;<A HREF="omake-rules.html#section:PHONY-scoping">7.11.3</A>).
+</UL>
+If the <CODE>export</CODE> directive is used with an argument, the argument expression will be evaluated
+and the resulting value will be interpreted as follows:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+If the value is empty, the whole environment will be exported as described above.
+<LI CLASS="li-itemize">If the value represents an environment (or a partial environment) captured using the
+<CODE>export</CODE> function (Section&nbsp;<A HREF="omake-base.html#fun:export">8.3.39</A>), then the corresponding environment or partial
+environment is exported.
+<LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings. Each string will be interpreted as a name
+of a variable to be exported. In addition, the following strings have special meaning:
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+<A NAME="@default28"></A><CODE>.RULE</CODE> &mdash; export implicit rules and implicit dependencies.
+<LI CLASS="li-itemize"><A NAME="@default29"></A><CODE>.PHONY</CODE> &mdash; export the set of &#8220;phony&#8221; target declarations.
+</UL>
+</UL>
+For example, in the following (somewhat artificial) example, the variables <CODE>A</CODE> and <CODE>B</CODE>
+will be exported, and the implicit rule will remain in the environment after the section ends, but
+the variable <CODE>TMP</CODE> and the target <CODE>tmp_phony</CODE> will remain unchanged.
+<PRE CLASS="verbatim">
+WANT_TO_EXPORT[] = A B .RULE
+section
+   A = 1
+   B = 2
+   TMP = $(add $(A), $(B))
+
+   .PHONY: tmp_phony
+
+   tmp_phony:
+      prepare_foo
+
+   %.foo: %.bar tmp_phony
+      compute_foo $(TMP) $&lt; $@
+   export $(WANT_TO_EXPORT)
+</PRE>
+<A NAME="toc39"></A>
+<H2 CLASS="section"><A NAME="htoc55">5.4</A>&nbsp;&nbsp;Eager evaluation</H2>
 <A NAME="section:eager"></A>
 Evaluation in <TT>omake</TT> is eager. That is, expressions are evaluated as soon as they are
 encountered by the evaluator. One effect of this is that the right-hand-side of a variable
@@ -244,8 +289,8 @@ illustrates a difference. The second <CODE>printA</CODE> is not in the scope of 
 See also Section&nbsp;<A HREF="omake-language-examples.html#section:lazy">6.5</A> for further ways to control the evaluation order through the use
 of &#8220;lazy&#8221; expressions.<BR>
 <BR>
-<A NAME="toc39"></A>
-<H2 CLASS="section"><A NAME="htoc55">5.4</A>&nbsp;&nbsp;Objects</H2>
+<A NAME="toc40"></A>
+<H2 CLASS="section"><A NAME="htoc56">5.5</A>&nbsp;&nbsp;Objects</H2>
 <TT>omake</TT> is an object-oriented language. Everything is an object, including
 base values like numbers and strings. In many projects, this may not be so apparent
 because most evaluation occurs in the default toplevel object, the <CODE>Pervasives</CODE>
@@ -286,8 +331,8 @@ The body of the object is actually an arbitrary program. The
 variables defined in the body of the object become its fields, and the
 functions defined in the body become its methods.<BR>
 <BR>
-<A NAME="toc40"></A>
-<H2 CLASS="section"><A NAME="htoc56">5.5</A>&nbsp;&nbsp;Field and method calls</H2>
+<A NAME="toc41"></A>
+<H2 CLASS="section"><A NAME="htoc57">5.6</A>&nbsp;&nbsp;Field and method calls</H2>
 The fields and methods of an object are named using <CODE>object.name</CODE> notation.
 For example, let's define a one-dimensional point value.
 <PRE CLASS="verbatim">
@@ -327,8 +372,8 @@ Note that objects are functional &mdash; it is not possible to modify the fields
 or methods of an existing object in place. Thus, the <CODE>new</CODE> and <CODE>move</CODE>
 methods return new objects.<BR>
 <BR>
-<A NAME="toc41"></A>
-<H2 CLASS="section"><A NAME="htoc57">5.6</A>&nbsp;&nbsp;Method override</H2>
+<A NAME="toc42"></A>
+<H2 CLASS="section"><A NAME="htoc58">5.7</A>&nbsp;&nbsp;Method override</H2>
 Suppose we wish to create a new object that moves by 2 units, instead of
 just 1. We can do it by overriding the <CODE>move</CODE> method.
 <PRE CLASS="verbatim">
@@ -347,8 +392,8 @@ just 1. We can do it by overriding the <CODE>move</CODE> method.
 </PRE>
 However, by doing this, we have completely replaced the old <CODE>move</CODE> method.<BR>
 <BR>
-<A NAME="toc42"></A>
-<H2 CLASS="section"><A NAME="htoc58">5.7</A>&nbsp;&nbsp;Super calls</H2>
+<A NAME="toc43"></A>
+<H2 CLASS="section"><A NAME="htoc59">5.8</A>&nbsp;&nbsp;Super calls</H2>
 Suppose we wish to define a new <CODE>move</CODE> method that just calls the old one twice.
 We can refer to the old definition of move using a super call, which uses the notation
 <CODE>$(classname::name &lt;args&gt;)</CODE>. The <CODE>classname</CODE> should be the name of the

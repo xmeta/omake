@@ -156,14 +156,14 @@ However, there are times when a subproject needs to propagate
 information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.
 
-The \verb+export+ directive can be used to propagate all or part of an
-inner scope back to its parent.  The \verb+export+ directive should be
-the last statement in a block.  If used without arguments, the entire
-scope is propagated back to the parent; otherwise the arguments should
-be the names of variables to propagate.  The most common usage is
-to export the definitions in a conditional block.  In the following
-example, the variable \verb+B+ is bound to 2 after the conditional.
-The \verb+A+ variable is not redefined.
+\section{Exporting the evnironment}
+\label{section:export}\index{export}
+The \verb+export+ directive can be used to propagate all or part of an inner scope back to its
+parent.  The \verb+export+ directive should be the last statement in a block.  If used without
+arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
+part of the environment to propagate.  The most common usage is to export the definitions in a
+conditional block.  In the following example, the variable \verb+B+ is bound to 2 after the
+conditional.  The \verb+A+ variable is not redefined.
 
 \begin{verbatim}
     if $(test)
@@ -173,6 +173,53 @@ The \verb+A+ variable is not redefined.
     else
        B = 2
        export
+\end{verbatim}
+
+If the \verb+export+ directive is used without an argument, the following is exported:
+\begin{itemize}
+\item All the dynamically scoped variables (as described in Section~\ref{section:public}).
+\item The current working directory.
+\item The current state of the Unix environment.
+\item The current implicit rules and implicit dependencies (see also
+Section~\ref{section:implicit-scoping}).
+\item The current set of ``phony'' target declarations (see Sections~\ref{target:.PHONY}
+and~\ref{section:PHONY-scoping}).
+\end{itemize}
+
+If the \verb+export+ directive is used with an argument, the argument expression will be evaluated
+and the resulting value will be interpreted as follows:
+\begin{itemize}
+\item If the value is empty, the whole environment will be exported as described above.
+\item If the value represents an environment (or a partial environment) captured using the
+\verb+export+ function (Section~\ref{fun:export}), then the corresponding environment or partial
+environment is exported.
+\item Otherwise, the value must be a sequence of strings. Each string will be interpreted as a name
+of a variable to be exported. In addition, the following strings have special meaning:
+\begin{itemize}
+\item \index{.RULE}\verb+.RULE+ --- export implicit rules and implicit dependencies.
+\item \index{.PHONY}\verb+.PHONY+ --- export the set of ``phony'' target declarations.
+\end{itemize}
+\end{itemize}
+
+For example, in the following (somewhat artificial) example, the variables \verb+A+ and \verb+B+
+will be exported, and the implicit rule will remain in the environment after the section ends, but
+the variable \verb+TMP+ and the target \verb+tmp_phony+ will remain unchanged.
+
+\begin{verbatim}
+WANT_TO_EXPORT[] = A B .RULE
+section
+   A = 1
+   B = 2
+   TMP = $(add $(A), $(B))
+
+   .PHONY: tmp_phony
+
+   tmp_phony:
+      prepare_foo
+
+   %.foo: %.bar tmp_phony
+      compute_foo $(TMP) $< $@
+   export $(WANT_TO_EXPORT)
 \end{verbatim}
 
 \section{Eager evaluation}
@@ -366,3 +413,5 @@ returns a new object, which is re-used for the second call.
 % TeX-command-default: "LaTeX/dvips Interactive"
 % End:
 % -*-
+% vim:tw=100:fo=tcq:
+

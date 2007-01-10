@@ -188,8 +188,7 @@ Comments begin with the \verb+#+ character and continue to the end of the line.
 
 \section{File inclusion}
 \label{section:include}
-\index{include}
-\index[fun]{include}
+\index{include}\index[fun]{include}
 
 Files may be included with the \verb+include+ form.  The included file must use
 the same syntax as an \File{OMakefile}.
@@ -236,7 +235,8 @@ prints the line \verb+X = 2+, followed by the line \verb+X = 1+.
 This result may seem surprising--the variable definition within the
 \verb+section+ is not visible outside the scope of the \verb+section+.
 
-The \verb+export+ form can be used to circumvent this restriction by
+The \verb+export+ form, which will be described in detail in
+Section~\ref{section:export}, can be used to circumvent this restriction by
 exporting variable values from an inner scope.  It must be the final
 expression in a scope.  For example, if we modify the previous example
 by adding an \verb+export+ expression, the new value for the \verb+X+
@@ -330,10 +330,8 @@ The following example illustrates a typical use of a conditional.  The
 
 \section{Matching}
 \label{section:match}
-\index{switch}
-\index{match}
-\index[fun]{switch}
-\index[fun]{match}
+\index{match}\index[fun]{match}
+\index{switch}\index[fun]{switch}
 
 Pattern matching is performed with the \verb+switch+ and \verb+match+ forms.
 
@@ -497,7 +495,7 @@ Objects provide one way to manage the \OMake{} namespace.  There are also four s
 further used to control the namespace.
 
 \section{private.}
-\index{private.}
+\label{section:private}\index{private.}
 
 The \verb+private.+ section is used to define variables that are private to the current file/scope.
 The values are not accessible outside the scope.  Variables defined in a \verb+private.+ object can
@@ -609,7 +607,7 @@ modular because variables in your object will not produce unexpected clashes wit
 in other parts of the project.
 
 \section{public.}
-\index{public.}
+\label{section:public}\index{public.}
 
 The \verb+public.+ object is used to specify public dynamically-scoped variables.  In the following
 example, the \verb+public.+ object specifies that the value \verb+X = 4+ is to be dynamically

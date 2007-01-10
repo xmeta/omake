@@ -517,6 +517,7 @@ In this case, \verb+hello_lib.o+ is also mentioned as an explicit target, in a s
 implicit rule for building \verb+.o+ files (in a context where \verb+CFLAGS=-g -DLIBRARY+).
 
 \subsection{Scoping of implicit rules}
+\label{section:implicit-scoping}
 
 Implicit rules (rules containing wildcard patterns) are \emph{not} global, they follow the normal
 scoping convention.  This allows different parts of a project to have different sets of implicit
@@ -545,7 +546,7 @@ is defined only for the target \verb+hello_lib.o+; the target \verb+hello_code.o
 normal.
 
 \subsection{Scoping of .SCANNER rules}
-\index[target]{.SCANNER}
+\index{.SCANNER}\index[target]{.SCANNER}
 
 Scanner rules are scoped the same way as normal rules.  If the \verb+.SCANNER+ rule is explicit
 (containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
@@ -582,7 +583,7 @@ is called with \verb+CFLAGS=-g -DLIBRARY+, and for \verb+hello_code.o+ it is cal
 \verb+CFLAGS=-g -O3+.
 
 \subsection{Scoping for .PHONY targets}
-\index[target]{.PHONY}
+\label{section:PHONY-scoping}\index{.PHONY}\index[target]{.PHONY}
 
 Phony targets (targets that do not correspond to files) are defined with a \verb+.PHONY:+ rule.
 Phony targets are scoped as usual.  The following illustrates a common mistake, where the

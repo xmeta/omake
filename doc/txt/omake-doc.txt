@@ -1,4 +1,4 @@
-  
+
   OMake manual:  
                                      
                The OMake user guide and reference manual
@@ -129,11 +129,12 @@ Contents
      
     - 5.1  Dynamic scoping 
     - 5.2  Functional evaluation 
-    - 5.3  Eager evaluation 
-    - 5.4  Objects 
-    - 5.5  Field and method calls 
-    - 5.6  Method override 
-    - 5.7  Super calls 
+    - 5.3  Exporting the evnironment 
+    - 5.4  Eager evaluation 
+    - 5.5  Objects 
+    - 5.6  Field and method calls 
+    - 5.7  Method override 
+    - 5.8  Super calls 
   
  - Chapter 6  Additional language examples 
      
@@ -257,9 +258,10 @@ Contents
        - 8.3.36  lowercase 
        - 8.3.37  system 
        - 8.3.38  shell 
-       - 8.3.39  while 
-       - 8.3.40  break 
-       - 8.3.41  random, random-init 
+       - 8.3.39  export 
+       - 8.3.40  while 
+       - 8.3.41  break 
+       - 8.3.42  random, random-init 
      
     - 8.4  Arithmetic 
         
@@ -2474,7 +2476,7 @@ line.
 4.7  File inclusion
 *=*=*=*=*=*=*=*=*=*
 
-     
+    
   Files may be included with the `include' form. The included file must
 use the same syntax as an OMakefile.
 <<
@@ -2503,11 +2505,12 @@ line `X = 1'.
   
   This result may seem surprising--the variable definition within the
 `section' is not visible outside the scope of the `section'.
-  The `export' form can be used to circumvent this restriction by
-exporting variable values from an inner scope. It must be the final
-expression in a scope. For example, if we modify the previous example by
-adding an `export' expression, the new value for the `X' variable is
-retained, and the code prints the line `X = 2' twice.
+  The `export' form, which will be described in detail in Section 5.3,
+can be used to circumvent this restriction by exporting variable values
+from an inner scope. It must be the final expression in a scope. For
+example, if we modify the previous example by adding an `export'
+expression, the new value for the `X' variable is retained, and the code
+prints the line `X = 2' twice.
 <<
       X = 1
       section
@@ -2594,7 +2597,7 @@ if its string representation is the empty string, or one of the strings
 4.10  Matching
 *=*=*=*=*=*=*=
 
-       
+     
   Pattern matching is performed with the `switch' and `match' forms.
 <<
       switch <string>
@@ -3141,12 +3144,17 @@ subprojects do not interfere with one another.
   However, there are times when a subproject needs to propagate
 information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.
-  The `export' directive can be used to propagate all or part of an
+  
+
+5.3  Exporting the evnironment
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+    The `export' directive can be used to propagate all or part of an
 inner scope back to its parent. The `export' directive should be the
 last statement in a block. If used without arguments, the entire scope
-is propagated back to the parent; otherwise the arguments should be the
-names of variables to propagate. The most common usage is to export the
-definitions in a conditional block. In the following example, the
+is propagated back to the parent; otherwise the arguments specify which
+part of the environment to propagate. The most common usage is to export
+the definitions in a conditional block. In the following example, the
 variable `B' is bound to 2 after the conditional. The `A' variable is
 not redefined.
 <<
@@ -3159,9 +3167,58 @@ not redefined.
          export
 >>
   
+  If the `export' directive is used without an argument, the following
+is exported: 
+  
+ - All the dynamically scoped variables (as described in Section 4.17). 
+ - The current working directory. 
+ - The current state of the Unix environment. 
+ - The current implicit rules and implicit dependencies (see also
+   Section 7.11.1). 
+ - The current set of ``phony'' target declarations (see Sections 7.10
+   and 7.11.3). 
+  
+  If the `export' directive is used with an argument, the argument
+expression will be evaluated and the resulting value will be interpreted
+as follows: 
+  
+ - If the value is empty, the whole environment will be exported as
+   described above. 
+ - If the value represents an environment (or a partial environment)
+   captured using the `export' function (Section 8.3.39), then the
+   corresponding environment or partial environment is exported. 
+ - Otherwise, the value must be a sequence of strings. Each string will
+   be interpreted as a name of a variable to be exported. In addition,
+   the following strings have special meaning: 
+     
+    - `.RULE' --- export implicit rules and implicit dependencies. 
+    - `.PHONY' --- export the set of ``phony'' target declarations. 
+  
+  
+  For example, in the following (somewhat artificial) example, the
+variables `A' and `B' will be exported, and the implicit rule will
+remain in the environment after the section ends, but the variable `TMP'
+and the target `tmp_phony' will remain unchanged.
+<<
+  WANT_TO_EXPORT[] = A B .RULE
+  section
+     A = 1
+     B = 2
+     TMP = $(add $(A), $(B))
+  
+     .PHONY: tmp_phony
+  
+     tmp_phony:
+        prepare_foo
+  
+     %.foo: %.bar tmp_phony
+        compute_foo $(TMP) $< $@
+     export $(WANT_TO_EXPORT)
+>>
+  
   
 
-5.3  Eager evaluation
+5.4  Eager evaluation
 *=*=*=*=*=*=*=*=*=*=*
 
    
@@ -3215,7 +3272,7 @@ prints the original value, `1'.
 through the use of ``lazy'' expressions.
   
 
-5.4  Objects
+5.5  Objects
 *=*=*=*=*=*=
 
   
@@ -3257,7 +3314,7 @@ defined in the body of the object become its fields, and the functions
 defined in the body become its methods.
   
 
-5.5  Field and method calls
+5.6  Field and method calls
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -3300,7 +3357,7 @@ fields or methods of an existing object in place. Thus, the `new' and
 `move' methods return new objects.
   
 
-5.6  Method override
+5.7  Method override
 *=*=*=*=*=*=*=*=*=*=
 
   
@@ -3325,7 +3382,7 @@ of just 1. We can do it by overriding the `move' method.
 method.
   
 
-5.7  Super calls
+5.8  Super calls
 *=*=*=*=*=*=*=*=
 
   
@@ -4435,7 +4492,7 @@ a context where `CFLAGS=-g -DLIBRARY').
 
 7.11.1  Scoping of implicit rules
 =================================
-  
+   
   Implicit rules (rules containing wildcard patterns) are not global,
 they follow the normal scoping convention. This allows different parts
 of a project to have different sets of implicit rules. If we like, we
@@ -5703,7 +5760,27 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-8.3.39  while
+8.3.39  export
+==============
+   The `export' function allows one to capture the current environment
+in a variable.
+  For example, the following code: 
+<<
+  A = 1
+  B = 1
+  C = 1
+  SAVE_ENV = $(export A B)
+  A = 2
+  B = 2
+  C = 2
+  export $(SAVE_ENV)
+  println($A $B $C)
+>>
+  will print `1 1 2'.
+  The arguments to this function are interpreted the exact same way as
+the arguments to the `export' special form (see Section 5.3).
+
+8.3.40  while
 =============
   
 <<
@@ -5760,10 +5837,10 @@ value is printed.
          echo $i
 >>
   
-  The `break' function (Section 8.3.40) can be used to break out of the
+  The `break' function (Section 8.3.41) can be used to break out of the
 `while' loop early.
 
-8.3.40  break
+8.3.41  break
 =============
   
 <<
@@ -5773,7 +5850,7 @@ value is printed.
   Terminate execution of the innermost loop, returning the current
 state.
 
-8.3.41  random, random-init
+8.3.42  random, random-init
 ===========================
   
 <<
@@ -5974,7 +6051,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function (Section 8.3.40) can be used to break out of the
+  The `break' function (Section 8.3.41) can be used to break out of the
 loop early.
 
 Chapter 9    File operations
@@ -7956,7 +8033,7 @@ meaning of `stdout' outside the `filter' function.
  b  ``Break'' when evaluating cases. Only the first case that matches
    will be selected. 
   
-  The `break' function (Section 8.3.40) can be used to abort the loop,
+  The `break' function (Section 8.3.41) can be used to abort the loop,
 exiting the `awk' function immediately.
 
 9.11.6  fsubst
@@ -8040,7 +8117,7 @@ alphanumeric words in an input file.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.40) can be used to abort the loop.
+  The `break' function (Section 8.3.41) can be used to abort the loop.
 
 9.11.8  lex-search
 ==================
@@ -8075,7 +8152,7 @@ alphanumeric words in an input file, skipping any other text.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break' function (Section 8.3.40) can be used to abort the loop.
+  The `break' function (Section 8.3.41) can be used to abort the loop.
 
 9.11.9  Lexer
 =============
@@ -11366,15 +11443,15 @@ expression to a statement.
       value expr
 >>
   
-  export (see the section on scoping --- Section 4.8). The `export'
-command exports a environment from a nested block. If no identifiers are
-specified, the entire environment is exported. Otherwise, the export is
+  export (see the section on scoping --- Section 5.3). The `export'
+command exports a environment from a nested block. If no arguments are
+given, the entire environment is exported. Otherwise, the export is
 limited to the specified identifiers.
 <<
-      export id ... id
+      export expr
 >>
   
-  while (see the `while' description in Section 8.3.39). The `while'
+  while (see the `while' description in Section 8.3.40). The `while'
 command introduces a `while' loop.
 <<
       while expr
@@ -11789,8 +11866,9 @@ Index
  - .INCLUDE, 7.9 
  - .ORDER, 9.3.5 
  - .omakerc, A.8 
- - .PHONY, 7.10 
- - .SCANNER, 3.4.3, 7.6 
+ - .PHONY, 5.3, 7.10, 7.11.3 
+ - .RULE, 5.3 
+ - .SCANNER, 3.4.3, 7.6, 7.11.2 
  - .SUBDIRS, 3, 7.8 
  - .SUBDIRS bodies, 3.5 
  
@@ -11829,7 +11907,7 @@ Index
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.31 
- - break, 8.3.40 
+ - break, 8.3.41 
  - build model, 3 
  
  - CAMLP4, 12.5.2.4 
@@ -11900,6 +11978,7 @@ Index
  - equal, 8.2.2 
  - exists-in-path, 9.2.4 
  - exit, 8.2.9 
+ - export, 5.3, 8.3.39 
  
  - File, 11.1.13 
  - Float, 11.1.5 
@@ -12119,8 +12198,8 @@ Index
  - Rule, 11.1.10 
  - RuntimeException, 11.1.21 
  - raise, 8.2.8 
- - random, 8.3.41 
- - random-init, 8.3.41 
+ - random, 8.3.42 
+ - random-init, 8.3.42 
  - read, 9.8.9 
  - readlink, 9.5.8 
  - regular expressions, 9.11.1 
@@ -12221,7 +12300,7 @@ Index
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.39 
+ - while, 8.3.40 
  - write, 9.8.10 
  
  - YACC, 12.4.1.14 
@@ -12372,7 +12451,7 @@ Index of functions and special forms
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.31 
- - break, 8.3.40 
+ - break, 8.3.41 
  
  - CGeneratedFiles, 12.4.2.1 
  - CProgram, 12.4.3.5 
@@ -12419,6 +12498,7 @@ Index of functions and special forms
  - equal, 8.2.2 
  - exists-in-path, 9.2.4 
  - exit, 8.2.9 
+ - export, 8.3.39 
  
  - fg, 10.10.3 
  - fgets, 9.8.37 
@@ -12549,8 +12629,8 @@ Index of functions and special forms
  - quote-argv, 8.3.15 
  
  - raise, 8.2.8 
- - random, 8.3.41 
- - random-init, 8.3.41 
+ - random, 8.3.42 
+ - random-init, 8.3.42 
  - read, 9.8.9 
  - readlink, 9.5.8 
  - rehash, 9.2.3 
@@ -12621,7 +12701,7 @@ Index of functions and special forms
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.39 
+ - while, 8.3.40 
  - write, 9.8.10 
 
 
