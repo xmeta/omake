@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2453,6 +2453,27 @@ let shell_code venv pos loc args =
 
 (*
  * Exports.
+ * \begin{doc}
+ * \fun{export}
+ * The \verb+export+ function allows one to capture the current environment in a variable.
+ *
+ * For example, the following code:
+ * \begin{verbatim}
+ * A = 1
+ * B = 1
+ * C = 1
+ * SAVE_ENV = $(export A B)
+ * A = 2
+ * B = 2
+ * C = 2
+ * export $(SAVE_ENV)
+ * println($A $B $C)
+ * \end{verbatim}
+ * will print \verb+1 1 2+.
+ *
+ * The arguments to this function are interpreted the exact same way as the arguments to the \verb+export+
+ * special form (see Section~\ref{section:section}).
+ * \end{doc}
  *)
 let export venv pos loc args =
    let pos = string_pos "export" pos in
@@ -2462,18 +2483,7 @@ let export venv pos loc args =
        | [(ValEnv _) as result] ->
             result
        | [arg] ->
-            let args = strings_of_value venv pos arg in
-            let syms =
-               match args with
-                  []
-                | ["all"] ->
-                     ExportAll
-                | ["rules"] ->
-                     ExportRules
-                | _ ->
-                     ExportSymbols (List.map Lm_symbol.add args)
-            in
-               ValEnv (venv, syms)
+            eval_export_args venv pos arg
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 

@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -215,6 +215,19 @@ let strategy_is_eager be_eager strategy scope =
             false
          else
             scope = ScopePrivate
+
+let eval_export_elt pos = function
+   ".RULE" ->
+      ExportRules
+ | ".PHONY" ->
+      ExportPhonies
+ | "" ->
+      raise (OmakeException(pos, StringError ("attempted to export an empty-named variable")))
+ | s ->
+      if s.[0] = '.' then
+         raise (OmakeException(pos, StringStringError ("unknown export special", s)))
+      else
+         ExportSymbol (Lm_symbol.add s)
 
 (************************************************************************
  * Compiling utilities.
@@ -1829,25 +1842,27 @@ and eval_method_apply_exp venv scope pos loc vl args =
 and eval_export_exp venv pos s =
    let pos = string_pos "eval_export_exp" pos in
    let result = eager_string_exp venv pos s in
-   let result =
-      match result with
-         ValEnv _ ->
-            result
-       | _ ->
-            let args = strings_of_value venv pos result in
-            let syms =
-               match args with
-                  []
-                | ["all"] ->
-                     ExportAll
-                | ["rules"] ->
-                     ExportRules
-                | _ ->
-                     ExportSymbols (List.map Lm_symbol.add args)
-            in
-               ValEnv (venv, syms)
-   in
-      venv, result
+      venv, (eval_export_args venv pos result)
+
+and eval_export_args venv pos = function
+   ValEnv _ as result ->
+      result
+ | result ->
+      let args = strings_of_value venv pos result in
+      let syms =
+         match args with
+            [] ->
+               ExportAll
+          | ["all"] ->
+               eprintf "@[<hv3>*** omake WARNING:@ @[<hov0>\"export all\" syntax is deprecated;@ use an empty \"export\" instead.@]@]@.";
+               ExportAll
+          | ["rules"] ->
+               eprintf "@[<hv3>*** omake WARNING:@ @[<hov0>\"export rules\" syntax is deprecated;@ use \"export .RULE .PHONY\" instead.@]@]@.";
+               ExportList [ExportRules; ExportPhonies]
+          | _ ->
+               ExportList (List.map (eval_export_elt pos) args)
+      in
+         ValEnv (venv, syms)
 
 and eval_cancel_export_exp venv pos s =
    let v =

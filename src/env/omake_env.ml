@@ -228,17 +228,21 @@ and value_other =
 (*
  * Export kinds.
  *    ExportFile: this is the result of file evaluation
- *    ExportSymbols syms: export just the symbols in the list
+ *    ExportList: export just the listed items (variable values, implicit rules/dependencies, phony target set)
  *    ExportAll: export the entire environment.
- *    ExportValue v: just like Exportall, but return the value too
+ *    ExportValue v: just like ExportAll, but return the value too
  *)
 and export =
    ExportFile
  | ExportAll
  | ExportDir
- | ExportRules
- | ExportSymbols of symbol list
+ | ExportList of export_elt list
  | ExportValue of value
+
+and export_elt =
+   ExportSymbol of symbol
+ | ExportRules
+ | ExportPhonies
 
 (*
  * Primitives are option refs.
@@ -861,22 +865,27 @@ and pp_print_rule buf erule =
       fprintf buf "@ @[<hv 3>commands =%a@]" pp_print_command_info_list commands;
       fprintf buf "@]@ }@]"
 
-and pp_print_export buf export =
-   match export with
-      ExportFile ->
-         pp_print_string buf "ExportFile"
-    | ExportAll ->
-         pp_print_string buf "ExportAll"
-    | ExportDir ->
-         pp_print_string buf "ExportDir"
-    | ExportRules ->
-         pp_print_string buf "ExportRules"
-    | ExportSymbols vars ->
-         fprintf buf "@[<hv 3>ExportSymbols";
-         List.iter (fun v -> fprintf buf "@ %a" pp_print_symbol v) vars;
-         fprintf buf "@]"
-    | ExportValue v ->
-         fprintf buf "@[<hv 3>ExportValue@ %a@]" pp_print_value v
+and pp_print_export buf = function
+   ExportFile ->
+      pp_print_string buf "ExportFile"
+ | ExportAll ->
+      pp_print_string buf "ExportAll"
+ | ExportDir ->
+      pp_print_string buf "ExportDir"
+ | ExportList vars ->
+      fprintf buf "@[<hv 3>ExportSymbols";
+      List.iter (fun v -> fprintf buf "@ %a" pp_print_export_elt v) vars;
+      fprintf buf "@]"
+ | ExportValue v ->
+      fprintf buf "@[<hv 3>ExportValue@ %a@]" pp_print_value v
+
+and pp_print_export_elt buf = function
+   ExportSymbol sym ->
+      pp_print_symbol buf sym
+ | ExportRules ->
+      pp_print_string buf ".RULE"
+ | ExportPhonies ->
+      pp_print_string buf ".PHONY"
 
 let pp_print_explicit_rules buf venv =
    fprintf buf "@[<hv 3>Explicit rules:";
@@ -3336,65 +3345,67 @@ let unexport env v vars =
          v
 
 (*
- * Export the implicit rules.
+ * Export an item from one environment to another.
  *)
-let export_rules venv1 venv2 =
-   let { venv_inner = inner1 } = venv1 in
-   let { venv_inner = inner2 } = venv2 in
-   let { venv_phony = phony2;
-         venv_implicit_deps = implicit_deps2;
-         venv_implicit_rules = implicit_rules2
-       } = inner2
-   in
-   let inner1 =
-      { inner1 with venv_phony = phony2;
-                    venv_implicit_deps = implicit_deps2;
-                    venv_implicit_rules = implicit_rules2
-      }
-   in
-      { venv1 with venv_inner = inner1 }
+let export_item pos venv_dst venv_src = function
+   ExportSymbol v ->
+      (*
+       * For now, we don't know which scope to use, so we
+       * copy them all.
+       *)
+      let { venv_dynamic = dynamic_src;
+            venv_static  = static_src;
+            venv_this    = this_src
+          } = venv_src
+      in
+      let { venv_dynamic = dynamic_dst;
+            venv_static  = static_dst;
+            venv_this    = this_dst
+          } = venv_dst
+      in
+      let dynamic, found =
+         try SymbolTable.add dynamic_dst v (SymbolTable.find dynamic_src v), true with
+            Not_found ->
+               dynamic_dst, false
+      in
+      let static, found =
+         try SymbolTable.add static_dst v (SymbolTable.find static_src v), true with
+            Not_found ->
+               static_dst, found
+      in
+      let this, found =
+         try SymbolTable.add this_dst v (SymbolTable.find this_src v), true with
+            Not_found ->
+               this_dst, found
+      in
+         if not found then
+            raise (OmakeException (pos, UnboundVar v));
+         { venv_dst with venv_dynamic = dynamic;
+                         venv_static = static;
+                         venv_this = this
+         }
+ | ExportRules ->
+      (*
+       * Export the implicit rules.
+       *)
+      let inner_src = venv_src.venv_inner in
+      let inner_dst =
+         { venv_dst.venv_inner with
+           venv_implicit_deps = inner_src.venv_implicit_deps;
+           venv_implicit_rules = inner_src.venv_implicit_rules;
+         }
+      in
+         { venv_dst with venv_inner = inner_dst }
+ | ExportPhonies ->
+      (*
+       * Export the phony vars.
+       *)
+      let inner_dst = { venv_dst.venv_inner with venv_phony = venv_src.venv_inner.venv_phony } in
+         { venv_dst with venv_inner = inner_dst }
 
-(*
- * Export a variable from one environment to another.
- * For now, we don't know which scope to use, so we
- * copy them all.
- *)
-let export_var pos venv_dst venv_src v =
-   let { venv_dynamic = dynamic_src;
-         venv_static  = static_src;
-         venv_this    = this_src
-       } = venv_src
-   in
-   let { venv_dynamic = dynamic_dst;
-         venv_static  = static_dst;
-         venv_this    = this_dst
-       } = venv_dst
-   in
-   let dynamic, found =
-      try SymbolTable.add dynamic_dst v (SymbolTable.find dynamic_src v), true with
-         Not_found ->
-            dynamic_dst, false
-   in
-   let static, found =
-      try SymbolTable.add static_dst v (SymbolTable.find static_src v), true with
-         Not_found ->
-            static_dst, found
-   in
-   let this, found =
-      try SymbolTable.add this_dst v (SymbolTable.find this_src v), true with
-         Not_found ->
-            this_dst, found
-   in
-      if not found then
-         raise (OmakeException (pos, UnboundVar v));
-      { venv_dst with venv_dynamic = dynamic;
-                      venv_static = static;
-                      venv_this = this
-      }
-
-let export_vars pos venv_dst venv_src vars =
+let export_list pos venv_dst venv_src vars =
    List.fold_left (fun venv_dst v ->
-         export_var pos venv_dst venv_src v) venv_dst vars
+         export_item pos venv_dst venv_src v) venv_dst vars
 
 (*
  * Exported environment does not include static values.
@@ -3420,12 +3431,10 @@ let add_exports venv pos result =
          venv_export_venv venv venv', result
     | ValEnv (venv', ExportDir) ->
          venv_chdir_tmp venv (venv_dir venv'), result
-    | ValEnv (venv', ExportRules) ->
-         export_rules venv venv', result
     | ValEnv (venv', ExportValue v) ->
          venv_export_venv venv venv', v
-    | ValEnv (venv', ExportSymbols vars) ->
-         let venv = export_vars pos venv venv' vars in
+    | ValEnv (venv', ExportList vars) ->
+         let venv = export_list pos venv venv' vars in
             venv, result
     | _ ->
          venv, result
@@ -3440,12 +3449,10 @@ let add_include venv pos result =
          venv_export_venv venv venv', result
     | ValEnv (venv', ExportDir) ->
          venv_chdir_tmp venv (venv_dir venv'), result
-    | ValEnv (venv', ExportRules) ->
-         export_rules venv venv', result
     | ValEnv (venv', ExportValue v) ->
          venv_export_venv venv venv', v
-    | ValEnv (venv', ExportSymbols vars) ->
-         let venv = export_vars pos venv venv' vars in
+    | ValEnv (venv', ExportList vars) ->
+         let venv = export_list pos venv venv' vars in
             venv, result
     | _ ->
          venv, result

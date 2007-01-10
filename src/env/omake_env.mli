@@ -122,16 +122,21 @@ type rule_kind =
 (*
  * Export kinds.
  *    ExportFile: this is the result of file evaluation
- *    ExportSymbols syms: export just the symbols in the list
+ *    ExportList: export just the listed items (variable values, implicit rules/dependencies, phony target set)
  *    ExportAll: export the entire environment.
+ *    ExportValue v: just like Exportall, but return the value too
  *)
-type export =
+and export =
    ExportFile
  | ExportAll
  | ExportDir
- | ExportRules
- | ExportSymbols of symbol list
+ | ExportList of export_elt list
  | ExportValue of value
+
+and export_elt =
+   ExportSymbol of symbol
+ | ExportRules
+ | ExportPhonies
 
 (*
  * Possible values.
