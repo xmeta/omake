@@ -1854,10 +1854,10 @@ and eval_export_args venv pos = function
             [] ->
                ExportAll
           | ["all"] ->
-               eprintf "@[<hv3>*** omake WARNING:@ @[<hov0>\"export all\" syntax is deprecated;@ use an empty \"export\" instead.@]@]@.";
+               eprintf "@[<hv3>*** omake WARNING: %a: @ @[<hov0>\"export all\" syntax is deprecated;@ use an empty \"export\" instead.@]@]@." pp_print_pos pos;
                ExportAll
           | ["rules"] ->
-               eprintf "@[<hv3>*** omake WARNING:@ @[<hov0>\"export rules\" syntax is deprecated;@ use \"export .RULE .PHONY\" instead.@]@]@.";
+               eprintf "@[<hv3>*** omake WARNING: %a:@ @[<hov0>\"export rules\" syntax is deprecated;@ use \"export .RULE .PHONY\" instead.@]@]@." pp_print_pos pos;
                ExportList [ExportRules; ExportPhonies]
           | _ ->
                ExportList (List.map (eval_export_elt pos) args)
