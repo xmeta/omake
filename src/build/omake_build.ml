@@ -2516,8 +2516,10 @@ let create_env exec options cache targets =
             eprintf "%a@." Omake_exn_print.pp_print_exn exn;
             notify_wait_simple venv cwd exec cache;
             raise Restart
-         end else
+         end else begin
+            unlink_file summary;
             raise exn
+         end
    in
    let () =
       if opt_print_status options then
