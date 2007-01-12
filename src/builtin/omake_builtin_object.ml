@@ -338,6 +338,32 @@ let map_map venv pos loc args =
          ValEnv (venv', ExportAll)
 
 (*
+ * Get an array of keys of the map.
+ *)
+let map_keys venv pos loc args =
+   let pos = string_pos "map-keys" pos in
+      match args with
+         [arg] ->
+            let map = map_of_value venv pos arg in
+            let keys = venv_map_fold (fun keys k _ -> k::keys) [] map in
+               ValArray (List.rev keys)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * Get an array of values of the map.
+ *)
+let map_values venv pos loc args =
+   let pos = string_pos "map-values" pos in
+      match args with
+         [arg] ->
+            let map = map_of_value venv pos arg in
+            let vals = venv_map_fold (fun vals _ v -> v::vals) [] map in
+               ValArray (List.rev vals)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
  * \begin{doc}
  * \twofuns{create-map}{create-lazy-map}
  *
@@ -699,6 +725,8 @@ let () =
        true, "map-length",           map_length,          ArityExact 1;
        true, "map-map",              map_map,             ArityRange (3, 4);
        true, "map-remove",           map_remove,          ArityExact 1;
+       true, "map-keys",             map_keys,            ArityExact 1;
+       true, "map-values",           map_values,          ArityExact 1;
        true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
        true, "sequence-length",      sequence_length,     ArityExact 1;
        true, "sequence-nth",         sequence_nth,        ArityExact 1;

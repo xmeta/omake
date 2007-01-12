@@ -180,11 +180,15 @@ extends $(Object)
 # The Map object provides the following methods.
 #
 # \begin{itemize}
+# \item \verb+$(o.length)+: the number of items in the map.
 # \item \verb+$(o.mem <key>)+: returns \verb+true+ iff the \verb+<key>+ is defined
 #    in the map.
 # \item \verb+$(o.add <key>, <value>)+: adds the field to the map,
 #    returning a new map.
 # \item \verb+$(o.find <key>)+: fetches the field from the map.
+# \item \verb+$(o.keys)+: fetches an array of all the keys in the map, in alphabetical order.
+# \item \verb+$(o.values)+: fetches an array of all the values in the map,
+#    in the alphabetical order of the corresponding keys.
 # \item \verb+$(o.map <fun>)+: maps a function over the map.  The function
 #    should take two arguments; the first is a field name, the second is the
 #    value of that field.  The result is a new object constructed from the
@@ -255,6 +259,15 @@ Map. +=
 
     foreach(body, v, x) =
         return $(map-map $(this), $(v), $(x), $(body))
+
+    length() =
+        return $(map-length $(this))
+
+    keys() =
+        return $(map-keys $(this))
+
+    values() =
+        return $(map-values $(this))
 
 ########################################################################
 # \begin{doc}
