@@ -2181,21 +2181,26 @@ and invalidate_event env event =
 (*
  * Worklist switching.
  *)
-let process_events env =
-   env.env_current_wl <- env.env_main_wl;
-   Queue.iter (fun event -> ignore (do_invalidate_event env event)) env.env_pending_events;
-   Queue.clear env.env_pending_events
 
 let with_fresh_wl env f =
-   try
-      env.env_current_wl <- create_wl ();
-      let x = f () in
-         process_events env;
-         x
-   with
-      exn ->
-         process_events env;
-         raise exn
+   let code = env.env_error_code in
+   let restore_wl () =
+      env.env_current_wl <- env.env_main_wl;
+      if env.env_error_code = 0 then
+         env.env_error_code <- code;
+      Queue.iter (fun event -> ignore (do_invalidate_event env event)) env.env_pending_events;
+      Queue.clear env.env_pending_events
+   in
+      try
+         env.env_current_wl <- create_wl ();
+         env.env_error_code <- 0;
+         let x = f () in
+            restore_wl();
+            x
+      with
+         exn ->
+            restore_wl();
+            raise exn
 
 (************************************************************************
  * Main processing loop.
