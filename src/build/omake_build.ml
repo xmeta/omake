@@ -2809,7 +2809,6 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                   true
             in
                close_out outx;
-               print_summary env;
                core_success
          in
          let () = 
@@ -2829,9 +2828,11 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                         make env) targets
                end;
          in
-            if summary then
+            if summary then begin
                if not (process_summary () && begin_success && build_phase env build_success_target && process_summary ()) then
-                  ignore (build_phase env build_failure_target)
+                  ignore (build_phase env build_failure_target);
+               print_summary env
+            end
       with
          Sys_error _
        | ExitException _
