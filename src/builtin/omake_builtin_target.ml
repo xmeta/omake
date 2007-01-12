@@ -336,8 +336,6 @@ let target_optional = target_core true
  *     .BUILD_FAILURE:
  *         echo "Failed target count: $(length $(find-build-targets Failed))"
  * \end{verbatim}
- *
- * \textbf{Warning:} this function is experimental and may not work in some situations.
  * \end{doc}
  *)
 let find_build_targets venv pos loc args =

@@ -428,34 +428,34 @@ let create_wl () =
 (*
  * Get the list pointer for a node class.
  *)
-let command_tag state =
-   match state with
-      CommandIdle            -> CommandIdleTag
-    | CommandInitial         -> CommandInitialTag
-    | CommandScanBlocked     -> CommandScanBlockedTag
-    | CommandScannedPending  -> CommandScannedPendingTag
-    | CommandScanned         -> CommandScannedTag
-    | CommandBlocked         -> CommandBlockedTag
-    | CommandReady           -> CommandReadyTag
-    | CommandPending         -> CommandPendingTag
-    | CommandRunning _       -> CommandRunningTag
-    | CommandSucceeded _     -> CommandSucceededTag
-    | CommandFailed _        -> CommandFailedTag
+let command_tag = function
+    CommandIdle            -> CommandIdleTag
+  | CommandInitial         -> CommandInitialTag
+  | CommandScanBlocked     -> CommandScanBlockedTag
+  | CommandScannedPending  -> CommandScannedPendingTag
+  | CommandScanned         -> CommandScannedTag
+  | CommandBlocked         -> CommandBlockedTag
+  | CommandReady           -> CommandReadyTag
+  | CommandPending         -> CommandPendingTag
+  | CommandRunning _       -> CommandRunningTag
+  | CommandSucceeded _     -> CommandSucceededTag
+  | CommandFailed _        -> CommandFailedTag
+
+let get_worklist_command wl = function
+   CommandIdleTag           -> wl.env_idle_wl
+ | CommandInitialTag        -> wl.env_initial_wl
+ | CommandScanBlockedTag    -> wl.env_scan_blocked_wl
+ | CommandScannedPendingTag -> wl.env_scanned_pending_wl
+ | CommandScannedTag        -> wl.env_scanned_wl
+ | CommandBlockedTag        -> wl.env_blocked_wl
+ | CommandReadyTag          -> wl.env_ready_wl
+ | CommandPendingTag        -> wl.env_pending_wl
+ | CommandRunningTag        -> wl.env_running_wl
+ | CommandSucceededTag      -> wl.env_succeeded_wl
+ | CommandFailedTag         -> wl.env_failed_wl
 
 let command_worklist env state =
-   let wl = env.env_current_wl in
-      match state with
-         CommandIdleTag           -> wl.env_idle_wl
-       | CommandInitialTag        -> wl.env_initial_wl
-       | CommandScanBlockedTag    -> wl.env_scan_blocked_wl
-       | CommandScannedPendingTag -> wl.env_scanned_pending_wl
-       | CommandScannedTag        -> wl.env_scanned_wl
-       | CommandBlockedTag        -> wl.env_blocked_wl
-       | CommandReadyTag          -> wl.env_ready_wl
-       | CommandPendingTag        -> wl.env_pending_wl
-       | CommandRunningTag        -> wl.env_running_wl
-       | CommandSucceededTag      -> wl.env_succeeded_wl
-       | CommandFailedTag         -> wl.env_failed_wl
+   get_worklist_command env.env_current_wl state
 
 (*
  * Reclassify the commands.
@@ -520,7 +520,11 @@ let command_fold env state f x =
        | None ->
             x
    in
-      fold x (!(command_worklist env state))
+   let x = fold x (!(command_worklist env state)) in
+      if env.env_main_wl == env.env_current_wl then
+         x
+      else
+         fold x (!(get_worklist_command env.env_main_wl state))
 
 (*
  * Existential test.

@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  *)
 open Omake_options
@@ -45,8 +45,9 @@ val save_interval  : float ref
 
 (*
  * Examining the state.
+ * Note that in a non-standard build phase (such as .DUILD_SUCCESS),
+ * this function will process _both_ the phase-specific worklist and the main worklist.
  *)
-val command_iter   : env -> command_tag -> (command -> unit) -> unit
 val command_fold   : env -> command_tag -> ('a -> command -> 'a) -> 'a -> 'a
 
 (*
