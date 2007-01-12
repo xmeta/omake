@@ -2741,11 +2741,11 @@ let create_tmpfile env =
       close_out outx
 
 let open_tmpfile env =
-   let outx = Pervasives.open_out_gen [Open_wronly; Open_binary; Open_append] 0o600 env.env_summary in
+   let outx = Pervasives.open_out_gen [Open_wronly; Open_binary; Open_creat; Open_append] 0o600 env.env_summary in
    let buf = formatter_of_out_channel outx in
       buf, outx
 
-let print_summary env =
+let print_summary ?(unlink = true) env =
    let inx = open_in_bin env.env_summary in
    let buffer = String.create 256 in
    let rec copy () =
@@ -2757,7 +2757,9 @@ let print_summary env =
    in
       copy ();
       Pervasives.flush Pervasives.stderr;
-      close_in inx
+      close_in inx;
+      if unlink then
+         unlink_file env.env_summary 
 
 (*
  * Build a pseudo-phased target .BUILD_* with a fresh worklist.
@@ -2783,7 +2785,35 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
             (* Build the initial summary *)
             not summary || (create_tmpfile env; build_phase env build_begin_target)
          in
-            if begin_success then begin
+         let process_summary () =
+            (* Print out the final summary *)
+            let buf, outx = open_tmpfile env in
+            let core_success =
+               if env.env_error_code <> 0 then begin
+                  print_stats env "failed" start_time;
+                  print_failed_targets env buf;
+                  false
+               end else if not (command_list_is_empty env CommandBlockedTag) then begin
+                  print_stats env "blocked" start_time;
+                  print_failed env buf CommandBlockedTag;
+                  false
+               end else if not (command_list_is_empty env CommandScanBlockedTag) then begin
+                  print_stats env "scanner is blocked" start_time;
+                  print_failed env buf CommandScanBlockedTag;
+                  false
+               end else if not (command_list_is_empty env CommandFailedTag) then begin
+                  print_stats env "failed" start_time;
+                  print_failed_targets env buf;
+                  false
+               end else
+                  true
+            in
+               close_out outx;
+               print_summary env;
+               core_success
+         in
+         let () = 
+            if begin_success then
                (* Build the core *)
                if parallel || opt_parallel options then begin
                   (* Add commands to build the targets *)
@@ -2798,18 +2828,10 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                         build_target env print target;
                         make env) targets
                end;
-
-               (* Build the final summary *)
-               if summary then begin
-                  let success_success =
-                     command_list_is_empty env CommandFailedTag && build_phase env build_success_target
-                  in
-                     if not success_success then
-                        ignore (build_phase env build_failure_target)
-               end
-            end
-            else
-               ignore (build_phase env build_failure_target)
+         in
+            if summary then
+               if not (process_summary () && begin_success && build_phase env build_success_target && process_summary ()) then
+                  ignore (build_phase env build_failure_target)
       with
          Sys_error _
        | ExitException _
@@ -2826,8 +2848,9 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                fprintf buf "%a@." Omake_exn_print.pp_print_exn exn;
                close_out outx;
                print_stats env (match exn with Sys.Break -> "stopped" | _ -> "failed") start_time;
-               print_summary env;
+               print_summary env ~unlink:false;
                if opt_poll options && restartable_exn exn then begin
+                  unlink_file env.env_summary;
                   notify_wait_omakefile env;
                   raise Restart
                end else begin
@@ -2843,35 +2866,13 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
 
       (* Return error if that happened *)
       if env.env_error_code <> 0 then
-         let buf, outx = open_tmpfile env in
-            print_stats env "failed" start_time;
-            print_failed_targets env buf;
-            close_out outx;
-            print_summary env;
-            build_on_error env save_flag start_time parallel print targets options env.env_error_code
+         build_on_error env save_flag start_time parallel print targets options env.env_error_code
       else if not (command_list_is_empty env CommandBlockedTag) then
-         let buf, outx = open_tmpfile env in
-            print_stats env "blocked" start_time;
-            print_failed env buf CommandBlockedTag;
-            close_out outx;
-            print_summary env;
-            build_on_error env save_flag start_time parallel print targets options deadlock_error_code
+         build_on_error env save_flag start_time parallel print targets options deadlock_error_code
       else if not (command_list_is_empty env CommandScanBlockedTag) then
-         let buf, outx = open_tmpfile env in
-            print_stats env "scanner is blocked" start_time;
-            print_failed env buf CommandScanBlockedTag;
-            close_out outx;
-            print_summary env;
-            build_on_error env save_flag start_time parallel print targets options deadlock_error_code
+         build_on_error env save_flag start_time parallel print targets options deadlock_error_code
       else if not (command_list_is_empty env CommandFailedTag) then
-         let buf, outx = open_tmpfile env in
-            print_stats env "failed" start_time;
-            print_failed_targets env buf;
-            close_out outx;
-            print_summary env;
-            build_on_error env save_flag start_time parallel print targets options deadlock_error_code
-      else
-         print_summary env
+         build_on_error env save_flag start_time parallel print targets options deadlock_error_code
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
    if not (opt_poll options) then
