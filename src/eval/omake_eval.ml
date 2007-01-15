@@ -978,7 +978,16 @@ and eval_value_core venv pos v =
       ValKey (loc, v) ->
          eval_key venv pos loc v
     | ValApply (loc, scope, v, []) ->
-         eval_value_core venv pos (eval_var venv pos loc (venv_find_var venv scope pos loc v))
+         begin match venv_find_var venv scope pos loc v with
+            ValApply (_, scope', v', []) when scope = scope' && Lm_symbol.eq v v' ->
+               let print_error buf =
+                  fprintf buf "@[<v0>@[<hv3>Self-referential variable:@ %a@]@ @[<hov3>The value of the variable@ %a%a@ is a lazy self-reference@ $`(%a%a),@ resulting in an infinite self-reference loop.@]@]" (**)
+                     pp_print_symbol v pp_print_scope_kind scope pp_print_symbol v pp_print_scope_kind scope pp_print_symbol v;
+               in
+                  raise (OmakeException(loc_pos loc pos, LazyError print_error))
+          | v ->
+               eval_value_core venv pos (eval_var venv pos loc v)
+         end
     | ValApply (loc, scope, v, args) ->
          eval_value_core venv pos (eval_apply venv pos loc (venv_find_var venv scope pos loc v) args)
     | ValImplicit (loc, scope, v) ->
