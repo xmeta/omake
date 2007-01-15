@@ -1005,9 +1005,7 @@ public.OCamlProgram(name, files) =
    protected.CMA_OTHER_FILES = $(addsuffix .cma, $(OCAML_OTHER_LIBS))
    protected.CMXA_OTHER_FILES = $(addsuffix .cmxa, $(OCAML_OTHER_LIBS))
 
-   protected.BYTE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
-   protected.NATIVE_CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
-   protected.CLIBS = $(addsuffix $(EXT_LIB), $(LIBS))
+   protected.CLIBS = $(addsuffix $(EXT_LIB), $(OCAML_CLIBS))
 
    protected.name = $(file $(name))
 
@@ -1018,17 +1016,17 @@ public.OCamlProgram(name, files) =
    #
    # Rules to build byte-code and native targets
    #
-   $(BYTEPROG): $(CMAFILES) $(CMOFILES) $(BYTE_CLIBS) $(CLIBS)
+   $(BYTEPROG): $(CMAFILES) $(CMOFILES) $(CLIBS)
         $(OCAMLFIND) $(OCAMLLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLCFLAGS)\
                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_BYTE_LINK_FLAGS)\
                 -o $@ $(CMA_OTHER_FILES) $(CMAFILES) $(OCamlLinkSort $(CMOFILES))\
-                $(BYTE_CLIBS) $(CLIBS) $(OCAML_LINK_FLAGS)
+                $(CLIBS) $(OCAML_LINK_FLAGS)
 
-   $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILES) $(OFILES) $(NATIVE_CLIBS) $(CLIBS)
+   $(OPTPROG): $(CMXAFILES) $(ARFILES) $(CMXFILES) $(OFILES) $(CLIBS)
         $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) $(OCAMLOPTFLAGS)\
                 $(PREFIXED_OCAMLINCLUDES) $(OCAML_NATIVE_LINK_FLAGS)\
                 -o $@ $(CMXA_OTHER_FILES) $(CMXAFILES) $(OCamlLinkSort $(CMXFILES))\
-                $(NATIVE_CLIBS) $(CLIBS) $(OCAML_LINK_FLAGS)
+                $(CLIBS) $(OCAML_LINK_FLAGS)
 
    #
    # Link the actual executables.
