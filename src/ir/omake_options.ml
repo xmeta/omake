@@ -446,7 +446,7 @@ let options_spec =
     "--configure", Lm_arg.SetFold set_flush_static_opt, (**)
        "Recompute static. sections";
     "-R", Lm_arg.SetFold set_cd_root_opt, (**)
-       "Command-line targets are relative to the root";
+       "Command-line targets are relative to the project root; builds all .DEFAULT targets if no targets given";
     "--print-dependencies", Lm_arg.SetFold set_print_dependencies_opt, (**)
        "Build and print dependencies";
     "--show-dependencies", Lm_arg.StringFold add_show_dependency_opt, (**)

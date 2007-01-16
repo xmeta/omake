@@ -195,10 +195,17 @@ will restart the build whenever source files are modified. Implies
 
 \option{-R} \verb+-R+
 
-Ignore the current directory and build the project from its root directory.  When
-\Prog{omake} is run in a subdirectory of a project, it normally builds files within the current
-directory and its subdirectories.  If the \Opt{-R} option is specified, the build is performed as if
-\Prog{omake} were run in the project root.
+Ignore the current directory and build the project from its root directory.  When \Prog{omake} is
+run in a subdirectory of a project and no explicit targets are given on the command line, it would
+normally only build files within the current directory and its subdirectories (more precisely, it
+builds all the \verb+.DEFAULT+ targets in the current directory and its subdirectories).  If the
+\Opt{-R} option is specified, the build is performed as if \Prog{omake} were run in the project
+root.
+
+In other words, with the \verb+-R+ option, all the relative targets specified on the command line
+will be taken relative to the project root (instead of relative to the current directory). When no
+targets are given on the command line, all the \verb+.DEFAULT+ targets in the project will be built
+(regardless of the current directory).
 
 \option{-t} \verb+-t+
 
