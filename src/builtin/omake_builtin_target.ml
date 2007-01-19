@@ -113,8 +113,11 @@ open Pos
  *)
 let dependencies venv pos loc args =
    let pos = string_pos "dependencies" pos in
+   let nodes =
       match args with
-         [arg] ->
+         [ValRules rules] ->
+            List.fold_left (fun deps r -> NodeSet.union deps r.rule_sources) NodeSet.empty rules
+       | [arg] ->
             let args  = values_of_value venv pos arg in
             let nodes = List.map (file_of_value venv pos) args in
             let rec find_deps deps node =
@@ -126,10 +129,11 @@ let dependencies venv pos loc args =
                   Not_found ->
                      raise (OmakeException (pos, StringNodeError ("file is not buildable", node)))
             in
-            let nodes = NodeSet.to_list (List.fold_left find_deps NodeSet.empty nodes) in
-               ValArray (List.map (fun v -> ValNode v) nodes)
+               List.fold_left find_deps NodeSet.empty nodes
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+      ValArray (List.map (fun v -> ValNode v) (NodeSet.to_list nodes))
 
 let dependencies_all_core test venv pos loc args =
    let pos = string_pos "dependencies-all" pos in
@@ -280,7 +284,9 @@ let target_of_command venv pos loc command =
 let target_core optional_flag venv pos loc args =
    let pos = string_pos "target" pos in
       match args with
-         [arg] ->
+         [ValRules rules] ->
+            concat_array (List.map (fun r -> ValNode r.rule_target) rules)
+       | [arg] ->
             let args     = values_of_value venv pos arg in
             let env      = get_env pos loc in
             let commands = env.env_commands in
