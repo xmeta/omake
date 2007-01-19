@@ -1,7 +1,7 @@
 ########################################################################
 # Building LaTeX documents.
 #
-# Copyright (C) 2003-2006 Jason Hickey and Mojave Group
+# Copyright (C) 2003-2007 Jason Hickey and Mojave Group
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this file, to deal in the File without
@@ -91,7 +91,7 @@ static. =
     if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
        case CYGWIN
-          println($"---    You are trying to use Cygwin LaTeX on a Win32 machine.")
+          println($"---    You seem to be trying to use Cygwin LaTeX on a Win32 machine.")
           println($"---    This usually doesn't work, but if you really want to")
           println($"---    use it, add the following definition to your OMakeroot.")
           println($"---        FORCE_WIN32_LATEX = true")
@@ -123,6 +123,10 @@ static. =
             export
         case $'^\[-no\]-file-line-error'
             FILE_LINE_ERROR = -file-line-error
+            ERROR_ENABLED = true
+            export
+        case $'^ *-c-style-errors'
+            FILE_LINE_ERROR = -c-style-errors
             ERROR_ENABLED = true
             export
 
