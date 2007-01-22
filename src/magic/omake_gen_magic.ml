@@ -46,7 +46,7 @@ let output_file = ref None
 let cache_files = ref []
 let omc_files   = ref []
 let omo_files   = ref []
-let libdir      = ref "/unknown"
+let libdir      = ref None
 let version_txt = ref "version.txt"
 let default_save_interval = ref 15.0
 
@@ -67,7 +67,7 @@ let anon s =
 
 let spec =
    ["--magic",       Arg.Set make_magic, "generate the omake_magic.ml file";
-    "--lib",         Arg.String (fun s -> libdir := s), "specify the location of the library directory";
+    "--lib",         Arg.String (fun s -> libdir := Some s), "specify the location of the library directory";
     "--root",        Arg.String (fun s -> make_root := Some s),  "generate the OMakeroot file";
     "--cache-files", Arg.Unit (fun () -> mode := CacheFiles), "specify the magic files for the cache magic number";
     "--omc-files",   Arg.Unit (fun () -> mode := OmcFiles), "specify the files to scan for the IR magic number";
@@ -245,7 +245,11 @@ let shorten_version s =
       s
 
 let omake_magic buf =
-   let s = Filename.concat !libdir "omake" in
+   let libdir = 
+      match !libdir with 
+         Some s -> Filename.concat s "omake"
+       | None -> Filename.concat (Filename.dirname (Unix.getcwd ())) "lib"
+   in
    let version = read_version () in
    let now = Unix.time () in
    let { Unix.tm_year = year;
@@ -263,7 +267,7 @@ let omake_magic buf =
       fprintf buf "let cache_magic = \"%s\"\n" (digest_files ".cache.magic" ".odb" !cache_files);
       fprintf buf "let ir_magic = \"%s\"\n"    (digest_files ".omc.magic" ".omc" !omc_files);
       fprintf buf "let obj_magic = \"%s\"\n"   (digest_files ".omo.magic" ".omo" !omo_files);
-      fprintf buf "let lib_dir = \"%s\"\n" (String.escaped s);
+      fprintf buf "let lib_dir = \"%s\"\n" (String.escaped libdir);
       fprintf buf "let version = \"%s\"\n" (String.escaped (shorten_version version));
       fprintf buf "let version_message = \"OMake %s:\\n\\tbuild [%s %s %d %02d:%02d:%02d %d]\\n\\ton %s\"\n"
          (String.escaped version)
