@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2006 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
  * @end[license]
  */
 #include <stdio.h>
@@ -46,6 +46,7 @@
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #  include <dirent.h>
+#  include <limits.h>
 
 #  ifdef READLINE_ENABLED
 #    include <readline/readline.h>
@@ -54,9 +55,11 @@
 #endif /* !WIN32 */
 
 /*
- * Maximum number of characters in an input line.
+ * Maximum number of characters in an input line. Defined by limits.h on Unix.
  */
-#define MAX_LINE_LENGTH         256
+#ifndef LINE_MAX
+#define LINE_MAX                2048
+#endif
 
 /*
  * Prompts shouldn't be too wild.
@@ -65,9 +68,11 @@
 #define MAX_PROMPT_LENGTH       80
 
 /*
- * Maximum length of the history filename.
+ * Maximum length of the history filename. Defined by limits.h on Unix.
  */
-#define MAX_FILENAME_LENGTH     2048
+#ifndef PATH_MAX
+#define PATH_MAX                2048
+#endif
 
 /************************************************************************
  * Compatibility.
@@ -79,7 +84,7 @@
  */
 struct dirent {
     int d_isdir;
-    char d_name[MAX_FILENAME_LENGTH];
+    char d_name[PATH_MAX];
 };
 
 typedef struct _dir {
@@ -91,7 +96,7 @@ typedef struct _dir {
 static DIR *opendir(const char *dirname)
 {
     WIN32_FIND_DATA data;
-    char name[MAX_FILENAME_LENGTH + 2];
+    char name[PATH_MAX + 2];
     HANDLE hand;
     DIR *dirp;
     int len;
@@ -115,8 +120,8 @@ static DIR *opendir(const char *dirname)
 
     /* Copy the entry */
     dirp->hand = hand;
-    strncpy(dirp->entry.d_name, data.cFileName, MAX_FILENAME_LENGTH - 1);
-    dirp->entry.d_name[MAX_FILENAME_LENGTH - 1] = 0;
+    strncpy(dirp->entry.d_name, data.cFileName, PATH_MAX - 1);
+    dirp->entry.d_name[PATH_MAX - 1] = 0;
     dirp->entry.d_isdir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
     dirp->full = 1;
     return dirp;
@@ -137,8 +142,8 @@ static struct dirent *readdir(DIR *dirp)
         return 0;
 
     /* Copy it */
-    strncpy(dirp->entry.d_name, data.cFileName, MAX_FILENAME_LENGTH - 1);
-    dirp->entry.d_name[MAX_FILENAME_LENGTH - 1] = 0;
+    strncpy(dirp->entry.d_name, data.cFileName, PATH_MAX - 1);
+    dirp->entry.d_name[PATH_MAX - 1] = 0;
     dirp->entry.d_isdir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
     return &dirp->entry;
 }
@@ -164,7 +169,7 @@ typedef struct _completion {
 
 typedef struct _completion_info {
     /* Current directory (needed for filename completion) */
-    char dir[MAX_FILENAME_LENGTH];
+    char dir[PATH_MAX];
 
     /* List of completions */
     Completion *completions;
@@ -254,18 +259,18 @@ static void readline_free_completions(CompletionInfo *infop)
 static void readline_load_completion(CompletionInfo *infop, const char *text)
 {
     /* The absolute pathname of the directory we are searching in */
-    char completion_dir[2 * MAX_FILENAME_LENGTH + 1];
+    char completion_dir[2 * PATH_MAX + 1];
 
     /* The filename prefix we are looking for */
-    char completion_name[MAX_FILENAME_LENGTH];
+    char completion_name[PATH_MAX];
 
     /* The directory prefix for the completion */
-    char completion_buffer[2 * MAX_FILENAME_LENGTH + 1];
+    char completion_buffer[2 * PATH_MAX + 1];
     int buffer_offset;
 
 #ifndef WIN32
     /* The absolute pathname prefix for directory checking */
-    char completion_absname[2 * MAX_FILENAME_LENGTH + 1];
+    char completion_absname[2 * PATH_MAX + 1];
     int absname_offset;
 #endif /* !WIN32 */
 
@@ -383,7 +388,7 @@ static void readline_load_completion(CompletionInfo *infop, const char *text)
  * and the line terminator, and the string terminator.
  */
 typedef struct _line_buffer {
-    char buffer[MAX_LINE_LENGTH + 3];
+    char buffer[LINE_MAX + 3];
     int length, index;
 } LineBuffer;
 
@@ -396,7 +401,7 @@ typedef struct _readline {
     int length;                         // Number of lines in the history
     int index;                          // Current line in the history
     int offset;                         // Base history offset
-    char filename[MAX_FILENAME_LENGTH]; // Where is the history saved?
+    char filename[PATH_MAX]; // Where is the history saved?
 
     /* Input processing */
     int escape;                         // Should next char be escaped?
@@ -528,7 +533,7 @@ static void LineInsertChar(LineBuffer *linep, char c)
 {
     int amount;
 
-    if(linep->index == MAX_LINE_LENGTH)
+    if(linep->index == LINE_MAX)
         return;
 
     /* Insert it */
@@ -963,7 +968,7 @@ static void readline_cooked(ReadLine *readp)
     char *s;
 
     enter_blocking_section();
-    s = fgets(readp->current.buffer, MAX_LINE_LENGTH, stdin);
+    s = fgets(readp->current.buffer, LINE_MAX, stdin);
     leave_blocking_section();
     if(s == 0)
         raise_end_of_file();
@@ -1070,12 +1075,12 @@ static void readline(ReadLine *readp, const char *promptp)
  */
 static int do_readline_load_history(ReadLine *readp, const char *filenamep)
 {
-    char line[MAX_LINE_LENGTH + 32];
+    char line[LINE_MAX + 32];
     LineBuffer *linep;
     FILE *filep;
     char *strp;
 
-    if(strlen(filenamep) >= MAX_FILENAME_LENGTH)
+    if(strlen(filenamep) >= PATH_MAX)
         return -1;
     strcpy(readp->filename, filenamep);
     if((filep = fopen(filenamep, "r")) == NULL)
@@ -1096,8 +1101,8 @@ static int do_readline_load_history(ReadLine *readp, const char *filenamep)
         linep->length = strlen(strp);
         if(linep->length == 0)
             continue;
-        if(linep->length > MAX_LINE_LENGTH)
-            linep->length = MAX_LINE_LENGTH;
+        if(linep->length > LINE_MAX)
+            linep->length = LINE_MAX;
         else
             linep->length--;
         memcpy(linep->buffer, strp, linep->length);
@@ -1346,7 +1351,8 @@ typedef struct _readline {
     int force_prompt;
 
     /* Buffered data */
-    char buffer[MAX_LINE_LENGTH];
+    char * buffer;
+    int buffer_size;
     int index;
     int length;
 
@@ -1363,11 +1369,15 @@ static ReadLine *AllocReadLine(int is_console, int console_in)
 
     /* Allocate */
     readp = (ReadLine *) malloc(sizeof(ReadLine));
-    if(readp == 0)
+    if(readp == NULL)
         failwith("AllocReadLine: out of memory");
     memset(readp, 0, sizeof(ReadLine));
 
     /* Initialize */
+    readp->buffer = malloc(LINE_MAX);
+    if (readp->buffer == NULL)
+        failwith("AllocReadLine: out of memory");
+    readp->buffer_size = LINE_MAX;
     readp->console_in = console_in;
     readp->is_console = is_console;
     readp->completions.dir[0] = '/';
@@ -1383,7 +1393,7 @@ static void readline_cooked(ReadLine *readp)
         printf("%s", readp->prompt);
         fflush(stdout);
     }
-    if(fgets(readp->buffer, MAX_LINE_LENGTH, stdin) == NULL)
+    if(fgets(readp->buffer, readp->buffer_size, stdin) == NULL)
         readp->length = 0;
     else
         readp->length = strlen(readp->buffer);
@@ -1395,7 +1405,7 @@ static void readline_cooked(ReadLine *readp)
 #ifdef READLINE_ENABLED
 static void readline_raw(ReadLine *readp)
 {
-    char *linep, *expansion;
+    char *linep, *expansion=NULL;
     int length, result;
 
   prompt:
@@ -1434,8 +1444,14 @@ static void readline_raw(ReadLine *readp)
         /* Successful expansion */
         add_history(expansion);
         length = strlen(expansion);
-        if(length > MAX_LINE_LENGTH)
-            length = MAX_LINE_LENGTH;
+        if(length >= readp->buffer_size) {
+            char * new_buffer = malloc(length + 1);
+            if (new_buffer == NULL)
+                failwith("readline_raw: out of memory");
+            free(readp->buffer);
+            readp->buffer = new_buffer;
+            readp->buffer_size = length + 1;
+        }
         memcpy(readp->buffer, expansion, length);
         readp->buffer[length] = '\n';
         readp->length = length + 1;
@@ -1558,7 +1574,7 @@ static char *readline_completion_function(const char *text, int not_first)
     }
 
     /* Fail if the name is already too long */
-    if(strlen(text) >= MAX_FILENAME_LENGTH)
+    if(strlen(text) >= PATH_MAX)
         return 0;
 
     /* Read the completions from the filesystem */
@@ -1628,8 +1644,8 @@ value omake_readline_set_length(value v_length)
 value omake_readline_set_directory(value v_dir)
 {
     /* Copy the current directory */
-    strncpy(readp->completions.dir, String_val(v_dir), MAX_FILENAME_LENGTH - 1);
-    readp->completions.dir[MAX_FILENAME_LENGTH - 1] = 0;
+    strncpy(readp->completions.dir, String_val(v_dir), PATH_MAX - 1);
+    readp->completions.dir[PATH_MAX - 1] = 0;
     return Val_unit;
 }
 
@@ -1758,3 +1774,6 @@ value omake_readline_init(value v_unit)
 }
 
 #endif /* !WIN32 */
+/*
+ * vim:tw=100:ts=4:et:sw=4:cin
+ */
