@@ -248,10 +248,17 @@ will restart the build whenever source files are modified. Implies
 
 <H3 CLASS="subsection"><A NAME="htoc496">A.3.5</A>&nbsp;&nbsp;<TT>-R</TT></H3><A NAME="@default448"></A><A NAME="@opt16"></A><A NAME="option:-R"></A> <CODE>-R</CODE><BR>
 <BR>
-Ignore the current directory and build the project from its root directory. When
-<TT>omake</TT> is run in a subdirectory of a project, it normally builds files within the current
-directory and its subdirectories. If the <TT>-R</TT> option is specified, the build is performed as if
-<TT>omake</TT> were run in the project root.<BR>
+Ignore the current directory and build the project from its root directory. When <TT>omake</TT> is
+run in a subdirectory of a project and no explicit targets are given on the command line, it would
+normally only build files within the current directory and its subdirectories (more precisely, it
+builds all the <CODE>.DEFAULT</CODE> targets in the current directory and its subdirectories). If the
+<TT>-R</TT> option is specified, the build is performed as if <TT>omake</TT> were run in the project
+root.<BR>
+<BR>
+In other words, with the <CODE>-R</CODE> option, all the relative targets specified on the command line
+will be taken relative to the project root (instead of relative to the current directory). When no
+targets are given on the command line, all the <CODE>.DEFAULT</CODE> targets in the project will be built
+(regardless of the current directory).<BR>
 <BR>
 
 <H3 CLASS="subsection"><A NAME="htoc497">A.3.6</A>&nbsp;&nbsp;<TT>-t</TT></H3><A NAME="@default449"></A><A NAME="@opt17"></A><A NAME="option:-t"></A> <CODE>-t</CODE><BR>

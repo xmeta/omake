@@ -902,8 +902,6 @@ of targets that failed (if the build failed).
 Failed))"
 >>
   
-  Warning: this function is experimental and may not work in some
-situations.
 
 12.8.0.11   project-directories
 -------------------------------
@@ -1390,10 +1388,17 @@ A.3.5   -R
 ==========
  `-R'
   Ignore the current directory and build the project from its root
-directory. When omake is run in a subdirectory of a project, it normally
-builds files within the current directory and its subdirectories. If the
--R option is specified, the build is performed as if omake were run in
-the project root.
+directory. When omake is run in a subdirectory of a project and no
+explicit targets are given on the command line, it would normally only
+build files within the current directory and its subdirectories (more
+precisely, it builds all the `.DEFAULT' targets in the current directory
+and its subdirectories). If the -R option is specified, the build is
+performed as if omake were run in the project root.
+  In other words, with the `-R' option, all the relative targets
+specified on the command line will be taken relative to the project root
+(instead of relative to the current directory). When no targets are
+given on the command line, all the `.DEFAULT' targets in the project
+will be built (regardless of the current directory).
 
 Node: Subsection A-3-6,	Next: Subsection A-3-7,	Prev: Subsection A-3-5,	Up: Section A-3
   
@@ -1652,22 +1657,4 @@ the range of the option.
              cat fee >> foo
              chmod 555 foo
 >>
-  
-
-Node: Section A-7,	Next: Section A-8,	Prev: Section A-6,	Up: Appendix A
-  
-
-A.7   Option processing
-*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  When `omake' is invoked, the options are processed in the following
-order.
-  
-  
- 1. All options specified by the `OMAKEFLAGS' environment variable are
-   defined globally. 
- 2. All options from the command line are defined globally. 
- 3. Any individual calls the the `OMakeFlags' function modify the
-   options locally. 
   
