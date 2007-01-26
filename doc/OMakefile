@@ -16,17 +16,17 @@ MAN_SYSTEM_FILES[] =
     $(BUILTIN)/omake_builtin_io_fun.ml
     $(BUILTIN)/omake_builtin_sys.ml
     $(BUILTIN)/omake_builtin_shell.ml
+    $(BUILTIN)/omake_builtin_rule.ml
+    $(BUILTIN)/omake_builtin_target.ml
 
 MAN_PERVASIVES_FILES[] =
     $(LIB)/Pervasives.om
 
 MAN_ROOT_FILES[] =
-    $(BUILTIN)/omake_builtin_rule.ml
     $(LIB)/build/Common.om
     $(LIB)/build/C.om
     $(LIB)/build/OCaml.om
     $(LIB)/build/LaTeX.om
-    $(BUILTIN)/omake_builtin_target.ml
 
 MAN_BASE_FILES       = $(file $(MAN_BASE_FILES))
 MAN_SYSTEM_FILES     = $(file $(MAN_SYSTEM_FILES))
@@ -166,7 +166,7 @@ static. =
             export
         export
 
-HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex)
+HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -pedantic
 HACHA_OPTIONS = -tocter -nolinks
 
 if $(not $(VERBOSE))
