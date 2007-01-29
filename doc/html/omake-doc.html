@@ -8638,26 +8638,26 @@ It provides the following fields:
  should take two arguments; the first is a field name, the second is the
  value of that field. The result is a new object constructed from the
  values returned by the function.
-<LI CLASS="li-itemize"><CODE>o.object-foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
+<LI CLASS="li-itemize"><CODE>o.object-foreach</CODE>: the <CODE>object-foreach</CODE> form is equivalent to <CODE>object-map</CODE>,
  but with altered syntax.
 <PRE CLASS="verbatim">
-   o.foreach(&lt;var1&gt;, &lt;var2&gt;)
+   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;)
       &lt;body&gt;
    </PRE>
  For example, the following function prints all the fields of an
  object <CODE>o</CODE>.
 <PRE CLASS="verbatim">
    PrintObject(o) =
-      o.foreach(v, x)
+      o.object-foreach(v, x)
          println($(v) = $(x))
    </PRE>
- The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
+ The <CODE>export</CODE> form is valid in a <CODE>object-foreach</CODE> body. The following
  function collects just the field names of an object.
 <PRE CLASS="verbatim">
    FieldNames(o) =
-      names =
-      o.foreach(v, x)
-         names += $(v)
+      names[] =
+      o.object-foreach(v, x)
+         names[] += $(v)
          export
       return $(names)
    </PRE></UL>

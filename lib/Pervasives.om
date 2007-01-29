@@ -109,11 +109,11 @@ join(l1, l2) =
 #    should take two arguments; the first is a field name, the second is the
 #    value of that field.  The result is a new object constructed from the
 #    values returned by the function.
-# \item \verb+o.object-foreach+: the \verb+foreach+ form is equivalent to \verb+map+,
+# \item \verb+o.object-foreach+: the \verb+object-foreach+ form is equivalent to \verb+object-map+,
 #    but with altered syntax.
 #
 #    \begin{verbatim}
-#    o.foreach(<var1>, <var2>)
+#    o.object-foreach(<var1>, <var2>)
 #       <body>
 #    \end{verbatim}
 #
@@ -122,18 +122,18 @@ join(l1, l2) =
 #
 #    \begin{verbatim}
 #    PrintObject(o) =
-#       o.foreach(v, x)
+#       o.object-foreach(v, x)
 #          println($(v) = $(x))
 #    \end{verbatim}
 #
-#    The \verb+export+ form is valid in a \verb+foreach+ body.  The following
+#    The \verb+export+ form is valid in a \verb+object-foreach+ body.  The following
 #    function collects just the field names of an object.
 #
 #    \begin{verbatim}
 #    FieldNames(o) =
-#       names =
-#       o.foreach(v, x)
-#          names += $(v)
+#       names[] =
+#       o.object-foreach(v, x)
+#          names[] += $(v)
 #          export
 #       return $(names)
 #    \end{verbatim}

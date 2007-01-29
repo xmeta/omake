@@ -1113,10 +1113,10 @@ Node: Subsection 12-1-1,	Next: Subsection 12-1-2,	Prev: Section 12-1,	Up: Sectio
    function  should take two arguments; the first is a field name, the
    second is the  value of that field. The result is a new object
    constructed from the  values returned by the function. 
- - `o.object-foreach': the `foreach' form is equivalent to `map',  but
-   with altered syntax.
+ - `o.object-foreach': the `object-foreach' form is equivalent to
+   `object-map',  but with altered syntax.
    <<
-        o.foreach(<var1>, <var2>)
+        o.object-foreach(<var1>, <var2>)
            <body>
         >>
  
@@ -1124,17 +1124,17 @@ Node: Subsection 12-1-1,	Next: Subsection 12-1-2,	Prev: Section 12-1,	Up: Sectio
    object `o'.
    <<
         PrintObject(o) =
-           o.foreach(v, x)
+           o.object-foreach(v, x)
               println($(v) = $(x))
         >>
  
-  The `export' form is valid in a `foreach' body. The following 
+  The `export' form is valid in a `object-foreach' body. The following 
    function collects just the field names of an object.
    <<
         FieldNames(o) =
-           names =
-           o.foreach(v, x)
-              names += $(v)
+           names[] =
+           o.object-foreach(v, x)
+              names[] += $(v)
               export
            return $(names)
         >>
