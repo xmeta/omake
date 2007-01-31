@@ -190,14 +190,14 @@ Shell. +=
             WRITES[] = $(file $f.bbl $f.ind)
             DEPDIR = $(dir .)
         awk($f.fls)
-        case PWD
-            DEPDIR = $(dir $2)
+        case $'^PWD \(.*\)$'
+            DEPDIR = $(dir $1)
             export
-        case INPUT
-            DEPS += $(cd $(DEPDIR), $(file $2))
+        case $'^INPUT \(.*\)$'
+            DEPS += $(cd $(DEPDIR), $(file $1))
             export
-        case OUTPUT
-            WRITES += $(cd $(DEPDIR), $(file $2))
+        case $'^OUTPUT \(.*\)$'
+            WRITES += $(cd $(DEPDIR), $(file $1))
             export
         if $(file-exists $f.aux)
             FS=$'[{}]'
@@ -213,8 +213,9 @@ Shell. +=
                 DEPS += $(find-in-path-optional $(split \:, $(getenv BSTINPUTS)), $(BSTS))
                 export DEPS
             export DEPS
-        DEPS = $(string $(set-diff $(DEPS), $(WRITES)))
-        println($(dep): $(DEPS))
+        DEPS = $(set-diff $(DEPS), $(WRITES))
+        println($"$(string-escaped $(dep)): $(string-escaped $(DEPS))")
+        eprintln($"$(string-escaped $(dep)): $(string-escaped $(DEPS))")
 
     protected.stdout-to-stderr(argv) =
         stdout = $(stderr)
