@@ -87,6 +87,7 @@ static. =
     #
     # XXX: We should move the uname test into configure/uname.
     #
+    OUTPUT_COMMENT_SUPPORTED = false
     LATEX_USABLE = $(CheckProg latex)
     if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
@@ -123,7 +124,10 @@ static. =
             # http://bugzilla.metaprl.org/show_bug.cgi?id=632
             BROKEN_MIKTEX = true
             export
-        case $' *-recorder'
+        case $'^ *-output-comment='
+            OUTPUT_COMMENT_SUPPORTED = true
+            export
+        case $'^ *-recorder'
             RECORDER_ENABLED = true
             export
         case ^-file-line-error-style
@@ -150,15 +154,15 @@ static. =
             println($'(tetex2 disabled)')
 
         rm $(TETEX_CONFIG_TMP)
-        export FILE_LINE_ERROR TETEX2_ENABLED
+        export FILE_LINE_ERROR TETEX2_ENABLED OUTPUT_COMMENT_SUPPORTED
 
-    export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE
+    export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE OUTPUT_COMMENT_SUPPORTED
 
 #
 # Compute the default flags
 #
 public.LATEXFLAGS =
-    protected.BASE = -output-comment=$"LaTeX Output (built with OMake)"
+    protected.BASE = $(if $(OUTPUT_COMMENT_SUPPORTED), $"-output-comment=LaTeX Output (built with OMake)")
     value $`(if $(TETEX2_ENABLED), $(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
 #
