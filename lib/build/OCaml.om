@@ -590,21 +590,21 @@ public.MenhirOCamlcCommand() =
            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
     value --ocamlc $"$(ocamlc)"
 
-public.MenhirOCamldepCommand() =
+public.MenhirOCamldepCommand(raw) =
     ocamldep =
-       if $(and $(MENHIR_RAW_DEPEND), $(OCAMLDEP_MODULES_ENABLED))
+       if $(raw)
            value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS) -modules
        else
-           value ocamldep $(PREFIXED_OCAMLINCLUDES)
+           value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS)
     value --ocamldep $"$(ocamldep)"
 
 # Compute the Mendir dependency scanner command
 public.MenhirScannerCommand(base, src) =
     if $(MENHIR_ENABLED)
-        if $(MENHIR_RAW_DEPEND)
-            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand) $(base) --raw-depend $(src) | ocamldep-postproc -preserve-targets
+        if $(and $(MENHIR_RAW_DEPEND), $(OCAMLDEP_MODULES_ENABLED))
+            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand true) $(base) --raw-depend $(src) | ocamldep-postproc -preserve-targets
         else
-            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand) $(base) --depend $(src)
+            value $(MENHIR) $(MENHIR_FLAGS) $(MenhirOCamldepCommand false) $(base) --depend $(src)
 
 # Use Menhir if MENHIR_ENABLED, ocamlyacc otherwise
 public.OCamlYaccCommand(src) =
