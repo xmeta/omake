@@ -562,3 +562,26 @@ public.CXXProgramInstall(tag, bin, name, files) =
    CXXProgram($(name), $(files))
    return $(CProgramCopy $(tag), $(bin), $(name))
 
+# \begin{doc}
+# \theefun{StaticCXXLibrary}{StaticCXXLibraryCopy}{StaticCXXLibraryInstall}
+#
+# Similarly, \verb+StaticCXXLibrary+, \verb+StaticCXXLibraryCopy+ and \verb+StaticCXXLibraryInstall+
+# are the C++ equivalents of \verb+StaticCLibrary+, \verb+StaticCLibraryCopy+ and
+# \verb+StaticCLibraryInstall+ functions.
+# \end{doc}
+#
+public.StaticCXXLibrary(name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(StaticCLibrary $(name), $(files))
+
+public.StaticCXXLibraryCopy(tag, lib, name) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(StaticCLibraryCopy tag, lib, name)
+
+public.StaticCXXLibraryInstall(tag, lib, name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(StaticCLibraryInstall tag, lib, name, files)
+
