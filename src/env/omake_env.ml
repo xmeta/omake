@@ -1033,9 +1033,9 @@ struct
    type arg_other   = string
    type exe         = simple_exe
 
-   let pp_print_arg_command = pp_print_string
+   let pp_print_arg_command = pp_arg_data_string
    let pp_print_arg_apply   = pp_print_value
-   let pp_print_arg_other   = pp_print_string
+   let pp_print_arg_other   = pp_arg_data_string
    let pp_print_exe         = pp_print_simple_exe
 end;;
 

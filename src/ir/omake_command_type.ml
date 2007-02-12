@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2006 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -124,8 +124,51 @@ let is_quoted_arg arg =
             ArgString _ -> false
           | ArgData _ -> true) arg
 
-let pp_print_arg buf arg =
-   pp_print_string buf (glob_string_of_arg Lm_glob.default_glob_options arg)
+let pp_arg_data_string =
+   let special1 = "\" \t<>&;()*~{}[]?!|" in (* Can be protected both by '...c...' and \c *)
+   let special2 = "\\\n\r'" in              (* Must be protected by \c *)
+   let special_all = special1 ^ special2 in
+
+   let rec pp_w_escapes buf special s =
+      if Lm_string_util.contains_any s special then begin
+         let i = Lm_string_util.index_set s special in
+            pp_print_string buf (String.sub s 0 i);
+            pp_print_char buf '\\';
+            pp_print_char buf (**)
+               (match s.[i] with
+                  '\n' -> 'n'
+                | '\r' -> 'r'
+                | '\t' -> 't'
+                | c -> c);
+            let i = i + 1 in
+               pp_w_escapes buf special (String.sub s i (String.length s - i))
+
+      end else
+         pp_print_string buf s
+   in
+
+   let pp_w_quotes buf s =
+      if Lm_string_util.contains_any s special1 then
+         if String.length s > 2 then begin
+            pp_print_char buf '\'';
+            pp_w_escapes buf special2 s;
+            pp_print_char buf '\''
+         end else
+            pp_w_escapes buf special_all s
+      else
+         pp_w_escapes buf special2 s
+
+   in
+      pp_w_quotes
+
+let pp_print_arg =
+   let pp_print_arg_elem buf = function
+      ArgString s ->
+         pp_print_string buf s
+    | ArgData s ->
+         pp_arg_data_string buf s 
+   in
+      (fun buf arg -> List.iter (pp_print_arg_elem buf) arg)
 
 let pp_print_verbose_arg buf arg =
    List.iter (fun arg ->
