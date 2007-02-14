@@ -231,8 +231,8 @@ public.OCAML_LIB_FLAGS =
 #
 # \OMake{} currently provides two methods for addressing this problem --- one that requires manually
 # specifying the generated files, and an experimental method for discovering such ``hidden''
-# dependencies automatically. The variable
-# \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} controls which method is
+# dependencies automatically. The
+# \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} controls which method is
 # going to be used. When this variable is false, the manual specifications are expected and when it
 # is true, the automated discovery will be attempted.
 #
@@ -242,7 +242,7 @@ public.OCAML_LIB_FLAGS =
 # LocalOCamlGeneratedFiles(files)
 # \end{verbatim}
 #
-# When the \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} variable is set
+# When the \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} variable is set
 # to \verb+false+, the \verb+OCamlGeneratedFiles+ and \verb+LocalOCamlGeneratedFiles+ functions specify files
 # that need to be generated before any OCaml files are scanned for dependencies. For example,
 # if \verb+parser.ml+ and \verb+lexer.ml+ are both generated files, specify:
@@ -254,8 +254,8 @@ public.OCAML_LIB_FLAGS =
 # before any OCaml files anywhere in the project are scanned for dependencies. The
 # \verb+LocalOCamlGeneratedFiles+ function follows the normal scoping rules of OMake.
 #
-# These functions have no effect when
-# \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} is true.
+# These functions have no effect when the
+# \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} is true.
 #
 # \subsubsection{Automatic discovery of generated files during dependency analysis}
 # Having to specify the generated files manualy when \OMake{} could discover them automatically is
@@ -263,7 +263,7 @@ public.OCAML_LIB_FLAGS =
 # finds the free module names in a file. 
 #
 # This functionality is experimental and is disabled by default for now.
-# Set \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} to \verb+true+ (or
+# Set the \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} to \verb+true+ (or
 # to \verb+$(OCAMLDEP_MODULES_AVAILABLE)+) in your project to enable it.
 #
 # Note that the experimental \verb+ocamldep+ functionality this relies upon is not yet included in
@@ -271,7 +271,8 @@ public.OCAML_LIB_FLAGS =
 # see \url{http://caml.inria.fr/mantis/view.php?id=4047}). Temporarily, we
 # distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
 # modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
-# Sections~\ref{var:OCAMLDEP_MODULES_AVAILABLE} and~\ref{var:OCAMLDEP_MODULES}.
+# and the \hypervarxn{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} and
+# \hypervarxn{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} variables will be set accordingly.
 # \end{doc}
 #
 static. =
@@ -995,14 +996,14 @@ public.OCamlLibraryInstall(tag, lib, name, files) =
 #
 # Additional variables used:
 # \begin{description}
-# \item[OCAML\_LIBS~\ref{var:OCAML_LIBS}] Additional libraries passed to the linker, without suffix.  These files
+# \item[\hypervarxn{OCAML_LIBS}{OCAML\_LIBS}] Additional libraries passed to the linker, without suffix.  These files
 #    become dependencies of the target program.
-# \item[OCAML\_OTHER\_LIBS~\ref{var:OCAML_OTHER_LIBS}] Additional libraries passed to the linker, without suffix.  These
+# \item[\hypervarxn{OCAML_OTHER_LIBS}{OCAML\_OTHER\_LIBS}] Additional libraries passed to the linker, without suffix.  These
 #    files do \emph{not} become dependencies of the target program.
-# \item[OCAML\_CLIBS~\ref{var:OCAML_CLIBS}] C libraries to pass to the linker.
-# \item[OCAML\_BYTE\_LINK\_FLAGS~\ref{var:OCAML_BYTE_LINK_FLAGS}] Flags to pass to the bytecode linker.
-# \item[OCAML\_NATIVE\_LINK\_FLAGS~\ref{var:OCAML_NATIVE_LINK_FLAGS}] Flags to pass to the native code linker.
-# \item[OCAML\_LINK\_FLAGS~\ref{var:OCAML_LINK_FLAGS}] Flags to pass to both linkers.
+# \item[\hypervarxn{OCAML_CLIBS}{OCAML\_CLIBS}] C libraries to pass to the linker.
+# \item[\hypervarxn{OCAML_BYTE_LINK_FLAGS}{OCAML\_BYTE\_LINK\_FLAGS}] Flags to pass to the bytecode linker.
+# \item[\hypervarxn{OCAML_NATIVE_LINK_FLAGS}{OCAML\_NATIVE\_LINK\_FLAGS}] Flags to pass to the native code linker.
+# \item[\hypervarxn{OCAML_LINK_FLAGS}{OCAML\_LINK\_FLAGS}] Flags to pass to both linkers.
 # \end{description}
 # \end{doc}
 #
@@ -1066,7 +1067,7 @@ public.OCamlProgram(name, files) =
 #
 # Additional variables used:
 # \begin{description}
-# \item[NATIVE\_ENABLED]  If \verb+NATIVE_ENABLED+~\ref{var:NATIVE_ENABLED} is set, the native-code executable
+# \item[NATIVE\_ENABLED]  If the \hypervarx{NATIVE_ENABLED}{NATIVE\_ENABLED} is set, the native-code executable
 #    is copied; otherwise the byte-code executable is copied.
 # \end{description}
 # \end{doc}

@@ -33,28 +33,36 @@
 \newcommand{\oOptArg}[2]{[\texttt{#1 <#2>}]}
 
 \newcommand\Version{0.9.8}
-\newcommand\Date{\date}
+\newcommand\Date{\today}
+\date{\Date}
 
 %
 % Identifiers.
 %
 \newcommand\idsection[1]{\subsection{#1}}
-\newcommand\var[1]{\idsection{#1}\index{#1}\index[var]{#1}\label{var:#1}}
-\newcommand\varlabel[2]{\idsection{#2}\index{#2}\index[var]{#2}\label{var:#1}}
-\newcommand\funref[1]{\index{#1}\index[fun]{#1}\label{fun:#1}}
+\newcommand\varlabel[2]{\paragraph{#2}\hypertarget{var:#1}{}\index{#2}\index[var]{#2}}
+\newcommand\var[1]{\varlabel{#1}{#1}}
+\newcommand\funref[1]{\hypertarget{fun:#1}{}\index{#1}\index[fun]{#1}}
 \newcommand\fun[1]{\idsection{#1}\funref{#1}}
 \newcommand\twofuns[2]{\idsection{{#1}, {#2}}\funref{#1}\funref{#2}}
 \newcommand\threefuns[3]{\idsection{{#1}, {#2}, {#3}}\funref{#1}\funref{#2}\funref{#3}}
 \newcommand\sixfuns[6]{\idsection{{#1}, {#2}, {#3}, {#4}, {#5}, {#6}}\funref{#1}\funref{#2}\funref{#3}\funref{#4}\funref{#5}\funref{#6}}
 \newcommand\formref[1]{\funref{#1}}
 \newcommand\form[1]{\idsection{#1}\funref{#1}}
-\newcommand\objref[1]{\index{#1}\index[obj]{#1}\label{obj:#1}}
+\newcommand\objref[1]{\hypertarget{obj:#1}{}\index{#1}\index[obj]{#1}}
 \newcommand\obj[1]{\idsection{#1}\objref{#1}}
 \newcommand\targetlabelref[2]{\index{#2}\index[target]{#2}\label{target:#1}}
 \newcommand\targetref[1]{\index{#1}\index[target]{#1}\label{target:#1}}
 \newcommand\target[1]{\idsection{#1}\targetref{#1}}
 \newcommand\optionref[1]{\index{#1}\index[opt]{#1}\label{option:#1}}
 \newcommand\option[1]{\idsection{\texttt{#1}}\optionref{#1}}
+
+\newcommand\hyperfun[1]{\hyperlink{fun:#1}{\texttt{#1} function}}
+\newcommand\hyperfunn[1]{\hyperlink{fun:#1}{\texttt{#1}}}
+\newcommand\hypervar[1]{\hyperlink{var:#1}{\texttt{#1} variable}}
+\newcommand\hypervarx[2]{\hyperlink{var:#1}{\texttt{#2} variable}}
+\newcommand\hypervarxn[2]{\hyperlink{var:#1}{\texttt{#2}}}
+\newcommand\hyperobj[1]{\hyperlink{obj:#1}{\texttt{#1} object}}
 
 \newindex{default}{idx}{ind}{Index}
 \newindex{var}{vidx}{vind}{Index of variables}

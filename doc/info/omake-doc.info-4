@@ -1,96 +1,5 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
-  
-
-8.2.14   unsetenv
-=================
-
-<<
-     unsetenv(names)
-        names : String Array
->>
-  
-  The `unsetenv' function removes some variable definitions from the
-process environment. Environment variables are scoped like normal
-variables.
-
-Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
-  
-
-8.2.15   get-registry
-=====================
-
-<<
-     get-registry(hkey, key, field) : String
-     get-registry(hkey, key, field, default) : String
-         hkey : String
-         key : String
-         field : String
->>
-  
-  The `get-registry' function retrieves a string value from the system
-registry on Win32. On other architectures, there is no registry.
-  The `hive' (I think that is the right word), indicates which part of
-the registry to use. It should be one of the following values.
-  
-  
- - `HKEY_CLASSES_ROOT' 
- - `HKEY_CURRENT_CONFIG' 
- - `HKEY_CURRENT_USER' 
- - `HKEY_LOCAL_MACHINE' 
- - `HKEY_USERS' 
-   Refer to the Microsoft documentation if you want to know what these
-mean.
-  The `key' is the field you want to get from the registry. It should
-have a form like `A\B\C' (if you use forward slashes, they will be
-converted to backslashes). The field is the sub-field of the key.
-  In the 4-argument form, the `default' is returned on failure. You may
-also use the alternate form.
-<<
-      get-registry(hkey, key, field)
-         default
->>
-  
-
-Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
-  
-
-8.2.16   getvar
-===============
-
-<<
-     $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<
-      NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
->>
-
-Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
-  
-
-8.2.17   setvar
-===============
-
-<<
-     setvar(name, value)
-        name : String
-        value : String
->>
-  
-  The `setvar' function defines a new variable. For example, the
-following code defines the variable `X' to be the string `abc'.
-<<
-     NAME = X
-     setvar($(NAME), abc)
->>
-
 Node: Section 8-3,	Next: Subsection 8-3-1,	Prev: Section 8-2,	Up: Chapter 8
   
 
@@ -362,8 +271,7 @@ Node: Subsection 8-3-12,	Next: Subsection 8-3-13,	Prev: Subsection 8-3-11,	Up: S
 =======================================================================
 c-escaped, id-escaped
 =====================
-\@na
-me{@default99}
+
 <<
      $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
@@ -853,8 +761,8 @@ Node: Subsection 8-3-39,	Next: Subsection 8-3-40,	Prev: Subsection 8-3-38,	Up: S
 
 8.3.39   export
 ===============
- The `export'
-function allows one to capture the current environment in a variable.
+ The `export' function allows one to
+capture the current environment in a variable.
   For example, the following code: 
 <<
   A = 1
@@ -932,8 +840,8 @@ value is printed.
          echo $i
 >>
   
-  The `break' function (Section 8.3.41*Note Subsection 8-3-41::) can be
-used to break out of the `while' loop early.  
+  The break function can be used to break out of the `while' loop early.
+ 
 
 Node: Subsection 8-3-41,	Next: Subsection 8-3-42,	Prev: Subsection 8-3-40,	Up: Section 8-3
   
@@ -953,8 +861,7 @@ Node: Subsection 8-3-42,	Next: Section 8-4,	Prev: Subsection 8-3-41,	Up: Section
 
 8.3.42   random, random-init
 ============================
-\@
-name{@fun71}
+
 <<
       random-init(i)
           i : Int
@@ -997,9 +904,8 @@ Node: Subsection 8-4-2,	Next: Subsection 8-4-3,	Prev: Subsection 8-4-1,	Up: Sect
 
 8.4.2   float
 =============
- The `float' function
-can be used to create floating-point numbers. It returns a `Float'
-object.
+ The `float' function can be used to
+create floating-point numbers. It returns a `Float' object.
   `$(float 3.1415926)'. 
 
 Node: Subsection 8-4-3,	Next: Subsection 8-4-4,	Prev: Subsection 8-4-2,	Up: Section 8-4
@@ -1007,20 +913,13 @@ Node: Subsection 8-4-3,	Next: Subsection 8-4-4,	Prev: Subsection 8-4-2,	Up: Sect
 
 8.4.3   Basic arithmetic
 ========================
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
+ 
+ 
+ 
+ 
+ 
+ 
 
   The following functions can be used to perform basic arithmetic.
   
@@ -1047,14 +946,10 @@ Node: Subsection 8-4-4,	Next: Section 8-5,	Prev: Subsection 8-4-3,	Up: Section 8
 
 8.4.4   Comparisons
 ===================
-   
-
-
-
-
-
-
-
+    
+ 
+ 
+ 
 
   The following functions can be used to perform numerical comparisons.
   
@@ -1175,8 +1070,7 @@ lazily. The following two definitions are equivalent.
           $|name2| = $`(yyy)
 >>
   
-  The `create-lazy-map' function (see Section
-12.3.5*Note Subsection 12-3-5::) is used in rule construction. 
+  The create-lazy-map function is used in rule construction. 
 
 Node: Section 8-6,	Next: Subsection 8-6-1,	Prev: Section 8-5,	Up: Chapter 8
   
@@ -1225,8 +1119,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break' function (Section 8.3.41*Note Subsection 8-3-41::) can be
-used to break out of the loop early. 
+  The break function can be used to break out of the loop early. 
 
 Node: Chapter 9,	Next: Section 9-1,	Prev: Section 8-6,	Up: Top
   
@@ -1276,8 +1169,7 @@ Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9
 
 9.1.1   file, dir
 =================
-\@n
-ame{@fun105}
+
 <<
      $(file sequence) : File Sequence
         sequence : Sequence
@@ -1650,7 +1542,8 @@ Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9
 
 9.3.1   file-exists, target-exists, target-is-proper
 ====================================================
-
+\@na
+me{@default185}
 <<
      $(file-exists files) : String
      $(target-exists files) : String
@@ -1684,8 +1577,8 @@ Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Sect
 
 9.3.3   filter-exists, filter-targets, filter-proper-targets
 ============================================================
-\@name
-{@fun129}
+\@na
+me{@default189}
 <<
      $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
@@ -1726,8 +1619,7 @@ Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Sect
 
 9.3.4   find-targets-in-path, find-targets-in-path-optional
 ===========================================================
-\@name
-{@default191}
+
 <<
       $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array
@@ -1765,8 +1657,8 @@ Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Sect
 
 9.3.5   file-sort
 =================
-
  
+
 <<
      $(file-sort order, files) : File Sequence
         order : String

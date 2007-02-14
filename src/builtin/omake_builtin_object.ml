@@ -392,7 +392,7 @@ let map_values venv pos loc args =
  *         $|name2| = $`(yyy)
  * \end{verbatim}
  *
- * The \verb+create-lazy-map+ function (see Section~\ref{fun:rule}) is used in rule construction.
+ * The \hyperfun{create-lazy-map} is used in rule construction.
  * \end{doc}
  *)
 let create_map venv pos loc args =
@@ -662,7 +662,7 @@ let sequence_rev venv pos loc args =
  *        export
  * \end{verbatim}
  *
- * The \verb+break+ function (Section~\ref{fun:break}) can be used to break out of the loop early.
+ * The \hyperfun{break} can be used to break out of the loop early.
  * \end{doc}
  *)
 let foreach_fun venv pos loc args =

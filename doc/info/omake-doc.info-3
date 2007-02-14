@@ -700,9 +700,8 @@ Node: Subsection 7-6-2,	Next: Section 7-7,	Prev: Subsection 7-6-1,	Up: Section 7
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE' variable (see Section
-12.4.1.6*Note Subsection 12-4-1::) controls the usage of implicit
-scanner dependencies.
+  The SCANNER_MODE variable controls the usage of implicit scanner
+dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
 idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
@@ -1032,12 +1031,10 @@ Node: Section 7-12,	Next: Chapter 8,	Prev: Section 7-11,	Up: Chapter 7
 
   
   In rules, the targets and dependencies are first translated to file
-values (as in the `file' function described in Section
-9.1.1*Note Subsection 9-1-1::). They are then translated to strings for the
-command line. This can cause some unexpected behavior. In the following
-example, the `absname' function (Section 9.1.9*Note Subsection 9-1-9::)
-is the absolute pathname for the file `a', but the rule still prints the
-relative pathname.
+values (as in the file function). They are then translated to strings
+for the command line. This can cause some unexpected behavior. In the
+following example, the absname function is the absolute pathname for the
+file `a', but the rule still prints the relative pathname.
 <<
       .PHONY: demo
       demo: $(absname a)
@@ -1085,8 +1082,8 @@ to absolute names.
 >>
   
   Alternately, the `--absname' option is scoped. If you want to use it
-for only a few rules, you can use the `OMakeFlags' function (see Section
-12.2.1*Note Subsection 12-2-1::) to control how it is applied.
+for only a few rules, you can use the OMakeFlags function to control how
+it is applied.
 <<
      section
         OMakeFlags(--absname)
@@ -1116,136 +1113,55 @@ Chapter 8     Base library
 * Section 8-6::	Iteration and mapping
 
 
-Node: Section 8-1,	Next: Subsection 8-1-1,	Prev: Chapter 8,	Up: Chapter 8
+Node: Section 8-1,	Next: Section 8-2,	Prev: Chapter 8,	Up: Chapter 8
   
 
 8.1   Builtin variables
 *=*=*=*=*=*=*=*=*=*=*=*
 
    
-* Menu:
-
-* Subsection 8-1-1::	OSTYPE
-* Subsection 8-1-2::	SYSNAME
-* Subsection 8-1-3::	NODENAME
-* Subsection 8-1-4::	OS_VERSION
-* Subsection 8-1-5::	MACHINE
-* Subsection 8-1-6::	HOST
-* Subsection 8-1-7::	OMAKE_VERSION
-* Subsection 8-1-8::	USER
-* Subsection 8-1-9::	HOME
-* Subsection 8-1-10::	PID
-* Subsection 8-1-11::	TARGETS
-* Subsection 8-1-12::	BUILD_SUMMARY
-* Subsection 8-1-13::	VERBOSE
-
-
-Node: Subsection 8-1-1,	Next: Subsection 8-1-2,	Prev: Section 8-1,	Up: Section 8-1
-  
-
-8.1.1   OSTYPE
-==============
-  Set to the machine
-architecture omake is running on. Possible values are  `Unix' (for all
-Unix versions, including Linux and Mac OS X), `Win32'  (for MS-Windows,
-OMake compiled with MSVC++ or Mingw), and `Cygwin' (for  MS-Windows,
-OMake compiled with Cygwin). 
-
-Node: Subsection 8-1-2,	Next: Subsection 8-1-3,	Prev: Subsection 8-1-1,	Up: Section 8-1
-  
-
-8.1.2   SYSNAME
-===============
-  The name of the
-operating system for the current machine. 
-
-Node: Subsection 8-1-3,	Next: Subsection 8-1-4,	Prev: Subsection 8-1-2,	Up: Section 8-1
-  
-
-8.1.3   NODENAME
-================
-  The hostname of the
-current machine. 
-
-Node: Subsection 8-1-4,	Next: Subsection 8-1-5,	Prev: Subsection 8-1-3,	Up: Section 8-1
-  
-
-8.1.4   OS_VERSION
-==================
-  The operating
-system release. 
-
-Node: Subsection 8-1-5,	Next: Subsection 8-1-6,	Prev: Subsection 8-1-4,	Up: Section 8-1
-  
-
-8.1.5   MACHINE
-===============
-  The machine
-architecture, e.g. `i386', `sparc', etc. 
-
-Node: Subsection 8-1-6,	Next: Subsection 8-1-7,	Prev: Subsection 8-1-5,	Up: Section 8-1
-  
-
-8.1.6   HOST
-============
+ OSTYPE
+  Set to the machine architecture omake
+is running on. Possible values are  `Unix' (for all Unix versions,
+including Linux and Mac OS X), `Win32'  (for MS-Windows, OMake compiled
+with MSVC++ or Mingw), and `Cygwin' (for  MS-Windows, OMake compiled
+with Cygwin). 
+ SYSNAME
+  The name of the operating system for
+the current machine. 
+ NODENAME
+  The hostname of the current machine. 
+ OS_VERSION
+  The operating system release. 
+ MACHINE
+  The machine architecture, e.g. `i386',
+`sparc', etc. 
+ HOST
   Same as `NODENAME'. 
-
-Node: Subsection 8-1-7,	Next: Subsection 8-1-8,	Prev: Subsection 8-1-6,	Up: Section 8-1
-  
-
-8.1.7   OMAKE_VERSION
-=====================
-  Version of
-OMake. 
-
-Node: Subsection 8-1-8,	Next: Subsection 8-1-9,	Prev: Subsection 8-1-7,	Up: Section 8-1
-  
-
-8.1.8   USER
-============
-  The login name of the
-user executing the process. 
-
-Node: Subsection 8-1-9,	Next: Subsection 8-1-10,	Prev: Subsection 8-1-8,	Up: Section 8-1
-  
-
-8.1.9   HOME
-============
-  The home directory of
-the user executing the process. 
-
-Node: Subsection 8-1-10,	Next: Subsection 8-1-11,	Prev: Subsection 8-1-9,	Up: Section 8-1
-  
-
-8.1.10   PID
-============
+ OMAKE_VERSION
+  Version of OMake. 
+ USER
+  The login name of the user executing
+the process. 
+ HOME
+  The home directory of the user
+executing the process. 
+ PID
   The OMake process id. 
-
-Node: Subsection 8-1-11,	Next: Subsection 8-1-12,	Prev: Subsection 8-1-10,	Up: Section 8-1
-  
-
-8.1.11   TARGETS
-================
-  The command-line
-target strings. For example, if OMake is invoked with the  following
-command line, 
+ TARGETS
+  The command-line target strings. For
+example, if OMake is invoked with the  following command line, 
 <<
         omake CFLAGS=1 foo bar.c
 >>
   
    then `TARGETS' is defined as `foo bar.c'.
-
-Node: Subsection 8-1-12,	Next: Subsection 8-1-13,	Prev: Subsection 8-1-11,	Up: Section 8-1
-  
-
-8.1.12   BUILD_SUMMARY
-======================
-  The
-`BUILD_SUMMARY' variable refers to the file that `omake' uses  to
-summarize a build (the message that is printed at the very end of a
-build).  The file is empty when the build starts. If you wish to add
-additional messages  to the build summary, you can edit/modify this file
-during the build.
+ BUILD_SUMMARY
+  The `BUILD_SUMMARY' variable refers to
+the file that `omake' uses  to summarize a build (the message that is
+printed at the very end of a build).  The file is empty when the build
+starts. If you wish to add additional messages  to the build summary,
+you can edit/modify this file during the build.
   For example, if you want to point out that some action was taken,  you
 can append a message to the build summary.
 <<
@@ -1254,15 +1170,10 @@ can append a message to the build summary.
          ...build foo...
 >>
   
-
-Node: Subsection 8-1-13,	Next: Section 8-2,	Prev: Subsection 8-1-12,	Up: Section 8-1
-  
-
-8.1.13   VERBOSE
-================
-  Whether certain
-commands should be verbose. A boolean flag that is `false'  by default
-and is set to `true' when OMake is invoked with the  `--verbose' option.
+ VERBOSE
+  Whether certain commands should be
+verbose. A boolean flag that is `false'  by default and is set to `true'
+when OMake is invoked with the  `--verbose' option. 
 
 Node: Section 8-2,	Next: Subsection 8-2-1,	Prev: Section 8-1,	Up: Chapter 8
   
@@ -1420,8 +1331,7 @@ Node: Subsection 8-2-6,	Next: Subsection 8-2-7,	Prev: Subsection 8-2-5,	Up: Sect
 
 8.2.6   switch, match
 =====================
-\@na
-me{@fun11}
+
   The `switch' and `match' functions perform pattern matching.
   `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
 `$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
@@ -1525,8 +1435,7 @@ Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Sect
 >>
   
   The `raise' function raises an exception. The `exn' object can be any
-object. However, the normal convention is to raise an `Exception' object
-(Section 11.1.20*Note Subsection 11-1-20::).
+object. However, the normal convention is to raise an Exception object.
   If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an `Exception'
 one and contains a `message' field, only that field will be included in
@@ -1633,3 +1542,94 @@ Node: Subsection 8-2-13,	Next: Subsection 8-2-14,	Prev: Subsection 8-2-12,	Up: S
   
   The `setenv' function sets the value of a variable in the process
 environment. Environment variables are scoped like normal variables.
+
+Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
+  
+
+8.2.14   unsetenv
+=================
+
+<<
+     unsetenv(names)
+        names : String Array
+>>
+  
+  The `unsetenv' function removes some variable definitions from the
+process environment. Environment variables are scoped like normal
+variables.
+
+Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
+  
+
+8.2.15   get-registry
+=====================
+
+<<
+     get-registry(hkey, key, field) : String
+     get-registry(hkey, key, field, default) : String
+         hkey : String
+         key : String
+         field : String
+>>
+  
+  The `get-registry' function retrieves a string value from the system
+registry on Win32. On other architectures, there is no registry.
+  The `hive' (I think that is the right word), indicates which part of
+the registry to use. It should be one of the following values.
+  
+  
+ - `HKEY_CLASSES_ROOT' 
+ - `HKEY_CURRENT_CONFIG' 
+ - `HKEY_CURRENT_USER' 
+ - `HKEY_LOCAL_MACHINE' 
+ - `HKEY_USERS' 
+   Refer to the Microsoft documentation if you want to know what these
+mean.
+  The `key' is the field you want to get from the registry. It should
+have a form like `A\B\C' (if you use forward slashes, they will be
+converted to backslashes). The field is the sub-field of the key.
+  In the 4-argument form, the `default' is returned on failure. You may
+also use the alternate form.
+<<
+      get-registry(hkey, key, field)
+         default
+>>
+  
+
+Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
+  
+
+8.2.16   getvar
+===============
+
+<<
+     $(getvar name) : String
+>>
+  
+  The `getvar' function gets the value of a variable.
+  An exception is raised if the variable variable is not defined.
+  For example, the following code defines X to be the string abc.
+<<
+      NAME = foo
+      foo_1 = abc
+      X = $(getvar $(NAME)_1)
+>>
+
+Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
+  
+
+8.2.17   setvar
+===============
+
+<<
+     setvar(name, value)
+        name : String
+        value : String
+>>
+  
+  The `setvar' function defines a new variable. For example, the
+following code defines the variable `X' to be the string `abc'.
+<<
+     NAME = X
+     setvar($(NAME), abc)
+>>

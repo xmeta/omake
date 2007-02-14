@@ -139,7 +139,8 @@ For example, the following rule applies only to the files <CODE>a.o</CODE> and <
 </PRE>
 <A NAME="toc54"></A>
 <H2 CLASS="section"><A NAME="htoc73">7.3</A>&nbsp;&nbsp;section</H2>
-<A NAME="@default37"></A><A NAME="@fun3"></A><A NAME="fun:section"></A>
+<A NAME="fun:section"></A><A NAME="@default37"></A><A NAME="@fun3"></A><BR>
+<BR>
 Frequently, the commands in a rule body are expressions to be evaluated by the shell. <TT>omake</TT>
 also allows expressions to be evaluated by <TT>omake</TT> itself.<BR>
 <BR>
@@ -165,7 +166,8 @@ follows.
 </PRE>
 <A NAME="toc55"></A>
 <H2 CLASS="section"><A NAME="htoc74">7.4</A>&nbsp;&nbsp;section rule</H2>
-<A NAME="@default38"></A><A NAME="@fun4"></A><A NAME="fun:section rule"></A>
+<A NAME="fun:section rule"></A><A NAME="@default38"></A><A NAME="@fun4"></A><BR>
+<BR>
 Rules can also be computed using the <CODE>section rule</CODE> form, where a rule body is expected instead
 of an expression. In the following rule, the file <CODE>a.c</CODE> is copied onto the <CODE>hello.c</CODE> file
 if it exists, otherwise <CODE>hello.c</CODE> is created from the file <CODE>default.c</CODE>.
@@ -340,7 +342,7 @@ source file changes, all the files will end up being re-scanned.<BR>
 In most cases, you won't need to define scanners of your own. The standard installation includes
 default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.<BR>
 <BR>
-The <CODE>SCANNER_MODE</CODE> variable (see Section&nbsp;<A HREF="omake-build.html#var:SCANNER_MODE">12.4.1.6</A>) controls the usage of implicit scanner dependencies.<BR>
+The <A HREF="omake-build.html#var:SCANNER_MODE"><TT>SCANNER_MODE</TT> variable</A> controls the usage of implicit scanner dependencies.<BR>
 <BR>
 The explicit <CODE>:scanner:</CODE> dependencies reduce the chances of scanner mis-specifications. In
 large complicated projects it might be a good idea to set <CODE>SCANNER_MODE</CODE> to <CODE>error</CODE> and
@@ -591,9 +593,9 @@ from the project root.
 <A NAME="toc63"></A>
 <H2 CLASS="section"><A NAME="htoc90">7.12</A>&nbsp;&nbsp;Pathnames in rules</H2>
 In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
-<CODE>file</CODE> function described in Section&nbsp;<A HREF="omake-system.html#fun:file">9.1.1</A>). They are then translated to strings for the command line.
-This can cause some unexpected behavior. In the following example, the <CODE>absname</CODE>
-function (Section&nbsp;<A HREF="omake-system.html#fun:absname">9.1.9</A>) is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
+<A HREF="omake-system.html#fun:file"><TT>file</TT> function</A>). They are then translated to strings for the command line.
+This can cause some unexpected behavior. In the following example, the <A HREF="omake-system.html#fun:absname"><TT>absname</TT> function</A>
+is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
 the relative pathname.
 <PRE CLASS="verbatim">
     .PHONY: demo
@@ -634,7 +636,7 @@ use the <CODE>--absname</CODE> option (Section&nbsp;<A HREF="omake-options.html#
     /home/.../a/b /home/.../c/d
 </PRE>
 Alternately, the <CODE>--absname</CODE> option is scoped. If you want to use it for only a few rules, you
-can use the <CODE>OMakeFlags</CODE> function (see Section&nbsp;<A HREF="omake-build.html#fun:OMakeFlags">12.2.1</A>) to control how it is applied.
+can use the <A HREF="omake-build.html#fun:OMakeFlags"><TT>OMakeFlags</TT> function</A> to control how it is applied.
 <PRE CLASS="verbatim">
    section
       OMakeFlags(--absname)
