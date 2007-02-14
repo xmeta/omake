@@ -1,10 +1,51 @@
 #
 # Configuration utilities
 #
+# \begin{doc}
+# \chapter{Autoconfiguration functions and variables}
+# \label{chapter:autoconf}
+# \cutname{omake-autoconf.html}
+# \OMake{} standard library provides a number of functions and variables intended to help one write
+# build specifications that need to be capable of autoconfiguring itself to adjust to different
+# build environments.
+#
+# \section{General-purpose autoconfiguration functions}
+# The following general-purpose functions can be used to discover the properties of your build
+# environment in a fashion similar to the one used by GNU autoconf tool you may be familiar with.
+# It is recommended that these function be used from an appropriate \verb+static.+ block (see
+# Section~\ref{section:static.} for more information).
+#
+# In order to use the following general-purpose functions, you need to have the line
+# \begin{verbatim}
+# open configure/Configure.om
+# \end{verbatim}
+# included in your \verb+OMakefile+ or \verb+OMakeroot+.
+# \end{doc}
 
 #
 # Check whether a header file exists.
 # We call the C compiler.
+#
+# \begin{doc}
+# \twofuns{CheckHeader}{VerboseCheckHeader}
+# \begin{verbatim}
+# success = $(CheckHeader <files>)
+# success = $(VerboseCheckHeader <files>)
+# \end{verbatim}
+#
+# Check whether your C compiler can locate and process the specified headers files.
+# Will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
+# to run the compiler. Will incude \verb+<stdio.h>+ before including the specified header files.
+#
+# Both functions return a boolean value. The \verb+CheckHeader+ function is silent; the
+# \verb+VerboseCheckHeader+ function will output a line describing the test and the outcome.
+#
+# Example:
+# \begin{verbatim}
+# static. =
+#    NCURSES_H_AVAILABLE = $(VerboseCheckHeader ncurses.h)
+# \end{verbatim}
+# \end{doc}
 #
 public.CheckHeader(files) =
     private.includes = $(add-wrapper $(nl)$'#include <', >, $(files))
@@ -47,6 +88,28 @@ public.VerboseCheckHeader(files) =
 #
 # Check whether the libraries have the given functions
 #
+# \begin{doc}
+# \twofuns{CheckLib}{VerboseCheckLib}
+# \begin{verbatim}
+# success = $(CheckLib <libs>, <functions>)
+# success = $(VerboseCheckLib <libs>, <functions>)
+# \end{verbatim}
+#
+# Check whether your C compiler and linker can find the named functions when linking with
+# the named libraries.
+# Will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{LDFLAGS} variables 
+# to run the compiler. Will pass the \verb+<libs>+ to the compiler using the \verb+-l+ flag.
+#
+# Both functions return a boolean value. The \verb+CheckLib+ function is silent; the
+# \verb+VerboseCheckLib+ function will output a line describing the test and the outcome.
+#
+# Example:
+# \begin{verbatim}
+# static. =
+#     NCURSES_LIB_AVAILABLE = $(VerboseCheckLib ncurses, initscr setupterm tigetstr)
+# \end{verbatim}
+# \end{doc}
+#
 public.CheckLib(libs, funs) =
     protected.declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
     protected.funs = $(add-wrapper $(nl)    , $'();', $(funs))
@@ -54,7 +117,7 @@ public.CheckLib(libs, funs) =
 
     # The command line
     protected.tmp = $(tmpfile omake)
-    protected.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c $(clibs)
+    protected.command = $(CC) $(CFLAGS) $(LDFLAGS) -o $(tmp) $(tmp).c $(clibs)
 
     # The program
     protected.program = $"""/* Configuration file, you can remove this. */
@@ -94,6 +157,15 @@ public.VerboseCheckLib(libs, funs) =
 #
 # Check whether a program exists in the PATH
 #
+# \begin{doc}
+# \fun{CheckProg}
+# \verb+success = $(CheckProg <prog>)+
+#
+# Checks whether the program \verb+<prog>+ exists in your path. Will output a line describing the
+# test and the outcome.
+#
+# \end{doc}
+#
 public.CheckProg(prog) =
    print($"--- Testing for $(prog)... ")
    WHERE = $(where $(prog))
@@ -103,3 +175,14 @@ public.CheckProg(prog) =
    else
       println($"(FAILED - no $(prog) found)")
       return false
+
+#
+# \begin{doc}
+# \section{Predefined configuration tests}
+# A number of configuration tests are already included in the standard library.
+# In order to use them in your project, simply \verb+open+ (see Section~\ref{section:include}) the
+# corresponding build file in your \verb+OMakefile+ and the tests will run the first time \OMake{}
+# is executed. Note that it is not a problem to \verb+open+ these files from more than one place in
+# your project --- if you do that, the test will still run only once.
+# \end{doc}
+#

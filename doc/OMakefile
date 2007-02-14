@@ -28,15 +28,23 @@ MAN_ROOT_FILES[] =
     $(LIB)/build/OCaml.om
     $(LIB)/build/LaTeX.om
 
+MAN_CONFIGURE_FILES[] =
+    $(LIB)/configure/Configure.om
+    $(LIB)/configure/ncurses.om
+    $(LIB)/configure/readline.om
+    $(LIB)/configure/snprintf.om
+
 MAN_BASE_FILES       = $(file $(MAN_BASE_FILES))
 MAN_SYSTEM_FILES     = $(file $(MAN_SYSTEM_FILES))
 MAN_PERVASIVES_FILES = $(file $(MAN_PERVASIVES_FILES))
 MAN_ROOT_FILES       = $(file $(MAN_ROOT_FILES))
+MAN_CONFIGURE_FILES  = $(file $(MAN_CONFIGURE_FILES))
 MAN_ALL_FILES[] =
     $(MAN_BASE_FILES)
     $(MAN_SYSTEM_FILES)
     $(MAN_PERVASIVES_FILES)
     $(MAN_ROOT_FILES)
+    $(MAN_CONFIGURE_FILES)
 
 ########################################################################
 # Documentation
@@ -82,6 +90,7 @@ ExtractManDocument(omake-base,       $(MAN_BASE_FILES))
 ExtractManDocument(omake-system,     $(MAN_SYSTEM_FILES))
 ExtractManDocument(omake-pervasives, $(MAN_PERVASIVES_FILES))
 ExtractManDocument(omake-root,       $(MAN_ROOT_FILES))
+ExtractManDocument(omake-autoconf,   $(MAN_CONFIGURE_FILES))
 
 #
 # All the TeX files - both generated and the source ones.
@@ -102,6 +111,7 @@ TEX_FILES[] =
     tex/omake-system
     tex/omake-pervasives
     tex/omake-root
+    tex/omake-autoconf
     src/osh
     src/omake-grammar
 
@@ -135,6 +145,7 @@ HTML_FILES[] =
     omake-target-index.html
     omake-references.html
     omake-toc.html
+    omake-autoconf.html
     previous_motif.gif
     next_motif.gif
     contents_motif.gif
