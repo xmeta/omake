@@ -2,7 +2,7 @@
  * Builtin operations on files.
  *
  * \begin{doc}
- * \chapter{File operations}
+ * \chapter{File, I/O and system operations}
  * \label{chapter:system}
  * \cutname{omake-system.html}
  * \end{doc}

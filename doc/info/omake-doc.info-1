@@ -26,10 +26,10 @@ Contents
 * Chapter 6::	Additional language examples
 * Chapter 7::	Rules
 * Chapter 8::	Base library
-* Chapter 9::	File operations
+* Chapter 9::	File, I/O and system operations
 * Chapter 10::	Shell commands
-* Chapter 11::	Build functions
-* Chapter 12::	Pervasives
+* Chapter 11::	The standard objects
+* Chapter 12::	Build functions and utilities
 * Chapter 13::	The OSH shell
 * Appendix A::	Synopsis
 * Appendix B::	OMake grammar
@@ -127,9 +127,9 @@ gives larger examples of build projects, and omake-language-examples
    input/output, and system commands. 
  Shell commands 10*Note Chapter 10::  Using the omake shell for
    command-line interpretation. 
- The standard objects Pervasives.om 12*Note Chapter 12:: 
-   Pervasives defines the built-in objects. 
- Standard build definitions 11*Note Chapter 11::  The build
+ The standard objects 11*Note Chapter 11::  Pervasives
+   defines the built-in objects. 
+ Standard build definitions 12*Note Chapter 12::  The build
    specifications for programming languages in the OMake standard
    library. 
  The interactive command interpreter 13*Note Chapter 13::  The osh
@@ -248,8 +248,8 @@ differences to keep in mind when using omake.
   
  - In omake, you are much less likely to define build rules of your own.
     The system provides many standard functions (like `StaticCLibrary', 
-   described in Section 12.3.3.1*Note Subsection 12-3-3:: and
-   `CProgram',  described in Section 12.3.3.5*Note Subsection 12-3-3::) 
+   described in Section 12.5.3.1*Note Subsection 12-5-3:: and
+   `CProgram',  described in Section 12.5.3.5*Note Subsection 12-5-3::) 
    to specify these builds more simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported.  You should use wildcard patterns instead `%.suf2:
@@ -296,7 +296,7 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram' function (Section 12.3.3.5*Note Subsection 12-3-3::). The
+`CProgram' function (Section 12.5.3.5*Note Subsection 12-5-3::). The
 OMakefile contains just one line that specifies that the program `hello'
 is to be built from the source code in the `hello_code.c' file (note
 that file suffixes are not passed to these functions).

@@ -2,15 +2,15 @@
  * Some builtin functions.
  *
  * \begin{doc}
- * \chapter{Build functions}
- * \label{chapter:rule}
- * \cutname{omake-rule.html}
+ * \chapter{Build functions and utilities}
+ * \label{chapter:build}
+ * \cutname{omake-build.html}
  * \end{doc}
  *
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
