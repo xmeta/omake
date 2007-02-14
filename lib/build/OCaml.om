@@ -43,7 +43,7 @@ open configure/Configure
 # run \OMake{} for the first time. You can use them to configure your project accordingly,
 # and you should not redefine them.
 #
-# You can use the \verb+--configure+ command line option (Section~\ref{option:--configurea}) to force
+# You can use the \verb+--configure+ command line option (Section~\ref{option:--configure}) to force
 # re-execution of all the tests.
 #
 # \varlabel{OCAMLOPT_EXISTS}{OCAMLOPT\_EXISTS} True when \verb+ocamlopt+ (or \verb+ocamlopt.opt+) is
@@ -199,6 +199,13 @@ public.OCAML_NATIVE_LINK_FLAGS =
 #    standard libraries like \verb+unix+ or \verb+str+.
 # \varlabel{OCAML_CLIBS}{OCAML\_CLIBS} C libraries to pass to the linker.
 # \varlabel{OCAML_LIB_FLAGS}{OCAML\_LIB\_FLAGS} Extra flags for the library linker.
+# \varlabel{ABORT_ON_DEPENDENCY_ERRORS}{ABORT\_ON\_DEPENDENCY\_ERRORS}
+#   OCaml linker requires the OCaml files to be
+#   listed in dependency order.  Normally, all the functions presented in this section will automatically sort
+#   the list of OCaml modules passed in as the \verb+<files>+ argument. However, this variable is
+#   set to \verb+true+, the order of the files passed into these function will be left as is, but \OMake{} will
+#   abort with an error message if the order is illegal.
+#
 # \end{doc}
 #
 public.OCAML_LIBS =
@@ -250,17 +257,18 @@ public.OCAML_LIB_FLAGS =
 # These functions have no effect when
 # \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} is true.
 #
-# \subsubsection{Automatic discovery of generated files during dependency analysis.}
+# \subsubsection{Automatic discovery of generated files during dependency analysis}
 # Having to specify the generated files manualy when \OMake{} could discover them automatically is
 # obviously suboptimal.  To address this, we try to use a custom \verb+ocamldep+ that \emph{only}
 # finds the free module names in a file. 
 #
 # This functionality is experimental and is disabled by default for now.
 # Set \verb+OCAMLDEP_MODULES_ENABLED+~\ref{var:OCAMLDEP_MODULES_ENABLED} to \verb+true+ (or
-# to \verb+$(OCAMLDEP_MODULES_AVAILABLE)+ in your project to enable it.
+# to \verb+$(OCAMLDEP_MODULES_AVAILABLE)+) in your project to enable it.
 #
 # Note that the experimental \verb+ocamldep+ functionality this relies upon is not yet included in
-# the standard OCaml --- see \url{http://caml.inria.fr/mantis/view.php?id=4047}. Temporarily, we
+# the standard OCaml (it is expected to be a part of the upcoming OCaml 3.10 ---
+# see \url{http://caml.inria.fr/mantis/view.php?id=4047}). Temporarily, we
 # distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
 # modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
 # Sections~\ref{var:OCAMLDEP_MODULES_AVAILABLE} and~\ref{var:OCAMLDEP_MODULES}.
@@ -765,13 +773,6 @@ OCamlLinkSort(nodes) =
 # \verb+OCamlLibrary(<libname>, <files>)+
 #
 # The \verb+<libname>+ and \verb+<files>+ are listed \emph{without} suffixes.
-#
-# \varlabel{ABORT_ON_DEPENDENCY_ERRORS}{ABORT\_ON\_DEPENDENCY\_ERRORS}
-#   The linker requires that the files to be
-#   listed in dependency order.  If this variable is true, the order of
-#   the files is determined by the command line, but \OMake{} will
-#   abort with an error message if the order is illegal.  Otherwise,
-#   the files are sorted automatically.
 #
 # This function returns the list of all the targets that it defines the rules
 # for (including the \verb+$(name)$(EXT_LIB)+ file when \verb+NATIVE_ENABLED+ is set).
