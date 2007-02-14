@@ -1,7 +1,7 @@
 ########################################################################
 # Building C files.
 #
-# Copyright (C) 2003-2005 Jason Hickey and Mojave Group
+# Copyright (C) 2003-2007 Jason Hickey and Mojave Group
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this file, to deal in the File without
@@ -26,11 +26,36 @@ open configure/Configure
 
 #
 # \begin{doc}
-# \section{Building C programs}
+# \section{Building C and C++ code}
 #
-# \Prog{omake} provides extensive support for building C programs.
+# \OMake{} provides extensive support for building C and C++ programs. In order to use the functions
+# defined in this section, you need to make sure the line
+# \begin{verbatim}
+# open build/C
+# \end{verbatim}
+# is present in your \verb+OMakeroot+ file.
 #
-# \subsection{C configuration variables}
+# \subsection{Autoconfiguration variables}
+# These variables will get defined based on the ``autoconf-style'' \verb+static.+ tests executed
+# when you run \OMake{} for the first time. You can use them to configure your project accordingly,
+# and you should not redefine them.
+#
+# You can use the \verb+--configure+ command line option (Section~\ref{option:--configure} to force
+# re-execution of all the tests.
+#
+# A different set of autoconfiguration tests is performed depending on the build environment
+# involved --- one set of tests would be performed in a \verb+Win32+ environment, and another ---
+# in a Unix-like environment (including Linux, OS X and Cygwin).
+#
+# \subsubsection{Unix-like systems}
+# \varlabel{GCC_FOUND}{GCC\_FOUND} A boolean flag specifying whether the \verb+gcc+ binary was found in your path.
+# \varlabel{GXX_FOUND}{GXX\_FOUND} A boolean flag specifying whether the \verb.g++. binary was found in your path.
+# 
+# \subsubsection{Win32}
+# \varlabel{CL_FOUND}{CL\_FOUND} A boolean flag specifying whether the \verb+cl+ binary was found in your path.
+# \varlabel{LIB_FOUND}{LIB\_FOUND} A boolean flag specifying whether the \verb+lib+ binary was found in your path.
+#
+# \subsection{C and C++ configuration variables}
 #
 # The following variables can be redefined in your project.
 #
