@@ -164,7 +164,7 @@ defines a function that concatenates its arguments, separating them with a colon
     ColonFun(a, b) =
         return($(a):$(b))
 </PRE>
-The <CODE>return</CODE> expression can be used to return a value from the function. A <CODE>return</CODE>
+<A NAME="@default14"></A>The <CODE>return</CODE> expression can be used to return a value from the function. A <CODE>return</CODE>
 statement is not required; if it is omitted, the returned value is the value of the last expression
 in the body to be evaluated. NOTE: as of version <CODE>0.9.6</CODE>, <CODE>return</CODE> is a control
 operation, causing the function to immediately return. In the following example, when the argument
@@ -177,7 +177,7 @@ statement.
        println(The argument is false)
        return 0
 </PRE>
-In many cases, you may wish to return a value from a section or code block without returning from
+<A NAME="@default15"></A>In many cases, you may wish to return a value from a section or code block without returning from
 the function. In this case, you would use the <CODE>value</CODE> operator. In fact, the <CODE>value</CODE>
 operator is not limited to functions, it can be used any place where a value is required. In the
 following definition, the variable <CODE>X</CODE> is defined as 1 or 2, depending on the value of <I>a</I>,
@@ -215,16 +215,30 @@ Comments begin with the <CODE>#</CODE> character and continue to the end of the 
 <A NAME="toc22"></A>
 <H2 CLASS="section"><A NAME="htoc37">4.7</A>&nbsp;&nbsp;File inclusion</H2>
 <A NAME="section:include"></A>
-<A NAME="@default14"></A><A NAME="@fun0"></A>
-Files may be included with the <CODE>include</CODE> form. The included file must use
+<A NAME="@default16"></A><A NAME="@fun0"></A><A NAME="@default17"></A>
+Files may be included with the <CODE>include</CODE> or <CODE>open</CODE> form. The included file must use
 the same syntax as an <TT>OMakefile</TT>.
 <PRE CLASS="verbatim">
-    include files.omake
+    include $(Config_file)
 </PRE>
+The <CODE>open</CODE> operation is similar to an <CODE>include</CODE>, but the file is included at most once.
+<PRE CLASS="verbatim">
+    open Config
+
+    # Repeated opens are ignored, so this
+    # line has no effect.
+    open Config
+</PRE>
+If the file specified is not an absolute filenmame, both <CODE>include</CODE> and
+<CODE>open</CODE> operations search for the file based on the
+<A HREF="omake-base.html#var:OMAKEPATH"><TT>OMAKEPATH</TT> variable</A>. In case of the <CODE>open</CODE> directive, the search is
+performed at <EM>parse</EM> time, and the argument to <CODE>open</CODE> may not
+contain any expressions.<BR>
+<BR>
 <A NAME="toc23"></A>
 <H2 CLASS="section"><A NAME="htoc38">4.8</A>&nbsp;&nbsp;Scoping, sections</H2>
 <A NAME="section:section"></A>
-<A NAME="@default15"></A>
+<A NAME="@default18"></A>
 Scopes in <TT>omake</TT> are defined by indentation level. When indentation is
 increased, such as in the body of a function, a new scope is introduced.<BR>
 <BR>
@@ -284,8 +298,8 @@ this implicit rule will not be in scope in the current directory.<BR>
 <A NAME="toc24"></A>
 <H2 CLASS="section"><A NAME="htoc39">4.9</A>&nbsp;&nbsp;Conditionals</H2>
 <A NAME="section:conditionals"></A>
-<A NAME="@default16"></A>
-<A NAME="@default17"></A>
+<A NAME="@default19"></A>
+<A NAME="@default20"></A>
 Top level conditionals have the following form.
 <PRE CLASS="verbatim">
     if &lt;test&gt;
@@ -329,8 +343,8 @@ The following example illustrates a typical use of a conditional. The
 <A NAME="toc25"></A>
 <H2 CLASS="section"><A NAME="htoc40">4.10</A>&nbsp;&nbsp;Matching</H2>
 <A NAME="section:match"></A>
-<A NAME="@default18"></A><A NAME="@fun1"></A>
-<A NAME="@default19"></A><A NAME="@fun2"></A>
+<A NAME="@default21"></A><A NAME="@fun1"></A>
+<A NAME="@default22"></A><A NAME="@fun2"></A>
 Pattern matching is performed with the <CODE>switch</CODE> and <CODE>match</CODE> forms.
 <PRE CLASS="verbatim">
     switch &lt;string&gt;
@@ -385,7 +399,7 @@ that are matched by <CODE>\(...\)</CODE> expressions.
 <A NAME="toc26"></A>
 <H2 CLASS="section"><A NAME="htoc41">4.11</A>&nbsp;&nbsp;Objects</H2>
 <A NAME="section:objects"></A>
-<A NAME="@default20"></A>
+<A NAME="@default23"></A>
 OMake is an object-oriented language. Generally speaking, an object is a value that contains fields
 and methods. An object is defined with a <CODE>.</CODE> suffix for a variable. For example, the
 following object might be used to specify a point (1, 5) on the two-dimensional plane.
@@ -407,7 +421,7 @@ prints out the position of the point.<BR>
 <BR>
 <A NAME="toc27"></A>
 <H2 CLASS="section"><A NAME="htoc42">4.12</A>&nbsp;&nbsp;Classes</H2>
-<A NAME="@default21"></A>
+<A NAME="@default24"></A>
 We can also define <EM>classes</EM>. For example, suppose we wish to define a generic <CODE>Point</CODE>
 class with some methods to create, move, and print a point. A class is really just an object with
 a name, defined with the <CODE>class</CODE> directive.
@@ -450,7 +464,7 @@ this example, the object <CODE>p2</CODE> is a different object from <CODE>p1</CO
 <BR>
 <A NAME="toc28"></A>
 <H2 CLASS="section"><A NAME="htoc43">4.13</A>&nbsp;&nbsp;Inheritance</H2>
-<A NAME="@default22"></A>
+<A NAME="@default25"></A>
 Classes and objects support inheritance (including multiple inheritance) with the <CODE>extends</CODE>
 directive. The following definition of <CODE>Point3D</CODE> defines a point with <CODE>x</CODE>, <CODE>y</CODE>, and
 <CODE>z</CODE> fields. The new object inherits all of the methods and fields of the parent classes/objects.
@@ -477,7 +491,7 @@ further used to control the namespace.<BR>
 <BR>
 <A NAME="toc30"></A>
 <H2 CLASS="section"><A NAME="htoc45">4.15</A>&nbsp;&nbsp;private.</H2>
-<A NAME="section:private"></A><A NAME="@default23"></A>
+<A NAME="section:private"></A><A NAME="@default26"></A>
 The <CODE>private.</CODE> section is used to define variables that are private to the current file/scope.
 The values are not accessible outside the scope. Variables defined in a <CODE>private.</CODE> object can
 be accessed only from within the section where they are defined.
@@ -540,7 +554,7 @@ Private variables are local to the file in which they are defined.
   </PRE></OL>
 <A NAME="toc31"></A>
 <H2 CLASS="section"><A NAME="htoc46">4.16</A>&nbsp;&nbsp;protected.</H2>
-<A NAME="@default24"></A>
+<A NAME="@default27"></A>
 The <CODE>protected.</CODE> object is used to define fields that are local to an object. They can
 be accessed as fields, but they are not passed dynamically to other functions. The purpose of a
 protected variable is to prevent a variable definition within the object from affecting other parts
@@ -579,7 +593,7 @@ in other parts of the project.<BR>
 <BR>
 <A NAME="toc32"></A>
 <H2 CLASS="section"><A NAME="htoc47">4.17</A>&nbsp;&nbsp;public.</H2>
-<A NAME="section:public"></A><A NAME="@default25"></A>
+<A NAME="section:public"></A><A NAME="@default28"></A>
 The <CODE>public.</CODE> object is used to specify public dynamically-scoped variables. In the following
 example, the <CODE>public.</CODE> object specifies that the value <CODE>X = 4</CODE> is to be dynamically
 scoped. Public variables <EM>are not</EM> defined as fields of an object.
@@ -611,7 +625,7 @@ scoped. Public variables <EM>are not</EM> defined as fields of an object.
 </PRE>
 <A NAME="toc33"></A>
 <H2 CLASS="section"><A NAME="htoc48">4.18</A>&nbsp;&nbsp;static.</H2>
-<A NAME="@default26"></A>
+<A NAME="@default29"></A>
 The <CODE>static.</CODE> object is used to specify values that are persistent across runs of OMake. They
 are frequently used for configuring a project. Configuring a project can be expensive, so the
 <CODE>static.</CODE> object ensure that the configuration is performed just once. In the following

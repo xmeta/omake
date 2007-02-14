@@ -2352,12 +2352,26 @@ line.
 *=*=*=*=*=*=*=*=*=*
 
     
-  Files may be included with the `include' form. The included file must
-use the same syntax as an OMakefile.
+  Files may be included with the `include' or `open' form. The included
+file must use the same syntax as an OMakefile.
 <<
-      include files.omake
+      include $(Config_file)
 >>
   
+  The `open' operation is similar to an `include', but the file is
+included at most once. 
+<<
+      open Config
+  
+      # Repeated opens are ignored, so this
+      # line has no effect.
+      open Config
+>>
+  
+  If the file specified is not an absolute filenmame, both `include' and
+`open' operations search for the file based on the OMAKEPATH variable.
+In case of the `open' directive, the search is performed at parse time,
+and the argument to `open' may not contain any expressions.
   
 
 4.8  Scoping, sections
@@ -4556,6 +4570,25 @@ Chapter 8    Base library
 *=*=*=*=*=*=*=*=*=*=*=
 
    
+OMAKE_VERSION
+    Version of OMake. 
+STDLIB
+    The directory where the OMake standard library files reside. At
+startup, the default  value is determined as follows.  
+   
+ - The value of the `OMAKELIB' environment variable, if set (must
+   contain  an absolute path, if set), otherwise  
+ - On Windows, the registry keys
+   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and 
+   `HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
+   and the value is used,  if exist.  
+ - Otherwise a compile-time default it used.  
+    The current default value may be accessed by running `omake
+--version' 
+OMAKEPATH
+    An array of directories specifying the lookup path for the `include'
+and `open' directives (see  Section 4.7).  The default value is an array
+of two elements --- `.' and `$(STDLIB)'. 
 OSTYPE
     Set to the machine architecture omake is running on. Possible values
 are  `Unix' (for all Unix versions, including Linux and Mac OS X),
@@ -4571,8 +4604,6 @@ MACHINE
     The machine architecture, e.g. `i386', `sparc', etc. 
 HOST
     Same as `NODENAME'. 
-OMAKE_VERSION
-    Version of OMake. 
 USER
     The login name of the user executing the process. 
 HOME
@@ -11157,9 +11188,8 @@ command introduces a new scope.
           indented-body
 >>
   
-  include, open (see the `include' description in Section 4.7). The
-`include' command performs file inclusion. The expression should
-evaluate to a file name.
+  include, open (see also Section 4.7). The `include' command performs
+file inclusion. The expression should evaluate to a file name.
   The `open' form is like include, but it performs the inclusion only if
 the inclusion has not already been performed. The `open' form is usually
 used to include library files. [jyh-- this behavior will change in
@@ -11674,11 +11704,13 @@ Index
  - CXXProgramInstall, 12.5.4.8 
  - c-escaped, 8.3.12 
  - capitalize, 8.3.33 
+ - case, 8.2.6 
  - cat, 9.11.2 
  - cats and dogs, 3.4 
  - cd, 10.9.2 
  - chmod, 9.5.9 
  - chown, 9.5.10 
+ - class, B.2.2.1 
  - classes, 4.12 
  - close, 9.8.5 
  - cmp-versions, 12.2.3 
@@ -11696,6 +11728,7 @@ Index
  - DVIPS, 12.7.1 
  - DVIPSFLAGS, 12.7.1 
  - decode-uri, 8.3.13 
+ - default, 8.2.6 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
  - dependencies, 12.3.1 
@@ -11717,6 +11750,8 @@ Index
  - EXT_OBJ, 12.4.2 
  - Exception, 11.1.20 
  - echo, 10.9.1 
+ - else, 8.2.5, B.2.2.1 
+ - elseif, 8.2.5, B.2.2.1 
  - encode-uri, 8.3.13 
  - eprint, 9.9 
  - eprintln, 9.9 
@@ -11726,7 +11761,8 @@ Index
  - equal, 8.2.2 
  - exists-in-path, 9.2.4 
  - exit, 8.2.9 
- - export, 5.3, 8.3.39 
+ - export, 5.3, 8.3.39, B.2.2.1 
+ - extends, B.2.2.1 
  
  - File, 11.1.13 
  - Float, 11.1.5 
@@ -11791,10 +11827,10 @@ Index
  - InetAddr, 9.8.20 
  - Int, 11.1.4 
  - id-escaped, 8.3.12 
- - if, 4.9, 8.2.5 
+ - if, 4.9, 8.2.5, B.2.2.1 
  - ignoreeof, 13.1 
  - in, 9.1.3 
- - include, 4.7 
+ - include, 4.7, B.2.2.1 
  - inheritance, 4.13 
  - int, 8.4.1 
  - intersection, 8.3.28 
@@ -11847,7 +11883,7 @@ Index
  - MENHIR_FLAGS, 12.6.3 
  - mapprefix, 8.3.24 
  - mapsuffix, 8.3.18 
- - match, 4.10, 8.2.6 
+ - match, 4.10, 8.2.6, B.2.2.1 
  - max, 8.4.3 
  - mem, 8.3.27 
  - min, 8.4.3 
@@ -11909,6 +11945,7 @@ Index
  - OMAKE_VERSION, 8.1 
  - OMAKEFLAGS, A.5.1 
  - OMAKELIB, A.5.2 
+ - OMAKEPATH, 8.1 
  - OMakeFlags, 12.2.1 
  - OMakefile, 2.8, 3 
  - OMakeroot, 2.8, 3, 12.4 
@@ -11919,6 +11956,7 @@ Index
  - objects, 4.11 
  - ocaml-escaped, 8.3.12 
  - ocamldep-omake, 12.6.5.2 
+ - open, 4.7, B.2.2.1 
  - open-in-string, 9.8.2 
  - open-out-string, 9.8.3 
  - or, 8.2.4 
@@ -11960,6 +11998,7 @@ Index
  - removesuffix, 8.3.21 
  - rename, 9.5.5 
  - replacesuffixes, 8.3.22 
+ - return, 4.5, B.2.2.1 
  - rev, 8.3.9 
  - rewind, 9.8.9 
  - rootname, 9.1.6 
@@ -11973,6 +12012,7 @@ Index
  - Sequence, 11.1.6 
  - Service, 9.8.25 
  - Shell, 11.1.23 
+ - STDLIB, 8.1 
  - STDROOT, 12.4.1 
  - Stat, 9.5.2 
  - StaticCLibrary, 12.5.4.1 
@@ -11987,7 +12027,7 @@ Index
  - String, 11.1.8 
  - SYSNAME, 8.1 
  - scan, 9.11.4 
- - section, 4.8, 7.3 
+ - section, 4.8, 7.3, B.2.2.1 
  - section rule, 7.4 
  - select, 9.8.18 
  - set, 8.3.26 
@@ -12031,7 +12071,7 @@ Index
  - test, 9.7.1 
  - tmpfile, 9.1.2 
  - truncate, 9.5.11 
- - try, 8.2.7 
+ - try, 8.2.7, B.2.2.1 
  
  - UnbuildableException, 11.1.22 
  - USE_OCAMLFIND, 12.6.2 
@@ -12048,13 +12088,14 @@ Index
  - uppercase, 8.3.35 
  
  - VERBOSE, 8.1 
+ - value, 4.5, B.2.2.1 
  - variable definition, A.3.21 
  - vmount, 2.9, 9.6.1 
  
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.40 
+ - while, 8.3.40, B.2.2.1 
  - write, 9.8.7 
  
  - YACC, 12.5.2 
@@ -12163,6 +12204,7 @@ Index of variables
  - OCAMLYACC, 12.6.2 
  - OCAMLYACCFLAGS, 12.6.2 
  - OMAKE_VERSION, 8.1 
+ - OMAKEPATH, 8.1 
  - OS_VERSION, 8.1 
  - OSTYPE, 8.1 
  
@@ -12175,6 +12217,7 @@ Index of variables
  - ROOT, 12.4.1 
  
  - SCANNER_MODE, 12.4.1 
+ - STDLIB, 8.1 
  - STDROOT, 12.4.1 
  - SYSNAME, 8.1 
  - stderr, 9.8.1 

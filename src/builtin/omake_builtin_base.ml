@@ -64,6 +64,24 @@ open Pos
  *
  * \begin{doc}
  * \section{Builtin variables}
+ * \varlabel{OMAKE_VERSION}{OMAKE\_VERSION}
+ *    Version of \OMake.
+ * \var{STDLIB}
+ *    The directory where the \OMake{} standard library files reside. At startup, the default
+ *     value is determined as follows.
+ *    \begin{itemize}
+ *        \item The value of the \verb+OMAKELIB+ environment variable, if set (must contain
+ *              an absolute path, if set), otherwise
+ *        \item On Windows, the registry keys \verb+HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB+ and
+ *              \verb+HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB+ are looked up and the value is used,
+ *              if exist.
+ *        \item Otherwise a compile-time default it used.
+ *    \end{itemize}
+ *    The current default value may be accessed by running \verb+omake --version+
+ * \var{OMAKEPATH}
+ *    An array of directories specifying the lookup path for the \verb+include+ and \verb+open+ directives (see
+ *    Section~\ref{section:include}).
+ *    The default value is an array of two elements --- \verb+.+ and \verb+$(STDLIB)+.
  * \var{OSTYPE}
  *    Set to the machine architecture \Prog{omake} is running on.  Possible values are
  *    \verb+Unix+ (for all  Unix  versions, including Linux and Mac OS X), \verb+Win32+
@@ -79,8 +97,6 @@ open Pos
  *    The machine architecture, e.g.\ \verb+i386+, \verb+sparc+, etc.
  * \var{HOST}
  *    Same as \verb+NODENAME+.
- * \varlabel{OMAKE_VERSION}{OMAKE\_VERSION}
- *    Version of \OMake.
  * \var{USER}
  *    The login name of the user executing the process.
  * \var{HOME}
@@ -238,7 +254,7 @@ let or_fun venv pos loc args =
  * The values are computed lazily.
  *
  * \begin{doc}
- * \form{if}
+ * \form{if}\index{elseif}\index{else}
  *
  * \begin{verbatim}
  *     $(if e1, e2[, e3]) : value
@@ -308,7 +324,7 @@ let if_fun venv pos loc args =
  * Match command.
  *
  * \begin{doc}
- * \twofuns{switch}{match}
+ * \twofuns{switch}{match}\index{case}\index{default}
  *
  * The \verb+switch+ and \verb+match+ functions perform pattern matching.
  *

@@ -340,13 +340,13 @@ function that concatenates its arguments, separating them with a colon.
           return($(a):$(b))
 >>
   
-  The `return' expression can be used to return a value from the
-function. A `return' statement is not required; if it is omitted, the
-returned value is the value of the last expression in the body to be
-evaluated. NOTE: as of version `0.9.6', `return' is a control operation,
-causing the function to immediately return. In the following example,
-when the argument `a' is true, the function `f' immediately returns the
-value 1 without evaluating the print statement.
+The `return' expression can be used to return a value
+from the function. A `return' statement is not required; if it is
+omitted, the returned value is the value of the last expression in the
+body to be evaluated. NOTE: as of version `0.9.6', `return' is a control
+operation, causing the function to immediately return. In the following
+example, when the argument `a' is true, the function `f' immediately
+returns the value 1 without evaluating the print statement.
 <<
       f(a) =
          if $(a)
@@ -355,13 +355,13 @@ value 1 without evaluating the print statement.
          return 0
 >>
   
-  In many cases, you may wish to return a value from a section or code
-block without returning from the function. In this case, you would use
-the `value' operator. In fact, the `value' operator is not limited to
-functions, it can be used any place where a value is required. In the
-following definition, the variable `X' is defined as 1 or 2, depending
-on the value of a, then result is printed, and returned from the
-function.
+In many cases, you may wish to return a value from a
+section or code block without returning from the function. In this case,
+you would use the `value' operator. In fact, the `value' operator is not
+limited to functions, it can be used any place where a value is
+required. In the following definition, the variable `X' is defined as 1
+or 2, depending on the value of a, then result is printed, and returned
+from the function.
 <<
       f_value(a) =
          X =
@@ -407,13 +407,28 @@ Node: Section 4-7,	Next: Section 4-8,	Prev: Section 4-6,	Up: Chapter 4
 4.7   File inclusion
 *=*=*=*=*=*=*=*=*=*=
 
-    
-  Files may be included with the `include' form. The included file must
-use the same syntax as an OMakefile.
+   
+
+  Files may be included with the `include' or `open' form. The included
+file must use the same syntax as an OMakefile.
 <<
-      include files.omake
+      include $(Config_file)
 >>
   
+  The `open' operation is similar to an `include', but the file is
+included at most once. 
+<<
+      open Config
+  
+      # Repeated opens are ignored, so this
+      # line has no effect.
+      open Config
+>>
+  
+  If the file specified is not an absolute filenmame, both `include' and
+`open' operations search for the file based on the OMAKEPATH variable.
+In case of the `open' directive, the search is performed at parse time,
+and the argument to `open' may not contain any expressions.
 
 Node: Section 4-8,	Next: Section 4-9,	Prev: Section 4-7,	Up: Chapter 4
   

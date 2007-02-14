@@ -77,12 +77,12 @@ indented from the dependency line.<BR>
 <BR>
 In addition to normal variables, the following special variables may be used in the body of a rule.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$*</CODE><A NAME="@default30"></A><A NAME="@var0"></A>: the target name, without a suffix.
-<LI CLASS="li-itemize"><CODE>$@</CODE><A NAME="@default31"></A><A NAME="@var1"></A>: the target name.
-<LI CLASS="li-itemize"><CODE>$^</CODE><A NAME="@default32"></A><A NAME="@var2"></A>: a list of the sources, in alphabetical order, with
+<CODE>$*</CODE><A NAME="@default33"></A><A NAME="@var0"></A>: the target name, without a suffix.
+<LI CLASS="li-itemize"><CODE>$@</CODE><A NAME="@default34"></A><A NAME="@var1"></A>: the target name.
+<LI CLASS="li-itemize"><CODE>$^</CODE><A NAME="@default35"></A><A NAME="@var2"></A>: a list of the sources, in alphabetical order, with
 duplicates removed.
-<LI CLASS="li-itemize"><CODE>$+</CODE><A NAME="@default33"></A><A NAME="@var3"></A>: all the sources, in the original order.
-<LI CLASS="li-itemize"><CODE>$&lt;</CODE><A NAME="@default34"></A><A NAME="@var4"></A>: the first source.
+<LI CLASS="li-itemize"><CODE>$+</CODE><A NAME="@default36"></A><A NAME="@var3"></A>: all the sources, in the original order.
+<LI CLASS="li-itemize"><CODE>$&lt;</CODE><A NAME="@default37"></A><A NAME="@var4"></A>: the first source.
 </UL>
 For example, the above <CODE>hello.c</CODE> rule may be simplified as follows.
 <PRE CLASS="verbatim">
@@ -108,7 +108,7 @@ Scoping).<BR>
 <BR>
 <A NAME="toc52"></A>
 <H2 CLASS="section"><A NAME="htoc71">7.1</A>&nbsp;&nbsp;Implicit rules</H2>
-<A NAME="@default35"></A>
+<A NAME="@default38"></A>
 Rules may also be implicit. That is, the files may be specified by wildcard patterns.
 The wildcard character is <CODE>%</CODE>. For example, the following rule specifies a default
 rule for building <CODE>.o</CODE> files.
@@ -126,7 +126,7 @@ Scoping).<BR>
 <BR>
 <A NAME="toc53"></A>
 <H2 CLASS="section"><A NAME="htoc72">7.2</A>&nbsp;&nbsp;Bounded implicit rules</H2>
-<A NAME="@default36"></A>
+<A NAME="@default39"></A>
 Implicit rules may specify the set of files they apply to. The following syntax is used.
 <PRE CLASS="verbatim">
     &lt;targets&gt;: &lt;pattern&gt;: &lt;dependencies&gt;
@@ -139,7 +139,7 @@ For example, the following rule applies only to the files <CODE>a.o</CODE> and <
 </PRE>
 <A NAME="toc54"></A>
 <H2 CLASS="section"><A NAME="htoc73">7.3</A>&nbsp;&nbsp;section</H2>
-<A NAME="fun:section"></A><A NAME="@default37"></A><A NAME="@fun3"></A><BR>
+<A NAME="fun:section"></A><A NAME="@default40"></A><A NAME="@fun3"></A><BR>
 <BR>
 Frequently, the commands in a rule body are expressions to be evaluated by the shell. <TT>omake</TT>
 also allows expressions to be evaluated by <TT>omake</TT> itself.<BR>
@@ -166,7 +166,7 @@ follows.
 </PRE>
 <A NAME="toc55"></A>
 <H2 CLASS="section"><A NAME="htoc74">7.4</A>&nbsp;&nbsp;section rule</H2>
-<A NAME="fun:section rule"></A><A NAME="@default38"></A><A NAME="@fun4"></A><BR>
+<A NAME="fun:section rule"></A><A NAME="@default41"></A><A NAME="@fun4"></A><BR>
 <BR>
 Rules can also be computed using the <CODE>section rule</CODE> form, where a rule body is expected instead
 of an expression. In the following rule, the file <CODE>a.c</CODE> is copied onto the <CODE>hello.c</CODE> file
@@ -183,10 +183,10 @@ if it exists, otherwise <CODE>hello.c</CODE> is created from the file <CODE>defa
 </PRE>
 <A NAME="toc56"></A>
 <H2 CLASS="section"><A NAME="htoc75">7.5</A>&nbsp;&nbsp;Special dependencies</H2>
-<A NAME="@default39"></A>
+<A NAME="@default42"></A>
 
 <H3 CLASS="subsection"><A NAME="htoc76">7.5.1</A>&nbsp;&nbsp;:exists:</H3>
-<A NAME="@default40"></A>
+<A NAME="@default43"></A>
 In some cases, the contents of a dependency do not matter, only whether the file exists or not. In
 this case, the <CODE>:exists:</CODE> qualifier can be used for the dependency.
 <PRE CLASS="verbatim">
@@ -196,7 +196,7 @@ this case, the <CODE>:exists:</CODE> qualifier can be used for the dependency.
 </PRE>
 
 <H3 CLASS="subsection"><A NAME="htoc77">7.5.2</A>&nbsp;&nbsp;:effects:</H3>
-<A NAME="@default41"></A>
+<A NAME="@default44"></A>
 Some commands produce files by side-effect. For example, the
 <TT>latex</TT>(1) command produces a <CODE>.aux</CODE> file as a side-effect of
 producing a <CODE>.dvi</CODE> file. In this case, the <CODE>:effects:</CODE>
@@ -209,7 +209,7 @@ have overlapping side-effects.
 </PRE>
 
 <H3 CLASS="subsection"><A NAME="htoc78">7.5.3</A>&nbsp;&nbsp;:value:</H3>
-<A NAME="@default42"></A>
+<A NAME="@default45"></A>
 The <CODE>:value:</CODE> dependency is used to specify that the rule execution depends on the value of an
 expression. For example, the following rule
 <PRE CLASS="verbatim">
@@ -239,7 +239,7 @@ containing variables like <CODE>$@</CODE>, <CODE>$^</CODE>, etc are legal.
 </UL>
 <A NAME="toc57"></A>
 <H2 CLASS="section"><A NAME="htoc79">7.6</A>&nbsp;&nbsp;.SCANNER rules</H2>
-<A NAME="@default43"></A><A NAME="@target0"></A><A NAME="target:.SCANNER"></A>
+<A NAME="@default46"></A><A NAME="@target0"></A><A NAME="target:.SCANNER"></A>
 Scanner rules define a way to specify automatic dependency scanning. A <CODE>.SCANNER</CODE> rule has the
 following form.
 <PRE CLASS="verbatim">
@@ -304,7 +304,7 @@ Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&n
 <BR>
 
 <H3 CLASS="subsection"><A NAME="htoc80">7.6.1</A>&nbsp;&nbsp;Named scanners, and the :scanner: target</H3>
-<A NAME="@default44"></A>
+<A NAME="@default47"></A>
 Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
 example, we might compile <CODE>.c</CODE> files with different options, or (heaven help us) we may be
 using both <CODE>gcc</CODE> and the Microsoft Visual C++ compiler <CODE>cl</CODE>. In general, the target of a
@@ -350,7 +350,7 @@ use only the named <CODE>.SCANNER</CODE> rules and explicit <CODE>:scanner:</COD
 <BR>
 <A NAME="toc58"></A>
 <H2 CLASS="section"><A NAME="htoc82">7.7</A>&nbsp;&nbsp;.DEFAULT</H2>
-<A NAME="@default45"></A><A NAME="@target1"></A><A NAME="target:.DEFAULT"></A>
+<A NAME="@default48"></A><A NAME="@target1"></A><A NAME="target:.DEFAULT"></A>
 The <CODE>.DEFAULT</CODE> target specifies a target to be built by default
 if <TT>omake</TT> is run without explicit targets. The following rule
 instructs <TT>omake</TT> to build the program <CODE>hello</CODE> by default
@@ -359,7 +359,7 @@ instructs <TT>omake</TT> to build the program <CODE>hello</CODE> by default
 </PRE>
 <A NAME="toc59"></A>
 <H2 CLASS="section"><A NAME="htoc83">7.8</A>&nbsp;&nbsp;.SUBDIRS</H2>
-<A NAME="@default46"></A><A NAME="@target2"></A><A NAME="target:.SUBDIRS"></A>
+<A NAME="@default49"></A><A NAME="@target2"></A><A NAME="target:.SUBDIRS"></A>
 The <CODE>.SUBDIRS</CODE> target is used to specify a set of subdirectories
 that are part of the project. Each subdirectory should have its own
 <TT>OMakefile</TT>, which is evaluated in the context of the current
@@ -388,7 +388,7 @@ Furthermore, if one exists, it is ignored. The following includes the file if it
 </PRE>
 <A NAME="toc60"></A>
 <H2 CLASS="section"><A NAME="htoc84">7.9</A>&nbsp;&nbsp;.INCLUDE</H2>
-<A NAME="@default47"></A><A NAME="@target3"></A><A NAME="target:.INCLUDE"></A>
+<A NAME="@default50"></A><A NAME="@target3"></A><A NAME="target:.INCLUDE"></A>
 The <CODE>.INCLUDE</CODE> target is like the <CODE>include</CODE> directive, but it specifies a rule to build
 the file if it does not exist.
 <PRE CLASS="verbatim">
@@ -425,7 +425,7 @@ overwrite it), you should make the rule evaluation conditional on whether the ta
 </PRE>
 <A NAME="toc61"></A>
 <H2 CLASS="section"><A NAME="htoc85">7.10</A>&nbsp;&nbsp;.PHONY</H2>
-<A NAME="@default48"></A><A NAME="@target4"></A><A NAME="target:.PHONY"></A>
+<A NAME="@default51"></A><A NAME="@target4"></A><A NAME="target:.PHONY"></A>
 A &#8220;phony&#8221; target is a target that is not a real file, but exists to collect a set of dependencies.
 Phony targets are specified with the <CODE>.PHONY</CODE> rule. In the following example, the
 <CODE>install</CODE> target does not correspond to a file, but it corresponds to some commands that should
@@ -438,7 +438,7 @@ be run whenever the <CODE>install</CODE> target is built (for example, by runnin
 </PRE>
 <A NAME="toc62"></A>
 <H2 CLASS="section"><A NAME="htoc86">7.11</A>&nbsp;&nbsp;Rule scoping</H2>
-<A NAME="@default49"></A>
+<A NAME="@default52"></A>
 As we have mentioned before, <TT>omake</TT> is a <EM>scoped</EM> language. This provides great
 flexibility&mdash;different parts of the project can define different configurations without interfering
 with one another (for example, one part of the project might be compiled with <CODE>CFLAGS=-O3</CODE> and
@@ -522,7 +522,7 @@ normal.<BR>
 <BR>
 
 <H3 CLASS="subsection"><A NAME="htoc88">7.11.2</A>&nbsp;&nbsp;Scoping of .SCANNER rules</H3>
-<A NAME="@default50"></A><A NAME="@target5"></A>
+<A NAME="@default53"></A><A NAME="@target5"></A>
 Scanner rules are scoped the same way as normal rules. If the <CODE>.SCANNER</CODE> rule is explicit
 (containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
 If the <CODE>.SCANNER</CODE> rule is implicit, then the environment is taken from the <CODE>:scanner:</CODE>
@@ -557,7 +557,7 @@ is called with <CODE>CFLAGS=-g -DLIBRARY</CODE>, and for <CODE>hello_code.o</COD
 <BR>
 
 <H3 CLASS="subsection"><A NAME="htoc89">7.11.3</A>&nbsp;&nbsp;Scoping for .PHONY targets</H3>
-<A NAME="section:PHONY-scoping"></A><A NAME="@default51"></A><A NAME="@target6"></A>
+<A NAME="section:PHONY-scoping"></A><A NAME="@default54"></A><A NAME="@target6"></A>
 Phony targets (targets that do not correspond to files) are defined with a <CODE>.PHONY:</CODE> rule.
 Phony targets are scoped as usual. The following illustrates a common mistake, where the
 <CODE>.PHONY</CODE> target is declared <EM>after</EM> it is used.

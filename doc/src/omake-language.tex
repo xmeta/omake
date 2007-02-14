@@ -130,6 +130,7 @@ defines a function that concatenates its arguments, separating them with a colon
         return($(a):$(b))
 \end{verbatim}
 
+\index{return}%
 The \verb+return+ expression can be used to return a value from the function.  A \verb+return+
 statement is not required; if it is omitted, the returned value is the value of the last expression
 in the body to be evaluated.  NOTE: as of version \verb+0.9.6+, \verb+return+ is a control
@@ -145,6 +146,7 @@ statement.
        return 0
 \end{verbatim}
 
+\index{value}%
 In many cases, you may wish to return a value from a section or code block without returning from
 the function.  In this case, you would use the \verb+value+ operator.  In fact, the \verb+value+
 operator is not limited to functions, it can be used any place where a value is required.  In the
@@ -188,30 +190,29 @@ Comments begin with the \verb+#+ character and continue to the end of the line.
 
 \section{File inclusion}
 \label{section:include}
-\index{include}\index[fun]{include}
+\index{include}\index[fun]{include}\index{open}
 
-Files may be included with the \verb+include+ form.  The included file must use
+Files may be included with the \verb+include+ or \verb+open+ form.  The included file must use
 the same syntax as an \File{OMakefile}.
 
 \begin{verbatim}
-    include files.omake
+    include $(Config_file)
 \end{verbatim}
 
-%%%
-%%% This stuff is not finished, so we are not advertizing its availability.
-%%%
+The \verb+open+ operation is similar to an \verb+include+, but the file is included at most once.
+\begin{verbatim}
+    open Config
 
-% The \verb+open+ operation is similar to an \verb+include+, but the file is included at most once.
-% If the file specified is not an absolute or relative filenmame, \verb+open+ operation searches for the file
-% based on the \verb+OMAKEPATH+ environment variable.  Searching is performed at \emph{parse} time.
-%
-% \begin{verbatim}
-%     open Config
-%
-%     # Repeated opens are ignored, so this
-%     # line has no effect.
-%     open Config
-% \end{verbatim}
+    # Repeated opens are ignored, so this
+    # line has no effect.
+    open Config
+\end{verbatim}
+
+If the file specified is not an absolute filenmame, both \verb+include+ and
+\verb+open+ operations search for the file based on the
+\hypervar{OMAKEPATH}. In case of the \verb+open+ directive, the search is
+performed at \emph{parse} time, and the argument to \verb+open+ may not
+contain any expressions.
 
 \section{Scoping, sections}
 \label{section:section}

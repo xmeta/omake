@@ -1120,6 +1120,27 @@ Node: Section 8-1,	Next: Section 8-2,	Prev: Chapter 8,	Up: Chapter 8
 *=*=*=*=*=*=*=*=*=*=*=*
 
    
+ OMAKE_VERSION
+  Version of OMake. 
+ STDLIB
+  The directory where the OMake standard
+library files reside. At startup, the default  value is determined as
+follows.  
+   
+ - The value of the `OMAKELIB' environment variable, if set (must
+   contain  an absolute path, if set), otherwise  
+ - On Windows, the registry keys
+   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and 
+   `HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
+   and the value is used,  if exist.  
+ - Otherwise a compile-time default it used.  
+    The current default value may be accessed by running `omake
+--version' 
+ OMAKEPATH
+  An array of directories specifying the
+lookup path for the `include' and `open' directives (see  Section
+4.7*Note Section 4-7::).  The default value is an array of two
+elements --- `.' and `$(STDLIB)'. 
  OSTYPE
   Set to the machine architecture omake
 is running on. Possible values are  `Unix' (for all Unix versions,
@@ -1138,8 +1159,6 @@ the current machine.
 `sparc', etc. 
  HOST
   Same as `NODENAME'. 
- OMAKE_VERSION
-  Version of OMake. 
  USER
   The login name of the user executing
 the process. 
@@ -1595,41 +1614,3 @@ also use the alternate form.
          default
 >>
   
-
-Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
-  
-
-8.2.16   getvar
-===============
-
-<<
-     $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<
-      NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
->>
-
-Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
-  
-
-8.2.17   setvar
-===============
-
-<<
-     setvar(name, value)
-        name : String
-        value : String
->>
-  
-  The `setvar' function defines a new variable. For example, the
-following code defines the variable `X' to be the string `abc'.
-<<
-     NAME = X
-     setvar($(NAME), abc)
->>
