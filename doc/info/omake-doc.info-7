@@ -1,5 +1,107 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: Section 12-3
+  
+
+12.3.2   target
+===============
+ 
+<<   $(target targets) : Target Array
+        targets : File Sequence
+     raises RuntimeException
+>>
+  
+  The `target' function returns the Target object associated with each
+of the targets. See the `Target' object for more information. 
+
+Node: Subsection 12-3-3,	Next: Subsection 12-3-4,	Prev: Subsection 12-3-2,	Up: Section 12-3
+  
+
+12.3.3   find-build-targets
+===========================
+
+<<    $(find-build-targets tag) : Target Array
+         tag : Succeeded | Failed
+>>
+  
+  The `find-build-targets' allow the results of the build to be
+examined. The `tag' must specifies which targets are to be returned; the
+comparison is case-insensitive.
+  
+  
+ Succeeded  The list of targets that were built successfully. 
+ Failed  The list of targets that could not be built. 
+  
+  These are used mainly in conjuction with the `.BUILD_SUCCESS' (Section
+12.1*Note Section 12-1::) and `.BUILD_FAILURE' (Section
+12.1*Note Section 12-1::) phony targets. For example,
+adding the following to your project `OMakefile' will print the number
+of targets that failed (if the build failed).
+<<    .BUILD_FAILURE:
+          echo "Failed target count: $(length $(find-build-targets
+Failed))"
+>>
+
+Node: Subsection 12-3-4,	Next: Subsection 12-3-5,	Prev: Subsection 12-3-3,	Up: Section 12-3
+  
+
+12.3.4   project-directories
+============================
+
+<<   $(project-directories) : Dir Array
+>>
+  
+  The `project-directories' function returns the list of all directories
+that are considered to be part of the project.
+  To get the complete directory list, this function should be called
+from within a rule body. 
+
+Node: Subsection 12-3-5,	Next: Section 12-4,	Prev: Subsection 12-3-4,	Up: Section 12-3
+  
+
+12.3.5   rule
+=============
+
+  The `rule' function is called whenever a build rule is defined. It is
+unlikely that you will need to redefine this function, except in very
+exceptional cases.
+<<   rule(multiple, target, pattern, sources, options, body) : Rule
+        multiple : String
+        target   : Sequence
+        pattern  : Sequence
+        sources  : Sequence
+        options  : Array
+        body     : Body
+>>
+  
+  The `rule' function is called when a rule is evaluated.
+  
+  
+ multiple  A Boolean value indicating whether the rule was defined with
+   a double colon `::'. 
+ target  The sequence of target names. 
+ pattern  The sequence of patterns. This sequence will be empty for
+   two-part rules. 
+ sources  The sequence of dependencies. 
+ options  An array of options. Each option is represented as a `Map
+   object associating each specified option with a value. 
+ body  The body expression of the rule. 
+  
+  Consider the following rule.
+<<   target: pattern: sources :name1: option1 :name2: option2
+        expr1
+        expr2
+>>
+  
+  This expression represents the following function call, where square
+brackets are used to indicate arrays, and the curly brackets represent a
+`Map object.
+<<   rule(false, target, pattern, sources,
+          { $|:name1:| = option1; $|:name2:| = option2 }
+          [expr1; expr2])
+>>
+   
+
 Node: Section 12-4,	Next: Subsection 12-4-1,	Prev: Section 12-3,	Up: Chapter 12
   
 
@@ -1421,93 +1523,3 @@ turns the option on; a lowercase character turns the option off.
  S  Equivalent to `-S' 
  s  Equivalent to `--no-S' 
   
-
-Node: Section A-3,	Next: Subsection A-3-1,	Prev: Section A-2,	Up: Appendix A
-  
-
-A.3   Build options
-*=*=*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection A-3-1::	-k
-* Subsection A-3-2::	-n
-* Subsection A-3-3::	-p
-* Subsection A-3-4::	-P
-* Subsection A-3-5::	-R
-* Subsection A-3-6::	-t
-* Subsection A-3-7::	-U
-* Subsection A-3-8::	--depend
-* Subsection A-3-9::	--configure
-* Subsection A-3-10::	--force-dotomake
-* Subsection A-3-11::	--dotomake
-* Subsection A-3-12::	-j
-* Subsection A-3-13::	--print-dependencies
-* Subsection A-3-14::	--show-dependencies
-* Subsection A-3-15::	--all-dependencies
-* Subsection A-3-16::	--verbose-dependencies
-* Subsection A-3-17::	--install
-* Subsection A-3-18::	--install-all
-* Subsection A-3-19::	--install-force
-* Subsection A-3-20::	--absname
-* Subsection A-3-21::	variable definition
-
-
-Node: Subsection A-3-1,	Next: Subsection A-3-2,	Prev: Section A-3,	Up: Section A-3
-  
-
-A.3.1   -k
-==========
- `-k'
-  Do not abort when a build command fails; continue to build as much of
-the project as possible. This option is implied by both `-p' and `-P'
-options. In turn, this option would imply the `--output-at-end' option.
-
-Node: Subsection A-3-2,	Next: Subsection A-3-3,	Prev: Subsection A-3-1,	Up: Section A-3
-  
-
-A.3.2   -n
-==========
- `-n'
-  This can be used to see what would happen if the project were to be
-built.
-
-Node: Subsection A-3-3,	Next: Subsection A-3-4,	Prev: Subsection A-3-2,	Up: Section A-3
-  
-
-A.3.3   -p
-==========
- `-p'
-  Watch the filesystem for changes, and continue the build until it
-succeeds. If this option is specified, omake will restart the build
-whenever source files are modified. Implies -k.
-
-Node: Subsection A-3-4,	Next: Subsection A-3-5,	Prev: Subsection A-3-3,	Up: Section A-3
-  
-
-A.3.4   -P
-==========
- `-P'
-  Watch the filesystem for changes forever. If this option is specified,
-omake will restart the build whenever source files are modified. Implies
--k.
-
-Node: Subsection A-3-5,	Next: Subsection A-3-6,	Prev: Subsection A-3-4,	Up: Section A-3
-  
-
-A.3.5   -R
-==========
- `-R'
-  Ignore the current directory and build the project from its root
-directory. When omake is run in a subdirectory of a project and no
-explicit targets are given on the command line, it would normally only
-build files within the current directory and its subdirectories (more
-precisely, it builds all the `.DEFAULT' targets in the current directory
-and its subdirectories). If the -R option is specified, the build is
-performed as if omake were run in the project root.
-  In other words, with the `-R' option, all the relative targets
-specified on the command line will be taken relative to the project root
-(instead of relative to the current directory). When no targets are
-given on the command line, all the `.DEFAULT' targets in the project
-will be built (regardless of the current directory).

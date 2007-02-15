@@ -1,5 +1,82 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
+  
+
+6.4   Iteration, mapping, and foreach
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Most builtin functions operate transparently on arrays.
+<<    osh> addprefix(-D, DEBUG WIN32)
+      - : -DDEBUG -DWIN32 : Array
+      osh> mapprefix(-I, /etc /tmp)
+      - : -I /etc -I /tmp : Array
+      osh> uppercase(fee fi foo fum)
+      - : FEE FI FOO FUM : Array
+>>
+  
+  The `mapprefix' and `addprefix' functions are slightly different (the
+`addsuffix' and `mapsuffix' functions are similar). The `addprefix' adds
+the prefex to each array element. The `mapprefix' doubles the length of
+the array, adding the prefix as a new array element before each of the
+original elements.
+  Even though most functions work on arrays, there are times when you
+will want to do it yourself. The `foreach' function is the way to go.
+The `foreach' function has two forms, but the form with a body is most
+useful. In this form, the function takes two arguments and a body. The
+second argument is an array, and the first is a variable. The body is
+evaluated once for each element of the array, where the variable is
+bound to the element. Let's define a function to add 1 to each element
+of an array of numbers.
+<<   osh> add1(l) =
+              foreach(i, $l):
+                  add($i, 1)
+     osh> add1(7 21 75)
+     - : 8 22 76 : Array
+>>
+  
+  Sometimes you have an array of filenames, and you want to define a
+rule for each of them. Rules are not special, you can define them
+anywhere a statement is expected. Say we want to write a function that
+describes how to process each file, placing the result in the `tmp/'
+directory.
+<<   TMP = $(dir tmp)
+  
+     my-special-rule(files) =
+        foreach(name, $(files))
+           $(TMP)/$(name): $(name)
+              process $< > $@
+>>
+  
+  Later, in some other part of the project, we may decide that we want
+to use this function to process some files.
+<<   # These are the files to process in src/lib
+     MY_SPECIAL_FILES[] =
+         fee.src
+         fi.src
+         file with spaces in its name.src
+     my-special-rule($(MY_SPECIAL_FILES))
+>>
+  
+  The result of calling `my-special-rule' is exactly the same as if we
+had written the following three rules explicitly.
+<<    $(TMP)/fee.src: fee.src
+          process fee > $@
+      $(TMP)/fi.src: fi.src
+          process fi.src > $@
+      $(TMP)/$"file with spaces in its name.src": $"file with spaces in
+its name.src"
+          process $< > $@
+>>
+  
+  Of course, writing these rules is not nearly as pleasant as calling
+the function. The usual properties of function abstraction give us the
+usual benefits. The code is less redundant, and there is a single
+location (the `my-special-rule' function) that defines the build rule.
+Later, if we want to modify/update the rule, we need do so in only one
+location.
+
 Node: Section 6-5,	Next: Subsection 6-5-1,	Prev: Section 6-4,	Up: Chapter 6
   
 
@@ -1437,112 +1514,4 @@ environment variable `DEBUG' is defined.
 <<if $(defined-env DEBUG)
       CFLAGS += -g
       export
->>
-
-Node: Subsection 8-2-12,	Next: Subsection 8-2-13,	Prev: Subsection 8-2-11,	Up: Section 8-2
-  
-
-8.2.12   getenv
-===============
-
-<<   $(getenv name) : String
-     $(getenv name, default) : String
->>
-  
-  The `getenv' function gets the value of a variable from the process
-environment. The function takes one or two arguments.
-  In the single argument form, an exception is raised if the variable
-variable is not defined in the environment. In the two-argument form,
-the second argument is returned as the result if the value is not
-defined.
-  For example, the following code defines the variable `X' to be a
-space-separated list of elements of the `PATH' environment variable if
-it is defined, and to `/bin /usr/bin' otherwise.
-<<    X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
->>
-  
-  You may also use the alternate form. 
-<<     getenv(NAME)
-           default
->>
-
-Node: Subsection 8-2-13,	Next: Subsection 8-2-14,	Prev: Subsection 8-2-12,	Up: Section 8-2
-  
-
-8.2.13   setenv
-===============
-
-<<   setenv(name, value)
-        name : String
-        value : String
->>
-  
-  The `setenv' function sets the value of a variable in the process
-environment. Environment variables are scoped like normal variables.
-
-Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: Section 8-2
-  
-
-8.2.14   unsetenv
-=================
-
-<<   unsetenv(names)
-        names : String Array
->>
-  
-  The `unsetenv' function removes some variable definitions from the
-process environment. Environment variables are scoped like normal
-variables.
-
-Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: Section 8-2
-  
-
-8.2.15   get-registry
-=====================
-
-<<   get-registry(hkey, key, field) : String
-     get-registry(hkey, key, field, default) : String
-         hkey : String
-         key : String
-         field : String
->>
-  
-  The `get-registry' function retrieves a string value from the system
-registry on Win32. On other architectures, there is no registry.
-  The `hive' (I think that is the right word), indicates which part of
-the registry to use. It should be one of the following values.
-  
-  
- - `HKEY_CLASSES_ROOT' 
- - `HKEY_CURRENT_CONFIG' 
- - `HKEY_CURRENT_USER' 
- - `HKEY_LOCAL_MACHINE' 
- - `HKEY_USERS' 
-   Refer to the Microsoft documentation if you want to know what these
-mean.
-  The `key' is the field you want to get from the registry. It should
-have a form like `A\B\C' (if you use forward slashes, they will be
-converted to backslashes). The field is the sub-field of the key.
-  In the 4-argument form, the `default' is returned on failure. You may
-also use the alternate form.
-<<    get-registry(hkey, key, field)
-         default
->>
-  
-
-Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
-  
-
-8.2.16   getvar
-===============
-
-<<   $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<    NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
 >>

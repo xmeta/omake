@@ -1,5 +1,115 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
+  
+
+9.4   Globbing and file listings
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  OMake commands are "glob-expanded" before being executed. That is,
+names may contain patterns that are expanded to sequences of file and
+directory names. The syntax follows the standard bash(1), csh(1),
+syntax, with the following rules.
+  
+  
+ - A pathname is a sequence of directory and file names separated by one
+   of the `/' or `\' characters. For example, the following pathnames
+   refer to the same file: `/home/jyh/OMakefile' and
+   `/home\jyh/OMakefile'.
+ 
+ - Glob-expansion is performed on the components of a path. If a path
+   contains occurrences of special characters (listed below), the path
+   is viewed as a pattern to be matched against the actual files in the
+   system. The expansion produces a sequence of all file/directory names
+   that match.
+ For the following examples, suppose that a directory `/dir' contains
+   files named `a', `-a', `a.b', and `b.c'.
+ 
+     
+    *  Matches any sequence of zero-or-more characters. For example, the
+      pattern `/dir/a*' expands to `/dir/a /dir/aa /dir/a.b'.
+    
+    ?  Matches exactly one character. The pattern `/dir/?a' expands the
+      filename `/dir/-a'.
+    
+    [...]  Square brackets denote character sets and ranges in the ASCII
+      character set. The pattern may contain individual characters c or
+      character ranges c_1-c_2. The pattern matches any of the
+      individual characters specified, or any characters in the range. A
+      leading "hat" inverts the send of the pattern. To specify a
+      pattern that contains the literal characters `-', the `-' should
+      occur as the first character in the range.
+                                        
+              Pattern        Expansion                          
+             ---------------------------------------------------
+              `/dir/[a-b]*'  `/dir/a /dir/a.b /dir/b.c'         
+              `/dir/[-a-b]*' `/dir/a /dir/-a /dir/a.b /dir/b.c' 
+              `/dir/[-a]*'   `/dir/a /dir/-a /dir/a.b'          
+                                        
+    
+    
+    {s1,...,sN}  Braces indicate brace-expansion. The braces delimit a
+      sequence of strings separated by commas. Given N strings, the
+      result produces N copies of the pattern, one for each of the
+      strings s_i.
+                                        
+                      Pattern           Expansion        
+                     ------------------------------------
+                      `a{b,c,d}'        `ab ac ad'       
+                      `a{b{c,d},e}'     `abc abd ae'     
+                      `a{?{[A-Z],d},*}' `a?[A-Z] a?d a*' 
+                                        
+    
+    
+       The tilde is used to specify home directories. Depending on your
+      system, these might be possible expansions.
+                                        
+               Pattern    Expansion                             
+              --------------------------------------------------
+               `~jyh'     `/home/jyh'                           
+               `~bob/*.c' `c:\Documents and Settings\users\bob' 
+                                        
+    
+    
+    
+      The `\' character is both a pathname separator and an escape
+      character. If followed by a special glob character, the `\'
+      changes the sense of the following character to non-special
+      status. Otherwise, `\' is viewed as a pathname separator.
+                                        
+       Pattern                  Expansion                               
+                                           
+      ------------------------------------------------------------------
+                                  ---------
+       `~jyh/\*'                `~jyh/*' (`*' is literal)               
+                                           
+        `/dir/\[a-z?'            `/dir/[a-z?' (`[' is literal, `?' is a
+                                  pattern). 
+       `c:\Program Files\[A-z]' `c:\Program Files[A-z]*'                
+                                           
+                                        
+    
+    Note that the final case might be considered to be ambiguous (where
+      `\' should be viewed as a pathname separator, not as an escape for
+      the subsequent `[' character. If you want to avoid this ambiguity
+      on Win32, you should use the forward slash `/' even for Win32
+      pathnames (the `/' is translated to `\' in the output).
+                                        
+        Pattern                   Expansion                            
+       ----------------------------------------------------------------
+        `c:/Program Files/[A-z]*' `c:\Program Files\WindowsUpdate ...' 
+                                        
+     
+  
+  
+* Menu:
+
+* Subsection 9-4-1::	glob
+* Subsection 9-4-2::	ls
+* Subsection 9-4-3::	subdirs
+
+
 Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
   
 
@@ -1594,123 +1704,3 @@ meaning of `stdout' outside the `filter' function.
   
   The `break function can be used to abort the loop, exiting the `awk'
 function immediately. 
-
-Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: Section 9-11
-  
-
-9.11.6   fsubst
-===============
-
-<<   fsubst(files)
-     case pattern1 [options]
-        body1
-     case pattern2 [options]
-        body2
-     ...
-     default
-        bodyd
->>
-  
-  The `fsubst' function provides a sed(1)-like substitution function.
-Similar to `awk', if `fsubst' is called with no arguments, the input is
-taken from `stdin'. If arguments are provided, each specifies an
-`InChannel', or the name of a file for input.
-  The `RS' variable defines a regular expression that determines a
-record separator, The default value of `RS' is the regular expression
-`\r|\n|\r\n'.
-  The `fsubst' function reads the file one record at a time.
-  For each record, the cases are evaluated in order. Each case defines a
-substitution from a substring matching the `pattern' to replacement text
-defined by the body.
-  Currently, there is only one option: `g'. If specified, each clause
-specifies a global replacement, and all instances of the pattern define
-a substitution. Otherwise, the substitution is applied only once.
-  Output can be redirected by redefining the `stdout' variable.
-  For example, the following program replaces all occurrences of an
-expression `word.' with its capitalized form.
-<<    section
-         stdout = $(fopen Subst.out, w)
-         fsubst(Subst.in)
-         case $"\<\([[:alnum:]]+\)\." g
-            value $(capitalize $1).
-         close(stdout)
->>
-
-Node: Subsection 9-11-7,	Next: Subsection 9-11-8,	Prev: Subsection 9-11-6,	Up: Section 9-11
-  
-
-9.11.7   lex
-============
-
-<<   lex(files)
-     case pattern1
-        body1
-     case pattern2
-        body2
-     ...
-     default
-        bodyd
->>
-  
-  The `lex' function provides a simple lexical-style scanner function.
-The input is a sequence of files or channels. The cases specify regular
-expressions. Each time the input is read, the regular expression that
-matches the longest prefix of the input is selected, and the body is
-evaluated.
-  If two clauses both match the same input, the last one is selected for
-execution. The `default' case matches the regular expression `.'; you
-probably want to place it first in the pattern list.
-  If the body end with an `export' directive, the state is passed to the
-next clause.
-  For example, the following program collects all occurrences of
-alphanumeric words in an input file.
-<<    collect-words($(files)) =
-         words[] =
-         lex($(files))
-         default
-            # empty
-         case $"[[:alnum:]]+" g
-            words[] += $0
-            export
->>
-  
-  The `default' case, if one exists, matches single characters. Since
-  It is an error if the input does not match any of the regular
-expressions.
-  The `break function can be used to abort the loop. 
-
-Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: Section 9-11
-  
-
-9.11.8   lex-search
-===================
-
-<<   lex-search(files)
-     case pattern1
-        body1
-     case pattern2
-        body2
-     ...
-     default
-        bodyd
->>
-  
-  The `lex-search' function is like the `lex' function, but input that
-does not match any of the regular expressions is skipped. If the clauses
-include a `default' case, then the `default' matches any skipped text.
-  For example, the following program collects all occurrences of
-alphanumeric words in an input file, skipping any other text.
-<<    collect-words($(files)) =
-         words[] =
-         lex-search($(files))
-         default
-            eprintln(Skipped $0)
-         case $"[[:alnum:]]+" g
-            words[] += $0
-            export
->>
-  
-  The `default' case, if one exists, matches single characters. Since
-  It is an error if the input does not match any of the regular
-expressions.
-  The `break function can be used to abort the loop. 

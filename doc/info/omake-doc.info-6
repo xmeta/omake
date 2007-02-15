@@ -1,5 +1,125 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: Section 9-11
+  
+
+9.11.6   fsubst
+===============
+
+<<   fsubst(files)
+     case pattern1 [options]
+        body1
+     case pattern2 [options]
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `fsubst' function provides a sed(1)-like substitution function.
+Similar to `awk', if `fsubst' is called with no arguments, the input is
+taken from `stdin'. If arguments are provided, each specifies an
+`InChannel', or the name of a file for input.
+  The `RS' variable defines a regular expression that determines a
+record separator, The default value of `RS' is the regular expression
+`\r|\n|\r\n'.
+  The `fsubst' function reads the file one record at a time.
+  For each record, the cases are evaluated in order. Each case defines a
+substitution from a substring matching the `pattern' to replacement text
+defined by the body.
+  Currently, there is only one option: `g'. If specified, each clause
+specifies a global replacement, and all instances of the pattern define
+a substitution. Otherwise, the substitution is applied only once.
+  Output can be redirected by redefining the `stdout' variable.
+  For example, the following program replaces all occurrences of an
+expression `word.' with its capitalized form.
+<<    section
+         stdout = $(fopen Subst.out, w)
+         fsubst(Subst.in)
+         case $"\<\([[:alnum:]]+\)\." g
+            value $(capitalize $1).
+         close(stdout)
+>>
+
+Node: Subsection 9-11-7,	Next: Subsection 9-11-8,	Prev: Subsection 9-11-6,	Up: Section 9-11
+  
+
+9.11.7   lex
+============
+
+<<   lex(files)
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `lex' function provides a simple lexical-style scanner function.
+The input is a sequence of files or channels. The cases specify regular
+expressions. Each time the input is read, the regular expression that
+matches the longest prefix of the input is selected, and the body is
+evaluated.
+  If two clauses both match the same input, the last one is selected for
+execution. The `default' case matches the regular expression `.'; you
+probably want to place it first in the pattern list.
+  If the body end with an `export' directive, the state is passed to the
+next clause.
+  For example, the following program collects all occurrences of
+alphanumeric words in an input file.
+<<    collect-words($(files)) =
+         words[] =
+         lex($(files))
+         default
+            # empty
+         case $"[[:alnum:]]+" g
+            words[] += $0
+            export
+>>
+  
+  The `default' case, if one exists, matches single characters. Since
+  It is an error if the input does not match any of the regular
+expressions.
+  The `break function can be used to abort the loop. 
+
+Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: Section 9-11
+  
+
+9.11.8   lex-search
+===================
+
+<<   lex-search(files)
+     case pattern1
+        body1
+     case pattern2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `lex-search' function is like the `lex' function, but input that
+does not match any of the regular expressions is skipped. If the clauses
+include a `default' case, then the `default' matches any skipped text.
+  For example, the following program collects all occurrences of
+alphanumeric words in an input file, skipping any other text.
+<<    collect-words($(files)) =
+         words[] =
+         lex-search($(files))
+         default
+            eprintln(Skipped $0)
+         case $"[[:alnum:]]+" g
+            words[] += $0
+            export
+>>
+  
+  The `default' case, if one exists, matches single characters. Since
+  It is an error if the input does not match any of the regular
+expressions.
+  The `break function can be used to abort the loop. 
+
 Node: Subsection 9-11-9,	Next: Subsection 9-11-10,	Prev: Subsection 9-11-8,	Up: Section 9-11
   
 
@@ -1536,105 +1656,3 @@ For a shorter form, see the `filter-proper-targets' function.
          rm $(dependencies-proper $(APP))
 >>
   
-
-Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: Section 12-3
-  
-
-12.3.2   target
-===============
- 
-<<   $(target targets) : Target Array
-        targets : File Sequence
-     raises RuntimeException
->>
-  
-  The `target' function returns the Target object associated with each
-of the targets. See the `Target' object for more information. 
-
-Node: Subsection 12-3-3,	Next: Subsection 12-3-4,	Prev: Subsection 12-3-2,	Up: Section 12-3
-  
-
-12.3.3   find-build-targets
-===========================
-
-<<    $(find-build-targets tag) : Target Array
-         tag : Succeeded | Failed
->>
-  
-  The `find-build-targets' allow the results of the build to be
-examined. The `tag' must specifies which targets are to be returned; the
-comparison is case-insensitive.
-  
-  
- Succeeded  The list of targets that were built successfully. 
- Failed  The list of targets that could not be built. 
-  
-  These are used mainly in conjuction with the `.BUILD_SUCCESS' (Section
-12.1*Note Section 12-1::) and `.BUILD_FAILURE' (Section
-12.1*Note Section 12-1::) phony targets. For example,
-adding the following to your project `OMakefile' will print the number
-of targets that failed (if the build failed).
-<<    .BUILD_FAILURE:
-          echo "Failed target count: $(length $(find-build-targets
-Failed))"
->>
-
-Node: Subsection 12-3-4,	Next: Subsection 12-3-5,	Prev: Subsection 12-3-3,	Up: Section 12-3
-  
-
-12.3.4   project-directories
-============================
-
-<<   $(project-directories) : Dir Array
->>
-  
-  The `project-directories' function returns the list of all directories
-that are considered to be part of the project.
-  To get the complete directory list, this function should be called
-from within a rule body. 
-
-Node: Subsection 12-3-5,	Next: Section 12-4,	Prev: Subsection 12-3-4,	Up: Section 12-3
-  
-
-12.3.5   rule
-=============
-
-  The `rule' function is called whenever a build rule is defined. It is
-unlikely that you will need to redefine this function, except in very
-exceptional cases.
-<<   rule(multiple, target, pattern, sources, options, body) : Rule
-        multiple : String
-        target   : Sequence
-        pattern  : Sequence
-        sources  : Sequence
-        options  : Array
-        body     : Body
->>
-  
-  The `rule' function is called when a rule is evaluated.
-  
-  
- multiple  A Boolean value indicating whether the rule was defined with
-   a double colon `::'. 
- target  The sequence of target names. 
- pattern  The sequence of patterns. This sequence will be empty for
-   two-part rules. 
- sources  The sequence of dependencies. 
- options  An array of options. Each option is represented as a `Map
-   object associating each specified option with a value. 
- body  The body expression of the rule. 
-  
-  Consider the following rule.
-<<   target: pattern: sources :name1: option1 :name2: option2
-        expr1
-        expr2
->>
-  
-  This expression represents the following function call, where square
-brackets are used to indicate arrays, and the curly brackets represent a
-`Map object.
-<<   rule(false, target, pattern, sources,
-          { $|:name1:| = option1; $|:name2:| = option2 }
-          [expr1; expr2])
->>
-   
