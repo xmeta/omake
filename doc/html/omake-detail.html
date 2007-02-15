@@ -3,107 +3,77 @@
 <HTML>
 <HEAD>
 
-
-
 <META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<META name="GENERATOR" content="hevea 1.08">
+<META name="GENERATOR" content="hevea 1.09">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
-<TITLE>
-Expressions and values
-</TITLE>
+<TITLE>Expressions and values</TITLE>
 </HEAD>
 <BODY >
 
 <img src="images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=2 CELLPADDING=0>
-<TR><TD ALIGN=left NOWRAP>Jump to:</TD>
-<TD VALIGN=top ALIGN=center NOWRAP>&nbsp;&nbsp;</TD>
-<TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD>
-</TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD>
-<TD VALIGN=top ALIGN=center NOWRAP>&nbsp;&nbsp;</TD>
-<TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
 &bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
 &bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
 &bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD>
-</TR></TABLE>
-
-<H1 CLASS="chapter"><A NAME="htoc51">Chapter&nbsp;5</A>&nbsp;&nbsp;Expressions and values</H1><UL>
-<LI><A HREF="omake-detail.html#toc36">Dynamic scoping</A>
-<LI><A HREF="omake-detail.html#toc37">Functional evaluation</A>
-<LI><A HREF="omake-detail.html#toc38">Exporting the environment</A>
-<LI><A HREF="omake-detail.html#toc39">Eager evaluation</A>
-<LI><A HREF="omake-detail.html#toc40">Objects</A>
-<LI><A HREF="omake-detail.html#toc41">Field and method calls</A>
-<LI><A HREF="omake-detail.html#toc42">Method override</A>
-<LI><A HREF="omake-detail.html#toc43">Super calls</A>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
+<H1 CLASS="chapter"><A NAME="htoc51">Chapter 5</A>  Expressions and values</H1><UL>
+<LI><A HREF="omake-detail.html#toc36">Dynamic scoping</A></LI>
+<LI><A HREF="omake-detail.html#toc37">Functional evaluation</A></LI>
+<LI><A HREF="omake-detail.html#toc38">Exporting the environment</A></LI>
+<LI><A HREF="omake-detail.html#toc39">Eager evaluation</A></LI>
+<LI><A HREF="omake-detail.html#toc40">Objects</A></LI>
+<LI><A HREF="omake-detail.html#toc41">Field and method calls</A></LI>
+<LI><A HREF="omake-detail.html#toc42">Method override</A></LI>
+<LI><A HREF="omake-detail.html#toc43">Super calls</A></LI>
 </UL>
-
+<P>
 <A NAME="chapter:extra"></A>
-<BR>
-<BR>
-<TT>omake</TT> provides a full programming-language including many
-system and IO functions. The language is object-oriented &ndash; everything is
+</P><P><TT>omake</TT> provides a full programming-language including many
+system and IO functions. The language is object-oriented &#X2013; everything is
 an object, including the base values like numbers and strings. However,
 the <TT>omake</TT> language differs from other scripting languages in
-three main respects.
-<UL CLASS="itemize"><LI CLASS="li-itemize">
+three main respects.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 Scoping is dynamic.
-<LI CLASS="li-itemize">Apart from IO, the language is entirely functional &ndash; there is no
- assignment operator in the language.
-<LI CLASS="li-itemize">Evaluation is normally eager &ndash; that is, expressions are evaluated as soon
- as they are encountered.
-</UL>
-To illustrate these features, we will use the <TT>osh</TT>(1) omake program shell.
+</LI><LI CLASS="li-itemize">Apart from IO, the language is entirely functional &#X2013; there is no
+assignment operator in the language.
+</LI><LI CLASS="li-itemize">Evaluation is normally eager &#X2013; that is, expressions are evaluated as soon
+as they are encountered.
+</LI></UL><P>To illustrate these features, we will use the <TT>osh</TT>(1) omake program shell.
 The <TT>osh</TT>(1) program provides a toploop, where expressions can be entered
 and the result printed. <TT>osh</TT>(1) normally interprets input as command text
 to be executed by the shell, so in many cases we will use the <CODE>value</CODE>
-form to evaluate an expression directly.
-<PRE CLASS="verbatim">
-    osh&gt; 1
+form to evaluate an expression directly.</P><PRE CLASS="verbatim">    osh&gt; 1
     *** omake error: File -: line 1, characters 0-1 command not found: 1
     osh&gt; value 1
     - : "1" : Sequence
     osh&gt; ls -l omake
     -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
-</PRE>
-<A NAME="toc36"></A>
-<H2 CLASS="section"><A NAME="htoc52">5.1</A>&nbsp;&nbsp;Dynamic scoping</H2>
-Dynamic scoping means that the value of a variable is determined by the most
+</PRE><H2 CLASS="section"><A NAME="toc36"></A><A NAME="htoc52">5.1</A>  Dynamic scoping</H2><P>Dynamic scoping means that the value of a variable is determined by the most
 recent binding of the variable in scope at runtime. Consider the following
-program.
-<PRE CLASS="verbatim">
-    OPTIONS = a b c
+program.</P><PRE CLASS="verbatim">    OPTIONS = a b c
     f() =
        println(OPTIONS = $(OPTIONS))
     g() =
        OPTIONS = d e f
        f()
-</PRE>
-If <CODE>f()</CODE> is called without redefining the <CODE>OPTIONS</CODE> variable,
-the function should print the string <CODE>OPTIONS = a b c</CODE>.<BR>
-<BR>
-In contrast, the function <CODE>g()</CODE> redefines the <CODE>OPTIONS</CODE>
+</PRE><P>If <CODE>f()</CODE> is called without redefining the <CODE>OPTIONS</CODE> variable,
+the function should print the string <CODE>OPTIONS = a b c</CODE>.</P><P>In contrast, the function <CODE>g()</CODE> redefines the <CODE>OPTIONS</CODE>
 variable and evaluates <CODE>f()</CODE> in that scope, which now prints the
-string <CODE>OPTIONS = d e f</CODE>.<BR>
-<BR>
-The body of <CODE>g</CODE> defines a local scope &ndash; the redefinition of the
+string <CODE>OPTIONS = d e f</CODE>.</P><P>The body of <CODE>g</CODE> defines a local scope &#X2013; the redefinition of the
 <CODE>OPTIONS</CODE> variable is local to <CODE>g</CODE> and does not persist
-after the function terminates.
-<PRE CLASS="verbatim">
-    osh&gt; g()
+after the function terminates.</P><PRE CLASS="verbatim">    osh&gt; g()
     OPTIONS = d e f
     osh&gt; f()
     OPTIONS = a b c
-</PRE>
-Dynamic scoping can be tremendously helpful for simplifying the code
+</PRE><P>Dynamic scoping can be tremendously helpful for simplifying the code
 in a project. For example, the <TT>OMakeroot</TT> file defines a set of
 functions and rules for building projects using such variables as
 <CODE>CC</CODE>, <CODE>CFLAGS</CODE>, etc. However, different parts of a project
@@ -112,38 +82,28 @@ have a subdirectory called <CODE>opt</CODE> where we want to use the
 <CODE>-03</CODE> option, and a subdirectory called <CODE>debug</CODE> where we
 want to use the <CODE>-g</CODE> option. Dynamic scoping allows us to redefine
 these variables in the parts of the project without having to
-redefine the functions that use them.
-<PRE CLASS="verbatim">
-    section
+redefine the functions that use them.</P><PRE CLASS="verbatim">    section
        CFLAGS = -O3
        .SUBDIRS: opt
     section
        CFLAGS = -g
        .SUBDIRS: debug
-</PRE>
-However, dynamic scoping also has drawbacks. First, it can become
+</PRE><P>However, dynamic scoping also has drawbacks. First, it can become
 confusing: you might have a variable that is intended to be private,
 but it is accidentally redefined elsewhere. For example, you might
-have the following code to construct search paths.
-<PRE CLASS="verbatim">
-   PATHSEP = :
+have the following code to construct search paths.</P><PRE CLASS="verbatim">   PATHSEP = :
    make-path(dirs) =
       return $(concat $(PATHSEP), $(dirs))
 
    make-path(/bin /usr/bin /usr/X11R6/bin)
    - : "/bin:/usr/bin:/usr/X11R6/bin" : String
-</PRE>
-However, elsewhere in the project, the <CODE>PATHSEP</CODE> variable is
+</PRE><P>However, elsewhere in the project, the <CODE>PATHSEP</CODE> variable is
 redefined as a directory separator <CODE>/</CODE>, and your function
 suddenly returns the string <CODE>/bin//usr/bin//usr/X11R6/bin</CODE>,
-obviously not what you want.<BR>
-<BR>
-The <CODE>private</CODE> block is used to solve this problem. Variables
-that are defined in a <CODE>private</CODE> block use static scoping &ndash; that
+obviously not what you want.</P><P>The <CODE>private</CODE> block is used to solve this problem. Variables
+that are defined in a <CODE>private</CODE> block use static scoping &#X2013; that
 is, the value of the variable is determined by the most recent
-definition in scope in the source text.
-<PRE CLASS="verbatim">
-   private
+definition in scope in the source text.</P><PRE CLASS="verbatim">   private
       PATHSEP = :
    make-path(dirs) =
       return $(concat $(PATHSEP), $(dirs))
@@ -151,19 +111,12 @@ definition in scope in the source text.
    PATHSEP = /
    make-path(/bin /usr/bin /usr/X11R6/bin)
    - : "/bin:/usr/bin:/usr/X11R6/bin" : String
-</PRE>
-<A NAME="toc37"></A>
-<H2 CLASS="section"><A NAME="htoc53">5.2</A>&nbsp;&nbsp;Functional evaluation</H2>
-Apart from I/O, <TT>omake</TT> programs are entirely functional. This has two parts:
-<UL CLASS="itemize"><LI CLASS="li-itemize">
+</PRE><H2 CLASS="section"><A NAME="toc37"></A><A NAME="htoc53">5.2</A>  Functional evaluation</H2><P>Apart from I/O, <TT>omake</TT> programs are entirely functional. This has two parts:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 There is no assignment operator.
-<LI CLASS="li-itemize">Functions are values, and may be passed as arguments, and returned from
- functions just like any other value.
-</UL>
-The second item is straightforward. For example, the following program defines
-an increment function by returning a function value.
-<PRE CLASS="verbatim">
-   incby(n) =
+</LI><LI CLASS="li-itemize">Functions are values, and may be passed as arguments, and returned from
+functions just like any other value.
+</LI></UL><P>The second item is straightforward. For example, the following program defines
+an increment function by returning a function value.</P><PRE CLASS="verbatim">   incby(n) =
       g(i) =
          return $(add $(i), $(n))
       return $(g)
@@ -172,65 +125,52 @@ an increment function by returning a function value.
 
    value $(f 3)
    - : 8 : Int
-</PRE>
-The first item may be the most confusing initially. Without assignment, how is
+</PRE><P>The first item may be the most confusing initially. Without assignment, how is
 it possible for a subproject to modify the global behavior of the project? In fact,
 the omission is intentional. Build scripts are much easier to write when there
-is a guarantee that subprojects do not interfere with one another.<BR>
-<BR>
-However, there are times when a subproject needs to propagate
+is a guarantee that subprojects do not interfere with one another.</P><P>However, there are times when a subproject needs to propagate
 information back to its parent object, or when an inner scope needs to
-propagate information back to the outer scope.<BR>
-<BR>
-<A NAME="toc38"></A>
-<H2 CLASS="section"><A NAME="htoc54">5.3</A>&nbsp;&nbsp;Exporting the environment</H2>
+propagate information back to the outer scope.</P><H2 CLASS="section"><A NAME="toc38"></A><A NAME="htoc54">5.3</A>  Exporting the environment</H2><P>
 <A NAME="section:export"></A><A NAME="@default30"></A>
 The <CODE>export</CODE> directive can be used to propagate all or part of an inner scope back to its
 parent. The <CODE>export</CODE> directive should be the last statement in a block. If used without
 arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
 part of the environment to propagate. The most common usage is to export the definitions in a
 conditional block. In the following example, the variable <CODE>B</CODE> is bound to 2 after the
-conditional. The <CODE>A</CODE> variable is not redefined.
-<PRE CLASS="verbatim">
-    if $(test)
+conditional. The <CODE>A</CODE> variable is not redefined.</P><PRE CLASS="verbatim">    if $(test)
        A = 1
        B = $(add $(A), 1)
        export B
     else
        B = 2
        export
-</PRE>
-If the <CODE>export</CODE> directive is used without an argument, all of the following is exported:
-<UL CLASS="itemize"><LI CLASS="li-itemize">
+</PRE><P>If the <CODE>export</CODE> directive is used without an argument, all of the following is exported:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 The values of all the dynamically scoped variables (as described in
-Section&nbsp;<A HREF="omake-language.html#section:public">4.17</A>).
-<LI CLASS="li-itemize">The current working directory.
-<LI CLASS="li-itemize">The current Unix environment.
-<LI CLASS="li-itemize">The current implicit rules and implicit dependencies (see also
-Section&nbsp;<A HREF="omake-rules.html#section:implicit-scoping">7.11.1</A>).
-<LI CLASS="li-itemize">The current set of &#8220;phony&#8221; target declarations (see Sections&nbsp;<A HREF="omake-rules.html#target:.PHONY">7.10</A>
-and&nbsp;<A HREF="omake-rules.html#section:PHONY-scoping">7.11.3</A>).
-</UL>
-If the <CODE>export</CODE> directive is used with an argument, the argument expression is evaluated
+Section <A HREF="omake-language.html#section:public">4.17</A>).
+</LI><LI CLASS="li-itemize">The current working directory.
+</LI><LI CLASS="li-itemize">The current Unix environment.
+</LI><LI CLASS="li-itemize">The current implicit rules and implicit dependencies (see also
+Section <A HREF="omake-rules.html#section:implicit-scoping">7.11.1</A>).
+</LI><LI CLASS="li-itemize">The current set of &#X201C;phony&#X201D; target declarations (see Sections <A HREF="omake-rules.html#target:.PHONY">7.10</A>
+and <A HREF="omake-rules.html#section:PHONY-scoping">7.11.3</A>).
+</LI></UL><P>If the <CODE>export</CODE> directive is used with an argument, the argument expression is evaluated
 and the resulting value is interpreted as follows:
-<UL CLASS="itemize"><LI CLASS="li-itemize">
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 If the value is empty, everything is exported, as described above.
-<LI CLASS="li-itemize">If the value represents a environment (or a partial environment) captured using the
+</LI><LI CLASS="li-itemize">If the value represents a environment (or a partial environment) captured using the
 <A HREF="omake-base.html#fun:export"><CODE>export</CODE> function</A>, then the corresponding environment or partial
 environment is exported.
-<LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings specifying which items are to be propagated
+</LI><LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings specifying which items are to be propagated
 back. The following strings have special meaning:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
-<A NAME="@default31"></A><CODE>.RULE</CODE> &mdash; implicit rules and implicit dependencies.
-<LI CLASS="li-itemize"><A NAME="@default32"></A><CODE>.PHONY</CODE> &mdash; the set of &#8220;phony&#8221; target declarations.
-</UL>
+<A NAME="@default31"></A><CODE>.RULE</CODE> &#X2014; implicit rules and implicit dependencies.
+</LI><LI CLASS="li-itemize"><A NAME="@default32"></A><CODE>.PHONY</CODE> &#X2014; the set of &#X201C;phony&#X201D; target declarations.
+</LI></UL>
 All other strings are interpreted as names of the variables that need to be propagated back.
-</UL>
-For example, in the following (somewhat artificial) example, the variables <CODE>A</CODE> and <CODE>B</CODE>
+</LI></UL><P>For example, in the following (somewhat artificial) example, the variables <CODE>A</CODE> and <CODE>B</CODE>
 will be exported, and the implicit rule will remain in the environment after the section ends, but
-the variable <CODE>TMP</CODE> and the target <CODE>tmp_phony</CODE> will remain unchanged.
-<PRE CLASS="verbatim">
-WANT_TO_EXPORT[] = A B .RULE
+the variable <CODE>TMP</CODE> and the target <CODE>tmp_phony</CODE> will remain unchanged.</P><PRE CLASS="verbatim">WANT_TO_EXPORT[] = A B .RULE
 section
    A = 1
    B = 2
@@ -244,24 +184,16 @@ section
    %.foo: %.bar tmp_phony
       compute_foo $(TMP) $&lt; $@
    export $(WANT_TO_EXPORT)
-</PRE>
-<A NAME="toc39"></A>
-<H2 CLASS="section"><A NAME="htoc55">5.4</A>&nbsp;&nbsp;Eager evaluation</H2>
-<A NAME="section:eager"></A>
-Evaluation in <TT>omake</TT> is eager. That is, expressions are evaluated as soon as they are
+</PRE><H2 CLASS="section"><A NAME="toc39"></A><A NAME="htoc55">5.4</A>  Eager evaluation</H2><P>
+<A NAME="section:eager"></A></P><P>Evaluation in <TT>omake</TT> is eager. That is, expressions are evaluated as soon as they are
 encountered by the evaluator. One effect of this is that the right-hand-side of a variable
-definition is expanded when the variable is defined.
-<PRE CLASS="verbatim">
-    osh&gt; A = 1
+definition is expanded when the variable is defined.</P><PRE CLASS="verbatim">    osh&gt; A = 1
     - : "1"
     osh&gt; A = $(A)$(A)
     - : "11"
-</PRE>
-In the second definition, <CODE>A = $(A)$(A)</CODE>, the right-hand-side is evaluated first, producing the
+</PRE><P>In the second definition, <CODE>A = $(A)$(A)</CODE>, the right-hand-side is evaluated first, producing the
 sequence <CODE>11</CODE>. Then the variable <CODE>A</CODE> is <EM>redefined</EM> as the new value. When combined
-with dynamic scoping, this has many of the same properties as conventional imperative programming.
-<PRE CLASS="verbatim">
-    osh&gt; A = 1
+with dynamic scoping, this has many of the same properties as conventional imperative programming.</P><PRE CLASS="verbatim">    osh&gt; A = 1
     - : "1"
     osh&gt; printA() =
         println($"A = $A")
@@ -269,15 +201,10 @@ with dynamic scoping, this has many of the same properties as conventional imper
     - : "11"
     osh&gt; printA()
     11
-</PRE>
-In this example, the print function is defined in the scope of <CODE>A</CODE>. When it is called on
-the last line, the dynamic value of <CODE>A</CODE> is <CODE>11</CODE>, which is what is printed.<BR>
-<BR>
-However, dynamic scoping and imperative programming should not be confused. The following example
+</PRE><P>In this example, the print function is defined in the scope of <CODE>A</CODE>. When it is called on
+the last line, the dynamic value of <CODE>A</CODE> is <CODE>11</CODE>, which is what is printed.</P><P>However, dynamic scoping and imperative programming should not be confused. The following example
 illustrates a difference. The second <CODE>printA</CODE> is not in the scope of the definition
-<CODE>A = x$(A)$(A)x</CODE>, so it prints the original value, <CODE>1</CODE>.
-<PRE CLASS="verbatim">
-    osh&gt; A = 1
+<CODE>A = x$(A)$(A)x</CODE>, so it prints the original value, <CODE>1</CODE>.</P><PRE CLASS="verbatim">    osh&gt; A = 1
     - : "1"
     osh&gt; printA() =
         println($"A = $A")
@@ -287,24 +214,13 @@ illustrates a difference. The second <CODE>printA</CODE> is not in the scope of 
     x11x
     osh&gt; printA()
     1
-</PRE>
-See also Section&nbsp;<A HREF="omake-language-examples.html#section:lazy">6.5</A> for further ways to control the evaluation order through the use
-of &#8220;lazy&#8221; expressions.<BR>
-<BR>
-<A NAME="toc40"></A>
-<H2 CLASS="section"><A NAME="htoc56">5.5</A>&nbsp;&nbsp;Objects</H2>
-<TT>omake</TT> is an object-oriented language. Everything is an object, including
+</PRE><P>See also Section <A HREF="omake-language-examples.html#section:lazy">6.5</A> for further ways to control the evaluation order through the use
+of &#X201C;lazy&#X201D; expressions.</P><H2 CLASS="section"><A NAME="toc40"></A><A NAME="htoc56">5.5</A>  Objects</H2><P><TT>omake</TT> is an object-oriented language. Everything is an object, including
 base values like numbers and strings. In many projects, this may not be so apparent
 because most evaluation occurs in the default toplevel object, the <CODE>Pervasives</CODE>
-object, and few other objects are ever defined.<BR>
-<BR>
-However, objects provide additional means for data structuring, and in some cases
-judicious use of objects may simplify your project.<BR>
-<BR>
-Objects are defined with the following syntax. This defines <CODE>name</CODE>
-to be an object with several methods an values.
-<PRE CLASS="verbatim">
-    name. =                     # += may be used as well
+object, and few other objects are ever defined.</P><P>However, objects provide additional means for data structuring, and in some cases
+judicious use of objects may simplify your project.</P><P>Objects are defined with the following syntax. This defines <CODE>name</CODE>
+to be an object with several methods an values.</P><PRE CLASS="verbatim">    name. =                     # += may be used as well
        extends parent-object    # optional
        class class-name         # optional
 
@@ -317,28 +233,17 @@ to be an object with several methods an values.
           body
        g(arg) =
           body
-</PRE>
-An <CODE>extends</CODE> directive specifies that this object inherits from
+</PRE><P>An <CODE>extends</CODE> directive specifies that this object inherits from
 the specified <CODE>parent-object</CODE>. The object may have any number of
 <CODE>extends</CODE> directives. If there is more than on <CODE>extends</CODE>
 directive, then fields and methods are inherited from all parent
 objects. If there are name conflicts, the later definitions override
-the earlier definitions.<BR>
-<BR>
-The <CODE>class</CODE> directive is optional. If specified, it defines a name
+the earlier definitions.</P><P>The <CODE>class</CODE> directive is optional. If specified, it defines a name
 for the object that can be used in <CODE>instanceof</CODE> operations, as well
-as <CODE>::</CODE> scoping directives discussed below.<BR>
-<BR>
-The body of the object is actually an arbitrary program. The
+as <CODE>::</CODE> scoping directives discussed below.</P><P>The body of the object is actually an arbitrary program. The
 variables defined in the body of the object become its fields, and the
-functions defined in the body become its methods.<BR>
-<BR>
-<A NAME="toc41"></A>
-<H2 CLASS="section"><A NAME="htoc57">5.6</A>&nbsp;&nbsp;Field and method calls</H2>
-The fields and methods of an object are named using <CODE>object.name</CODE> notation.
-For example, let's define a one-dimensional point value.
-<PRE CLASS="verbatim">
-   Point. =
+functions defined in the body become its methods.</P><H2 CLASS="section"><A NAME="toc41"></A><A NAME="htoc57">5.6</A>  Field and method calls</H2><P>The fields and methods of an object are named using <CODE>object.name</CODE> notation.
+For example, let's define a one-dimensional point value.</P><PRE CLASS="verbatim">   Point. =
       class Point
 
       # Default value
@@ -361,25 +266,16 @@ For example, let's define a one-dimensional point value.
    osh&gt; p2 = $(p1.move)
    osh&gt; value $(p2.x)
    - : 16 : Int
-</PRE>
-The <CODE>$(this)</CODE> variable always represents the current object.
+</PRE><P>The <CODE>$(this)</CODE> variable always represents the current object.
 The expression <CODE>$(p1.x)</CODE> fetches the value of the <CODE>x</CODE> field
 in the <CODE>p1</CODE> object. The expression <CODE>$(Point.new 15)</CODE>
 represents a method call to the <CODE>new</CODE> method of the <CODE>Point</CODE>
 object, which returns a new object with 15 as its initial value. The
 expression <CODE>$(p1.move)</CODE> is also a method call, which returns a
-new object at position 16.<BR>
-<BR>
-Note that objects are functional &mdash; it is not possible to modify the fields
+new object at position 16.</P><P>Note that objects are functional &#X2014; it is not possible to modify the fields
 or methods of an existing object in place. Thus, the <CODE>new</CODE> and <CODE>move</CODE>
-methods return new objects.<BR>
-<BR>
-<A NAME="toc42"></A>
-<H2 CLASS="section"><A NAME="htoc58">5.7</A>&nbsp;&nbsp;Method override</H2>
-Suppose we wish to create a new object that moves by 2 units, instead of
-just 1. We can do it by overriding the <CODE>move</CODE> method.
-<PRE CLASS="verbatim">
-   Point2. =
+methods return new objects.</P><H2 CLASS="section"><A NAME="toc42"></A><A NAME="htoc58">5.7</A>  Method override</H2><P>Suppose we wish to create a new object that moves by 2 units, instead of
+just 1. We can do it by overriding the <CODE>move</CODE> method.</P><PRE CLASS="verbatim">   Point2. =
       extends $(Point)
 
       # Override the move method
@@ -391,48 +287,31 @@ just 1. We can do it by overriding the <CODE>move</CODE> method.
    osh&gt; p3 = $(p2.move)
    osh&gt; value $(p3.x)
    - : 17 : Int
-</PRE>
-However, by doing this, we have completely replaced the old <CODE>move</CODE> method.<BR>
-<BR>
-<A NAME="toc43"></A>
-<H2 CLASS="section"><A NAME="htoc59">5.8</A>&nbsp;&nbsp;Super calls</H2>
-Suppose we wish to define a new <CODE>move</CODE> method that just calls the old one twice.
+</PRE><P>However, by doing this, we have completely replaced the old <CODE>move</CODE> method.</P><H2 CLASS="section"><A NAME="toc43"></A><A NAME="htoc59">5.8</A>  Super calls</H2><P>Suppose we wish to define a new <CODE>move</CODE> method that just calls the old one twice.
 We can refer to the old definition of move using a super call, which uses the notation
 <CODE>$(classname::name &lt;args&gt;)</CODE>. The <CODE>classname</CODE> should be the name of the
 superclass, and <CODE>name</CODE> the field or method to be referenced. An alternative
-way of defining the <CODE>Point2</CODE> object is then as follows.
-<PRE CLASS="verbatim">
-   Point2. =
+way of defining the <CODE>Point2</CODE> object is then as follows.</P><PRE CLASS="verbatim">   Point2. =
       extends $(Point)
 
       # Call the old method twice
       move() =
          this = $(Point::move)
          return $(Point::move)
-</PRE>
-Note that the first call to <CODE>$(Point::move)</CODE> redefines the
+</PRE><P>Note that the first call to <CODE>$(Point::move)</CODE> redefines the
 current object (the <CODE>this</CODE> variable). This is because the method
-returns a new object, which is re-used for the second call.<BR>
-<BR>
-
-
-<TABLE CELLSPACING=2 CELLPADDING=0>
-<TR><TD ALIGN=left NOWRAP>Jump to:</TD>
-<TD VALIGN=top ALIGN=center NOWRAP>&nbsp;&nbsp;</TD>
-<TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+returns a new object, which is re-used for the second call.</P>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
-&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD>
-</TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD>
-<TD VALIGN=top ALIGN=center NOWRAP>&nbsp;&nbsp;</TD>
-<TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+&bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
 &bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
 &bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
 &bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
-&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD>
-</TR></TABLE>
+&bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
+</TABLE>
 </BODY>
 </HTML>

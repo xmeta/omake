@@ -15,8 +15,7 @@ rules.
   For example, consider the following lexer definition, which is
 intended for lexical analysis of simple arithmetic expressions for a
 desktop calculator.
-<<
-     lexer1. =
+<<   lexer1. =
         extends $(Lexer)
   
         other: .
@@ -103,8 +102,7 @@ comments. We will define comments as any text that begins with the
 string `(*', ends with `*)', and comments may be nested.
   One convenient way to do this is to define a separate lexer just to
 skip comments.
-<<
-     lex-comment. =
+<<   lex-comment. =
         extends $(Lexer)
   
         level = 0
@@ -130,8 +128,7 @@ level. On encountering a `(*' string, it increments the level, and for
 `*)', it decrements the level if nonzero, and continues.
   Next, we need to modify our previous lexer to skip comments. We can do
 this by extending the lexer object `lexer1' that we just created.
-<<
-     lexer1. +=
+<<   lexer1. +=
         comment: $"[(][*]"
            lex-comment.lex-channel($(channel))
            lex()
@@ -165,8 +162,7 @@ on context-free grammars.
 with method calls; and productions, specified as rules.
   For example, let's finish building the desktop calculator started in
 the `Lexer' example.
-<<
-     parser1. =
+<<   parser1. =
         extends $(Parser)
   
         #
@@ -273,8 +269,7 @@ operations.
   First, we extend the lexer so that it recognizes these tokens. This
 time, we choose to leave `lexer1' intact, instead of using the +=
 operator.
-<<
-     lexer2. =
+<<   lexer2. =
         extends $(lexer1)
   
         lsl: $"<<"
@@ -288,8 +283,7 @@ operator.
 that the bitwise operators have lower precedence than the other
 arithmetic operators. The two-argument form of the `left' method
 accomplishes this.
-<<
-     parser2. =
+<<   parser2. =
         extends $(parser1)
   
         left(plus, lsl lsr asr)
@@ -312,8 +306,7 @@ Node: Subsection 9-11-17,	Next: Chapter 10,	Prev: Subsection 9-11-16,	Up: Sectio
 9.11.17   gettimeofday
 ======================
 
-<<
-     $(gettimeofday) : Float
+<<   $(gettimeofday) : Float
 >>
   
   The `gettimeofday' function returns the time of day in seconds since
@@ -331,8 +324,7 @@ be freely mixed with other code.
 including Win32. To avoid portability problems on Win32, it is
 recommended that you avoid the use of the native shell interpreter
 `cmd'.
-<<
-      LIB = $(dir lib)
+<<    LIB = $(dir lib)
       println(The contents of the $(LIB) directory is:)
       ls $(LIB)
 >>
@@ -363,8 +355,7 @@ Node: Section 10-1,	Next: Section 10-2,	Prev: Chapter 10,	Up: Chapter 10
 shell `bash'. In general, a command is a pipeline. A basic command is
 part of a pipeline. It is specified with the name of an executable and
 some arguments. Here are some examples.
-<<
-      ls
+<<    ls
       ls -AF .
       echo Hello world
 >>
@@ -373,8 +364,7 @@ some arguments. Here are some examples.
 `PATH[]', which should define an array of directories containing
 executables.
   A command may also be prefixed by environment variable definitions.
-<<
-      # Prints "Hello world"
+<<    # Prints "Hello world"
       env X="Hello world" Y=2 printenv X
       # Pass the include path to the Visual C++
       env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
@@ -391,8 +381,7 @@ Node: Section 10-2,	Next: Section 10-3,	Prev: Section 10-1,	Up: Chapter 10
   Commands may contain wildcard patterns. A pattern specifies a set of
 files through a limited kind of regular expression. Patterns are
 expanded before the function is executed.
-<<
-     # List all files with a .c suffix
+<<   # List all files with a .c suffix
      ls *.c
   
      # List all files with a single character prefix, and .c suffix
@@ -416,8 +405,7 @@ Node: Section 10-3,	Next: Section 10-4,	Prev: Section 10-2,	Up: Chapter 10
 ampersand after the command. Control returns to the shell without
 waiting for the job to complete. The job continues to run in the
 background.
-<<
-      gcc -o hugeprogram *.c &
+<<    gcc -o hugeprogram *.c &
 >>
   
 
@@ -430,8 +418,7 @@ Node: Section 10-4,	Next: Section 10-5,	Prev: Section 10-3,	Up: Chapter 10
   
   Input and output can be redirected to files by using the `<', `>', and
 `>&' directives after the command.
-<<
-      # Write to the "foo" file
+<<    # Write to the "foo" file
       echo Hello world > foo
   
       # Redirect input from the foo file
@@ -453,8 +440,7 @@ Node: Section 10-5,	Next: Section 10-6,	Prev: Section 10-4,	Up: Chapter 10
 command is sent to the next. Pipelines are defined with the `|' and `|&'
 syntax. With `|' the output is redirected, but errors are not. With `|&'
 both output and errors are redirected.
-<<
-     # Send the output of the ls command to the printer
+<<   # Send the output of the ls command to the printer
      ls *.c | lpr
   
      # Send output and errors to jyh as email
@@ -475,8 +461,7 @@ be zero or some other integer. A command is said to succeed if its exit
 code is zero. The expression `command1 && command2' executes `command2'
 only if `command1' succeeds. The expression `command1 || command2'
 executes `command2' only if `command1' fails.
-<<
-     # Display the x/y file if possible
+<<   # Display the x/y file if possible
      cd x && cat y
   
      # Run foo.exe, or print an error message
@@ -496,8 +481,7 @@ command. In the following expression, the `test' function is used to
 test whether the `foo.exe' file is executable. If it is, the `foo.exe'
 file is executed. If the file is not executable (or if the `foo.exe'
 command fails), the message `"foo.exe is not executable"' is printed.
-<<
-     # Run foo.exe, or print an error message
+<<   # Run foo.exe, or print an error message
      (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
 >>
   
@@ -548,8 +532,7 @@ Node: Subsection 10-9-1,	Next: Subsection 10-9-2,	Prev: Section 10-9,	Up: Sectio
 =============
 
   The `echo' function prints a string.
-<<
-  $(echo <args>)
+<<$(echo <args>)
   echo <args>
 >>
 
@@ -560,14 +543,12 @@ Node: Subsection 10-9-2,	Next: Section 10-10,	Prev: Subsection 10-9-1,	Up: Secti
 ===========
 
   The `cd' function changes the current directory.
-<<
-      cd(dir)
+<<    cd(dir)
          dir : Dir
 >>
   
   The `cd' function also supports a 2-argument form:
-<<
-      $(cd dir, e)
+<<    $(cd dir, e)
          dir : Dir
          e : expression
 >>
@@ -577,14 +558,12 @@ Node: Subsection 10-9-2,	Next: Section 10-10,	Prev: Subsection 10-9-1,	Up: Secti
   The behavior of the `cd' function can be changed with the `CDPATH'
 variable, which specifies a search path for directories. This is
 normally useful only in the osh command interpreter.
-<<
-      CDPATH : Dir Sequence
+<<    CDPATH : Dir Sequence
 >>
   
   For example, the following will change directory to the first
 directory `./foo', `~/dir1/foo', `~/dir2/foo'.
-<<
-      CDPATH[] =
+<<    CDPATH[] =
          .
          $(HOME)/dir1
          $(HOME)/dir2
@@ -682,8 +661,7 @@ Node: Subsection 10-11-1,	Next: Chapter 11,	Prev: Section 10-11,	Up: Section 10-
 10.11.1   history
 =================
 
-<<
-      $(history-index) : Int
+<<    $(history-index) : Int
       $(history) : String Sequence
       history-file : File
       history-length : Int
@@ -762,36 +740,33 @@ Node: Subsection 11-1-1,	Next: Subsection 11-1-2,	Prev: Section 11-1,	Up: Sectio
   
  - `$(o.object-length)': the number of fields and methods in the object.
    
- - `$(o.object-mem <var>)': returns `true' iff the `<var>' is a field 
-   or method of the object. 
- - `$(o.object-add <var>, <value>)': adds the field to the object, 
+ - `$(o.object-mem <var>)': returns `true' iff the `<var>' is a field or
+   method of the object. 
+ - `$(o.object-add <var>, <value>)': adds the field to the object,
    returning a new object. 
  - `$(o.object-find <var>)': fetches the field or method from the
-   object;  it is equivalent to `$(o.<var>)', but the variable can be
+   object; it is equivalent to `$(o.<var>)', but the variable can be
    non-constant. 
  - `$(o.object-map <fun>)': maps a function over the object. The
-   function  should take two arguments; the first is a field name, the
-   second is the  value of that field. The result is a new object
-   constructed from the  values returned by the function. 
+   function should take two arguments; the first is a field name, the
+   second is the value of that field. The result is a new object
+   constructed from the values returned by the function. 
  - `o.object-foreach': the `object-foreach' form is equivalent to
-   `object-map',  but with altered syntax.
-   <<
-        o.object-foreach(<var1>, <var2>)
+   `object-map', but with altered syntax.
+   <<   o.object-foreach(<var1>, <var2>)
            <body>
         >>
  
-  For example, the following function prints all the fields of an 
-   object `o'.
-   <<
-        PrintObject(o) =
+ For example, the following function prints all the fields of an object
+   `o'.
+   <<   PrintObject(o) =
            o.object-foreach(v, x)
               println($(v) = $(x))
         >>
  
-  The `export' form is valid in a `object-foreach' body. The following 
+ The `export' form is valid in a `object-foreach' body. The following
    function collects just the field names of an object.
-   <<
-        FieldNames(o) =
+   <<   FieldNames(o) =
            names[] =
            o.object-foreach(v, x)
               names[] += $(v)
@@ -814,38 +789,35 @@ numbers, strings, files, directories, and arrays of simple values.
   
   
  - `$(o.length)': the number of items in the map. 
- - `$(o.mem <key>)': returns `true' iff the `<key>' is defined  in the
+ - `$(o.mem <key>)': returns `true' iff the `<key>' is defined in the
    map. 
- - `$(o.add <key>, <value>)': adds the field to the map,  returning a
-   new map. 
+ - `$(o.add <key>, <value>)': adds the field to the map, returning a new
+   map. 
  - `$(o.find <key>)': fetches the field from the map. 
  - `$(o.keys)': fetches an array of all the keys in the map, in
    alphabetical order. 
- - `$(o.values)': fetches an array of all the values in the map,  in the
+ - `$(o.values)': fetches an array of all the values in the map, in the
    alphabetical order of the corresponding keys. 
- - `$(o.map <fun>)': maps a function over the map. The function  should
-   take two arguments; the first is a field name, the second is the 
-   value of that field. The result is a new object constructed from the 
+ - `$(o.map <fun>)': maps a function over the map. The function should
+   take two arguments; the first is a field name, the second is the
+   value of that field. The result is a new object constructed from the
    values returned by the function. 
- - `o.foreach': the `foreach' form is equivalent to `map',  but with
+ - `o.foreach': the `foreach' form is equivalent to `map', but with
    altered syntax.
-   <<
-        o.foreach(<var1>, <var2>)
+   <<   o.foreach(<var1>, <var2>)
            <body>
         >>
  
-  For example, the following function prints all the fields of an 
-   object `o'.
-   <<
-        PrintObject(o) =
+ For example, the following function prints all the fields of an object
+   `o'.
+   <<   PrintObject(o) =
            o.foreach(v, x)
               println($(v) = $(x))
         >>
  
-  The `export' form is valid in a `foreach' body. The following 
-   function collects just the field names of the map.
-   <<
-        FieldNames(o) =
+ The `export' form is valid in a `foreach' body. The following function
+   collects just the field names of the map.
+   <<   FieldNames(o) =
            names =
            o.foreach(v, x)
               names += $(v)
@@ -856,8 +828,7 @@ numbers, strings, files, directories, and arrays of simple values.
   There is also simpler syntax when the key is a string. The table can
 be defined using definitions with the form `$|key|' (the number of pipe
 symbols `|' is allowed to vary).
-<<
-      $|key 1| = value1
+<<    $|key 1| = value1
       $||key1|key2|| = value2    # The key is key1|key2
       X = $|key 1|               # Define X to be the value of field
 $|key 1|
@@ -907,28 +878,25 @@ sequential elements. It provides the following methods.
   
   
  - `$(s.length)': the number of elements in the sequence. 
- - `$(s.map <fun>)': maps a function over the fields in the sequence. 
-   The function should take one argument. The result is a new sequence 
+ - `$(s.map <fun>)': maps a function over the fields in the sequence.
+   The function should take one argument. The result is a new sequence
    constructed from the values returned by the function. 
- - `s.foreach': the `foreach' form is equivalent to `map',  but with
+ - `s.foreach': the `foreach' form is equivalent to `map', but with
    altered syntax.
-   <<
-        s.foreach(<var>)
+   <<   s.foreach(<var>)
            <body>
         >>
  
-  For example, the following function prints all the elements of the
+ For example, the following function prints all the elements of the
    sequence.
-   <<
-        PrintSequence(s) =
+   <<   PrintSequence(s) =
            s.foreach(x)
               println(Elem = $(x))
         >>
  
-  The `export' form is valid in a `foreach' body. The following 
-   function counts the number of zeros in the sequence.
-   <<
-        Zeros(s) =
+ The `export' form is valid in a `foreach' body. The following function
+   counts the number of zeros in the sequence.
+   <<   Zeros(s) =
            count = $(int 0)
            s.foreach(v)
               if $(equal $(v), 0)
@@ -996,29 +964,28 @@ target file.
   
   
  - `target': the target file. 
- - `effects': the files that may be modified by a  side-effect when this
+ - `effects': the files that may be modified by a side-effect when this
    target is built. 
- - `scanner_deps': static dependencies that must be built  before this
+ - `scanner_deps': static dependencies that must be built before this
    target can be scanned. 
- - `static-deps': statically-defined build dependencies  of this target.
-   
- - `build-deps': all the build dependencies for the target,  including
+ - `static-deps': statically-defined build dependencies of this target. 
+ - `build-deps': all the build dependencies for the target, including
    static and scanned dependencies. 
- - `build-values': all the value dependencies associated  with the
-   build. 
+ - `build-values': all the value dependencies associated with the build.
+   
  - `build-commands': the commands to build the target. 
- - `output-file': if output was diverted to a file,  with one of the
-   `--output-*' options A*Note Appendix A::,  this field names
+ - `output-file': if output was diverted to a file, with one of the
+   `--output-*' options A*Note Appendix A::, this field names
    that file. Otherwise it is `false'. 
   
   The object supports the following methods.
   
   
- - `find(file)': returns a Target object for the given file.  Raises a
-   `RuntimeException' if the specified target is  not part of the
+ - `find(file)': returns a Target object for the given file. Raises a
+   `RuntimeException' if the specified target is not part of the
    project. 
- - `find-optional(file)': returns a `Target' object  for the given file,
-   or `false' if the file is not  part of the project. 
+ - `find-optional(file)': returns a `Target' object for the given file,
+   or `false' if the file is not part of the project. 
   
   NOTE: the information for a target is constructed dynamically, so it
 is possible that the `Target' object for a node will contain different
@@ -1163,7 +1130,7 @@ Node: Subsection 11-1-21,	Next: Subsection 11-1-22,	Prev: Subsection 11-1-20,	Up
 system. It has the following fields.
   
   
- - `position': a string representing the location where the  exception
+ - `position': a string representing the location where the exception
    was raised. 
  - `message': a string containing the exception message. 
    
@@ -1208,8 +1175,7 @@ single array containing an argument list.
    directory follows the usual scoping rules. For example, the following
    program lists the files in the `foo' directory, but the current
    directory is not changed.
-   <<
-        section
+   <<   section
            echo Listing files in the foo directory...
            cd foo
            ls
@@ -1257,15 +1223,14 @@ single array containing an argument list.
  - `digest'
  Print the digests of the given files. 
  - Win32 functions.
- Win32 doesn't provide very many programs for scripting, except  for the
-   functions that are builtin to the DOS `cmd.exe'.  The following
-   functions are defined on Win32 and only on Win32.  On other systems,
-   it is expected that these programs already  exist.
+ Win32 doesn't provide very many programs for scripting, except for the
+   functions that are builtin to the DOS `cmd.exe'. The following
+   functions are defined on Win32 and only on Win32. On other systems,
+   it is expected that these programs already exist.
  
      
     - `grep'
-      <<
-           grep [-q] [-n] pattern files...
+      <<   grep [-q] [-n] pattern files...
       >>
     
     The `grep' function calls the omake `grep' function. 
@@ -1279,8 +1244,7 @@ single array containing an argument list.
  
      
     - `mkdir'
-      <<
-            mkdir [-m <mode>] [-p] files
+      <<    mkdir [-m <mode>] [-p] files
       >>
     
     The `mkdir' function is used to create directories. The -verb+-m+
@@ -1289,8 +1253,7 @@ single array containing an argument list.
       created. 
     - `cp' 
     - `mv'
-      <<
-            cp [-f] [-i] [-v] src dst
+      <<    cp [-f] [-i] [-v] src dst
             cp [-f] [-i] [-v] files dst
             mv [-f] [-i] [-v] src dst
             mv [-f] [-i] [-v] files dst
@@ -1307,8 +1270,7 @@ single array containing an argument list.
        -v  Explain what is happening. 
      
     - `rm'
-      <<
-           rm [-f] [-i] [-v] [-r] files
+      <<   rm [-f] [-i] [-v] [-r] files
            rmdir [-f] [-i] [-v] [-r] dirs
       >>
     
@@ -1322,8 +1284,7 @@ single array containing an argument list.
        -r  Remove contents of directories recursively. 
      
     - `chmod'
-      <<
-            chmod [-r] [-v] [-f] mode files
+      <<    chmod [-r] [-v] [-f] mode files
       >>
     
     The `chmod' function changes the permissions on a set of files or
@@ -1338,25 +1299,22 @@ single array containing an argument list.
        -f  Continue on errors. 
      
     - `cat'
-      <<
-           cat files...
+      <<   cat files...
       >>
     
     The `cat' function prints the contents of the files to stdout 
     - `test'
     `test' expression
-    `[' expression +]+
-    `[ --help'
-    `[ --version'
-    See the documentation for the `test function.
+     `[' expression +]+
+     `[ --help'
+     `[ --version'
+     See the documentation for the `test function.
     
     - `find'
-      <<
-           find \emph{expression}
+      <<   find \emph{expression}
       >>
     
     See the documentation for the `find function.
- 
   
    
 
@@ -1411,8 +1369,7 @@ at the beginning of a project build, and one of `.BUILD_FAILURE' or
 `.BUILD_SUCCESS' is executed when the build terminates.
   For example, the following set of rules simply print additional
 messages about the status of the build.
-<<
-     .BUILD_BEGIN:
+<<   .BUILD_BEGIN:
          echo Build starting
   
      .BUILD_SUCCESS:
@@ -1427,8 +1384,7 @@ Failed)) targets could not be built")
 build completes. For example, the following rule will create a new X
 terminal displaying the summary of the build (using the `BUILD_SUMMARY
 variable).
-<<
-      .BUILD_FAILURE:
+<<    .BUILD_FAILURE:
           xterm -e vi $(BUILD_SUMMARY)
 >>
   
@@ -1464,8 +1420,7 @@ Node: Subsection 12-2-1,	Next: Subsection 12-2-2,	Prev: Section 12-2,	Up: Sectio
 12.2.1   OMakeFlags
 ===================
 
-<<
-     OMakeFlags(options)
+<<   OMakeFlags(options)
         options : String
 >>
   
@@ -1474,8 +1429,7 @@ OMakefiles. The options have exactly the same format as options on the
 command line.
   For example, the following code displays the progress bar unless the
 `VERBOSE' environment variable is defined.
-<<
-      if $(not $(defined-env VERBOSE))
+<<    if $(not $(defined-env VERBOSE))
           OMakeFlags(-S --progress)
           export
 >>
@@ -1486,8 +1440,7 @@ Node: Subsection 12-2-2,	Next: Subsection 12-2-3,	Prev: Subsection 12-2-1,	Up: S
 12.2.2   OMakeVersion
 =====================
 
-<<
-     OMakeVersion(version1)
+<<   OMakeVersion(version1)
      OMakeVersion(version1, version2)
         version1, version2 : String
 >>
@@ -1504,8 +1457,7 @@ Node: Subsection 12-2-3,	Next: Subsection 12-2-4,	Prev: Subsection 12-2-2,	Up: S
 12.2.3   cmp-versions
 =====================
  
-<<
-     $(cmp-versions version1, version2)
+<<   $(cmp-versions version1, version2)
         version1, version2 : String
 >>
   
@@ -1520,8 +1472,7 @@ Node: Subsection 12-2-4,	Next: Section 12-3,	Prev: Subsection 12-2-3,	Up: Sectio
 12.2.4   DefineCommandVars
 ==========================
 
-<<
-     DefineCommandVars()
+<<   DefineCommandVars()
 >>
   
   The `DefineCommandVars' function redefines the variables passed on the
@@ -1552,8 +1503,7 @@ Node: Subsection 12-3-1,	Next: Subsection 12-3-2,	Prev: Section 12-3,	Up: Sectio
 ============================================================
 \@na
 me{@default327}
-<<
-     $(dependencies targets) : File Array
+<<   $(dependencies targets) : File Array
      $(dependencies-all targets) : File Array
      $(dependencies-proper targets) : File Array
         targets : File Array
@@ -1574,13 +1524,12 @@ that has no dependencies and no build commands; a leaf target
 corresponds to a source file in the current project.
   In all three functions, files that are not part of the current project
 are silently discarded.
-  One purpose of the `dependencies-proper' function is for ``clean''
+  One purpose of the `dependencies-proper' function is for "clean"
 targets. For example, one way to delete all intermediate files in a
 build is with a rule that uses the `dependencies-proper'. Note however,
 that the rule requires building the project before it can be deleted.
 For a shorter form, see the `filter-proper-targets' function.
-<<
-      .PHONY: clean
+<<    .PHONY: clean
   
       APP = ...     # the name of the target application
       clean: $(APP)
@@ -1594,8 +1543,7 @@ Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: S
 12.3.2   target
 ===============
  
-<<
-     $(target targets) : Target Array
+<<   $(target targets) : Target Array
         targets : File Sequence
      raises RuntimeException
 >>
@@ -1609,8 +1557,7 @@ Node: Subsection 12-3-3,	Next: Subsection 12-3-4,	Prev: Subsection 12-3-2,	Up: S
 12.3.3   find-build-targets
 ===========================
 
-<<
-      $(find-build-targets tag) : Target Array
+<<    $(find-build-targets tag) : Target Array
          tag : Succeeded | Failed
 >>
   
@@ -1627,8 +1574,7 @@ comparison is case-insensitive.
 12.1*Note Section 12-1::) phony targets. For example,
 adding the following to your project `OMakefile' will print the number
 of targets that failed (if the build failed).
-<<
-      .BUILD_FAILURE:
+<<    .BUILD_FAILURE:
           echo "Failed target count: $(length $(find-build-targets
 Failed))"
 >>
@@ -1639,8 +1585,7 @@ Node: Subsection 12-3-4,	Next: Subsection 12-3-5,	Prev: Subsection 12-3-3,	Up: S
 12.3.4   project-directories
 ============================
 
-<<
-     $(project-directories) : Dir Array
+<<   $(project-directories) : Dir Array
 >>
   
   The `project-directories' function returns the list of all directories
@@ -1657,8 +1602,7 @@ Node: Subsection 12-3-5,	Next: Section 12-4,	Prev: Subsection 12-3-4,	Up: Sectio
   The `rule' function is called whenever a build rule is defined. It is
 unlikely that you will need to redefine this function, except in very
 exceptional cases.
-<<
-     rule(multiple, target, pattern, sources, options, body) : Rule
+<<   rule(multiple, target, pattern, sources, options, body) : Rule
         multiple : String
         target   : Sequence
         pattern  : Sequence
@@ -1670,19 +1614,18 @@ exceptional cases.
   The `rule' function is called when a rule is evaluated.
   
   
- multiple  A Boolean value indicating whether the rule was defined  with
+ multiple  A Boolean value indicating whether the rule was defined with
    a double colon `::'. 
  target  The sequence of target names. 
- pattern  The sequence of patterns. This sequence will be empty  for
+ pattern  The sequence of patterns. This sequence will be empty for
    two-part rules. 
  sources  The sequence of dependencies. 
- options  An array of options. Each option is represented  as a `Map
-   object associating each specified option with  a value. 
+ options  An array of options. Each option is represented as a `Map
+   object associating each specified option with a value. 
  body  The body expression of the rule. 
   
   Consider the following rule.
-<<
-     target: pattern: sources :name1: option1 :name2: option2
+<<   target: pattern: sources :name1: option1 :name2: option2
         expr1
         expr2
 >>
@@ -1690,8 +1633,7 @@ exceptional cases.
   This expression represents the following function call, where square
 brackets are used to indicate arrays, and the curly brackets represent a
 `Map object.
-<<
-     rule(false, target, pattern, sources,
+<<   rule(false, target, pattern, sources,
           { $|:name1:| = option1; $|:name2:| = option2 }
           [expr1; expr2])
 >>

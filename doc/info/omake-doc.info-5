@@ -6,8 +6,7 @@ Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9
 9.4.1   glob
 ============
 
-<<
-     $(glob strings) : Node Array
+<<   $(glob strings) : Node Array
         strings : String Sequence
      $(glob options, strings) : Node Array
         options : String
@@ -38,7 +37,7 @@ behavior of `glob'.
  GLOB_IGNORE  A list of shell patterns for filenames that `glob' should
    ignore. 
  GLOB_ALLOW  A list of shell patterns. If a file does not match a
-   pattern in  `GLOB_ALLOW', it is ignored. 
+   pattern in `GLOB_ALLOW', it is ignored. 
   
   The returned files are sorted by name. 
 
@@ -48,8 +47,7 @@ Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Sect
 9.4.2   ls
 ==========
 
-<<
-     $(ls files) : Node Array
+<<   $(ls files) : Node Array
         files : String Sequence
      $(ls options, files) : Node Array
         files : String Sequence
@@ -73,8 +71,7 @@ Node: Subsection 9-4-3,	Next: Section 9-5,	Prev: Subsection 9-4-2,	Up: Section 9
 9.4.3   subdirs
 ===============
 
-<<
-     $(subdirs dirs) : Dir Array
+<<   $(subdirs dirs) : Dir Array
         dirs : String Sequence
      $(subdirs options, dirs) : Dir Array
         options : String
@@ -119,8 +116,7 @@ Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9
 9.5.1   mkdir
 =============
 
-<<
-     mkdir(mode, node...)
+<<   mkdir(mode, node...)
         mode : Int
         node : Node
      raises RuntimeException
@@ -152,10 +148,10 @@ have meaning on all architectures.
   
  dev : the device number. 
  ino : the inode number. 
- kind : the kind of the file, one of the following:  `REG' (regular
-   file),  `DIR' (directory),  `CHR' (character device),  `BLK' (block
-   device),  `LNK' (symbolic link),  `FIFO' (named pipe),  `SOCK'
-   (socket). 
+ kind : the kind of the file, one of the following: `REG' (regular
+   file), `DIR' (directory), `CHR' (character device), `BLK' (block
+   device), `LNK' (symbolic link), `FIFO' (named pipe), `SOCK' (socket).
+   
  perm : access rights, represented as an integer. 
  nlink : number of links. 
  uid : user id of the owner. 
@@ -173,8 +169,7 @@ Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Sect
 9.5.3   stat
 ============
 
-<<
-      $(stat node...) : Stat
+<<    $(stat node...) : Stat
          node : Node or Channel
       $(lstat node...) : Stat
          node : Node or Channel
@@ -191,8 +186,7 @@ Node: Subsection 9-5-4,	Next: Subsection 9-5-5,	Prev: Subsection 9-5-3,	Up: Sect
 9.5.4   unlink
 ==============
 
-<<
-     $(unlink file...)
+<<   $(unlink file...)
         file : File
      #(rm file...)
         file : File
@@ -218,8 +212,7 @@ Node: Subsection 9-5-5,	Next: Subsection 9-5-6,	Prev: Subsection 9-5-4,	Up: Sect
 9.5.5   rename
 ==============
 
-<<
-      rename(old, new)
+<<    rename(old, new)
          old : Node
          new : Node
       mv(nodes... dir)
@@ -252,8 +245,7 @@ Node: Subsection 9-5-6,	Next: Subsection 9-5-7,	Prev: Subsection 9-5-5,	Up: Sect
 9.5.6   link
 ============
 
-<<
-     link(src, dst)
+<<   link(src, dst)
         src : Node
         dst : Node
      raises RuntimeException
@@ -270,8 +262,7 @@ Node: Subsection 9-5-7,	Next: Subsection 9-5-8,	Prev: Subsection 9-5-6,	Up: Sect
 9.5.7   symlink
 ===============
 
-<<
-     symlink(src, dst)
+<<   symlink(src, dst)
         src : Node
         dst : Node
      raises RuntimeException
@@ -291,8 +282,7 @@ Node: Subsection 9-5-8,	Next: Subsection 9-5-9,	Prev: Subsection 9-5-7,	Up: Sect
 9.5.8   readlink
 ================
 
-<<
-     $(readlink node...) : Node
+<<   $(readlink node...) : Node
         node : Node
 >>
   
@@ -304,8 +294,7 @@ Node: Subsection 9-5-9,	Next: Subsection 9-5-10,	Prev: Subsection 9-5-8,	Up: Sec
 9.5.9   chmod
 =============
 
-<<
-     chmod(mode, dst...)
+<<   chmod(mode, dst...)
         mode : Int
         dst : Node or Channel
      chmod(mode dst...)
@@ -329,8 +318,7 @@ Node: Subsection 9-5-10,	Next: Subsection 9-5-11,	Prev: Subsection 9-5-9,	Up: Se
 9.5.10   chown
 ==============
 
-<<
-     chown(uid, gid, node...)
+<<   chown(uid, gid, node...)
         uid : Int
         gid : Int
         node : Node or Channel
@@ -350,8 +338,7 @@ Node: Subsection 9-5-11,	Next: Subsection 9-5-12,	Prev: Subsection 9-5-10,	Up: S
 9.5.11   truncate
 =================
 
-<<
-     truncate(length, node...)
+<<   truncate(length, node...)
          length : Int
          node : Node or Channel
      raises RuntimeException
@@ -365,8 +352,7 @@ Node: Subsection 9-5-12,	Next: Section 9-6,	Prev: Subsection 9-5-11,	Up: Section
 9.5.12   umask
 ==============
 
-<<
-      $(umask mode) : Int
+<<    $(umask mode) : Int
          mode : Int
       raises RuntimeException
 >>
@@ -394,19 +380,18 @@ Node: Subsection 9-6-1,	Next: Subsection 9-6-2,	Prev: Section 9-6,	Up: Section 9
 9.6.1   vmount
 ==============
 
-<<
-      vmount(src, dst)
+<<    vmount(src, dst)
          src, dst : Dir
       vmount(flags, src, dst)
          flags : String
          src, dst : Dir
 >>
   
-  ``Mount'' the `src' directory on the `dst' directory. This is a
-virtual mount, changing the behavior of the `$(file ...)' function. When
-the `$(file str)' function is used, the resulting file is taken relative
-to the `src' directory if the file exists. Otherwise, the file is
-relative to the current directory.
+  "Mount" the `src' directory on the `dst' directory. This is a virtual
+mount, changing the behavior of the `$(file ...)' function. When the
+`$(file str)' function is used, the resulting file is taken relative to
+the `src' directory if the file exists. Otherwise, the file is relative
+to the current directory.
   The main purpose of the `vmount' function is to support multiple
 builds with separate configurations or architectures.
   The options are as follows. 
@@ -422,8 +407,7 @@ Node: Subsection 9-6-2,	Next: Subsection 9-6-3,	Prev: Subsection 9-6-1,	Up: Sect
 9.6.2   add-project-directories
 ===============================
 
-<<
-      add-project-directories(dirs)
+<<    add-project-directories(dirs)
          dirs : Dir Array
 >>
   
@@ -437,8 +421,7 @@ Node: Subsection 9-6-3,	Next: Section 9-7,	Prev: Subsection 9-6-2,	Up: Section 9
 9.6.3   remove-project-directories
 ==================================
 
-<<
-      remove-project-directories(dirs)
+<<    remove-project-directories(dirs)
          dirs : Dir Array
 >>
   
@@ -466,8 +449,7 @@ Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9
 9.7.1   test
 ============
 
-<<
-     test(exp) : Bool
+<<   test(exp) : Bool
         exp : String Sequence
 >>
   
@@ -494,8 +476,8 @@ Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9
  - int1 `-lt' int2 : int1 is smaller than int2 
  - int1 `-le' int2 : int1 is not larger than int2
  
- - file1 `-ef' file2 : On Unix, file1 and file2 have the  same device
-   and inode number.  On Win32, file1 and file2 have the  same name. 
+ - file1 `-ef' file2 : On Unix, file1 and file2 have the same device and
+   inode number. On Win32, file1 and file2 have the same name. 
  - file1 `-nt' file2 : file1 is newer than file2 
  - file1 `-ot' file2 : file1 is older than file2
  
@@ -529,8 +511,7 @@ which evaluates to the length of the string.
   A file is a string that represents the name of a file.
   The syntax mirrors that of the test(1) program. If you are on a Unix
 system, the man page explains more. Here are some examples.
-<<
-      # Create an empty file
+<<    # Create an empty file
       osh> touch foo
       # Is the file empty?
       osh> test(-e foo)
@@ -554,8 +535,7 @@ Node: Subsection 9-7-2,	Next: Section 9-8,	Prev: Subsection 9-7-1,	Up: Section 9
 9.7.2   find
 ============
 
-<<
-     find(exp) : Node Array
+<<   find(exp) : Node Array
         exp : String Sequence
 >>
   
@@ -566,7 +546,7 @@ with the following exceptions.
   
   
  1. The expression may begin with a directory. If not specified, the
-   current  directory is searched. 
+   current directory is searched. 
  2. The `{}' string expands to the current file being examined. 
   
   The syntax of the expression is the same as `test', with the following
@@ -579,8 +559,7 @@ additions.
   The `find' function performs a recursive scan of all subdirectories.
 The following call is being run from the root of the `omake' source
 directory.
-<<
-      osh> find(. -name fo* )
+<<    osh> find(. -name fo* )
       - : <array
               /home/jyh/.../omake/mk/.svn/format
               /home/jyh/.../omake/RPM/.svn/format
@@ -591,8 +570,7 @@ directory.
   
   Another example, listing only those files that are normal files or
 symbolic links.
-<<
-      osh> find(. -name fo* -a \( -f {} -o -L {} \))
+<<    osh> find(. -name fo* -a \( -f {} -o -L {} \))
       - : <array
               /home/jyh/.../omake/mk/.svn/format
               /home/jyh/.../omake/RPM/.svn/format
@@ -656,22 +634,19 @@ Node: Subsection 9-8-1,	Next: Subsection 9-8-2,	Prev: Section 9-8,	Up: Section 9
   The following variables define the standard channels.
  stdin
 
-<<
-  stdin : InChannel
+<<stdin : InChannel
 >>
   
   The standard input channel, open for reading.
  stdout
  
-<<
-  stdout : OutChannel
+<<stdout : OutChannel
 >>
   
   The standard output channel, open for writing.
  stderr
  
-<<
-  stderr : OutChannel
+<<stderr : OutChannel
 >>
   
   The standard error channel, open for writing. 
@@ -683,8 +658,7 @@ Node: Subsection 9-8-2,	Next: Subsection 9-8-3,	Prev: Subsection 9-8-1,	Up: Sect
 ======================
  The `open-in-string' treats a string
 as if it were a file and returns a channel for reading.
-<<
-     $(open-in-string s) : Channel
+<<   $(open-in-string s) : Channel
          s : String
 >>
 
@@ -696,8 +670,7 @@ Node: Subsection 9-8-3,	Next: Subsection 9-8-4,	Prev: Subsection 9-8-2,	Up: Sect
  The
 `open-out-string' creates a channel that writes to a string instead of a
 file. The string may be retrieved with the `out-string' function.
-<<
-     $(open-out-string) : Channel
+<<   $(open-out-string) : Channel
      $(out-string chan) : String
          chan : OutChannel
 >>
@@ -709,8 +682,7 @@ Node: Subsection 9-8-4,	Next: Subsection 9-8-5,	Prev: Subsection 9-8-3,	Up: Sect
 =============
 
   The `fopen' function opens a file for reading or writing.
-<<
-     $(fopen file, mode) : Channel
+<<   $(fopen file, mode) : Channel
         file : File
         mode : String
 >>
@@ -739,8 +711,7 @@ Node: Subsection 9-8-5,	Next: Subsection 9-8-6,	Prev: Subsection 9-8-4,	Up: Sect
 9.8.5   close
 =============
 
-<<
-      $(close channel...)
+<<    $(close channel...)
          channel : Channel
 >>
   
@@ -753,8 +724,7 @@ Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Sect
 9.8.6   read
 ============
 
-<<
-     $(read channel, amount) : String
+<<   $(read channel, amount) : String
         channel : InChannel
         amount  : Int
      raises RuntimeException
@@ -770,8 +740,7 @@ Node: Subsection 9-8-7,	Next: Subsection 9-8-8,	Prev: Subsection 9-8-6,	Up: Sect
 9.8.7   write
 =============
 
-<<
-     $(write channel, buffer, offset, amount) : String
+<<   $(write channel, buffer, offset, amount) : String
         channel : OutChannel
         buffer  : String
         offset  : Int
@@ -798,8 +767,7 @@ Node: Subsection 9-8-8,	Next: Subsection 9-8-9,	Prev: Subsection 9-8-7,	Up: Sect
 9.8.8   lseek
 =============
 
-<<
-      $(lseek channel, offset, whence) : Int
+<<    $(lseek channel, offset, whence) : Int
          channel : Channel
          offset  : Int
          whence  : String
@@ -824,8 +792,7 @@ Node: Subsection 9-8-9,	Next: Subsection 9-8-10,	Prev: Subsection 9-8-8,	Up: Sec
 9.8.9   rewind
 ==============
 
-<<
-     rewind(channel...)
+<<   rewind(channel...)
         channel : Channel
 >>
   
@@ -838,8 +805,7 @@ Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Se
 9.8.10   tell
 =============
 
-<<
-      $(tell channel...) : Int...
+<<    $(tell channel...) : Int...
          channel : Channel
       raises RuntimeException
 >>
@@ -852,8 +818,7 @@ Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: S
 9.8.11   flush
 ==============
 
-<<
-     $(flush channel...)
+<<   $(flush channel...)
         channel : OutChannel
 >>
   
@@ -866,8 +831,7 @@ Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: S
 9.8.12   dup
 ============
 
-<<
-      $(dup channel) : Channel
+<<    $(dup channel) : Channel
          channel : Channel
       raises RuntimeException
 >>
@@ -881,8 +845,7 @@ Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: S
 9.8.13   dup2
 =============
 
-<<
-     dup2(channel1, channel2)
+<<   dup2(channel1, channel2)
         channel1 : Channel
         channel2 : Channel
      raises RuntimeException
@@ -897,8 +860,7 @@ Node: Subsection 9-8-14,	Next: Subsection 9-8-15,	Prev: Subsection 9-8-13,	Up: S
 9.8.14   set-nonblock
 =====================
 
-<<
-     set-nonblock-mode(mode, channel...)
+<<   set-nonblock-mode(mode, channel...)
         channel : Channel
         mode : String
 >>
@@ -914,8 +876,7 @@ Node: Subsection 9-8-15,	Next: Subsection 9-8-16,	Prev: Subsection 9-8-14,	Up: S
 9.8.15   set-close-on-exec-mode
 ===============================
 
-<<
-     set-close-on-exec-mode(mode, channel...)
+<<   set-close-on-exec-mode(mode, channel...)
         channel : Channel
         mode : String
      raises RuntimeException
@@ -931,8 +892,7 @@ Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: S
 9.8.16   pipe
 =============
 
-<<
-     $(pipe) : Pipe
+<<   $(pipe) : Pipe
      raises RuntimeException
 >>
   
@@ -946,8 +906,7 @@ Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: S
 9.8.17   mkfifo
 ===============
 
-<<
-     mkfifo(mode, node...)
+<<   mkfifo(mode, node...)
         mode : Int
         node : Node
 >>
@@ -960,8 +919,7 @@ Node: Subsection 9-8-18,	Next: Subsection 9-8-19,	Prev: Subsection 9-8-17,	Up: S
 9.8.18   select
 ===============
 
-<<
-     $(select rfd..., wfd..., wfd..., timeout) : Select
+<<   $(select rfd..., wfd..., wfd..., timeout) : Select
         rfd : InChannel
         wfd : OutChannel
         efd : Channel
@@ -988,8 +946,7 @@ Node: Subsection 9-8-19,	Next: Subsection 9-8-20,	Prev: Subsection 9-8-18,	Up: S
 9.8.19   lockf
 ==============
 
-<<
-      lockf(channel, command, len)
+<<    lockf(channel, command, len)
          channel : Channel
          command : String
          len : Int
@@ -1044,8 +1001,7 @@ Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: S
 9.8.22   gethostbyname
 ======================
 
-<<
-     $(gethostbyname host...) : Host...
+<<   $(gethostbyname host...) : Host...
         host : String
      raises RuntimeException
 >>
@@ -1074,8 +1030,7 @@ Node: Subsection 9-8-24,	Next: Subsection 9-8-25,	Prev: Subsection 9-8-23,	Up: S
 9.8.24   getprotobyname
 =======================
 
-<<
-     $(getprotobyname name...) : Protocol...
+<<   $(getprotobyname name...) : Protocol...
         name : Int or String
      raises RuntimeException
 >>
@@ -1106,8 +1061,7 @@ Node: Subsection 9-8-26,	Next: Subsection 9-8-27,	Prev: Subsection 9-8-25,	Up: S
 9.8.26   getservbyname
 ======================
 
-<<
-     $(getservbyname service...) : Service...
+<<   $(getservbyname service...) : Service...
         service : String or Int
      raises RuntimeException
 >>
@@ -1121,8 +1075,7 @@ Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: S
 9.8.27   socket
 ===============
 
-<<
-     $(socket domain, type, protocol) : Channel
+<<   $(socket domain, type, protocol) : Channel
         domain : String
         type : String
         protocol : String
@@ -1153,8 +1106,7 @@ Node: Subsection 9-8-28,	Next: Subsection 9-8-29,	Prev: Subsection 9-8-27,	Up: S
 9.8.28   bind
 =============
 
-<<
-     bind(socket, host, port)
+<<   bind(socket, host, port)
         socket : InOutChannel
         host : String
         port : Int
@@ -1176,8 +1128,7 @@ Node: Subsection 9-8-29,	Next: Subsection 9-8-30,	Prev: Subsection 9-8-28,	Up: S
 9.8.29   listen
 ===============
 
-<<
-     listen(socket, requests)
+<<   listen(socket, requests)
         socket : InOutChannel
         requests : Int
      raises RuntimeException
@@ -1192,8 +1143,7 @@ Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: S
 9.8.30   accept
 ===============
 
-<<
-     $(accept socket) : InOutChannel
+<<   $(accept socket) : InOutChannel
         socket : InOutChannel
      raises RuntimeException
 >>
@@ -1206,8 +1156,7 @@ Node: Subsection 9-8-31,	Next: Subsection 9-8-32,	Prev: Subsection 9-8-30,	Up: S
 9.8.31   connect
 ================
 
-<<
-      connect(socket, addr, port)
+<<    connect(socket, addr, port)
          socket : InOutChannel
          addr : String
          port : int
@@ -1230,8 +1179,7 @@ Node: Subsection 9-8-32,	Next: Subsection 9-8-33,	Prev: Subsection 9-8-31,	Up: S
 9.8.32   getchar
 ================
 
-<<
-      $(getc) : String
+<<    $(getc) : String
       $(getc file) : String
          file : InChannel or File
       raises RuntimeException
@@ -1247,8 +1195,7 @@ Node: Subsection 9-8-33,	Next: Subsection 9-8-34,	Prev: Subsection 9-8-32,	Up: S
 9.8.33   gets
 =============
 
-<<
-     $(gets) : String
+<<   $(gets) : String
      $(gets channel) : String
         channel : InChannel or File
      raises RuntimeException
@@ -1264,8 +1211,7 @@ Node: Subsection 9-8-34,	Next: Section 9-9,	Prev: Subsection 9-8-33,	Up: Section
 9.8.34   fgets
 ==============
 
-<<
-     $(fgets) : String
+<<   $(fgets) : String
      $(fgets channel) : String
         channel : InChannel or File
      raises RuntimeException
@@ -1288,8 +1234,7 @@ Node: Section 9-9,	Next: Section 9-10,	Prev: Section 9-8,	Up: Chapter 9
   Output is printed with the `print' and `println' functions. The
 `println' function adds a terminating newline to the value being
 printed, the `print' function does not.
-<<
-      fprint(<file>, <string>)
+<<    fprint(<file>, <string>)
       print(<string>)
       eprint(<string>)
       fprintln(<file>, <string>)
@@ -1313,8 +1258,7 @@ Node: Section 9-10,	Next: Section 9-11,	Prev: Section 9-9,	Up: Chapter 9
   Values can be printed with the `printv' and `printvln' functions. The
 `printvln' function adds a terminating newline to the value being
 printed, the `printv' function does not.
-<<
-      fprintv(<file>, <string>)
+<<    fprintv(<file>, <string>)
       printv(<string>)
       eprintv(<string>)
       fprintvln(<file>, <string>)
@@ -1375,18 +1319,18 @@ awk(1).
  - `\r' : the carriage return character `^M'. 
  - `\t' : the tab character `^I'. 
  - `\v' : the vertical tab character. 
- - `\xhh...' : the character represented by the string  of hexadecimal
-   digits `h'. All valid hexadecimal digits  following the sequence are
+ - `\xhh...' : the character represented by the string of hexadecimal
+   digits `h'. All valid hexadecimal digits following the sequence are
    considered to be part of the sequence. 
- - `\ddd' : the character represented by 1, 2, or 3 octal  digits. 
+ - `\ddd' : the character represented by 1, 2, or 3 octal digits. 
   
   Regular expressions are defined using the special characters
 `.\^$[(){}*?'+.
   
   
- - `c' : matches the literal character `c' if `c' is not  a special
+ - `c' : matches the literal character `c' if `c' is not a special
    character. 
- - `\c' : matches the literal character `c', even if `c'  is a special
+ - `\c' : matches the literal character `c', even if `c' is a special
    character. 
  - `.' : matches any character, including newline. 
  - `^' : matches the beginning of a line. 
@@ -1399,14 +1343,14 @@ awk(1).
  - `r*' : matches zero or more occurrences of `r'. 
  - `r?' : matches zero or one occurrence of `r'. 
  - `(r)' : parentheses are used for grouping; matches `r'. 
- - `\(r\)' : also defines grouping, but the expression matched  within
-   the parentheses is available to the output processor  through one of
+ - `\(r\)' : also defines grouping, but the expression matched within
+   the parentheses is available to the output processor through one of
    the variables `$1', `$2', ... 
  - `r{n}' : matches exactly `n' occurrences of `r'. 
  - `r{n,}' : matches `n' or more occurrences of `r'. 
- - `r{n,m}' : matches at least `n' occurrences of `r',  and no more than
+ - `r{n,m}' : matches at least `n' occurrences of `r', and no more than
    `m' occurrences. 
- - `\y': matches the empty string at either the beginning or  end of a
+ - `\y': matches the empty string at either the beginning or end of a
    word. 
  - `\B': matches the empty string within a word. 
  - `\<': matches the empty string at the beginning of a word. 
@@ -1441,8 +1385,7 @@ Node: Subsection 9-11-2,	Next: Subsection 9-11-3,	Prev: Subsection 9-11-1,	Up: S
 9.11.2   cat
 ============
 
-<<
-      cat(files) : Sequence
+<<    cat(files) : Sequence
          files : File or InChannel Sequence
 >>
   
@@ -1455,8 +1398,7 @@ Node: Subsection 9-11-3,	Next: Subsection 9-11-4,	Prev: Subsection 9-11-2,	Up: S
 9.11.3   grep
 =============
 
-<<
-     grep(pattern) : String  # input from stdin, default options
+<<   grep(pattern) : String  # input from stdin, default options
         pattern : String
      grep(pattern, files) : String  # default options
         pattern : String
@@ -1474,9 +1416,9 @@ highly-simplified version of grep(1).
   
  q  If specified, the output from `grep' is not displayed. 
  h  If specified, output lines will not include the filename (default,
-   when only one input  file is given). 
+   when only one input file is given). 
  n  If specified, output lines include the filename (default, when more
-   than one input file  is given). 
+   than one input file is given). 
  v  If specified, search for lines without a match instead of lines with
    a match, 
   
@@ -1490,8 +1432,7 @@ Node: Subsection 9-11-4,	Next: Subsection 9-11-5,	Prev: Subsection 9-11-3,	Up: S
 9.11.4   scan
 =============
 
-<<
-     scan(input-files)
+<<   scan(input-files)
      case string1
         body1
      case string2
@@ -1517,8 +1458,7 @@ to be the entire line, and `$*' is an array of all the field values. The
 state is passed to the next clause. Otherwise the value is discarded.
   For example, here is an `scan' function that acts as a simple command
 processor.
-<<
-      calc() =
+<<    calc() =
          i = 0
          scan(script.in)
          case print
@@ -1537,33 +1477,30 @@ processor.
 >>
   
   The `scan' function also supports several options.
-<<
-      scan(options, files)
+<<    scan(options, files)
       ...
 >>
   
   
   
- A  Parse each line as an argument list, where arguments  may be quoted.
-   For example, the following line has three words,  ```ls''', ```-l''',
-   ```Program Files'''.
-   <<
-            ls -l "Program Files"
+ A  Parse each line as an argument list, where arguments may be quoted.
+   For example, the following line has three words, "`ls'", "`-l'",
+   "`Program Files'".
+   <<       ls -l "Program Files"
         >>
  
- O  Parse each line using white space as the separator, using the  usual
+ O  Parse each line using white space as the separator, using the usual
    OMake algorithm for string parsing. This is the default. 
- x  Once each line is split, reduce each word using the  hex
-   representation. This is the usual hex representation used  in URL
-   specifiers, so the string ``Program Files'' may be  alternately
+ x  Once each line is split, reduce each word using the hex
+   representation. This is the usual hex representation used in URL
+   specifiers, so the string "Program Files" may be alternately
    represented in the form ProgramProgram+Files. 
   
   Note, if you want to redirect the output to a file, the easiest way is
 to redefine the `stdout' variable. The `stdout' variable is scoped the
 same way as other variables, so this definition does not affect the
 meaning of `stdout' outside the `calc' function.
-<<
-      calc() =
+<<    calc() =
           stdout = $(fopen script.out, w)
           scan(script.in)
              ...
@@ -1576,8 +1513,7 @@ Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: S
 9.11.5   awk
 ============
 
-<<
-     awk(input-files)
+<<   awk(input-files)
      case pattern1:
         body1
      case pattern2:
@@ -1588,8 +1524,7 @@ Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: S
 >>
   
   or
-<<
-     awk(options, input-files)
+<<   awk(options, input-files)
      case pattern1:
         body1
      case pattern2:
@@ -1624,8 +1559,7 @@ $2, ...'.
   For example, here is an `awk' function to print the text between two
 delimiters `\begin{<name>}' and `\end{<name>}', where the `<name>' must
 belong to a set passed as an argument to the `filter' function.
-<<
-      filter(names) =
+<<    filter(names) =
          print = false
   
          awk(Awk.in)
@@ -1646,8 +1580,7 @@ belong to a set passed as an argument to the `filter' function.
 to redefine the `stdout' variable. The `stdout' variable is scoped the
 same way as other variables, so this definition does not affect the
 meaning of `stdout' outside the `filter' function.
-<<
-      filter(names) =
+<<    filter(names) =
           stdout = $(fopen file.out, w)
           awk(Awk.in)
              ...
@@ -1656,8 +1589,8 @@ meaning of `stdout' outside the `filter' function.
   
   Options. 
   
- b  ``Break'' when evaluating cases. Only the first case that matches
-   will be selected. 
+ b  "Break" when evaluating cases. Only the first case that matches will
+   be selected. 
   
   The `break function can be used to abort the loop, exiting the `awk'
 function immediately. 
@@ -1668,8 +1601,7 @@ Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: S
 9.11.6   fsubst
 ===============
 
-<<
-     fsubst(files)
+<<   fsubst(files)
      case pattern1 [options]
         body1
      case pattern2 [options]
@@ -1696,8 +1628,7 @@ a substitution. Otherwise, the substitution is applied only once.
   Output can be redirected by redefining the `stdout' variable.
   For example, the following program replaces all occurrences of an
 expression `word.' with its capitalized form.
-<<
-      section
+<<    section
          stdout = $(fopen Subst.out, w)
          fsubst(Subst.in)
          case $"\<\([[:alnum:]]+\)\." g
@@ -1711,8 +1642,7 @@ Node: Subsection 9-11-7,	Next: Subsection 9-11-8,	Prev: Subsection 9-11-6,	Up: S
 9.11.7   lex
 ============
 
-<<
-     lex(files)
+<<   lex(files)
      case pattern1
         body1
      case pattern2
@@ -1734,8 +1664,7 @@ probably want to place it first in the pattern list.
 next clause.
   For example, the following program collects all occurrences of
 alphanumeric words in an input file.
-<<
-      collect-words($(files)) =
+<<    collect-words($(files)) =
          words[] =
          lex($(files))
          default
@@ -1756,8 +1685,7 @@ Node: Subsection 9-11-8,	Next: Subsection 9-11-9,	Prev: Subsection 9-11-7,	Up: S
 9.11.8   lex-search
 ===================
 
-<<
-     lex-search(files)
+<<   lex-search(files)
      case pattern1
         body1
      case pattern2
@@ -1772,8 +1700,7 @@ does not match any of the regular expressions is skipped. If the clauses
 include a `default' case, then the `default' matches any skipped text.
   For example, the following program collects all occurrences of
 alphanumeric words in an input file, skipping any other text.
-<<
-      collect-words($(files)) =
+<<    collect-words($(files)) =
          words[] =
          lex-search($(files))
          default

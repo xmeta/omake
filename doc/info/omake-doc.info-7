@@ -34,20 +34,20 @@ directory is set for each OMakefile in the project).
 OMakeroot file. 
  ABORT_ON_COMMAND_ERROR
  If set to true, the construction of a
-target should  be aborted whenever one of the commands to build it fail.
-This defaults to true,  and should normally be left that way.
+target should be aborted whenever one of the commands to build it fail.
+This defaults to true, and should normally be left that way.
  SCANNER_MODE
  This variable should be defined as one
-of four values  (defaults to `enabled'). 
+of four values (defaults to `enabled'). 
   
  enabled  Allow the use of default `.SCANNER' rules. Whenever a rule
-   does  not specify a `:scanner:' dependency explicitly, try to find a 
+   does not specify a `:scanner:' dependency explicitly, try to find a
    `.SCANNER' with the same target name. 
  disabled  Never use default `.SCANNER' rules. 
  warning  Allow the use of default `.SCANNER' rules, but print a warning
-    whenever one is selected. 
- error  Do not allow the use of default `.SCANNER' rules. If a rule 
-   does not specify a `:scanner:' dependency, and there is a default 
+   whenever one is selected. 
+ error  Do not allow the use of default `.SCANNER' rules. If a rule does
+   not specify a `:scanner:' dependency, and there is a default
    `.SCANNER' rule, the build will terminate abnormally. 
    
 
@@ -89,8 +89,7 @@ Node: Section 12-5,	Next: Subsection 12-5-1,	Prev: Section 12-4,	Up: Chapter 12
   OMake provides extensive support for building C and C++ programs. In
 order to use the functions defined in this section, you need to make
 sure the line 
-<<
-  open build/C
+<<open build/C
 >>
   is present in your `OMakeroot' file.
 * Menu:
@@ -106,7 +105,7 @@ Node: Subsection 12-5-1,	Next: Subsection 12-5-2,	Prev: Section 12-5,	Up: Sectio
 
 12.5.1   Autoconfiguration variables
 ====================================
-   These variables will get defined based on the ``autoconf-style''
+   These variables will get defined based on the "autoconf-style"
 `static.' tests executed when you run OMake for the first time. You can
 use them to configure your project accordingly, and you should not
 redefine them.
@@ -149,25 +148,25 @@ Node: Subsection 12-5-2,	Next: Subsection 12-5-3,	Prev: Subsection 12-5-1,	Up: S
   The following variables can be redefined in your project.
  CC
  The name of the C compiler (on `Unix'
-it defaults to `gcc' when `gcc' is present and  to `cc' otherwise; on
+it defaults to `gcc' when `gcc' is present and to `cc' otherwise; on
 `Win32' defaults to `cl /nologo'). 
  CXX
  The name of the C++ compiler (on
-`Unix' it defaults to `gcc' when `gcc' is present  and to `c'++
+`Unix' it defaults to `gcc' when `gcc' is present and to `c'++
 otherwise; on `Win32' defaults to `cl /nologo'). 
  CPP
  The name of the C preprocessor
 (defaults to `cpp' on `Unix', and `cl /E' on `Win32'). 
  CFLAGS
  Compilation flags to pass to the C
-compiler (default empty on `Unix', and `/DWIN32'  on `Win32'). 
+compiler (default empty on `Unix', and `/DWIN32' on `Win32'). 
  CXXFLAGS
  Compilation flags to pass to the C++
-compiler (default empty on `Unix', and `/DWIN32'  on `Win32'). 
+compiler (default empty on `Unix', and `/DWIN32' on `Win32'). 
  INCLUDES
  Additional directories that specify
-the search path to the C and C++ compilers (default is `.').  The
-directories are passed to the C and C++ compilers with the `-I' option. 
+the search path to the C and C++ compilers (default is `.'). The
+directories are passed to the C and C++ compilers with the `-I' option.
 The include path with `-I' prefixes is defined in the
 `PREFIXED_INCLUDES' variable. 
  LIBS
@@ -181,7 +180,7 @@ building a program (default is empty).
 (default is empty on `Unix', and `/c /coff' on `Win32'). 
  AR
  The name of the program to create
-static libraries (defaults to `ar cq' on `Unix',  and `lib' on `Win32').
+static libraries (defaults to `ar cq' on `Unix', and `lib' on `Win32'). 
  AROUT
  The option string that specifies the
 output file for `AR'. 
@@ -210,8 +209,7 @@ be created before running the scanner.
 12.5.3.1   CGeneratedFiles, LocalCGeneratedFiles
 ------------------------------------------------
  
-<<
-  CGeneratedFiles(files)
+<<CGeneratedFiles(files)
   LocalCGeneratedFiles(files)
 >>
   
@@ -219,8 +217,7 @@ be created before running the scanner.
 files that need to be generated before any C files are scanned for
 dependencies. For example, if `config.h' and `inputs.h' are both
 generated files, specify: 
-<<
-  CGeneratedFiles(config.h inputs.h)
+<<CGeneratedFiles(config.h inputs.h)
 >>
   
   The `CGeneratedFiles' function is global --- its arguments will be
@@ -247,8 +244,7 @@ list does not include the object suffix. These are obtained from the
   The following command builds the library `libfoo.a' from the files
 `a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
 `a.obj b.obj c.obj' on `Win32'.
-<<
-  StaticCLibrary(libfoo, a b c)
+<<StaticCLibrary(libfoo, a b c)
   .DEFAULT: $(StaticCLibrary libbar, a b c d)
 >>
   
@@ -266,8 +262,7 @@ copied (without the library suffix).
 directory.
   For example, the following code copies the library `libfoo.a' to the
 `/usr/lib' directory.
-<<
-  .PHONY: install
+<<.PHONY: install
   
   StaticCLibraryCopy(install, /usr/lib, libfoo)
 >>
@@ -280,8 +275,7 @@ directory.
 install location in one step. It returns the filename of the library in
 the target directory.
   `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
-<<
-  StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
+<<StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
 >>
   
 
@@ -311,8 +305,7 @@ returns the filename of the executable.
   For example, the following code specifies that the program `foo' is to
 be produced by linking the files `bar.o' and `baz.o' and libraries
 `libfoo.a'.
-<<
-  section
+<<section
      LIBS = libfoo
      LDFLAGS += -lbar
      CProgram(foo, bar baz)
@@ -324,8 +317,7 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 
   The `CProgramCopy' function copies a file to an install location.
   `CProgramCopy(<tag>, <dir>, <program>)'
-<<
-  CProgramCopy(install, /usr/bin, foo)
+<<CProgramCopy(install, /usr/bin, foo)
 >>
   
 
@@ -335,8 +327,7 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
   The `CProgramInstall' function specifies a program to build, and a
 location to install, simultaneously.
   `CProgramInstall(<tag>, <dir>, <name>, <files>)'
-<<
-  section
+<<section
      LIBS = libfoo
      LDFLAGS += -lbar
      CProgramInstall(install, /usr/bin, foo, bar baz)
@@ -371,8 +362,7 @@ Node: Section 12-6,	Next: Subsection 12-6-1,	Prev: Section 12-5,	Up: Chapter 12
 support for tools like `ocamlfind', `ocamlyacc' and `menhir'. In order
 to use the functions defined in this section, you need to make sure the
 line 
-<<
-  open build/OCaml
+<<open build/OCaml
 >>
   is present in your `OMakeroot' file.
 * Menu:
@@ -390,24 +380,24 @@ Node: Subsection 12-6-1,	Next: Subsection 12-6-2,	Prev: Section 12-6,	Up: Sectio
 
 12.6.1   Autoconfiguration variables for OCaml compilation
 ==========================================================
-   These variables will get defined based on the ``autoconf-style''
-tests executed when you run OMake for the first time. You can use them
-to configure your project accordingly, and you should not redefine them.
+   These variables will get defined based on the "autoconf-style" tests
+executed when you run OMake for the first time. You can use them to
+configure your project accordingly, and you should not redefine them.
   You can use the `--configure' command line option (Section
 A.3.9*Note Subsection A-3-9::) to force re-execution of all the
 tests.
  OCAMLOPT_EXISTS
  True when `ocamlopt' (or
-`ocamlopt.opt') is  available on your machine. 
+`ocamlopt.opt') is available on your machine. 
  OCAMLFIND_EXISTS
  True when the ocamlfind is available
-on your  machines. 
+on your machines. 
  OCAMLDEP_MODULES_AVAILABLE
- True when a version of  `ocamldep'
-that understands the `-modules' option is available on your machine. 
+ True when a version of `ocamldep' that
+understands the `-modules' option is available on your machine. 
  MENHIR_AVAILABLE
  True when the Menhir parser-generator
-is available  on your machine.
+is available on your machine.
 
 Node: Subsection 12-6-2,	Next: Subsection 12-6-3,	Prev: Subsection 12-6-1,	Up: Section 12-6
   
@@ -421,11 +411,11 @@ Node: Subsection 12-6-2,	Next: Subsection 12-6-3,	Prev: Subsection 12-6-1,	Up: S
 (default `false') 
  OCAMLC
  The OCaml bytecode compiler (default
-`ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not set, otherwise
+`ocamlc.opt' if it exists and `USE_OCAMLFIND' is not set, otherwise
 `ocamlc'). 
  OCAMLOPT
  The OCaml native-code compiler
-(default `ocamlopt.opt' if it  exists and `USE_OCAMLFIND' is not set,
+(default `ocamlopt.opt' if it exists and `USE_OCAMLFIND' is not set,
 otherwise `ocamlopt'). 
  CAMLP4
  The `camlp4' preprocessor (default
@@ -447,18 +437,17 @@ otherwise `ocamlopt').
 `ocamldep'). 
  OCAMLDEP_MODULES
  The OCaml dependency analyzer that
-understands the  `-module' option (default `ocamldep', if `ocamldep
--modules' works, or  `ocamlrun ocamldep-omake', if `ocamlrun
-ocamldep-omake -modules' works, and empty  when neither works). 
+understands the `-module' option (default `ocamldep', if `ocamldep
+-modules' works, or `ocamlrun ocamldep-omake', if `ocamlrun
+ocamldep-omake -modules' works, and empty when neither works). 
  OCAMLDEP_MODULES_ENABLED
- Instead of using `OCAMLDEP'  in a
+ Instead of using `OCAMLDEP' in a
 traditional `make'-style fashion, run `$(OCAMLDEP_MODULES) -modules' and
-then  postprocess the output internally to discover all the relevant
-generated `.ml' and  `.mli' files. See Section
+then postprocess the output internally to discover all the relevant
+generated `.ml' and `.mli' files. See Section
 12.6.5*Note Subsection 12-6-5:: for more information on
- interactions between OMake, `OCAMLDEP' and generated files. This
-feature is currently  considered highly experimental and is disabled by
-default. 
+interactions between OMake, `OCAMLDEP' and generated files. This feature
+is currently considered highly experimental and is disabled by default. 
  OCAMLMKTOP
  The OCaml toploop compiler (default
 `ocamlmktop'). 
@@ -470,11 +459,11 @@ default.
 `$(OCAMLOPT)'). 
  OCAMLINCLUDES
  Search path to pass to the OCaml
-compilers (default `.').  The search path with the `-I' prefix is
-defined by the `PREFIXED_OCAMLINCLUDES'  variable. 
+compilers (default `.'). The search path with the `-I' prefix is defined
+by the `PREFIXED_OCAMLINCLUDES' variable. 
  OCAMLFIND
  The `ocamlfind' utility (default
-`ocamlfind' if  `USE_OCAMLFIND' is set, otherwise empty). 
+`ocamlfind' if `USE_OCAMLFIND' is set, otherwise empty). 
  OCAMLFINDFLAGS
  The flags to pass to `ocamlfind'
 (default empty, `USE_OCAMLFIND' must be set). 
@@ -488,11 +477,11 @@ otherwise).
  NATIVE_ENABLED
  Flag indicating whether to use the
 native-code compiler (default `true', when ocamlopt is found, `false'
-otherwise).  Both `BYTE_ENABLED' and `NATIVE_ENABLED' can be set to
-true;  at least one should be set to true. 
+otherwise). Both `BYTE_ENABLED' and `NATIVE_ENABLED' can be set to true;
+at least one should be set to true. 
  MENHIR_ENABLED
  Define this as `true' if you wish to
-use  `menhir' instead of `ocamlyacc' (default `false'). 
+use `menhir' instead of `ocamlyacc' (default `false'). 
 
 Node: Subsection 12-6-3,	Next: Subsection 12-6-4,	Prev: Subsection 12-6-2,	Up: Section 12-6
   
@@ -536,24 +525,23 @@ Node: Subsection 12-6-4,	Next: Subsection 12-6-5,	Prev: Subsection 12-6-3,	Up: S
   The following variables are used during linking.
  OCAML_LIBS
  Libraries to pass to the linker. These
-libraries become dependencies  of the link step. 
+libraries become dependencies of the link step. 
  OCAML_OTHER_LIBS
  Additional libraries to pass to the
-linker. These libraries are  not included as dependencies to the link
-step. Typical use is for the OCaml  standard libraries like `unix' or
+linker. These libraries are not included as dependencies to the link
+step. Typical use is for the OCaml standard libraries like `unix' or
 `str'. 
  OCAML_CLIBS
  C libraries to pass to the linker. 
  OCAML_LIB_FLAGS
  Extra flags for the library linker. 
  ABORT_ON_DEPENDENCY_ERRORS
-  OCaml linker requires the OCaml files
-to be  listed in dependency order. Normally, all the functions presented
-in this section will automatically sort  the list of OCaml modules
-passed in as the `<files>' argument. However, this variable is  set to
-`true', the order of the files passed into these function will be left
-as is, but OMake will  abort with an error message if the order is
-illegal.
+ OCaml linker requires the OCaml files
+to be listed in dependency order. Normally, all the functions presented
+in this section will automatically sort the list of OCaml modules passed
+in as the `<files>' argument. However, this variable is set to `true',
+the order of the files passed into these function will be left as is,
+but OMake will abort with an error message if the order is illegal.
 
 Node: Subsection 12-6-5,	Next: Subsection 12-6-6,	Prev: Subsection 12-6-4,	Up: Section 12-6
   
@@ -561,11 +549,10 @@ Node: Subsection 12-6-5,	Next: Subsection 12-6-6,	Prev: Subsection 12-6-4,	Up: S
 12.6.5   Generated OCaml Files
 ==============================
     As of OCaml version 3.09.2, the
-standard `ocamldep' scanner is ``broken''. The main issue is that it
-finds only those dependencies that already exist. If `foo.ml' contains a
+standard `ocamldep' scanner is "broken". The main issue is that it finds
+only those dependencies that already exist. If `foo.ml' contains a
 dependency on `Bar', 
-<<
-  foo.ml:
+<<foo.ml:
      open Bar
 >>
   then the default `ocamldep' will only find the dependency if a file
@@ -575,7 +562,7 @@ print) the dependency if, for example, only `bar.mly' exists at the time
 from `bar.mly'.
   OMake currently provides two methods for addressing this problem ---
 one that requires manually specifying the generated files, and an
-experimental method for discovering such ``hidden'' dependencies
+experimental method for discovering such "hidden" dependencies
 automatically. The `OCAMLDEP_MODULES_ENABLED variable controls which
 method is going to be used. When this variable is false, the manual
 specifications are expected and when it is true, the automated discovery
@@ -585,8 +572,7 @@ will be attempted.
 12.6.5.1   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
 --------------------------------------------------------
  
-<<
-  OCamlGeneratedFiles(files)
+<<OCamlGeneratedFiles(files)
   LocalOCamlGeneratedFiles(files)
 >>
   
@@ -595,8 +581,7 @@ will be attempted.
 functions specify files that need to be generated before any OCaml files
 are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
 are both generated files, specify: 
-<<
-  OCamlGeneratedFiles(parser.ml lexer.ml)
+<<OCamlGeneratedFiles(parser.ml lexer.ml)
 >>
   
   The `OCamlGeneratedFiles' function is global --- its arguments will be
@@ -642,34 +627,31 @@ http://cristal.inria.fr/~fpottier/menhir/).
  - Menhir's explanations are believed to be understandable by mere
    humans. 
  - Menhir allows grammar specifications to be split over multiple files.
-    It also allows several grammars to share a single set of tokens. 
+   It also allows several grammars to share a single set of tokens. 
  - Menhir is able to produce parsers that are parameterized by Objective
    Caml modules. 
  - Added by jyh With the `--infer' option, Menhir can typecheck the
-   semantic actions  in your grammar at generation time. 
+   semantic actions in your grammar at generation time. 
   
   What do you need to do to use Menhir instead of `ocamlyacc'? 
   
  1. Place the following definition before the relevant section of your
-   project  (or at the top of your project `OMakefile' if you want to
-   use Menhir everywhere).
-   <<
-        MENHIR_ENABLED = true
+   project (or at the top of your project `OMakefile' if you want to use
+   Menhir everywhere).
+   <<   MENHIR_ENABLED = true
    >>
  
  
  2. Optionally, add any desired Menhir options to the `MENHIR_FLAGS'
    variable.
-   <<
-        MENHIR_FLAGS += --infer
+   <<   MENHIR_FLAGS += --infer
    >>
   
   With this setup, any file with a `.mly' suffix will be compiled with
 Menhir.
   If your grammar is split across several files, you need to specify it
 explicitly, using the `MenhirMulti' function.
-<<
-      MenhirMulti(target, sources)
+<<    MenhirMulti(target, sources)
           target : filename, without suffix
           sources : the files that define the grammar, without suffixes
 >>
@@ -677,8 +659,7 @@ explicitly, using the `MenhirMulti' function.
   For example, if you want to generate the parser files `parse.ml' and
 `parse.mli', from the grammar specified in files `a.mly' and `b.mly',
 you would use the following.
-<<
-      MenhirMulti(parse, a b)
+<<    MenhirMulti(parse, a b)
 >>
   
 
@@ -694,8 +675,7 @@ is set).
   The following code builds the `libfoo.cmxa' library from the files
 `foo.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and `libfoo.cma'
 from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
-<<
-  OCamlLibrary(libfoo, foo bar)
+<<OCamlLibrary(libfoo, foo bar)
 >>
   
 
@@ -713,8 +693,7 @@ is set).
   The following code builds the `libfoo.cmx' package from the files
 `package.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and
 `package.cmo' from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
-<<
-  OCamlPackage(package, foo bar)
+<<OCamlPackage(package, foo bar)
 >>
   
 
@@ -745,10 +724,10 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   Additional variables used: 
   
  `OCAML_LIBS  Additional libraries passed to the linker, without suffix.
-   These files  become dependencies of the target program. 
+   These files become dependencies of the target program. 
  `OCAML_OTHER_LIBS  Additional libraries passed to the linker, without
-   suffix. These  files do not become dependencies of the target
-   program. 
+   suffix. These files do not become dependencies of the target program.
+   
  `OCAML_CLIBS  C libraries to pass to the linker. 
  `OCAML_BYTE_LINK_FLAGS  Flags to pass to the bytecode linker. 
  `OCAML_NATIVE_LINK_FLAGS  Flags to pass to the native code linker. 
@@ -764,7 +743,7 @@ location.
   Additional variables used: 
   
  NATIVE_ENABLED  If the `NATIVE_ENABLED variable is set, the native-code
-   executable  is copied; otherwise the byte-code executable is copied. 
+   executable is copied; otherwise the byte-code executable is copied. 
 
 
 12.6.6.7   OCamlProgramInstall
@@ -785,8 +764,7 @@ Node: Section 12-7,	Next: Subsection 12-7-1,	Prev: Section 12-6,	Up: Chapter 12
 for automatically running BiBTex and for producing PostScript and PDF
 files. In order to use the functions defined in this section, you need
 to make sure the line 
-<<
-  open build/LaTeX
+<<open build/LaTeX
 >>
   is present in your `OMakeroot' file.
 * Menu:
@@ -858,21 +836,20 @@ files.
   Additional variables used: 
  TEXINPUTS
  The LaTeX search path (an array of
-directories, default is  taken from the `TEXINPUTS' environment
+directories, default is taken from the `TEXINPUTS' environment
 variable). 
  TEXDEPS
  Additional files this document
 depends on. 
  TEXVARS
  An array of names of the environment
-variables  that are to be updated based on the value of OMake's
-`TEXINPUTS' variable.  Defaults to `TEXINPUTS' `BIBINPUTS' `BSTINPUTS'.
+variables that are to be updated based on the value of OMake's
+`TEXINPUTS' variable. Defaults to `TEXINPUTS' `BIBINPUTS' `BSTINPUTS'.
 
 12.7.2.2   TeXGeneratedFiles, LocalTeXGeneratedFiles
 ----------------------------------------------------
  
-<<
-  TeXGeneratedFiles(files)
+<<TeXGeneratedFiles(files)
   LocalTeXGeneratedFiles(files)
 >>
   
@@ -880,8 +857,7 @@ variables  that are to be updated based on the value of OMake's
 files that need to be generated before any LaTeXfiles are scanned for
 dependencies. For example, if `config.tex' and `inputs.tex' are both
 generated files, specify: 
-<<
-      TeXGeneratedFiles(config.tex inputs.tex)
+<<    TeXGeneratedFiles(config.tex inputs.tex)
 >>
   
   The `TeXGeneratedFiles' function is global --- its arguments will be
@@ -933,25 +909,76 @@ that these function be used from an appropriate `static.' block (see
 Section 4.18*Note Section 4-18:: for more information).
   In order to use the following general-purpose functions, you need to
 have the line 
-<<
-  open configure/Configure
+<<open configure/Configure
 >>
   included in your `OMakefile' or `OMakeroot'. 
 * Menu:
 
-* Subsection 13-1-1::	CheckHeader, VerboseCheckHeader
-* Subsection 13-1-2::	CheckLib, VerboseCheckLib
-* Subsection 13-1-3::	CheckProg
+* Subsection 13-1-1::	AC_MSG_CHECKING, AC_MSG_RESULT
+* Subsection 13-1-2::	AC_MSG_WARN
+* Subsection 13-1-3::	AC_MSG_YES_NO, AC_MSG_FOUND
+* Subsection 13-1-4::	CheckHeader, VerboseCheckHeader
+* Subsection 13-1-5::	CheckLib, VerboseCheckLib
+* Subsection 13-1-6::	CheckProg
 
 
 Node: Subsection 13-1-1,	Next: Subsection 13-1-2,	Prev: Section 13-1,	Up: Section 13-1
   
 
-13.1.1   CheckHeader, VerboseCheckHeader
+13.1.1   AC_MSG_CHECKING, AC_MSG_RESULT
+=======================================
+ 
+<<AC_MSG_CHECKING(<msg>)
+  ...
+  AC_MSG_RESULT(<msg>)
+>>
+  The `AC_MSG_CHECKING' function output message of the form `---
+Checking <msg>... ' without any trailing newline. After the test
+advertized by `AC_MSG_CHECKING' is performed, the `AC_MSG_RESULT'
+function should be used to output the result.
+  In certain cases users may want to redefine these function --- for
+example, to use a different output formatting and/or to copy the
+messages to a log file.
+  Example: 
+<<static. =
+     AC_MSG_CHECKING(which foo to use)
+     foo = ...
+     AC_MSG_RESULT($(foo))
+>>
+
+Node: Subsection 13-1-2,	Next: Subsection 13-1-3,	Prev: Subsection 13-1-1,	Up: Section 13-1
+  
+
+13.1.2   AC_MSG_WARN
+====================
+ `AC_MSG_WARN(<msg>)'
+  Prints a warning message. 
+
+Node: Subsection 13-1-3,	Next: Subsection 13-1-4,	Prev: Subsection 13-1-2,	Up: Section 13-1
+  
+
+13.1.3   AC_MSG_YES_NO, AC_MSG_FOUND
+====================================
+ 
+<<flag = $(AC_MSG_YES_NO <bool expr>
+  flag = $(AC_MSG_FOUND <bool expr>
+>>
+  
+  The `AC_MSG_FOUND' function expects to receive a boolean flag
+describing whether a test previously announced using the
+`AC_MSG_CHECKING function found what it was looking for. `AC_MSG_FOUND'
+will output the appropriate result ("found" or "NOT found") using the
+`AC_MSG_RESULT function and return its argument back.
+  The `AC_MSG_YES_NO' function is similar, outputting a simple ("yes" or
+"NO"). 
+
+Node: Subsection 13-1-4,	Next: Subsection 13-1-5,	Prev: Subsection 13-1-3,	Up: Section 13-1
+  
+
+13.1.4   CheckHeader, VerboseCheckHeader
 ========================================
  
-<<
-  success = $(CheckHeader <files>)
+<<success = $(CheckHeader <files>)
   success = $(VerboseCheckHeader <files>)
 >>
   
@@ -960,22 +987,20 @@ headers files. Will use the `CC, `CFLAGS and `INCLUDES variables  to run
 the compiler. Will incude `<stdio.h>' before including the specified
 header files.
   Both functions return a boolean value. The `CheckHeader' function is
-silent; the `VerboseCheckHeader' function will output a line describing
-the test and the outcome.
+silent; the `VerboseCheckHeader' function will use the `AC_MSG_CHECKING
+and `AC_MSG_RESULT functions to describe the test and the outcome.
   Example: 
-<<
-  static. =
+<<static. =
      NCURSES_H_AVAILABLE = $(VerboseCheckHeader ncurses.h)
 >>
 
-Node: Subsection 13-1-2,	Next: Subsection 13-1-3,	Prev: Subsection 13-1-1,	Up: Section 13-1
+Node: Subsection 13-1-5,	Next: Subsection 13-1-6,	Prev: Subsection 13-1-4,	Up: Section 13-1
   
 
-13.1.2   CheckLib, VerboseCheckLib
+13.1.5   CheckLib, VerboseCheckLib
 ==================================
  
-<<
-  success = $(CheckLib <libs>, <functions>)
+<<success = $(CheckLib <libs>, <functions>)
   success = $(VerboseCheckLib <libs>, <functions>)
 >>
   
@@ -984,23 +1009,23 @@ when linking with the named libraries. Will use the `CC, `CFLAGS and
 `LDFLAGS variables  to run the compiler. Will pass the `<libs>' to the
 compiler using the `-l' flag.
   Both functions return a boolean value. The `CheckLib' function is
-silent; the `VerboseCheckLib' function will output a line describing the
-test and the outcome.
+silent; the `VerboseCheckHeader' function will use the `AC_MSG_CHECKING
+and `AC_MSG_RESULT functions to describe the test and the outcome.
   Example: 
-<<
-  static. =
+<<static. =
       NCURSES_LIB_AVAILABLE = $(VerboseCheckLib ncurses, initscr
 setupterm tigetstr)
 >>
 
-Node: Subsection 13-1-3,	Next: Section 13-2,	Prev: Subsection 13-1-2,	Up: Section 13-1
+Node: Subsection 13-1-6,	Next: Section 13-2,	Prev: Subsection 13-1-5,	Up: Section 13-1
   
 
-13.1.3   CheckProg
+13.1.6   CheckProg
 ==================
  `success = $(CheckProg <prog>)'
-  Checks whether the program `<prog>' exists in your path. Will output a
-line describing the test and the outcome.
+  Checks whether the program `<prog>' exists in your path. Will use the
+`AC_MSG_CHECKING and `AC_MSG_RESULT functions to describe the test and
+the outcome.
 
 Node: Section 13-2,	Next: Subsection 13-2-1,	Prev: Section 13-1,	Up: Chapter 13
   
@@ -1103,25 +1128,22 @@ variables are significant.
  prompt
  The `prompt' variable specifies the
 command-line prompt. It can be a simple string.
-<<
-      prompt = osh>
+<<    prompt = osh>
 >>
   
   Or you may choose to define it as a function of no arguments.
-<<
-      prompt() =
+<<    prompt() =
           return $"<$(USER):$(HOST) $(homename $(CWD))>"
 >>
   
   An example of the latter prompt is as follows.
-<<
-      <jyh:kenai.yapper.org ~>cd links/omake
+<<    <jyh:kenai.yapper.org ~>cd links/omake
       <jyh:kenai.yapper.org ~/links/omake>
 >>
   
  ignoreeof
-  If the `ignoreeof' is `true', then
-`osh' will not exit on  a terminal end-of-file (usually `^D' on Unix
+ If the `ignoreeof' is `true', then
+`osh' will not exit on a terminal end-of-file (usually `^D' on Unix
 systems).
 
 Node: Section 14-2,	Next: Section 14-3,	Prev: Section 14-1,	Up: Chapter 14
@@ -1133,8 +1155,7 @@ Node: Section 14-2,	Next: Section 14-3,	Prev: Section 14-1,	Up: Chapter 14
    
   Command aliases are defined by adding functions to the `Shell.'
 object. The following alias adds the `-AF' option to the `ls' command.
-<<
-      Shell. +=
+<<    Shell. +=
          ls(argv) =
             "ls" -AF $(argv)
 >>
@@ -1155,8 +1176,7 @@ before an indented block must have a colon at the end of the line. A
 block is terminated with a `.' on a line by itself, or `^D'. In the
 following example, the first line `if true' has no body, because there
 is no colon.
-<<
-     # The following if has no body
+<<   # The following if has no body
      osh>if true
      # The following if has a body
      osh>if true:
@@ -1178,16 +1198,14 @@ Node: Appendix A,	Next: Section A-1,	Prev: Chapter 14,	Up: Top
 Appendix A     Synopsis
 ***********************
     
-  omake  [-j <count>]  [-k]  [-p]  [-P]  [-n]  [-s] [-S]  [-w]  [-t] 
-[-u]  [-U]  [-R]  [--verbose]  [--project]  [--depend]  [--progress] 
-[--print-status]  [--print-exit]  [--print-dependencies] 
-[--show-dependencies <target>]  [--all-dependencies] 
-[--verbose-dependencies]  [--force-dotomake]  [--dotomake <dir>] 
-[--flush-includes]  [--configure]  [--save-interval <seconds>] 
-[--install]  [--install-all]  [--install-force]  [--version] 
-[--absname]  [--output-normal]  [--output-postpone] 
-[--output-only-errors]  [--output-at-end]  filename... 
-[var-definition...]
+  omake [-j <count>] [-k] [-p] [-P] [-n] [-s] [-S] [-w] [-t] [-u] [-U]
+[-R] [--verbose] [--project] [--depend] [--progress] [--print-status]
+[--print-exit] [--print-dependencies] [--show-dependencies <target>]
+[--all-dependencies] [--verbose-dependencies] [--force-dotomake]
+[--dotomake <dir>] [--flush-includes] [--configure] [--save-interval
+<seconds>] [--install] [--install-all] [--install-force] [--version]
+[--absname] [--output-normal] [--output-postpone] [--output-only-errors]
+[--output-at-end] filename... [var-definition...]
 * Menu:
 
 * Section A-1::	General usage
@@ -1209,14 +1227,13 @@ A.1   General usage
   
   For Boolean options (for example, `-s', `--progress', etc.) the option
 can include a prefix `--no', which inverts the usual sense of the
-option. For example, the option `--progress' means ``print a progress
-bar,'' while the option `--no--progress' means ``do not print a progress
-bar.''
+option. For example, the option `--progress' means "print a progress
+bar," while the option `--no--progress' means "do not print a progress
+bar."
   If multiple instances of an option are specified, the final option
 determines the behavior of OMake. In the following command line, the
 final `--no-S' cancels the earlier `-S'.
-<<
-      % omake -S --progress --no-S
+<<    % omake -S --progress --no-S
 >>
   
 
@@ -1249,7 +1266,7 @@ Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A
 A.2.1   -s
 ==========
  `-s'
-  Never not print commands as they are executed (be ``silent'').
+  Never not print commands as they are executed (be "silent").
 
 Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
   
@@ -1334,10 +1351,9 @@ can be garbled. The diversion is printed as a single coherent unit.
 command that decides to ask for interactive input. If the
 `--output-postpone' is enabled, but the `--output-normal' is not, the
 prompt of such a command will not be visible and it may be hard to
-figure out why the build appears ``stuck''. You might also consider
-using the `--progress' flag (see Section
-A.2.4*Note Subsection A-2-4::) so that you can see when the build
-is active. 
+figure out why the build appears "stuck". You might also consider using
+the `--progress' flag (see Section A.2.4*Note Subsection A-2-4::)
+so that you can see when the build is active. 
 
 Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
   
@@ -1383,7 +1399,7 @@ turns the option on; a lowercase character turns the option off.
    build terminates. Output from successful commands is discarded.
  
  1  Equivalent to `-S --progress --output-only-errors'
- This is a slightly more relaxed version of ``quiet'' output. The output
+ This is a slightly more relaxed version of "quiet" output. The output
    from successful commands is discarded. The output from failed
    commands is printed immediately after the command complete. The
    output from failed commands is displayed twice: once immediately
@@ -1495,77 +1511,3 @@ specified on the command line will be taken relative to the project root
 (instead of relative to the current directory). When no targets are
 given on the command line, all the `.DEFAULT' targets in the project
 will be built (regardless of the current directory).
-
-Node: Subsection A-3-6,	Next: Subsection A-3-7,	Prev: Subsection A-3-5,	Up: Section A-3
-  
-
-A.3.6   -t
-==========
- `-t'
-  Update the omake database to force the project to be considered
-up-to-date.
-
-Node: Subsection A-3-7,	Next: Subsection A-3-8,	Prev: Subsection A-3-6,	Up: Section A-3
-  
-
-A.3.7   -U
-==========
- `-U'
-  Do not trust cached build information. This will force the entire
-project to be rebuilt.
-
-Node: Subsection A-3-8,	Next: Subsection A-3-9,	Prev: Subsection A-3-7,	Up: Section A-3
-  
-
-A.3.8   --depend
-================
- `--depend'
-  Do not trust cached dependency information. This will force files to
-be rescanned for dependency information.
-
-Node: Subsection A-3-9,	Next: Subsection A-3-10,	Prev: Subsection A-3-8,	Up: Section A-3
-  
-
-A.3.9   --configure
-===================
-
-`--configure'
-  Re-run `static.' sections of the included omake files, instead of
-trusting the cached results.
-
-Node: Subsection A-3-10,	Next: Subsection A-3-11,	Prev: Subsection A-3-9,	Up: Section A-3
-  
-
-A.3.10   --force-dotomake
-=========================
-
-`--force-dotomake'
-  Always use the `$HOME/.omake' for the `.omc' cache files.
-
-Node: Subsection A-3-11,	Next: Subsection A-3-12,	Prev: Subsection A-3-10,	Up: Section A-3
-  
-
-A.3.11   --dotomake
-===================
- `--dotomake
-<dir>'
-  Use the specified directory instead of the `$HOME/.omake' for the
-placement of the `.omc' cache files.
-
-Node: Subsection A-3-12,	Next: Subsection A-3-13,	Prev: Subsection A-3-11,	Up: Section A-3
-  
-
-A.3.12   -j
-===========
- `-j <count>'
-  Run multiple build commands in parallel. The count specifies a bound
-on the number of commands to run simultaneously. In addition, the count
-may specify servers for remote execution of commands in the form
-`server=count'. For example, the option `-j
-2:small.host.org=1:large.host.org=4' would specify that up to 2 jobs can
-be executed locally, 1 on the server `small.host.org' and 4 on
-`large.host.org'. Each remote server must use the same filesystem
-location for the project.
-  Remote execution is currently an experimental feature. Remote
-filesystems like NFS do not provide adequate file consistency for this
-to work.

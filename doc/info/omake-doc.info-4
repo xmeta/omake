@@ -1,40 +1,19 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
-  
-
-8.2.16   getvar
-===============
-
-<<
-     $(getvar name) : String
->>
-  
-  The `getvar' function gets the value of a variable.
-  An exception is raised if the variable variable is not defined.
-  For example, the following code defines X to be the string abc.
-<<
-      NAME = foo
-      foo_1 = abc
-      X = $(getvar $(NAME)_1)
->>
-
 Node: Subsection 8-2-17,	Next: Section 8-3,	Prev: Subsection 8-2-16,	Up: Section 8-2
   
 
 8.2.17   setvar
 ===============
 
-<<
-     setvar(name, value)
+<<   setvar(name, value)
         name : String
         value : String
 >>
   
   The `setvar' function defines a new variable. For example, the
 following code defines the variable `X' to be the string `abc'.
-<<
-     NAME = X
+<<   NAME = X
      setvar($(NAME), abc)
 >>
 
@@ -97,8 +76,7 @@ Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8
 8.3.1   array
 =============
 
-<<
-      $(array elements) : Array
+<<    $(array elements) : Array
          elements : Sequence
 >>
   
@@ -106,8 +84,7 @@ Node: Subsection 8-3-1,	Next: Subsection 8-3-2,	Prev: Section 8-3,	Up: Section 8
 is a string, the elements of the array are the whitespace-separated
 elements of the string, respecting quotes.
   In addition, array variables can be declared as follows.
-<<
-      A[] =
+<<    A[] =
          <val1>
          ...
          <valn>
@@ -122,8 +99,7 @@ Node: Subsection 8-3-2,	Next: Subsection 8-3-3,	Prev: Subsection 8-3-1,	Up: Sect
 8.3.2   split
 =============
 
-<<
-     $(split sep, elements) : Array
+<<   $(split sep, elements) : Array
         sep : String
         elements : Sequence
 >>
@@ -134,8 +110,7 @@ splitting the elements by all occurrence of the separator in the
 `elements' sequence.
   For example, in the following code, the `X' variable is defined to be
 the array `/bin /usr/bin /usr/local/bin'.
-<<
-      PATH = /bin:/usr/bin:/usr/local/bin
+<<    PATH = /bin:/usr/bin:/usr/local/bin
       X = $(split :, $(PATH))
 >>
   
@@ -148,8 +123,7 @@ Node: Subsection 8-3-3,	Next: Subsection 8-3-4,	Prev: Subsection 8-3-2,	Up: Sect
 8.3.3   concat
 ==============
 
-<<
-     $(concat sep, elements) : String
+<<   $(concat sep, elements) : String
         sep : String
         elements : Sequence
 >>
@@ -159,8 +133,7 @@ sequence of elements. The result is a string formed by concatenating the
 elements, placing the separator between adjacent elements.
   For example, in the following code, the `X' variable is defined to be
 the string `foo_x_bar_x_baz'.
-<<
-      X = foo  bar     baz
+<<    X = foo  bar     baz
       Y = $(concat _x_, $(X))
 >>
 
@@ -170,8 +143,7 @@ Node: Subsection 8-3-4,	Next: Subsection 8-3-5,	Prev: Subsection 8-3-3,	Up: Sect
 8.3.4   length
 ==============
 
-<<
-     $(length sequence) : Int
+<<   $(length sequence) : Int
         sequence : Sequence
 >>
   
@@ -184,8 +156,7 @@ Node: Subsection 8-3-5,	Next: Subsection 8-3-6,	Prev: Subsection 8-3-4,	Up: Sect
 8.3.5   nth
 ===========
 
-<<
-     $(nth i, sequence) : value
+<<   $(nth i, sequence) : value
         i : Int
         sequence : Sequence
      raises RuntimeException
@@ -203,8 +174,7 @@ Node: Subsection 8-3-6,	Next: Subsection 8-3-7,	Prev: Subsection 8-3-5,	Up: Sect
 8.3.6   nth-hd
 ==============
 
-<<
-     $(nth-hd i, sequence) : value
+<<   $(nth-hd i, sequence) : value
         i : Int
         sequence : Sequence
      raises RuntimeException
@@ -222,8 +192,7 @@ Node: Subsection 8-3-7,	Next: Subsection 8-3-8,	Prev: Subsection 8-3-6,	Up: Sect
 8.3.7   nth-tl
 ==============
 
-<<
-     $(nth-tl i, sequence) : value
+<<   $(nth-tl i, sequence) : value
         i : Int
         sequence : Sequence
      raises RuntimeException
@@ -241,8 +210,7 @@ Node: Subsection 8-3-8,	Next: Subsection 8-3-9,	Prev: Subsection 8-3-7,	Up: Sect
 8.3.8   subrange
 ================
 
-<<
-     $(subrange off, len, sequent) : value
+<<   $(subrange off, len, sequent) : value
         off : Int
         len : Int
         sequence : Sequence
@@ -261,8 +229,7 @@ Node: Subsection 8-3-9,	Next: Subsection 8-3-10,	Prev: Subsection 8-3-8,	Up: Sec
 8.3.9   rev
 ===========
 
-<<
-      $(rev sequence) : Sequence
+<<    $(rev sequence) : Sequence
          sequence : Sequence
 >>
   
@@ -276,8 +243,7 @@ Node: Subsection 8-3-10,	Next: Subsection 8-3-11,	Prev: Subsection 8-3-9,	Up: Se
 8.3.10   join
 =============
 
-<<
-     $(join sequence1, sequence2) : Sequence
+<<   $(join sequence1, sequence2) : Sequence
         sequence1 : Sequence
         sequence2 : Sequence
 >>
@@ -293,8 +259,7 @@ Node: Subsection 8-3-11,	Next: Subsection 8-3-12,	Prev: Subsection 8-3-10,	Up: S
 8.3.11   string
 ===============
 
-<<
-     $(string sequence) : String
+<<   $(string sequence) : String
         sequence : Sequence
 >>
   
@@ -311,8 +276,7 @@ c-escaped, id-escaped
 =====================
 \@name
 {@default105}
-<<
-     $(string-escaped sequence) : String Array
+<<   $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
      $(html-escaped sequence) : String Array
      $(html-pre-escaped sequence) : String Array
@@ -335,8 +299,7 @@ be used in OMake.
   The `html-escaped' function turns a literal string into a form
 acceptable as HTML. The `html-pre-escaped' function is similar, but it
 does not translate newlines into `<br>'.
-<<
-      println($(string $(string-escaped $"a b" $"y:z")))
+<<    println($(string $(string-escaped $"a b" $"y:z")))
       a\ b y\:z
 >>
 
@@ -346,15 +309,13 @@ Node: Subsection 8-3-13,	Next: Subsection 8-3-14,	Prev: Subsection 8-3-12,	Up: S
 8.3.13   decode-uri, encode-uri
 ===============================
 
-<<
-      $(decode-uri sequence) : sequence
+<<    $(decode-uri sequence) : sequence
           sequence : Sequence
 >>
   
   These two functions perform URI encoding, where special characters are
 represented by hexadecimal characters.
-<<
-      osh> s = $(encode-uri $'a b~c')
+<<    osh> s = $(encode-uri $'a b~c')
       "a+b%7ec"
       osh> decode-uri($s)
       "a b~c"
@@ -366,8 +327,7 @@ Node: Subsection 8-3-14,	Next: Subsection 8-3-15,	Prev: Subsection 8-3-13,	Up: S
 8.3.14   quote
 ==============
 
-<<
-     $(quote sequence) : String
+<<   $(quote sequence) : String
         sequence : Sequence
 >>
   
@@ -382,8 +342,7 @@ Node: Subsection 8-3-15,	Next: Subsection 8-3-16,	Prev: Subsection 8-3-14,	Up: S
 8.3.15   quote-argv
 ===================
 
-<<
-     $(quote-argv sequence) : String
+<<   $(quote-argv sequence) : String
         sequence : Sequence
 >>
   
@@ -397,8 +356,7 @@ Node: Subsection 8-3-16,	Next: Subsection 8-3-17,	Prev: Subsection 8-3-15,	Up: S
 8.3.16   html-string
 ====================
 
-<<
-     $(html-string sequence) : String
+<<   $(html-string sequence) : String
         sequence : Sequence
 >>
   
@@ -413,8 +371,7 @@ Node: Subsection 8-3-17,	Next: Subsection 8-3-18,	Prev: Subsection 8-3-16,	Up: S
 8.3.17   addsuffix
 ==================
 
-<<
-     $(addsuffix suffix, sequence) : Array
+<<   $(addsuffix suffix, sequence) : Array
         suffix : String
         sequence : Sequence
 >>
@@ -431,8 +388,7 @@ Node: Subsection 8-3-18,	Next: Subsection 8-3-19,	Prev: Subsection 8-3-17,	Up: S
 8.3.18   mapsuffix
 ==================
 
-<<
-     $(mapsuffix suffix, sequence) : Array
+<<   $(mapsuffix suffix, sequence) : Array
         suffix : value
         sequence : Sequence
 >>
@@ -450,8 +406,7 @@ Node: Subsection 8-3-19,	Next: Subsection 8-3-20,	Prev: Subsection 8-3-18,	Up: S
 8.3.19   addsuffixes
 ====================
 
-<<
-     $(addsuffixes suffixes, sequence) : Array
+<<   $(addsuffixes suffixes, sequence) : Array
         suffixes : Sequence
         sequence : Sequence
 >>
@@ -468,8 +423,7 @@ Node: Subsection 8-3-20,	Next: Subsection 8-3-21,	Prev: Subsection 8-3-19,	Up: S
 8.3.20   removeprefix
 =====================
 
-<<
-     $(removeprefix prefix, sequence) : Array
+<<   $(removeprefix prefix, sequence) : Array
         prefix : String
         sequence : Array
 >>
@@ -483,8 +437,7 @@ Node: Subsection 8-3-21,	Next: Subsection 8-3-22,	Prev: Subsection 8-3-20,	Up: S
 8.3.21   removesuffix
 =====================
 
-<<
-     $(removesuffix sequence) : Array
+<<   $(removesuffix sequence) : Array
         sequence : String
 >>
   
@@ -498,8 +451,7 @@ Node: Subsection 8-3-22,	Next: Subsection 8-3-23,	Prev: Subsection 8-3-21,	Up: S
 8.3.22   replacesuffixes
 ========================
 
-<<
-     $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
+<<   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
         old-suffixes : Sequence
         new-suffixes : Sequence
         sequence : Sequence
@@ -517,8 +469,7 @@ Node: Subsection 8-3-23,	Next: Subsection 8-3-24,	Prev: Subsection 8-3-22,	Up: S
 8.3.23   addprefix
 ==================
 
-<<
-     $(addprefix prefix, sequence) : Array
+<<   $(addprefix prefix, sequence) : Array
         prefix : String
         sequence : Sequence
 >>
@@ -535,8 +486,7 @@ Node: Subsection 8-3-24,	Next: Subsection 8-3-25,	Prev: Subsection 8-3-23,	Up: S
 8.3.24   mapprefix
 ==================
 
-<<
-     $(mapprefix prefix, sequence) : Array
+<<   $(mapprefix prefix, sequence) : Array
         prefix : String
         sequence : Sequence
 >>
@@ -554,8 +504,7 @@ Node: Subsection 8-3-25,	Next: Subsection 8-3-26,	Prev: Subsection 8-3-24,	Up: S
 8.3.25   add-wrapper
 ====================
 
-<<
-     $(add-wrapper prefix, suffix, sequence) : Array
+<<   $(add-wrapper prefix, suffix, sequence) : Array
         prefix : String
         suffix : String
         sequence : Sequence
@@ -573,8 +522,7 @@ Node: Subsection 8-3-26,	Next: Subsection 8-3-27,	Prev: Subsection 8-3-25,	Up: S
 8.3.26   set
 ============
 
-<<
-     $(set sequence) : Array
+<<   $(set sequence) : Array
         sequence : Sequence
 >>
   
@@ -588,8 +536,7 @@ Node: Subsection 8-3-27,	Next: Subsection 8-3-28,	Prev: Subsection 8-3-26,	Up: S
 8.3.27   mem
 ============
 
-<<
-     $(mem elem, sequence) : Boolean
+<<   $(mem elem, sequence) : Boolean
         elem : String
         sequence : Sequence
 >>
@@ -604,8 +551,7 @@ Node: Subsection 8-3-28,	Next: Subsection 8-3-29,	Prev: Subsection 8-3-27,	Up: S
 8.3.28   intersection
 =====================
 
-<<
-     $(intersection sequence1, sequence2) : Array
+<<   $(intersection sequence1, sequence2) : Array
         sequence1 : Sequence
         sequence2 : Sequence
 >>
@@ -623,8 +569,7 @@ Node: Subsection 8-3-29,	Next: Subsection 8-3-30,	Prev: Subsection 8-3-28,	Up: S
 8.3.29   intersects
 ===================
 
-<<
-     $(intersects sequence1, sequence2) : Boolean
+<<   $(intersects sequence1, sequence2) : Boolean
         sequence1 : Sequence
         sequence2 : Sequence
 >>
@@ -641,8 +586,7 @@ Node: Subsection 8-3-30,	Next: Subsection 8-3-31,	Prev: Subsection 8-3-29,	Up: S
 8.3.30   set-diff
 =================
 
-<<
-     $(set-diff sequence1, sequence2) : Array
+<<   $(set-diff sequence1, sequence2) : Array
         sequence1 : Sequence
         sequence2 : Sequence
 >>
@@ -661,8 +605,7 @@ Node: Subsection 8-3-31,	Next: Subsection 8-3-32,	Prev: Subsection 8-3-30,	Up: S
 8.3.31   filter
 ===============
 
-<<
-     $(filter patterns, sequence) : Array
+<<   $(filter patterns, sequence) : Array
         patterns : Sequence
         sequence : Sequence
 >>
@@ -679,8 +622,7 @@ Node: Subsection 8-3-32,	Next: Subsection 8-3-33,	Prev: Subsection 8-3-31,	Up: S
 8.3.32   filter-out
 ===================
 
-<<
-     $(filter-out patterns, sequence) : Array
+<<   $(filter-out patterns, sequence) : Array
         patterns : Sequence
         sequence : Sequence
 >>
@@ -697,8 +639,7 @@ Node: Subsection 8-3-33,	Next: Subsection 8-3-34,	Prev: Subsection 8-3-32,	Up: S
 8.3.33   capitalize
 ===================
 
-<<
-     $(capitalize sequence) : Array
+<<   $(capitalize sequence) : Array
         sequence : Sequence
 >>
   
@@ -712,8 +653,7 @@ Node: Subsection 8-3-34,	Next: Subsection 8-3-35,	Prev: Subsection 8-3-33,	Up: S
 8.3.34   uncapitalize
 =====================
 
-<<
-     $(uncapitalize sequence) : Array
+<<   $(uncapitalize sequence) : Array
         sequence : Sequence
 >>
   
@@ -727,8 +667,7 @@ Node: Subsection 8-3-35,	Next: Subsection 8-3-36,	Prev: Subsection 8-3-34,	Up: S
 8.3.35   uppercase
 ==================
 
-<<
-     $(uppercase sequence) : Array
+<<   $(uppercase sequence) : Array
         sequence : Sequence
 >>
   
@@ -742,8 +681,7 @@ Node: Subsection 8-3-36,	Next: Subsection 8-3-37,	Prev: Subsection 8-3-35,	Up: S
 8.3.36   lowercase
 ==================
 
-<<
-     $(lowercase sequence) : Array
+<<   $(lowercase sequence) : Array
         sequence : Sequence
 >>
   
@@ -758,8 +696,7 @@ Node: Subsection 8-3-37,	Next: Subsection 8-3-38,	Prev: Subsection 8-3-36,	Up: S
 8.3.37   system
 ===============
 
-<<
-     system(s)
+<<   system(s)
         s : Sequence
 >>
   
@@ -767,8 +704,7 @@ Node: Subsection 8-3-37,	Next: Subsection 8-3-38,	Prev: Subsection 8-3-36,	Up: S
 function is used internally by omake to evaluate shell commands.
   For example, the following program is equivalent to the expression
 `system(ls foo)'.
-<<
-     ls foo
+<<   ls foo
 >>
 
 Node: Subsection 8-3-38,	Next: Subsection 8-3-39,	Prev: Subsection 8-3-37,	Up: Section 8-3
@@ -777,8 +713,7 @@ Node: Subsection 8-3-38,	Next: Subsection 8-3-39,	Prev: Subsection 8-3-37,	Up: S
 8.3.38   shell
 ==============
 
-<<
-     $(shell command) : Array
+<<   $(shell command) : Array
      $(shella command) : Array
      $(shell-code command) : Int
         command : Sequence
@@ -803,8 +738,7 @@ Node: Subsection 8-3-39,	Next: Subsection 8-3-40,	Prev: Subsection 8-3-38,	Up: S
  The `export' function allows one to
 capture the current environment in a variable.
   For example, the following code: 
-<<
-  A = 1
+<<A = 1
   B = 1
   C = 1
   SAVE_ENV = $(export A B)
@@ -825,14 +759,12 @@ Node: Subsection 8-3-40,	Next: Subsection 8-3-41,	Prev: Subsection 8-3-39,	Up: S
 8.3.40   while
 ==============
 
-<<
-     while <test>
+<<   while <test>
         <body>
 >>
   
   --or--
-<<
-      while <test>
+<<    while <test>
       case <test1>
          <body1>
       ...
@@ -850,16 +782,14 @@ cases are true, the loop exits. The environment is automatically
 exported.
   Examples.
   Iterate for `i' from `0' to `9'.
-<<
-      i = 0
+<<    i = 0
       while $(lt $i, 10)
          echo $i
          i = $(add $i, 1)
 >>
   
   The following example is equivalent.
-<<
-     i = 0
+<<   i = 0
      while true
      case $(lt $i, 10)
         echo $i
@@ -868,8 +798,7 @@ exported.
   
   The following example is similar, but some special cases are printed.
 value is printed.
-<<
-      i = 0
+<<    i = 0
       while $(lt $i, 10)
       case $(equal $i, 0)
          echo zero
@@ -888,8 +817,7 @@ Node: Subsection 8-3-41,	Next: Subsection 8-3-42,	Prev: Subsection 8-3-40,	Up: S
 8.3.41   break
 ==============
 
-<<
-     break
+<<   break
 >>
   
   Terminate execution of the innermost loop, returning the current
@@ -901,8 +829,7 @@ Node: Subsection 8-3-42,	Next: Section 8-4,	Prev: Subsection 8-3-41,	Up: Section
 8.3.42   random, random-init
 ============================
 
-<<
-      random-init(i)
+<<    random-init(i)
           i : Int
       random() : Int
 >>
@@ -1030,8 +957,7 @@ Node: Subsection 8-5-1,	Next: Subsection 8-5-2,	Prev: Section 8-5,	Up: Section 8
   The last argument is the body of the function. The other arguments are
 the parameter names.
   The three following definitions are equivalent.
-<<
-      F(X, Y) =
+<<    F(X, Y) =
          return($(addsuffix $(Y), $(X)))
   
       F = $(fun X, Y, $(addsuffix $(Y), $(X)))
@@ -1050,14 +976,12 @@ Node: Subsection 8-5-2,	Next: Subsection 8-5-3,	Prev: Subsection 8-5-1,	Up: Sect
   The `apply' operator is used to apply a function.
   `$(apply <fun>, <args>)'
   Suppose we have the following function definition.
-<<
-      F(X, Y) =
+<<    F(X, Y) =
          return($(addsuffix $(Y), $(X)))
 >>
   
   The the two expressions below are equivalent.
-<<
-      X = F(a b c, .c)
+<<    X = F(a b c, .c)
       X = $(apply $(F), a b c, .c)
 >>
 
@@ -1071,8 +995,7 @@ Node: Subsection 8-5-3,	Next: Subsection 8-5-4,	Prev: Subsection 8-5-2,	Up: Sect
 arguments.
   `$(applya <fun>, <args>)'
   For example, in the following program, the value of `Z' is `file.c'.
-<<
-      F(X, Y) =
+<<    F(X, Y) =
          return($(addsuffix $(Y), $(X)))
       args[] =
          file
@@ -1089,8 +1012,7 @@ Node: Subsection 8-5-4,	Next: Section 8-6,	Prev: Subsection 8-5-3,	Up: Section 8
   The `create-map' is a simplified form for creating `Map' objects. The
 `create-map' function takes an even number of arguments that specify
 key/value pairs. For example, the following values are equivalent.
-<<
-      X = $(create-map name1, xxx, name2, yyy)
+<<    X = $(create-map name1, xxx, name2, yyy)
   
       X. =
           extends $(Map)
@@ -1100,8 +1022,7 @@ key/value pairs. For example, the following values are equivalent.
   
   The `create-lazy-map' function is similar, but the values are computed
 lazily. The following two definitions are equivalent.
-<<
-      Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
+<<    Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
   
       Y. =
           extends $(Map)
@@ -1130,8 +1051,7 @@ Node: Subsection 8-6-1,	Next: Chapter 9,	Prev: Section 8-6,	Up: Section 8-6
 ===============
 
   The `foreach' function maps a function over a sequence.
-<<
-      $(foreach <fun>, <args>)
+<<    $(foreach <fun>, <args>)
   
       foreach(<var>, <args>)
          <body>
@@ -1139,8 +1059,7 @@ Node: Subsection 8-6-1,	Next: Chapter 9,	Prev: Section 8-6,	Up: Section 8-6
   
   For example, the following program defines the variable `X' as an
 array `a.c b.c c.c'.
-<<
-      X =
+<<    X =
          foreach(x, a b c)
             value $(x).c
   
@@ -1151,8 +1070,7 @@ array `a.c b.c c.c'.
   There is also an abbreviated syntax.
   The `export' form can also be used in a `foreach' body. The final
 value of `X' is `a.c b.c c.c'.
-<<
-      X =
+<<    X =
       foreach(x, a b c)
          X += $(x).c
          export
@@ -1209,8 +1127,7 @@ Node: Subsection 9-1-1,	Next: Subsection 9-1-2,	Prev: Section 9-1,	Up: Section 9
 9.1.1   file, dir
 =================
 
-<<
-     $(file sequence) : File Sequence
+<<   $(file sequence) : File Sequence
         sequence : Sequence
      $(dir sequence) : Dir Sequence
         sequence : Sequence
@@ -1225,8 +1142,7 @@ explicitly modifying the file name. The functions have the following
 syntax, where the name should refer to a file or directory.
   For example, we can construct a reference to a file `foo' in the
 current directory.
-<<
-     FOO = $(file foo)
+<<   FOO = $(file foo)
      .SUBDIRS: bar
 >>
   
@@ -1235,8 +1151,7 @@ expand to `../foo'.
   These commands are often used in the top-level OMakefile to provide
 location-independent references to top-level directories, so that build
 commands may refer to these directories as if they were absolute.
-<<
-     ROOT = $(dir .)
+<<   ROOT = $(dir .)
      LIB  = $(dir lib)
      BIN  = $(dir bin)
 >>
@@ -1244,8 +1159,7 @@ commands may refer to these directories as if they were absolute.
   Once these variables are defined, they can be used in build commands
 in subdirectories as follows, where `$(BIN)' will expand to the location
 of the `bin' directory relative to the command being executed.
-<<
-     install: hello
+<<   install: hello
    cp hello $(BIN)
 >>
 
@@ -1255,8 +1169,7 @@ Node: Subsection 9-1-2,	Next: Subsection 9-1-3,	Prev: Subsection 9-1-1,	Up: Sect
 9.1.2   tmpfile
 ===============
 
-<<
-      $(tmpfile prefix) : File
+<<    $(tmpfile prefix) : File
       $(tmpfile prefix, suffix) : File
           prefix : String
           suffix : String
@@ -1271,8 +1184,7 @@ Node: Subsection 9-1-3,	Next: Subsection 9-1-4,	Prev: Subsection 9-1-2,	Up: Sect
 9.1.3   in
 ==========
 
-<<
-     $(in dir, exp) : String Array
+<<   $(in dir, exp) : String Array
         dir : Dir
         exp : expression
 >>
@@ -1283,8 +1195,7 @@ expression in that effective directory. For example, one common way to
 install a file is to define a symbol link, where the value of the link
 is relative to the directory where the link is created.
   The following commands create links in the `$(LIB)' directory.
-<<
-      FOO = $(file foo)
+<<    FOO = $(file foo)
       install:
          ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
 >>
@@ -1298,8 +1209,7 @@ Node: Subsection 9-1-4,	Next: Subsection 9-1-5,	Prev: Subsection 9-1-3,	Up: Sect
 9.1.4   basename
 ================
 
-<<
-     $(basename files) : String Sequence
+<<   $(basename files) : String Sequence
         files : String Sequence
 >>
   
@@ -1315,14 +1225,13 @@ Node: Subsection 9-1-5,	Next: Subsection 9-1-6,	Prev: Subsection 9-1-4,	Up: Sect
 9.1.5   dirname
 ===============
 
-<<
-     $(dirname files) : String Sequence
+<<   $(dirname files) : String Sequence
         files : String Sequence
 >>
   
   The `dirname' function returns the directory name for a list of files.
 The directory name is the filename with the basename removed. If a name
-does not have a directory part, the directory is ``.''
+does not have a directory part, the directory is "."
   For example, the expression `$(dirname dir1\dir2\a.out
 /etc/modules.conf /foo.ml bar.ml)' evaluates to `dir1/dir2 /etc / .'.
   Note: this function is different from the `dirof' function. The
@@ -1335,8 +1244,7 @@ Node: Subsection 9-1-6,	Next: Subsection 9-1-7,	Prev: Subsection 9-1-5,	Up: Sect
 9.1.6   rootname
 ================
 
-<<
-     $(rootname files) : String Sequence
+<<   $(rootname files) : String Sequence
         files : String Sequence
 >>
   
@@ -1351,8 +1259,7 @@ Node: Subsection 9-1-7,	Next: Subsection 9-1-8,	Prev: Subsection 9-1-6,	Up: Sect
 9.1.7   dirof
 =============
 
-<<
-     $(dirof files) : Dir Sequence
+<<   $(dirof files) : Dir Sequence
         files : File Sequence
 >>
   
@@ -1367,8 +1274,7 @@ Node: Subsection 9-1-8,	Next: Subsection 9-1-9,	Prev: Subsection 9-1-7,	Up: Sect
 9.1.8   fullname
 ================
 
-<<
-     $(fullname files) : String Sequence
+<<   $(fullname files) : String Sequence
         files : File Sequence
 >>
   
@@ -1381,8 +1287,7 @@ Node: Subsection 9-1-9,	Next: Subsection 9-1-10,	Prev: Subsection 9-1-8,	Up: Sec
 9.1.9   absname
 ===============
 
-<<
-     $(absname files) : String Sequence
+<<   $(absname files) : String Sequence
         files : File Sequence
 >>
   
@@ -1395,8 +1300,7 @@ Node: Subsection 9-1-10,	Next: Subsection 9-1-11,	Prev: Subsection 9-1-9,	Up: Se
 9.1.10   homename
 =================
 
-<<
-     $(homename files) : String Sequence
+<<   $(homename files) : String Sequence
         files : File Sequence
 >>
   
@@ -1411,8 +1315,7 @@ Node: Subsection 9-1-11,	Next: Section 9-2,	Prev: Subsection 9-1-10,	Up: Section
 9.1.11   suffix
 ===============
 
-<<
-     $(suffix files) : String Sequence
+<<   $(suffix files) : String Sequence
         files : StringSequence
 >>
   
@@ -1445,8 +1348,7 @@ Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9
 9.2.1   which
 =============
 
-<<
-     $(which files) : File Sequence
+<<   $(which files) : File Sequence
         files : String Sequence
 >>
   
@@ -1465,8 +1367,7 @@ of all the locations of the given executable (in the order in which the
 corresponding directories appear in `$PATH'). In case a command is
 handled internally by the `Shell' object, the first string in the output
 will describe the command as a built-in function.
-<<
-      % where echo
+<<    % where echo
       echo is a Shell object method (a built-in function)
       /bin/echo
 >>
@@ -1477,8 +1378,7 @@ Node: Subsection 9-2-3,	Next: Subsection 9-2-4,	Prev: Subsection 9-2-2,	Up: Sect
 9.2.3   rehash
 ==============
 
-<<
-      rehash()
+<<    rehash()
 >>
   
   The `rehash' function resets all search paths. 
@@ -1489,8 +1389,7 @@ Node: Subsection 9-2-4,	Next: Subsection 9-2-5,	Prev: Subsection 9-2-3,	Up: Sect
 9.2.4   exists-in-path
 ======================
 
-<<
-     $(exists-in-path files) : String
+<<   $(exists-in-path files) : String
         files : String Sequence
 >>
   
@@ -1503,8 +1402,7 @@ Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Sect
 9.2.5   digest
 ==============
 
-<<
-       $(digest files) : String Array
+<<     $(digest files) : String Array
           file : File Array
        raises RuntimeException
   
@@ -1523,8 +1421,7 @@ Node: Subsection 9-2-6,	Next: Subsection 9-2-7,	Prev: Subsection 9-2-5,	Up: Sect
 9.2.6   find-in-path
 ====================
 
-<<
-      $(find-in-path path, files) : File Array
+<<    $(find-in-path path, files) : File Array
          path : Dir Array
          files : String Array
       raises RuntimeException
@@ -1544,8 +1441,7 @@ Node: Subsection 9-2-7,	Next: Section 9-3,	Prev: Subsection 9-2-6,	Up: Section 9
 9.2.7   digest-path
 ===================
 
-<<
-      $(digest-in-path path, files) : String/File Array
+<<    $(digest-in-path path, files) : String/File Array
          path : Dir Array
          files : String Array
       raises RuntimeException
@@ -1583,8 +1479,7 @@ Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9
 ====================================================
 \@na
 me{@default194}
-<<
-     $(file-exists files) : String
+<<   $(file-exists files) : String
      $(target-exists files) : String
      $(target-is-proper files) : String
          files : File Sequence
@@ -1602,8 +1497,7 @@ Node: Subsection 9-3-2,	Next: Subsection 9-3-3,	Prev: Subsection 9-3-1,	Up: Sect
 9.3.2   stat-reset
 ==================
 
-<<
-     $(stat-reset files) : String
+<<   $(stat-reset files) : String
          files : File Sequence
 >>
   
@@ -1618,8 +1512,7 @@ Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Sect
 ============================================================
 \@na
 me{@default198}
-<<
-     $(filter-exists files) : File Sequence
+<<   $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
      $(filter-proper-targets) : File Sequence
         files : File Sequence
@@ -1629,20 +1522,19 @@ me{@default198}
 functions remove files from a list of files. 
   
  - `filter-exists': the result is the list of files that exist. 
- - `filter-targets': the result is the list of files either exist, or 
+ - `filter-targets': the result is the list of files either exist, or
    can be built by the current project. 
- - `filter-proper-targets': the result is the list of files that can  be
+ - `filter-proper-targets': the result is the list of files that can be
    built in the current project. 
   
-  One way to create a simple ``clean'' rule that removes generated files
+  One way to create a simple "clean" rule that removes generated files
 from the project is by removing all files that can be built in the
 current project. CAUTION: you should be careful before you do this. The
 rule removes any file that can potentially be reconstructed. There is no
 check to make sure that the commands to rebuild the file would actually
 succeed. Also, note that no file outside the current project will be
 deleted.
-<<
-      .PHONY: clean
+<<    .PHONY: clean
   
       clean:
           rm $(filter-proper-targets $(ls R, .))
@@ -1659,8 +1551,7 @@ Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Sect
 9.3.4   find-targets-in-path, find-targets-in-path-optional
 ===========================================================
 
-<<
-      $(find-targets-in-path path files) : File Array
+<<    $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array
           path : Dir Array
           files : File Sequence
@@ -1674,8 +1565,7 @@ exists. If so, the file `dir/file' is returned.
 contains a subdirectory `src/' containing only the files `fee.c' and
 `foo.c'. The following expression evaluates to the files `src/fee.o'
 `src/foo.o' even if the files have not already been built.
-<<
-      $(find-targets-in-path lib src, fee.o foo.o)
+<<    $(find-targets-in-path lib src, fee.o foo.o)
   
       # Evaluates to
       src/fee.o src/foo.o
@@ -1684,8 +1574,7 @@ contains a subdirectory `src/' containing only the files `fee.c' and
   The `find-targets-in-path' function raises an exception if the file
 can't be found. The `find-targets-in-path-optional' function silently
 removes targets that can't be found.
-<<
-      $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+<<    $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
   
       # Evaluates to
       src/fee.o src/foo.o
@@ -1698,8 +1587,7 @@ Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Sect
 =================
  
 
-<<
-     $(file-sort order, files) : File Sequence
+<<   $(file-sort order, files) : File Sequence
         order : String
         files : File Sequence
 >>
@@ -1710,8 +1598,7 @@ rules. Sort rules are declared using the `.ORDER' target. The
 `.BUILDORDER' defines the default order.
   `$(file-sort <order>, <files>)'
   For example, suppose we have the following set of rules.
-<<
-     a: b c
+<<   a: b c
      b: d
      c: d
   
@@ -1740,8 +1627,7 @@ where this matters).
 rules. A sort rule is declared in two steps. The target must be listed
 as an `.ORDER' target; and then a set of sort rules must be given. A
 sort rule defines a pattern constraint.
-<<
-     .ORDER: .MYORDER
+<<   .ORDER: .MYORDER
   
      .MYORDER: %.foo: %.bar
      .MYORDER: %.bar: %.baz
@@ -1762,8 +1648,7 @@ Node: Subsection 9-3-6,	Next: Section 9-4,	Prev: Subsection 9-3-5,	Up: Section 9
 9.3.6   file-check-sort
 =======================
 
-<<
-     file-check-sort(files)
+<<   file-check-sort(files)
         files : File Sequence
      raises RuntimeException
 >>
@@ -1780,7 +1665,7 @@ Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
-  OMake commands are ``glob-expanded'' before being executed. That is,
+  OMake commands are "glob-expanded" before being executed. That is,
 names may contain patterns that are expanded to sequences of file and
 directory names. The syntax follows the standard bash(1), csh(1),
 syntax, with the following rules.
@@ -1810,7 +1695,7 @@ syntax, with the following rules.
       character set. The pattern may contain individual characters c or
       character ranges c_1-c_2. The pattern matches any of the
       individual characters specified, or any characters in the range. A
-      leading ``hat'' inverts the send of the pattern. To specify a
+      leading "hat" inverts the send of the pattern. To specify a
       pattern that contains the literal characters `-', the `-' should
       occur as the first character in the range.
                                         

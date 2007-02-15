@@ -14,8 +14,7 @@ when the variable is defined.
   There are two ways to control this behavior. The `$`(v)' form
 introduces lazy behavior, and the `$,(v)' form restores eager behavior.
 Consider the following sequence.
-<<
-      osh> A = 1
+<<    osh> A = 1
       - : "1" : Sequence
       osh> B = 2
       - : "2" : Sequence
@@ -56,14 +55,13 @@ people, including this author, frown on overuse of lazy expressions,
 mainly because it is difficult to know when evaluation actually happens.
 However, there are cases where they pay off.
   One example comes from option processing. Consider the specification
-of ``include'' directories on the command line for a C compiler. If we
+of "include" directories on the command line for a C compiler. If we
 want to include files from /home/jyh/include and ../foo, we specify it
 on the command line with the options `-I/home/jyh/include -I../foo'.
   Suppose we want to define a generic rule for building C files. We
 could define a `INCLUDES' array to specify the directories to be
 included, and then define a generic implicit rule in our root OMakefile.
-<<
-      # Generic way to compile C files.
+<<    # Generic way to compile C files.
       CFLAGS = -g
       INCLUDES[] =
       %.o: %.c
@@ -87,8 +85,7 @@ The solution here is to use a lazy expression. We'll define INCLUDES as
 a directory array, and a new variable `PREFIXED_INCLUDES' that adds the
 -I prefix. The `PREFIXED_INCLUDES' is computed lazily, ensuring that the
 value uses the most recent value of the INCLUDES variable.
-<<
-      # Generic way to compile C files.
+<<    # Generic way to compile C files.
       CFLAGS = -g
       INCLUDES[] =
       PREFIXED_INCLUDES[] = $`(addprefix -I, $(INCLUDES))
@@ -112,8 +109,7 @@ directory
   Note that there is a close connection between lazy values and
 functions. In the example above, we could equivalently define
 `PREFIXED_INCLUDES' as a function with zero arguments.
-<<
-      PREFIXED_INCLUDES() =
+<<    PREFIXED_INCLUDES() =
           addprefix(-I, $(INCLUDES))
 >>
   
@@ -135,8 +131,7 @@ at least hard) for one part of the project to interfere with another.
 new indentation level introduces a new scope, and new definitions in
 that scope are lost when the scope ends. If OMake were overly strict
 about scoping, we would wind up with a lot of convoluted code.
-<<
-     osh> X = 1
+<<   osh> X = 1
      osh> setenv(BOO, 12)
      osh> if $(equal $(OSTYPE), Win32)
               setenv(BOO, 17)
@@ -145,11 +140,10 @@ about scoping, we would wind up with a lot of convoluted code.
      1 12
 >>
   
-  The `export' command presents a way out. It takes care of
-``exporting'' a value (or the entire variable environment) from an inner
-scope to an outer one.
-<<
-     osh> X = 1
+  The `export' command presents a way out. It takes care of "exporting"
+a value (or the entire variable environment) from an inner scope to an
+outer one.
+<<   osh> X = 1
      osh> setenv(BOO, 12)
      osh> if $(equal $(OSTYPE), Win32)
               setenv(BOO, 17)
@@ -161,8 +155,7 @@ scope to an outer one.
   
   Exports are especially useful in loop to export values from one
 iteration of a loop to the next.
-<<
-     # Ok, let's try to add up the elements of the array
+<<   # Ok, let's try to add up the elements of the array
      osh>sum(l) =
              total = 0
              foreach(i, $l)
@@ -183,8 +176,7 @@ iteration of a loop to the next.
 >>
   
   A `while' loop is another form of loop, with an auto-export.
-<<
-      osh>i = 0
+<<    osh>i = 0
       osh>total = 0
       osh>while $(lt $i, 10)
               total = $(add $(total), $i)
@@ -206,8 +198,7 @@ masquerades as a real shell command. You can do this by adding your
 function as a method to the `Shell' object.
   For an example, suppose we use the `awk' function to print out all the
 comments in a file.
-<<
-      osh>cat comment.om
+<<    osh>cat comment.om
       # Comment function
       comments(filename) =
           awk($(filename))
@@ -222,8 +213,7 @@ comments in a file.
   
   To add it as an alias, add the method (using += to preserve the
 existing entries in the Shell).
-<<
-     osh>Shell. +=
+<<   osh>Shell. +=
              printcom(argv) =
                  comments($(nth 0, $(argv)))
      osh>printcom comment.om > output.txt
@@ -253,8 +243,7 @@ variables `stdin', `stdout', and `stderr' define the standard I/O
 channels. To redirect output, redefine these variables as you see fit.
 Of course, you would normally do this in a nested scope, so that the
 outer channels are not affected.
-<<
-      osh>f() =
+<<    osh>f() =
               println(Hello world)
       osh>f()
       Hello world
@@ -268,8 +257,7 @@ outer channels are not affected.
   
   This also works for shell commands. If you like to gamble, you can try
 the following example.
-<<
-      osh>f() =
+<<    osh>f() =
               println(Hello world)
       osh>f()
       Hello world
@@ -293,8 +281,7 @@ Chapter 7     Rules
     
   Rules are used by OMake to specify how to build files. At its
 simplest, a rule has the following form.
-<<
-      <target>: <dependencies>
+<<    <target>: <dependencies>
           <commands>
 >>
   
@@ -303,8 +290,7 @@ are a list of files that are needed before the `<target>' can be built.
 The `<commands>' are a list of indented lines specifying commands to
 build the target. For example, the following rule specifies how to
 compile a file `hello.c'.
-<<
-      hello.o: hello.c
+<<    hello.o: hello.c
           $(CC) $(CFLAGS) -c -o hello.o hello.c
 >>
   
@@ -329,16 +315,14 @@ be used in the body of a rule.
  - `$<': the first source. 
   
   For example, the above `hello.c' rule may be simplified as follows.
-<<
-      hello.o: hello.c
+<<    hello.o: hello.c
           $(CC) $(CFLAGS) -c -o $@ $<
 >>
   
   Unlike normal values, the variables in a rule body are expanded
 lazily, and binding is dynamic. The following function definition
 illustrates some of the issues.
-<<
-      CLibrary(name, files) =
+<<    CLibrary(name, files) =
           OFILES = $(addsuffix .o, $(files))
   
           $(name).a: $(OFILES)
@@ -379,8 +363,7 @@ Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
   Rules may also be implicit. That is, the files may be specified by
 wildcard patterns. The wildcard character is `%'. For example, the
 following rule specifies a default rule for building `.o' files.
-<<
-      %.o: %.c
+<<    %.o: %.c
           $(CC) $(CFLAGS) -c -o $@ $*.c
 >>
   
@@ -400,15 +383,13 @@ Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
    
   Implicit rules may specify the set of files they apply to. The
 following syntax is used.
-<<
-      <targets>: <pattern>: <dependencies>
+<<    <targets>: <pattern>: <dependencies>
           <commands>
 >>
   
   For example, the following rule applies only to the files `a.o' and
 `b.o'.
-<<
-     a.o b.o: %.o: %.c
+<<   a.o b.o: %.o: %.c
           $(CC) $(CFLAGS) -DSPECIAL -c $*.c
 >>
   
@@ -423,11 +404,10 @@ Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
   Frequently, the commands in a rule body are expressions to be
 evaluated by the shell. omake also allows expressions to be evaluated by
 omake itself.
-  The syntax of these ``computed rules'' uses the `section' expression.
+  The syntax of these "computed rules" uses the `section' expression.
 The following rule uses the omake IO functions to produce the target
 `hello.c'.
-<<
-      hello.c:
+<<    hello.c:
           section
               FP = fopen(hello.c, w)
               fprintln($(FP), $""#include <stdio.h> int main() {
@@ -442,8 +422,7 @@ quotes are not included in the output file. The `fopen', `fprintln', and
   In addition, commands that are function calls, or special expressions,
 are interpreted correctly. Since the `fprintln' function can take a file
 directly, the above rule can be abbreviated as follows.
-<<
-      hello.c:
+<<    hello.c:
          fprintln($@, $""#include <stdio.h> int main() { printf("Hello
 world\n"); }"")
 >>
@@ -460,8 +439,7 @@ Node: Section 7-4,	Next: Section 7-5,	Prev: Section 7-3,	Up: Chapter 7
 body is expected instead of an expression. In the following rule, the
 file `a.c' is copied onto the `hello.c' file if it exists, otherwise
 `hello.c' is created from the file `default.c'.
-<<
-      hello.c:
+<<    hello.c:
           section rule
              if $(target-exists a.c)
                 hello.c: a.c
@@ -495,8 +473,7 @@ Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7
   In some cases, the contents of a dependency do not matter, only
 whether the file exists or not. In this case, the `:exists:' qualifier
 can be used for the dependency.
-<<
-      foo.c: a.c :exists: .flag
+<<    foo.c: a.c :exists: .flag
          if $(test -e .flag)
              $(CP) a.c $@
 >>
@@ -513,8 +490,7 @@ command produces a `.aux' file as a side-effect of producing a `.dvi'
 file. In this case, the `:effects:' qualifier can be used to list the
 side-effect explicitly. omake is careful to avoid simultaneously running
 programs that have overlapping side-effects.
-<<
-      paper.dvi: paper.tex :effects: paper.aux
+<<    paper.dvi: paper.tex :effects: paper.aux
           latex paper
 >>
   
@@ -527,24 +503,21 @@ Node: Subsection 7-5-3,	Next: Section 7-6,	Prev: Subsection 7-5-2,	Up: Section 7
    
   The `:value:' dependency is used to specify that the rule execution
 depends on the value of an expression. For example, the following rule
-<<
-      a: b c :value: $(X)
+<<    a: b c :value: $(X)
           ...
 >>
   
-  specifies that ``a'' should be recompiled if the value of `$(X)'
-changes (X does not have to be a filename). This is intended to allow
-greater control over dependencies.
+  specifies that "a" should be recompiled if the value of `$(X)' changes
+(X does not have to be a filename). This is intended to allow greater
+control over dependencies.
   In addition, it can be used instead of other kinds of dependencies.
 For example, the following rule:
-<<
-      a: b :exists: c
+<<    a: b :exists: c
           commands
 >>
   
   is the same as
-<<
-      a: b :value: $(target-exists c)
+<<    a: b :value: $(target-exists c)
           commands
 >>
   
@@ -564,8 +537,7 @@ Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
    
   Scanner rules define a way to specify automatic dependency scanning. A
 `.SCANNER' rule has the following form.
-<<
-      .SCANNER: target: dependencies
+<<    .SCANNER: target: dependencies
           commands
 >>
   
@@ -580,15 +552,13 @@ dependencies for the `.o' file. The following scanner specifies that
 dependencies for a file, say `foo.o' can be computed by running `gcc -MM
 foo.c'. Furthermore, `foo.c' is a dependency, so the scanner should be
 recomputed whenever the `foo.c' file changes.
-<<
-      .SCANNER: %.o: %.c
+<<    .SCANNER: %.o: %.c
           gcc -MM $<
 >>
   
   Let's suppose that the command `gcc -MM foo.c' prints the following
 line.
-<<
-      foo.o: foo.h /usr/include/stdio.h
+<<    foo.o: foo.h /usr/include/stdio.h
 >>
   
   The result is that the files `foo.h' and `/usr/include/stdio.h' are
@@ -604,8 +574,7 @@ too.
 as the dependency results from any previous scan. We can add these as
 dependencies using the `digest' function, which computes an MD5 digest
 of the files.
-<<
-      .SCANNER: %.o: %.c :value: $(digest $&)
+<<    .SCANNER: %.o: %.c :value: $(digest $&)
           gcc -MM $<
 >>
   
@@ -618,8 +587,7 @@ file `foo.h', and the one that is chosen depends on the include path.
 What we need is to base the dependencies on the search path.
   The `$(digest-in-path-optional ...)' function computes the digest
 based on a search path, giving us a solution that works.
-<<
-      .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES),
+<<    .SCANNER: %.o: %.c :value: $(digest-in-path-optional $(INCLUDES),
 $&)
          gcc -MM $(addprefix -I, $(INCLUDES)) $<
 >>
@@ -653,8 +621,7 @@ different options, or (heaven help us) we may be using both `gcc' and
 the Microsoft Visual C++ compiler `cl'. In general, the target of a
 `.SCANNER' is not tied to a particular target, and we may name it as we
 like.
-<<
-      .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional
+<<    .SCANNER: scan-gcc-%.c: %.c :value: $(digest-in-path-optional
 $(INCLUDES), $&)
           gcc -MM $(addprefix -I, $(INCLUDES)) $<
   
@@ -667,8 +634,7 @@ $(INCLUDES)) $<
   The next step is to define explicit scanner dependencies. The
 `:scanner:' dependency is used for this. In this case, the scanner
 dependencies are specified explicitly.
-<<
-      $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%c
+<<    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%c
           gcc ...
   
       $(CL_FILES): %.obj: %.c :scanner: scan-cl-%c
@@ -678,8 +644,7 @@ dependencies are specified explicitly.
   Explicit `:scanner:' scanner specification may also be used to state
 that a single `.SCANNER' rule should be used to generate dependencies
 for more than one target. For example,
-<<
-      .SCANNER: scan-all-c: $(GCC_FILES) :value:
+<<    .SCANNER: scan-all-c: $(GCC_FILES) :value:
 $(digest-in-path-optional $(INCLUDES), $&)
           gcc -MM $(addprefix -I, $(INCLUDES)) $(GCC_FILES)
   
@@ -717,8 +682,7 @@ Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
   The `.DEFAULT' target specifies a target to be built by default if
 omake is run without explicit targets. The following rule instructs
 omake to build the program `hello' by default
-<<
-     .DEFAULT: hello
+<<   .DEFAULT: hello
 >>
   
 
@@ -732,8 +696,7 @@ Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
   The `.SUBDIRS' target is used to specify a set of subdirectories that
 are part of the project. Each subdirectory should have its own
 OMakefile, which is evaluated in the context of the current environment.
-<<
-     .SUBDIRS: src doc tests
+<<   .SUBDIRS: src doc tests
 >>
   
   This rule specifies that the `OMakefile's in each of the `src', `doc',
@@ -742,8 +705,7 @@ and `tests' directories should be read.
 large number of subdirectories, it is inconvenient to have a separate
 `OMakefile' for each directory. If the `.SUBDIRS' rule has a body, the
 body is used instead of the `OMakefile'.
-<<
-     .SUBDIRS: src1 src2 src3
+<<   .SUBDIRS: src1 src2 src3
         println(Subdirectory $(CWD))
         .DEFAULT: lib.a
 >>
@@ -751,8 +713,7 @@ body is used instead of the `OMakefile'.
   In this case, the `src1', `src2', and `src3' files do not need
 `OMakefile's. Furthermore, if one exists, it is ignored. The following
 includes the file if it exists.
-<<
-     .SUBDIRS: src1 src2 src3
+<<   .SUBDIRS: src1 src2 src3
          if $(file-exists OMakefile)
             include OMakefile
          .DEFAULT: lib.a
@@ -768,16 +729,14 @@ Node: Section 7-9,	Next: Section 7-10,	Prev: Section 7-8,	Up: Chapter 7
    
   The `.INCLUDE' target is like the `include' directive, but it
 specifies a rule to build the file if it does not exist.
-<<
-     .INCLUDE: config
+<<   .INCLUDE: config
          echo "CONFIG_READ = true" > config
   
       echo CONFIG_READ is $(CONFIG_READ)
 >>
   
   You may also specify dependencies to an `.INCLUDE' rule.
-<<
-     .INCLUDE: config: config.defaults
+<<   .INCLUDE: config: config.defaults
         cp config.defaults config
 >>
   
@@ -801,8 +760,7 @@ the target file already exists. If the target is a file that you expect
 to edit by hand (and therefore you don't want to overwrite it), you
 should make the rule evaluation conditional on whether the target
 already exists.
-<<
-     .INCLUDE: config: config.defaults
+<<   .INCLUDE: config: config.defaults
          # Don't overwrite my carefully hand-edited file
          if $(not $(file-exists config))
             cp config.defaults config
@@ -816,14 +774,13 @@ Node: Section 7-10,	Next: Section 7-11,	Prev: Section 7-9,	Up: Chapter 7
 *=*=*=*=*=*=*
 
    
-  A ``phony'' target is a target that is not a real file, but exists to
+  A "phony" target is a target that is not a real file, but exists to
 collect a set of dependencies. Phony targets are specified with the
 `.PHONY' rule. In the following example, the `install' target does not
 correspond to a file, but it corresponds to some commands that should be
 run whenever the `install' target is built (for example, by running
 `omake install').
-<<
-     .PHONY: install
+<<   .PHONY: install
   
      install: myprogram.exe
         cp myprogram.exe /usr/bin
@@ -856,11 +813,10 @@ the scope.
    `OMakefile'). In this case, the scope of the target is the scope at
    the end of the `dir/OMakefile'. 
   
-  To illustrate rule scoping, let's go back to the example of a ``Hello
-world'' program with two files. Here is an example `OMakefile' (the two
+  To illustrate rule scoping, let's go back to the example of a "Hello
+world" program with two files. Here is an example `OMakefile' (the two
 definitions of `CFLAGS' are for illustration).
-<<
-      # The executable is compiled with debugging
+<<    # The executable is compiled with debugging
       CFLAGS = -g
       hello: hello_code.o hello_lib.o
          $(CC) $(CFLAGS) -o $@ $+
@@ -879,8 +835,7 @@ files will be compiled with `CFLAGS=-g -O3'.
   We can change this behavior for any of the targets by specifying them
 as explicit targets. For example, suppose we wish to compile
 `hello_lib.o' with a preprocessor variable `LIBRARY'.
-<<
-      # The executable is compiled with debugging
+<<    # The executable is compiled with debugging
       CFLAGS = -g
       hello: hello_code.o hello_lib.o
          $(CC) $(CFLAGS) -o $@ $+
@@ -916,8 +871,7 @@ they follow the normal scoping convention. This allows different parts
 of a project to have different sets of implicit rules. If we like, we
 can modify the example above to provide a new implicit rule for building
 `hello_lib.o'.
-<<
-      # The executable is compiled with debugging
+<<    # The executable is compiled with debugging
       CFLAGS = -g
       hello: hello_code.o hello_lib.o
          $(CC) $(CFLAGS) -o $@ $+
@@ -948,8 +902,7 @@ Node: Subsection 7-11-2,	Next: Subsection 7-11-3,	Prev: Subsection 7-11-1,	Up: S
 scope of the scan target is the same as the the rule. If the `.SCANNER'
 rule is implicit, then the environment is taken from the `:scanner:'
 dependency.
-<<
-      # The executable is compiled with debugging
+<<    # The executable is compiled with debugging
       CFLAGS = -g
       hello: hello_code.o hello_lib.o
          $(CC) $(CFLAGS) -o $@ $+
@@ -988,8 +941,7 @@ Node: Subsection 7-11-3,	Next: Section 7-12,	Prev: Subsection 7-11-2,	Up: Sectio
 with a `.PHONY:' rule. Phony targets are scoped as usual. The following
 illustrates a common mistake, where the `.PHONY' target is declared
 after it is used.
-<<
-      # !!This example is broken!!
+<<    # !!This example is broken!!
       all: hello
   
       hello: hello_code.o hello_lib.o
@@ -1001,8 +953,7 @@ after it is used.
   This doesn't work as expected because the `.PHONY' declaration occurs
 too late. The proper way to write this example is to place the `.PHONY'
 declaration first.
-<<
-      # Phony targets must be declared before being used
+<<    # Phony targets must be declared before being used
       .PHONY: all
   
       all: hello
@@ -1016,8 +967,7 @@ is wise to declare all `.PHONY' targets in your root `OMakefile', before
 any `.SUBDIRS'. This will ensure that 1) they are considered as phony
 targets in each of the sbdirectories, and 2) you can build them from the
 project root.
-<<
-      .PHONY: all install clean
+<<    .PHONY: all install clean
   
       .SUBDIRS: src lib clib
 >>
@@ -1035,8 +985,7 @@ values (as in the `file function). They are then translated to strings
 for the command line. This can cause some unexpected behavior. In the
 following example, the `absname function is the absolute pathname for
 the file `a', but the rule still prints the relative pathname.
-<<
-      .PHONY: demo
+<<    .PHONY: demo
       demo: $(absname a)
           echo $<
   
@@ -1045,11 +994,10 @@ the file `a', but the rule still prints the relative pathname.
 >>
   
   There is arguably a good reason for this. On Win32 systems, the `/'
-character is viewed as an ``option specifier.'' The pathname separator
-is the `\' character. OMake translates the filenames automatically so
-that things work as expected on both systems.
-<<
-     demo: a/b
+character is viewed as an "option specifier." The pathname separator is
+the `\' character. OMake translates the filenames automatically so that
+things work as expected on both systems.
+<<   demo: a/b
          echo $<
   
      # omake demo (on a Unix system)
@@ -1061,8 +1009,7 @@ that things work as expected on both systems.
   Sometimes you may wish that target strings to be passed literally to
 the commands in the rule. One way to do this is to specify them
 literally.
-<<
-      SRC = a/b $(absname c/d)
+<<    SRC = a/b $(absname c/d)
       demo: $(SRC)
           echo $(SRC)
   
@@ -1076,16 +1023,14 @@ the OMake output to look for errors. For this, you can use the
 `--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
 call `omake' with the `--absname' option, all filenames will be exapnded
 to absolute names.
-<<
-      # omake --absname demo (on a Unix system)
+<<    # omake --absname demo (on a Unix system)
       /home/.../a/b /home/.../c/d
 >>
   
   Alternately, the `--absname' option is scoped. If you want to use it
 for only a few rules, you can use the `OMakeFlags function to control
 how it is applied.
-<<
-     section
+<<   section
         OMakeFlags(--absname)
         demo: a
             echo $<
@@ -1121,78 +1066,75 @@ Node: Section 8-1,	Next: Section 8-2,	Prev: Chapter 8,	Up: Chapter 8
 
    
  OMAKE_VERSION
-  Version of OMake. 
+ Version of OMake. 
  STDLIB
-  The directory where the OMake standard
-library files reside. At startup, the default  value is determined as
-follows.  
-   
+ The directory where the OMake standard
+library files reside. At startup, the default value is determined as
+follows. 
+  
  - The value of the `OMAKELIB' environment variable, if set (must
-   contain  an absolute path, if set), otherwise  
+   contain an absolute path, if set), otherwise 
  - On Windows, the registry keys
-   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and 
+   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and
    `HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
-   and the value is used,  if exist.  
- - Otherwise a compile-time default it used.  
-    The current default value may be accessed by running `omake
+   and the value is used, if exist. 
+ - Otherwise a compile-time default it used. 
+   The current default value may be accessed by running `omake
 --version' 
  OMAKEPATH
-  An array of directories specifying the
-lookup path for the `include' and `open' directives (see  Section
-4.7*Note Section 4-7::).  The default value is an array of two
+ An array of directories specifying the
+lookup path for the `include' and `open' directives (see Section
+4.7*Note Section 4-7::). The default value is an array of two
 elements --- `.' and `$(STDLIB)'. 
  OSTYPE
-  Set to the machine architecture omake
-is running on. Possible values are  `Unix' (for all Unix versions,
-including Linux and Mac OS X), `Win32'  (for MS-Windows, OMake compiled
-with MSVC++ or Mingw), and `Cygwin' (for  MS-Windows, OMake compiled
-with Cygwin). 
+ Set to the machine architecture omake is
+running on. Possible values are `Unix' (for all Unix versions, including
+Linux and Mac OS X), `Win32' (for MS-Windows, OMake compiled with MSVC++
+or Mingw), and `Cygwin' (for MS-Windows, OMake compiled with Cygwin). 
  SYSNAME
-  The name of the operating system for
-the current machine. 
+ The name of the operating system for the
+current machine. 
  NODENAME
-  The hostname of the current machine. 
+ The hostname of the current machine. 
  OS_VERSION
-  The operating system release. 
+ The operating system release. 
  MACHINE
-  The machine architecture, e.g. `i386',
+ The machine architecture, e.g. `i386',
 `sparc', etc. 
  HOST
-  Same as `NODENAME'. 
+ Same as `NODENAME'. 
  USER
-  The login name of the user executing
+ The login name of the user executing
 the process. 
  HOME
-  The home directory of the user
+ The home directory of the user
 executing the process. 
  PID
-  The OMake process id. 
+ The OMake process id. 
  TARGETS
-  The command-line target strings. For
-example, if OMake is invoked with the  following command line, 
-<<
-        omake CFLAGS=1 foo bar.c
+ The command-line target strings. For
+example, if OMake is invoked with the following command line, 
+<<      omake CFLAGS=1 foo bar.c
 >>
   
-   then `TARGETS' is defined as `foo bar.c'.
+  then `TARGETS' is defined as `foo bar.c'.
  BUILD_SUMMARY
-  The `BUILD_SUMMARY' variable refers to
-the file that `omake' uses  to summarize a build (the message that is
-printed at the very end of a build).  The file is empty when the build
-starts. If you wish to add additional messages  to the build summary,
-you can edit/modify this file during the build.
-  For example, if you want to point out that some action was taken,  you
+ The `BUILD_SUMMARY' variable refers to
+the file that `omake' uses to summarize a build (the message that is
+printed at the very end of a build). The file is empty when the build
+starts. If you wish to add additional messages to the build summary, you
+can edit/modify this file during the build.
+  For example, if you want to point out that some action was taken, you
 can append a message to the build summary.
-<<
-     foo: boo
+<<   foo: boo
          echo "The file foo was built" >> $(BUILD_SUMMARY)
          ...build foo...
 >>
   
  VERBOSE
-  Whether certain commands should be
-verbose. A boolean flag that is `false'  by default and is set to `true'
-when OMake is invoked with the  `--verbose' option. 
+ Whether certain commands should be
+verbose. A boolean flag that is `false' by default and is set to `true'
+when OMake is invoked with the `--verbose' option. 
 
 Node: Section 8-2,	Next: Subsection 8-2-1,	Prev: Section 8-1,	Up: Chapter 8
   
@@ -1231,8 +1173,7 @@ Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8
 8.2.1   not
 ===========
 
-<<
-     $(not e) : String
+<<   $(not e) : String
         e : String
 >>
   
@@ -1246,8 +1187,7 @@ Node: Subsection 8-2-2,	Next: Subsection 8-2-3,	Prev: Subsection 8-2-1,	Up: Sect
 8.2.2   equal
 =============
 
-<<
-     $(equal e1, e2) : String
+<<   $(equal e1, e2) : String
         e1 : String
         e2 : String
 >>
@@ -1262,15 +1202,13 @@ Node: Subsection 8-2-3,	Next: Subsection 8-2-4,	Prev: Subsection 8-2-2,	Up: Sect
 8.2.3   and
 ===========
 
-<<
-      $(and e1, ..., en) : String
+<<    $(and e1, ..., en) : String
          e1, ..., en: Sequence
 >>
   
   The `and' function evaluates to the conjunction of its arguments.
   For example, in the following code, `X' is true, and `Y' is false.
-<<
-      A = a
+<<    A = a
       B = b
       X = $(and $(equal $(A), a) true $(equal $(B), b))
       Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
@@ -1282,15 +1220,13 @@ Node: Subsection 8-2-4,	Next: Subsection 8-2-5,	Prev: Subsection 8-2-3,	Up: Sect
 8.2.4   or
 ==========
 
-<<
-     $(or e1, ..., en) : String
+<<   $(or e1, ..., en) : String
         e1, ..., en: String Sequence
 >>
   
   The `or' function evaluates to the disjunction of its arguments.
   For example, in the following code, `X' is true, and `Y' is false.
-<<
-      A = a
+<<    A = a
       B = b
       X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
       Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
@@ -1302,8 +1238,7 @@ Node: Subsection 8-2-5,	Next: Subsection 8-2-6,	Prev: Subsection 8-2-4,	Up: Sect
 8.2.5   if
 ==========
 
-<<
-      $(if e1, e2[, e3]) : value
+<<    $(if e1, e2[, e3]) : value
          e1 : String
          e2, e3 : value
 >>
@@ -1311,8 +1246,7 @@ Node: Subsection 8-2-5,	Next: Subsection 8-2-6,	Prev: Subsection 8-2-4,	Up: Sect
   The `if' function represents a conditional based on a Boolean value.
 For example `$(if $(equal a, b), c, d)' evaluates to `d'.
   Conditionals may also be declared with an alternate syntax.
-<<
-     if e1
+<<   if e1
         body1
      elseif e2
         body2
@@ -1334,8 +1268,7 @@ variables defined in the branches are normally not visible outside the
 conditional. The `export' command may be used to export the variables
 defined in a scope. For example, the following expression represents a
 common idiom for defining the C compiler configuration.
-<<
-     if $(equal $(OSTYPE), Win32)
+<<   if $(equal $(OSTYPE), Win32)
         CC = cl
         CFLAGS += /DWIN32
         export
@@ -1364,8 +1297,7 @@ If no pattern matches, the value is the empty string.
 with the patterns. For example, the following expression defines the
 `FILE' variable to be either `foo', `bar', or the empty string,
 depending on the value of the `OSTYPE' variable.
-<<
-      FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
+<<    FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
 >>
   
   The `match' function uses regular expression patterns (see the `grep'
@@ -1373,15 +1305,13 @@ function). If a match is found, the variables `$1, $2, ...' are bound to
 the substrings matched between `\(' and `\)' delimiters. The `$0'
 variable contains the entire match, and `$*' is an array of the matched
 substrings. to the matched substrings.
-<<
-      FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a,
+<<    FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a,
 foo_$2/$1.o)
 >>
   
   The `switch' and `match' functions also have an alternate (more
 usable) form.
-<<
-     match e
+<<   match e
      case pattern1
         body1
      case pattern2
@@ -1395,8 +1325,7 @@ usable) form.
 pattern, then `body_i' is evaluated and returned as the result of the
 `match'. The `switch' function uses string comparison; the `match'
 function uses regular expression matching.
-<<
-     match $(FILE)
+<<   match $(FILE)
      case $".*\(\.[^\/.]*\)"
         println(The string $(FILE) has suffix $1)
      default
@@ -1409,8 +1338,7 @@ Node: Subsection 8-2-7,	Next: Subsection 8-2-8,	Prev: Subsection 8-2-6,	Up: Sect
 8.2.7   try
 ===========
 
-<<
-     try
+<<   try
         try-body
      catch class1(v1)
         catch-body
@@ -1448,8 +1376,7 @@ Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Sect
 8.2.8   raise
 =============
 
-<<
-     raise exn
+<<   raise exn
         exn : Exception
 >>
   
@@ -1466,8 +1393,7 @@ Node: Subsection 8-2-9,	Next: Subsection 8-2-10,	Prev: Subsection 8-2-8,	Up: Sec
 8.2.9   exit
 ============
 
-<<
-     exit(code)
+<<   exit(code)
         code : Int
 >>
   
@@ -1482,16 +1408,14 @@ Node: Subsection 8-2-10,	Next: Subsection 8-2-11,	Prev: Subsection 8-2-9,	Up: Se
 8.2.10   defined
 ================
 
-<<
-     $(defined sequence) : String
+<<   $(defined sequence) : String
         sequence : Sequence
 >>
   
   The `defined' function test whether all the variables in the sequence
 are currently defined. For example, the following code defines the `X'
 variable if it is not already defined.
-<<
-      if $(not $(defined X))
+<<    if $(not $(defined X))
          X = a b c
          export
 >>
@@ -1502,8 +1426,7 @@ Node: Subsection 8-2-11,	Next: Subsection 8-2-12,	Prev: Subsection 8-2-10,	Up: S
 8.2.11   defined-env
 ====================
 
-<<
-     $(defined-env sequence) : String
+<<   $(defined-env sequence) : String
         sequence : String
 >>
   
@@ -1511,8 +1434,7 @@ Node: Subsection 8-2-11,	Next: Subsection 8-2-12,	Prev: Subsection 8-2-10,	Up: S
 of the process environment.
   For example, the following code adds the `-g' compile option if the
 environment variable `DEBUG' is defined.
-<<
-  if $(defined-env DEBUG)
+<<if $(defined-env DEBUG)
       CFLAGS += -g
       export
 >>
@@ -1523,8 +1445,7 @@ Node: Subsection 8-2-12,	Next: Subsection 8-2-13,	Prev: Subsection 8-2-11,	Up: S
 8.2.12   getenv
 ===============
 
-<<
-     $(getenv name) : String
+<<   $(getenv name) : String
      $(getenv name, default) : String
 >>
   
@@ -1537,13 +1458,11 @@ defined.
   For example, the following code defines the variable `X' to be a
 space-separated list of elements of the `PATH' environment variable if
 it is defined, and to `/bin /usr/bin' otherwise.
-<<
-      X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
+<<    X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
 >>
   
   You may also use the alternate form. 
-<<
-       getenv(NAME)
+<<     getenv(NAME)
            default
 >>
 
@@ -1553,8 +1472,7 @@ Node: Subsection 8-2-13,	Next: Subsection 8-2-14,	Prev: Subsection 8-2-12,	Up: S
 8.2.13   setenv
 ===============
 
-<<
-     setenv(name, value)
+<<   setenv(name, value)
         name : String
         value : String
 >>
@@ -1568,8 +1486,7 @@ Node: Subsection 8-2-14,	Next: Subsection 8-2-15,	Prev: Subsection 8-2-13,	Up: S
 8.2.14   unsetenv
 =================
 
-<<
-     unsetenv(names)
+<<   unsetenv(names)
         names : String Array
 >>
   
@@ -1583,8 +1500,7 @@ Node: Subsection 8-2-15,	Next: Subsection 8-2-16,	Prev: Subsection 8-2-14,	Up: S
 8.2.15   get-registry
 =====================
 
-<<
-     get-registry(hkey, key, field) : String
+<<   get-registry(hkey, key, field) : String
      get-registry(hkey, key, field, default) : String
          hkey : String
          key : String
@@ -1609,8 +1525,24 @@ have a form like `A\B\C' (if you use forward slashes, they will be
 converted to backslashes). The field is the sub-field of the key.
   In the 4-argument form, the `default' is returned on failure. You may
 also use the alternate form.
-<<
-      get-registry(hkey, key, field)
+<<    get-registry(hkey, key, field)
          default
 >>
   
+
+Node: Subsection 8-2-16,	Next: Subsection 8-2-17,	Prev: Subsection 8-2-15,	Up: Section 8-2
+  
+
+8.2.16   getvar
+===============
+
+<<   $(getvar name) : String
+>>
+  
+  The `getvar' function gets the value of a variable.
+  An exception is raised if the variable variable is not defined.
+  For example, the following code defines X to be the string abc.
+<<    NAME = foo
+      foo_1 = abc
+      X = $(getvar $(NAME)_1)
+>>
