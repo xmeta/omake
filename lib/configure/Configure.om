@@ -89,24 +89,26 @@ AC_MSG_YES_NO(found) =
    return $(found)
 
 # \begin{doc}
-# \twofunslabel{AC_TRY_COMPILE}{AC\_TRY\_COMPILE}{AC_TRY_LINK}{AC\_TRY\_LINK}
+# \threefunslabel{AC_TRY_COMPILE}{AC\_TRY\_COMPILE}{AC_TRY_LINK}{AC\_TRY\_LINK}{AC_TRY_RUN}{AC\_TRY\_RUN}
 # \begin{verbatim}
 # success = $(AC_TRY_COMPILE <prog_text>)
 # success = $(AC_TRY_LINK <prog_text>)
+# success = $(AC_TRY_RUN <prog_text>)
 # \end{verbatim}
 #
-# Given the \emph{text} of a C program, the \verb+AC_TRY_COMPILE+ and \verb+AC_TRY_LINK+ functions
-# would try to compile and link, respectively, the given program and return a boolean flag
+# Given the \emph{text} of a C program, the \verb+AC_TRY_COMPILE+, \verb+AC_TRY_LINK+, and \verb+AC_TRY_RUN+
+# functions would try to compile / compile and link / compile, link, and run, the given program and return a boolean flag
 # indicating whether the attempt was successful.
 #
 # \verb+AC_TRY_COMPILE+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
-# to run the C compiler. \verb+AC_TRY_LINK+ will also use the \hypervar{LDFLAGS} to run the C compiler and linker.
+# to run the C compiler. \verb+AC_TRY_LINK+ and \verb+AC_TRY_RUN+ will also use the \hypervar{LDFLAGS}
+# to run the C compiler and linker.
 #
 # These functions are silent and should normally be used with an appropriate
 # \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} $\ldots$ \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT}.
 # \end{doc}
 
-AC_TRY_COMPILING(command, prog) =
+AC_TRY_COMPILING(command, prog, extra) =
     # The command line
     tmp = $(tmpfile omake)
     command += -o $(tmp) $(tmp).c
@@ -119,18 +121,49 @@ $(prog)
     
     # Compile it
     fprint($(tmp).c, $(program))
-    protected.success = $(shell-success-null $(command))
+    protected.result = $(shell-success-null $(command))
+
+    if $(result)
+        switch $(extra)
+        case Runs
+            result = $(shell-success-null $(file $(tmp)$(EXE)))
+            export
+        case Output
+            result =
+                try
+                    value $(shell $(file $(tmp)$(EXE)))
+                default
+                    value $(not true)
+            export
+        export
 
     # Remove temporaries
     rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
 
-    return $(success)
+    return $(result)
 
 AC_TRY_COMPILE(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(prog))
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(prog), None)
 
 AC_TRY_LINK(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog))
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog), None)
+
+AC_TRY_RUN(prog) =
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog), Runs)
+
+# \begin{doc}
+# \funlabel{AC_RUN_PROG}{AC\_RUN\_PROG}
+# \begin{verbatim}
+# output = $(AC_RUN_PROG <prog>)
+# \end{verbatim}
+#
+# \verb+AC_RUN_PROG+ is similar to the \hyperfunxn{AC_RUN_PROG}{AC\_RUN\_PROG}, except that it
+# returns the output of the function (will return \verb+false+ if the program fails to compile
+# or run).
+# \end{doc}
+
+AC_RUN_PROG(prog) =
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog), Output)
 
 #
 # Check whether a header file exists.
