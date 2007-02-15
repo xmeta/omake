@@ -467,9 +467,9 @@ like the following.
 <A NAME="@default9"></A> Now, returning to the animal world, to compute the dependencies of <CODE>neko.woof</CODE>, we
 should scan <CODE>neko.cat</CODE>, line-by-line, looking for lines of the form <CODE>open &lt;name&gt;</CODE>. We
 could do this by writing a program, but it is easy enough to do it in <CODE>omake</CODE> itself. We can
-use the builtin <A HREF="omake-system.html#fun:awk"><TT>awk</TT> function</A> to scan the source file. One slight complication
+use the builtin <A HREF="omake-system.html#fun:awk"><CODE>awk</CODE> function</A> to scan the source file. One slight complication
 is that the dependencies depend on the <CODE>INCLUDE</CODE> path. We'll use the
-<A HREF="omake-system.html#fun:find-in-path"><TT>find-in-path</TT> function</A> to find them. Here we go.
+<A HREF="omake-system.html#fun:find-in-path"><CODE>find-in-path</CODE> function</A> to find them. Here we go.
 <PRE CLASS="verbatim">
     .SCANNER: %.woof: %.cat
         section
@@ -675,7 +675,7 @@ of the subdirectories. We can see this if we add a statement that prints the cur
 Of course, this specification is quite rigid. In practice, it is likely that each subdirectory will
 have a different set of images, and all should be included in the web page. One of the easier
 solutions is to use one of the directory-listing functions, like
-<A HREF="omake-system.html#fun:glob"><TT>glob</TT></A> or <A HREF="omake-system.html#fun:ls"><TT>ls</TT></A>.
+<A HREF="omake-system.html#fun:glob"><CODE>glob</CODE></A> or <A HREF="omake-system.html#fun:ls"><CODE>ls</CODE></A>.
 The <CODE>glob</CODE> function takes a shell pattern, and returns an array of
 file with matching filenames in the current directory.
 <PRE CLASS="verbatim">

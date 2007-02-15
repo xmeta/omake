@@ -418,7 +418,7 @@ Node: Subsection 12-6-2,	Next: Subsection 12-6-3,	Prev: Subsection 12-6-1,	Up: S
   The following variables can be redefined in your project. 
  USE_OCAMLFIND
  Whether to use the `ocamlfind' utility
-(default `false\') 
+(default `false') 
  OCAMLC
  The OCaml bytecode compiler (default
 `ocamlc.opt' if it exists  and `USE_OCAMLFIND' is not set, otherwise
@@ -576,7 +576,7 @@ from `bar.mly'.
   OMake currently provides two methods for addressing this problem ---
 one that requires manually specifying the generated files, and an
 experimental method for discovering such ``hidden'' dependencies
-automatically. The OCAMLDEP_MODULES_ENABLED variable controls which
+automatically. The `OCAMLDEP_MODULES_ENABLED variable controls which
 method is going to be used. When this variable is false, the manual
 specifications are expected and when it is true, the automated discovery
 will be attempted.
@@ -590,11 +590,11 @@ will be attempted.
   LocalOCamlGeneratedFiles(files)
 >>
   
-  When the OCAMLDEP_MODULES_ENABLED variable variable is set to `false',
-the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles' functions
-specify files that need to be generated before any OCaml files are
-scanned for dependencies. For example, if `parser.ml' and `lexer.ml' are
-both generated files, specify: 
+  When the `OCAMLDEP_MODULES_ENABLED variable variable is set to
+`false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
+functions specify files that need to be generated before any OCaml files
+are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
+are both generated files, specify: 
 <<
   OCamlGeneratedFiles(parser.ml lexer.ml)
 >>
@@ -603,7 +603,7 @@ both generated files, specify:
 generated before any OCaml files anywhere in the project are scanned for
 dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
-  These functions have no effect when the OCAMLDEP_MODULES_ENABLED
+  These functions have no effect when the `OCAMLDEP_MODULES_ENABLED
 variable is true.
   
 
@@ -616,7 +616,7 @@ discover them automatically is obviously suboptimal. To address this, we
 try to use a custom `ocamldep' that only finds the free module names in
 a file. 
   This functionality is experimental and is disabled by default for now.
-Set the OCAMLDEP_MODULES_ENABLED variable to `true' (or to
+Set the `OCAMLDEP_MODULES_ENABLED variable to `true' (or to
 `$(OCAMLDEP_MODULES_AVAILABLE)') in your project to enable it.
   Note that the experimental `ocamldep' functionality this relies upon
 is not yet included in the standard OCaml (it is expected to be a part
@@ -624,8 +624,8 @@ of the upcoming OCaml 3.10 --- see
 http://caml.inria.fr/mantis/view.php?id=4047). Temporarily, we
 distribute a bytecode version `ocamldep-omake' of the
 appropriately modified `ocamldep'. The appropriate `ocamldep' will be
-discovered automatically --- see and the OCAMLDEP_MODULES_AVAILABLE and
-OCAMLDEP_MODULES variables will be set accordingly. 
+discovered automatically --- see and the `OCAMLDEP_MODULES_AVAILABLE and
+`OCAMLDEP_MODULES variables will be set accordingly. 
 
 Node: Subsection 12-6-6,	Next: Section 12-7,	Prev: Subsection 12-6-5,	Up: Section 12-6
   
@@ -744,15 +744,15 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   `OCamlProgram(<name>, <files>)'
   Additional variables used: 
   
- OCAML_LIBS  Additional libraries passed to the linker, without suffix.
+ `OCAML_LIBS  Additional libraries passed to the linker, without suffix.
    These files  become dependencies of the target program. 
- OCAML_OTHER_LIBS  Additional libraries passed to the linker, without
+ `OCAML_OTHER_LIBS  Additional libraries passed to the linker, without
    suffix. These  files do not become dependencies of the target
    program. 
- OCAML_CLIBS  C libraries to pass to the linker. 
- OCAML_BYTE_LINK_FLAGS  Flags to pass to the bytecode linker. 
- OCAML_NATIVE_LINK_FLAGS  Flags to pass to the native code linker. 
- OCAML_LINK_FLAGS  Flags to pass to both linkers. 
+ `OCAML_CLIBS  C libraries to pass to the linker. 
+ `OCAML_BYTE_LINK_FLAGS  Flags to pass to the bytecode linker. 
+ `OCAML_NATIVE_LINK_FLAGS  Flags to pass to the native code linker. 
+ `OCAML_LINK_FLAGS  Flags to pass to both linkers. 
 
 
 12.6.6.6   OCamlProgramCopy
@@ -763,7 +763,7 @@ location.
   `OCamlProgramCopy(<tag>, <bindir>, <name>)'
   Additional variables used: 
   
- NATIVE_ENABLED  If the NATIVE_ENABLED variable is set, the native-code
+ NATIVE_ENABLED  If the `NATIVE_ENABLED variable is set, the native-code
    executable  is copied; otherwise the byte-code executable is copied. 
 
 
@@ -956,7 +956,7 @@ Node: Subsection 13-1-1,	Next: Subsection 13-1-2,	Prev: Section 13-1,	Up: Sectio
 >>
   
   Check whether your C compiler can locate and process the specified
-headers files. Will use the CC, CFLAGS and INCLUDES variables  to run
+headers files. Will use the `CC, `CFLAGS and `INCLUDES variables  to run
 the compiler. Will incude `<stdio.h>' before including the specified
 header files.
   Both functions return a boolean value. The `CheckHeader' function is
@@ -980,8 +980,8 @@ Node: Subsection 13-1-2,	Next: Subsection 13-1-3,	Prev: Subsection 13-1-1,	Up: S
 >>
   
   Check whether your C compiler and linker can find the named functions
-when linking with the named libraries. Will use the CC, CFLAGS and
-LDFLAGS variables  to run the compiler. Will pass the `<libs>' to the
+when linking with the named libraries. Will use the `CC, `CFLAGS and
+`LDFLAGS variables  to run the compiler. Will pass the `<libs>' to the
 compiler using the `-l' flag.
   Both functions return a boolean value. The `CheckLib' function is
 silent; the `VerboseCheckLib' function will output a line describing the

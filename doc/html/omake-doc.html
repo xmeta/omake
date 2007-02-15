@@ -18,6 +18,8 @@ DIV TABLE{margin-left:inherit;margin-right:inherit;}
 PRE{text-align:left;margin-left:0ex;margin-right:auto;}
 BLOCKQUOTE{margin-left:4ex;margin-right:4ex;text-align:left;}
 .part{margin:auto;text-align:center}
+.verbatim{margin-left:3ex; background:#ddeeff;}
+CODE{padding-left:0.2ex; padding-right:0.2ex; background:#eef7ff;}
 </STYLE>
 </HEAD>
 
@@ -763,7 +765,7 @@ For users already familiar with the <TT>make</TT>(1) command, here is a list of
 differences to keep in mind when using <TT>omake</TT>.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 In <TT>omake</TT>, you are much less likely to define build rules of your own.
- The system provides many standard functions (like <A HREF="#fun:StaticCLibrary"><TT>StaticCLibrary</TT></A> and <A HREF="#fun:CProgram"><TT>CProgram</TT></A>),
+ The system provides many standard functions (like <A HREF="#fun:StaticCLibrary"><CODE>StaticCLibrary</CODE></A> and <A HREF="#fun:CProgram"><CODE>CProgram</CODE></A>),
  described in Chapter&nbsp;<A HREF="#chapter:build">12</A>, to specify these builds more simply.
 <LI CLASS="li-itemize">Implicit rules using <CODE>.SUFFIXES</CODE> and the <CODE>.suf1.suf2:</CODE> are not supported.
  You should use wildcard patterns instead <CODE>%.suf2: %.suf1</CODE>.
@@ -800,7 +802,7 @@ Suppose we have a C file called <CODE>hello_code.c</CODE> containing the followi
     }
 </PRE>
 To build the program a program <CODE>hello</CODE> from this file, we can use the
-<A HREF="#fun:CProgram"><TT>CProgram</TT> function</A>.
+<A HREF="#fun:CProgram"><CODE>CProgram</CODE> function</A>.
 The <TT>OMakefile</TT> contains just one line that specifies that the program <CODE>hello</CODE> is
 to be built from the source code in the <CODE>hello_code.c</CODE> file (note that file suffixes
 are not passed to these functions).
@@ -1692,9 +1694,9 @@ like the following.
 <A NAME="@default9"></A> Now, returning to the animal world, to compute the dependencies of <CODE>neko.woof</CODE>, we
 should scan <CODE>neko.cat</CODE>, line-by-line, looking for lines of the form <CODE>open &lt;name&gt;</CODE>. We
 could do this by writing a program, but it is easy enough to do it in <CODE>omake</CODE> itself. We can
-use the builtin <A HREF="#fun:awk"><TT>awk</TT> function</A> to scan the source file. One slight complication
+use the builtin <A HREF="#fun:awk"><CODE>awk</CODE> function</A> to scan the source file. One slight complication
 is that the dependencies depend on the <CODE>INCLUDE</CODE> path. We'll use the
-<A HREF="#fun:find-in-path"><TT>find-in-path</TT> function</A> to find them. Here we go.
+<A HREF="#fun:find-in-path"><CODE>find-in-path</CODE> function</A> to find them. Here we go.
 <PRE CLASS="verbatim">
     .SCANNER: %.woof: %.cat
         section
@@ -1908,7 +1910,7 @@ of the subdirectories. We can see this if we add a statement that prints the cur
 Of course, this specification is quite rigid. In practice, it is likely that each subdirectory will
 have a different set of images, and all should be included in the web page. One of the easier
 solutions is to use one of the directory-listing functions, like
-<A HREF="#fun:glob"><TT>glob</TT></A> or <A HREF="#fun:ls"><TT>ls</TT></A>.
+<A HREF="#fun:glob"><CODE>glob</CODE></A> or <A HREF="#fun:ls"><CODE>ls</CODE></A>.
 The <CODE>glob</CODE> function takes a shell pattern, and returns an array of
 file with matching filenames in the current directory.
 <PRE CLASS="verbatim">
@@ -2235,7 +2237,7 @@ The <CODE>open</CODE> operation is similar to an <CODE>include</CODE>, but the f
 </PRE>
 If the file specified is not an absolute filenmame, both <CODE>include</CODE> and
 <CODE>open</CODE> operations search for the file based on the
-<A HREF="#var:OMAKEPATH"><TT>OMAKEPATH</TT> variable</A>. In case of the <CODE>open</CODE> directive, the search is
+<A HREF="#var:OMAKEPATH"><CODE>OMAKEPATH</CODE> variable</A>. In case of the <CODE>open</CODE> directive, the search is
 performed at <EM>parse</EM> time, and the argument to <CODE>open</CODE> may not
 contain any expressions.<BR>
 <BR>
@@ -2898,7 +2900,7 @@ and the resulting value is interpreted as follows:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 If the value is empty, everything is exported, as described above.
 <LI CLASS="li-itemize">If the value represents a environment (or a partial environment) captured using the
-<A HREF="#fun:export"><TT>export</TT> function</A>, then the corresponding environment or partial
+<A HREF="#fun:export"><CODE>export</CODE> function</A>, then the corresponding environment or partial
 environment is exported.
 <LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings specifying which items are to be propagated
 back. The following strings have special meaning:
@@ -3898,7 +3900,7 @@ source file changes, all the files will end up being re-scanned.<BR>
 In most cases, you won't need to define scanners of your own. The standard installation includes
 default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.<BR>
 <BR>
-The <A HREF="#var:SCANNER_MODE"><TT>SCANNER_MODE</TT> variable</A> controls the usage of implicit scanner dependencies.<BR>
+The <A HREF="#var:SCANNER_MODE"><CODE>SCANNER_MODE</CODE> variable</A> controls the usage of implicit scanner dependencies.<BR>
 <BR>
 The explicit <CODE>:scanner:</CODE> dependencies reduce the chances of scanner mis-specifications. In
 large complicated projects it might be a good idea to set <CODE>SCANNER_MODE</CODE> to <CODE>error</CODE> and
@@ -4167,8 +4169,8 @@ from the project root.
 <H2 CLASS="section"><A NAME="htoc90">7.12</A>&nbsp;&nbsp;Pathnames in rules</H2><!--SEC END -->
 
 In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
-<A HREF="#fun:file"><TT>file</TT> function</A>). They are then translated to strings for the command line.
-This can cause some unexpected behavior. In the following example, the <A HREF="#fun:absname"><TT>absname</TT> function</A>
+<A HREF="#fun:file"><CODE>file</CODE> function</A>). They are then translated to strings for the command line.
+This can cause some unexpected behavior. In the following example, the <A HREF="#fun:absname"><CODE>absname</CODE> function</A>
 is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
 the relative pathname.
 <PRE CLASS="verbatim">
@@ -4210,7 +4212,7 @@ use the <CODE>--absname</CODE> option (Section&nbsp;<A HREF="#option:--absname">
     /home/.../a/b /home/.../c/d
 </PRE>
 Alternately, the <CODE>--absname</CODE> option is scoped. If you want to use it for only a few rules, you
-can use the <A HREF="#fun:OMakeFlags"><TT>OMakeFlags</TT> function</A> to control how it is applied.
+can use the <A HREF="#fun:OMakeFlags"><CODE>OMakeFlags</CODE> function</A> to control how it is applied.
 <PRE CLASS="verbatim">
    section
       OMakeFlags(--absname)
@@ -4563,7 +4565,7 @@ is optional.
 </PRE>
 The <CODE>raise</CODE> function raises an exception.
 The <CODE>exn</CODE> object can be any object. However,
-the normal convention is to raise an <A HREF="#obj:Exception"><TT>Exception</TT> object</A>.<BR>
+the normal convention is to raise an <A HREF="#obj:Exception"><CODE>Exception</CODE> object</A>.<BR>
 <BR>
 If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an <CODE>Exception</CODE> one
@@ -5386,7 +5388,7 @@ value is printed.
     default
        echo $i
 </PRE>
-The <A HREF="#fun:break"><TT>break</TT> function</A> can be used to break out of the <CODE>while</CODE> loop
+The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to break out of the <CODE>while</CODE> loop
 early.
 <A NAME="break"></A>
 <!--TOC subsection break-->
@@ -5588,7 +5590,7 @@ lazily. The following two definitions are equivalent.
         $|name1| = $`(xxx)
         $|name2| = $`(yyy)
 </PRE>
-The <A HREF="#fun:create-lazy-map"><TT>create-lazy-map</TT> function</A> is used in rule construction.
+The <A HREF="#fun:create-lazy-map"><CODE>create-lazy-map</CODE> function</A> is used in rule construction.
 <!--TOC section Iteration and mapping-->
 
 <H2 CLASS="section"><A NAME="htoc164">8.6</A>&nbsp;&nbsp;Iteration and mapping</H2><!--SEC END -->
@@ -5625,7 +5627,7 @@ body. The final value of <CODE>X</CODE> is <CODE>a.c b.c c.c</CODE>.
        X += $(x).c
        export
 </PRE>
-The <A HREF="#fun:break"><TT>break</TT> function</A> can be used to break out of the loop early.
+The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to break out of the loop early.
 <!--TOC chapter File, I/O and system operations-->
 
 <H1 CLASS="chapter"><A NAME="htoc166">Chapter&nbsp;9</A>&nbsp;&nbsp;File, I/O and system operations</H1><!--SEC END -->
@@ -7587,7 +7589,7 @@ Options.
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
 <B>b</B><DD CLASS="dd-description"> &#8220;Break&#8221; when evaluating cases. Only the first case that matches will be selected.
 </DL>
-The <A HREF="#fun:break"><TT>break</TT> function</A> can be used to abort the loop,
+The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop,
 exiting the <CODE>awk</CODE> function immediately.
 <!--TOC subsection fsubst-->
 
@@ -7676,7 +7678,7 @@ The <CODE>default</CODE> case, if one exists, matches single characters. Since<B
 <BR>
 It is an error if the input does not match any of the regular expressions.<BR>
 <BR>
-The <A HREF="#fun:break"><TT>break</TT> function</A> can be used to abort the loop.
+The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
 <!--TOC subsection lex-search-->
 
 <H3 CLASS="subsection"><A NAME="htoc264">9.11.8</A>&nbsp;&nbsp;lex-search</H3><!--SEC END -->
@@ -7711,7 +7713,7 @@ The <CODE>default</CODE> case, if one exists, matches single characters. Since<B
 <BR>
 It is an error if the input does not match any of the regular expressions.<BR>
 <BR>
-The <A HREF="#fun:break"><TT>break</TT> function</A> can be used to abort the loop.
+The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
 <!--TOC subsection Lexer-->
 
 <H3 CLASS="subsection"><A NAME="htoc265">9.11.9</A>&nbsp;&nbsp;Lexer</H3><!--SEC END -->
@@ -8181,7 +8183,7 @@ A variable definition of the form <CODE>VAR=string</CODE>
 </UL>
 </UL>
 Commands may also be builtin (aliases). See the documentation for the
-<A HREF="#obj:Shell"><TT>Shell</TT> object</A> for more information.<BR>
+<A HREF="#obj:Shell"><CODE>Shell</CODE> object</A> for more information.<BR>
 <BR>
 <!--TOC section Basic builtin functions-->
 
@@ -8715,7 +8717,7 @@ Parent objects: <CODE>Exception</CODE>.<BR>
 <BR>
 The <CODE>UnbuildableException</CODE> object should be used to signal that a target
 is not buildable. It will be caught by functions such as
-<A HREF="#fun:target-exists"><TT>target-exists</TT></A>.
+<A HREF="#fun:target-exists"><CODE>target-exists</CODE></A>.
 This exception has the following fields:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>target</CODE>: indicates which target is not buildable.
@@ -8901,13 +8903,13 @@ The <CODE>cat</CODE> function prints the contents of the files to stdout
 <CODE>[</CODE> <EM>expression</EM> +]+<BR>
 <CODE>[ --help</CODE><BR>
 <CODE>[ --version</CODE><BR>
-See the documentation for the <A HREF="#fun:test"><TT>test</TT> function</A>.<BR>
+See the documentation for the <A HREF="#fun:test"><CODE>test</CODE> function</A>.<BR>
 <BR>
 <LI CLASS="li-itemize"><CODE>find</CODE>
 <PRE CLASS="verbatim">
    find \emph{expression}
 </PRE>
-See the documentation for the <A HREF="#fun:find"><TT>find</TT> function</A>.</UL><BR>
+See the documentation for the <A HREF="#fun:find"><CODE>find</CODE> function</A>.</UL><BR>
 
 </UL>
 <!--TOC chapter Build functions and utilities-->
@@ -8956,7 +8958,7 @@ about the status of the build.
 Another common use is to define notifications to be performed when
 the build completes. For example, the following rule will create
 a new X terminal displaying the summary of the build
-(using the <A HREF="#var:BUILD_SUMMARY"><TT>BUILD_SUMMARY</TT> variable</A>).
+(using the <A HREF="#var:BUILD_SUMMARY"><CODE>BUILD_SUMMARY</CODE> variable</A>).
 <PRE CLASS="verbatim">
     .BUILD_FAILURE:
         xterm -e vi $(BUILD_SUMMARY)
@@ -8965,11 +8967,11 @@ If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can
 define them in your <CODE>.omakerc</CODE> (see Section&nbsp;<A HREF="#section:.omakerc">A.8</A>).<BR>
 <BR>
-The <A HREF="#fun:find-build-targets"><TT>find-build-targets</TT> function</A>
+The <A HREF="#fun:find-build-targets"><CODE>find-build-targets</CODE> function</A>
 is useful for obtaining a firther summary of the build. Note that
 when output diversions are in effect (with the <CODE>--output-*</CODE> options &mdash; see Chapter&nbsp;<A HREF="#chapter:options">A</A>),
 any output produced by the commands is copied to a file. The name of the
-file is specified by the <CODE>output-file</CODE> field of the <A HREF="#obj:Target"><TT>Target</TT> object</A>.
+file is specified by the <CODE>output-file</CODE> field of the <A HREF="#obj:Target"><CODE>Target</CODE> object</A>.
 You may find this useful in defining custom build summaries.
 <!--TOC section Options and versioning-->
 
@@ -9150,7 +9152,7 @@ The <CODE>rule</CODE> function is called when a rule is evaluated.
  for two-part rules.
 <DT CLASS="dt-description"><B>sources</B><DD CLASS="dd-description"> The sequence of dependencies.
 <DT CLASS="dt-description"><B>options</B><DD CLASS="dd-description"> An array of options. Each option is represented
- as a <A HREF="#obj:Map"><TT>Map</TT> object</A> associating each specified option with
+ as a <A HREF="#obj:Map"><CODE>Map</CODE> object</A> associating each specified option with
  a value.
 <DT CLASS="dt-description"><B>body</B><DD CLASS="dd-description"> The body expression of the rule.
 </DL>
@@ -9162,7 +9164,7 @@ Consider the following rule.
 </PRE>
 This expression represents the following function call, where
 square brackets are used to indicate arrays, and the curly
-brackets represent a <A HREF="#obj:Map"><TT>Map</TT> object</A>.
+brackets represent a <A HREF="#obj:Map"><CODE>Map</CODE> object</A>.
 <PRE CLASS="verbatim">
    rule(false, target, pattern, sources,
         { $|:name1:| = option1; $|:name2:| = option2 }
@@ -9586,7 +9588,7 @@ The following variables can be redefined in your project.
 <!--TOC paragraph USE_OCAMLFIND-->
 
 <H5 CLASS="paragraph">USE_OCAMLFIND</H5><!--SEC END -->
-<A NAME="var:USE_OCAMLFIND"></A><A NAME="@default385"></A><A NAME="@var59"></A> Whether to use the <CODE>ocamlfind</CODE> utility (default <CODE>false\</CODE>)
+<A NAME="var:USE_OCAMLFIND"></A><A NAME="@default385"></A><A NAME="@var59"></A> Whether to use the <CODE>ocamlfind</CODE> utility (default <CODE>false</CODE>)
 <!--TOC paragraph OCAMLC-->
 
 <H5 CLASS="paragraph">OCAMLC</H5><!--SEC END -->
@@ -9779,7 +9781,7 @@ and <CODE>bar.mli</CODE> can be generated from <CODE>bar.mly</CODE>.<BR>
 OMake currently provides two methods for addressing this problem &mdash; one that requires manually
 specifying the generated files, and an experimental method for discovering such &#8220;hidden&#8221;
 dependencies automatically. The
-<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><TT>OCAMLDEP_MODULES_ENABLED</TT> variable</A> controls which method is
+<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> controls which method is
 going to be used. When this variable is false, the manual specifications are expected and when it
 is true, the automated discovery will be attempted.<BR>
 <BR>
@@ -9791,7 +9793,7 @@ is true, the automated discovery will be attempted.<BR>
 OCamlGeneratedFiles(files)
 LocalOCamlGeneratedFiles(files)
 </PRE>
-When the <A HREF="#var:OCAMLDEP_MODULES_ENABLED"><TT>OCAMLDEP_MODULES_ENABLED</TT> variable</A> variable is set
+When the <A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> variable is set
 to <CODE>false</CODE>, the <CODE>OCamlGeneratedFiles</CODE> and <CODE>LocalOCamlGeneratedFiles</CODE> functions specify files
 that need to be generated before any OCaml files are scanned for dependencies. For example,
 if <CODE>parser.ml</CODE> and <CODE>lexer.ml</CODE> are both generated files, specify:
@@ -9803,7 +9805,7 @@ before any OCaml files anywhere in the project are scanned for dependencies. The
 <CODE>LocalOCamlGeneratedFiles</CODE> function follows the normal scoping rules of OMake.<BR>
 <BR>
 These functions have no effect when the
-<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><TT>OCAMLDEP_MODULES_ENABLED</TT> variable</A> is true.<BR>
+<A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> is true.<BR>
 <BR>
 <!--TOC subsubsection Automatic discovery of generated files during dependency analysis-->
 
@@ -9814,7 +9816,7 @@ obviously suboptimal. To address this, we try to use a custom <CODE>ocamldep</CO
 finds the free module names in a file. <BR>
 <BR>
 This functionality is experimental and is disabled by default for now.
-Set the <A HREF="#var:OCAMLDEP_MODULES_ENABLED"><TT>OCAMLDEP_MODULES_ENABLED</TT> variable</A> to <CODE>true</CODE> (or
+Set the <A HREF="#var:OCAMLDEP_MODULES_ENABLED"><CODE>OCAMLDEP_MODULES_ENABLED</CODE> variable</A> to <CODE>true</CODE> (or
 to <CODE>$(OCAMLDEP_MODULES_AVAILABLE)</CODE>) in your project to enable it.<BR>
 <BR>
 Note that the experimental <CODE>ocamldep</CODE> functionality this relies upon is not yet included in
@@ -9822,8 +9824,8 @@ the standard OCaml (it is expected to be a part of the upcoming OCaml 3.10 &mdas
 see <A HREF="http://caml.inria.fr/mantis/view.php?id=4047"><TT>http://caml.inria.fr/mantis/view.php?id=4047</TT></A>). Temporarily, we
 distribute a bytecode version <A NAME="@default422"></A><CODE>ocamldep-omake</CODE> of the appropriately
 modified <CODE>ocamldep</CODE>. The appropriate <CODE>ocamldep</CODE> will be discovered automatically &mdash; see
-and the <A HREF="#var:OCAMLDEP_MODULES_AVAILABLE"><TT>OCAMLDEP_MODULES_AVAILABLE</TT></A> and
-<A HREF="#var:OCAMLDEP_MODULES"><TT>OCAMLDEP_MODULES</TT></A> variables will be set accordingly.
+and the <A HREF="#var:OCAMLDEP_MODULES_AVAILABLE"><CODE>OCAMLDEP_MODULES_AVAILABLE</CODE></A> and
+<A HREF="#var:OCAMLDEP_MODULES"><CODE>OCAMLDEP_MODULES</CODE></A> variables will be set accordingly.
 <!--TOC subsection Using the Menhir parser generator-->
 
 <H3 CLASS="subsection"><A NAME="htoc361">12.6.6</A>&nbsp;&nbsp;Using the Menhir parser generator</H3><!--SEC END -->
@@ -9940,14 +9942,14 @@ variables).<BR>
 <BR>
 Additional variables used:
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<A HREF="#var:OCAML_LIBS"><B><TT>OCAML_LIBS</TT></B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These files
+<A HREF="#var:OCAML_LIBS"><B><CODE>OCAML_LIBS</CODE></B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These files
  become dependencies of the target program.
-<DT CLASS="dt-description"><A HREF="#var:OCAML_OTHER_LIBS"><B><TT>OCAML_OTHER_LIBS</TT></B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These
+<DT CLASS="dt-description"><A HREF="#var:OCAML_OTHER_LIBS"><B><CODE>OCAML_OTHER_LIBS</CODE></B></A><DD CLASS="dd-description"> Additional libraries passed to the linker, without suffix. These
  files do <EM>not</EM> become dependencies of the target program.
-<DT CLASS="dt-description"><A HREF="#var:OCAML_CLIBS"><B><TT>OCAML_CLIBS</TT></B></A><DD CLASS="dd-description"> C libraries to pass to the linker.
-<DT CLASS="dt-description"><A HREF="#var:OCAML_BYTE_LINK_FLAGS"><B><TT>OCAML_BYTE_LINK_FLAGS</TT></B></A><DD CLASS="dd-description"> Flags to pass to the bytecode linker.
-<DT CLASS="dt-description"><A HREF="#var:OCAML_NATIVE_LINK_FLAGS"><B><TT>OCAML_NATIVE_LINK_FLAGS</TT></B></A><DD CLASS="dd-description"> Flags to pass to the native code linker.
-<DT CLASS="dt-description"><A HREF="#var:OCAML_LINK_FLAGS"><B><TT>OCAML_LINK_FLAGS</TT></B></A><DD CLASS="dd-description"> Flags to pass to both linkers.
+<DT CLASS="dt-description"><A HREF="#var:OCAML_CLIBS"><B><CODE>OCAML_CLIBS</CODE></B></A><DD CLASS="dd-description"> C libraries to pass to the linker.
+<DT CLASS="dt-description"><A HREF="#var:OCAML_BYTE_LINK_FLAGS"><B><CODE>OCAML_BYTE_LINK_FLAGS</CODE></B></A><DD CLASS="dd-description"> Flags to pass to the bytecode linker.
+<DT CLASS="dt-description"><A HREF="#var:OCAML_NATIVE_LINK_FLAGS"><B><CODE>OCAML_NATIVE_LINK_FLAGS</CODE></B></A><DD CLASS="dd-description"> Flags to pass to the native code linker.
+<DT CLASS="dt-description"><A HREF="#var:OCAML_LINK_FLAGS"><B><CODE>OCAML_LINK_FLAGS</CODE></B></A><DD CLASS="dd-description"> Flags to pass to both linkers.
 </DL>
 <!--TOC subsubsection OCamlProgramCopy-->
 
@@ -9960,7 +9962,7 @@ The <CODE>OCamlProgramCopy</CODE> function copies an OCaml program to an install
 <BR>
 Additional variables used:
 <DL CLASS="description" COMPACT=compact><DT CLASS="dt-description">
-<B>NATIVE_ENABLED</B><DD CLASS="dd-description"> If the <A HREF="#var:NATIVE_ENABLED"><TT>NATIVE_ENABLED</TT> variable</A> is set, the native-code executable
+<B>NATIVE_ENABLED</B><DD CLASS="dd-description"> If the <A HREF="#var:NATIVE_ENABLED"><CODE>NATIVE_ENABLED</CODE> variable</A> is set, the native-code executable
  is copied; otherwise the byte-code executable is copied.
 </DL>
 <!--TOC subsubsection OCamlProgramInstall-->
@@ -10143,7 +10145,7 @@ success = $(CheckHeader &lt;files&gt;)
 success = $(VerboseCheckHeader &lt;files&gt;)
 </PRE>
 Check whether your C compiler can locate and process the specified headers files.
-Will use the <A HREF="#var:CC"><TT>CC</TT></A>, <A HREF="#var:CFLAGS"><TT>CFLAGS</TT></A> and <A HREF="#var:INCLUDES"><TT>INCLUDES</TT></A> variables 
+Will use the <A HREF="#var:CC"><CODE>CC</CODE></A>, <A HREF="#var:CFLAGS"><CODE>CFLAGS</CODE></A> and <A HREF="#var:INCLUDES"><CODE>INCLUDES</CODE></A> variables 
 to run the compiler. Will incude <CODE>&lt;stdio.h&gt;</CODE> before including the specified header files.<BR>
 <BR>
 Both functions return a boolean value. The <CODE>CheckHeader</CODE> function is silent; the
@@ -10163,7 +10165,7 @@ success = $(VerboseCheckLib &lt;libs&gt;, &lt;functions&gt;)
 </PRE>
 Check whether your C compiler and linker can find the named functions when linking with
 the named libraries.
-Will use the <A HREF="#var:CC"><TT>CC</TT></A>, <A HREF="#var:CFLAGS"><TT>CFLAGS</TT></A> and <A HREF="#var:LDFLAGS"><TT>LDFLAGS</TT></A> variables 
+Will use the <A HREF="#var:CC"><CODE>CC</CODE></A>, <A HREF="#var:CFLAGS"><CODE>CFLAGS</CODE></A> and <A HREF="#var:LDFLAGS"><CODE>LDFLAGS</CODE></A> variables 
 to run the compiler. Will pass the <CODE>&lt;libs&gt;</CODE> to the compiler using the <CODE>-l</CODE> flag.<BR>
 <BR>
 Both functions return a boolean value. The <CODE>CheckLib</CODE> function is silent; the
@@ -11304,7 +11306,7 @@ conditional may be followed by <CODE>elseif</CODE> and <CODE>else</CODE> blocks.
     default
        indented-body
 </PRE>
-<A NAME="@default505"></A><B>Exceptions</B> (see also the <A HREF="#fun:try"><TT>try</TT> function</A> documentation). The <CODE>try</CODE> command
+<A NAME="@default505"></A><B>Exceptions</B> (see also the <A HREF="#fun:try"><CODE>try</CODE> function</A> documentation). The <CODE>try</CODE> command
 introduces an exception handler. Each <CODE>name</CODE> is the name of a class. All cases, including
 <CODE>catch</CODE>, <CODE>default</CODE>, and <CODE>finally</CODE> are optional. The <CODE>catch</CODE> and <CODE>default</CODE>
 clauses contain optional <CODE>when</CODE> clauses.
@@ -11359,7 +11361,7 @@ Otherwise, the export is limited to the specified identifiers.
 <PRE CLASS="verbatim">
     export expr
 </PRE>
-<A NAME="@default512"></A><B>while</B> (see also the <A HREF="#fun:while"><TT>while</TT> function</A> description). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.
+<A NAME="@default512"></A><B>while</B> (see also the <A HREF="#fun:while"><CODE>while</CODE> function</A> description). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.
 <PRE CLASS="verbatim">
     while expr
         indented-body
