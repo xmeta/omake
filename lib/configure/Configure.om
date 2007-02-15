@@ -88,6 +88,50 @@ AC_MSG_YES_NO(found) =
    AC_MSG_RESULT($(if $(found), yes, NO))
    return $(found)
 
+# \begin{doc}
+# \twofunslabel{AC_TRY_COMPILE}{AC\_TRY\_COMPILE}{AC_TRY_LINK}{AC\_TRY\_LINK}
+# \begin{verbatim}
+# success = $(AC_TRY_COMPILE <prog_text>)
+# success = $(AC_TRY_LINK <prog_text>)
+# \end{verbatim}
+#
+# Given the \emph{text} of a C program, the \verb+AC_TRY_COMPILE+ and \verb+AC_TRY_LINK+ functions
+# would try to compile and link, respectively, the given program and return a boolean flag
+# indicating whether the attempt was successful.
+#
+# \verb+AC_TRY_COMPILE+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
+# to run the C compiler. \verb+AC_TRY_LINK+ will also use the \hypervar{LDFLAGS} to run the C compiler and linker.
+#
+# These functions are silent and should normally be used with an appropriate
+# \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} $\ldots$ \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT}.
+# \end{doc}
+
+AC_TRY_COMPILING(command, prog) =
+    # The command line
+    tmp = $(tmpfile omake)
+    command += -o $(tmp) $(tmp).c
+
+    # The program
+    program = $"""/* Configuration file; you can remove this. */
+/* Command line: $(command) */
+$(prog)
+"""
+    
+    # Compile it
+    fprint($(tmp).c, $(program))
+    protected.success = $(shell-success-null $(command))
+
+    # Remove temporaries
+    rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
+
+    return $(success)
+
+AC_TRY_COMPILE(prog) =
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(prog))
+
+AC_TRY_LINK(prog) =
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog))
+
 #
 # Check whether a header file exists.
 # We call the C compiler.
@@ -99,9 +143,9 @@ AC_MSG_YES_NO(found) =
 # success = $(VerboseCheckHeader <files>)
 # \end{verbatim}
 #
-# Check whether your C compiler can locate and process the specified headers files.
-# Will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
-# to run the compiler. Will incude \verb+<stdio.h>+ before including the specified header files.
+# Use the \hyperfunx{AC_TRY_COMPILE}{AC\_TRY\_COMPILE} to check whether your C compiler can locate
+# and process the specified headers files.
+# Will incude \verb+<stdio.h>+ before including the header files.
 #
 # Both functions return a boolean value. The \verb+CheckHeader+ function is silent; the
 # \verb+VerboseCheckHeader+ function will use the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
@@ -115,33 +159,16 @@ AC_MSG_YES_NO(found) =
 # \end{doc}
 #
 public.CheckHeader(files) =
-    private.includes = $(add-wrapper $(nl)$'#include <', >, $(files))
-
-    # The command line
-    protected.tmp = $(tmpfile omake)
-    protected.command = $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -o $(tmp) $(tmp).c
-
-    # The program
-    protected.program = $"""/* Configuration file; you can remove this. */
-/* Command line: $(command) */
+    return $(AC_TRY_COMPILE $"""
 #ifdef __cplusplus
 extern "C"
 #endif
 #include <stdio.h>
-$(includes)
+$(add-wrapper $(nl)$'#include <', >, $(files))
 int main(int argc, char **argv) {
     return 0;
 }
-"""
-
-    # Compile it
-    fprint($(tmp).c, $(program))
-    protected.success = $(shell-success-null $(command))
-
-    # Remove temporaries
-    rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
-
-    return $(success)
+""")
 
 public.VerboseCheckHeader(files) =
     AC_MSG_CHECKING(for $(files))
@@ -157,10 +184,9 @@ public.VerboseCheckHeader(files) =
 # success = $(VerboseCheckLib <libs>, <functions>)
 # \end{verbatim}
 #
-# Check whether your C compiler and linker can find the named functions when linking with
-# the named libraries.
-# Will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{LDFLAGS} variables 
-# to run the compiler. Will pass the \verb+<libs>+ to the compiler using the \verb+-l+ flag.
+# Use the \hyperfunx{AC_TRY_LINK}{AC\_TRY\_LINK} to check whether your C compiler and linker can
+# find the named functions when linking with the named libraries.  Will pass the \verb+<libs>+ to
+# the compiler using the \verb+-l+ flag.
 #
 # Both functions return a boolean value. The \verb+CheckLib+ function is silent; the
 # \verb+VerboseCheckHeader+ function will use the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
@@ -174,36 +200,20 @@ public.VerboseCheckHeader(files) =
 # \end{doc}
 #
 public.CheckLib(libs, funs) =
-    protected.declares = $(add-wrapper $(nl)extern char , $'();', $(funs))
-    protected.funs = $(add-wrapper $(nl)    , $'();', $(funs))
-    protected.clibs = $(addprefix -l, $(libs))
+    CFLAGS += $(addprefix -l, $(libs))
 
-    # The command line
-    protected.tmp = $(tmpfile omake)
-    protected.command = $(CC) $(CFLAGS) $(LDFLAGS) -o $(tmp) $(tmp).c $(clibs)
-
-    # The program
-    protected.program = $"""/* Configuration file, you can remove this. */
-/* command line: $(command) */
-/* Override any gcc2 internal prototype to avoid an error.  */
+    return $(AC_TRY_LINK $"""
 #ifdef __cplusplus
 extern "C"
 #endif
-$(declares)
+/* Override any gcc2 internal prototype to avoid an error.  */
+$(add-wrapper $(nl)extern char , $'();', $(funs))
 int main(int argc, char **argv) {
-$(funs)
+    /* Usage */
+$(add-wrapper $(nl)    , $'();', $(funs))
     return 0;
 }
-"""
-
-    # Compile it
-    fprint($(tmp).c, $(program))
-    protected.success = $(shell-success-null $(command))
-
-    # Remove temporaries
-    rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
-
-    return $(success)
+""")
 
 public.VerboseCheckLib(libs, funs) =
     msg = $"""function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))"""
