@@ -3,7 +3,7 @@
 <HTML>
 <HEAD>
 
-<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 <META name="GENERATOR" content="hevea 1.09">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>OMake quickstart guide</TITLE>
@@ -12,19 +12,19 @@
 
 <img src="images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
 &bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
 &bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
 &bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
 &bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
-<H1 CLASS="chapter"><A NAME="htoc2">Chapter 2</A>  OMake quickstart guide</H1><UL>
+<H1 CLASS="chapter"><A NAME="htoc2">Chapter&#XA0;2</A>&#XA0;&#XA0;OMake quickstart guide</H1><UL>
 <LI><A HREF="omake-quickstart.html#toc1">Description</A></LI>
 <LI><A HREF="omake-quickstart.html#toc2">For users already familiar with make</A></LI>
 <LI><A HREF="omake-quickstart.html#toc3">Building a small C program</A></LI>
@@ -38,33 +38,33 @@
 </UL>
 <P>
 <A NAME="chapter:quickstart"></A>
-</P><H2 CLASS="section"><A NAME="toc1"></A><A NAME="htoc3">2.1</A>  Description</H2><P><TT>omake</TT> is designed for building projects that might have source files in several directories.
+</P><H2 CLASS="section"><A NAME="toc1"></A><A NAME="htoc3">2.1</A>&#XA0;&#XA0;Description</H2><P><TT>omake</TT> is designed for building projects that might have source files in several directories.
 Projects are normally specified using an <TT>OMakefile</TT> in each of the project directories, and an
 <TT>OMakeroot</TT> file in the root directory of the project. The <TT>OMakeroot</TT> file specifies
 general build rules, and the <TT>OMakefile</TT>s specify the build parameters specific to each of the
 subdirectories. When <TT>omake</TT> runs, it walks the configuration tree, evaluating rules from all
-of the <TT>OMakefile</TT>s. The project is then built from the entire collection of build rules.</P><H3 CLASS="subsection"><A NAME="htoc4">2.1.1</A>  Automatic dependency analysis</H3><P>Dependency analysis has always been problematic with the <TT>make</TT>(1) program. <TT>omake</TT>
+of the <TT>OMakefile</TT>s. The project is then built from the entire collection of build rules.</P><H3 CLASS="subsection"><A NAME="htoc4">2.1.1</A>&#XA0;&#XA0;Automatic dependency analysis</H3><P>Dependency analysis has always been problematic with the <TT>make</TT>(1) program. <TT>omake</TT>
 addresses this by adding the <CODE>.SCANNER</CODE> target, which specifies a command to produce
 dependencies. For example, the following rule</P><PRE CLASS="verbatim">    .SCANNER: %.o: %.c
         $(CC) $(INCLUDE) -MM $&lt;
 </PRE><P>is the standard way to generate dependencies for <CODE>.c</CODE> files. <TT>omake</TT> will automatically
-run the scanner when it needs to determine dependencies for a file.</P><H3 CLASS="subsection"><A NAME="htoc5">2.1.2</A>  Content-based dependency analysis</H3><P>Dependency analysis in omake uses MD5 digests to determine whether files have changed. After each
+run the scanner when it needs to determine dependencies for a file.</P><H3 CLASS="subsection"><A NAME="htoc5">2.1.2</A>&#XA0;&#XA0;Content-based dependency analysis</H3><P>Dependency analysis in omake uses MD5 digests to determine whether files have changed. After each
 run, <TT>omake</TT> stores the dependency information in a file called <TT>.omakedb</TT> in the project
 root directory. When a rule is considered for execution, the command is not executed if the target,
 dependencies, and command sequence are unchanged since the last run of <TT>omake</TT>. As an
 optimization, <TT>omake</TT> does not recompute the digest for a file that has an unchanged
-modification time, size, and inode number.</P><H2 CLASS="section"><A NAME="toc2"></A><A NAME="htoc6">2.2</A>  For users already familiar with make</H2><P>For users already familiar with the <TT>make</TT>(1) command, here is a list of
+modification time, size, and inode number.</P><H2 CLASS="section"><A NAME="toc2"></A><A NAME="htoc6">2.2</A>&#XA0;&#XA0;For users already familiar with make</H2><P>For users already familiar with the <TT>make</TT>(1) command, here is a list of
 differences to keep in mind when using <TT>omake</TT>.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 In <TT>omake</TT>, you are much less likely to define build rules of your own.
 The system provides many standard functions (like <CODE><A HREF="omake-build.html#fun:StaticCLibrary">StaticCLibrary</A></CODE> and <CODE><A HREF="omake-build.html#fun:CProgram">CProgram</A></CODE>),
-described in Chapter <A HREF="omake-build.html#chapter:build">12</A>, to specify these builds more simply.
+described in Chapter&#XA0;<A HREF="omake-build.html#chapter:build">12</A>, to specify these builds more simply.
 </LI><LI CLASS="li-itemize">Implicit rules using <CODE>.SUFFIXES</CODE> and the <CODE>.suf1.suf2:</CODE> are not supported.
 You should use wildcard patterns instead <CODE>%.suf2: %.suf1</CODE>.
 </LI><LI CLASS="li-itemize">Scoping is significant: you should define variables and <CODE>.PHONY</CODE>
-targets (see Section <A HREF="omake-rules.html#target:.PHONY">7.10</A>) before they are used.
+targets (see Section&#XA0;<A HREF="omake-rules.html#target:.PHONY">7.10</A>) before they are used.
 </LI><LI CLASS="li-itemize">Subdirectories are incorporated into a project using the
-<CODE>.SUBDIRS:</CODE> target (see Section <A HREF="omake-rules.html#target:.SUBDIRS">7.8</A>).
-</LI></UL><H2 CLASS="section"><A NAME="toc3"></A><A NAME="htoc7">2.3</A>  Building a small C program</H2><P>To start a new project, the easiest method is to change directories to the project
+<CODE>.SUBDIRS:</CODE> target (see Section&#XA0;<A HREF="omake-rules.html#target:.SUBDIRS">7.8</A>).
+</LI></UL><H2 CLASS="section"><A NAME="toc3"></A><A NAME="htoc7">2.3</A>&#XA0;&#XA0;Building a small C program</H2><P>To start a new project, the easiest method is to change directories to the project
 root and use the command <CODE>omake --install</CODE> to install default <TT>OMakefile</TT>s.</P><PRE CLASS="verbatim">    $ cd ~/newproject
     $ omake --install
     *** omake: creating OMakeroot
@@ -124,7 +124,7 @@ file <CODE>hello_helper.c</CODE>. We would include this in the project as follow
     CFLAGS += -g
     CProgram(hello, hello_code hello_helper)
     .DEFAULT: hello$(EXE)
-</PRE><H2 CLASS="section"><A NAME="toc4"></A><A NAME="htoc8">2.4</A>  Larger projects</H2><P>As the project grows it is likely that we will want to build libraries of code.
+</PRE><H2 CLASS="section"><A NAME="toc4"></A><A NAME="htoc8">2.4</A>&#XA0;&#XA0;Larger projects</H2><P>As the project grows it is likely that we will want to build libraries of code.
 Libraries can be built using the <CODE>StaticCLibrary</CODE> function. Here is an example
 of an <TT>OMakefile</TT> with two libraries.</P><PRE CLASS="verbatim">    CC = gcc
     CFLAGS += -g
@@ -140,7 +140,7 @@ of an <TT>OMakefile</TT> with two libraries.</P><PRE CLASS="verbatim">    CC = g
     CProgram(hello, hello_code hello_helper)
 
     .DEFAULT: hello$(EXE)
-</PRE><H2 CLASS="section"><A NAME="toc5"></A><A NAME="htoc9">2.5</A>  Subdirectories</H2><P>As the project grows even further, it is a good idea to split it into several directories.
+</PRE><H2 CLASS="section"><A NAME="toc5"></A><A NAME="htoc9">2.5</A>&#XA0;&#XA0;Subdirectories</H2><P>As the project grows even further, it is a good idea to split it into several directories.
 Suppose we place the <CODE>libfoo</CODE> and <CODE>libbar</CODE> into subdirectories.</P><P>In each subdirectory, we define an <TT>OMakefile</TT> for that directory. For example, here
 is an example <TT>OMakefile</TT> for the <CODE>foo</CODE> subdirectory.</P><PRE CLASS="verbatim">    INCLUDES += .. ../bar
 
@@ -288,10 +288,10 @@ in each subdirectory, we can define it in the toplevel as follows.</P><PRE CLASS
 </PRE><P>In the <CODE>foo</CODE> directory, the <CODE>INCLUDES</CODE> variable will evaluate to
 the string <CODE>.. . ../bar ../win32</CODE>. In the <CODE>bar</CODE> directory,
 it would be <CODE>.. ../foo . ../win32</CODE>. In the root directory it
-would be <CODE>. foo bar win32</CODE>.</P><H2 CLASS="section"><A NAME="toc6"></A><A NAME="htoc10">2.6</A>  Other things to consider</H2><P><TT>omake</TT> also handles recursive subdirectories. For example, suppose the <CODE>foo</CODE>
+would be <CODE>. foo bar win32</CODE>.</P><H2 CLASS="section"><A NAME="toc6"></A><A NAME="htoc10">2.6</A>&#XA0;&#XA0;Other things to consider</H2><P><TT>omake</TT> also handles recursive subdirectories. For example, suppose the <CODE>foo</CODE>
 directory itself contains several subdirectories. The <TT>foo/OMakefile</TT> would then
 contain its own <CODE>.SUBDIRS</CODE> target, and each of its subdirectories would
-contain its own <CODE>OMakefile</CODE>.</P><H2 CLASS="section"><A NAME="toc7"></A><A NAME="htoc11">2.7</A>  Building OCaml programs</H2><P>By default, <TT>omake</TT> is also configured with functions for building OCaml programs.
+contain its own <CODE>OMakefile</CODE>.</P><H2 CLASS="section"><A NAME="toc7"></A><A NAME="htoc11">2.7</A>&#XA0;&#XA0;Building OCaml programs</H2><P>By default, <TT>omake</TT> is also configured with functions for building OCaml programs.
 The functions for OCaml program use the <CODE>OCaml</CODE> prefix. For example, suppose
 we reconstruct the previous example in OCaml, and we have a file called <CODE>hello_code.ml</CODE>
 that contains the following code.</P><PRE CLASS="verbatim">   open Printf
@@ -344,7 +344,7 @@ use the standard OCaml <CODE>Unix</CODE> module.</P><PRE CLASS="verbatim">    # 
     StaticCLibrary(libfoo, $(FOO_FILES))
 </PRE><P>The <TT>bar/OMakefile</TT> would build an ML library.</P><PRE CLASS="verbatim">   BAR_FILES = bar_a bar_b bar_c
    OCamlLibrary(libbar, $(BAR_FILES))
-</PRE><H2 CLASS="section"><A NAME="toc8"></A><A NAME="htoc12">2.8</A>  The OMakefile and OMakeroot files</H2><P>
+</PRE><H2 CLASS="section"><A NAME="toc8"></A><A NAME="htoc12">2.8</A>&#XA0;&#XA0;The OMakefile and OMakeroot files</H2><P>
 <A NAME="section:omakeroot"></A>
 <A NAME="@default0"></A>
 <A NAME="@default1"></A></P><P><TT>OMake</TT> uses the <TT>OMakefile</TT> and <TT>OMakeroot</TT> files for configuring a project. The
@@ -368,7 +368,7 @@ file is <CODE>Common</CODE>. The others are optional; for example, the <CODE>$(S
 is needed only when the project contains programs written in OCaml.</P><P>The <CODE>DefineCommandVars</CODE> function defines any variables specified on the command line (as
 arguments of the form <CODE>VAR=&lt;value&gt;</CODE>). The <CODE>.SUBDIRS</CODE> line specifies that the current
 directory is part of the project (so the <CODE>OMakefile</CODE> should be read).</P><P>Normally, the <CODE>OMakeroot</CODE> file should be small and project-independent. Any project-specific
-configuration should be placed in the <CODE>OMakefiles</CODE> of the project.</P><H2 CLASS="section"><A NAME="toc9"></A><A NAME="htoc13">2.9</A>  Multiple version support</H2><P>
+configuration should be placed in the <CODE>OMakefiles</CODE> of the project.</P><H2 CLASS="section"><A NAME="toc9"></A><A NAME="htoc13">2.9</A>&#XA0;&#XA0;Multiple version support</H2><P>
 <A NAME="@default2"></A></P><P>OMake version <CODE>0.9.6</CODE> introduced preliminary support for multiple, simultaneous versions of a
 project. Versioning uses the <CODE>vmount(dir1, dir2)</CODE> function, which defines a &#X201C;virtual mount&#X201D;
 of directory <CODE>dir1</CODE> over directory <CODE>dir2</CODE>. A &#X201C;virtual mount&#X201D; is like a transparent
@@ -394,7 +394,7 @@ are translated to refer directly to the <CODE>src/</CODE> files.</P><P>Now, when
 directory if it exists. For example, when the file <CODE>debug/OMakefile</CODE> is read, the
 <CODE>src/OMakefile</CODE> is linked into the <CODE>debug/</CODE> directory.</P><P>The <CODE>vmount</CODE> model is fairly transparent. The <CODE>OMakefile</CODE>s can be written <EM>as if</EM>
 referring to files in the <CODE>src/</CODE> directory&#X2014;they need not be aware of mounting.
-However, there are a few points to keep in mind.</P><H2 CLASS="section"><A NAME="toc10"></A><A NAME="htoc14">2.10</A>  Notes</H2><UL CLASS="itemize"><LI CLASS="li-itemize">
+However, there are a few points to keep in mind.</P><H2 CLASS="section"><A NAME="toc10"></A><A NAME="htoc14">2.10</A>&#XA0;&#XA0;Notes</H2><UL CLASS="itemize"><LI CLASS="li-itemize">
 When using the <CODE>vmount</CODE> function for versioning, it wise to keep the source files
 distinct from the compiled versions. For example, suppose the source directory contained a file
 <CODE>src/foo.o</CODE>. When mounted, the <CODE>foo.o</CODE> file will be the same in all versions, which is
@@ -403,12 +403,12 @@ compiled code.</LI><LI CLASS="li-itemize">When using the <CODE>vmount -l</CODE> 
 they are referenced in the project. Functions that examine the filesystem (like <CODE>$(ls ...)</CODE>)
 may produce unexpected results.
 </LI></UL>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
 &bull;&nbsp;<A HREF="omake-contents.html">Contents (long)</A></TD></TR>
-<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>  </TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
+<TR><TD ALIGN=left NOWRAP>Index:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="omake-all-index.html">All</A>
 &bull;&nbsp;<A HREF="omake-var-index.html">Variables</A>
 &bull;&nbsp;<A HREF="omake-fun-index.html">Functions</A>
 &bull;&nbsp;<A HREF="omake-obj-index.html">Objects</A>
