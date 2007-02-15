@@ -5,7 +5,7 @@
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                          14^thFebruary, 2007
+                          15^thFebruary, 2007
                           ===================
   
    All the documentation on a single page (23)
@@ -769,9 +769,9 @@ differences to keep in mind when using omake.
   
   
  - In omake, you are much less likely to define build rules of your own.
-   The system provides many standard functions (like `StaticCLibrary and
-   `CProgram), described in Chapter 12, to specify these builds more
-   simply. 
+   The system provides many standard functions (like 'StaticCLibrary'
+   and 'CProgram'), described in Chapter 12, to specify these builds
+   more simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported. You should use wildcard patterns instead `%.suf2: %.suf1'.
    
@@ -812,7 +812,7 @@ following code:
 >>
   
   To build the program a program `hello' from this file, we can use the
-`CProgram function. The OMakefile contains just one line that specifies
+'CProgram' function. The OMakefile contains just one line that specifies
 that the program `hello' is to be built from the source code in the
 `hello_code.c' file (note that file suffixes are not passed to these
 functions).
@@ -1749,9 +1749,9 @@ print a line like the following.
    Now, returning to the animal world, to compute the dependencies of
 `neko.woof', we should scan `neko.cat', line-by-line, looking for lines
 of the form `open <name>'. We could do this by writing a program, but it
-is easy enough to do it in `omake' itself. We can use the builtin `awk
+is easy enough to do it in `omake' itself. We can use the builtin 'awk'
 function to scan the source file. One slight complication is that the
-dependencies depend on the `INCLUDE' path. We'll use the `find-in-path
+dependencies depend on the `INCLUDE' path. We'll use the 'find-in-path'
 function to find them. Here we go.
 <<    .SCANNER: %.woof: %.cat
           section
@@ -1979,7 +1979,7 @@ see this if we add a statement that prints the current directory
   Of course, this specification is quite rigid. In practice, it is
 likely that each subdirectory will have a different set of images, and
 all should be included in the web page. One of the easier solutions is
-to use one of the directory-listing functions, like `glob or `ls. The
+to use one of the directory-listing functions, like 'glob' or 'ls'. The
 `glob' function takes a shell pattern, and returns an array of file with
 matching filenames in the current directory.
 <<    .SUBDIRS: page1 page2 page3 page4
@@ -2323,7 +2323,7 @@ included at most once.
 >>
   
   If the file specified is not an absolute filenmame, both `include' and
-`open' operations search for the file based on the `OMAKEPATH variable.
+`open' operations search for the file based on the 'OMAKEPATH' variable.
 In case of the `open' directive, the search is performed at parse time,
 and the argument to `open' may not contain any expressions.
   
@@ -2776,8 +2776,8 @@ standard library, the above can be rewritten as
 >>
   
   As a matter of style, a `static.' section that is used for
-configuration should print what it is doing, using the `AC_MSG_CHECKING
-and `AC_MSG_RESULT functions (of couse, most of helper functions in the
+configuration should print what it is doing, using the 'AC_MSG_CHECKING'
+and 'AC_MSG_RESULT' functions (of couse, most of helper functions in the
 standard library would do that automatically).
   
 
@@ -3009,7 +3009,7 @@ follows:
   
  - If the value is empty, everything is exported, as described above. 
  - If the value represents a environment (or a partial environment)
-   captured using the `export function, then the corresponding
+   captured using the 'export' function, then the corresponding
    environment or partial environment is exported. 
  - Otherwise, the value must be a sequence of strings specifying which
    items are to be propagated back. The following strings have special
@@ -4067,7 +4067,7 @@ end up being re-scanned.
   In most cases, you won't need to define scanners of your own. The
 standard installation includes default scanners (both explicitly and
 implicitly named ones) for C, OCaml, and LaTeX files.
-  The `SCANNER_MODE variable controls the usage of implicit scanner
+  The 'SCANNER_MODE' variable controls the usage of implicit scanner
 dependencies.
   The explicit `:scanner:' dependencies reduce the chances of scanner
 mis-specifications. In large complicated projects it might be a good
@@ -4359,9 +4359,9 @@ project root.
 
   
   In rules, the targets and dependencies are first translated to file
-values (as in the `file function). They are then translated to strings
+values (as in the 'file' function). They are then translated to strings
 for the command line. This can cause some unexpected behavior. In the
-following example, the `absname function is the absolute pathname for
+following example, the 'absname' function is the absolute pathname for
 the file `a', but the rule still prints the relative pathname.
 <<    .PHONY: demo
       demo: $(absname a)
@@ -4405,7 +4405,7 @@ the OMake output to look for errors. For this, you can use the
 >>
   
   Alternately, the `--absname' option is scoped. If you want to use it
-for only a few rules, you can use the `OMakeFlags function to control
+for only a few rules, you can use the 'OMakeFlags' function to control
 how it is applied.
 <<   section
         OMakeFlags(--absname)
@@ -4695,7 +4695,8 @@ optional.
 >>
   
   The `raise' function raises an exception. The `exn' object can be any
-object. However, the normal convention is to raise an `Exception object.
+object. However, the normal convention is to raise an 'Exception'
+object.
   If the exception is never caught, the whole object will be verbosely
 printed in the error message. However, if the object is an `Exception'
 one and contains a `message' field, only that field will be included in
@@ -5488,7 +5489,7 @@ value is printed.
          echo $i
 >>
   
-  The `break function can be used to break out of the `while' loop
+  The 'break' function can be used to break out of the `while' loop
 early.
 
 8.3.41  break
@@ -5653,7 +5654,7 @@ lazily. The following two definitions are equivalent.
           $|name2| = $`(yyy)
 >>
   
-  The `create-lazy-map function is used in rule construction.
+  The 'create-lazy-map' function is used in rule construction.
 
 8.6  Iteration and mapping
 *=*=*=*=*=*=*=*=*=*=*=*=*=
@@ -5690,7 +5691,7 @@ value of `X' is `a.c b.c c.c'.
          export
 >>
   
-  The `break function can be used to break out of the loop early.
+  The 'break' function can be used to break out of the loop early.
 
 Chapter 9    File, I/O and system operations
 ********************************************
@@ -7562,7 +7563,7 @@ meaning of `stdout' outside the `filter' function.
  b  "Break" when evaluating cases. Only the first case that matches will
    be selected. 
   
-  The `break function can be used to abort the loop, exiting the `awk'
+  The 'break' function can be used to abort the loop, exiting the `awk'
 function immediately.
 
 9.11.6  fsubst
@@ -7642,7 +7643,7 @@ alphanumeric words in an input file.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break function can be used to abort the loop.
+  The 'break' function can be used to abort the loop.
 
 9.11.8  lex-search
 ==================
@@ -7675,7 +7676,7 @@ alphanumeric words in an input file, skipping any other text.
   The `default' case, if one exists, matches single characters. Since
   It is an error if the input does not match any of the regular
 expressions.
-  The `break function can be used to abort the loop.
+  The 'break' function can be used to abort the loop.
 
 9.11.9  Lexer
 =============
@@ -8134,7 +8135,7 @@ following:
   
   
   Commands may also be builtin (aliases). See the documentation for the
-`Shell object for more information.
+'Shell' object for more information.
   
 
 10.9  Basic builtin functions
@@ -8620,7 +8621,7 @@ system. It has the following fields.
   Parent objects: `Exception'.
   The `UnbuildableException' object should be used to signal that a
 target is not buildable. It will be caught by functions such as
-`target-exists. This exception has the following fields:
+'target-exists'. This exception has the following fields:
   
   
  - `target': indicates which target is not buildable. 
@@ -8781,13 +8782,13 @@ single array containing an argument list.
      `[' expression +]+
      `[ --help'
      `[ --version'
-     See the documentation for the `test function.
+     See the documentation for the 'test' function.
     
     - `find'
       <<   find \emph{expression}
       >>
     
-    See the documentation for the `find function.
+    See the documentation for the 'find' function.
   
 
 
@@ -8832,7 +8833,7 @@ Failed)) targets could not be built")
   
   Another common use is to define notifications to be performed when the
 build completes. For example, the following rule will create a new X
-terminal displaying the summary of the build (using the `BUILD_SUMMARY
+terminal displaying the summary of the build (using the 'BUILD_SUMMARY'
 variable).
 <<    .BUILD_FAILURE:
           xterm -e vi $(BUILD_SUMMARY)
@@ -8841,11 +8842,11 @@ variable).
   If you do not wish to add these rules directly to your project (which
 is probably a good idea if you work with others), you can define them in
 your `.omakerc' (see Section A.8).
-  The `find-build-targets function is useful for obtaining a firther
+  The 'find-build-targets' function is useful for obtaining a firther
 summary of the build. Note that when output diversions are in effect
 (with the `--output-*' options --- see Chapter A), any output produced
 by the commands is copied to a file. The name of the file is specified
-by the `output-file' field of the `Target object. You may find this
+by the `output-file' field of the 'Target' object. You may find this
 useful in defining custom build summaries.
 
 12.2  Options and versioning
@@ -9023,7 +9024,7 @@ exceptional cases.
  pattern  The sequence of patterns. This sequence will be empty for
    two-part rules. 
  sources  The sequence of dependencies. 
- options  An array of options. Each option is represented as a `Map
+ options  An array of options. Each option is represented as a 'Map'
    object associating each specified option with a value. 
  body  The body expression of the rule. 
   
@@ -9035,7 +9036,7 @@ exceptional cases.
   
   This expression represents the following function call, where square
 brackets are used to indicate arrays, and the curly brackets represent a
-`Map object.
+'Map' object.
 <<   rule(false, target, pattern, sources,
           { $|:name1:| = option1; $|:name2:| = option2 }
           [expr1; expr2])
@@ -9512,7 +9513,7 @@ from `bar.mly'.
   OMake currently provides two methods for addressing this problem ---
 one that requires manually specifying the generated files, and an
 experimental method for discovering such "hidden" dependencies
-automatically. The `OCAMLDEP_MODULES_ENABLED variable controls which
+automatically. The 'OCAMLDEP_MODULES_ENABLED' variable controls which
 method is going to be used. When this variable is false, the manual
 specifications are expected and when it is true, the automated discovery
 will be attempted.
@@ -9525,7 +9526,7 @@ will be attempted.
   LocalOCamlGeneratedFiles(files)
 >>
   
-  When the `OCAMLDEP_MODULES_ENABLED variable variable is set to
+  When the 'OCAMLDEP_MODULES_ENABLED' variable variable is set to
 `false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
 functions specify files that need to be generated before any OCaml files
 are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
@@ -9537,7 +9538,7 @@ are both generated files, specify:
 generated before any OCaml files anywhere in the project are scanned for
 dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
-  These functions have no effect when the `OCAMLDEP_MODULES_ENABLED
+  These functions have no effect when the 'OCAMLDEP_MODULES_ENABLED'
 variable is true.
   
 
@@ -9550,7 +9551,7 @@ discover them automatically is obviously suboptimal. To address this, we
 try to use a custom `ocamldep' that only finds the free module names in
 a file. 
   This functionality is experimental and is disabled by default for now.
-Set the `OCAMLDEP_MODULES_ENABLED variable to `true' (or to
+Set the 'OCAMLDEP_MODULES_ENABLED' variable to `true' (or to
 `$(OCAMLDEP_MODULES_AVAILABLE)') in your project to enable it.
   Note that the experimental `ocamldep' functionality this relies upon
 is not yet included in the standard OCaml (it is expected to be a part
@@ -9558,8 +9559,8 @@ of the upcoming OCaml 3.10 --- see
 http://caml.inria.fr/mantis/view.php?id=4047). Temporarily, we
 distribute a bytecode version `ocamldep-omake' of the appropriately
 modified `ocamldep'. The appropriate `ocamldep' will be discovered
-automatically --- see and the `OCAMLDEP_MODULES_AVAILABLE and
-`OCAMLDEP_MODULES variables will be set accordingly.
+automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE' and
+'OCAMLDEP_MODULES' variables will be set accordingly.
 
 12.6.6  Using the Menhir parser generator
 =========================================
@@ -9669,15 +9670,15 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   `OCamlProgram(<name>, <files>)'
   Additional variables used: 
   
- `OCAML_LIBS  Additional libraries passed to the linker, without suffix.
-   These files become dependencies of the target program. 
- `OCAML_OTHER_LIBS  Additional libraries passed to the linker, without
+ 'OCAML_LIBS'  Additional libraries passed to the linker, without
+   suffix. These files become dependencies of the target program. 
+ 'OCAML_OTHER_LIBS'  Additional libraries passed to the linker, without
    suffix. These files do not become dependencies of the target program.
    
- `OCAML_CLIBS  C libraries to pass to the linker. 
- `OCAML_BYTE_LINK_FLAGS  Flags to pass to the bytecode linker. 
- `OCAML_NATIVE_LINK_FLAGS  Flags to pass to the native code linker. 
- `OCAML_LINK_FLAGS  Flags to pass to both linkers. 
+ 'OCAML_CLIBS'  C libraries to pass to the linker. 
+ 'OCAML_BYTE_LINK_FLAGS'  Flags to pass to the bytecode linker. 
+ 'OCAML_NATIVE_LINK_FLAGS'  Flags to pass to the native code linker. 
+ 'OCAML_LINK_FLAGS'  Flags to pass to both linkers. 
 
 
 12.6.6.6  OCamlProgramCopy
@@ -9688,8 +9689,9 @@ location.
   `OCamlProgramCopy(<tag>, <bindir>, <name>)'
   Additional variables used: 
   
- NATIVE_ENABLED  If the `NATIVE_ENABLED variable is set, the native-code
-   executable is copied; otherwise the byte-code executable is copied. 
+ NATIVE_ENABLED  If the 'NATIVE_ENABLED' variable is set, the
+   native-code executable is copied; otherwise the byte-code executable
+   is copied. 
 
 
 12.6.6.7  OCamlProgramInstall
@@ -9859,9 +9861,9 @@ messages to a log file.
   
   The `AC_MSG_FOUND' function expects to receive a boolean flag
 describing whether a test previously announced using the
-`AC_MSG_CHECKING function found what it was looking for. `AC_MSG_FOUND'
+'AC_MSG_CHECKING' function found what it was looking for. `AC_MSG_FOUND'
 will output the appropriate result ("found" or "NOT found") using the
-`AC_MSG_RESULT function and return its argument back.
+'AC_MSG_RESULT' function and return its argument back.
   The `AC_MSG_YES_NO' function is similar, outputting a simple ("yes" or
 "NO").
 
@@ -9873,12 +9875,12 @@ will output the appropriate result ("found" or "NOT found") using the
 >>
   
   Check whether your C compiler can locate and process the specified
-headers files. Will use the `CC, `CFLAGS and `INCLUDES variables  to run
-the compiler. Will incude `<stdio.h>' before including the specified
+headers files. Will use the 'CC', 'CFLAGS' and 'INCLUDES' variables  to
+run the compiler. Will incude `<stdio.h>' before including the specified
 header files.
   Both functions return a boolean value. The `CheckHeader' function is
-silent; the `VerboseCheckHeader' function will use the `AC_MSG_CHECKING
-and `AC_MSG_RESULT functions to describe the test and the outcome.
+silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
+and 'AC_MSG_RESULT' functions to describe the test and the outcome.
   Example: 
 <<static. =
      NCURSES_H_AVAILABLE = $(VerboseCheckHeader ncurses.h)
@@ -9893,12 +9895,12 @@ and `AC_MSG_RESULT functions to describe the test and the outcome.
 >>
   
   Check whether your C compiler and linker can find the named functions
-when linking with the named libraries. Will use the `CC, `CFLAGS and
-`LDFLAGS variables  to run the compiler. Will pass the `<libs>' to the
+when linking with the named libraries. Will use the 'CC', 'CFLAGS' and
+'LDFLAGS' variables  to run the compiler. Will pass the `<libs>' to the
 compiler using the `-l' flag.
   Both functions return a boolean value. The `CheckLib' function is
-silent; the `VerboseCheckHeader' function will use the `AC_MSG_CHECKING
-and `AC_MSG_RESULT functions to describe the test and the outcome.
+silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
+and 'AC_MSG_RESULT' functions to describe the test and the outcome.
   Example: 
 <<static. =
       NCURSES_LIB_AVAILABLE = $(VerboseCheckLib ncurses, initscr
@@ -9910,7 +9912,7 @@ setupterm tigetstr)
 =================
    `success = $(CheckProg <prog>)'
   Checks whether the program `<prog>' exists in your path. Will use the
-`AC_MSG_CHECKING and `AC_MSG_RESULT functions to describe the test and
+'AC_MSG_CHECKING' and 'AC_MSG_RESULT' functions to describe the test and
 the outcome.
   
 
@@ -10869,7 +10871,7 @@ conditions.
          indented-body
 >>
   
-  Exceptions (see also the `try function documentation). The `try'
+  Exceptions (see also the 'try' function documentation). The `try'
 command introduces an exception handler. Each `name' is the name of a
 class. All cases, including `catch', `default', and `finally' are
 optional. The `catch' and `default' clauses contain optional `when'
@@ -10927,7 +10929,7 @@ limited to the specified identifiers.
 <<    export expr
 >>
   
-  while (see also the `while function description). The `while' command
+  while (see also the 'while' function description). The `while' command
 introduces a `while' loop.
 <<    while expr
           indented-body
@@ -12363,7 +12365,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8 of 14^thFebruary, 2007.
+  Version: 0.9.8 of 15^thFebruary, 2007.
   
 
 C.3  License and Copyright
