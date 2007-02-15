@@ -284,11 +284,11 @@ occurrences of special characters (listed below), the path is viewed as a patter
 to be matched against the actual files in the system. The expansion produces a
 sequence of all file/directory names that match.<P>For the following examples, suppose that a directory <CODE>/dir</CODE> contains files
 named <CODE>a</CODE>, <CODE>-a</CODE>, <CODE>a.b</CODE>, and <CODE>b.c</CODE>.</P><DL CLASS="description"><DT CLASS="dt-description">
-<B><TT>*</TT></B></DT><DD CLASS="dd-description"> Matches any sequence of zero-or-more characters. For example,
-the pattern <CODE>/dir/a*</CODE> expands to <CODE>/dir/a /dir/aa /dir/a.b</CODE>.</DD><DT CLASS="dt-description"><B><TT>?</TT></B></DT><DD CLASS="dd-description"> Matches exactly one character. The pattern <CODE>/dir/?a</CODE> expands
-the filename <CODE>/dir/-a</CODE>.</DD><DT CLASS="dt-description"><B><TT>[...]</TT></B></DT><DD CLASS="dd-description"> Square brackets denote character sets and ranges
+<TT><B>*</B></TT></DT><DD CLASS="dd-description"> Matches any sequence of zero-or-more characters. For example,
+the pattern <CODE>/dir/a*</CODE> expands to <CODE>/dir/a /dir/aa /dir/a.b</CODE>.</DD><DT CLASS="dt-description"><TT><B>?</B></TT></DT><DD CLASS="dd-description"> Matches exactly one character. The pattern <CODE>/dir/?a</CODE> expands
+the filename <CODE>/dir/-a</CODE>.</DD><DT CLASS="dt-description"><TT><B>[...]</B></TT></DT><DD CLASS="dd-description"> Square brackets denote character sets and ranges
 in the ASCII character set. The pattern may contain individual characters <I>c</I>
-or character ranges <TT><I>c</I></TT><SUB><TT>1</TT></SUB><TT>-</TT><TT><I>c</I></TT><SUB><TT>2</TT></SUB>. The pattern matches any of the
+or character ranges <TT><I>c</I><SUB>1</SUB>-<I>c</I><SUB>2</SUB></TT>. The pattern matches any of the
 individual characters specified, or any characters in the range. A leading &#X201C;hat&#X201D;
 inverts the send of the pattern. To specify a pattern that contains the
 literal characters <CODE>-</CODE>, the <CODE>-</CODE> should occur as the first character in
@@ -299,25 +299,25 @@ the range.<DIV CLASS="center">
 <TR><TD ALIGN=left NOWRAP><CODE>/dir/[-a-b]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>/dir/a /dir/-a /dir/a.b /dir/b.c</CODE></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>/dir/[-a]*</CODE></TD><TD ALIGN=left NOWRAP><CODE>/dir/a /dir/-a /dir/a.b</CODE></TD></TR>
 </TABLE>
-</DIV></DD><DT CLASS="dt-description"><B><TT>{s1,...,sN}</TT></B></DT><DD CLASS="dd-description"> Braces indicate brace-expansion.
+</DIV></DD><DT CLASS="dt-description"><TT><B>{s1,...,sN}</B></TT></DT><DD CLASS="dd-description"> Braces indicate brace-expansion.
 The braces delimit a sequence of strings separated by commas.
 Given <I>N</I> strings, the result produces <I>N</I> copies of the pattern,
-one for each of the strings <I>s</I><SUB><I>i</I></SUB>.<DIV CLASS="center">
+one for each of the strings <I>s<SUB>i</SUB></I>.<DIV CLASS="center">
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
 <TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>a{b,c,d}</CODE></TD><TD ALIGN=left NOWRAP><CODE>ab ac ad</CODE></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>a{b{c,d},e}</CODE></TD><TD ALIGN=left NOWRAP><CODE>abc abd ae</CODE></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>a{?{[A-Z],d},*}</CODE></TD><TD ALIGN=left NOWRAP><CODE>a?[A-Z] a?d a*</CODE></TD></TR>
 </TABLE>
-</DIV></DD><DT CLASS="dt-description"><B><TT> </TT></B></DT><DD CLASS="dd-description"> The tilde is used to specify home directories.
+</DIV></DD><DT CLASS="dt-description"><TT><B> </B></TT></DT><DD CLASS="dd-description"> The tilde is used to specify home directories.
 Depending on your system, these might be possible expansions.<DIV CLASS="center">
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Pattern</TD><TD ALIGN=left NOWRAP>Expansion</TD></TR>
 <TR><TD CLASS="hbar" COLSPAN=2></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>~jyh</CODE></TD><TD ALIGN=left NOWRAP><CODE>/home/jyh</CODE></TD></TR>
 <TR><TD ALIGN=left NOWRAP><CODE>~bob/*.c</CODE></TD><TD ALIGN=left NOWRAP><CODE>c:\Documents and Settings\users\bob</CODE></TD></TR>
 </TABLE>
-</DIV></DD><DT CLASS="dt-description"><B><BR>
-</B></DT><DD CLASS="dd-description"> The <CODE>\</CODE> character is both a pathname separator
+</DIV></DD><DT CLASS="dt-description"><BR>
+</DT><DD CLASS="dd-description"> The <CODE>\</CODE> character is both a pathname separator
 and an escape character. If followed by a special glob character,
 the <CODE>\</CODE> changes the sense of the following character to non-special
 status. Otherwise, <CODE>\</CODE> is viewed as a pathname separator.<DIV CLASS="center">
@@ -568,7 +568,7 @@ same name.
 </LI><LI CLASS="li-itemize"><CODE>-d</CODE> <EM>file</EM> : The file is a directory
 </LI><LI CLASS="li-itemize"><CODE>-e</CODE> <EM>file</EM> : The file exists
 </LI><LI CLASS="li-itemize"><CODE>-f</CODE> <EM>file</EM> : The file is a normal file
-</LI><LI CLASS="li-itemize"><CODE>-g</CODE> <EM>file</EM> : The set<CODE>-group</CODE><CODE>-id</CODE> bit is set on the file
+</LI><LI CLASS="li-itemize"><CODE>-g</CODE> <EM>file</EM> : The set<CODE>-group-id</CODE> bit is set on the file
 </LI><LI CLASS="li-itemize"><CODE>-G</CODE> <EM>file</EM> : The file's group is the current effective group
 </LI><LI CLASS="li-itemize"><CODE>-h</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-L</CODE>)
 </LI><LI CLASS="li-itemize"><CODE>-k</CODE> <EM>file</EM> : The file's sticky bit is set
@@ -578,7 +578,7 @@ same name.
 </LI><LI CLASS="li-itemize"><CODE>-r</CODE> <EM>file</EM> : The file is readable
 </LI><LI CLASS="li-itemize"><CODE>-s</CODE> <EM>file</EM> : The file is empty
 </LI><LI CLASS="li-itemize"><CODE>-S</CODE> <EM>file</EM> : The file is a socket
-</LI><LI CLASS="li-itemize"><CODE>-u</CODE> <EM>file</EM> : The set<CODE>-user</CODE><CODE>-id</CODE> bit is set on the file
+</LI><LI CLASS="li-itemize"><CODE>-u</CODE> <EM>file</EM> : The set<CODE>-user-id</CODE> bit is set on the file
 </LI><LI CLASS="li-itemize"><CODE>-w</CODE> <EM>file</EM> : The file is writable
 </LI><LI CLASS="li-itemize"><CODE>-x</CODE> <EM>file</EM> : The file is executable
 </LI></UL><P>A <EM>string</EM> is any sequence of characters; leading <CODE>-</CODE> characters are allowed.</P><P>An <EM>int</EM> is a <EM>string</EM> that can be interpreted as an integer. Unlike traditional
