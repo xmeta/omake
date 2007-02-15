@@ -116,10 +116,10 @@ AC_MSG_YES_NO(found) =
 # \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} $\ldots$ \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT}.
 # \end{doc}
 
-AC_TRY_COMPILING(command, prog, extra) =
+AC_TRY_COMPILING(command, command_suffix, prog, extra) =
     # The command line
-    tmp = $(tmpfile omake)
-    command += -o $(tmp) $(tmp).c
+    tmp = $(file $(tmpfile omake))
+    command[] += -o $(tmp) $(file $(tmp).c) $(command_suffix)
 
     # The program
     program = $"""/* Configuration file; you can remove this. */
@@ -151,13 +151,13 @@ $(prog)
     return $(result)
 
 AC_TRY_COMPILE(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(prog), None)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(EMPTY), $(prog), None)
 
 AC_TRY_LINK(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog), None)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(prog), None)
 
 AC_TRY_RUN(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog), Runs)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(prog), Runs)
 
 # \begin{doc}
 # \funlabel{AC_RUN_PROG}{AC\_RUN\_PROG}
@@ -171,7 +171,7 @@ AC_TRY_RUN(prog) =
 # \end{doc}
 
 AC_RUN_PROG(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) $(LDFLAGS), $(prog), Output)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(prog), Output)
 
 #
 # Check whether a header file exists.
