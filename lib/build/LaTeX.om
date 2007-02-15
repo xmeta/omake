@@ -100,17 +100,17 @@ static. =
     if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
        case CYGWIN
-          println($"---    You seem to be trying to use Cygwin LaTeX on a Win32 machine.")
-          println($"---    This usually doesn't work, but if you really want to")
-          println($"---    use it, add the following definition to your OMakeroot.")
-          println($"---        FORCE_WIN32_LATEX = true")
-          println($"--- (latex disabled)")
+          AC_MSG_WARN($"""   You seem to be trying to use Cygwin LaTeX on a Win32 machine.
+   This usually doesn't work, but if you really want to
+   use it, add the following definition to your OMakeroot.
+       FORCE_WIN32_LATEX = true
+(latex disabled)""")
           LATEX_USABLE = false
           export
        export
 
     if $(and $(LATEX_USABLE), $(shell-success-null latex -help))
-        print(--- Configuring LaTeX defaults... )
+        AC_MSG_CHECKING(LaTeX capabilities)
 
         #
         # Various versions of LaTeX use different options
@@ -156,10 +156,7 @@ static. =
         #
         RECORDER_ENABLED = $(and $(RECORDER_ENABLED), $(not $(BROKEN_MIKTEX)))
         TETEX2_ENABLED = $(and $(RECORDER_ENABLED), $(ERROR_ENABLED))
-        if $(TETEX2_ENABLED)
-            println($'(tetex2 enabled)')
-        else
-            println($'(tetex2 disabled)')
+        AC_MSG_RESULT(tetex2 mode $(if $(TETEX2_ENABLED), enabled, disabled))
 
         rm $(TETEX_CONFIG_TMP)
         export FILE_LINE_ERROR TETEX2_ENABLED OUTPUT_COMMENT_SUPPORTED

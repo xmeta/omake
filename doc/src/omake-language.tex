@@ -666,8 +666,21 @@ available.  The \verb+$(where latex)+ function returns the full pathname for \ve
          println($'(disabled)')
 \end{verbatim}
 
+The \OMake standard library provides a number of useful functions for
+programming the \verb+static.+ tests, as described in
+Chapter~\ref{chapter:autoconf}. Using the standard library, the above can
+be rewritten as
+
+\begin{verbatim}
+   open configure/Configure
+   static. =
+      LATEX_ENABLED = $(CheckProg latex)
+\end{verbatim}
+
 As a matter of style, a \verb+static.+ section that is used for configuration should print what it
-is doing, using \verb+---+ as a print prefix.
+is doing, using the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
+\hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions (of couse, most of helper functions
+in the standard library would do that automatically).
 
 \section{Short syntax for scoping objects}
 

@@ -18,11 +18,7 @@ static. =
     NCURSES_AVAILABLE = false
     NCURSES_TERMH_IN_NCURSES = false
     if $(not $(equal $(OSTYPE), Win32))
-        print(--- Testing for ncurses... )
+        AC_MSG_CHECKING(for ncurses)
         NCURSES_TERMH_IN_NCURSES = $(CheckHeader ncurses/term.h)
-        NCURSES_AVAILABLE = $(and $(CheckHeader ncurses.h), $(or $(NCURSES_TERMH_IN_NCURSES), $(CheckHeader term.h)), $(CheckLib ncurses, initscr setupterm tigetstr))
-        if $(NCURSES_AVAILABLE)
-            println($'(enabled)')
-        else
-            println($'(disabled)')
+        NCURSES_AVAILABLE = $(AC_MSG_FOUND $(and $(CheckHeader ncurses.h), $(or $(NCURSES_TERMH_IN_NCURSES), $(CheckHeader term.h)), $(CheckLib ncurses, initscr setupterm tigetstr)))
         export

@@ -13,7 +13,7 @@ static. =
         export
     else
         # Unix
-        print(--- Testing for FAM... )
+        AC_MSG_CHECKING(for FAM)
 
         # See if the FamOpen function exists
         FAM_AVAILABLE = $(and $(CheckHeader fam.h), $(CheckLib fam, FAMOpen))
@@ -22,17 +22,14 @@ static. =
         if $(FAM_AVAILABLE)
             FAM_CLIBS = -lfam
             FAM_CFLAGS = -DFAM_ENABLED
-            println($'(enabled)')
-            print($"--- Testing whether FAM supports Gamin's extensions... ")
-            if $(CheckLib fam, FAMNoExists)
-               println($'(yes)')
+            AC_MSG_RESULT(found)
+            AC_MSG_CHECKING($"whether FAM supports Gamin's extensions")
+            if $(AC_MSG_YES_NO $(CheckLib fam, FAMNoExists))
                FAM_CFLAGS += -DHAVE_FAMNOEXISTS
                export
-            else
-               println($'(no)')
             export
         elseif $(CheckHeader sys/event.h)
-            println($'(using kqueue)')
+            AC_MSG_RESULT(using kqueue)
             FAM_AVAILABLE = true
             FAM_CFLAGS = -DFAM_ENABLED -DFAM_PSEUDO -DFAM_KQUEUE
             FAM_CLIBS =
@@ -44,6 +41,6 @@ static. =
                 export
             export
         else
-            println($'(disabled)')
+            AC_MSG_RESULT(NOT found)
 
         export

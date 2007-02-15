@@ -30,7 +30,7 @@ static. =
     READLINE_CFLAGS =
     READLINE_GNU = false
     if $(and $(NCURSES_AVAILABLE), $(not $(equal $(OSTYPE), Win32)))
-        print(--- Testing for readline... )
+        AC_MSG_CHECKING(for readline)
 
         # Test that readline exists
         if $(and $(CheckHeader readline/readline.h readline/history.h), $(CheckLib ncurses readline, tgetent tgetstr readline))
@@ -46,12 +46,6 @@ static. =
 
             export
 
-        if $(READLINE_AVAILABLE)
-            if $(READLINE_GNU)
-                println($'(enabled) (GNU)')
-            else
-                println($'(enabled) (non-GNU)')
-        else
-            println($'(disabled)')
+        AC_MSG_RESULT($(if $(READLINE_AVAILABLE), $"found, $(if $(not $(READLINE_GNU)), non-)GNU", NOT found))
 
         export

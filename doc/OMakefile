@@ -165,16 +165,11 @@ static. =
     HEVEA_DIR =
     HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
     if $(HEVEA_OK)
-        print($"--- Looking for $(HEVEA) configs... ")
+        AC_MSG_CHECKING(for $(HEVEA) configs)
         HEVEA_DIR = $(last $(shell $(HEVEA) -version))
-        println($"($(HEVEA_DIR))")
-        print($"--- Checking if $(HEVEA_DIR) exists... ")
-        if $(test -d $(HEVEA_DIR))
-            println($"(yes)")
-        else
-            println($"(no)")
-            HEVEA_OK = false
-            export
+        AC_MSG_RESULT($(HEVEA_DIR))
+        AC_MSG_CHECKING(if $(HEVEA_DIR) exists)
+        HEVEA_OK = $(AC_MSG_YES_NO $(test -d $(HEVEA_DIR)))
         export
 
 HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -pedantic

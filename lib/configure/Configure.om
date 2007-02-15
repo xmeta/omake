@@ -23,6 +23,72 @@
 # \end{doc}
 
 #
+# A number of helper functions, using the autoconf names, when appropriate.
+#
+# \begin{doc}
+# \idsection{AC\_MSG\_CHECKING, AC\_MSG\_RESULT}\funref{AC_MSG_CHECKING}\funref{AC_MSG_RESULT}
+# \begin{verbatim}
+# AC_MSG_CHECKING(<msg>)
+# ...
+# AC_MSG_RESULT(<msg>)
+# \end{verbatim}
+# The \verb+AC_MSG_CHECKING+ function output message of the form \verb+--- Checking <msg>... +
+# \emph{without} any trailing newline. After the test advertized by \verb+AC_MSG_CHECKING+ is
+# performed, the \verb+AC_MSG_RESULT+ function should be used to output the result.
+#
+# In certain cases users may want to redefine these function --- for example, to use a different
+# output formatting and/or to copy the messages to a log file.
+#
+# Example:
+# \begin{verbatim}
+# static. =
+#    AC_MSG_CHECKING(which foo to use)
+#    foo = ...
+#    AC_MSG_RESULT($(foo))
+# \end{verbatim}
+# \end{doc}
+#
+AC_MSG_CHECKING(msg) =
+    print($"--- Checking $(msg)... ")
+
+AC_MSG_RESULT(msg) =
+    println($"($(msg))")
+
+# \begin{doc}
+# \idsection{AC\_MSG\_WARN}\funref{AC_MSG_WARN}
+# \verb+AC_MSG_WARN(<msg>)+
+# 
+# Prints a warning message.
+# \end{doc}
+AC_MSG_WARN(msg) =
+    msg[] = $(split $(nl), $"$(msg)")
+    print($(concat $(EMPTY), $(add-wrapper $'--- ', $(nl), $(msg))))
+
+#
+# \begin{doc}
+# \idsection{AC\_MSG\_YES\_NO, AC\_MSG\_FOUND}\funref{AC_MSG_FOUND}\funref{AC_MSG_YES_NO}
+# \begin{verbatim}
+# flag = $(AC_MSG_YES_NO <bool expr>
+# flag = $(AC_MSG_FOUND <bool expr>
+# \end{verbatim}
+#
+# The \verb+AC_MSG_FOUND+ function expects to receive a boolean flag describing whether a test
+# previously announced using the \hyperfunx{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} found what it
+# was looking for. \verb+AC_MSG_FOUND+ will output the appropriate result (``found'' or ``NOT found'')
+# using the \hyperfunx{AC_MSG_RESULT}{AC\_MSG\_RESULT} and return its argument back.
+#
+# The \verb+AC_MSG_YES_NO+ function is similar, outputting a simple (``yes'' or ``NO'').
+# \end{doc}
+#
+AC_MSG_FOUND(found) =
+   AC_MSG_RESULT($(if $(found), found, NOT found))
+   return $(found)
+   
+AC_MSG_YES_NO(found) =
+   AC_MSG_RESULT($(if $(found), yes, NO))
+   return $(found)
+
+#
 # Check whether a header file exists.
 # We call the C compiler.
 #
@@ -38,7 +104,8 @@
 # to run the compiler. Will incude \verb+<stdio.h>+ before including the specified header files.
 #
 # Both functions return a boolean value. The \verb+CheckHeader+ function is silent; the
-# \verb+VerboseCheckHeader+ function will output a line describing the test and the outcome.
+# \verb+VerboseCheckHeader+ function will use the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
+# \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions to describe the test and the outcome.
 #
 # Example:
 # \begin{verbatim}
@@ -77,13 +144,8 @@ int main(int argc, char **argv) {
     return $(success)
 
 public.VerboseCheckHeader(files) =
-    print(--- Testing for $(files)... )
-    protected.success = $(CheckHeader $(files))
-    if $(success)
-        println($'(found)')
-    else
-        println($'(NOT found)')
-    return $(success)
+    AC_MSG_CHECKING(for $(files))
+    return $(AC_MSG_FOUND $(CheckHeader $(files)))
 
 #
 # Check whether the libraries have the given functions
@@ -101,7 +163,8 @@ public.VerboseCheckHeader(files) =
 # to run the compiler. Will pass the \verb+<libs>+ to the compiler using the \verb+-l+ flag.
 #
 # Both functions return a boolean value. The \verb+CheckLib+ function is silent; the
-# \verb+VerboseCheckLib+ function will output a line describing the test and the outcome.
+# \verb+VerboseCheckHeader+ function will use the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
+# \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions to describe the test and the outcome.
 #
 # Example:
 # \begin{verbatim}
@@ -143,16 +206,14 @@ $(funs)
     return $(success)
 
 public.VerboseCheckLib(libs, funs) =
-    print($"""--- Testing for function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))""")
-    if $(libs)
-        print($""" in librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))""")
-    print($"... ")
-    if $(CheckLib $(libs), $(funs))
-        println($"(found)")
-        return true
-    else
-        println($"(NOT found)")
-        return false
+    msg = $"""function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))"""
+    msg =
+        if $(libs)
+            value $"""$(msg) in librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))"""
+        else
+            value $(msg)
+    AC_MSG_CHECKING(for $(msg))
+    return $(AC_MSG_FOUND $(CheckLib $(libs), $(funs)))
 
 #
 # Check whether a program exists in the PATH
@@ -161,19 +222,20 @@ public.VerboseCheckLib(libs, funs) =
 # \fun{CheckProg}
 # \verb+success = $(CheckProg <prog>)+
 #
-# Checks whether the program \verb+<prog>+ exists in your path. Will output a line describing the
-# test and the outcome.
+# Checks whether the program \verb+<prog>+ exists in your path. Will use the
+# \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
+# \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions to describe the test and the outcome.
 #
 # \end{doc}
 #
 public.CheckProg(prog) =
-   print($"--- Testing for $(prog)... ")
+   AC_MSG_CHECKING(for $(prog))
    WHERE = $(where $(prog))
    if $(WHERE)
-      println($"(found $(nth 0, $(WHERE)))")
+      AC_MSG_RESULT(found $(nth 0, $(WHERE)))
       return true
    else
-      println($"(FAILED - no $(prog) found)")
+      AC_MSG_RESULT(FAILED - no $(prog) found)
       return false
 
 #
