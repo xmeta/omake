@@ -55,15 +55,23 @@ AC_MSG_RESULT(msg) =
     println($"($(msg))")
 
 # \begin{doc}
-# \funlabel{AC_MSG_WARN}{AC\_MSG\_WARN}
-# \verb+AC_MSG_WARN(<msg>)+
+# \twofunslabel{AC_MSG_WARN}{AC\_MSG\_WARN}{AC_MSG_ERROR}{AC\_MSG\_ERROR}
+# \begin{verbatim}
+# AC_MSG_WARN(<msg>)
+# AC_MSG_ERROR(<msg>)
+# \end{verbatim}
 # 
-# Prints a warning message.
+# Print a warning or an error message respectively. \verb+AC_MSG_ERROR+ would then abort \OMake.
 # \end{doc}
 AC_MSG_WARN(msg) =
     msg[] = $(split $(nl), $"$(msg)")
     print($(concat $(EMPTY), $(add-wrapper $'--- *** ', $(nl), $(msg))))
 
+AC_MSG_ERROR(msg) =
+    msg[] = $(split $(nl), $"$(msg)")
+    eprintln($"""*** ERROR: $(concat '$(nl)---        ', $(msg))""")
+    exit(1)
+  
 #
 # \begin{doc}
 # \twofunslabel{AC_MSG_YES_NO}{AC\_MSG\_YES\_NO}{AC_MSG_FOUND}{AC\_MSG\_FOUND}
