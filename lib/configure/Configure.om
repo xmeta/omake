@@ -22,6 +22,8 @@
 # included in your \verb+OMakefile+ or \verb+OMakeroot+.
 # \end{doc}
 
+open build/Common
+
 #
 # A number of helper functions, using the autoconf names, when appropriate.
 #
@@ -116,10 +118,10 @@ AC_MSG_YES_NO(found) =
 # \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} $\ldots$ \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT}.
 # \end{doc}
 
-AC_TRY_COMPILING(command, command_suffix, prog, extra) =
+AC_TRY_COMPILING(command, command_suffix, ext, prog, extra) =
     # The command line
     tmp = $(file $(tmpfile omake))
-    command[] += -o $(tmp) $(file $(tmp).c) $(command_suffix)
+    command[] += -o $(tmp)$(ext) $(file $(tmp).c) $(command_suffix)
 
     # The program
     program = $"""/* Configuration file; you can remove this. */
@@ -151,13 +153,13 @@ $(prog)
     return $(result)
 
 AC_TRY_COMPILE(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(EMPTY), $(prog), None)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
 
 AC_TRY_LINK(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(prog), None)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), None)
 
 AC_TRY_RUN(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(prog), Runs)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Runs)
 
 # \begin{doc}
 # \funlabel{AC_RUN_PROG}{AC\_RUN\_PROG}
@@ -171,7 +173,7 @@ AC_TRY_RUN(prog) =
 # \end{doc}
 
 AC_RUN_PROG(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(prog), Output)
+    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Output)
 
 #
 # Check whether a header file exists.
