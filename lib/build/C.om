@@ -499,7 +499,7 @@ public.CProgram(name, files) =
 
    if $(filter %$(EXT_LIB), $(LIBS))
       eprintln($""!!! WARNING: the LIBS variable should contain libraries _without_ extensions."")
-      LIBS = $(replacesuffixes $(EXT_LIB), $"$(EMPTY)")
+      LIBS = $(replacesuffixes $(EXT_LIB), $"$(EMPTY)", $(LIBS))
       export
 
    private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
