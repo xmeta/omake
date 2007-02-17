@@ -112,11 +112,15 @@ AC_MSG_YES_NO(found) =
 #
 # \verb+AC_TRY_COMPILE+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
 # to run the C compiler. \verb+AC_TRY_LINK+ and \verb+AC_TRY_RUN+ will also use the \hypervar{LDFLAGS}
-# to run the C compiler and linker.
+# to run the C compiler and linker. However, the flags like \verb+/WX+, \verb+-Werror+ and \verb+-warn-error+
+# will be not be passed to the compiler, even if they occur in \verb+CFLAGS+.
 #
 # These functions are silent and should normally be used with an appropriate
 # \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} $\ldots$ \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT}.
 # \end{doc}
+
+AC_CLEAN_CFLAGS(cflags) =
+    value $(filter-out /WX -Werror -warn-error, $(cflags))
 
 AC_TRY_COMPILING(command, command_suffix, ext, prog, extra) =
     # The command line
@@ -153,13 +157,13 @@ $(prog)
     return $(result)
 
 AC_TRY_COMPILE(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
+    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
 
 AC_TRY_LINK(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), None)
+    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), None)
 
 AC_TRY_RUN(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Runs)
+    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Runs)
 
 # \begin{doc}
 # \funlabel{AC_RUN_PROG}{AC\_RUN\_PROG}
@@ -173,7 +177,7 @@ AC_TRY_RUN(prog) =
 # \end{doc}
 
 AC_RUN_PROG(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(CFLAGS) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Output)
+    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Output)
 
 #
 # Check whether a header file exists.
