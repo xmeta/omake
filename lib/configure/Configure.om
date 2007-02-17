@@ -265,9 +265,9 @@ $(add-wrapper $(nl)    , $'();', $(funs))
 """)
 
 public.VerboseCheckLib(libs, funs) =
-    msg1 = $"""function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))"""
-    msg2 = $"""$(msg) librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))"""
-    AC_MSG_CHECKING($"""for $(if $(funs), $(msg1))$(if $(and $(funs), $(libs)), $' in ')$(if $(libs), $(msg2))""")
+    msg1 = $(if $(funs), $"""function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))""")
+    msg2 = $(if $(libs), $"""librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))""")
+    AC_MSG_CHECKING($"""for $(msg1)$(if $(and $(funs), $(libs)), $' in ')$(msg2)""")
     return $(AC_MSG_FOUND $(CheckLib $(libs), $(funs)))
 
 #
