@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -835,7 +835,7 @@ and wait_exp2 pgrp exp =
  *)
 and eval_exp_top pgrp e =
    eval_exp pgrp e 0 (JobExited 0)
- 
+
 and eval_exp pgrp e pid code =
    if !debug_shell then
       eprintf "eval_exp in %i: pgrp=%i, pid=%i@." (Unix.getpid()) pgrp pid;
@@ -948,7 +948,7 @@ let create_job venv pipe stdin stdout stderr =
    if !debug_shell then
       eprintf "Creating pipe: %a@." pp_print_string_pipe pipe;
 
-   (* Evaluate application eagerly *)
+   (* Evaluate applications eagerly *)
    match pipe with
       PipeApply (loc, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
          let _, value = create_apply_top venv stdin stdout stderr apply in
@@ -958,18 +958,28 @@ let create_job venv pipe stdin stdout stderr =
          let bg   = is_background_pipe pipe in
          let pgrp = create_pipe_exn venv bg stdin stdout stderr pipe in
          let job  = new_job pgrp (Some pipe) in
-            if not bg then
-               begin
-                  if !debug_shell then
-                     eprintf "Running pgrp %d (my pid = %i)@." pgrp (Unix.getpid());
-                  Omake_shell_sys.set_tty_pgrp pgrp;
-                  ValOther (ValExitCode (int_of_code (wait_top venv job)))
-               end
-            else
-               begin
-                  job.job_state <- JobBackground;
-                  ValNone
-               end
+            if not bg then begin
+               if !debug_shell then
+                  eprintf "Running pgrp %d (my pid = %d)@." pgrp (Unix.getpid ());
+               (*
+                * On Mac OSX this call fails with EPERM.
+                * I believe this is because the sub-process
+                * sets the controlling terminal itself (see
+                * Omake_shell_sys_unix.create_process).
+                *
+                * This means that the sub-process takes over the terminal,
+                * and we can't set it anymore.
+                *
+                * This seems like a bogus explanation, because we have
+                * to get the terminal back on suspend...
+               Omake_shell_sys.set_tty_pgrp pgrp;
+                *)
+               ValOther (ValExitCode (int_of_code (wait_top venv job)))
+            end
+            else begin
+               job.job_state <- JobBackground;
+               ValNone
+            end
 
 (*
  * This is a variation: create the process and return the pid.

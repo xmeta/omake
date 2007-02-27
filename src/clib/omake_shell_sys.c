@@ -1152,7 +1152,7 @@ value omake_shell_sys_set_tty_pgrp(value v_pgrp)
     pgrp = Int_val(v_pgrp);
     if(pgrp == 0)
         pgrp = getpgrp();
-    if(tcsetpgrp (0, pgrp) < 0)
+    if(tcsetpgrp(0, pgrp) < 0)
         perror("tcsetpgrp");
     return Val_unit;
 }
@@ -1163,7 +1163,8 @@ value omake_shell_sys_setpgid(value v_pid, value v_pgrp)
 
     pid = Int_val(v_pid);
     pgrp = Int_val(v_pgrp);
-    setpgid(pid, pgrp);
+    if(setpgid(pid, pgrp) < 0)
+        perror("setpgid");
     return Val_unit;
 }
 
