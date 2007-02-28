@@ -537,14 +537,6 @@ let find_executable venv pos loc exe =
 (*
  * Set the command-completion function base on the current path.
  *)
-let string_is_prefix s1 s2 =
-   let len1 = String.length s1 in
-   let len2 = String.length s2 in
-   let rec string_match i =
-      i = len1 || (String.unsafe_get s1 i = String.unsafe_get s2 i && string_match (i + 1))
-   in
-      len2 >= len1 && string_match 0
-
 let set_command_completion venv pos loc =
    let pos = string_pos "set_command_completion" pos in
    let complete s =
