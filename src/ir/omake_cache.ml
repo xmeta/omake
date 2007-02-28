@@ -1248,6 +1248,28 @@ let exe_find_item cache listing s =
     | [] ->
          raise Not_found
 
+(*
+ * Find all entries with the given prefix.
+ *)
+let exe_complete_prefix cache s items listing =
+   StringTable.fold (fun items s2 entry_ref ->
+         if Lm_string_util.is_string_prefix s s2 then
+            let nodes =
+               match !entry_ref with
+                  ExeEntryCore entries ->
+                     let nodes = search_exe cache entries in
+                        entry_ref := ExeEntryNodes nodes;
+                        nodes
+                | ExeEntryNodes nodes ->
+                     nodes
+            in
+               if nodes = [] then
+                  items
+               else
+                  StringSet.add items s2
+         else
+            items) items listing
+
 (************************************************************************
  * Redefine the functions to work on directory groups, where each group may
  * specify auto-rehashing.
@@ -1276,6 +1298,9 @@ let rec exe_find cache listings s =
 
 let exe_find_all cache listings s =
    List.flatten (List.map (fun listing -> exe_find_nodes_all cache listing s) listings)
+
+let exe_complete cache listings s =
+   List.fold_left (exe_complete_prefix cache s) StringSet.empty listings
 
 let ls_dir cache auto_rehash dir =
    [ls_dir cache auto_rehash dir]

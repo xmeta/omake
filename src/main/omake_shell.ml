@@ -220,7 +220,10 @@ let rec main state senv venv result =
       set_history_length venv pos;
 
       (* Set the current directory *)
-      set_current_directory venv
+      set_current_directory venv;
+
+      (* Install the callback for command completion *)
+      set_command_completion venv pos loc
    in
 
    let prompt =

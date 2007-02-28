@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -112,6 +112,7 @@ val listing_find     : t -> dir_listing -> string -> dir_entry
 val ls_exe_path      : t -> (bool * Dir.t list) list -> exe_listing
 val exe_find         : t -> exe_listing -> string -> Node.t
 val exe_find_all     : t -> exe_listing -> string -> Node.t list
+val exe_complete     : t -> exe_listing -> string -> StringSet.t
 
 (*
  * Memoizing commands.

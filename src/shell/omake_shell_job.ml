@@ -31,6 +31,7 @@
 open Lm_printf
 open Lm_symbol
 open Lm_location
+open Lm_string_set
 
 open Omake_ir
 open Omake_env
@@ -532,6 +533,51 @@ let find_executable venv pos loc exe =
             node
    in
       Node.absname node
+
+(*
+ * Set the command-completion function base on the current path.
+ *)
+let string_is_prefix s1 s2 =
+   let len1 = String.length s1 in
+   let len2 = String.length s2 in
+   let rec string_match i =
+      i = len1 || (String.unsafe_get s1 i = String.unsafe_get s2 i && string_match (i + 1))
+   in
+      len2 >= len1 && string_match 0
+
+let set_command_completion venv pos loc =
+   let pos = string_pos "set_command_completion" pos in
+   let complete s =
+      (* Aliases *)
+      let shell_obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+      let items1 =
+         match eval_single_value venv pos shell_obj with
+            ValObject obj ->
+               venv_object_fold (fun items v _ ->
+                     let s2 = Lm_symbol.to_string v in
+                        if Lm_string_util.is_string_prefix s s2 then
+                           StringSet.add items s2
+                        else
+                           items) StringSet.empty obj
+          | _ ->
+               StringSet.empty
+      in
+
+      (* Commands *)
+      let cache  = venv_cache venv in
+      let path   = venv_find_var_exn venv ScopeGlobal path_sym in
+      let path   = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
+      let path   = Omake_cache.ls_exe_path cache path in
+      let items2 = Omake_cache.exe_complete cache path s in
+         Array.of_list (StringSet.to_list (StringSet.union items2 items1))
+   in
+   let complete s =
+      try complete s with
+         Not_found
+       | OmakeException _ ->
+            [||]
+   in
+      Callback.register "OMake command completion" complete
 
 (*
  * Start a command.
