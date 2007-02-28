@@ -36,6 +36,19 @@
 #include <caml/custom.h>
 #include <caml/callback.h>
 
+/*
+ * XXX: HACK (nogin 02/28/07):
+ * CAMLreturn with non-value types is wrong in 3.09.3 and later; CAMLreturnT was added in 3.09.4 and
+ * 3.10 to address this, but in 3.09.3 we are out of luck!
+ */
+#ifndef CAMLreturnT
+#define CAMLreturnT(type, result) do{ \
+   type caml__temp_result = (result); \
+   caml_local_roots = caml__frame; \
+   return (caml__temp_result); \
+}while(0)
+#endif
+
 #ifdef WIN32
 #  include <caml/signals.h>
 #  include <windows.h>
@@ -342,13 +355,13 @@ static char **readline_filename_completion(const char *dir, const char *text)
     completion_index = 1;
     completion_count = COMPLETION_LENGTH;
     completions = malloc((completion_count + 1) * sizeof(char *));
-    if(completions == 0)
-        return 0;
+    if(completions == NULL)
+        return NULL;
 
     /* Read the entries from the directory */
     dirp = opendir(completion_dir);
-    if(dirp == 0)
-        return 0;
+    if(dirp == NULL)
+        return NULL;
 
     len = strlen(completion_name);
     while((entryp = readdir(dirp)) != NULL) {
@@ -385,11 +398,11 @@ static char **readline_filename_completion(const char *dir, const char *text)
     /* Found nothing */
     if(completion_index == 1) {
         free(completions);
-        return 0;
+        return NULL;
     }
 
     /* Return completions */
-    completions[completion_index] = 0;
+    completions[completion_index] = NULL;
     close_completions(completions, completion_index);
     return completions;
 }
@@ -407,8 +420,8 @@ static char **readline_command_completion(const char *text)
 
     /* Find the callback, abort if it doesn't exist */
     callbackp = caml_named_value(omake_command_completion);
-    if(callbackp == 0 || *callbackp == 0)
-        CAMLreturn(0);
+    if(callbackp == NULL || *callbackp == 0)
+        CAMLreturnT(char**, NULL);
 
     /* The callback returns a string */
     request = copy_string(text);
@@ -417,19 +430,19 @@ static char **readline_command_completion(const char *text)
     /* Copy the array of strings */
     length = Wosize_val(response);
     if(length == 0)
-        CAMLreturn(0);
+        CAMLreturnT(char **, NULL);
     completions = malloc((length + 2) * sizeof(char *));
-    if(completions == 0)
-        CAMLreturn(0);
+    if(completions == NULL)
+        CAMLreturnT(char**, NULL);
     for(i = 0; i != length; i++) {
         namep = strdup(String_val(Field(response, i)));
-        if(namep == 0)
+        if(namep == NULL)
             break;
         completions[i + 1] = namep;
     }
-    completions[i + 1] = 0;
+    completions[i + 1] = NULL;
     close_completions(completions, i + 1);
-    CAMLreturn(completions);
+    CAMLreturnT(char **, completions);
 }
 
 /*
@@ -1642,7 +1655,7 @@ static char **readline_completion_matches(const char *text, int first, int last)
     /* Sanity checking */
     amount = last - first;
     if(amount <= 0 || amount >= LINE_MAX)
-        return 0;
+        return NULL;
 
     /* Three kinds of completion */
     if(text[0] == '~')
