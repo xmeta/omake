@@ -1623,7 +1623,8 @@ and eval_let_var_exp venv pos scope v flag s =
                      let sl = values_of_value venv pos s in
                         ValArray (v :: sl)
                else if is_array_value s then
-                  ValArray (values_of_value venv pos (ValSequence [v; s]))
+                  let vl = values_of_value venv pos v in
+                     ValArray [ValArray vl; s]
                else if is_empty_value v then
                   s
                else if is_empty_value s then

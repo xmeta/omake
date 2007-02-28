@@ -382,6 +382,13 @@ static char **readline_filename_completion(const char *dir, const char *text)
     }
     closedir(dirp);
 
+    /* Found nothing */
+    if(completion_index == 1) {
+        free(completions);
+        return 0;
+    }
+
+    /* Return completions */
     completions[completion_index] = 0;
     close_completions(completions, completion_index);
     return completions;
@@ -433,7 +440,7 @@ static char **readline_username_completion(const char *text)
     char **matches;
     
 #ifdef READLINE_GNU
-    matches = completion_matches(text, rl_username_completion_function);
+    matches = rl_completion_matches(text, rl_username_completion_function);
 #else
     matches = completion_matches(text, username_completion_function);
 #endif /* READLINE_GNU */
