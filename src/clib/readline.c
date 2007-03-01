@@ -96,7 +96,8 @@
 /*
  * Name of the command completion callback.
  */
-static char omake_command_completion[] = "OMake command completion";
+static char omake_filename_completion[] = "omake_filename_completion";
+static char omake_command_completion[]  = "omake_command_completion";
 
 /************************************************************************
  * Compatibility.
@@ -258,153 +259,48 @@ static int readline_is_dir(const char *name)
 #endif /* !WIN32 */
 
 /*
- * The first entry of the completions is the maximum
- * prefix of all the entries.
+ * Ignore . and ..
  */
-static void close_completions(char **completions, int length)
+static int is_dot_dir(const char *name)
 {
-    int i, off;
-    char *prefix;
-
-    off = 0;
-    while(1) {
-        char c = completions[1][off];
-        if(c == 0)
-            break;
-        for(i = 2; i < length; i++) {
-            if(completions[i][off] != c)
-                goto out;
-        }
-        off++;
-    }
-  out:
-    prefix = strdup(completions[1]);
-    completions[0] = prefix;
-    prefix[off] = 0;
+    return name[0] == '.' && (name[1] == 0 || (name[1] == '.' && name[2] == 0));
 }
 
 /*
- * Read the value to be completed.
+ * Command completions use a callback.
  */
-static char **readline_filename_completion(const char *dir, const char *text)
+static char **readline_filename_completion(const char *text)
 {
-    /* The absolute pathname of the directory we are searching in */
-    char completion_dir[2 * PATH_MAX + 1];
+    CAMLparam0();
+    CAMLlocal2(request, response);
+    char *namep, **completions;
+    value *callbackp;
+    int i, length;
 
-    /* The filename prefix we are looking for */
-    char completion_name[PATH_MAX];
+    /* Find the callback, abort if it doesn't exist */
+    callbackp = caml_named_value(omake_filename_completion);
+    if(callbackp == 0 || *callbackp == 0)
+        CAMLreturn(0);
 
-    /* The directory prefix for the completion */
-    char completion_buffer[2 * PATH_MAX + 1];
-    int buffer_offset;
-
-    /* Buffer for the result */
-    int completion_index, completion_count;
-    char **completions;
-
-#ifndef WIN32
-    /* The absolute pathname prefix for directory checking */
-    char completion_absname[2 * PATH_MAX + 1];
-    int absname_offset;
-#endif /* !WIN32 */
-
-    /* Various other junk */
-    struct dirent *entryp;
-    const char *slashp;
-    char *namep;
-    int i, len;
-    DIR *dirp;
-
-    /* Get the directory and prefix */
-    slashp = last_slash(text);
-    if(is_absolute_name(text)) {
-        i = slashp - text + 1;
-        memcpy(completion_dir, text, i);
-        completion_dir[i] = 0;
-        strcpy(completion_name, slashp + 1);
-        strcpy(completion_buffer, completion_dir);
-        buffer_offset = i;
+    /* The callback returns a string */
+    request = copy_string(text);
+    response = caml_callback(*callbackp, request);
+    
+    /* Copy the array of strings */
+    length = Wosize_val(response);
+    if(length == 0)
+        CAMLreturn(0);
+    completions = malloc((length + 1) * sizeof(char *));
+    if(completions == 0)
+        CAMLreturn(0);
+    for(i = 0; i != length; i++) {
+        namep = strdup(String_val(Field(response, i)));
+        if(namep == 0)
+            break;
+        completions[i] = namep;
     }
-    else {
-        len = strlen(dir);
-        memcpy(completion_dir, dir, len);
-        completion_dir[len] = '/';
-        if(slashp) {
-            i = slashp - text + 1;
-            memcpy(completion_dir + len + 1, text, i);
-            completion_dir[len + i + 1] = 0;
-            strcpy(completion_name, text + i);
-            memcpy(completion_buffer, text, i);
-            buffer_offset = i;
-        }
-        else {
-            completion_dir[len + 1] = 0;
-            strcpy(completion_name, text);
-            completion_buffer[0] = 0;
-            buffer_offset = 0;
-        }
-    }
-
-#ifndef WIN32
-    /* Absolute prefix */
-    absname_offset = strlen(completion_dir);
-    memcpy(completion_absname, completion_dir, absname_offset);
-#endif /* !WIN32 */
-
-    /* Allocate completions */
-    completion_index = 1;
-    completion_count = COMPLETION_LENGTH;
-    completions = malloc((completion_count + 1) * sizeof(char *));
-    if(completions == NULL)
-        return NULL;
-
-    /* Read the entries from the directory */
-    dirp = opendir(completion_dir);
-    if(dirp == NULL)
-        return NULL;
-
-    len = strlen(completion_name);
-    while((entryp = readdir(dirp)) != NULL) {
-        if(strncmp(completion_name, entryp->d_name, len) == 0) {
-            /* Expand the completions if need be */
-            if(completion_index == completion_count) {
-                int new_completion_count = completion_count * 2;
-                char **new_completions = realloc(completions, (new_completion_count + 1) * sizeof(char *));
-                if(new_completions == 0)
-                    break;
-                completion_count = completion_count * 2 + 1;
-            }
-
-            /* Allocate the completion */
-            strcpy(completion_buffer + buffer_offset, entryp->d_name);
-#ifdef WIN32
-            if(readline_is_dir(entryp))
-                strcat(completion_buffer, "\\");
-#else /* WIN32 */
-            strcpy(completion_absname + absname_offset, entryp->d_name);
-            if(readline_is_dir(completion_absname))
-                strcat(completion_buffer, "/");
-#endif /* WIN32 */
-            namep = strdup(completion_buffer);
-            if(namep == 0)
-                break;
-
-            /* Found a completion */
-            completions[completion_index++] = namep;
-        }
-    }
-    closedir(dirp);
-
-    /* Found nothing */
-    if(completion_index == 1) {
-        free(completions);
-        return NULL;
-    }
-
-    /* Return completions */
-    completions[completion_index] = NULL;
-    close_completions(completions, completion_index);
-    return completions;
+    completions[i] = 0;
+    CAMLreturn(completions);
 }
 
 /*
@@ -420,8 +316,8 @@ static char **readline_command_completion(const char *text)
 
     /* Find the callback, abort if it doesn't exist */
     callbackp = caml_named_value(omake_command_completion);
-    if(callbackp == NULL || *callbackp == 0)
-        CAMLreturnT(char**, NULL);
+    if(callbackp == 0 || *callbackp == 0)
+        CAMLreturnT(char**, 0);
 
     /* The callback returns a string */
     request = copy_string(text);
@@ -430,34 +326,18 @@ static char **readline_command_completion(const char *text)
     /* Copy the array of strings */
     length = Wosize_val(response);
     if(length == 0)
-        CAMLreturnT(char **, NULL);
+        CAMLreturnT(char **, 0);
     completions = malloc((length + 2) * sizeof(char *));
-    if(completions == NULL)
-        CAMLreturnT(char**, NULL);
+    if(completions == 0)
+        CAMLreturnT(char**, 0);
     for(i = 0; i != length; i++) {
         namep = strdup(String_val(Field(response, i)));
-        if(namep == NULL)
+        if(namep == 0)
             break;
-        completions[i + 1] = namep;
+        completions[i] = namep;
     }
-    completions[i + 1] = NULL;
-    close_completions(completions, i + 1);
+    completions[i] = 0;
     CAMLreturnT(char **, completions);
-}
-
-/*
- * Username completion.
- */
-static char **readline_username_completion(const char *text)
-{
-    char **matches;
-    
-#ifdef READLINE_GNU
-    matches = rl_completion_matches(text, rl_username_completion_function);
-#else
-    matches = completion_matches(text, username_completion_function);
-#endif /* READLINE_GNU */
-    return matches;
 }
 
 /************************************************************************
@@ -1510,7 +1390,7 @@ static void readline_cooked(ReadLine *readp)
 #ifdef READLINE_ENABLED
 static void readline_raw(ReadLine *readp)
 {
-    char *linep, *expansion=NULL;
+    char *linep, *expansion = NULL;
     int length, result;
 
   prompt:
@@ -1550,8 +1430,8 @@ static void readline_raw(ReadLine *readp)
         add_history(expansion);
         length = strlen(expansion);
         if(length >= readp->buffer_size) {
-            char * new_buffer = malloc(length + 1);
-            if (new_buffer == NULL)
+            char *new_buffer = malloc(length + 1);
+            if(new_buffer == NULL)
                 failwith("readline_raw: out of memory");
             free(readp->buffer);
             readp->buffer = new_buffer;
@@ -1658,12 +1538,10 @@ static char **readline_completion_matches(const char *text, int first, int last)
         return NULL;
 
     /* Three kinds of completion */
-    if(text[0] == '~')
-        matches = readline_username_completion(text);
-    else if(first == 0)
+    if(first == 0)
         matches = readline_command_completion(text);
     else
-        matches = readline_filename_completion(readp->dir, text);
+        matches = readline_filename_completion(text);
     return matches;
 }
 
@@ -1756,10 +1634,12 @@ value omake_readline_history(value v_unit)
      * history in one call.
      */
     for(i = 0; i < history_length; i++) {
-        HIST_ENTRY *entry;
+        HIST_ENTRY *entryp;
+        entryp = history_get(history_base + i);
+        if(entryp == 0)
+            break;
         data[i] = entries[i];
-        entry = history_get(i + history_base);
-        sprintf(data[i], "%-5d %.70s", i + history_base, entry->line);
+        sprintf(data[i], "%-5d %.70s", i + history_base, entryp->line);
         data[i][79] = 0;
     }
     data[i] = 0;

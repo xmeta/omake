@@ -672,7 +672,7 @@ omake_parser.ml: $(SRC_env)$(slash)omake_parser.ml
 ALLFILES_env = omake_ast_lex.mli omake_command_digest.ml omake_command_digest.mli omake_env.ml omake_env.mli omake_exn_print.ml omake_exn_print.mli omake_gen_parse.ml omake_ir_ast.ml omake_ir_ast.mli omake_ir_free_vars.ml omake_ir_free_vars.mli omake_ir_semant.ml omake_ir_semant.mli omake_lexer.ml omake_parser.ml omake_ast_lex.mll omake_ast_parse.input
 
 
-CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo
+CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo omake_shell_completion.cmo
 OCAML_LIB_FLAGS_shell =
 
 shell.cma: $(CMOFILES_shell)
@@ -692,6 +692,12 @@ Makefile.dep: omake_shell_parse.mli omake_shell_parse.ml omake_shell_sys.ml
 
 SRC_shell = ..$(slash)src$(slash)shell
 
+omake_shell_completion.ml: $(SRC_shell)$(slash)omake_shell_completion.ml
+	$(LN) $(SRC_shell)$(slash)omake_shell_completion.ml omake_shell_completion.ml
+
+omake_shell_completion.mli: $(SRC_shell)$(slash)omake_shell_completion.mli
+	$(LN) $(SRC_shell)$(slash)omake_shell_completion.mli omake_shell_completion.mli
+
 omake_shell_job.ml: $(SRC_shell)$(slash)omake_shell_job.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_job.ml omake_shell_job.ml
 
@@ -710,7 +716,7 @@ omake_shell_sys.mli: $(SRC_shell)$(slash)omake_shell_sys.mli
 omake_shell_sys_type.ml: $(SRC_shell)$(slash)omake_shell_sys_type.ml
 	$(LN) $(SRC_shell)$(slash)omake_shell_sys_type.ml omake_shell_sys_type.ml
 
-ALLFILES_shell = omake_shell_job.ml omake_shell_job.mli omake_shell_lex.ml omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
+ALLFILES_shell = omake_shell_completion.ml omake_shell_completion.mli omake_shell_job.ml omake_shell_job.mli omake_shell_lex.ml omake_shell_lex.mli omake_shell_sys.mli omake_shell_sys_type.ml omake_shell_parse.mly omake_shell_sys.ml
 
 
 CMOFILES_eval = omake_eval.cmo omake_value.cmo

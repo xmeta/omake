@@ -45,6 +45,7 @@ open Omake_ir_ast
 open Omake_exn_print
 open Omake_shell_type
 open Omake_shell_job
+open Omake_shell_completion
 open Omake_options
 
 module Pos = MakePos (struct let name = "Omake_shell" end)
@@ -223,7 +224,7 @@ let rec main state senv venv result =
       set_current_directory venv;
 
       (* Install the callback for command completion *)
-      set_command_completion venv pos loc
+      set_completion_functions venv pos loc
    in
 
    let prompt =
