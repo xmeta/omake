@@ -100,87 +100,6 @@ static char omake_filename_completion[] = "omake_filename_completion";
 static char omake_command_completion[]  = "omake_command_completion";
 
 /************************************************************************
- * Compatibility.
- */
-
-#ifdef WIN32
-/*
- * Simulate opendir/readdir/closedir on Win32.
- */
-struct dirent {
-    int d_isdir;
-    char d_name[PATH_MAX];
-};
-
-typedef struct _dir {
-    HANDLE hand;
-    struct dirent entry;
-    int full;
-} DIR;
-
-static DIR *opendir(const char *dirname)
-{
-    WIN32_FIND_DATA data;
-    char name[PATH_MAX + 2];
-    HANDLE hand;
-    DIR *dirp;
-    int len;
-
-    /* Always add the \* to the directory */
-    len = strlen(dirname);
-    memcpy(name, dirname, len);
-    name[len] = '\\';
-    name[len + 1] = '*';
-    name[len + 2] = 0;
-
-    /* Read it */
-    hand = FindFirstFile(name, &data);
-    if(hand == INVALID_HANDLE_VALUE)
-        return 0;
-
-    /* Allocate the info */
-    dirp = (DIR *) malloc(sizeof(DIR));
-    if(dirp == 0)
-        return 0;
-
-    /* Copy the entry */
-    dirp->hand = hand;
-    strncpy(dirp->entry.d_name, data.cFileName, PATH_MAX - 1);
-    dirp->entry.d_name[PATH_MAX - 1] = 0;
-    dirp->entry.d_isdir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-    dirp->full = 1;
-    return dirp;
-}
-
-static struct dirent *readdir(DIR *dirp)
-{
-    WIN32_FIND_DATA data;
-
-    /* Do we already have an entry? */
-    if(dirp->full) {
-        dirp->full = 0;
-        return &dirp->entry;
-    }
-
-    /* Read the next entry */
-    if(FindNextFile(dirp->hand, &data) == 0)
-        return 0;
-
-    /* Copy it */
-    strncpy(dirp->entry.d_name, data.cFileName, PATH_MAX - 1);
-    dirp->entry.d_name[PATH_MAX - 1] = 0;
-    dirp->entry.d_isdir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-    return &dirp->entry;
-}
-
-static void closedir(DIR *dirp)
-{
-    FindClose(dirp->hand);
-    free(dirp);
-}
-#endif /* WIN32 */
-
-/************************************************************************
  * Completions.
  */
 
@@ -194,77 +113,6 @@ typedef struct _completion_info {
     /* List of completions */
     char **completions;
 } CompletionInfo;
-
-/*
- * It the file absolute?
- */
-static int is_absolute_name(const char *name)
-{
-#ifdef WIN32
-    int drive;
-
-    drive = name[0];
-    return (drive >= 'a' && drive <= 'z' || drive >= 'A' && drive <= 'Z') && name[1] == ':' && (name[2] == '/' || name[2] == '\\');
-#else /* WIN32 */
-    return *name == '/';
-#endif /* !WIN32 */
-}
-
-/*
- * Find the last path separator.
- */
-static const char *last_slash(const char *name)
-{
-    int len;
-
-    len = strlen(name);
-    while(len) {
-        len--;
-
-        switch(name[len]) {
-        case '/':
-        case '\\':
-            return name + len;
-        }
-    }
-    return 0;
-}
-
-/*
- * Check if a file is a directory.
- */
-#ifdef WIN32
-static int readline_is_dir(struct dirent *entryp)
-{
-    return entryp->d_isdir;
-}
-
-#else /* WIN32 */
-
-static int readline_is_dir(const char *name)
-{
-    struct stat buf;
-    int code;
-
-#ifdef READLINE_GNU
-    if(rl_completion_mark_symlink_dirs)
-        code = stat(name, &buf);
-    else
-        code = lstat(name, &buf);
-#else /* READLINE_GNU */
-    code = stat(name, &buf);
-#endif /* !READLINE_GNU */
-    return code == 0 && S_ISDIR(buf.st_mode);
-}
-#endif /* !WIN32 */
-
-/*
- * Ignore . and ..
- */
-static int is_dot_dir(const char *name)
-{
-    return name[0] == '.' && (name[1] == 0 || (name[1] == '.' && name[2] == 0));
-}
 
 /*
  * Command completions use a callback.
@@ -282,7 +130,7 @@ static char **readline_filename_completion(const char *text)
     if(callbackp == 0 || *callbackp == 0)
         CAMLreturn(0);
 
-    /* The callback returns a string */
+    /* The callback returns an array of strings */
     request = copy_string(text);
     response = caml_callback(*callbackp, request);
     
@@ -319,7 +167,7 @@ static char **readline_command_completion(const char *text)
     if(callbackp == 0 || *callbackp == 0)
         CAMLreturnT(char**, 0);
 
-    /* The callback returns a string */
+    /* The callback returns an array of strings */
     request = copy_string(text);
     response = caml_callback(*callbackp, request);
     
@@ -327,9 +175,9 @@ static char **readline_command_completion(const char *text)
     length = Wosize_val(response);
     if(length == 0)
         CAMLreturnT(char **, 0);
-    completions = malloc((length + 2) * sizeof(char *));
+    completions = malloc((length + 1) * sizeof(char *));
     if(completions == 0)
-        CAMLreturnT(char**, 0);
+        CAMLreturnT(char **, 0);
     for(i = 0; i != length; i++) {
         namep = strdup(String_val(Field(response, i)));
         if(namep == 0)
@@ -1729,6 +1577,7 @@ value omake_readline_init(value v_unit)
 }
 
 #endif /* !WIN32 */
+
 /*
  * vim:tw=100:ts=4:et:sw=4:cin
  */
