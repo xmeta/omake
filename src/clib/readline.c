@@ -117,7 +117,7 @@ typedef struct _completion_info {
 /*
  * Command completions use a callback.
  */
-static char **readline_filename_completion(const char *text)
+static char **readline_completion(char *omake_completion, const char *text)
 {
     CAMLparam0();
     CAMLlocal2(request, response);
@@ -131,50 +131,9 @@ static char **readline_filename_completion(const char *text)
 #endif
 
     /* Find the callback, abort if it doesn't exist */
-    callbackp = caml_named_value(omake_filename_completion);
+    callbackp = caml_named_value(omake_completion);
     if(callbackp == 0 || *callbackp == 0)
         CAMLreturnT(char **, 0);
-
-    /* The callback returns an array of strings */
-    request = copy_string(text);
-    response = caml_callback(*callbackp, request);
-    
-    /* Copy the array of strings */
-    length = Wosize_val(response);
-    if(length == 0)
-        CAMLreturnT(char **, 0);
-    completions = malloc((length + 1) * sizeof(char *));
-    if(completions == 0)
-        CAMLreturnT(char **, 0);
-    for(i = 0; i != length; i++) {
-        namep = strdup(String_val(Field(response, i)));
-        if(namep == 0)
-            break;
-        completions[i] = namep;
-    }
-    completions[i] = 0;
-    CAMLreturnT(char **, completions);
-}
-
-/*
- * Command completions use a callback.
- */
-static char **readline_command_completion(const char *text)
-{
-    CAMLparam0();
-    CAMLlocal2(request, response);
-    char *namep, **completions;
-    value *callbackp;
-    int i, length;
-
-#ifdef WIN32
-    (void) caml__dummy_request;
-#endif
-
-    /* Find the callback, abort if it doesn't exist */
-    callbackp = caml_named_value(omake_command_completion);
-    if(callbackp == 0 || *callbackp == 0)
-        CAMLreturnT(char**, 0);
 
     /* The callback returns an array of strings */
     request = copy_string(text);
@@ -1396,9 +1355,9 @@ static char **readline_completion_matches(const char *text, int first, int last)
 
     /* Three kinds of completion */
     if(first == 0)
-        matches = readline_command_completion(text);
+        matches = readline_completion(omake_command_completion, text);
     else
-        matches = readline_filename_completion(text);
+        matches = readline_completion(omake_filename_completion, text);
     return matches;
 }
 

@@ -186,10 +186,6 @@ let command_completion_exn venv pos loc s =
 (*
  * For readline, the result requires that the first entry
  * be the maximal prefix of all the entries.
- *
- * XXX: this is a bit inefficient because we already know
- * the the directory part of the completions are all the
- * same.
  *)
 let rec char_matches c i names =
    match names with
@@ -198,10 +194,10 @@ let rec char_matches c i names =
     | [] ->
          true
 
-let rec max_string_length i names =
+let rec min_string_length i names =
    match names with
       name :: names ->
-         max_string_length (max i (String.length name)) names
+         min_string_length (min i (String.length name)) names
     | [] ->
          i
 
@@ -213,12 +209,13 @@ let rec search_matches i len name names =
    else
       i
 
-let complete_names names =
+let complete_names s names =
    let names = StringSet.to_list names in
+   let off = String.length s in
       match names with
          name :: rest ->
-            let len = max_string_length 0 names in
-            let len = search_matches 0 len name rest in
+            let len = min_string_length off names in
+            let len = search_matches off len name rest in
             let prefix = String.sub name 0 len in
                Array.of_list (prefix :: names)
        | [] ->
@@ -228,7 +225,7 @@ let complete_names names =
  * Catch all exceptions we might expect.
  *)
 let catch f venv pos loc s =
-   try complete_names (f venv pos loc s) with
+   try complete_names s (f venv pos loc s) with
       Not_found
     | Sys_error _
     | OmakeException _ ->
