@@ -125,10 +125,15 @@ static char **readline_filename_completion(const char *text)
     value *callbackp;
     int i, length;
 
+#ifdef WIN32
+    /* This is bogus but temporary */
+    (void) caml__dummy_request;
+#endif
+
     /* Find the callback, abort if it doesn't exist */
     callbackp = caml_named_value(omake_filename_completion);
     if(callbackp == 0 || *callbackp == 0)
-        CAMLreturn(0);
+        CAMLreturnT(char **, 0);
 
     /* The callback returns an array of strings */
     request = copy_string(text);
@@ -137,10 +142,10 @@ static char **readline_filename_completion(const char *text)
     /* Copy the array of strings */
     length = Wosize_val(response);
     if(length == 0)
-        CAMLreturn(0);
+        CAMLreturnT(char **, 0);
     completions = malloc((length + 1) * sizeof(char *));
     if(completions == 0)
-        CAMLreturn(0);
+        CAMLreturnT(char **, 0);
     for(i = 0; i != length; i++) {
         namep = strdup(String_val(Field(response, i)));
         if(namep == 0)
@@ -148,7 +153,7 @@ static char **readline_filename_completion(const char *text)
         completions[i] = namep;
     }
     completions[i] = 0;
-    CAMLreturn(completions);
+    CAMLreturnT(char **, completions);
 }
 
 /*
@@ -161,6 +166,10 @@ static char **readline_command_completion(const char *text)
     char *namep, **completions;
     value *callbackp;
     int i, length;
+
+#ifdef WIN32
+    (void) caml__dummy_request;
+#endif
 
     /* Find the callback, abort if it doesn't exist */
     callbackp = caml_named_value(omake_command_completion);
