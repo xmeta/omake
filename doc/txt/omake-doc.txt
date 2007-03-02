@@ -1,12 +1,12 @@
-   
+     
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                          15^thFebruary, 2007
-                          ===================
+                            2^ndMarch, 2007
+                            ===============
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -163,9 +163,9 @@ Contents
        - 7.5.2  :effects: 
        - 7.5.3  :value: 
      
-    - 7.6  .SCANNER rules 
+    - 7.6  '.SCANNER' rules 
         
-       - 7.6.1  Named scanners, and the :scanner: target 
+       - 7.6.1  Named scanners, and the ':scanner:' dependencies 
        - 7.6.2  Notes 
      
     - 7.7  .DEFAULT 
@@ -175,10 +175,15 @@ Contents
     - 7.11  Rule scoping 
         
        - 7.11.1  Scoping of implicit rules 
-       - 7.11.2  Scoping of .SCANNER rules 
-       - 7.11.3  Scoping for .PHONY targets 
+       - 7.11.2  Scoping of '.SCANNER' rules 
+       - 7.11.3  Scoping for '.PHONY' targets 
      
-    - 7.12  Pathnames in rules 
+    - 7.12  Running OMake from a subdirectory 
+        
+       - 7.12.1  Phony targets in a subdirectory 
+       - 7.12.2  Hierarchy of '.PHONY' targets 
+     
+    - 7.13  Pathnames in rules 
   
  - Chapter 8  Base library 
      
@@ -546,11 +551,13 @@ Contents
     - 13.1  General-purpose autoconfiguration functions 
         
        - 13.1.1  AC_MSG_CHECKING, AC_MSG_RESULT 
-       - 13.1.2  AC_MSG_WARN 
+       - 13.1.2  AC_MSG_WARN, AC_MSG_ERROR 
        - 13.1.3  AC_MSG_YES_NO, AC_MSG_FOUND 
-       - 13.1.4  CheckHeader, VerboseCheckHeader 
-       - 13.1.5  CheckLib, VerboseCheckLib 
-       - 13.1.6  CheckProg 
+       - 13.1.4  AC_TRY_COMPILE, AC_TRY_LINK, AC_TRY_RUN 
+       - 13.1.5  AC_RUN_PROG 
+       - 13.1.6  CheckHeader, VerboseCheckHeader 
+       - 13.1.7  CheckLib, VerboseCheckLib 
+       - 13.1.8  CheckProg 
      
     - 13.2  Predefined configuration tests 
         
@@ -3942,8 +3949,8 @@ For example, the following rule:
   
   
 
-7.6  .SCANNER rules
-*=*=*=*=*=*=*=*=*=*
+7.6  '.SCANNER' rules
+*=*=*=*=*=*=*=*=*=*=*
 
    
   Scanner rules define a way to specify automatic dependency scanning. A
@@ -4016,8 +4023,8 @@ enabled).
 3.4.3.
   
 
-7.6.1  Named scanners, and the :scanner: target
-===============================================
+7.6.1  Named scanners, and the ':scanner:' dependencies
+=======================================================
    
   Sometimes it may be useful to specify explicitly which scanner should
 be used in a rule. For example, we might compile `.c' files with
@@ -4276,8 +4283,8 @@ implicit rule for building `%.o' files. The implicit rule adds the
 `hello_lib.o'; the target `hello_code.o' is built as normal.
   
 
-7.11.2  Scoping of .SCANNER rules
-=================================
+7.11.2  Scoping of '.SCANNER' rules
+===================================
    
   Scanner rules are scoped the same way as normal rules. If the
 `.SCANNER' rule is explicit (containing no wildcard patterns), then the
@@ -4314,8 +4321,8 @@ scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
   
 
-7.11.3  Scoping for .PHONY targets
-==================================
+7.11.3  Scoping for '.PHONY' targets
+====================================
    
   Phony targets (targets that do not correspond to files) are defined
 with a `.PHONY:' rule. Phony targets are scoped as usual. The following
@@ -4345,16 +4352,96 @@ declaration first.
   Phony targets are passed to subdirectories. As a practical matter, it
 is wise to declare all `.PHONY' targets in your root `OMakefile', before
 any `.SUBDIRS'. This will ensure that 1) they are considered as phony
-targets in each of the sbdirectories, and 2) you can build them from the
-project root.
+targets in each of the subdirectories, and 2) you can build them from
+the project root.
 <<    .PHONY: all install clean
   
       .SUBDIRS: src lib clib
 >>
   
+  Note that when a `.PHONY' target is inherited by a subdirectory via a
+`.SUBDIRS', a whole hierarchy of `.PHONY' target (that are a part of the
+global one) is created, as described in Section 7.12.1 below.
   
 
-7.12  Pathnames in rules
+7.12  Running OMake from a subdirectory
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+    Running `omake foo' asks OMake to build the file `foo' in context of
+the whole project, even when running from a subdirectory of the project.
+Therefore, if `bar/baz' is a regular target (not a `.PHONY' one), then
+running `omake bar/baz' and running `(cd bar; omake baz)' are usually
+equivalent.
+  There are two noteworthy exceptions to the above rule: 
+  
+ - If the subdirectory is not a part of the project (there is no
+   `.SUBDIRS') for it, then OMake will complain if you try to run it in
+   that directory. 
+ - If a subdirectory contains an `OMakeroot' of its own, this would
+   designate the subdirectory as a separate project (which is usually a
+   bad idea and is not recommended). 
+  
+  
+
+7.12.1  Phony targets in a subdirectory
+=======================================
+   
+  Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
+and both the root `OMakefile' and the `OMakefile' in some of the
+subdirectories contain `clean:' rules. In this case 
+  
+ - Running `omake clean' in the root directory will execute all the
+   rules (each in the appropriate directory); 
+ - Running `omake clean' in the subdirectory will execute just its local
+   one, as well as the ones from the subdirectories of the current
+   directory. 
+  
+  The above equally applies to the built-in `.PHONY' targets, including
+'.DEFAULT'. Namely, if OMake is executed (without argument) in the root
+directory of a project, all the `.DEFAULT' targets in the project will
+be built. On the other hand, when OMake is executed (without argument)
+in a subdirectory, only the `.DEFAULT' targets defined in and under that
+subdirectory will be built.
+  The following Section explains the underlying semantics that gives
+rise to the above behavior.
+  
+
+7.12.2  Hierarchy of '.PHONY' targets
+=====================================
+   
+  When the the root `OMakefile' contains a `.PHONY: clean' directive, it
+creates: 
+  
+ - A "global" phony target `/.PHONY/clean' (note the leading "`/'"); 
+ - A "relative" phony target attached to the current directory ---
+   `.PHONY/clean' (note the lack of the leading "`/'"); 
+ - A dependency `/.PHONY/clean: .PHONY/clean'. 
+  
+  All the `clean: ...' rules in the root `OMakefile' following this
+`.PHONY: clean' declaration would be interpreted as rules for the
+`.PHONY/clean' target.
+  Now when OMake then comes across a `.SUBDIRS: foo' directive (when it
+is in scope of the above `.PHONY: clean' declaration), it does the
+following: 
+  
+ - Creates a new `.PHONY/foo/clean' "relative" phony target; 
+ - Creates the dependency `.PHONY/clean: .PHONY/foo/clean'; 
+ - Processes the body of the `.SUBDIRS: foo' directive, or reads the
+   `foo/OMakefile' file, if the body is empty. While doing that, it
+   interprets its instructions relative to the `foo' directory. In
+   particular, all the `clean: ...' rules will be taken to apply to
+   `.PHONY/foo/clean'. 
+  
+  Now when you run `omake clean' in the root directory of the project,
+it is interpreted as `omake .PHONY/clean' (similar to how it happens
+with the normal targets), so both the rules for `.PHONY/clean' are
+executed and the rules for its dependency  `.PHONY/foo/clean'. Running
+`(cd foo; omake clean)' is, as for normal targets, equivalent to running
+`omake .PHONY/foo/clean' and only those rules that apply to
+`.PHONY/foo/clean' will be executed.
+  
+
+7.13  Pathnames in rules
 *=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -4399,7 +4486,7 @@ literally.
 to absolute pathnames. For example, this might be useful when parsing
 the OMake output to look for errors. For this, you can use the
 `--absname' option (Section A.3.20). If you call `omake' with the
-`--absname' option, all filenames will be exapnded to absolute names.
+`--absname' option, all filenames will be expanded to absolute names.
 <<    # omake --absname demo (on a Unix system)
       /home/.../a/b /home/.../c/d
 >>
@@ -9847,10 +9934,15 @@ messages to a log file.
 >>
   
 
-13.1.2  AC_MSG_WARN
-===================
-   `AC_MSG_WARN(<msg>)'
-  Prints a warning message.
+13.1.2  AC_MSG_WARN, AC_MSG_ERROR
+=================================
+   
+<<AC_MSG_WARN(<msg>)
+  AC_MSG_ERROR(<msg>)
+>>
+  
+  Print a warning or an error message respectively. `AC_MSG_ERROR' would
+then abort OMake.
 
 13.1.3  AC_MSG_YES_NO, AC_MSG_FOUND
 ===================================
@@ -9867,17 +9959,46 @@ will output the appropriate result ("found" or "NOT found") using the
   The `AC_MSG_YES_NO' function is similar, outputting a simple ("yes" or
 "NO").
 
-13.1.4  CheckHeader, VerboseCheckHeader
+13.1.4  AC_TRY_COMPILE, AC_TRY_LINK, AC_TRY_RUN
+===============================================
+   
+<<success = $(AC_TRY_COMPILE <prog_text>)
+  success = $(AC_TRY_LINK <prog_text>)
+  success = $(AC_TRY_RUN <prog_text>)
+>>
+  
+  Given the text of a C program, the `AC_TRY_COMPILE', `AC_TRY_LINK',
+and `AC_TRY_RUN' functions would try to compile / compile and link /
+compile, link, and run, the given program and return a boolean flag
+indicating whether the attempt was successful.
+  `AC_TRY_COMPILE' will use the 'CC', 'CFLAGS' and 'INCLUDES' variables 
+to run the C compiler. `AC_TRY_LINK' and `AC_TRY_RUN' will also use the
+'LDFLAGS' variable to run the C compiler and linker. However, the flags
+like `/WX', `-Werror' and `-warn-error' will be not be passed to the
+compiler, even if they occur in `CFLAGS'.
+  These functions are silent and should normally be used with an
+appropriate 'AC_MSG_CHECKING' ... 'AC_MSG_RESULT'.
+
+13.1.5  AC_RUN_PROG
+===================
+   
+<<output = $(AC_RUN_PROG <prog>)
+>>
+  
+  `AC_RUN_PROG' is similar to the 'AC_RUN_PROG', except that it returns
+the output of the function (will return `false' if the program fails to
+compile or run).
+
+13.1.6  CheckHeader, VerboseCheckHeader
 =======================================
    
 <<success = $(CheckHeader <files>)
   success = $(VerboseCheckHeader <files>)
 >>
   
-  Check whether your C compiler can locate and process the specified
-headers files. Will use the 'CC', 'CFLAGS' and 'INCLUDES' variables  to
-run the compiler. Will incude `<stdio.h>' before including the specified
-header files.
+  Use the 'AC_TRY_COMPILE' function to check whether your C compiler can
+locate and process the specified headers files. Will incude `<stdio.h>'
+before including the header files.
   Both functions return a boolean value. The `CheckHeader' function is
 silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
 and 'AC_MSG_RESULT' functions to describe the test and the outcome.
@@ -9887,17 +10008,16 @@ and 'AC_MSG_RESULT' functions to describe the test and the outcome.
 >>
   
 
-13.1.5  CheckLib, VerboseCheckLib
+13.1.7  CheckLib, VerboseCheckLib
 =================================
    
 <<success = $(CheckLib <libs>, <functions>)
   success = $(VerboseCheckLib <libs>, <functions>)
 >>
   
-  Check whether your C compiler and linker can find the named functions
-when linking with the named libraries. Will use the 'CC', 'CFLAGS' and
-'LDFLAGS' variables  to run the compiler. Will pass the `<libs>' to the
-compiler using the `-l' flag.
+  Use the 'AC_TRY_LINK' function to check whether your C compiler and
+linker can find the named functions when linking with the named
+libraries. Will pass the `<libs>' to the compiler using the `-l' flag.
   Both functions return a boolean value. The `CheckLib' function is
 silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
 and 'AC_MSG_RESULT' functions to describe the test and the outcome.
@@ -9908,7 +10028,7 @@ setupterm tigetstr)
 >>
   
 
-13.1.6  CheckProg
+13.1.8  CheckProg
 =================
    `success = $(CheckProg <prog>)'
   Checks whether the program `<prog>' exists in your path. Will use the
@@ -11321,11 +11441,11 @@ Index
  - .BUILD_FAILURE, 12.1 
  - .BUILD_SUCCESS, 12.1 
  - .BUILDORDER, 9.3.5 
- - .DEFAULT, 7.7 
+ - .DEFAULT, 7.7, 7.12.1 
  - .INCLUDE, 7.9 
  - .ORDER, 9.3.5 
  - .omakerc, A.8 
- - .PHONY, 5.3, 7.10, 7.11.3 
+ - .PHONY, 5.3, 7.10, 7.11.3, 7.12.1, 7.12.2 
  - .RULE, 5.3 
  - .SCANNER, 3.4.3, 7.6, 7.11.2 
  - .SUBDIRS, 3, 7.8 
@@ -11347,10 +11467,15 @@ Index
  - ABORT_ON_COMMAND_ERROR, 12.4.1 
  - ABORT_ON_DEPENDENCY_ERRORS, 12.6.4 
  - AC_MSG_CHECKING, 13.1.1 
+ - AC_MSG_ERROR, 13.1.2 
  - AC_MSG_FOUND, 13.1.3 
  - AC_MSG_RESULT, 13.1.1 
  - AC_MSG_WARN, 13.1.2 
  - AC_MSG_YES_NO, 13.1.3 
+ - AC_RUN_PROG, 13.1.5 
+ - AC_TRY_COMPILE, 13.1.4 
+ - AC_TRY_LINK, 13.1.4 
+ - AC_TRY_RUN, 13.1.4 
  - AR, 12.5.2 
  - AROUT, 12.5.2 
  - Array, 11.1.7 
@@ -11387,9 +11512,9 @@ Index
  - CFLAGS, 12.5.2 
  - CGeneratedFiles, 12.5.3.1 
  - Channel, 11.1.15 
- - CheckHeader, 13.1.4 
- - CheckLib, 13.1.5 
- - CheckProg, 13.1.6 
+ - CheckHeader, 13.1.6 
+ - CheckLib, 13.1.7 
+ - CheckProg, 13.1.8 
  - CL_FOUND, 12.5.1.2 
  - CPP, 12.5.2 
  - CProgram, 12.5.4.5 
@@ -11793,8 +11918,8 @@ Index
  - uppercase, 8.3.35 
  
  - VERBOSE, 8.1 
- - VerboseCheckHeader, 13.1.4 
- - VerboseCheckLib, 13.1.5 
+ - VerboseCheckHeader, 13.1.6 
+ - VerboseCheckLib, 13.1.7 
  - value, 4.5, B.2.2.1 
  - variable definition, A.3.21 
  - vmount, 2.9, 9.6.1 
@@ -11958,10 +12083,15 @@ Index of functions and special forms
   
   
  - AC_MSG_CHECKING, 13.1.1 
+ - AC_MSG_ERROR, 13.1.2 
  - AC_MSG_FOUND, 13.1.3 
  - AC_MSG_RESULT, 13.1.1 
  - AC_MSG_WARN, 13.1.2 
  - AC_MSG_YES_NO, 13.1.3 
+ - AC_RUN_PROG, 13.1.5 
+ - AC_TRY_COMPILE, 13.1.4 
+ - AC_TRY_LINK, 13.1.4 
+ - AC_TRY_RUN, 13.1.4 
  - absname, 9.1.9 
  - accept, 9.8.30 
  - add, 8.4.3 
@@ -11983,9 +12113,9 @@ Index of functions and special forms
  - break, 8.3.41 
  
  - CGeneratedFiles, 12.5.3.1 
- - CheckHeader, 13.1.4 
- - CheckLib, 13.1.5 
- - CheckProg, 13.1.6 
+ - CheckHeader, 13.1.6 
+ - CheckLib, 13.1.7 
+ - CheckProg, 13.1.8 
  - CProgram, 12.5.4.5 
  - CProgramCopy, 12.5.4.6 
  - CProgramInstall, 12.5.4.7 
@@ -12231,8 +12361,8 @@ Index of functions and special forms
  - unsetenv, 8.2.14 
  - uppercase, 8.3.35 
  
- - VerboseCheckHeader, 13.1.4 
- - VerboseCheckLib, 13.1.5 
+ - VerboseCheckHeader, 13.1.6 
+ - VerboseCheckLib, 13.1.7 
  - vmount, 9.6.1 
  
  - wait, 10.10.5 
@@ -12300,10 +12430,10 @@ Index of special targets
  - .BUILD_FAILURE, 12.1 
  - .BUILD_SUCCESS, 12.1 
  - .BUILDORDER, 9.3.5 
- - .DEFAULT, 7.7 
+ - .DEFAULT, 7.7, 7.12.1 
  - .INCLUDE, 7.9 
  - .ORDER, 9.3.5 
- - .PHONY, 7.10, 7.11.3 
+ - .PHONY, 7.10, 7.11.3, 7.12.1, 7.12.2 
  - .SCANNER, 7.6, 7.11.2 
  - .SUBDIRS, 7.8 
 
@@ -12365,7 +12495,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8 of 15^thFebruary, 2007.
+  Version: 0.9.8 of 2^ndMarch, 2007.
   
 
 C.3  License and Copyright

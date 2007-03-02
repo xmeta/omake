@@ -1,5 +1,113 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-2-7,	Next: Subsection 8-2-8,	Prev: Subsection 8-2-6,	Up: Section 8-2
+  
+
+8.2.7   try
+===========
+
+<<   try
+        try-body
+     catch class1(v1)
+        catch-body
+     when expr
+        when-body
+     ...
+     finally
+        finally-body
+>>
+  
+  The `try' form is used for exception handling. First, the expressions
+in the `try-body' are evaluated.
+  If evaluation results in a value `v' without raising an exception,
+then the expressions in the `finally-body' are evaluated and the value
+`v' is returned as the result.
+  If evaluation of the `try-body' results in a exception object `obj',
+the `catch' clauses are examined in order. When examining `catch' clause
+`catch class(v)', if the exception object `obj' is an instance of the
+class name `class', the variable `v' is bound to the exception object,
+and the expressions in the `catch-body' are evaluated.
+  If a `when' clause is encountered while a `catch' body is being
+evaluated, the predicate `expr' is evaluated. If the result is true,
+evaluation continues with the expressions in the `when-body'. Otherwise,
+the next `catch' clause is considered for evaluation.
+  If evaluation of a `catch-body' or `when-body' completes successfully,
+returning a value `v', without encountering another `when' clause, then
+the expressions in the `finally-body' are evaluated and the value `v' is
+returned as the result.
+  There can be any number of `catch' clauses; the `finally' clause is
+optional. 
+
+Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Section 8-2
+  
+
+8.2.8   raise
+=============
+
+<<   raise exn
+        exn : Exception
+>>
+  
+  The `raise' function raises an exception. The `exn' object can be any
+object. However, the normal convention is to raise an 'Exception'
+object.
+  If the exception is never caught, the whole object will be verbosely
+printed in the error message. However, if the object is an `Exception'
+one and contains a `message' field, only that field will be included in
+the error message. 
+
+Node: Subsection 8-2-9,	Next: Subsection 8-2-10,	Prev: Subsection 8-2-8,	Up: Section 8-2
+  
+
+8.2.9   exit
+============
+
+<<   exit(code)
+        code : Int
+>>
+  
+  The `exit' function terminates omake abnormally.
+  `$(exit <code>)'
+  The `exit' function takes one integer argument, which is exit code.
+Non-zero values indicate abnormal termination. 
+
+Node: Subsection 8-2-10,	Next: Subsection 8-2-11,	Prev: Subsection 8-2-9,	Up: Section 8-2
+  
+
+8.2.10   defined
+================
+
+<<   $(defined sequence) : String
+        sequence : Sequence
+>>
+  
+  The `defined' function test whether all the variables in the sequence
+are currently defined. For example, the following code defines the `X'
+variable if it is not already defined.
+<<    if $(not $(defined X))
+         X = a b c
+         export
+>>
+
+Node: Subsection 8-2-11,	Next: Subsection 8-2-12,	Prev: Subsection 8-2-10,	Up: Section 8-2
+  
+
+8.2.11   defined-env
+====================
+
+<<   $(defined-env sequence) : String
+        sequence : String
+>>
+  
+  The `defined-env' function tests whether a variable is defined as part
+of the process environment.
+  For example, the following code adds the `-g' compile option if the
+environment variable `DEBUG' is defined.
+<<if $(defined-env DEBUG)
+      CFLAGS += -g
+      export
+>>
+
 Node: Subsection 8-2-12,	Next: Subsection 8-2-13,	Prev: Subsection 8-2-11,	Up: Section 8-2
   
 
@@ -383,7 +491,7 @@ Node: Subsection 8-3-12,	Next: Subsection 8-3-13,	Prev: Subsection 8-3-11,	Up: S
 c-escaped, id-escaped
 =====================
 \@name
-{@default105}
+{@default108}
 <<   $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
      $(html-escaped sequence) : String Array
@@ -1586,7 +1694,7 @@ Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9
 9.3.1   file-exists, target-exists, target-is-proper
 ====================================================
 \@na
-me{@default194}
+me{@default197}
 <<   $(file-exists files) : String
      $(target-exists files) : String
      $(target-is-proper files) : String
@@ -1619,7 +1727,7 @@ Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Sect
 9.3.3   filter-exists, filter-targets, filter-proper-targets
 ============================================================
 \@na
-me{@default198}
+me{@default201}
 <<   $(filter-exists files) : File Sequence
      $(filter-targets files) : File Sequence
      $(filter-proper-targets) : File Sequence
@@ -1687,81 +1795,3 @@ removes targets that can't be found.
       # Evaluates to
       src/fee.o src/foo.o
 >>
-
-Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
-  
-
-9.3.5   file-sort
-=================
- 
-
-<<   $(file-sort order, files) : File Sequence
-        order : String
-        files : File Sequence
->>
-  
-The `file-sort' function
-sorts a list of filenames by build order augmented by a set of sort
-rules. Sort rules are declared using the `.ORDER' target. The
-`.BUILDORDER' defines the default order.
-  `$(file-sort <order>, <files>)'
-  For example, suppose we have the following set of rules.
-<<   a: b c
-     b: d
-     c: d
-  
-     .DEFAULT: a b c d
-        echo $(file-sort .BUILDORDER, a b c d)
->>
-  
-  In the case, the sorter produces the result `d b c a'. That is, a
-target is sorted after its dependencies. The sorter is frequently used
-to sort files that are to be linked by their dependencies (for languages
-where this matters).
-  There are three important restrictions to the sorter: 
-  
- - The sorter can be used only within a rule body. The reason for this
-   is that all dependencies must be known before the sort is performed. 
- - The sorter can only sort files that are buildable in the current
-   project. 
- - The sorter will fail if the dependencies are cyclic. 
-  
-  
-
-9.3.5.1   sort rule
--------------------
-  
-  It is possible to further constrain the sorter through the use of sort
-rules. A sort rule is declared in two steps. The target must be listed
-as an `.ORDER' target; and then a set of sort rules must be given. A
-sort rule defines a pattern constraint.
-<<   .ORDER: .MYORDER
-  
-     .MYORDER: %.foo: %.bar
-     .MYORDER: %.bar: %.baz
-  
-     .DEFAULT: a.foo b.bar c.baz d.baz
-        echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
->>
-  
-  In this example, the `.MYORDER' sort rule specifies that any file with
-a suffix `.foo' should be placed after any file with suffix `.bar', and
-any file with suffix `.bar' should be placed after a file with suffix
-`.baz'.
-  In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
-
-Node: Subsection 9-3-6,	Next: Section 9-4,	Prev: Subsection 9-3-5,	Up: Section 9-3
-  
-
-9.3.6   file-check-sort
-=======================
-
-<<   file-check-sort(files)
-        files : File Sequence
-     raises RuntimeException
->>
-  
-  The `file-check-sort' function checks whether a list of files is in
-sort order. If so, the list is returned unchanged. If not, the function
-raises an exception.
-  `$(file-check-sort <order>, <files>)' 

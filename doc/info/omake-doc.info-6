@@ -1,5 +1,93 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: Section 9-11
+  
+
+9.11.5   awk
+============
+
+<<   awk(input-files)
+     case pattern1:
+        body1
+     case pattern2:
+        body2
+     ...
+     default:
+        bodyd
+>>
+  
+  or
+<<   awk(options, input-files)
+     case pattern1:
+        body1
+     case pattern2:
+        body2
+     ...
+     default:
+        bodyd
+>>
+  
+  The `awk' function provides input processing similar to awk(1), but
+more limited. The `input-files' argument is a sequence of values, each
+specifies an `InChannel', or the name of a file for input. If called
+with no options and no file arguments, the input is taken from `stdin'.
+Output is always to `stdout'.
+  The variables `RS' and `FS' define record and field separators as
+regular expressions. The default value of `RS' is the regular expression
+`\r|\n|\r\n'. The default value of `FS' is the regular expression `[
+\t]'+.
+  The `awk' function operates by reading the input one record at a time,
+and processing it according to the following algorithm.
+  For each line, the record is first split into fields using the field
+separator `FS', and the fields are bound to the variables `$1, $2, ...'.
+The variable `$0' is defined to be the entire line, and `$*' is an array
+of all the field values. The `$(NF)' variable is defined to be the
+number of fields.
+  Next, the cases are evaluated in order. For each case, if the regular
+expression `pattern_i' matches the record `$0', then `body_i' is
+evaluated. If the body ends in an `export', the state is passed to the
+next clause. Otherwise the value is discarded. If the regular expression
+contains `\(r\)' expression, those expression override the fields `$1,
+$2, ...'.
+  For example, here is an `awk' function to print the text between two
+delimiters `\begin{<name>}' and `\end{<name>}', where the `<name>' must
+belong to a set passed as an argument to the `filter' function.
+<<    filter(names) =
+         print = false
+  
+         awk(Awk.in)
+         case $"^\\end\{\([:alpha:]+\)\}"
+            if $(mem $1, $(names))
+               print = false
+               export
+            export
+         default
+            if $(print)
+               println($0)
+         case $"^\\begin\{\([:alpha:]+\)\}"
+            print = $(mem $1, $(names))
+            export
+>>
+  
+  Note, if you want to redirect the output to a file, the easiest way is
+to redefine the `stdout' variable. The `stdout' variable is scoped the
+same way as other variables, so this definition does not affect the
+meaning of `stdout' outside the `filter' function.
+<<    filter(names) =
+          stdout = $(fopen file.out, w)
+          awk(Awk.in)
+             ...
+          close(stdout)
+>>
+  
+  Options. 
+  
+ b  "Break" when evaluating cases. Only the first case that matches will
+   be selected. 
+  
+  The 'break' function can be used to abort the loop, exiting the `awk'
+function immediately. 
+
 Node: Subsection 9-11-6,	Next: Subsection 9-11-7,	Prev: Subsection 9-11-5,	Up: Section 9-11
   
 
@@ -1553,106 +1641,3 @@ command line.
           OMakeFlags(-S --progress)
           export
 >>
-
-Node: Subsection 12-2-2,	Next: Subsection 12-2-3,	Prev: Subsection 12-2-1,	Up: Section 12-2
-  
-
-12.2.2   OMakeVersion
-=====================
-
-<<   OMakeVersion(version1)
-     OMakeVersion(version1, version2)
-        version1, version2 : String
->>
-  
-  The `OMakeVersion' function is used for version checking in
-OMakefiles. It takes one or two arguments.
-  In the one argument form, if the omake version number is less than
-`<version1>', then an exception is raised. In the two argument form, the
-version must lie between `version1' and `version2'.
-
-Node: Subsection 12-2-3,	Next: Subsection 12-2-4,	Prev: Subsection 12-2-2,	Up: Section 12-2
-  
-
-12.2.3   cmp-versions
-=====================
- 
-<<   $(cmp-versions version1, version2)
-        version1, version2 : String
->>
-  
-  The `cmp-versions\' functions can be used to compare arbitrary version
-strings. It returns 0 when the two version strings are equal, a negative
-number when the first string represents an earlier version, and a
-positive number otherwise. 
-
-Node: Subsection 12-2-4,	Next: Section 12-3,	Prev: Subsection 12-2-3,	Up: Section 12-2
-  
-
-12.2.4   DefineCommandVars
-==========================
-
-<<   DefineCommandVars()
->>
-  
-  The `DefineCommandVars' function redefines the variables passed on the
-commandline. Variables definitions are passed on the command line in the
-form `name=value'. This function is primarily for internal use by omake
-to define these variables for the first time. 
-
-Node: Section 12-3,	Next: Subsection 12-3-1,	Prev: Section 12-2,	Up: Chapter 12
-  
-
-12.3   Examining the dependency graph
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 12-3-1::	dependencies, dependencies-all, dependencies-proper
-* Subsection 12-3-2::	target
-* Subsection 12-3-3::	find-build-targets
-* Subsection 12-3-4::	project-directories
-* Subsection 12-3-5::	rule
-
-
-Node: Subsection 12-3-1,	Next: Subsection 12-3-2,	Prev: Section 12-3,	Up: Section 12-3
-  
-
-12.3.1   dependencies, dependencies-all, dependencies-proper
-============================================================
-\@na
-me{@default327}
-<<   $(dependencies targets) : File Array
-     $(dependencies-all targets) : File Array
-     $(dependencies-proper targets) : File Array
-        targets : File Array
-     raises RuntimeException
->>
-  
-  The `dependencies' function returns the set of immediate dependencies
-of the given targets. This function can only be used within a rule body
-and all the arguments to the `dependency' function must also be
-dependencies of this rule. This restriction ensures that all the
-dependencies are known when this function is executed.
-  The `dependencies-all' function is similar, but it expands the
-dependencies recursively, returning all of the dependencies of a target,
-not just the immediate ones.
-  The `dependencies-proper' function returns all recursive dependencies,
-except the dependencies that are leaf targets. A leaf target is a target
-that has no dependencies and no build commands; a leaf target
-corresponds to a source file in the current project.
-  In all three functions, files that are not part of the current project
-are silently discarded.
-  One purpose of the `dependencies-proper' function is for "clean"
-targets. For example, one way to delete all intermediate files in a
-build is with a rule that uses the `dependencies-proper'. Note however,
-that the rule requires building the project before it can be deleted.
-For a shorter form, see the `filter-proper-targets' function.
-<<    .PHONY: clean
-  
-      APP = ...     # the name of the target application
-      clean: $(APP)
-         rm $(dependencies-proper $(APP))
->>
-  

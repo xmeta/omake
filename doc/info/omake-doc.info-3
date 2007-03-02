@@ -421,13 +421,14 @@ scope (see also the section on Scoping).
 * Section 7-3::	section
 * Section 7-4::	section rule
 * Section 7-5::	Special dependencies
-* Section 7-6::	.SCANNER rules
+* Section 7-6::	'.SCANNER' rules
 * Section 7-7::	.DEFAULT
 * Section 7-8::	.SUBDIRS
 * Section 7-9::	.INCLUDE
 * Section 7-10::	.PHONY
 * Section 7-11::	Rule scoping
-* Section 7-12::	Pathnames in rules
+* Section 7-12::	Running OMake from a subdirectory
+* Section 7-13::	Pathnames in rules
 
 
 Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
@@ -608,8 +609,8 @@ For example, the following rule:
 Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
   
 
-7.6   .SCANNER rules
-*=*=*=*=*=*=*=*=*=*=
+7.6   '.SCANNER' rules
+*=*=*=*=*=*=*=*=*=*=*=
 
    
   Scanner rules define a way to specify automatic dependency scanning. A
@@ -682,15 +683,15 @@ enabled).
 3.4.3*Note Subsection 3-4-3::.
 * Menu:
 
-* Subsection 7-6-1::	Named scanners, and the :scanner: target
+* Subsection 7-6-1::	Named scanners, and the ':scanner:' dependencies
 * Subsection 7-6-2::	Notes
 
 
 Node: Subsection 7-6-1,	Next: Subsection 7-6-2,	Prev: Section 7-6,	Up: Section 7-6
   
 
-7.6.1   Named scanners, and the :scanner: target
-================================================
+7.6.1   Named scanners, and the ':scanner:' dependencies
+========================================================
    
   Sometimes it may be useful to specify explicitly which scanner should
 be used in a rule. For example, we might compile `.c' files with
@@ -933,8 +934,8 @@ a context where `CFLAGS=-g -DLIBRARY').
 * Menu:
 
 * Subsection 7-11-1::	Scoping of implicit rules
-* Subsection 7-11-2::	Scoping of .SCANNER rules
-* Subsection 7-11-3::	Scoping for .PHONY targets
+* Subsection 7-11-2::	Scoping of '.SCANNER' rules
+* Subsection 7-11-3::	Scoping for '.PHONY' targets
 
 
 Node: Subsection 7-11-1,	Next: Subsection 7-11-2,	Prev: Section 7-11,	Up: Section 7-11
@@ -971,8 +972,8 @@ implicit rule for building `%.o' files. The implicit rule adds the
 Node: Subsection 7-11-2,	Next: Subsection 7-11-3,	Prev: Subsection 7-11-1,	Up: Section 7-11
   
 
-7.11.2   Scoping of .SCANNER rules
-==================================
+7.11.2   Scoping of '.SCANNER' rules
+====================================
    
   Scanner rules are scoped the same way as normal rules. If the
 `.SCANNER' rule is explicit (containing no wildcard patterns), then the
@@ -1011,8 +1012,8 @@ is called with `CFLAGS=-g -O3'.
 Node: Subsection 7-11-3,	Next: Section 7-12,	Prev: Subsection 7-11-2,	Up: Section 7-11
   
 
-7.11.3   Scoping for .PHONY targets
-===================================
+7.11.3   Scoping for '.PHONY' targets
+=====================================
    
   Phony targets (targets that do not correspond to files) are defined
 with a `.PHONY:' rule. Phony targets are scoped as usual. The following
@@ -1042,18 +1043,111 @@ declaration first.
   Phony targets are passed to subdirectories. As a practical matter, it
 is wise to declare all `.PHONY' targets in your root `OMakefile', before
 any `.SUBDIRS'. This will ensure that 1) they are considered as phony
-targets in each of the sbdirectories, and 2) you can build them from the
-project root.
+targets in each of the subdirectories, and 2) you can build them from
+the project root.
 <<    .PHONY: all install clean
   
       .SUBDIRS: src lib clib
 >>
   
+  Note that when a `.PHONY' target is inherited by a subdirectory via a
+`.SUBDIRS', a whole hierarchy of `.PHONY' target (that are a part of the
+global one) is created, as described in Section
+7.12.1*Note Subsection 7-12-2:: below.
 
-Node: Section 7-12,	Next: Chapter 8,	Prev: Section 7-11,	Up: Chapter 7
+Node: Section 7-12,	Next: Subsection 7-12-1,	Prev: Section 7-11,	Up: Chapter 7
   
 
-7.12   Pathnames in rules
+7.12   Running OMake from a subdirectory
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+    Running `omake foo' asks OMake to
+build the file `foo' in context of the whole project, even when running
+from a subdirectory of the project. Therefore, if `bar/baz' is a regular
+target (not a `.PHONY' one), then running `omake bar/baz' and running
+`(cd bar; omake baz)' are usually equivalent.
+  There are two noteworthy exceptions to the above rule: 
+  
+ - If the subdirectory is not a part of the project (there is no
+   `.SUBDIRS') for it, then OMake will complain if you try to run it in
+   that directory. 
+ - If a subdirectory contains an `OMakeroot' of its own, this would
+   designate the subdirectory as a separate project (which is usually a
+   bad idea and is not recommended). 
+  
+* Menu:
+
+* Subsection 7-12-1::	Phony targets in a subdirectory
+* Subsection 7-12-2::	Hierarchy of '.PHONY' targets
+
+
+Node: Subsection 7-12-1,	Next: Subsection 7-12-2,	Prev: Section 7-12,	Up: Section 7-12
+  
+
+7.12.1   Phony targets in a subdirectory
+========================================
+   \@na
+me{@default56}
+  Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
+and both the root `OMakefile' and the `OMakefile' in some of the
+subdirectories contain `clean:' rules. In this case 
+  
+ - Running `omake clean' in the root directory will execute all the
+   rules (each in the appropriate directory); 
+ - Running `omake clean' in the subdirectory will execute just its local
+   one, as well as the ones from the subdirectories of the current
+   directory. 
+  
+  The above equally applies to the built-in `.PHONY' targets, including
+'.DEFAULT'. Namely, if OMake is executed (without argument) in the root
+directory of a project, all the `.DEFAULT' targets in the project will
+be built. On the other hand, when OMake is executed (without argument)
+in a subdirectory, only the `.DEFAULT' targets defined in and under that
+subdirectory will be built.
+  The following Section explains the underlying semantics that gives
+rise to the above behavior.
+
+Node: Subsection 7-12-2,	Next: Section 7-13,	Prev: Subsection 7-12-1,	Up: Section 7-12
+  
+
+7.12.2   Hierarchy of '.PHONY' targets
+======================================
+   
+  When the the root `OMakefile' contains a `.PHONY: clean' directive, it
+creates: 
+  
+ - A "global" phony target `/.PHONY/clean' (note the leading "`/'"); 
+ - A "relative" phony target attached to the current directory ---
+   `.PHONY/clean' (note the lack of the leading "`/'"); 
+ - A dependency `/.PHONY/clean: .PHONY/clean'. 
+  
+  All the `clean: ...' rules in the root `OMakefile' following this
+`.PHONY: clean' declaration would be interpreted as rules for the
+`.PHONY/clean' target.
+  Now when OMake then comes across a `.SUBDIRS: foo' directive (when it
+is in scope of the above `.PHONY: clean' declaration), it does the
+following: 
+  
+ - Creates a new `.PHONY/foo/clean' "relative" phony target; 
+ - Creates the dependency `.PHONY/clean: .PHONY/foo/clean'; 
+ - Processes the body of the `.SUBDIRS: foo' directive, or reads the
+   `foo/OMakefile' file, if the body is empty. While doing that, it
+   interprets its instructions relative to the `foo' directory. In
+   particular, all the `clean: ...' rules will be taken to apply to
+   `.PHONY/foo/clean'. 
+  
+  Now when you run `omake clean' in the root directory of the project,
+it is interpreted as `omake .PHONY/clean' (similar to how it happens
+with the normal targets), so both the rules for `.PHONY/clean' are
+executed and the rules for its dependency  `.PHONY/foo/clean'. Running
+`(cd foo; omake clean)' is, as for normal targets, equivalent to running
+`omake .PHONY/foo/clean' and only those rules that apply to
+`.PHONY/foo/clean' will be executed.
+
+Node: Section 7-13,	Next: Chapter 8,	Prev: Section 7-12,	Up: Chapter 7
+  
+
+7.13   Pathnames in rules
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1098,7 +1192,7 @@ literally.
 to absolute pathnames. For example, this might be useful when parsing
 the OMake output to look for errors. For this, you can use the
 `--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
-call `omake' with the `--absname' option, all filenames will be exapnded
+call `omake' with the `--absname' option, all filenames will be expanded
 to absolute names.
 <<    # omake --absname demo (on a Unix system)
       /home/.../a/b /home/.../c/d
@@ -1407,112 +1501,4 @@ function uses regular expression matching.
         println(The string $(FILE) has suffix $1)
      default
         println(The string $(FILE) has no suffix)
->>
-
-Node: Subsection 8-2-7,	Next: Subsection 8-2-8,	Prev: Subsection 8-2-6,	Up: Section 8-2
-  
-
-8.2.7   try
-===========
-
-<<   try
-        try-body
-     catch class1(v1)
-        catch-body
-     when expr
-        when-body
-     ...
-     finally
-        finally-body
->>
-  
-  The `try' form is used for exception handling. First, the expressions
-in the `try-body' are evaluated.
-  If evaluation results in a value `v' without raising an exception,
-then the expressions in the `finally-body' are evaluated and the value
-`v' is returned as the result.
-  If evaluation of the `try-body' results in a exception object `obj',
-the `catch' clauses are examined in order. When examining `catch' clause
-`catch class(v)', if the exception object `obj' is an instance of the
-class name `class', the variable `v' is bound to the exception object,
-and the expressions in the `catch-body' are evaluated.
-  If a `when' clause is encountered while a `catch' body is being
-evaluated, the predicate `expr' is evaluated. If the result is true,
-evaluation continues with the expressions in the `when-body'. Otherwise,
-the next `catch' clause is considered for evaluation.
-  If evaluation of a `catch-body' or `when-body' completes successfully,
-returning a value `v', without encountering another `when' clause, then
-the expressions in the `finally-body' are evaluated and the value `v' is
-returned as the result.
-  There can be any number of `catch' clauses; the `finally' clause is
-optional. 
-
-Node: Subsection 8-2-8,	Next: Subsection 8-2-9,	Prev: Subsection 8-2-7,	Up: Section 8-2
-  
-
-8.2.8   raise
-=============
-
-<<   raise exn
-        exn : Exception
->>
-  
-  The `raise' function raises an exception. The `exn' object can be any
-object. However, the normal convention is to raise an 'Exception'
-object.
-  If the exception is never caught, the whole object will be verbosely
-printed in the error message. However, if the object is an `Exception'
-one and contains a `message' field, only that field will be included in
-the error message. 
-
-Node: Subsection 8-2-9,	Next: Subsection 8-2-10,	Prev: Subsection 8-2-8,	Up: Section 8-2
-  
-
-8.2.9   exit
-============
-
-<<   exit(code)
-        code : Int
->>
-  
-  The `exit' function terminates omake abnormally.
-  `$(exit <code>)'
-  The `exit' function takes one integer argument, which is exit code.
-Non-zero values indicate abnormal termination. 
-
-Node: Subsection 8-2-10,	Next: Subsection 8-2-11,	Prev: Subsection 8-2-9,	Up: Section 8-2
-  
-
-8.2.10   defined
-================
-
-<<   $(defined sequence) : String
-        sequence : Sequence
->>
-  
-  The `defined' function test whether all the variables in the sequence
-are currently defined. For example, the following code defines the `X'
-variable if it is not already defined.
-<<    if $(not $(defined X))
-         X = a b c
-         export
->>
-
-Node: Subsection 8-2-11,	Next: Subsection 8-2-12,	Prev: Subsection 8-2-10,	Up: Section 8-2
-  
-
-8.2.11   defined-env
-====================
-
-<<   $(defined-env sequence) : String
-        sequence : String
->>
-  
-  The `defined-env' function tests whether a variable is defined as part
-of the process environment.
-  For example, the following code adds the `-g' compile option if the
-environment variable `DEBUG' is defined.
-<<if $(defined-env DEBUG)
-      CFLAGS += -g
-      export
 >>

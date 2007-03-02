@@ -30,13 +30,14 @@
 <LI><A HREF="omake-rules.html#toc54">section</A></LI>
 <LI><A HREF="omake-rules.html#toc55">section rule</A></LI>
 <LI><A HREF="omake-rules.html#toc56">Special dependencies</A></LI>
-<LI><A HREF="omake-rules.html#toc57">.SCANNER rules</A></LI>
+<LI><A HREF="omake-rules.html#toc57"><CODE>.SCANNER</CODE> rules</A></LI>
 <LI><A HREF="omake-rules.html#toc58">.DEFAULT</A></LI>
 <LI><A HREF="omake-rules.html#toc59">.SUBDIRS</A></LI>
 <LI><A HREF="omake-rules.html#toc60">.INCLUDE</A></LI>
 <LI><A HREF="omake-rules.html#toc61">.PHONY</A></LI>
 <LI><A HREF="omake-rules.html#toc62">Rule scoping</A></LI>
-<LI><A HREF="omake-rules.html#toc63">Pathnames in rules</A></LI>
+<LI><A HREF="omake-rules.html#toc63">Running OMake from a subdirectory</A></LI>
+<LI><A HREF="omake-rules.html#toc64">Pathnames in rules</A></LI>
 </UL>
 <P>
 <A NAME="chapter:rules"></A>
@@ -142,7 +143,7 @@ the following rule:</P><PRE CLASS="verbatim">    a: b :exists: c
 The values are arbitrary (they are not limited to variables)
 </LI><LI CLASS="li-itemize">The values are evaluated at rule expansion time, so expressions
 containing variables like <CODE>$@</CODE>, <CODE>$^</CODE>, etc are legal.
-</LI></UL><H2 CLASS="section"><A NAME="toc57"></A><A NAME="htoc79">7.6</A>&#XA0;&#XA0;.SCANNER rules</H2><P>
+</LI></UL><H2 CLASS="section"><A NAME="toc57"></A><A NAME="htoc79">7.6</A>&#XA0;&#XA0;<CODE>.SCANNER</CODE> rules</H2><P>
 <A NAME="@default46"></A><A NAME="@target0"></A><A NAME="target:.SCANNER"></A></P><P>Scanner rules define a way to specify automatic dependency scanning. A <CODE>.SCANNER</CODE> rule has the
 following form.</P><PRE CLASS="verbatim">    .SCANNER: target: dependencies
         commands
@@ -176,7 +177,7 @@ content that OMake will not be able to parse as a dependency. The output is allo
 dependency specifications for unrelated targets, however such dependencies will be ignored. The
 scanner rules are allowed to produce arbitrary output on the standard error channel &#X2014; such output
 will be handled in the same way as the output of the ordinary rules (in other words, it will be
-presented to the user, when dictated by the <CODE>--output-</CODE>&#X2026; options enabled).</P><P>Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&#XA0;<A HREF="omake-build-examples.html#sec:scanner-exm">3.4.3</A>.</P><H3 CLASS="subsection"><A NAME="htoc80">7.6.1</A>&#XA0;&#XA0;Named scanners, and the :scanner: target</H3><P>
+presented to the user, when dictated by the <CODE>--output-</CODE>&#X2026; options enabled).</P><P>Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&#XA0;<A HREF="omake-build-examples.html#sec:scanner-exm">3.4.3</A>.</P><H3 CLASS="subsection"><A NAME="htoc80">7.6.1</A>&#XA0;&#XA0;Named scanners, and the <CODE>:scanner:</CODE> dependencies</H3><P>
 <A NAME="@default47"></A></P><P>Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
 example, we might compile <CODE>.c</CODE> files with different options, or (heaven help us) we may be
 using both <CODE>gcc</CODE> and the Microsoft Visual C++ compiler <CODE>cl</CODE>. In general, the target of a
@@ -314,7 +315,7 @@ rules. If we like, we can modify the example above to provide a new implicit rul
 </PRE><P>In this case, the target <CODE>hello_lib.o</CODE> is built in a scope with a new implicit rule for
 building <CODE>%.o</CODE> files. The implicit rule adds the <CODE>-DLIBRARY</CODE> option. This implicit rule
 is defined only for the target <CODE>hello_lib.o</CODE>; the target <CODE>hello_code.o</CODE> is built as
-normal.</P><H3 CLASS="subsection"><A NAME="htoc88">7.11.2</A>&#XA0;&#XA0;Scoping of .SCANNER rules</H3><P>
+normal.</P><H3 CLASS="subsection"><A NAME="htoc88">7.11.2</A>&#XA0;&#XA0;Scoping of <CODE>.SCANNER</CODE> rules</H3><P>
 <A NAME="@default53"></A><A NAME="@target5"></A></P><P>Scanner rules are scoped the same way as normal rules. If the <CODE>.SCANNER</CODE> rule is explicit
 (containing no wildcard patterns), then the scope of the scan target is the same as the the rule.
 If the <CODE>.SCANNER</CODE> rule is implicit, then the environment is taken from the <CODE>:scanner:</CODE>
@@ -342,7 +343,7 @@ dependency.</P><PRE CLASS="verbatim">    # The executable is compiled with debug
 like this! In this case, the <CODE>.SCANNER</CODE> rule specifies that the C-compiler should be called
 with the <CODE>-MM</CODE> flag to compute dependencies. For the target <CODE>hello_lib.o</CODE>, the scanner
 is called with <CODE>CFLAGS=-g -DLIBRARY</CODE>, and for <CODE>hello_code.o</CODE> it is called with
-<CODE>CFLAGS=-g -O3</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc89">7.11.3</A>&#XA0;&#XA0;Scoping for .PHONY targets</H3><P>
+<CODE>CFLAGS=-g -O3</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc89">7.11.3</A>&#XA0;&#XA0;Scoping for <CODE>.PHONY</CODE> targets</H3><P>
 <A NAME="section:PHONY-scoping"></A><A NAME="@default54"></A><A NAME="@target6"></A></P><P>Phony targets (targets that do not correspond to files) are defined with a <CODE>.PHONY:</CODE> rule.
 Phony targets are scoped as usual. The following illustrates a common mistake, where the
 <CODE>.PHONY</CODE> target is declared <EM>after</EM> it is used.</P><PRE CLASS="verbatim">    # !!This example is broken!!
@@ -362,11 +363,58 @@ to write this example is to place the <CODE>.PHONY</CODE> declaration first.</P>
         $(CC) $(CFLAGS) -o $@ $+
 </PRE><P>Phony targets are passed to subdirectories. As a practical matter, it is wise to declare all
 <CODE>.PHONY</CODE> targets in your root <CODE>OMakefile</CODE>, before any <CODE>.SUBDIRS</CODE>. This will ensure
-that 1) they are considered as phony targets in each of the sbdirectories, and 2) you can build them
+that 1) they are considered as phony targets in each of the subdirectories, and 2) you can build them
 from the project root.</P><PRE CLASS="verbatim">    .PHONY: all install clean
 
     .SUBDIRS: src lib clib
-</PRE><H2 CLASS="section"><A NAME="toc63"></A><A NAME="htoc90">7.12</A>&#XA0;&#XA0;Pathnames in rules</H2><P>In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
+</PRE><P>Note that when a <CODE>.PHONY</CODE> target is inherited by a subdirectory via a <CODE>.SUBDIRS</CODE>, a whole
+hierarchy of <CODE>.PHONY</CODE> target (that are a part of the global one) is created, as described in
+Section&#XA0;<A HREF="#section:PHONY-hierarchy">7.12.1</A> below.</P><H2 CLASS="section"><A NAME="toc63"></A><A NAME="htoc90">7.12</A>&#XA0;&#XA0;Running OMake from a subdirectory</H2><P>
+<A NAME="section:running-from-subdir"></A>
+Running <CODE>omake foo</CODE> asks OMake to build the file <CODE>foo</CODE> in context of the <EM>whole</EM>
+project, even when running from a subdirectory of the project. Therefore, if <CODE>bar/baz</CODE> is a
+regular target (not a <CODE>.PHONY</CODE> one), then running <CODE>omake bar/baz</CODE> and running
+<CODE>(cd bar; omake baz)</CODE> are usually equivalent.</P><P>There are two noteworthy exceptions to the above rule:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+If the subdirectory is not a part of the project (there is no <CODE>.SUBDIRS</CODE>) for it, then
+OMake will complain if you try to run it in that directory.
+</LI><LI CLASS="li-itemize">If a subdirectory contains an <CODE>OMakeroot</CODE> of its own, this would designate
+the subdirectory as a separate project (which is usually a bad idea and is not recommended).
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc91">7.12.1</A>&#XA0;&#XA0;Phony targets in a subdirectory</H3><P>
+<A NAME="section:PHONY-hierarchy"></A><A NAME="@default55"></A><A NAME="@target7"></A><A NAME="@default56"></A><A NAME="@target8"></A></P><P>Suppose you have a <CODE>.PHONY: clean</CODE> declared in your root <CODE>OMakefile</CODE> and
+both the root <CODE>OMakefile</CODE> and the <CODE>OMakefile</CODE> in some of the subdirectories contain
+<CODE>clean:</CODE> rules. In this case
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+Running <CODE>omake clean</CODE> in the root directory will execute all the rules (each in the
+appropriate directory);
+</LI><LI CLASS="li-itemize">Running <CODE>omake clean</CODE> in the subdirectory will execute just its local one, as well as the
+ones from the subdirectories of the current directory.
+</LI></UL><P>The above equally applies to the built-in <CODE>.PHONY</CODE> targets, including <CODE><A >.DEFAULT</A></CODE>.
+Namely, if OMake is executed (without argument) in the root directory of a project, all the
+<CODE>.DEFAULT</CODE> targets in the project will be built. On the other hand, when OMake is executed
+(without argument) in a subdirectory, only the <CODE>.DEFAULT</CODE> targets defined in and under that
+subdirectory will be built.</P><P>The following Section explains the underlying semantics that gives rise to the above behavior.</P><H3 CLASS="subsection"><A NAME="htoc92">7.12.2</A>&#XA0;&#XA0;Hierarchy of <CODE>.PHONY</CODE> targets</H3><P>
+<A NAME="section:PHONY-hierarchy"></A><A NAME="@default57"></A><A NAME="@target9"></A></P><P>When the the root <CODE>OMakefile</CODE> contains a <CODE>.PHONY: clean</CODE> directive, it creates:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+A &#X201C;global&#X201D; phony target <CODE>/.PHONY/clean</CODE> (note the leading &#X201C;<CODE>/</CODE>&#X201D;);
+</LI><LI CLASS="li-itemize">A &#X201C;relative&#X201D; phony target attached to the current directory &#X2014; <CODE>.PHONY/clean</CODE> (note
+the lack of the leading &#X201C;<CODE>/</CODE>&#X201D;);
+</LI><LI CLASS="li-itemize">A dependency <CODE>/.PHONY/clean: .PHONY/clean</CODE>.
+</LI></UL><P>All the <CODE>clean: ...</CODE> rules in the root <CODE>OMakefile</CODE> following this <CODE>.PHONY: clean</CODE>
+declaration would be interpreted as rules for the <CODE>.PHONY/clean</CODE> target.</P><P>Now when OMake then comes across a <CODE>.SUBDIRS: foo</CODE> directive (when it is in scope of the above
+<CODE>.PHONY: clean</CODE> declaration), it does the following:
+</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+Creates a new <CODE>.PHONY/foo/clean</CODE> &#X201C;relative&#X201D; phony target;
+</LI><LI CLASS="li-itemize">Creates the dependency <CODE>.PHONY/clean: .PHONY/foo/clean</CODE>;
+</LI><LI CLASS="li-itemize">Processes the body of the <CODE>.SUBDIRS: foo</CODE> directive, or reads the <CODE>foo/OMakefile</CODE>
+file, if the body is empty. While doing that, it interprets its instructions relative to the
+<CODE>foo</CODE> directory. In particular, all the <CODE>clean: ...</CODE> rules will be taken to apply to
+<CODE>.PHONY/foo/clean</CODE>.
+</LI></UL><P>Now when you run <CODE>omake clean</CODE> in the root directory of the project, it is interpreted as
+<CODE>omake .PHONY/clean</CODE> (similar to how it happens with the normal targets), so both the rules for
+<CODE>.PHONY/clean</CODE> are executed and the rules for its dependency 
+<CODE>.PHONY/foo/clean</CODE>. Running <CODE>(cd foo; omake clean)</CODE> is, as for normal targets, equivalent to running
+<CODE>omake .PHONY/foo/clean</CODE> and only those rules that apply to <CODE>.PHONY/foo/clean</CODE> will be executed.</P><H2 CLASS="section"><A NAME="toc64"></A><A NAME="htoc93">7.13</A>&#XA0;&#XA0;Pathnames in rules</H2><P>In rules, the targets and dependencies are first translated to <EM>file</EM> values (as in the
 <A HREF="omake-system.html#fun:file"><CODE>file</CODE> function</A>). They are then translated to strings for the command line.
 This can cause some unexpected behavior. In the following example, the <A HREF="omake-system.html#fun:absname"><CODE>absname</CODE> function</A>
 is the absolute pathname for the file <CODE>a</CODE>, but the rule still prints
@@ -395,7 +443,7 @@ One way to do this is to specify them literally.</P><PRE CLASS="verbatim">    SR
 </PRE><P>Alternately, you might wish that filenames be automatically expanded to absolute pathnames. For
 example, this might be useful when parsing the OMake output to look for errors. For this, you can
 use the <CODE>--absname</CODE> option (Section&#XA0;<A HREF="omake-options.html#option:--absname">A.3.20</A>). If you call <CODE>omake</CODE> with the
-<CODE>--absname</CODE> option, all filenames will be exapnded to absolute names.</P><PRE CLASS="verbatim">    # omake --absname demo (on a Unix system)
+<CODE>--absname</CODE> option, all filenames will be expanded to absolute names.</P><PRE CLASS="verbatim">    # omake --absname demo (on a Unix system)
     /home/.../a/b /home/.../c/d
 </PRE><P>Alternately, the <CODE>--absname</CODE> option is scoped. If you want to use it for only a few rules, you
 can use the <A HREF="omake-build.html#fun:OMakeFlags"><CODE>OMakeFlags</CODE> function</A> to control how it is applied.</P><PRE CLASS="verbatim">   section

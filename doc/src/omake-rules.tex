@@ -221,7 +221,7 @@ Notes:
 containing variables like \verb+$@+, \verb+$^+, etc are legal.
 \end{itemize}
 
-\section{.SCANNER rules}
+\section{\code{.SCANNER} rules}
 \targetref{.SCANNER}
 
 Scanner rules define a way to specify automatic dependency scanning.  A \verb+.SCANNER+ rule has the
@@ -296,7 +296,7 @@ presented to the user, when dictated by the \verb+--output-+$\ldots$ options ena
 
 Additional examples of the \verb+.SCANNER+ rules can be found in Section~\ref{sec:scanner-exm}.
 
-\subsection{Named scanners, and the :scanner: target}
+\subsection{Named scanners, and the \code{:scanner:} dependencies}
 \index{:scanner:}
 
 Sometimes it may be useful to specify explicitly which scanner should be used in a rule.  For
@@ -546,7 +546,7 @@ building \verb+%.o+ files.  The implicit rule adds the \verb+-DLIBRARY+ option. 
 is defined only for the target \verb+hello_lib.o+; the target \verb+hello_code.o+ is built as
 normal.
 
-\subsection{Scoping of .SCANNER rules}
+\subsection{Scoping of \code{.SCANNER} rules}
 \index{.SCANNER}\index[target]{.SCANNER}
 
 Scanner rules are scoped the same way as normal rules.  If the \verb+.SCANNER+ rule is explicit
@@ -583,7 +583,7 @@ with the \verb+-MM+ flag to compute dependencies.  For the target \verb+hello_li
 is called with \verb+CFLAGS=-g -DLIBRARY+, and for \verb+hello_code.o+ it is called with
 \verb+CFLAGS=-g -O3+.
 
-\subsection{Scoping for .PHONY targets}
+\subsection{Scoping for \code{.PHONY} targets}
 \label{section:PHONY-scoping}\index{.PHONY}\index[target]{.PHONY}
 
 Phony targets (targets that do not correspond to files) are defined with a \verb+.PHONY:+ rule.
@@ -615,7 +615,7 @@ to write this example is to place the \verb+.PHONY+ declaration first.
 
 Phony targets are passed to subdirectories.  As a practical matter, it is wise to declare all
 \verb+.PHONY+ targets in your root \verb+OMakefile+, before any \verb+.SUBDIRS+.  This will ensure
-that 1) they are considered as phony targets in each of the sbdirectories, and 2) you can build them
+that 1) they are considered as phony targets in each of the subdirectories, and 2) you can build them
 from the project root.
 
 \begin{verbatim}
@@ -623,6 +623,77 @@ from the project root.
 
     .SUBDIRS: src lib clib
 \end{verbatim}
+
+Note that when a \verb+.PHONY+ target is inherited by a subdirectory via a \verb+.SUBDIRS+, a whole
+hierarchy of \verb+.PHONY+ target (that are a part of the global one) is created, as described in
+Section~\ref{section:PHONY-hierarchy} below.
+
+\section{Running \OMake{} from a subdirectory}
+\label{section:running-from-subdir}
+Running \verb+omake foo+ asks \OMake{} to build the file \verb+foo+ in context of the \emph{whole}
+project, even when running from a subdirectory of the project. Therefore, if \verb+bar/baz+ is a
+regular target (not a \verb+.PHONY+ one), then running \verb+omake bar/baz+ and running
+\verb+(cd bar; omake baz)+ are usually equivalent.
+
+There are two noteworthy exceptions to the above rule:
+\begin{itemize}
+\item If the subdirectory is not a part of the project (there is no \verb+.SUBDIRS+) for it, then
+\OMake{} will complain if you try to run it in that directory.
+\item If a subdirectory contains an \verb+OMakeroot+ of its own, this would designate
+the subdirectory as a separate project (which is usually a bad idea and is not recommended).
+\end{itemize}
+
+\subsection{Phony targets in a subdirectory}
+\label{section:PHONY-hierarchy}\index{.PHONY}\index[target]{.PHONY}\index{.DEFAULT}\index[target]{.DEFAULT}
+
+Suppose you have a \verb+.PHONY: clean+ declared in your root \verb+OMakefile+ and
+both the root \verb+OMakefile+ and the \verb+OMakefile+ in some of the subdirectories contain
+\verb+clean:+ rules.  In this case
+\begin{itemize}
+\item Running \verb+omake clean+ in the root directory will execute all the rules (each in the
+appropriate directory);
+\item Running \verb+omake clean+ in the subdirectory will execute just its local one, as well as the
+ones from the subdirectories of the current directory.
+\end{itemize}
+
+The above equally applies to the built-in \verb+.PHONY+ targets, including \hypertargn{.DEFAULT}.
+Namely, if \OMake{} is executed (without argument) in the root directory of a project, all the
+\verb+.DEFAULT+ targets in the project will be built. On the other hand, when \OMake{} is executed
+(without argument) in a subdirectory, only the \verb+.DEFAULT+ targets defined in and under that
+subdirectory will be built.
+
+The following Section explains the underlying semantics that gives rise to the above behavior.
+
+\subsection{Hierarchy of \code{.PHONY} targets}
+\label{section:PHONY-hierarchy}\index{.PHONY}\index[target]{.PHONY}
+
+When the the root \verb+OMakefile+ contains a \verb+.PHONY: clean+ directive, it creates:
+\begin{itemize}
+\item A ``global'' phony target \verb+/.PHONY/clean+ (note the leading ``\verb+/+'');
+\item A ``relative'' phony target attached to the current directory --- \verb+.PHONY/clean+ (note
+the lack of the leading ``\verb+/+'');
+\item A dependency \verb+/.PHONY/clean: .PHONY/clean+.
+\end{itemize}
+
+All the \verb+clean: ...+ rules in the root \verb+OMakefile+ following this \verb+.PHONY: clean+
+declaration would be interpreted as rules for the \verb+.PHONY/clean+ target.
+
+Now when \OMake{} then comes across a \verb+.SUBDIRS: foo+ directive (when it is in scope of the above
+\verb+.PHONY: clean+ declaration), it does the following:
+\begin{itemize}
+\item Creates a new \verb+.PHONY/foo/clean+ ``relative'' phony target;
+\item Creates the dependency \verb+.PHONY/clean: .PHONY/foo/clean+;
+\item Processes the body of the \verb+.SUBDIRS: foo+ directive, or reads the \verb+foo/OMakefile+
+file, if the body is empty. While doing that, it interprets its instructions relative to the
+\verb+foo+ directory. In particular, all the \verb+clean: ...+ rules will be taken to apply to
+\verb+.PHONY/foo/clean+.
+\end{itemize}
+
+Now when you run \verb+omake clean+ in the root directory of the project, it is interpreted as
+\verb+omake .PHONY/clean+ (similar to how it happens with the normal targets), so both the rules for
+\verb+.PHONY/clean+ are executed and the rules for its dependency 
+\verb+.PHONY/foo/clean+. Running \verb+(cd foo; omake clean)+ is, as for normal targets, equivalent to running
+\verb+omake .PHONY/foo/clean+ and only those rules that apply to \verb+.PHONY/foo/clean+ will be executed.
 
 \section{Pathnames in rules}
 
@@ -670,7 +741,7 @@ One way to do this is to specify them literally.
 Alternately, you might wish that filenames be automatically expanded to absolute pathnames.  For
 example, this might be useful when parsing the \OMake{} output to look for errors.  For this, you can
 use the \verb+--absname+ option (Section~\ref{option:--absname}).  If you call \verb+omake+ with the
-\verb+--absname+ option, all filenames will be exapnded to absolute names.
+\verb+--absname+ option, all filenames will be expanded to absolute names.
 
 \begin{verbatim}
     # omake --absname demo (on a Unix system)

@@ -1,5 +1,167 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
+  
+
+A.2.1   -s
+==========
+ `-s'
+  Never not print commands as they are executed (be "silent").
+
+Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
+  
+
+A.2.2   -S
+==========
+ `-S'
+  Do not print commands as they are executed unless they produce output
+and/or fail. This is the default.
+
+Node: Subsection A-2-3,	Next: Subsection A-2-4,	Prev: Subsection A-2-2,	Up: Section A-2
+  
+
+A.2.3   -w
+==========
+ `-w'
+  Print directory information in make format as commands are executed.
+This is mainly useful for editors that expect make-style directory
+information for determining the location of errors.
+
+Node: Subsection A-2-4,	Next: Subsection A-2-5,	Prev: Subsection A-2-3,	Up: Section A-2
+  
+
+A.2.4   --progress
+==================
+ `--progress'
+  Print a progress indicator. This option is enabled by default when the
+OMake's output (`stdout') is on a terminal and disabled by default
+(except on Windows) when the OMake's output is redirected.
+
+Node: Subsection A-2-5,	Next: Subsection A-2-6,	Prev: Subsection A-2-4,	Up: Section A-2
+  
+
+A.2.5   --print-status
+======================
+
+`--print-status'
+  Print status lines (the `+' and `-' lines).
+
+Node: Subsection A-2-6,	Next: Subsection A-2-7,	Prev: Subsection A-2-5,	Up: Section A-2
+  
+
+A.2.6   --print-exit
+====================
+
+`--print-exit'
+  Print termination codes when commands complete.
+
+Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
+  
+
+A.2.7   --verbose
+=================
+ `--verbose'
+  Make OMake very verbose. This option is equivalent to `--no-S
+--print-status --print-exit VERBOSE=true'
+
+Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
+  
+
+A.2.8   --output-normal
+=======================
+
+`--output-normal'
+  As rule commands are executed, relay their output to the OMake output
+right away. This is enabled by default, unless `--output-postpone' or
+`--output-only-errors' is enabled.
+
+Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
+  
+
+A.2.9   --output-postpone
+=========================
+
+`--output-postpone'
+  When a rule finishes, print the output as a single block. This is
+useful in combination `-j' option (see Section
+A.3.12*Note Subsection A-3-12::), where the output of multiple subprocesses
+can be garbled. The diversion is printed as a single coherent unit.
+  Note that enabling `--output-postpone' will by default disable the
+`--output-normal' option. This might be problematic if you have a
+command that decides to ask for interactive input. If the
+`--output-postpone' is enabled, but the `--output-normal' is not, the
+prompt of such a command will not be visible and it may be hard to
+figure out why the build appears "stuck". You might also consider using
+the `--progress' flag (see Section A.2.4*Note Subsection A-2-4::)
+so that you can see when the build is active. 
+
+Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
+  
+
+A.2.10   --output-only-errors
+=============================
+
+`--output-only-errors' 
+  Similar to `--output-postpone', except that the postponed output from
+commands that were successful will be discarded. This can be useful in
+reducing unwanted output so that you can concentrate on any errors.
+
+Node: Subsection A-2-11,	Next: Subsection A-2-12,	Prev: Subsection A-2-10,	Up: Section A-2
+  
+
+A.2.11   --output-at-end
+========================
+
+`--output-at-end'
+  If any rules/commands fail, re-print the output of the failed commands
+when OMake finishes the build. This is especially useful when any of the
+`-k', `-p', or `-P' options are enabled.
+  This option is off by default. However, when `-k' is enabled ---
+either explicitly or via one of the `-p'/`-P' options ---
+`--output-at-end' will be enabled by default.
+
+Node: Subsection A-2-12,	Next: Section A-3,	Prev: Subsection A-2-11,	Up: Section A-2
+  
+
+A.2.12   -o
+===========
+ `-o [01jwWpPxXsS]'
+  For brevity, the `-o' option is also provided to duplicate the above
+output options. The `-o' option takes a argument consisting of a
+sequence of characters. The characters are read from left-to-right; each
+specifies a set of output options. In general, an uppercase character
+turns the option on; a lowercase character turns the option off.
+  
+  
+ 0  Equivalent to `-s --output-only-errors'
+ This option specifies that `omake' should be as quiet as possible. If
+   any errors occur during the build, the output is delayed until the
+   build terminates. Output from successful commands is discarded.
+ 
+ 1  Equivalent to `-S --progress --output-only-errors'
+ This is a slightly more relaxed version of "quiet" output. The output
+   from successful commands is discarded. The output from failed
+   commands is printed immediately after the command complete. The
+   output from failed commands is displayed twice: once immediately
+   after the command completes, and again when the build completes. A
+   progress bar is displayed so that you know when the build is active.
+   Include the ``p'' option if you want to turn off the progress bar
+   (for example `omake -o 1p').
+ 
+ 2  Equivalent to `--progress --output-postpone'
+ The is even more relaxed, output from successful commands is printed.
+   This is often useful for deinterleaving the output when using `-j'.
+ 
+ W  Equivalent to `-w' 
+ w  Equivalent to `--no-w' 
+ P  Equivalent to `--progress' 
+ p  Equivalent to `--no--progress' 
+ X  Equivalent to `--print-exit' 
+ x  Equivalent to `--no-print-exit' 
+ S  Equivalent to `-S' 
+ s  Equivalent to `--no-S' 
+  
+
 Node: Section A-3,	Next: Subsection A-3-1,	Prev: Section A-2,	Up: Appendix A
   
 
@@ -1275,12 +1437,13 @@ Appendix C     Index
  - .BUILD_FAILURE, 12.1*Note Section 12-1:: 
  - .BUILD_SUCCESS, 12.1*Note Section 12-1:: 
  - .BUILDORDER, 9.3.5*Note Subsection 9-3-5:: 
- - .DEFAULT, 7.7*Note Section 7-7:: 
+ - .DEFAULT, 7.7*Note Section 7-7::, 7.12.1*Note Subsection 7-12-1:: 
  - .INCLUDE, 7.9*Note Section 7-9:: 
  - .ORDER, 9.3.5*Note Subsection 9-3-5:: 
  - .omakerc, A.8*Note Section A-8:: 
  - .PHONY, 5.3*Note Section 5-3::, 7.10*Note Section 7-10::,
-   7.11.3*Note Subsection 7-11-3:: 
+   7.11.3*Note Subsection 7-11-3::, 7.12.1*Note Subsection 7-12-1::,
+   7.12.2*Note Subsection 7-12-2:: 
  - .RULE, 5.3*Note Section 5-3:: 
  - .SCANNER, 3.4.3*Note Subsection 3-4-3::, 7.6*Note Section 7-6::,
    7.11.2*Note Subsection 7-11-2:: 
@@ -1303,10 +1466,15 @@ Appendix C     Index
  - ABORT_ON_COMMAND_ERROR, 12.4.1*Note Subsection 12-4-1:: 
  - ABORT_ON_DEPENDENCY_ERRORS, 12.6.4*Note Subsection 12-6-4:: 
  - AC_MSG_CHECKING, 13.1.1*Note Subsection 13-1-1:: 
+ - AC_MSG_ERROR, 13.1.2*Note Subsection 13-1-2:: 
  - AC_MSG_FOUND, 13.1.3*Note Subsection 13-1-3:: 
  - AC_MSG_RESULT, 13.1.1*Note Subsection 13-1-1:: 
  - AC_MSG_WARN, 13.1.2*Note Subsection 13-1-2:: 
  - AC_MSG_YES_NO, 13.1.3*Note Subsection 13-1-3:: 
+ - AC_RUN_PROG, 13.1.5*Note Subsection 13-1-5:: 
+ - AC_TRY_COMPILE, 13.1.4*Note Subsection 13-1-4:: 
+ - AC_TRY_LINK, 13.1.4*Note Subsection 13-1-4:: 
+ - AC_TRY_RUN, 13.1.4*Note Subsection 13-1-4:: 
  - AR, 12.5.2*Note Subsection 12-5-2:: 
  - AROUT, 12.5.2*Note Subsection 12-5-2:: 
  - Array, 11.1.7*Note Subsection 11-1-7:: 
@@ -1343,9 +1511,9 @@ Appendix C     Index
  - CFLAGS, 12.5.2*Note Subsection 12-5-2:: 
  - CGeneratedFiles, 12.5.3.1*Note Subsection 12-5-3:: 
  - Channel, 11.1.15*Note Subsection 11-1-15:: 
- - CheckHeader, 13.1.4*Note Subsection 13-1-4:: 
- - CheckLib, 13.1.5*Note Subsection 13-1-5:: 
- - CheckProg, 13.1.6*Note Subsection 13-1-6:: 
+ - CheckHeader, 13.1.6*Note Subsection 13-1-6:: 
+ - CheckLib, 13.1.7*Note Subsection 13-1-7:: 
+ - CheckProg, 13.1.8*Note Subsection 13-1-8:: 
  - CL_FOUND, 12.5.1.2*Note Subsection 12-5-1:: 
  - CPP, 12.5.2*Note Subsection 12-5-2:: 
  - CProgram, 12.5.4.5*Note Subsection 12-5-4:: 
@@ -1755,8 +1923,8 @@ Appendix C     Index
  - uppercase, 8.3.35*Note Subsection 8-3-35:: 
  
  - VERBOSE, 8.1*Note Section 8-1:: 
- - VerboseCheckHeader, 13.1.4*Note Subsection 13-1-4:: 
- - VerboseCheckLib, 13.1.5*Note Subsection 13-1-5:: 
+ - VerboseCheckHeader, 13.1.6*Note Subsection 13-1-6:: 
+ - VerboseCheckLib, 13.1.7*Note Subsection 13-1-7:: 
  - value, 4.5*Note Section 4-5::, B.2.2.1*Note Subsection B-2-2:: 
  - variable definition, A.3.21*Note Subsection A-3-21:: 
  - vmount, 2.9*Note Section 2-9::, 9.6.1*Note Subsection 9-6-1:: 

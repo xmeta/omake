@@ -1,5 +1,83 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
+  
+
+9.3.5   file-sort
+=================
+ 
+
+<<   $(file-sort order, files) : File Sequence
+        order : String
+        files : File Sequence
+>>
+  
+The `file-sort' function
+sorts a list of filenames by build order augmented by a set of sort
+rules. Sort rules are declared using the `.ORDER' target. The
+`.BUILDORDER' defines the default order.
+  `$(file-sort <order>, <files>)'
+  For example, suppose we have the following set of rules.
+<<   a: b c
+     b: d
+     c: d
+  
+     .DEFAULT: a b c d
+        echo $(file-sort .BUILDORDER, a b c d)
+>>
+  
+  In the case, the sorter produces the result `d b c a'. That is, a
+target is sorted after its dependencies. The sorter is frequently used
+to sort files that are to be linked by their dependencies (for languages
+where this matters).
+  There are three important restrictions to the sorter: 
+  
+ - The sorter can be used only within a rule body. The reason for this
+   is that all dependencies must be known before the sort is performed. 
+ - The sorter can only sort files that are buildable in the current
+   project. 
+ - The sorter will fail if the dependencies are cyclic. 
+  
+  
+
+9.3.5.1   sort rule
+-------------------
+  
+  It is possible to further constrain the sorter through the use of sort
+rules. A sort rule is declared in two steps. The target must be listed
+as an `.ORDER' target; and then a set of sort rules must be given. A
+sort rule defines a pattern constraint.
+<<   .ORDER: .MYORDER
+  
+     .MYORDER: %.foo: %.bar
+     .MYORDER: %.bar: %.baz
+  
+     .DEFAULT: a.foo b.bar c.baz d.baz
+        echo $(sort .MYORDER, a.foo b.bar c.baz d.baz)
+>>
+  
+  In this example, the `.MYORDER' sort rule specifies that any file with
+a suffix `.foo' should be placed after any file with suffix `.bar', and
+any file with suffix `.bar' should be placed after a file with suffix
+`.baz'.
+  In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
+
+Node: Subsection 9-3-6,	Next: Section 9-4,	Prev: Subsection 9-3-5,	Up: Section 9-3
+  
+
+9.3.6   file-check-sort
+=======================
+
+<<   file-check-sort(files)
+        files : File Sequence
+     raises RuntimeException
+>>
+  
+  The `file-check-sort' function checks whether a list of files is in
+sort order. If so, the list is returned unchanged. If not, the function
+raises an exception.
+  `$(file-check-sort <order>, <files>)' 
+
 Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
   
 
@@ -1616,91 +1694,3 @@ meaning of `stdout' outside the `calc' function.
              ...
           close(stdout)
 >>
-
-Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: Section 9-11
-  
-
-9.11.5   awk
-============
-
-<<   awk(input-files)
-     case pattern1:
-        body1
-     case pattern2:
-        body2
-     ...
-     default:
-        bodyd
->>
-  
-  or
-<<   awk(options, input-files)
-     case pattern1:
-        body1
-     case pattern2:
-        body2
-     ...
-     default:
-        bodyd
->>
-  
-  The `awk' function provides input processing similar to awk(1), but
-more limited. The `input-files' argument is a sequence of values, each
-specifies an `InChannel', or the name of a file for input. If called
-with no options and no file arguments, the input is taken from `stdin'.
-Output is always to `stdout'.
-  The variables `RS' and `FS' define record and field separators as
-regular expressions. The default value of `RS' is the regular expression
-`\r|\n|\r\n'. The default value of `FS' is the regular expression `[
-\t]'+.
-  The `awk' function operates by reading the input one record at a time,
-and processing it according to the following algorithm.
-  For each line, the record is first split into fields using the field
-separator `FS', and the fields are bound to the variables `$1, $2, ...'.
-The variable `$0' is defined to be the entire line, and `$*' is an array
-of all the field values. The `$(NF)' variable is defined to be the
-number of fields.
-  Next, the cases are evaluated in order. For each case, if the regular
-expression `pattern_i' matches the record `$0', then `body_i' is
-evaluated. If the body ends in an `export', the state is passed to the
-next clause. Otherwise the value is discarded. If the regular expression
-contains `\(r\)' expression, those expression override the fields `$1,
-$2, ...'.
-  For example, here is an `awk' function to print the text between two
-delimiters `\begin{<name>}' and `\end{<name>}', where the `<name>' must
-belong to a set passed as an argument to the `filter' function.
-<<    filter(names) =
-         print = false
-  
-         awk(Awk.in)
-         case $"^\\end\{\([:alpha:]+\)\}"
-            if $(mem $1, $(names))
-               print = false
-               export
-            export
-         default
-            if $(print)
-               println($0)
-         case $"^\\begin\{\([:alpha:]+\)\}"
-            print = $(mem $1, $(names))
-            export
->>
-  
-  Note, if you want to redirect the output to a file, the easiest way is
-to redefine the `stdout' variable. The `stdout' variable is scoped the
-same way as other variables, so this definition does not affect the
-meaning of `stdout' outside the `filter' function.
-<<    filter(names) =
-          stdout = $(fopen file.out, w)
-          awk(Awk.in)
-             ...
-          close(stdout)
->>
-  
-  Options. 
-  
- b  "Break" when evaluating cases. Only the first case that matches will
-   be selected. 
-  
-  The 'break' function can be used to abort the loop, exiting the `awk'
-function immediately. 

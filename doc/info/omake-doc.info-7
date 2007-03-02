@@ -1,5 +1,108 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 12-2-2,	Next: Subsection 12-2-3,	Prev: Subsection 12-2-1,	Up: Section 12-2
+  
+
+12.2.2   OMakeVersion
+=====================
+
+<<   OMakeVersion(version1)
+     OMakeVersion(version1, version2)
+        version1, version2 : String
+>>
+  
+  The `OMakeVersion' function is used for version checking in
+OMakefiles. It takes one or two arguments.
+  In the one argument form, if the omake version number is less than
+`<version1>', then an exception is raised. In the two argument form, the
+version must lie between `version1' and `version2'.
+
+Node: Subsection 12-2-3,	Next: Subsection 12-2-4,	Prev: Subsection 12-2-2,	Up: Section 12-2
+  
+
+12.2.3   cmp-versions
+=====================
+ 
+<<   $(cmp-versions version1, version2)
+        version1, version2 : String
+>>
+  
+  The `cmp-versions\' functions can be used to compare arbitrary version
+strings. It returns 0 when the two version strings are equal, a negative
+number when the first string represents an earlier version, and a
+positive number otherwise. 
+
+Node: Subsection 12-2-4,	Next: Section 12-3,	Prev: Subsection 12-2-3,	Up: Section 12-2
+  
+
+12.2.4   DefineCommandVars
+==========================
+
+<<   DefineCommandVars()
+>>
+  
+  The `DefineCommandVars' function redefines the variables passed on the
+commandline. Variables definitions are passed on the command line in the
+form `name=value'. This function is primarily for internal use by omake
+to define these variables for the first time. 
+
+Node: Section 12-3,	Next: Subsection 12-3-1,	Prev: Section 12-2,	Up: Chapter 12
+  
+
+12.3   Examining the dependency graph
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 12-3-1::	dependencies, dependencies-all, dependencies-proper
+* Subsection 12-3-2::	target
+* Subsection 12-3-3::	find-build-targets
+* Subsection 12-3-4::	project-directories
+* Subsection 12-3-5::	rule
+
+
+Node: Subsection 12-3-1,	Next: Subsection 12-3-2,	Prev: Section 12-3,	Up: Section 12-3
+  
+
+12.3.1   dependencies, dependencies-all, dependencies-proper
+============================================================
+\@na
+me{@default330}
+<<   $(dependencies targets) : File Array
+     $(dependencies-all targets) : File Array
+     $(dependencies-proper targets) : File Array
+        targets : File Array
+     raises RuntimeException
+>>
+  
+  The `dependencies' function returns the set of immediate dependencies
+of the given targets. This function can only be used within a rule body
+and all the arguments to the `dependency' function must also be
+dependencies of this rule. This restriction ensures that all the
+dependencies are known when this function is executed.
+  The `dependencies-all' function is similar, but it expands the
+dependencies recursively, returning all of the dependencies of a target,
+not just the immediate ones.
+  The `dependencies-proper' function returns all recursive dependencies,
+except the dependencies that are leaf targets. A leaf target is a target
+that has no dependencies and no build commands; a leaf target
+corresponds to a source file in the current project.
+  In all three functions, files that are not part of the current project
+are silently discarded.
+  One purpose of the `dependencies-proper' function is for "clean"
+targets. For example, one way to delete all intermediate files in a
+build is with a rule that uses the `dependencies-proper'. Note however,
+that the rule requires building the project before it can be deleted.
+For a shorter form, see the `filter-proper-targets' function.
+<<    .PHONY: clean
+  
+      APP = ...     # the name of the target application
+      clean: $(APP)
+         rm $(dependencies-proper $(APP))
+>>
+  
+
 Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: Section 12-3
   
 
@@ -384,7 +487,7 @@ the target directory.
 12.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@na
-me{@default372}
+me{@default375}
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
@@ -448,7 +551,7 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 StaticCXXLibraryInstall
 -----------------------
 \@na
-me{@default380}
+me{@default383}
   Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
 `StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
 `StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
@@ -1018,11 +1121,13 @@ have the line
 * Menu:
 
 * Subsection 13-1-1::	AC_MSG_CHECKING, AC_MSG_RESULT
-* Subsection 13-1-2::	AC_MSG_WARN
+* Subsection 13-1-2::	AC_MSG_WARN, AC_MSG_ERROR
 * Subsection 13-1-3::	AC_MSG_YES_NO, AC_MSG_FOUND
-* Subsection 13-1-4::	CheckHeader, VerboseCheckHeader
-* Subsection 13-1-5::	CheckLib, VerboseCheckLib
-* Subsection 13-1-6::	CheckProg
+* Subsection 13-1-4::	AC_TRY_COMPILE, AC_TRY_LINK, AC_TRY_RUN
+* Subsection 13-1-5::	AC_RUN_PROG
+* Subsection 13-1-6::	CheckHeader, VerboseCheckHeader
+* Subsection 13-1-7::	CheckLib, VerboseCheckLib
+* Subsection 13-1-8::	CheckProg
 
 
 Node: Subsection 13-1-1,	Next: Subsection 13-1-2,	Prev: Section 13-1,	Up: Section 13-1
@@ -1052,10 +1157,15 @@ messages to a log file.
 Node: Subsection 13-1-2,	Next: Subsection 13-1-3,	Prev: Subsection 13-1-1,	Up: Section 13-1
   
 
-13.1.2   AC_MSG_WARN
-====================
- `AC_MSG_WARN(<msg>)'
-  Prints a warning message. 
+13.1.2   AC_MSG_WARN, AC_MSG_ERROR
+==================================
+ 
+<<AC_MSG_WARN(<msg>)
+  AC_MSG_ERROR(<msg>)
+>>
+  
+  Print a warning or an error message respectively. `AC_MSG_ERROR' would
+then abort OMake. 
 
 Node: Subsection 13-1-3,	Next: Subsection 13-1-4,	Prev: Subsection 13-1-2,	Up: Section 13-1
   
@@ -1078,17 +1188,53 @@ will output the appropriate result ("found" or "NOT found") using the
 Node: Subsection 13-1-4,	Next: Subsection 13-1-5,	Prev: Subsection 13-1-3,	Up: Section 13-1
   
 
-13.1.4   CheckHeader, VerboseCheckHeader
+13.1.4   AC_TRY_COMPILE, AC_TRY_LINK, AC_TRY_RUN
+================================================
+\@na
+me{@default461} 
+<<success = $(AC_TRY_COMPILE <prog_text>)
+  success = $(AC_TRY_LINK <prog_text>)
+  success = $(AC_TRY_RUN <prog_text>)
+>>
+  
+  Given the text of a C program, the `AC_TRY_COMPILE', `AC_TRY_LINK',
+and `AC_TRY_RUN' functions would try to compile / compile and link /
+compile, link, and run, the given program and return a boolean flag
+indicating whether the attempt was successful.
+  `AC_TRY_COMPILE' will use the 'CC', 'CFLAGS' and 'INCLUDES' variables 
+to run the C compiler. `AC_TRY_LINK' and `AC_TRY_RUN' will also use the
+'LDFLAGS' variable to run the C compiler and linker. However, the flags
+like `/WX', `-Werror' and `-warn-error' will be not be passed to the
+compiler, even if they occur in `CFLAGS'.
+  These functions are silent and should normally be used with an
+appropriate 'AC_MSG_CHECKING' ... 'AC_MSG_RESULT'. 
+
+Node: Subsection 13-1-5,	Next: Subsection 13-1-6,	Prev: Subsection 13-1-4,	Up: Section 13-1
+  
+
+13.1.5   AC_RUN_PROG
+====================
+ 
+<<output = $(AC_RUN_PROG <prog>)
+>>
+  
+  `AC_RUN_PROG' is similar to the 'AC_RUN_PROG', except that it returns
+the output of the function (will return `false' if the program fails to
+compile or run). 
+
+Node: Subsection 13-1-6,	Next: Subsection 13-1-7,	Prev: Subsection 13-1-5,	Up: Section 13-1
+  
+
+13.1.6   CheckHeader, VerboseCheckHeader
 ========================================
  
 <<success = $(CheckHeader <files>)
   success = $(VerboseCheckHeader <files>)
 >>
   
-  Check whether your C compiler can locate and process the specified
-headers files. Will use the 'CC', 'CFLAGS' and 'INCLUDES' variables  to
-run the compiler. Will incude `<stdio.h>' before including the specified
-header files.
+  Use the 'AC_TRY_COMPILE' function to check whether your C compiler can
+locate and process the specified headers files. Will incude `<stdio.h>'
+before including the header files.
   Both functions return a boolean value. The `CheckHeader' function is
 silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
 and 'AC_MSG_RESULT' functions to describe the test and the outcome.
@@ -1097,20 +1243,19 @@ and 'AC_MSG_RESULT' functions to describe the test and the outcome.
      NCURSES_H_AVAILABLE = $(VerboseCheckHeader ncurses.h)
 >>
 
-Node: Subsection 13-1-5,	Next: Subsection 13-1-6,	Prev: Subsection 13-1-4,	Up: Section 13-1
+Node: Subsection 13-1-7,	Next: Subsection 13-1-8,	Prev: Subsection 13-1-6,	Up: Section 13-1
   
 
-13.1.5   CheckLib, VerboseCheckLib
+13.1.7   CheckLib, VerboseCheckLib
 ==================================
  
 <<success = $(CheckLib <libs>, <functions>)
   success = $(VerboseCheckLib <libs>, <functions>)
 >>
   
-  Check whether your C compiler and linker can find the named functions
-when linking with the named libraries. Will use the 'CC', 'CFLAGS' and
-'LDFLAGS' variables  to run the compiler. Will pass the `<libs>' to the
-compiler using the `-l' flag.
+  Use the 'AC_TRY_LINK' function to check whether your C compiler and
+linker can find the named functions when linking with the named
+libraries. Will pass the `<libs>' to the compiler using the `-l' flag.
   Both functions return a boolean value. The `CheckLib' function is
 silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
 and 'AC_MSG_RESULT' functions to describe the test and the outcome.
@@ -1120,10 +1265,10 @@ and 'AC_MSG_RESULT' functions to describe the test and the outcome.
 setupterm tigetstr)
 >>
 
-Node: Subsection 13-1-6,	Next: Section 13-2,	Prev: Subsection 13-1-5,	Up: Section 13-1
+Node: Subsection 13-1-8,	Next: Section 13-2,	Prev: Subsection 13-1-7,	Up: Section 13-1
   
 
-13.1.6   CheckProg
+13.1.8   CheckProg
 ==================
  `success = $(CheckProg <prog>)'
   Checks whether the program `<prog>' exists in your path. Will use the
@@ -1362,165 +1507,3 @@ A.2   Output control
 * Subsection A-2-11::	--output-at-end
 * Subsection A-2-12::	-o
 
-
-Node: Subsection A-2-1,	Next: Subsection A-2-2,	Prev: Section A-2,	Up: Section A-2
-  
-
-A.2.1   -s
-==========
- `-s'
-  Never not print commands as they are executed (be "silent").
-
-Node: Subsection A-2-2,	Next: Subsection A-2-3,	Prev: Subsection A-2-1,	Up: Section A-2
-  
-
-A.2.2   -S
-==========
- `-S'
-  Do not print commands as they are executed unless they produce output
-and/or fail. This is the default.
-
-Node: Subsection A-2-3,	Next: Subsection A-2-4,	Prev: Subsection A-2-2,	Up: Section A-2
-  
-
-A.2.3   -w
-==========
- `-w'
-  Print directory information in make format as commands are executed.
-This is mainly useful for editors that expect make-style directory
-information for determining the location of errors.
-
-Node: Subsection A-2-4,	Next: Subsection A-2-5,	Prev: Subsection A-2-3,	Up: Section A-2
-  
-
-A.2.4   --progress
-==================
- `--progress'
-  Print a progress indicator. This option is enabled by default when the
-OMake's output (`stdout') is on a terminal and disabled by default
-(except on Windows) when the OMake's output is redirected.
-
-Node: Subsection A-2-5,	Next: Subsection A-2-6,	Prev: Subsection A-2-4,	Up: Section A-2
-  
-
-A.2.5   --print-status
-======================
-
-`--print-status'
-  Print status lines (the `+' and `-' lines).
-
-Node: Subsection A-2-6,	Next: Subsection A-2-7,	Prev: Subsection A-2-5,	Up: Section A-2
-  
-
-A.2.6   --print-exit
-====================
-
-`--print-exit'
-  Print termination codes when commands complete.
-
-Node: Subsection A-2-7,	Next: Subsection A-2-8,	Prev: Subsection A-2-6,	Up: Section A-2
-  
-
-A.2.7   --verbose
-=================
- `--verbose'
-  Make OMake very verbose. This option is equivalent to `--no-S
---print-status --print-exit VERBOSE=true'
-
-Node: Subsection A-2-8,	Next: Subsection A-2-9,	Prev: Subsection A-2-7,	Up: Section A-2
-  
-
-A.2.8   --output-normal
-=======================
-
-`--output-normal'
-  As rule commands are executed, relay their output to the OMake output
-right away. This is enabled by default, unless `--output-postpone' or
-`--output-only-errors' is enabled.
-
-Node: Subsection A-2-9,	Next: Subsection A-2-10,	Prev: Subsection A-2-8,	Up: Section A-2
-  
-
-A.2.9   --output-postpone
-=========================
-
-`--output-postpone'
-  When a rule finishes, print the output as a single block. This is
-useful in combination `-j' option (see Section
-A.3.12*Note Subsection A-3-12::), where the output of multiple subprocesses
-can be garbled. The diversion is printed as a single coherent unit.
-  Note that enabling `--output-postpone' will by default disable the
-`--output-normal' option. This might be problematic if you have a
-command that decides to ask for interactive input. If the
-`--output-postpone' is enabled, but the `--output-normal' is not, the
-prompt of such a command will not be visible and it may be hard to
-figure out why the build appears "stuck". You might also consider using
-the `--progress' flag (see Section A.2.4*Note Subsection A-2-4::)
-so that you can see when the build is active. 
-
-Node: Subsection A-2-10,	Next: Subsection A-2-11,	Prev: Subsection A-2-9,	Up: Section A-2
-  
-
-A.2.10   --output-only-errors
-=============================
-
-`--output-only-errors' 
-  Similar to `--output-postpone', except that the postponed output from
-commands that were successful will be discarded. This can be useful in
-reducing unwanted output so that you can concentrate on any errors.
-
-Node: Subsection A-2-11,	Next: Subsection A-2-12,	Prev: Subsection A-2-10,	Up: Section A-2
-  
-
-A.2.11   --output-at-end
-========================
-
-`--output-at-end'
-  If any rules/commands fail, re-print the output of the failed commands
-when OMake finishes the build. This is especially useful when any of the
-`-k', `-p', or `-P' options are enabled.
-  This option is off by default. However, when `-k' is enabled ---
-either explicitly or via one of the `-p'/`-P' options ---
-`--output-at-end' will be enabled by default.
-
-Node: Subsection A-2-12,	Next: Section A-3,	Prev: Subsection A-2-11,	Up: Section A-2
-  
-
-A.2.12   -o
-===========
- `-o [01jwWpPxXsS]'
-  For brevity, the `-o' option is also provided to duplicate the above
-output options. The `-o' option takes a argument consisting of a
-sequence of characters. The characters are read from left-to-right; each
-specifies a set of output options. In general, an uppercase character
-turns the option on; a lowercase character turns the option off.
-  
-  
- 0  Equivalent to `-s --output-only-errors'
- This option specifies that `omake' should be as quiet as possible. If
-   any errors occur during the build, the output is delayed until the
-   build terminates. Output from successful commands is discarded.
- 
- 1  Equivalent to `-S --progress --output-only-errors'
- This is a slightly more relaxed version of "quiet" output. The output
-   from successful commands is discarded. The output from failed
-   commands is printed immediately after the command complete. The
-   output from failed commands is displayed twice: once immediately
-   after the command completes, and again when the build completes. A
-   progress bar is displayed so that you know when the build is active.
-   Include the ``p'' option if you want to turn off the progress bar
-   (for example `omake -o 1p').
- 
- 2  Equivalent to `--progress --output-postpone'
- The is even more relaxed, output from successful commands is printed.
-   This is often useful for deinterleaving the output when using `-j'.
- 
- W  Equivalent to `-w' 
- w  Equivalent to `--no-w' 
- P  Equivalent to `--progress' 
- p  Equivalent to `--no--progress' 
- X  Equivalent to `--print-exit' 
- x  Equivalent to `--no-print-exit' 
- S  Equivalent to `-S' 
- s  Equivalent to `--no-S' 
-  
