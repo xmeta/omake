@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,9 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Authors: Jason Hickey @email{jyh@cs.caltech.edu}
+ *          Erick Tryzelaar @email{erickt@dslextreme.com}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -42,6 +43,178 @@ open Omake_builtin_util
 
 module Pos = MakePos (struct let name = "Omake_builtin_sys" end);;
 open Pos
+
+(************************************************************************
+ * Passwd database access.
+ *)
+
+(*
+ * \begin{doc}
+ * \obj{Passwd}
+ *
+ * The \verb+Passwd+ object represents an entry in the system's user database.
+ * It contains the following fields.
+ *
+ * \begin{description}
+ * \item[pw_name]: the login name.
+ * \item[pw_passwd]: the encrypted password.
+ * \item[pw_uid]: user id of the user.
+ * \item[pw_gid]: group id of the user.
+ * \item[pw_gecos]: the user name or comment field.
+ * \item[pw_dir]: the user's home directory.
+ * \item[pw_shell]: the user's default shell.
+ * \end{description}
+ *
+ * Not all the fields will have meaning on all operating systems.
+ *
+ * \twofuns{getpwnam}{getpwuid}
+ *
+ * \begin{verbatim}
+ *     $(getpwnam name...) : Passwd
+ *        name : String
+ *     $(getpwuid uid...) : Passwd
+ *        uid : Int
+ *     raises RuntimeException
+ * \end{verbatim}
+ *
+ * The \verb+getpwnam+ function looks up an entry by the user's login and the \verb+getpwuid+
+ * function looks up an entry by user's numerical id (uid). If no entry is found, an exception
+ * will be raised.
+ *
+ * \fun{getpwents}
+ *
+ * \begin{verbatim}
+ *     $(getpwents) : Array
+ * \end{verbatim}
+ *
+ * The \verb+getpwents+ function returns an array of \verb+Passwd+ objects, one for every user
+ * fund in the system user database. Note that depending on the operating system and on the setup
+ * of the user database, the returned array may be incomplete or even empty.
+ * \end{doc}
+ *)
+
+let create_passwd_obj obj passwd =
+   let obj = venv_add_field obj pw_name_sym   (ValString passwd.Unix.pw_name) in
+   let obj = venv_add_field obj pw_passwd_sym (ValString passwd.Unix.pw_passwd) in
+   let obj = venv_add_field obj pw_uid_sym    (ValInt    passwd.Unix.pw_uid) in
+   let obj = venv_add_field obj pw_gid_sym    (ValInt    passwd.Unix.pw_gid) in
+   let obj = venv_add_field obj pw_gecos_sym  (ValString passwd.Unix.pw_gecos) in
+   let obj = venv_add_field obj pw_dir_sym    (ValString passwd.Unix.pw_dir) in
+   let obj = venv_add_field obj pw_shell_sym  (ValString passwd.Unix.pw_shell) in
+      ValObject obj
+
+let getpwnam venv pos loc args =
+   let pos = string_pos "getpwnam" pos in
+   let obj = venv_find_object_or_empty venv ScopeGlobal passwd_object_sym in
+   let user =
+      match args with
+         [user] -> string_of_value venv pos user
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+   let passwd =
+      try Unix.getpwnam user with
+         Not_found ->
+            raise (OmakeException (loc_pos loc pos, StringStringError ("unknown user", user)))
+   in
+      create_passwd_obj obj passwd
+
+let getpwuid venv pos loc args =
+   let pos = string_pos "getpwuid" pos in
+   let obj = venv_find_object_or_empty venv ScopeGlobal passwd_object_sym in
+   let uid =
+      match args with
+         [uid] -> int_of_value venv pos uid
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+   let passwd =
+      try Unix.getpwuid uid with
+         Not_found ->
+            raise (OmakeException (loc_pos loc pos, StringIntError ("unknown uid", uid)))
+   in
+      create_passwd_obj obj passwd
+
+let getpwents venv _pos _loc _args =
+   let obj = venv_find_object_or_empty venv ScopeGlobal passwd_object_sym in
+   let ents = List.map (create_passwd_obj obj) (Lm_unix_util.getpwents ()) in
+      ValArray ents
+
+(************************************************************************
+ * Group database access.
+ *)
+
+(*
+ * \begin{doc}
+ * \obj{Group}
+ *
+ * The \verb+Group+ object represents an entry in the system's user group database.
+ * It contains the following fields.
+ *
+ * \begin{description}
+ * \item[pw_name]: the group name.
+ * \item[pw_group]: the encrypted password.
+ * \item[pw_gid]: group id of the group.
+ * \item[pw_mem]: the group member's user names.
+ * \end{description}
+ *
+ * Not all the fields will have meaning on all operating systems.
+ *
+ * \twofuns{getgrnam}{getgrgid}
+ *
+ * \begin{verbatim}
+ *     $(getgrnam name...) : Group
+ *        name : String
+ *     $(getgrgid gid...) : Group
+ *        gid : Int
+ *     raises RuntimeException
+ * \end{verbatim}
+ *
+ * The \verb+getgrnam+ function looks up a group entry by the group's name and the \verb+getgrgid+
+ * function looks up an entry by groups's numerical id (gid). If no entry is found, an exception
+ * will be raised.
+ *
+ * \end{doc}
+ *)
+let create_group_obj obj group =
+   let gr_mem = Array.fold_right (fun s x -> ValString s::x) group.Unix.gr_mem [] in
+   let obj = venv_add_field obj gr_name_sym   (ValString group.Unix.gr_name) in
+   let obj = venv_add_field obj gr_passwd_sym (ValString group.Unix.gr_passwd) in
+   let obj = venv_add_field obj gr_gid_sym    (ValInt    group.Unix.gr_gid) in
+   let obj = venv_add_field obj gr_mem_sym    (ValArray  gr_mem) in
+      ValObject obj
+
+let getgrnam venv pos loc args =
+   let pos = string_pos "getgrnam" pos in
+   let obj = venv_find_object_or_empty venv ScopeGlobal group_object_sym in
+   let user =
+      match args with
+         [user] -> string_of_value venv pos user
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+   let group =
+      try Unix.getgrnam user with
+         Not_found ->
+            raise (OmakeException (loc_pos loc pos, StringStringError ("unknown user", user)))
+   in
+      create_group_obj obj group
+
+let getgrgid venv pos loc args =
+   let pos = string_pos "getgruid" pos in
+   let obj = venv_find_object_or_empty venv ScopeGlobal group_object_sym in
+   let gid =
+      match args with
+         [gid] -> int_of_value venv pos gid
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+   let group =
+      try Unix.getgrgid gid with
+         Not_found ->
+            raise (OmakeException (loc_pos loc pos, StringIntError ("unknown gid", gid)))
+   in
+      create_group_obj obj group
 
 (*
  * \begin{doc}
@@ -69,20 +242,22 @@ let gettimeofday venv pos loc args =
  *)
 
 let () =
-   let builtin_funs =
-      [true, "gettimeofday",          gettimeofday,         ArityExact 0]
-   in
+   let builtin_funs = [
+      true, "gettimeofday",  gettimeofday,  ArityExact 0;
+      true, "getpwnam",      getpwnam,      ArityExact 1;
+      true, "getpwuid",      getpwuid,      ArityExact 1;
+      true, "getpwents",     getpwents,     ArityExact 0;
+      true, "getgrnam",      getgrnam,      ArityExact 1;
+      true, "getgrgid",      getgrgid,      ArityExact 1;
+   ] in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

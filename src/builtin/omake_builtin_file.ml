@@ -1671,11 +1671,9 @@ let mkdir venv pos loc args =
  * \begin{doc}
  * \obj{Stat}
  *
- * The \verb+Stat+ object represents the result returned by the \verb+stat+
- * and \verb+lstat+ functions.  It contains the following fields.
- *
- * A \verb+stat+ object has the following fields.  Not all of the fields
- * will have meaning on all architectures.
+ * The \verb+Stat+ object represents an information about a filesystem node,
+ * as returned by the \verb+stat+ and \verb+lstat+ functions. 
+ * It contains the following fields.
  *
  * \begin{description}
  * \item[dev]: the device number.
@@ -1699,7 +1697,9 @@ let mkdir venv pos loc args =
  * \item[ctime]: last status change time, as a floating point number.
  * \end{description}
  *
- * \fun{stat}
+ * Not all of the fields will have meaning on all operating systems.
+ *
+ * \twofuns{stat}{lstat}
  *
  * \begin{verbatim}
  *     $(stat node...) : Stat

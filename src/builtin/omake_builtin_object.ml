@@ -767,6 +767,8 @@ let () =
        "Select";
        "Pipe";
        "Stat";
+       "Passwd";
+       "Group";
        "Shell";
        "Lexer";
        "Parser";
