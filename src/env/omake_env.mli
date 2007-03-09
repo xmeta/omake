@@ -398,6 +398,7 @@ val venv_defined      : venv -> scope_kind -> var -> bool
 val venv_get_var      : venv -> scope_kind -> pos -> var -> value
 val venv_find_var     : venv -> scope_kind -> pos -> loc -> var -> value
 val venv_find_var_exn : venv -> scope_kind -> var -> value
+val venv_find_object_or_empty : venv -> scope_kind -> symbol -> obj
 
 (*
  * Static environments.

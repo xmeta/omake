@@ -2168,6 +2168,17 @@ let venv_find_var venv scope pos loc v =
 let venv_defined venv scope v =
    List.exists (fun env -> SymbolTable.mem env v) (venv_current_objects venv scope)
 
+let venv_find_object_or_empty venv scope symbol =
+   try
+      match venv_find_var_exn venv scope symbol with
+         ValObject obj ->
+            obj
+       | _ ->
+            venv_empty_object
+   with
+      Not_found ->
+         venv_empty_object
+
 (*
  * Adding to variable environment.
  * Add to the current object and the static scope.

@@ -1755,17 +1755,7 @@ let create_stat_obj obj stat =
 
 let stat_aux stat_fun venv pos loc args =
    let pos = string_pos "stat" pos in
-   let obj =
-      try
-         match venv_find_var_exn venv ScopeGlobal stat_object_sym with
-            ValObject obj ->
-               obj
-          | _ ->
-               venv_empty_object
-      with
-         Not_found ->
-            venv_empty_object
-   in
+   let obj = venv_find_object_or_empty venv ScopeGlobal stat_object_sym in
       match args with
          [arg] ->
             let args = values_of_value venv pos arg in

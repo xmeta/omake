@@ -720,17 +720,7 @@ let pipe venv pos loc args =
             let write = Lm_channel.create "<writepipe>" Lm_channel.PipeChannel OutChannel false (Some fd_write) in
             let fd_read = ValChannel (InChannel, venv_add_channel venv read) in
             let fd_write = ValChannel (OutChannel, venv_add_channel venv write) in
-            let obj =
-               try
-                  match venv_find_var_exn venv ScopeGlobal pipe_object_sym with
-                     ValObject obj ->
-                        obj
-                   | _ ->
-                        venv_empty_object
-               with
-                  Not_found ->
-                     venv_empty_object
-            in
+            let obj = venv_find_object_or_empty venv ScopeGlobal pipe_object_sym in
             let obj = venv_add_field obj read_sym fd_read in
             let obj = venv_add_field obj write_sym fd_write in
                ValObject obj
@@ -823,17 +813,7 @@ let select venv pos loc args =
             let rfd = reintern_channel rfd in
             let wfd = reintern_channel wfd in
             let efd = reintern_channel efd in
-            let obj =
-               try
-                  match venv_find_var_exn venv ScopeGlobal select_object_sym with
-                     ValObject obj ->
-                        obj
-                   | _ ->
-                        venv_empty_object
-               with
-                  Not_found ->
-                     venv_empty_object
-            in
+            let obj = venv_find_object_or_empty venv ScopeGlobal select_object_sym in
             let obj = venv_add_field obj read_sym  (ValArray rfd) in
             let obj = venv_add_field obj write_sym (ValArray wfd) in
             let obj = venv_add_field obj error_sym (ValArray efd) in
