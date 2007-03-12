@@ -32,6 +32,7 @@
 <h2> OMake Change Log</h2>
 
 <p>Jump to version
+  <a href="#0.9.8.1">0.9.8.1</a>,
   <a href="#0.9.8">0.9.8</a>,
   <a href="#0.9.6.9">0.9.6.9</a>,
   <a href="#0.9.6.8">0.9.6.8</a>,
@@ -46,6 +47,45 @@
 <p>See also <a
   href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.6.x/CHANGELOG.txt">the
   brief summary change log</a>.
+
+<h3><a name="0.9.8.1">Version 0.9.8.1 (TBA)</a></h3>
+<ul>
+  <li>Additional &ldquo;autoconfiguration&rdquo; functionality:
+  <ul>
+    <li>New functions in <tt>configure/Configure.om</tt>, including
+    <tt>ConfMsgChecking</tt>, <tt>ConfMsgResult</tt>, <tt>ConfMsgYesNo</tt>,
+    <tt>ConfMsgWarn</tt>, <tt>ConfMsgError</tt>, <tt>ConfMsgFound</tt>,
+    <tt>TryCompileC</tt>, <tt>TryLinkC</tt>, <tt>TryRunC</tt>,
+    <tt>RunCProg</tt>.
+    <li>Added <tt>configure/X.om</tt> with some basic tests for X
+    (experimental, not very well tested).
+  </ul>
+  <li>A number of new built-in and standard library functions: <tt>join</tt>,
+  <tt>min</tt>, <tt>max</tt>, <tt>Map.keys</tt>, <tt>Map.values</tt>,
+  <tt>getpwnam<tt>, <tt>getpwuid</tt>, <tt>getpwents</tt>, <tt>getgrnam</tt>,
+  <tt>getgrgid</tt>.
+  <li>Improvements in <tt>-p</tt>/<tt>-P</tt> (&ldquo;poll&rdquo;) mode:
+  <ul>
+    <li>Various errors in <tt>OMakefile</tt>s will now cause OMake to poll for
+    <tt>OMakefile</tt> changes after reporting the error, instead of aborting.
+    <li>Will watch &ldquo;<tt>:optional:</tt>&rdquo; and
+    &ldquo;<tt>:exists:</tt>&rdquo; dependencies (but will still ignore
+    &ldquo;<tt>Delete</tt>&rdquo; events for them).
+  </ul>
+  <li>In implicit rules, allow the source files to contain more than one
+  instance of the <tt>%</tt> &ldquo;wildcard&rdquo; character.
+  <li>Significant improvements in the command line completion in the
+  interactive <tt>osh</tt> shell.
+  <li><tt>build/C.om</tt>: 
+     <ul>
+     <li>Added <tt>StaticCXXLibrary</tt> function;
+     <li>Use <tt>/Fo</tt> and <tt>/Fe</tt> flags in place of <tt>-o</tt> on
+     Windows.
+     </ul>
+  <li><tt>build/LaTeX.om</tt>: added some support for MikTeX.
+  <li>A number of documentation improvements.
+  <li>A number of other improvements and bugfixes.
+</ul>
 
 <h3><a name="0.9.8">Version 0.9.8 (December 11, 2006)</a></h3>
 <ul>
