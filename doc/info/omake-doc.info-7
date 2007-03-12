@@ -412,24 +412,32 @@ The include path with `-I' prefixes is defined in the
  LIBS
  Additional libraries needed when
 building a program (default is empty). 
+ CCOUT
+ The option to use for specifying the
+output file in C and C++ compilers (defaults to `-o' on `Unix' and `/Fo'
+on `Win32'). 
  AS
  The name of the assembler (defaults to
 `as' on `Unix', and `ml' on `Win32'). 
  ASFLAGS
  Flags to pass to the assembler
 (default is empty on `Unix', and `/c /coff' on `Win32'). 
+ ASOUT
+ The option string that specifies the
+output file for `AS' (defaults to `-o' on `Unix' and `/Fo' on `Win32'). 
  AR
  The name of the program to create
 static libraries (defaults to `ar cq' on `Unix', and `lib' on `Win32'). 
- AROUT
- The option string that specifies the
-output file for `AR'. 
  LD
  The name of the linker (defaults to
 `ld' on `Unix', and `cl' on `Win32'). 
  LDFLAGS
  Options to pass to the linker (default
 is empty). 
+ LDOUT
+ The option to use for specifying the
+output file in C and C++ linkers (defaults to `-o' on `Unix' and `/Fe'
+on `Win32'). 
  YACC
  The name of the `yacc' parser
 generator (default is `yacc' on `Unix', empty on `Win32'). 
@@ -522,7 +530,7 @@ the target directory.
 12.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@na
-me{@default394}
+me{@default396}
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
@@ -586,7 +594,7 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 StaticCXXLibraryInstall
 -----------------------
 \@na
-me{@default402}
+me{@default404}
   Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
 `StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
 `StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
@@ -1034,8 +1042,8 @@ the `TETEX2_ENABLED' variable)
  BIBTEX
  The BibTeX command (default `bibtex').
  MAKEINDEX
- The command to build an index (default
-`makeindex'). 
+ The command to build an index
+(default `makeindex'). 
  DVIPS
  The `.dvi' to PostScript converter
 (default `dvips'). 
@@ -1227,7 +1235,7 @@ Node: Subsection 13-1-4,	Next: Subsection 13-1-5,	Prev: Subsection 13-1-3,	Up: S
 13.1.4   TryCompileC, TryLinkC, TryRunC
 =======================================
 \@na
-me{@default480} 
+me{@default482} 
 <<success = $(TryCompileC <prog_text>)
   success = $(TryLinkC <prog_text>)
   success = $(TryRunC <prog_text>)
@@ -1504,29 +1512,3 @@ indented body, and it auto-indents the text.
   The colon signifier is also allowed in files, although it is not
 required.
    
-
-Node: Appendix A,	Next: Section A-1,	Prev: Chapter 14,	Up: Top
-  
-
-Appendix A     Synopsis
-***********************
-    
-  omake [-j <count>] [-k] [-p] [-P] [-n] [-s] [-S] [-w] [-t] [-u] [-U]
-[-R] [--verbose] [--project] [--depend] [--progress] [--print-status]
-[--print-exit] [--print-dependencies] [--show-dependencies <target>]
-[--all-dependencies] [--verbose-dependencies] [--force-dotomake]
-[--dotomake <dir>] [--flush-includes] [--configure] [--save-interval
-<seconds>] [--install] [--install-all] [--install-force] [--version]
-[--absname] [--output-normal] [--output-postpone] [--output-only-errors]
-[--output-at-end] filename... [var-definition...]
-* Menu:
-
-* Section A-1::	General usage
-* Section A-2::	Output control
-* Section A-3::	Build options
-* Section A-4::	Additional options
-* Section A-5::	Environment variables
-* Section A-6::	Functions
-* Section A-7::	Option processing
-* Section A-8::	.omakerc
-
