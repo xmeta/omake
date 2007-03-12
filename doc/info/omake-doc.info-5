@@ -286,7 +286,7 @@ Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
 
 * Subsection 9-5-1::	mkdir
 * Subsection 9-5-2::	Stat
-* Subsection 9-5-3::	stat
+* Subsection 9-5-3::	stat, lstat
 * Subsection 9-5-4::	unlink
 * Subsection 9-5-5::	rename
 * Subsection 9-5-6::	link
@@ -328,10 +328,9 @@ Node: Subsection 9-5-2,	Next: Subsection 9-5-3,	Prev: Subsection 9-5-1,	Up: Sect
 9.5.2   Stat
 ============
 
-  The `Stat' object represents the result returned by the `stat' and
-`lstat' functions. It contains the following fields.
-  A `stat' object has the following fields. Not all of the fields will
-have meaning on all architectures.
+  The `Stat' object represents an information about a filesystem node,
+as returned by the `stat' and `lstat' functions.  It contains the
+following fields.
   
   
  dev : the device number. 
@@ -350,12 +349,13 @@ have meaning on all architectures.
  mtime : last modification time, as a floating point number. 
  ctime : last status change time, as a floating point number. 
   
+  Not all of the fields will have meaning on all operating systems.
 
 Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Section 9-5
   
 
-9.5.3   stat
-============
+9.5.3   stat, lstat
+===================
 
 <<    $(stat node...) : Stat
          node : Node or Channel
@@ -1484,7 +1484,12 @@ Node: Section 9-11,	Next: Subsection 9-11-1,	Prev: Section 9-10,	Up: Chapter 9
 * Subsection 9-11-14::	Calling the parser
 * Subsection 9-11-15::	Parsing control
 * Subsection 9-11-16::	Extending parsers
-* Subsection 9-11-17::	gettimeofday
+* Subsection 9-11-17::	Passwd
+* Subsection 9-11-18::	getpwnam, getpwuid
+* Subsection 9-11-19::	getpwents
+* Subsection 9-11-20::	Group
+* Subsection 9-11-21::	getgrnam, getgrgid
+* Subsection 9-11-22::	gettimeofday
 
 
 Node: Subsection 9-11-1,	Next: Subsection 9-11-2,	Prev: Section 9-11,	Up: Section 9-11

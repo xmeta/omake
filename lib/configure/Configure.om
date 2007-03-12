@@ -99,18 +99,18 @@ ConfMsgFound(found) =
    return $(found)
    
 # \begin{doc}
-# \threefuns{TryCompleC}{TryLinkC}{TryRunC}
+# \threefuns{TryCompileC}{TryLinkC}{TryRunC}
 # \begin{verbatim}
-# success = $(TryCompleC <prog_text>)
+# success = $(TryCompileC <prog_text>)
 # success = $(TryLinkC <prog_text>)
 # success = $(TryRunC <prog_text>)
 # \end{verbatim}
 #
-# Given the \emph{text} of a C program, the \verb+TryCompleC+, \verb+TryLinkC+, and \verb+TryRunC+
+# Given the \emph{text} of a C program, the \verb+TryCompileC+, \verb+TryLinkC+, and \verb+TryRunC+
 # functions would try to compile / compile and link / compile, link, and run, the given program and return a boolean flag
 # indicating whether the attempt was successful.
 #
-# \verb+TryCompleC+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
+# \verb+TryCompileC+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
 # to run the C compiler. \verb+TryLinkC+ and \verb+TryRunC+ will also use the \hypervar{LDFLAGS}
 # to run the C compiler and linker. However, the flags like \verb+/WX+, \verb+-Werror+ and \verb+-warn-error+
 # will be not be passed to the compiler, even if they occur in \verb+CFLAGS+.
@@ -156,7 +156,7 @@ $(prog)
 
     return $(result)
 
-TryCompleC(prog) =
+TryCompileC(prog) =
     return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
 
 TryLinkC(prog) =
@@ -190,7 +190,7 @@ RunCProg(prog) =
 # success = $(VerboseCheckCHeader <files>)
 # \end{verbatim}
 #
-# Use the \hyperfun{TryCompleC} to check whether your C compiler can locate
+# Use the \hyperfun{TryCompileC} to check whether your C compiler can locate
 # and process the specified headers files.
 # Will incude \verb+<stdio.h>+ before including the header files.
 #
@@ -206,7 +206,7 @@ RunCProg(prog) =
 # \end{doc}
 #
 public.CheckCHeader(files) =
-    return $(TryCompleC $"""
+    return $(TryCompileC $"""
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -310,14 +310,14 @@ public.CheckProg(prog) =
 # Some of the functions described above are very similar to the ones present in \verb+autoconf+.
 # Below is a brief translation table for such functions.
 # \begin{description}
-# \item{AC\_MSG\_CHECKING} is very similar to \hyperfun{ConfMsgChecking}.
-# \item{AC\_MSG\_RESULT} is very similar to \hyperfun{ConfMsgResult}.
-# \item{AC\_MSG\_WARN} is very similar to \hyperfun{ConfMsgWarn}.
-# \item{AC\_MSG\_ERROR} is very similar to \hyperfun{ConfMsgError}.
-# \item{AC\_TRY\_COMPILE} is somewhat similar to \hyperfun{TryCompileC},
+# \itemidx{AC\_MSG\_CHECKING} is very similar to \hyperfun{ConfMsgChecking}.
+# \itemidx{AC\_MSG\_RESULT} is very similar to \hyperfun{ConfMsgResult}.
+# \itemidx{AC\_MSG\_WARN} is very similar to \hyperfun{ConfMsgWarn}.
+# \itemidx{AC\_MSG\_ERROR} is very similar to \hyperfun{ConfMsgError}.
+# \itemidx{AC\_TRY\_COMPILE} is somewhat similar to \hyperfun{TryCompileC},
 #     except the \hyperfun{TryCompileC} returns a boolean value and only works for \verb+C+. Similarly,
-# \item{AC\_TRY\_LINK} is approximated by \hyperfun{TryLinkC}, and
-# \item{AC\_TRY\_RUN} is approximated by \hyperfun{TryRunC}.
+# \itemidx{AC\_TRY\_LINK} is approximated by \hyperfun{TryLinkC}, and
+# \itemidx{AC\_TRY\_RUN} is approximated by \hyperfun{TryRunC}.
 # \end{description}
 #
 # \section{Predefined configuration tests}

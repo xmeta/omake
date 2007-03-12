@@ -5,8 +5,8 @@
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                            2^ndMarch, 2007
-                            ===============
+                            12^thMarch, 2007
+                            ================
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -321,7 +321,7 @@ Contents
         
        - 9.5.1  mkdir 
        - 9.5.2  Stat 
-       - 9.5.3  stat 
+       - 9.5.3  stat, lstat 
        - 9.5.4  unlink 
        - 9.5.5  rename 
        - 9.5.6  link 
@@ -400,7 +400,12 @@ Contents
        - 9.11.14  Calling the parser 
        - 9.11.15  Parsing control 
        - 9.11.16  Extending parsers 
-       - 9.11.17  gettimeofday 
+       - 9.11.17  Passwd 
+       - 9.11.18  getpwnam, getpwuid 
+       - 9.11.19  getpwents 
+       - 9.11.20  Group 
+       - 9.11.21  getgrnam, getgrgid 
+       - 9.11.22  gettimeofday 
      
   
  - Chapter 10  Shell commands 
@@ -550,20 +555,21 @@ Contents
      
     - 13.1  General-purpose autoconfiguration functions 
         
-       - 13.1.1  AC_MSG_CHECKING, AC_MSG_RESULT 
-       - 13.1.2  AC_MSG_WARN, AC_MSG_ERROR 
-       - 13.1.3  AC_MSG_YES_NO, AC_MSG_FOUND 
-       - 13.1.4  AC_TRY_COMPILE, AC_TRY_LINK, AC_TRY_RUN 
-       - 13.1.5  AC_RUN_PROG 
-       - 13.1.6  CheckHeader, VerboseCheckHeader 
-       - 13.1.7  CheckLib, VerboseCheckLib 
+       - 13.1.1  ConfMsgChecking, ConfMsgResult 
+       - 13.1.2  ConfMsgWarn, ConfMsgError 
+       - 13.1.3  ConfMsgYesNo, ConfMsgFound 
+       - 13.1.4  TryCompileC, TryLinkC, TryRunC 
+       - 13.1.5  RunCProg 
+       - 13.1.6  CheckCHeader, VerboseCheckCHeader 
+       - 13.1.7  CheckCLib, VerboseCheckCLib 
        - 13.1.8  CheckProg 
      
-    - 13.2  Predefined configuration tests 
+    - 13.2  Translating 'autoconf' scripts 
+    - 13.3  Predefined configuration tests 
         
-       - 13.2.1  NCurses library configuration 
-       - 13.2.2  ReadLine library configuration 
-       - 13.2.3  Snprintf configuration 
+       - 13.3.1  NCurses library configuration 
+       - 13.3.2  ReadLine library configuration 
+       - 13.3.3  Snprintf configuration 
      
   
  - Chapter 14  The OSH shell 
@@ -2783,8 +2789,8 @@ standard library, the above can be rewritten as
 >>
   
   As a matter of style, a `static.' section that is used for
-configuration should print what it is doing, using the 'AC_MSG_CHECKING'
-and 'AC_MSG_RESULT' functions (of couse, most of helper functions in the
+configuration should print what it is doing using the 'ConfMsgChecking'
+and 'ConfMsgResult' functions (of couse, most of helper functions in the
 standard library would do that automatically).
   
 
@@ -4361,7 +4367,7 @@ the project root.
   
   Note that when a `.PHONY' target is inherited by a subdirectory via a
 `.SUBDIRS', a whole hierarchy of `.PHONY' target (that are a part of the
-global one) is created, as described in Section 7.12.1 below.
+global one) is created, as described in Section 7.12.2 below.
   
 
 7.12  Running OMake from a subdirectory
@@ -6438,10 +6444,9 @@ following options are supported.
 9.5.2  Stat
 ===========
   
-  The `Stat' object represents the result returned by the `stat' and
-`lstat' functions. It contains the following fields.
-  A `stat' object has the following fields. Not all of the fields will
-have meaning on all architectures.
+  The `Stat' object represents an information about a filesystem node,
+as returned by the `stat' and `lstat' functions.  It contains the
+following fields.
   
   
  dev : the device number. 
@@ -6460,10 +6465,11 @@ have meaning on all architectures.
  mtime : last modification time, as a floating point number. 
  ctime : last status change time, as a floating point number. 
   
+  Not all of the fields will have meaning on all operating systems.
   
 
-9.5.3  stat
-===========
+9.5.3  stat, lstat
+==================
   
 <<    $(stat node...) : Stat
          node : Node or Channel
@@ -8047,7 +8053,81 @@ accomplishes this.
   In this case, we use the new lexer `lexer2', and we add productions
 for the new shift operations.
 
-9.11.17  gettimeofday
+9.11.17  Passwd
+===============
+  
+  The `Passwd' object represents an entry in the system's user database.
+It contains the following fields.
+  
+  
+  'pw_name': the login name. 
+  'pw_passwd': the encrypted password. 
+  'pw_uid': user id of the user. 
+  'pw_gid': group id of the user. 
+  'pw_gecos': the user name or comment field. 
+  'pw_dir': the user's home directory. 
+  'pw_shell': the user's default shell. 
+  
+  Not all the fields will have meaning on all operating systems.
+  
+
+9.11.18  getpwnam, getpwuid
+===========================
+  
+<<    $(getpwnam name...) : Passwd
+         name : String
+      $(getpwuid uid...) : Passwd
+         uid : Int
+      raises RuntimeException
+>>
+  
+  The `getpwnam' function looks up an entry by the user's login and the
+`getpwuid' function looks up an entry by user's numerical id (uid). If
+no entry is found, an exception will be raised.
+  
+
+9.11.19  getpwents
+==================
+  
+<<    $(getpwents) : Array
+>>
+  
+  The `getpwents' function returns an array of `Passwd' objects, one for
+every user fund in the system user database. Note that depending on the
+operating system and on the setup of the user database, the returned
+array may be incomplete or even empty.
+
+9.11.20  Group
+==============
+  
+  The `Group' object represents an entry in the system's user group
+database. It contains the following fields.
+  
+  
+  'gr_name': the group name. 
+  'gr_group': the encrypted password. 
+  'gr_gid': group id of the group. 
+  'gr_mem': the group member's user names. 
+  
+  Not all the fields will have meaning on all operating systems.
+  
+
+9.11.21  getgrnam, getgrgid
+===========================
+  
+<<    $(getgrnam name...) : Group
+         name : String
+      $(getgrgid gid...) : Group
+         gid : Int
+      raises RuntimeException
+>>
+  
+  The `getgrnam' function looks up a group entry by the group's name and
+the `getgrgid' function looks up an entry by groups's numerical id
+(gid). If no entry is found, an exception will be raised.
+  
+
+9.11.22  gettimeofday
 =====================
   
 <<   $(gettimeofday) : Float
@@ -9912,118 +9992,120 @@ have the line
 >>
   included in your `OMakefile' or `OMakeroot'.
 
-13.1.1  AC_MSG_CHECKING, AC_MSG_RESULT
+13.1.1  ConfMsgChecking, ConfMsgResult
 ======================================
    
-<<AC_MSG_CHECKING(<msg>)
+<<ConfMsgChecking(<msg>)
   ...
-  AC_MSG_RESULT(<msg>)
+  ConfMsgResult(<msg>)
 >>
-  The `AC_MSG_CHECKING' function output message of the form `---
+  The `ConfMsgChecking' function output message of the form `---
 Checking <msg>... ' without any trailing newline. After the test
-advertized by `AC_MSG_CHECKING' is performed, the `AC_MSG_RESULT'
+advertized by `ConfMsgChecking' is performed, the `ConfMsgResult'
 function should be used to output the result.
   In certain cases users may want to redefine these function --- for
 example, to use a different output formatting and/or to copy the
 messages to a log file.
   Example: 
 <<static. =
-     AC_MSG_CHECKING(which foo to use)
+     ConfMsgChecking(which foo to use)
      foo = ...
-     AC_MSG_RESULT($(foo))
+     ConfMsgResult($(foo))
 >>
   
 
-13.1.2  AC_MSG_WARN, AC_MSG_ERROR
+13.1.2  ConfMsgWarn, ConfMsgError
 =================================
    
-<<AC_MSG_WARN(<msg>)
-  AC_MSG_ERROR(<msg>)
+<<ConfMsgWarn(<msg>)
+  ConfMsgError(<msg>)
 >>
   
-  Print a warning or an error message respectively. `AC_MSG_ERROR' would
+  Print a warning or an error message respectively. `ConfMsgError' would
 then abort OMake.
 
-13.1.3  AC_MSG_YES_NO, AC_MSG_FOUND
-===================================
+13.1.3  ConfMsgYesNo, ConfMsgFound
+==================================
    
-<<flag = $(AC_MSG_YES_NO <bool expr>
-  flag = $(AC_MSG_FOUND <bool expr>
+<<flag = $(ConfMsgYesNo <bool expr>
+  flag = $(ConfMsgFound <bool expr>
 >>
   
-  The `AC_MSG_FOUND' function expects to receive a boolean flag
+  The `ConfMsgFound' function expects to receive a boolean flag
 describing whether a test previously announced using the
-'AC_MSG_CHECKING' function found what it was looking for. `AC_MSG_FOUND'
+'ConfMsgChecking' function found what it was looking for. `ConfMsgFound'
 will output the appropriate result ("found" or "NOT found") using the
-'AC_MSG_RESULT' function and return its argument back.
-  The `AC_MSG_YES_NO' function is similar, outputting a simple ("yes" or
+'ConfMsgResult' function and return its argument back.
+  The `ConfMsgYesNo' function is similar, outputting a simple ("yes" or
 "NO").
 
-13.1.4  AC_TRY_COMPILE, AC_TRY_LINK, AC_TRY_RUN
-===============================================
+13.1.4  TryCompileC, TryLinkC, TryRunC
+======================================
    
-<<success = $(AC_TRY_COMPILE <prog_text>)
-  success = $(AC_TRY_LINK <prog_text>)
-  success = $(AC_TRY_RUN <prog_text>)
+<<success = $(TryCompileC <prog_text>)
+  success = $(TryLinkC <prog_text>)
+  success = $(TryRunC <prog_text>)
 >>
   
-  Given the text of a C program, the `AC_TRY_COMPILE', `AC_TRY_LINK',
-and `AC_TRY_RUN' functions would try to compile / compile and link /
-compile, link, and run, the given program and return a boolean flag
-indicating whether the attempt was successful.
-  `AC_TRY_COMPILE' will use the 'CC', 'CFLAGS' and 'INCLUDES' variables 
-to run the C compiler. `AC_TRY_LINK' and `AC_TRY_RUN' will also use the
-'LDFLAGS' variable to run the C compiler and linker. However, the flags
-like `/WX', `-Werror' and `-warn-error' will be not be passed to the
+  Given the text of a C program, the `TryCompileC', `TryLinkC', and
+`TryRunC' functions would try to compile / compile and link / compile,
+link, and run, the given program and return a boolean flag indicating
+whether the attempt was successful.
+  `TryCompileC' will use the 'CC', 'CFLAGS' and 'INCLUDES' variables  to
+run the C compiler. `TryLinkC' and `TryRunC' will also use the 'LDFLAGS'
+variable to run the C compiler and linker. However, the flags like
+`/WX', `-Werror' and `-warn-error' will be not be passed to the
 compiler, even if they occur in `CFLAGS'.
   These functions are silent and should normally be used with an
-appropriate 'AC_MSG_CHECKING' ... 'AC_MSG_RESULT'.
+appropriate 'ConfMsgChecking' ... 'ConfMsgResult'.
 
-13.1.5  AC_RUN_PROG
-===================
+13.1.5  RunCProg
+================
    
-<<output = $(AC_RUN_PROG <prog>)
+<<output = $(RunCProg <prog>)
 >>
   
-  `AC_RUN_PROG' is similar to the 'AC_RUN_PROG', except that it returns
-the output of the function (will return `false' if the program fails to
-compile or run).
+  `RunCProg' is similar to the 'RunCProg' function, except that it
+returns the output of the function (will return `false' if the program
+fails to compile or run).
 
-13.1.6  CheckHeader, VerboseCheckHeader
-=======================================
+13.1.6  CheckCHeader, VerboseCheckCHeader
+=========================================
    
-<<success = $(CheckHeader <files>)
-  success = $(VerboseCheckHeader <files>)
+<<success = $(CheckCHeader <files>)
+  success = $(VerboseCheckCHeader <files>)
 >>
   
-  Use the 'AC_TRY_COMPILE' function to check whether your C compiler can
+  Use the 'TryCompileC' function to check whether your C compiler can
 locate and process the specified headers files. Will incude `<stdio.h>'
 before including the header files.
-  Both functions return a boolean value. The `CheckHeader' function is
-silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
-and 'AC_MSG_RESULT' functions to describe the test and the outcome.
+  Both functions return a boolean value. The `CheckCHeader' function is
+silent; the `VerboseCheckCHeader' function will use the
+'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
+the outcome.
   Example: 
 <<static. =
-     NCURSES_H_AVAILABLE = $(VerboseCheckHeader ncurses.h)
+     NCURSES_H_AVAILABLE = $(VerboseCheckCHeader ncurses.h)
 >>
   
 
-13.1.7  CheckLib, VerboseCheckLib
-=================================
+13.1.7  CheckCLib, VerboseCheckCLib
+===================================
    
-<<success = $(CheckLib <libs>, <functions>)
-  success = $(VerboseCheckLib <libs>, <functions>)
+<<success = $(CheckCLib <libs>, <functions>)
+  success = $(VerboseCheckCLib <libs>, <functions>)
 >>
   
-  Use the 'AC_TRY_LINK' function to check whether your C compiler and
+  Use the 'TryLinkC' function to check whether your C compiler and
 linker can find the named functions when linking with the named
 libraries. Will pass the `<libs>' to the compiler using the `-l' flag.
-  Both functions return a boolean value. The `CheckLib' function is
-silent; the `VerboseCheckHeader' function will use the 'AC_MSG_CHECKING'
-and 'AC_MSG_RESULT' functions to describe the test and the outcome.
+  Both functions return a boolean value. The `CheckCLib' function is
+silent; the `VerboseCheckCHeader' function will use the
+'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
+the outcome.
   Example: 
 <<static. =
-      NCURSES_LIB_AVAILABLE = $(VerboseCheckLib ncurses, initscr
+      NCURSES_LIB_AVAILABLE = $(VerboseCheckCLib ncurses, initscr
 setupterm tigetstr)
 >>
   
@@ -10032,11 +10114,30 @@ setupterm tigetstr)
 =================
    `success = $(CheckProg <prog>)'
   Checks whether the program `<prog>' exists in your path. Will use the
-'AC_MSG_CHECKING' and 'AC_MSG_RESULT' functions to describe the test and
+'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
 the outcome.
   
 
-13.2  Predefined configuration tests
+13.2  Translating 'autoconf' scripts
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   Some of the functions described above are very similar to the ones
+present in `autoconf'. Below is a brief translation table for such
+functions. 
+  
+  'AC_MSG_CHECKING' is very similar to 'ConfMsgChecking' function. 
+  'AC_MSG_RESULT' is very similar to 'ConfMsgResult' function. 
+  'AC_MSG_WARN' is very similar to 'ConfMsgWarn' function. 
+  'AC_MSG_ERROR' is very similar to 'ConfMsgError' function. 
+  'AC_TRY_COMPILE' is somewhat similar to 'TryCompileC' function, except
+   the 'TryCompileC' function returns a boolean value and only works for
+   `C'. Similarly, 
+  'AC_TRY_LINK' is approximated by 'TryLinkC' function, and 
+  'AC_TRY_RUN' is approximated by 'TryRunC' function. 
+  
+  
+
+13.3  Predefined configuration tests
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    A number of configuration tests are already included in the standard
@@ -10046,7 +10147,7 @@ tests will run the first time OMake is executed. Note that it is not a
 problem to `open' these files from more than one place in your project
 --- if you do that, the test will still run only once.
 
-13.2.1  NCurses library configuration
+13.3.1  NCurses library configuration
 =====================================
    Add `open configure/ncurses' line to your `OMakefile' to get access
 to the following autoconfiguration variables. 
@@ -10057,7 +10158,7 @@ NCURSES_TERMH_IN_NCURSES
    A boolean flag that would be set when `term.h' has to be included as
 `<ncurses/term.h>' instead of `<term.h>'.
 
-13.2.2  ReadLine library configuration
+13.3.2  ReadLine library configuration
 ======================================
    Add `open configure/readline' line to your `OMakefile' to get access
 to the following autoconfiguration variables. 
@@ -10077,7 +10178,7 @@ READLINE_CLIBS
 contain `-lncurses -lreadline' when readline is found and remain empty
 otherwise.
 
-13.2.3  Snprintf configuration
+13.3.3  Snprintf configuration
 ==============================
    Add `open configure/snprintf' line to your `OMakefile' to get access
 to the following autoconfiguration variables. 
@@ -11466,16 +11567,13 @@ Index
  
  - ABORT_ON_COMMAND_ERROR, 12.4.1 
  - ABORT_ON_DEPENDENCY_ERRORS, 12.6.4 
- - AC_MSG_CHECKING, 13.1.1 
- - AC_MSG_ERROR, 13.1.2 
- - AC_MSG_FOUND, 13.1.3 
- - AC_MSG_RESULT, 13.1.1 
- - AC_MSG_WARN, 13.1.2 
- - AC_MSG_YES_NO, 13.1.3 
- - AC_RUN_PROG, 13.1.5 
- - AC_TRY_COMPILE, 13.1.4 
- - AC_TRY_LINK, 13.1.4 
- - AC_TRY_RUN, 13.1.4 
+ - AC_MSG_CHECKING, 13.2 
+ - AC_MSG_ERROR, 13.2 
+ - AC_MSG_RESULT, 13.2 
+ - AC_MSG_WARN, 13.2 
+ - AC_TRY_COMPILE, 13.2 
+ - AC_TRY_LINK, 13.2 
+ - AC_TRY_RUN, 13.2 
  - AR, 12.5.2 
  - AROUT, 12.5.2 
  - Array, 11.1.7 
@@ -11512,10 +11610,16 @@ Index
  - CFLAGS, 12.5.2 
  - CGeneratedFiles, 12.5.3.1 
  - Channel, 11.1.15 
- - CheckHeader, 13.1.6 
- - CheckLib, 13.1.7 
+ - CheckCHeader, 13.1.6 
+ - CheckCLib, 13.1.7 
  - CheckProg, 13.1.8 
  - CL_FOUND, 12.5.1.2 
+ - ConfMsgChecking, 13.1.1 
+ - ConfMsgError, 13.1.2 
+ - ConfMsgFound, 13.1.3 
+ - ConfMsgResult, 13.1.1 
+ - ConfMsgWarn, 13.1.2 
+ - ConfMsgYesNo, 13.1.3 
  - CPP, 12.5.2 
  - CProgram, 12.5.4.5 
  - CProgramCopy, 12.5.4.6 
@@ -11620,18 +11724,28 @@ Index
  - functions, 4.5 
  
  - GCC_FOUND, 12.5.1.1 
+ - Group, 9.11.20 
  - GXX_FOUND, 12.5.1.1 
  - ge, 8.4.4 
  - get-registry, 8.2.15 
  - getchar, 9.8.32 
  - getenv, 8.2.12 
+ - getgrgid, 9.11.21 
+ - getgrnam, 9.11.21 
  - gethostbyname, 9.8.22 
  - getprotobyname, 9.8.24 
+ - getpwents, 9.11.19 
+ - getpwnam, 9.11.18 
+ - getpwuid, 9.11.18 
  - gets, 9.8.33 
  - getservbyname, 9.8.26 
- - gettimeofday, 9.11.17 
+ - gettimeofday, 9.11.22 
  - getvar, 8.2.16 
  - glob, 9.4.1 
+ - gr_gid, 9.11.20 
+ - gr_group, 9.11.20 
+ - gr_mem, 9.11.20 
+ - gr_name, 9.11.20 
  - grep, 9.11.3 
  - gt, 8.4.4 
  
@@ -11695,6 +11809,7 @@ Index
  - lseek, 9.8.8 
  - lsl, 8.4.3 
  - lsr, 8.4.3 
+ - lstat, 9.5.3 
  - lt, 8.4.4 
  - lxor, 8.4.3 
  
@@ -11716,8 +11831,8 @@ Index
  - mul, 8.4.3 
  
  - NATIVE_ENABLED, 12.6.2 
- - NCURSES_AVAILABLE, 13.2.1 
- - NCURSES_TERMH_IN_NCURSES, 13.2.1 
+ - NCURSES_AVAILABLE, 13.3.1 
+ - NCURSES_TERMH_IN_NCURSES, 13.3.1 
  - NODENAME, 8.1 
  - Node, 11.1.12 
  - Number, 11.1.3 
@@ -11788,6 +11903,7 @@ Index
  - out-string, 9.8.3 
  
  - PATHSEP, 12.4.2 
+ - Passwd, 9.11.17 
  - PDFLATEX, 12.7.1 
  - PDFLATEXFLAGS, 12.7.1 
  - PID, 8.1 
@@ -11803,17 +11919,25 @@ Index
  - prompt, 14.1 
  - protected., 4.16 
  - public., 4.17 
+ - pw_dir, 9.11.17 
+ - pw_gecos, 9.11.17 
+ - pw_gid, 9.11.17 
+ - pw_name, 9.11.17 
+ - pw_passwd, 9.11.17 
+ - pw_shell, 9.11.17 
+ - pw_uid, 9.11.17 
  
  - quotations, 4.4 
  - quote, 8.3.14 
  - quote-argv, 8.3.15 
  
- - READLINE_AVAILABLE, 13.2.2 
- - READLINE_CFLAGS, 13.2.2 
- - READLINE_CLIBS, 13.2.2 
- - READLINE_GNU, 13.2.2 
+ - READLINE_AVAILABLE, 13.3.2 
+ - READLINE_CFLAGS, 13.3.2 
+ - READLINE_CLIBS, 13.3.2 
+ - READLINE_GNU, 13.3.2 
  - ROOT, 12.4.1 
  - Rule, 11.1.10 
+ - RunCProg, 13.1.5 
  - RuntimeException, 11.1.21 
  - raise, 8.2.8 
  - random, 8.3.42 
@@ -11841,7 +11965,7 @@ Index
  - Sequence, 11.1.6 
  - Service, 9.8.25 
  - Shell, 11.1.23 
- - SNPRINTF_AVAILABLE, 13.2.3 
+ - SNPRINTF_AVAILABLE, 13.3.3 
  - STDLIB, 8.1 
  - STDROOT, 12.4.1 
  - Stat, 9.5.2 
@@ -11894,6 +12018,9 @@ Index
  - TEXINPUTS, 12.7.2.1 
  - TEXVARS, 12.7.2.1 
  - TeXGeneratedFiles, 12.7.2.2 
+ - TryCompileC, 13.1.4 
+ - TryLinkC, 13.1.4 
+ - TryRunC, 13.1.4 
  - target, 12.3.2 
  - target-exists, 9.3.1 
  - target-is-proper, 9.3.1 
@@ -11918,8 +12045,8 @@ Index
  - uppercase, 8.3.35 
  
  - VERBOSE, 8.1 
- - VerboseCheckHeader, 13.1.6 
- - VerboseCheckLib, 13.1.7 
+ - VerboseCheckCHeader, 13.1.6 
+ - VerboseCheckCLib, 13.1.7 
  - value, 4.5, B.2.2.1 
  - variable definition, A.3.21 
  - vmount, 2.9, 9.6.1 
@@ -12002,8 +12129,8 @@ Index of variables
  - MENHIR_FLAGS, 12.6.3 
  
  - NATIVE_ENABLED, 12.6.2 
- - NCURSES_AVAILABLE, 13.2.1 
- - NCURSES_TERMH_IN_NCURSES, 13.2.1 
+ - NCURSES_AVAILABLE, 13.3.1 
+ - NCURSES_TERMH_IN_NCURSES, 13.3.1 
  - NODENAME, 8.1 
  
  - OCAML_BYTE_LINK_FLAGS, 12.6.3 
@@ -12048,14 +12175,14 @@ Index of variables
  - PID, 8.1 
  - prompt, 14.1 
  
- - READLINE_AVAILABLE, 13.2.2 
- - READLINE_CFLAGS, 13.2.2 
- - READLINE_CLIBS, 13.2.2 
- - READLINE_GNU, 13.2.2 
+ - READLINE_AVAILABLE, 13.3.2 
+ - READLINE_CFLAGS, 13.3.2 
+ - READLINE_CLIBS, 13.3.2 
+ - READLINE_GNU, 13.3.2 
  - ROOT, 12.4.1 
  
  - SCANNER_MODE, 12.4.1 
- - SNPRINTF_AVAILABLE, 13.2.3 
+ - SNPRINTF_AVAILABLE, 13.3.3 
  - STDLIB, 8.1 
  - STDROOT, 12.4.1 
  - SYSNAME, 8.1 
@@ -12082,16 +12209,6 @@ Index of functions and special forms
 ************************************
   
   
- - AC_MSG_CHECKING, 13.1.1 
- - AC_MSG_ERROR, 13.1.2 
- - AC_MSG_FOUND, 13.1.3 
- - AC_MSG_RESULT, 13.1.1 
- - AC_MSG_WARN, 13.1.2 
- - AC_MSG_YES_NO, 13.1.3 
- - AC_RUN_PROG, 13.1.5 
- - AC_TRY_COMPILE, 13.1.4 
- - AC_TRY_LINK, 13.1.4 
- - AC_TRY_RUN, 13.1.4 
  - absname, 9.1.9 
  - accept, 9.8.30 
  - add, 8.4.3 
@@ -12113,9 +12230,15 @@ Index of functions and special forms
  - break, 8.3.41 
  
  - CGeneratedFiles, 12.5.3.1 
- - CheckHeader, 13.1.6 
- - CheckLib, 13.1.7 
+ - CheckCHeader, 13.1.6 
+ - CheckCLib, 13.1.7 
  - CheckProg, 13.1.8 
+ - ConfMsgChecking, 13.1.1 
+ - ConfMsgError, 13.1.2 
+ - ConfMsgFound, 13.1.3 
+ - ConfMsgResult, 13.1.1 
+ - ConfMsgWarn, 13.1.2 
+ - ConfMsgYesNo, 13.1.3 
  - CProgram, 12.5.4.5 
  - CProgramCopy, 12.5.4.6 
  - CProgramInstall, 12.5.4.7 
@@ -12194,11 +12317,16 @@ Index of functions and special forms
  - get-registry, 8.2.15 
  - getchar, 9.8.32 
  - getenv, 8.2.12 
+ - getgrgid, 9.11.21 
+ - getgrnam, 9.11.21 
  - gethostbyname, 9.8.22 
  - getprotobyname, 9.8.24 
+ - getpwents, 9.11.19 
+ - getpwnam, 9.11.18 
+ - getpwuid, 9.11.18 
  - gets, 9.8.33 
  - getservbyname, 9.8.26 
- - gettimeofday, 9.11.17 
+ - gettimeofday, 9.11.22 
  - getvar, 8.2.16 
  - glob, 9.4.1 
  - grep, 9.11.3 
@@ -12244,6 +12372,7 @@ Index of functions and special forms
  - lseek, 9.8.8 
  - lsl, 8.4.3 
  - lsr, 8.4.3 
+ - lstat, 9.5.3 
  - lt, 8.4.4 
  - lxor, 8.4.3 
  
@@ -12290,6 +12419,7 @@ Index of functions and special forms
  - quote, 8.3.14 
  - quote-argv, 8.3.15 
  
+ - RunCProg, 13.1.5 
  - raise, 8.2.8 
  - random, 8.3.42 
  - random-init, 8.3.42 
@@ -12342,6 +12472,9 @@ Index of functions and special forms
  - system, 8.3.37 
  
  - TeXGeneratedFiles, 12.7.2.2 
+ - TryCompileC, 13.1.4 
+ - TryLinkC, 13.1.4 
+ - TryRunC, 13.1.4 
  - target, 12.3.2 
  - target-exists, 9.3.1 
  - target-is-proper, 9.3.1 
@@ -12361,8 +12494,8 @@ Index of functions and special forms
  - unsetenv, 8.2.14 
  - uppercase, 8.3.35 
  
- - VerboseCheckHeader, 13.1.6 
- - VerboseCheckLib, 13.1.7 
+ - VerboseCheckCHeader, 13.1.6 
+ - VerboseCheckCLib, 13.1.7 
  - vmount, 9.6.1 
  
  - wait, 10.10.5 
@@ -12388,6 +12521,8 @@ Index of objects
  - Float, 11.1.5 
  - Fun, 11.1.9 
  
+ - Group, 9.11.20 
+ 
  - Host, 9.8.21 
  
  - InChannel, 11.1.16 
@@ -12405,6 +12540,7 @@ Index of objects
  - Object, 11.1.1 
  - OutChannel, 11.1.17 
  
+ - Passwd, 9.11.17 
  - Position, 11.1.19 
  - Protocol, 9.8.23 
  
@@ -12495,7 +12631,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8 of 2^ndMarch, 2007.
+  Version: 0.9.8 of 12^thMarch, 2007.
   
 
 C.3  License and Copyright

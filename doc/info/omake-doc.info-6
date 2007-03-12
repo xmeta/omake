@@ -508,10 +508,95 @@ accomplishes this.
   In this case, we use the new lexer `lexer2', and we add productions
 for the new shift operations. 
 
-Node: Subsection 9-11-17,	Next: Chapter 10,	Prev: Subsection 9-11-16,	Up: Section 9-11
+Node: Subsection 9-11-17,	Next: Subsection 9-11-18,	Prev: Subsection 9-11-16,	Up: Section 9-11
   
 
-9.11.17   gettimeofday
+9.11.17   Passwd
+================
+
+  The `Passwd' object represents an entry in the system's user database.
+It contains the following fields.
+  
+  
+  'pw_name': the login name. 
+  'pw_passwd': the encrypted password. 
+  'pw_uid': user id of the user. 
+  'pw_gid': group id of the user. 
+  'pw_gecos': the user name or comment field. 
+  'pw_dir': the user's home directory. 
+  'pw_shell': the user's default shell. 
+  
+  Not all the fields will have meaning on all operating systems.
+
+Node: Subsection 9-11-18,	Next: Subsection 9-11-19,	Prev: Subsection 9-11-17,	Up: Section 9-11
+  
+
+9.11.18   getpwnam, getpwuid
+============================
+
+<<    $(getpwnam name...) : Passwd
+         name : String
+      $(getpwuid uid...) : Passwd
+         uid : Int
+      raises RuntimeException
+>>
+  
+  The `getpwnam' function looks up an entry by the user's login and the
+`getpwuid' function looks up an entry by user's numerical id (uid). If
+no entry is found, an exception will be raised.
+
+Node: Subsection 9-11-19,	Next: Subsection 9-11-20,	Prev: Subsection 9-11-18,	Up: Section 9-11
+  
+
+9.11.19   getpwents
+===================
+
+<<    $(getpwents) : Array
+>>
+  
+  The `getpwents' function returns an array of `Passwd' objects, one for
+every user fund in the system user database. Note that depending on the
+operating system and on the setup of the user database, the returned
+array may be incomplete or even empty. 
+
+Node: Subsection 9-11-20,	Next: Subsection 9-11-21,	Prev: Subsection 9-11-19,	Up: Section 9-11
+  
+
+9.11.20   Group
+===============
+
+  The `Group' object represents an entry in the system's user group
+database. It contains the following fields.
+  
+  
+  'gr_name': the group name. 
+  'gr_group': the encrypted password. 
+  'gr_gid': group id of the group. 
+  'gr_mem': the group member's user names. 
+  
+  Not all the fields will have meaning on all operating systems.
+
+Node: Subsection 9-11-21,	Next: Subsection 9-11-22,	Prev: Subsection 9-11-20,	Up: Section 9-11
+  
+
+9.11.21   getgrnam, getgrgid
+============================
+
+<<    $(getgrnam name...) : Group
+         name : String
+      $(getgrgid gid...) : Group
+         gid : Int
+      raises RuntimeException
+>>
+  
+  The `getgrnam' function looks up a group entry by the group's name and
+the `getgrgid' function looks up an entry by groups's numerical id
+(gid). If no entry is found, an exception will be raised.
+
+Node: Subsection 9-11-22,	Next: Chapter 10,	Prev: Subsection 9-11-21,	Up: Section 9-11
+  
+
+9.11.22   gettimeofday
 ======================
 
 <<   $(gettimeofday) : Float
@@ -1606,38 +1691,3 @@ A*Note Appendix A::), any output produced by the commands is
 copied to a file. The name of the file is specified by the `output-file'
 field of the 'Target' object. You may find this useful in defining
 custom build summaries. 
-
-Node: Section 12-2,	Next: Subsection 12-2-1,	Prev: Section 12-1,	Up: Chapter 12
-  
-
-12.2   Options and versioning
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 12-2-1::	OMakeFlags
-* Subsection 12-2-2::	OMakeVersion
-* Subsection 12-2-3::	cmp-versions
-* Subsection 12-2-4::	DefineCommandVars
-
-
-Node: Subsection 12-2-1,	Next: Subsection 12-2-2,	Prev: Section 12-2,	Up: Section 12-2
-  
-
-12.2.1   OMakeFlags
-===================
-
-<<   OMakeFlags(options)
-        options : String
->>
-  
-  The `OMakeFlags' function is used to set `omake' options from within
-OMakefiles. The options have exactly the same format as options on the
-command line.
-  For example, the following code displays the progress bar unless the
-`VERBOSE' environment variable is defined.
-<<    if $(not $(defined-env VERBOSE))
-          OMakeFlags(-S --progress)
-          export
->>

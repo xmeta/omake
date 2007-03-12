@@ -369,7 +369,7 @@ from the project root.</P><PRE CLASS="verbatim">    .PHONY: all install clean
     .SUBDIRS: src lib clib
 </PRE><P>Note that when a <CODE>.PHONY</CODE> target is inherited by a subdirectory via a <CODE>.SUBDIRS</CODE>, a whole
 hierarchy of <CODE>.PHONY</CODE> target (that are a part of the global one) is created, as described in
-Section&#XA0;<A HREF="#section:PHONY-hierarchy">7.12.1</A> below.</P><H2 CLASS="section"><A NAME="toc63"></A><A NAME="htoc90">7.12</A>&#XA0;&#XA0;Running OMake from a subdirectory</H2><P>
+Section&#XA0;<A HREF="#section:PHONY-hierarchy">7.12.2</A> below.</P><H2 CLASS="section"><A NAME="toc63"></A><A NAME="htoc90">7.12</A>&#XA0;&#XA0;Running OMake from a subdirectory</H2><P>
 <A NAME="section:running-from-subdir"></A>
 Running <CODE>omake foo</CODE> asks OMake to build the file <CODE>foo</CODE> in context of the <EM>whole</EM>
 project, even when running from a subdirectory of the project. Therefore, if <CODE>bar/baz</CODE> is a
@@ -381,7 +381,7 @@ OMake will complain if you try to run it in that directory.
 </LI><LI CLASS="li-itemize">If a subdirectory contains an <CODE>OMakeroot</CODE> of its own, this would designate
 the subdirectory as a separate project (which is usually a bad idea and is not recommended).
 </LI></UL><H3 CLASS="subsection"><A NAME="htoc91">7.12.1</A>&#XA0;&#XA0;Phony targets in a subdirectory</H3><P>
-<A NAME="section:PHONY-hierarchy"></A><A NAME="@default55"></A><A NAME="@target7"></A><A NAME="@default56"></A><A NAME="@target8"></A></P><P>Suppose you have a <CODE>.PHONY: clean</CODE> declared in your root <CODE>OMakefile</CODE> and
+<A NAME="section:PHONY-in-subdirs"></A><A NAME="@default55"></A><A NAME="@target7"></A><A NAME="@default56"></A><A NAME="@target8"></A></P><P>Suppose you have a <CODE>.PHONY: clean</CODE> declared in your root <CODE>OMakefile</CODE> and
 both the root <CODE>OMakefile</CODE> and the <CODE>OMakefile</CODE> in some of the subdirectories contain
 <CODE>clean:</CODE> rules. In this case
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
@@ -389,7 +389,7 @@ Running <CODE>omake clean</CODE> in the root directory will execute all the rule
 appropriate directory);
 </LI><LI CLASS="li-itemize">Running <CODE>omake clean</CODE> in the subdirectory will execute just its local one, as well as the
 ones from the subdirectories of the current directory.
-</LI></UL><P>The above equally applies to the built-in <CODE>.PHONY</CODE> targets, including <CODE><A >.DEFAULT</A></CODE>.
+</LI></UL><P>The above equally applies to the built-in <CODE>.PHONY</CODE> targets, including <CODE><A HREF="#target:.DEFAULT">.DEFAULT</A></CODE>.
 Namely, if OMake is executed (without argument) in the root directory of a project, all the
 <CODE>.DEFAULT</CODE> targets in the project will be built. On the other hand, when OMake is executed
 (without argument) in a subdirectory, only the <CODE>.DEFAULT</CODE> targets defined in and under that

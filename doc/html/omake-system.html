@@ -396,9 +396,9 @@ The following options are supported.
 <B>-m mode</B></DT><DD CLASS="dd-description"> Specify the permissions of the created directory.
 </DD><DT CLASS="dt-description"><B>-p</B></DT><DD CLASS="dd-description"> Create parent directories if they do not exist.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining names literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc204">9.5.2</A>&#XA0;&#XA0;Stat</H3><P><A NAME="obj:Stat"></A><A NAME="@default214"></A><A NAME="@obj0"></A></P><P>The <CODE>Stat</CODE> object represents the result returned by the <CODE>stat</CODE>
-and <CODE>lstat</CODE> functions. It contains the following fields.</P><P>A <CODE>stat</CODE> object has the following fields. Not all of the fields
-will have meaning on all architectures.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc204">9.5.2</A>&#XA0;&#XA0;Stat</H3><P><A NAME="obj:Stat"></A><A NAME="@default214"></A><A NAME="@obj0"></A></P><P>The <CODE>Stat</CODE> object represents an information about a filesystem node,
+as returned by the <CODE>stat</CODE> and <CODE>lstat</CODE> functions. 
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>dev</B></DT><DD CLASS="dd-description">: the device number.
 </DD><DT CLASS="dt-description"><B>ino</B></DT><DD CLASS="dd-description">: the inode number.
 </DD><DT CLASS="dt-description"><B>kind</B></DT><DD CLASS="dd-description">: the kind of the file, one of the following:
@@ -418,7 +418,7 @@ will have meaning on all architectures.</P><DL CLASS="description"><DT CLASS="dt
 </DD><DT CLASS="dt-description"><B>atime</B></DT><DD CLASS="dd-description">: last access time, as a floating point number.
 </DD><DT CLASS="dt-description"><B>mtime</B></DT><DD CLASS="dd-description">: last modification time, as a floating point number.
 </DD><DT CLASS="dt-description"><B>ctime</B></DT><DD CLASS="dd-description">: last status change time, as a floating point number.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc205">9.5.3</A>&#XA0;&#XA0;stat</H3><P><A NAME="fun:stat"></A><A NAME="@default215"></A><A NAME="@fun138"></A></P><PRE CLASS="verbatim">    $(stat node...) : Stat
+</DD></DL><P>Not all of the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc205">9.5.3</A>&#XA0;&#XA0;stat, lstat</H3><P><A NAME="fun:stat"></A><A NAME="@default215"></A><A NAME="@fun138"></A><A NAME="fun:lstat"></A><A NAME="@default216"></A><A NAME="@fun139"></A></P><PRE CLASS="verbatim">    $(stat node...) : Stat
        node : Node or Channel
     $(lstat node...) : Stat
        node : Node or Channel
@@ -427,7 +427,7 @@ will have meaning on all architectures.</P><DL CLASS="description"><DT CLASS="dt
 If the file is a symbolic link, the <CODE>stat</CODE> function refers to the
 destination of the link; the <CODE>lstat</CODE> function refers to the link
 itself.
-</P><H3 CLASS="subsection"><A NAME="htoc206">9.5.4</A>&#XA0;&#XA0;unlink</H3><P><A NAME="fun:unlink"></A><A NAME="@default216"></A><A NAME="@fun139"></A></P><PRE CLASS="verbatim">   $(unlink file...)
+</P><H3 CLASS="subsection"><A NAME="htoc206">9.5.4</A>&#XA0;&#XA0;unlink</H3><P><A NAME="fun:unlink"></A><A NAME="@default217"></A><A NAME="@fun140"></A></P><PRE CLASS="verbatim">   $(unlink file...)
       file : File
    #(rm file...)
       file : File
@@ -442,7 +442,7 @@ The <CODE>rmdir</CODE> function removes a directory.</P><P>The following options
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> remove the contents of directories recursively.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> explain what is going on.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> the rest of the values are interpreted literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc207">9.5.5</A>&#XA0;&#XA0;rename</H3><P><A NAME="fun:rename"></A><A NAME="@default217"></A><A NAME="@fun140"></A></P><PRE CLASS="verbatim">    rename(old, new)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc207">9.5.5</A>&#XA0;&#XA0;rename</H3><P><A NAME="fun:rename"></A><A NAME="@default218"></A><A NAME="@fun141"></A></P><PRE CLASS="verbatim">    rename(old, new)
        old : Node
        new : Node
     mv(nodes... dir)
@@ -463,13 +463,13 @@ is similar, but the original file is not removed.</P><P>The <CODE>mv</CODE> and 
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what it happening.
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Copy the contents of directories recursively.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining arguments literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc208">9.5.6</A>&#XA0;&#XA0;link</H3><P><A NAME="fun:link"></A><A NAME="@default218"></A><A NAME="@fun141"></A></P><PRE CLASS="verbatim">   link(src, dst)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc208">9.5.6</A>&#XA0;&#XA0;link</H3><P><A NAME="fun:link"></A><A NAME="@default219"></A><A NAME="@fun142"></A></P><PRE CLASS="verbatim">   link(src, dst)
       src : Node
       dst : Node
    raises RuntimeException
 </PRE><P>The <CODE>link</CODE> function creates a hard link named <CODE>dst</CODE> to the file
 or directory <CODE>src</CODE>.</P><P>Hard links may work under Win32 when NTFS is used.</P><P>Normally, only the superuser can create hard links to directories.
-</P><H3 CLASS="subsection"><A NAME="htoc209">9.5.7</A>&#XA0;&#XA0;symlink</H3><P><A NAME="fun:symlink"></A><A NAME="@default219"></A><A NAME="@fun142"></A></P><PRE CLASS="verbatim">   symlink(src, dst)
+</P><H3 CLASS="subsection"><A NAME="htoc209">9.5.7</A>&#XA0;&#XA0;symlink</H3><P><A NAME="fun:symlink"></A><A NAME="@default220"></A><A NAME="@fun143"></A></P><PRE CLASS="verbatim">   symlink(src, dst)
       src : Node
       dst : Node
    raises RuntimeException
@@ -479,10 +479,10 @@ the target directory. For example, the expression
 <CODE>$(symlink a/b, c/d)</CODE> creates a link named
 <CODE>c/d -&gt; ../a/b</CODE>.</P><P>Symbolic links are not supported in Win32. Consider using the <CODE>ln-or-cp</CODE>
 <CODE>Shell</CODE> alias for cross-platform portable linking/copying.
-</P><H3 CLASS="subsection"><A NAME="htoc210">9.5.8</A>&#XA0;&#XA0;readlink</H3><P><A NAME="fun:readlink"></A><A NAME="@default220"></A><A NAME="@fun143"></A></P><PRE CLASS="verbatim">   $(readlink node...) : Node
+</P><H3 CLASS="subsection"><A NAME="htoc210">9.5.8</A>&#XA0;&#XA0;readlink</H3><P><A NAME="fun:readlink"></A><A NAME="@default221"></A><A NAME="@fun144"></A></P><PRE CLASS="verbatim">   $(readlink node...) : Node
       node : Node
 </PRE><P>The <CODE>readlink</CODE> function reads the value of a symbolic link.
-</P><H3 CLASS="subsection"><A NAME="htoc211">9.5.9</A>&#XA0;&#XA0;chmod</H3><P><A NAME="fun:chmod"></A><A NAME="@default221"></A><A NAME="@fun144"></A></P><PRE CLASS="verbatim">   chmod(mode, dst...)
+</P><H3 CLASS="subsection"><A NAME="htoc211">9.5.9</A>&#XA0;&#XA0;chmod</H3><P><A NAME="fun:chmod"></A><A NAME="@default222"></A><A NAME="@fun145"></A></P><PRE CLASS="verbatim">   chmod(mode, dst...)
       mode : Int
       dst : Node or Channel
    chmod(mode dst...)
@@ -495,7 +495,7 @@ the target directory. For example, the expression
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Change files and directories recursively.
 </DD><DT CLASS="dt-description"><B>-f</B></DT><DD CLASS="dd-description"> Continue on errors.
 </DD><DT CLASS="dt-description"><B>&#X2013;</B></DT><DD CLASS="dd-description"> Interpret the remaining argument literally.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc212">9.5.10</A>&#XA0;&#XA0;chown</H3><P><A NAME="fun:chown"></A><A NAME="@default222"></A><A NAME="@fun145"></A></P><PRE CLASS="verbatim">   chown(uid, gid, node...)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc212">9.5.10</A>&#XA0;&#XA0;chown</H3><P><A NAME="fun:chown"></A><A NAME="@default223"></A><A NAME="@fun146"></A></P><PRE CLASS="verbatim">   chown(uid, gid, node...)
       uid : Int
       gid : Int
       node : Node or Channel
@@ -506,18 +506,18 @@ the target directory. For example, the expression
 </PRE><P>The <CODE>chown</CODE> function changes the user and group id of the file.
 If the <CODE>gid</CODE> is not specified, it is not changed. If either
 id is -1, that id is not changed.
-</P><H3 CLASS="subsection"><A NAME="htoc213">9.5.11</A>&#XA0;&#XA0;truncate</H3><P><A NAME="fun:truncate"></A><A NAME="@default223"></A><A NAME="@fun146"></A></P><PRE CLASS="verbatim">   truncate(length, node...)
+</P><H3 CLASS="subsection"><A NAME="htoc213">9.5.11</A>&#XA0;&#XA0;truncate</H3><P><A NAME="fun:truncate"></A><A NAME="@default224"></A><A NAME="@fun147"></A></P><PRE CLASS="verbatim">   truncate(length, node...)
        length : Int
        node : Node or Channel
    raises RuntimeException
 </PRE><P>The <CODE>truncate</CODE> function truncates a file to the given length.
-</P><H3 CLASS="subsection"><A NAME="htoc214">9.5.12</A>&#XA0;&#XA0;umask</H3><P><A NAME="fun:umask"></A><A NAME="@default224"></A><A NAME="@fun147"></A></P><PRE CLASS="verbatim">    $(umask mode) : Int
+</P><H3 CLASS="subsection"><A NAME="htoc214">9.5.12</A>&#XA0;&#XA0;umask</H3><P><A NAME="fun:umask"></A><A NAME="@default225"></A><A NAME="@fun148"></A></P><PRE CLASS="verbatim">    $(umask mode) : Int
        mode : Int
     raises RuntimeException
 </PRE><P>Sets the file mode creation mask.
 The previous mask is returned.
 This value is not scoped, changes have global effect.
-</P><H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc215">9.6</A>&#XA0;&#XA0;vmount</H2><H3 CLASS="subsection"><A NAME="htoc216">9.6.1</A>&#XA0;&#XA0;vmount</H3><P><A NAME="fun:vmount"></A><A NAME="@default225"></A><A NAME="@fun148"></A></P><PRE CLASS="verbatim">    vmount(src, dst)
+</P><H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc215">9.6</A>&#XA0;&#XA0;vmount</H2><H3 CLASS="subsection"><A NAME="htoc216">9.6.1</A>&#XA0;&#XA0;vmount</H3><P><A NAME="fun:vmount"></A><A NAME="@default226"></A><A NAME="@fun149"></A></P><PRE CLASS="verbatim">    vmount(src, dst)
        src, dst : Dir
     vmount(flags, src, dst)
        flags : String
@@ -532,17 +532,17 @@ builds with separate configurations or architectures.</P><P>The options are as f
 <B>l</B></DT><DD CLASS="dd-description"> Create symbolic links to files in the <CODE>src</CODE> directory.
 </DD><DT CLASS="dt-description"><B>c</B></DT><DD CLASS="dd-description"> Copy files from the <CODE>src</CODE> directory.
 </DD></DL><P>Mount operations are scoped.
-</P><H3 CLASS="subsection"><A NAME="htoc217">9.6.2</A>&#XA0;&#XA0;add-project-directories</H3><P><A NAME="fun:add-project-directories"></A><A NAME="@default226"></A><A NAME="@fun149"></A></P><PRE CLASS="verbatim">    add-project-directories(dirs)
+</P><H3 CLASS="subsection"><A NAME="htoc217">9.6.2</A>&#XA0;&#XA0;add-project-directories</H3><P><A NAME="fun:add-project-directories"></A><A NAME="@default227"></A><A NAME="@fun150"></A></P><PRE CLASS="verbatim">    add-project-directories(dirs)
        dirs : Dir Array
 </PRE><P>Add the directories to the set of directories that omake considers to be part
 of the project. This is mainly used to avoid omake complaining that the
 current directory is not part of the project.
-</P><H3 CLASS="subsection"><A NAME="htoc218">9.6.3</A>&#XA0;&#XA0;remove-project-directories</H3><P><A NAME="fun:remove-project-directories"></A><A NAME="@default227"></A><A NAME="@fun150"></A></P><PRE CLASS="verbatim">    remove-project-directories(dirs)
+</P><H3 CLASS="subsection"><A NAME="htoc218">9.6.3</A>&#XA0;&#XA0;remove-project-directories</H3><P><A NAME="fun:remove-project-directories"></A><A NAME="@default228"></A><A NAME="@fun151"></A></P><PRE CLASS="verbatim">    remove-project-directories(dirs)
        dirs : Dir Array
 </PRE><P>Removed the directories from the set of directories that omake considers to be part
 of the project. This is mainly used to cancel a <CODE>.SUBDIRS</CODE> from including
 a directory if it is determined that the directory does not need to be compiled.
-</P><H2 CLASS="section"><A NAME="toc77"></A><A NAME="htoc219">9.7</A>&#XA0;&#XA0;File predicates</H2><H3 CLASS="subsection"><A NAME="htoc220">9.7.1</A>&#XA0;&#XA0;test</H3><P><A NAME="fun:test"></A><A NAME="@default228"></A><A NAME="@fun151"></A></P><PRE CLASS="verbatim">   test(exp) : Bool
+</P><H2 CLASS="section"><A NAME="toc77"></A><A NAME="htoc219">9.7</A>&#XA0;&#XA0;File predicates</H2><H3 CLASS="subsection"><A NAME="htoc220">9.7.1</A>&#XA0;&#XA0;test</H3><P><A NAME="fun:test"></A><A NAME="@default229"></A><A NAME="@fun152"></A></P><PRE CLASS="verbatim">   test(exp) : Bool
       exp : String Sequence
 </PRE><P>The <EM>expression</EM> grammar is as follows:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>!</CODE> <EM>expression</EM> : <EM>expression</EM> is not true
@@ -603,7 +603,7 @@ explains more. Here are some examples.</P><PRE CLASS="verbatim">    # Create an 
     # boo is newer than foo, and foo is empty
     osh&gt; test(\( boo -nt foo \) -a -e foo)
     - : true
-</PRE><H3 CLASS="subsection"><A NAME="htoc221">9.7.2</A>&#XA0;&#XA0;find</H3><P><A NAME="fun:find"></A><A NAME="@default229"></A><A NAME="@fun152"></A></P><PRE CLASS="verbatim">   find(exp) : Node Array
+</PRE><H3 CLASS="subsection"><A NAME="htoc221">9.7.2</A>&#XA0;&#XA0;find</H3><P><A NAME="fun:find"></A><A NAME="@default230"></A><A NAME="@fun153"></A></P><PRE CLASS="verbatim">   find(exp) : Node Array
       exp : String Sequence
 </PRE><P>The <CODE>find</CODE> function searches a directory recursively, returning the
 files for which the expression evaluates to true.</P><P>The expression argument uses the same syntax as the <CODE>test</CODE> function,
@@ -629,23 +629,23 @@ or symbolic links.</P><PRE CLASS="verbatim">    osh&gt; find(. -name fo* -a \( -
             /home/jyh/.../omake/RPM/.svn/format
             ...
             /home/jyh/.../omake/osx_resources/installer_files/.svn/format&gt;
-</PRE><H2 CLASS="section"><A NAME="toc78"></A><A NAME="htoc222">9.8</A>&#XA0;&#XA0;IO functions</H2><H3 CLASS="subsection"><A NAME="htoc223">9.8.1</A>&#XA0;&#XA0;Standard channels</H3><P>The following variables define the standard channels.</P><H5 CLASS="paragraph">stdin</H5><P><A NAME="var:stdin"></A><A NAME="@default230"></A><A NAME="@var20"></A></P><PRE CLASS="verbatim">stdin : InChannel
-</PRE><P>The standard input channel, open for reading.</P><H5 CLASS="paragraph">stdout</H5><P><A NAME="var:stdout"></A><A NAME="@default231"></A><A NAME="@var21"></A>
+</PRE><H2 CLASS="section"><A NAME="toc78"></A><A NAME="htoc222">9.8</A>&#XA0;&#XA0;IO functions</H2><H3 CLASS="subsection"><A NAME="htoc223">9.8.1</A>&#XA0;&#XA0;Standard channels</H3><P>The following variables define the standard channels.</P><H5 CLASS="paragraph">stdin</H5><P><A NAME="var:stdin"></A><A NAME="@default231"></A><A NAME="@var20"></A></P><PRE CLASS="verbatim">stdin : InChannel
+</PRE><P>The standard input channel, open for reading.</P><H5 CLASS="paragraph">stdout</H5><P><A NAME="var:stdout"></A><A NAME="@default232"></A><A NAME="@var21"></A>
 </P><PRE CLASS="verbatim">stdout : OutChannel
-</PRE><P>The standard output channel, open for writing.</P><H5 CLASS="paragraph">stderr</H5><P><A NAME="var:stderr"></A><A NAME="@default232"></A><A NAME="@var22"></A>
+</PRE><P>The standard output channel, open for writing.</P><H5 CLASS="paragraph">stderr</H5><P><A NAME="var:stderr"></A><A NAME="@default233"></A><A NAME="@var22"></A>
 </P><PRE CLASS="verbatim">stderr : OutChannel
 </PRE><P>The standard error channel, open for writing.
-</P><H3 CLASS="subsection"><A NAME="htoc224">9.8.2</A>&#XA0;&#XA0;open-in-string</H3><P><A NAME="fun:open-in-string"></A><A NAME="@default233"></A><A NAME="@fun153"></A>
+</P><H3 CLASS="subsection"><A NAME="htoc224">9.8.2</A>&#XA0;&#XA0;open-in-string</H3><P><A NAME="fun:open-in-string"></A><A NAME="@default234"></A><A NAME="@fun154"></A>
 The <CODE>open-in-string</CODE> treats a string as if it were a file
 and returns a channel for reading.</P><PRE CLASS="verbatim">   $(open-in-string s) : Channel
        s : String
-</PRE><H3 CLASS="subsection"><A NAME="htoc225">9.8.3</A>&#XA0;&#XA0;open-out-string, out-string</H3><P><A NAME="fun:open-out-string"></A><A NAME="@default234"></A><A NAME="@fun154"></A><A NAME="fun:out-string"></A><A NAME="@default235"></A><A NAME="@fun155"></A>
+</PRE><H3 CLASS="subsection"><A NAME="htoc225">9.8.3</A>&#XA0;&#XA0;open-out-string, out-string</H3><P><A NAME="fun:open-out-string"></A><A NAME="@default235"></A><A NAME="@fun155"></A><A NAME="fun:out-string"></A><A NAME="@default236"></A><A NAME="@fun156"></A>
 The <CODE>open-out-string</CODE> creates a channel that writes to a
 string instead of a file. The string may be retrieved with the
 <CODE>out-string</CODE> function.</P><PRE CLASS="verbatim">   $(open-out-string) : Channel
    $(out-string chan) : String
        chan : OutChannel
-</PRE><H3 CLASS="subsection"><A NAME="htoc226">9.8.4</A>&#XA0;&#XA0;fopen</H3><P><A NAME="fun:fopen"></A><A NAME="@default236"></A><A NAME="@fun156"></A></P><P>The <CODE>fopen</CODE> function opens a file for reading or writing.</P><PRE CLASS="verbatim">   $(fopen file, mode) : Channel
+</PRE><H3 CLASS="subsection"><A NAME="htoc226">9.8.4</A>&#XA0;&#XA0;fopen</H3><P><A NAME="fun:fopen"></A><A NAME="@default237"></A><A NAME="@fun157"></A></P><P>The <CODE>fopen</CODE> function opens a file for reading or writing.</P><PRE CLASS="verbatim">   $(fopen file, mode) : Channel
       file : File
       mode : String
 </PRE><P>The <CODE>file</CODE> is the name of the file to be opened.
@@ -661,11 +661,11 @@ The <CODE>mode</CODE> is a combination of the following characters.
 </DD><DT CLASS="dt-description"><B>x</B></DT><DD CLASS="dd-description"> Fail if the file already exists.
 </DD></DL><P>Binary mode is not significant on Unix systems, where
 text and binary modes are equivalent.
-</P><H3 CLASS="subsection"><A NAME="htoc227">9.8.5</A>&#XA0;&#XA0;close</H3><P><A NAME="fun:close"></A><A NAME="@default237"></A><A NAME="@fun157"></A></P><PRE CLASS="verbatim">    $(close channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc227">9.8.5</A>&#XA0;&#XA0;close</H3><P><A NAME="fun:close"></A><A NAME="@default238"></A><A NAME="@fun158"></A></P><PRE CLASS="verbatim">    $(close channel...)
        channel : Channel
 </PRE><P>The <CODE>close</CODE> function closes a file that was previously opened
 with <CODE>fopen</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc228">9.8.6</A>&#XA0;&#XA0;read</H3><P><A NAME="fun:read"></A><A NAME="@default238"></A><A NAME="@fun158"></A></P><PRE CLASS="verbatim">   $(read channel, amount) : String
+</P><H3 CLASS="subsection"><A NAME="htoc228">9.8.6</A>&#XA0;&#XA0;read</H3><P><A NAME="fun:read"></A><A NAME="@default239"></A><A NAME="@fun159"></A></P><PRE CLASS="verbatim">   $(read channel, amount) : String
       channel : InChannel
       amount  : Int
    raises RuntimeException
@@ -673,7 +673,7 @@ with <CODE>fopen</CODE>.
 bytes from an input channel, and returns
 the data that was read. If an end-of-file condition is reached,
 the function raises a <CODE>RuntimeException</CODE> exception.
-</P><H3 CLASS="subsection"><A NAME="htoc229">9.8.7</A>&#XA0;&#XA0;write</H3><P><A NAME="fun:write"></A><A NAME="@default239"></A><A NAME="@fun159"></A></P><PRE CLASS="verbatim">   $(write channel, buffer, offset, amount) : String
+</P><H3 CLASS="subsection"><A NAME="htoc229">9.8.7</A>&#XA0;&#XA0;write</H3><P><A NAME="fun:write"></A><A NAME="@default240"></A><A NAME="@fun160"></A></P><PRE CLASS="verbatim">   $(write channel, buffer, offset, amount) : String
       channel : OutChannel
       buffer  : String
       offset  : Int
@@ -689,7 +689,7 @@ are written. The function returns the number of bytes that were
 written.</P><P>The 3-argument form is similar, but the <CODE>offset</CODE> is 0.</P><P>In the 2-argument form, the <CODE>offset</CODE> is 0, and the <CODE>amount</CODE>
 if the length of the <CODE>buffer</CODE>.</P><P>If an end-of-file condition is reached,
 the function raises a <CODE>RuntimeException</CODE> exception.
-</P><H3 CLASS="subsection"><A NAME="htoc230">9.8.8</A>&#XA0;&#XA0;lseek</H3><P><A NAME="fun:lseek"></A><A NAME="@default240"></A><A NAME="@fun160"></A></P><PRE CLASS="verbatim">    $(lseek channel, offset, whence) : Int
+</P><H3 CLASS="subsection"><A NAME="htoc230">9.8.8</A>&#XA0;&#XA0;lseek</H3><P><A NAME="fun:lseek"></A><A NAME="@default241"></A><A NAME="@fun161"></A></P><PRE CLASS="verbatim">    $(lseek channel, offset, whence) : Int
        channel : Channel
        offset  : Int
        whence  : String
@@ -701,53 +701,53 @@ follows:</P><DL CLASS="description"><DT CLASS="dt-description">
 </DD><DT CLASS="dt-description"><B>SEEK_CUR</B></DT><DD CLASS="dd-description"> The offset is set to its current position plus <CODE>offset</CODE> bytes.
 </DD><DT CLASS="dt-description"><B>SEEK_END</B></DT><DD CLASS="dd-description"> The offset is set to the size of the file plus <CODE>offset</CODE> bytes.
 </DD></DL><P>The <CODE>lseek</CODE> function returns the new position in the file.
-</P><H3 CLASS="subsection"><A NAME="htoc231">9.8.9</A>&#XA0;&#XA0;rewind</H3><P><A NAME="fun:rewind"></A><A NAME="@default241"></A><A NAME="@fun161"></A></P><PRE CLASS="verbatim">   rewind(channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc231">9.8.9</A>&#XA0;&#XA0;rewind</H3><P><A NAME="fun:rewind"></A><A NAME="@default242"></A><A NAME="@fun162"></A></P><PRE CLASS="verbatim">   rewind(channel...)
       channel : Channel
 </PRE><P>The <CODE>rewind</CODE> function set the current file position to the
 beginning of the file.
-</P><H3 CLASS="subsection"><A NAME="htoc232">9.8.10</A>&#XA0;&#XA0;tell</H3><P><A NAME="fun:tell"></A><A NAME="@default242"></A><A NAME="@fun162"></A></P><PRE CLASS="verbatim">    $(tell channel...) : Int...
+</P><H3 CLASS="subsection"><A NAME="htoc232">9.8.10</A>&#XA0;&#XA0;tell</H3><P><A NAME="fun:tell"></A><A NAME="@default243"></A><A NAME="@fun163"></A></P><PRE CLASS="verbatim">    $(tell channel...) : Int...
        channel : Channel
     raises RuntimeException
 </PRE><P>The <CODE>tell</CODE> function returns the current position of the <CODE>channel</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc233">9.8.11</A>&#XA0;&#XA0;flush</H3><P><A NAME="fun:flush"></A><A NAME="@default243"></A><A NAME="@fun163"></A></P><PRE CLASS="verbatim">   $(flush channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc233">9.8.11</A>&#XA0;&#XA0;flush</H3><P><A NAME="fun:flush"></A><A NAME="@default244"></A><A NAME="@fun164"></A></P><PRE CLASS="verbatim">   $(flush channel...)
       channel : OutChannel
 </PRE><P>The <CODE>flush</CODE> function can be used only on files that are open for writing.
 It flushes all pending data to the file.
-</P><H3 CLASS="subsection"><A NAME="htoc234">9.8.12</A>&#XA0;&#XA0;dup</H3><P><A NAME="fun:dup"></A><A NAME="@default244"></A><A NAME="@fun164"></A></P><PRE CLASS="verbatim">    $(dup channel) : Channel
+</P><H3 CLASS="subsection"><A NAME="htoc234">9.8.12</A>&#XA0;&#XA0;dup</H3><P><A NAME="fun:dup"></A><A NAME="@default245"></A><A NAME="@fun165"></A></P><PRE CLASS="verbatim">    $(dup channel) : Channel
        channel : Channel
     raises RuntimeException
 </PRE><P>The <CODE>dup</CODE> function returns a new channel referencing the
 same file as the argument.
-</P><H3 CLASS="subsection"><A NAME="htoc235">9.8.13</A>&#XA0;&#XA0;dup2</H3><P><A NAME="fun:dup2"></A><A NAME="@default245"></A><A NAME="@fun165"></A></P><PRE CLASS="verbatim">   dup2(channel1, channel2)
+</P><H3 CLASS="subsection"><A NAME="htoc235">9.8.13</A>&#XA0;&#XA0;dup2</H3><P><A NAME="fun:dup2"></A><A NAME="@default246"></A><A NAME="@fun166"></A></P><PRE CLASS="verbatim">   dup2(channel1, channel2)
       channel1 : Channel
       channel2 : Channel
    raises RuntimeException
 </PRE><P>The <CODE>dup2</CODE> function causes <CODE>channel2</CODE> to refer to the same
 file as <CODE>channel1</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc236">9.8.14</A>&#XA0;&#XA0;set-nonblock</H3><P><A NAME="fun:set-nonblock"></A><A NAME="@default246"></A><A NAME="@fun166"></A></P><PRE CLASS="verbatim">   set-nonblock-mode(mode, channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc236">9.8.14</A>&#XA0;&#XA0;set-nonblock</H3><P><A NAME="fun:set-nonblock"></A><A NAME="@default247"></A><A NAME="@fun167"></A></P><PRE CLASS="verbatim">   set-nonblock-mode(mode, channel...)
       channel : Channel
       mode : String
 </PRE><P>The <CODE>set-nonblock-mode</CODE> function sets the nonblocking flag on the
 given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a <CODE>RuntimeException</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc237">9.8.15</A>&#XA0;&#XA0;set-close-on-exec-mode</H3><P><A NAME="fun:set-close-on-exec-mode"></A><A NAME="@default247"></A><A NAME="@fun167"></A></P><PRE CLASS="verbatim">   set-close-on-exec-mode(mode, channel...)
+</P><H3 CLASS="subsection"><A NAME="htoc237">9.8.15</A>&#XA0;&#XA0;set-close-on-exec-mode</H3><P><A NAME="fun:set-close-on-exec-mode"></A><A NAME="@default248"></A><A NAME="@fun168"></A></P><PRE CLASS="verbatim">   set-close-on-exec-mode(mode, channel...)
       channel : Channel
       mode : String
    raises RuntimeException
 </PRE><P>The <CODE>set-close-on-exec-mode</CODE> function sets the close-on-exec
 flags for the given channels. If the close-on-exec flag is set, the channel
 is not inherited by child processes. Otherwise it is.
-</P><H3 CLASS="subsection"><A NAME="htoc238">9.8.16</A>&#XA0;&#XA0;pipe</H3><P><A NAME="fun:pipe"></A><A NAME="@default248"></A><A NAME="@fun168"></A></P><PRE CLASS="verbatim">   $(pipe) : Pipe
+</P><H3 CLASS="subsection"><A NAME="htoc238">9.8.16</A>&#XA0;&#XA0;pipe</H3><P><A NAME="fun:pipe"></A><A NAME="@default249"></A><A NAME="@fun169"></A></P><PRE CLASS="verbatim">   $(pipe) : Pipe
    raises RuntimeException
 </PRE><P>The <CODE>pipe</CODE> function creates a <CODE>Pipe</CODE> object, which has two
 fields. The <CODE>read</CODE> field is a channel that is opened for
 reading, and the <CODE>write</CODE> field is a channel that is opened
 for writing.
-</P><H3 CLASS="subsection"><A NAME="htoc239">9.8.17</A>&#XA0;&#XA0;mkfifo</H3><P><A NAME="fun:mkfifo"></A><A NAME="@default249"></A><A NAME="@fun169"></A></P><PRE CLASS="verbatim">   mkfifo(mode, node...)
+</P><H3 CLASS="subsection"><A NAME="htoc239">9.8.17</A>&#XA0;&#XA0;mkfifo</H3><P><A NAME="fun:mkfifo"></A><A NAME="@default250"></A><A NAME="@fun170"></A></P><PRE CLASS="verbatim">   mkfifo(mode, node...)
       mode : Int
       node : Node
 </PRE><P>The <CODE>mkfifo</CODE> function creates a named pipe.
-</P><H3 CLASS="subsection"><A NAME="htoc240">9.8.18</A>&#XA0;&#XA0;select</H3><P><A NAME="fun:select"></A><A NAME="@default250"></A><A NAME="@fun170"></A></P><PRE CLASS="verbatim">   $(select rfd..., wfd..., wfd..., timeout) : Select
+</P><H3 CLASS="subsection"><A NAME="htoc240">9.8.18</A>&#XA0;&#XA0;select</H3><P><A NAME="fun:select"></A><A NAME="@default251"></A><A NAME="@fun171"></A></P><PRE CLASS="verbatim">   $(select rfd..., wfd..., wfd..., timeout) : Select
       rfd : InChannel
       wfd : OutChannel
       efd : Channel
@@ -763,7 +763,7 @@ which has the following fields:
 <B>read</B></DT><DD CLASS="dd-description"> An array of channels available for reading.
 </DD><DT CLASS="dt-description"><B>write</B></DT><DD CLASS="dd-description"> An array of channels available for writing.
 </DD><DT CLASS="dt-description"><B>error</B></DT><DD CLASS="dd-description"> An array of channels on which an error has occurred.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc241">9.8.19</A>&#XA0;&#XA0;lockf</H3><P><A NAME="fun:lockf"></A><A NAME="@default251"></A><A NAME="@fun171"></A></P><PRE CLASS="verbatim">    lockf(channel, command, len)
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc241">9.8.19</A>&#XA0;&#XA0;lockf</H3><P><A NAME="fun:lockf"></A><A NAME="@default252"></A><A NAME="@fun172"></A></P><PRE CLASS="verbatim">    lockf(channel, command, len)
        channel : Channel
        command : String
        len : Int
@@ -778,43 +778,43 @@ bytes.</P><P>The possible values for <CODE>command</CODE> are the following.
 </DD><DT CLASS="dt-description"><B>F_TEST</B></DT><DD CLASS="dd-description"> Test a region for other locks.
 </DD><DT CLASS="dt-description"><B>F_RLOCK</B></DT><DD CLASS="dd-description"> Lock a region for reading; block if already locked.
 </DD><DT CLASS="dt-description"><B>F_TRLOCK</B></DT><DD CLASS="dd-description"> Lock a region for reading; fail is already locked.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc242">9.8.20</A>&#XA0;&#XA0;InetAddr</H3><P><A NAME="obj:InetAddr"></A><A NAME="@default252"></A><A NAME="@obj1"></A></P><P>The <CODE>InetAddr</CODE> object describes an Internet address.
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc242">9.8.20</A>&#XA0;&#XA0;InetAddr</H3><P><A NAME="obj:InetAddr"></A><A NAME="@default253"></A><A NAME="@obj1"></A></P><P>The <CODE>InetAddr</CODE> object describes an Internet address.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>addr</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the Internet address.
 </DD><DT CLASS="dt-description"><B>port</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc243">9.8.21</A>&#XA0;&#XA0;Host</H3><P><A NAME="obj:Host"></A><A NAME="@default253"></A><A NAME="@obj2"></A></P><P>A <CODE>Host</CODE> object contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc243">9.8.21</A>&#XA0;&#XA0;Host</H3><P><A NAME="obj:Host"></A><A NAME="@default254"></A><A NAME="@obj2"></A></P><P>A <CODE>Host</CODE> object contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the host.
 </DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: other names by which the host is known.
 </DD><DT CLASS="dt-description"><B>addrtype</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the preferred socket domain.
 </DD><DT CLASS="dt-description"><B>addrs</B></DT><DD CLASS="dd-description"> <CODE>InetAddr Array</CODE>: an array of Internet addresses belonging to the host.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc244">9.8.22</A>&#XA0;&#XA0;gethostbyname</H3><P><A NAME="fun:gethostbyname"></A><A NAME="@default254"></A><A NAME="@fun172"></A></P><PRE CLASS="verbatim">   $(gethostbyname host...) : Host...
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc244">9.8.22</A>&#XA0;&#XA0;gethostbyname</H3><P><A NAME="fun:gethostbyname"></A><A NAME="@default255"></A><A NAME="@fun173"></A></P><PRE CLASS="verbatim">   $(gethostbyname host...) : Host...
       host : String
    raises RuntimeException
 </PRE><P>The <CODE>gethostbyname</CODE> function returns a <CODE>Host</CODE> object
 for the specified host. The <CODE>host</CODE> may specify a domain name
-or an Internet address.</P><H3 CLASS="subsection"><A NAME="htoc245">9.8.23</A>&#XA0;&#XA0;Protocol</H3><P><A NAME="obj:Protocol"></A><A NAME="@default255"></A><A NAME="@obj3"></A></P><P>The <CODE>Protocol</CODE> object represents a protocol entry.
+or an Internet address.</P><H3 CLASS="subsection"><A NAME="htoc245">9.8.23</A>&#XA0;&#XA0;Protocol</H3><P><A NAME="obj:Protocol"></A><A NAME="@default256"></A><A NAME="@obj3"></A></P><P>The <CODE>Protocol</CODE> object represents a protocol entry.
 It has the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the canonical name of the protocol.
 </DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the protocol.
 </DD><DT CLASS="dt-description"><B>proto</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the protocol number.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc246">9.8.24</A>&#XA0;&#XA0;getprotobyname</H3><P><A NAME="fun:getprotobyname"></A><A NAME="@default256"></A><A NAME="@fun173"></A></P><PRE CLASS="verbatim">   $(getprotobyname name...) : Protocol...
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc246">9.8.24</A>&#XA0;&#XA0;getprotobyname</H3><P><A NAME="fun:getprotobyname"></A><A NAME="@default257"></A><A NAME="@fun174"></A></P><PRE CLASS="verbatim">   $(getprotobyname name...) : Protocol...
       name : Int or String
    raises RuntimeException
 </PRE><P>The <CODE>getprotobyname</CODE> function returns a <CODE>Protocol</CODE> object for the
 specified protocol. The <CODE>name</CODE> may be a protocol name, or a
 protocol number.
-</P><H3 CLASS="subsection"><A NAME="htoc247">9.8.25</A>&#XA0;&#XA0;Service</H3><P><A NAME="obj:Service"></A><A NAME="@default257"></A><A NAME="@obj4"></A></P><P>The <CODE>Service</CODE> object represents a network service.
+</P><H3 CLASS="subsection"><A NAME="htoc247">9.8.25</A>&#XA0;&#XA0;Service</H3><P><A NAME="obj:Service"></A><A NAME="@default258"></A><A NAME="@obj4"></A></P><P>The <CODE>Service</CODE> object represents a network service.
 It has the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>name</B></DT><DD CLASS="dd-description"> <CODE>String</CODE>: the name of the service.
 </DD><DT CLASS="dt-description"><B>aliases</B></DT><DD CLASS="dd-description"> <CODE>String Array</CODE>: aliases for the service.
 </DD><DT CLASS="dt-description"><B>port</B></DT><DD CLASS="dd-description"> <CODE>Int</CODE>: the port number of the service.
 </DD><DT CLASS="dt-description"><B>proto</B></DT><DD CLASS="dd-description"> <CODE>Protocol</CODE>: the protocol for the service.
-</DD></DL><H3 CLASS="subsection"><A NAME="htoc248">9.8.26</A>&#XA0;&#XA0;getservbyname</H3><P><A NAME="fun:getservbyname"></A><A NAME="@default258"></A><A NAME="@fun174"></A></P><PRE CLASS="verbatim">   $(getservbyname service...) : Service...
+</DD></DL><H3 CLASS="subsection"><A NAME="htoc248">9.8.26</A>&#XA0;&#XA0;getservbyname</H3><P><A NAME="fun:getservbyname"></A><A NAME="@default259"></A><A NAME="@fun175"></A></P><PRE CLASS="verbatim">   $(getservbyname service...) : Service...
       service : String or Int
    raises RuntimeException
 </PRE><P>The <CODE>getservbyname</CODE> function gets the information for a network service.
 The <CODE>service</CODE> may be specified as a service name or number.
-</P><H3 CLASS="subsection"><A NAME="htoc249">9.8.27</A>&#XA0;&#XA0;socket</H3><P><A NAME="fun:socket"></A><A NAME="@default259"></A><A NAME="@fun175"></A></P><PRE CLASS="verbatim">   $(socket domain, type, protocol) : Channel
+</P><H3 CLASS="subsection"><A NAME="htoc249">9.8.27</A>&#XA0;&#XA0;socket</H3><P><A NAME="fun:socket"></A><A NAME="@default260"></A><A NAME="@fun176"></A></P><PRE CLASS="verbatim">   $(socket domain, type, protocol) : Channel
       domain : String
       type : String
       protocol : String
@@ -832,7 +832,7 @@ The <CODE>service</CODE> may be specified as a service name or number.
 </DD><DT CLASS="dt-description"><B>SOCK_SEQPACKET or seqpacket</B></DT><DD CLASS="dd-description"> Sequenced packets socket
 </DD></DL><P>The <CODE>protocol</CODE> is an <CODE>Int</CODE> or <CODE>String</CODE> that specifies
 a protocol in the protocols database.
-</P><H3 CLASS="subsection"><A NAME="htoc250">9.8.28</A>&#XA0;&#XA0;bind</H3><P><A NAME="fun:bind"></A><A NAME="@default260"></A><A NAME="@fun176"></A></P><PRE CLASS="verbatim">   bind(socket, host, port)
+</P><H3 CLASS="subsection"><A NAME="htoc250">9.8.28</A>&#XA0;&#XA0;bind</H3><P><A NAME="fun:bind"></A><A NAME="@default261"></A><A NAME="@fun177"></A></P><PRE CLASS="verbatim">   bind(socket, host, port)
       socket : InOutChannel
       host : String
       port : Int
@@ -843,17 +843,17 @@ a protocol in the protocols database.
 </PRE><P>The <CODE>bind</CODE> function binds a socket to an address.</P><P>The 3-argument form specifies an Internet connection, the <CODE>host</CODE> specifies a host name
 or IP address, and the <CODE>port</CODE> is a port number.</P><P>The 2-argument form is for <CODE>Unix</CODE> sockets. The <CODE>file</CODE> specifies the filename
 for the address.
-</P><H3 CLASS="subsection"><A NAME="htoc251">9.8.29</A>&#XA0;&#XA0;listen</H3><P><A NAME="fun:listen"></A><A NAME="@default261"></A><A NAME="@fun177"></A></P><PRE CLASS="verbatim">   listen(socket, requests)
+</P><H3 CLASS="subsection"><A NAME="htoc251">9.8.29</A>&#XA0;&#XA0;listen</H3><P><A NAME="fun:listen"></A><A NAME="@default262"></A><A NAME="@fun178"></A></P><PRE CLASS="verbatim">   listen(socket, requests)
       socket : InOutChannel
       requests : Int
    raises RuntimeException
 </PRE><P>The <CODE>listen</CODE> function sets up the socket for receiving up to <CODE>requests</CODE> number
 of pending connection requests.
-</P><H3 CLASS="subsection"><A NAME="htoc252">9.8.30</A>&#XA0;&#XA0;accept</H3><P><A NAME="fun:accept"></A><A NAME="@default262"></A><A NAME="@fun178"></A></P><PRE CLASS="verbatim">   $(accept socket) : InOutChannel
+</P><H3 CLASS="subsection"><A NAME="htoc252">9.8.30</A>&#XA0;&#XA0;accept</H3><P><A NAME="fun:accept"></A><A NAME="@default263"></A><A NAME="@fun179"></A></P><PRE CLASS="verbatim">   $(accept socket) : InOutChannel
       socket : InOutChannel
    raises RuntimeException
 </PRE><P>The <CODE>accept</CODE> function accepts a connection on a socket.
-</P><H3 CLASS="subsection"><A NAME="htoc253">9.8.31</A>&#XA0;&#XA0;connect</H3><P><A NAME="fun:connect"></A><A NAME="@default263"></A><A NAME="@fun179"></A></P><PRE CLASS="verbatim">    connect(socket, addr, port)
+</P><H3 CLASS="subsection"><A NAME="htoc253">9.8.31</A>&#XA0;&#XA0;connect</H3><P><A NAME="fun:connect"></A><A NAME="@default264"></A><A NAME="@fun180"></A></P><PRE CLASS="verbatim">    connect(socket, addr, port)
        socket : InOutChannel
        addr : String
        port : int
@@ -866,21 +866,21 @@ The <CODE>addr</CODE> argument is the Internet address of the remote host,
 specified as a domain name or IP address. The <CODE>port</CODE> argument
 is the port number.</P><P>The 2-argument form is for Unix sockets. The <CODE>name</CODE> argument
 is the filename of the socket.
-</P><H3 CLASS="subsection"><A NAME="htoc254">9.8.32</A>&#XA0;&#XA0;getchar</H3><P><A NAME="fun:getchar"></A><A NAME="@default264"></A><A NAME="@fun180"></A></P><PRE CLASS="verbatim">    $(getc) : String
+</P><H3 CLASS="subsection"><A NAME="htoc254">9.8.32</A>&#XA0;&#XA0;getchar</H3><P><A NAME="fun:getchar"></A><A NAME="@default265"></A><A NAME="@fun181"></A></P><PRE CLASS="verbatim">    $(getc) : String
     $(getc file) : String
        file : InChannel or File
     raises RuntimeException
 </PRE><P>The <CODE>getc</CODE> function returns the next character of a file.
 If the argument is not specified, <CODE>stdin</CODE> is used as input.
 If the end of file has been reached, the function returns <CODE>false</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc255">9.8.33</A>&#XA0;&#XA0;gets</H3><P><A NAME="fun:gets"></A><A NAME="@default265"></A><A NAME="@fun181"></A></P><PRE CLASS="verbatim">   $(gets) : String
+</P><H3 CLASS="subsection"><A NAME="htoc255">9.8.33</A>&#XA0;&#XA0;gets</H3><P><A NAME="fun:gets"></A><A NAME="@default266"></A><A NAME="@fun182"></A></P><PRE CLASS="verbatim">   $(gets) : String
    $(gets channel) : String
       channel : InChannel or File
    raises RuntimeException
 </PRE><P>The <CODE>gets</CODE> function returns the next line from a file.
 The function returns the empty string if the end of file has been reached.
 The line terminator is removed.
-</P><H3 CLASS="subsection"><A NAME="htoc256">9.8.34</A>&#XA0;&#XA0;fgets</H3><P><A NAME="fun:fgets"></A><A NAME="@default266"></A><A NAME="@fun182"></A></P><PRE CLASS="verbatim">   $(fgets) : String
+</P><H3 CLASS="subsection"><A NAME="htoc256">9.8.34</A>&#XA0;&#XA0;fgets</H3><P><A NAME="fun:fgets"></A><A NAME="@default267"></A><A NAME="@fun183"></A></P><PRE CLASS="verbatim">   $(fgets) : String
    $(fgets channel) : String
       channel : InChannel or File
    raises RuntimeException
@@ -889,12 +889,12 @@ opened for reading with <CODE>fopen</CODE>. The function returns the empty strin
 if the end of file has been reached. The returned string is returned as
 literal data. The line terminator is not removed.
 </P><H2 CLASS="section"><A NAME="toc79"></A><A NAME="htoc257">9.9</A>&#XA0;&#XA0;Printing functions</H2><P>
-<A NAME="fun:fprint"></A><A NAME="@default267"></A><A NAME="@fun183"></A>
-<A NAME="fun:print"></A><A NAME="@default268"></A><A NAME="@fun184"></A>
-<A NAME="fun:eprint"></A><A NAME="@default269"></A><A NAME="@fun185"></A>
-<A NAME="fun:fprintln"></A><A NAME="@default270"></A><A NAME="@fun186"></A>
-<A NAME="fun:println"></A><A NAME="@default271"></A><A NAME="@fun187"></A>
-<A NAME="fun:eprintln"></A><A NAME="@default272"></A><A NAME="@fun188"></A></P><P>Output is printed with the <CODE>print</CODE> and <CODE>println</CODE> functions.
+<A NAME="fun:fprint"></A><A NAME="@default268"></A><A NAME="@fun184"></A>
+<A NAME="fun:print"></A><A NAME="@default269"></A><A NAME="@fun185"></A>
+<A NAME="fun:eprint"></A><A NAME="@default270"></A><A NAME="@fun186"></A>
+<A NAME="fun:fprintln"></A><A NAME="@default271"></A><A NAME="@fun187"></A>
+<A NAME="fun:println"></A><A NAME="@default272"></A><A NAME="@fun188"></A>
+<A NAME="fun:eprintln"></A><A NAME="@default273"></A><A NAME="@fun189"></A></P><P>Output is printed with the <CODE>print</CODE> and <CODE>println</CODE> functions.
 The <CODE>println</CODE> function adds a terminating newline to the value being
 printed, the <CODE>print</CODE> function does not.</P><PRE CLASS="verbatim">    fprint(&lt;file&gt;, &lt;string&gt;)
     print(&lt;string&gt;)
@@ -906,12 +906,12 @@ printed, the <CODE>print</CODE> function does not.</P><PRE CLASS="verbatim">    
 <CODE>fopen</CODE>. The <CODE>print</CODE> functions print to the standard output channel, and
 the <CODE>eprint</CODE> functions print to the standard error channel.
 </P><H2 CLASS="section"><A NAME="toc80"></A><A NAME="htoc258">9.10</A>&#XA0;&#XA0;Value printing functions</H2><P>
-<A NAME="fun:fprintv"></A><A NAME="@default273"></A><A NAME="@fun189"></A>
-<A NAME="fun:printv"></A><A NAME="@default274"></A><A NAME="@fun190"></A>
-<A NAME="fun:eprintv"></A><A NAME="@default275"></A><A NAME="@fun191"></A>
-<A NAME="fun:fprintvln"></A><A NAME="@default276"></A><A NAME="@fun192"></A>
-<A NAME="fun:printvln"></A><A NAME="@default277"></A><A NAME="@fun193"></A>
-<A NAME="fun:eprintvln"></A><A NAME="@default278"></A><A NAME="@fun194"></A></P><P>Values can be printed with the <CODE>printv</CODE> and <CODE>printvln</CODE> functions.
+<A NAME="fun:fprintv"></A><A NAME="@default274"></A><A NAME="@fun190"></A>
+<A NAME="fun:printv"></A><A NAME="@default275"></A><A NAME="@fun191"></A>
+<A NAME="fun:eprintv"></A><A NAME="@default276"></A><A NAME="@fun192"></A>
+<A NAME="fun:fprintvln"></A><A NAME="@default277"></A><A NAME="@fun193"></A>
+<A NAME="fun:printvln"></A><A NAME="@default278"></A><A NAME="@fun194"></A>
+<A NAME="fun:eprintvln"></A><A NAME="@default279"></A><A NAME="@fun195"></A></P><P>Values can be printed with the <CODE>printv</CODE> and <CODE>printvln</CODE> functions.
 The <CODE>printvln</CODE> function adds a terminating newline to the value being
 printed, the <CODE>printv</CODE> function does not.</P><PRE CLASS="verbatim">    fprintv(&lt;file&gt;, &lt;string&gt;)
     printv(&lt;string&gt;)
@@ -923,7 +923,7 @@ printed, the <CODE>printv</CODE> function does not.</P><PRE CLASS="verbatim">   
 <CODE>fopen</CODE>. The <CODE>printv</CODE> functions print to the standard output channel, and
 the <CODE>eprintv</CODE> functions print to the standard error channel.
 </P><H2 CLASS="section"><A NAME="toc81"></A><A NAME="htoc259">9.11</A>&#XA0;&#XA0;Higher-level IO functions</H2><H3 CLASS="subsection"><A NAME="htoc260">9.11.1</A>&#XA0;&#XA0;Regular expressions</H3><P>
-<A NAME="@default279"></A></P><P>Many of the higher-level functions use regular expressions.
+<A NAME="@default280"></A></P><P>Many of the higher-level functions use regular expressions.
 Regular expressions are defined by strings with syntax nearly identical
 to <TT>awk</TT>(1).</P><P>Strings may contain the following character constants.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>\\</CODE> : a literal backslash.
@@ -985,11 +985,11 @@ abstractly. Some of these sequences can change depending on your LOCALE.</P><UL 
 </LI><LI CLASS="li-itemize"><CODE>[:punct:]</CODE> Punctuation characters.
 </LI><LI CLASS="li-itemize"><CODE>[:blank:]</CODE> Space or tab characters.
 </LI><LI CLASS="li-itemize"><CODE>[:space:]</CODE> Whitespace characters.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc261">9.11.2</A>&#XA0;&#XA0;cat</H3><P><A NAME="fun:cat"></A><A NAME="@default280"></A><A NAME="@fun195"></A></P><PRE CLASS="verbatim">    cat(files) : Sequence
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc261">9.11.2</A>&#XA0;&#XA0;cat</H3><P><A NAME="fun:cat"></A><A NAME="@default281"></A><A NAME="@fun196"></A></P><PRE CLASS="verbatim">    cat(files) : Sequence
        files : File or InChannel Sequence
 </PRE><P>The <CODE>cat</CODE> function concatenates the output from multiple files
 and returns it as a string.
-</P><H3 CLASS="subsection"><A NAME="htoc262">9.11.3</A>&#XA0;&#XA0;grep</H3><P><A NAME="fun:grep"></A><A NAME="@default281"></A><A NAME="@fun196"></A></P><PRE CLASS="verbatim">   grep(pattern) : String  # input from stdin, default options
+</P><H3 CLASS="subsection"><A NAME="htoc262">9.11.3</A>&#XA0;&#XA0;grep</H3><P><A NAME="fun:grep"></A><A NAME="@default282"></A><A NAME="@fun197"></A></P><PRE CLASS="verbatim">   grep(pattern) : String  # input from stdin, default options
       pattern : String
    grep(pattern, files) : String  # default options
       pattern : String
@@ -1010,7 +1010,7 @@ is given).
 </DD><DT CLASS="dt-description"><B>v</B></DT><DD CLASS="dd-description"> If specified, search for lines without a match instead of lines with a match,
 </DD></DL><P>The <CODE>pattern</CODE> is a regular expression.</P><P>If successful (<CODE>grep</CODE> found a match), the function returns <CODE>true</CODE>.
 Otherwise, it returns <CODE>false</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc263">9.11.4</A>&#XA0;&#XA0;scan</H3><P><A NAME="fun:scan"></A><A NAME="@default282"></A><A NAME="@fun197"></A></P><PRE CLASS="verbatim">   scan(input-files)
+</P><H3 CLASS="subsection"><A NAME="htoc263">9.11.4</A>&#XA0;&#XA0;scan</H3><P><A NAME="fun:scan"></A><A NAME="@default283"></A><A NAME="@fun198"></A></P><PRE CLASS="verbatim">   scan(input-files)
    case string1
       body1
    case string2
@@ -1066,7 +1066,7 @@ same way as other variables, so this definition does not affect the meaning of
         scan(script.in)
            ...
         close(stdout)
-</PRE><H3 CLASS="subsection"><A NAME="htoc264">9.11.5</A>&#XA0;&#XA0;awk</H3><P><A NAME="fun:awk"></A><A NAME="@default283"></A><A NAME="@fun198"></A></P><PRE CLASS="verbatim">   awk(input-files)
+</PRE><H3 CLASS="subsection"><A NAME="htoc264">9.11.5</A>&#XA0;&#XA0;awk</H3><P><A NAME="fun:awk"></A><A NAME="@default284"></A><A NAME="@fun199"></A></P><PRE CLASS="verbatim">   awk(input-files)
    case pattern1:
       body1
    case pattern2:
@@ -1130,7 +1130,7 @@ same way as other variables, so this definition does not affect the meaning of
 <B>b</B></DT><DD CLASS="dd-description"> &#X201C;Break&#X201D; when evaluating cases. Only the first case that matches will be selected.
 </DD></DL><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop,
 exiting the <CODE>awk</CODE> function immediately.
-</P><H3 CLASS="subsection"><A NAME="htoc265">9.11.6</A>&#XA0;&#XA0;fsubst</H3><P><A NAME="fun:fsubst"></A><A NAME="@default284"></A><A NAME="@fun199"></A></P><PRE CLASS="verbatim">   fsubst(files)
+</P><H3 CLASS="subsection"><A NAME="htoc265">9.11.6</A>&#XA0;&#XA0;fsubst</H3><P><A NAME="fun:fsubst"></A><A NAME="@default285"></A><A NAME="@fun200"></A></P><PRE CLASS="verbatim">   fsubst(files)
    case pattern1 [options]
       body1
    case pattern2 [options]
@@ -1154,7 +1154,7 @@ an expression <CODE>word.</CODE> with its capitalized form.</P><PRE CLASS="verba
        case $"\&lt;\([[:alnum:]]+\)\." g
           value $(capitalize $1).
        close(stdout)
-</PRE><H3 CLASS="subsection"><A NAME="htoc266">9.11.7</A>&#XA0;&#XA0;lex</H3><P><A NAME="fun:lex"></A><A NAME="@default285"></A><A NAME="@fun200"></A></P><PRE CLASS="verbatim">   lex(files)
+</PRE><H3 CLASS="subsection"><A NAME="htoc266">9.11.7</A>&#XA0;&#XA0;lex</H3><P><A NAME="fun:lex"></A><A NAME="@default286"></A><A NAME="@fun201"></A></P><PRE CLASS="verbatim">   lex(files)
    case pattern1
       body1
    case pattern2
@@ -1179,7 +1179,7 @@ words in an input file.</P><PRE CLASS="verbatim">    collect-words($(files)) =
           words[] += $0
           export
 </PRE><P>The <CODE>default</CODE> case, if one exists, matches single characters. Since</P><P>It is an error if the input does not match any of the regular expressions.</P><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
-</P><H3 CLASS="subsection"><A NAME="htoc267">9.11.8</A>&#XA0;&#XA0;lex-search</H3><P><A NAME="fun:lex-search"></A><A NAME="@default286"></A><A NAME="@fun201"></A></P><PRE CLASS="verbatim">   lex-search(files)
+</P><H3 CLASS="subsection"><A NAME="htoc267">9.11.8</A>&#XA0;&#XA0;lex-search</H3><P><A NAME="fun:lex-search"></A><A NAME="@default287"></A><A NAME="@fun202"></A></P><PRE CLASS="verbatim">   lex-search(files)
    case pattern1
       body1
    case pattern2
@@ -1199,7 +1199,7 @@ words in an input file, skipping any other text.</P><PRE CLASS="verbatim">    co
           words[] += $0
           export
 </PRE><P>The <CODE>default</CODE> case, if one exists, matches single characters. Since</P><P>It is an error if the input does not match any of the regular expressions.</P><P>The <A HREF="omake-base.html#fun:break"><CODE>break</CODE> function</A> can be used to abort the loop.
-</P><H3 CLASS="subsection"><A NAME="htoc268">9.11.9</A>&#XA0;&#XA0;Lexer</H3><P><A NAME="obj:Lexer"></A><A NAME="@default287"></A><A NAME="@obj5"></A></P><P>The <CODE>Lexer</CODE> object defines a facility for lexical analysis, similar to the
+</P><H3 CLASS="subsection"><A NAME="htoc268">9.11.9</A>&#XA0;&#XA0;Lexer</H3><P><A NAME="obj:Lexer"></A><A NAME="@default288"></A><A NAME="@obj5"></A></P><P>The <CODE>Lexer</CODE> object defines a facility for lexical analysis, similar to the
 <TT>lex</TT>(1) and <TT>flex</TT>(1) programs.</P><P>In <TT>omake</TT>, lexical analyzers can be constructed dynamically by extending
 the <CODE>Lexer</CODE> class. A lexer definition consists of a set of directives specified
 with method calls, and set of clauses specified as rules.</P><P>For example, consider the following lexer definition, which is intended
@@ -1403,7 +1403,40 @@ of the <CODE>left</CODE> method accomplishes this.</P><PRE CLASS="verbatim">   p
          asr($1, $3)
 </PRE><P>In this case, we use the new lexer <CODE>lexer2</CODE>, and we add productions
 for the new shift operations.
-</P><H3 CLASS="subsection"><A NAME="htoc276">9.11.17</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="@default288"></A><A NAME="@fun202"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
+</P><H3 CLASS="subsection"><A NAME="htoc276">9.11.17</A>&#XA0;&#XA0;Passwd</H3><P><A NAME="obj:Passwd"></A><A NAME="@default289"></A><A NAME="@obj6"></A></P><P>The <CODE>Passwd</CODE> object represents an entry in the system's user database.
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><CODE>pw_name</CODE><A NAME="@default290"></A>: the login name.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_passwd</CODE><A NAME="@default291"></A>: the encrypted password.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_uid</CODE><A NAME="@default292"></A>: user id of the user.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gid</CODE><A NAME="@default293"></A>: group id of the user.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gecos</CODE><A NAME="@default294"></A>: the user name or comment field.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_dir</CODE><A NAME="@default295"></A>: the user's home directory.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_shell</CODE><A NAME="@default296"></A>: the user's default shell.
+</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc277">9.11.18</A>&#XA0;&#XA0;getpwnam, getpwuid</H3><P><A NAME="fun:getpwnam"></A><A NAME="@default297"></A><A NAME="@fun203"></A><A NAME="fun:getpwuid"></A><A NAME="@default298"></A><A NAME="@fun204"></A></P><PRE CLASS="verbatim">    $(getpwnam name...) : Passwd
+       name : String
+    $(getpwuid uid...) : Passwd
+       uid : Int
+    raises RuntimeException
+</PRE><P>The <CODE>getpwnam</CODE> function looks up an entry by the user's login and the <CODE>getpwuid</CODE>
+function looks up an entry by user's numerical id (uid). If no entry is found, an exception
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc278">9.11.19</A>&#XA0;&#XA0;getpwents</H3><P><A NAME="fun:getpwents"></A><A NAME="@default299"></A><A NAME="@fun205"></A></P><PRE CLASS="verbatim">    $(getpwents) : Array
+</PRE><P>The <CODE>getpwents</CODE> function returns an array of <CODE>Passwd</CODE> objects, one for every user
+fund in the system user database. Note that depending on the operating system and on the setup
+of the user database, the returned array may be incomplete or even empty.
+</P><H3 CLASS="subsection"><A NAME="htoc279">9.11.20</A>&#XA0;&#XA0;Group</H3><P><A NAME="obj:Group"></A><A NAME="@default300"></A><A NAME="@obj7"></A></P><P>The <CODE>Group</CODE> object represents an entry in the system's user group database.
+It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
+</DT><DD CLASS="dd-description"><CODE>gr_name</CODE><A NAME="@default301"></A>: the group name.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_group</CODE><A NAME="@default302"></A>: the encrypted password.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_gid</CODE><A NAME="@default303"></A>: group id of the group.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_mem</CODE><A NAME="@default304"></A>: the group member's user names.
+</DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc280">9.11.21</A>&#XA0;&#XA0;getgrnam, getgrgid</H3><P><A NAME="fun:getgrnam"></A><A NAME="@default305"></A><A NAME="@fun206"></A><A NAME="fun:getgrgid"></A><A NAME="@default306"></A><A NAME="@fun207"></A></P><PRE CLASS="verbatim">    $(getgrnam name...) : Group
+       name : String
+    $(getgrgid gid...) : Group
+       gid : Int
+    raises RuntimeException
+</PRE><P>The <CODE>getgrnam</CODE> function looks up a group entry by the group's name and the <CODE>getgrgid</CODE>
+function looks up an entry by groups's numerical id (gid). If no entry is found, an exception
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc281">9.11.22</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="@default307"></A><A NAME="@fun208"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
 </PRE><P>The <CODE>gettimeofday</CODE> function returns the time of day in seconds
 since January 1, 1970.</P>
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>

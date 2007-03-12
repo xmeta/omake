@@ -56,13 +56,13 @@ open Pos
  * It contains the following fields.
  *
  * \begin{description}
- * \item[pw_name]: the login name.
- * \item[pw_passwd]: the encrypted password.
- * \item[pw_uid]: user id of the user.
- * \item[pw_gid]: group id of the user.
- * \item[pw_gecos]: the user name or comment field.
- * \item[pw_dir]: the user's home directory.
- * \item[pw_shell]: the user's default shell.
+ * \itemidx{pw\_name}: the login name.
+ * \itemidx{pw\_passwd}: the encrypted password.
+ * \itemidx{pw\_uid}: user id of the user.
+ * \itemidx{pw\_gid}: group id of the user.
+ * \itemidx{pw\_gecos}: the user name or comment field.
+ * \itemidx{pw\_dir}: the user's home directory.
+ * \itemidx{pw\_shell}: the user's default shell.
  * \end{description}
  *
  * Not all the fields will have meaning on all operating systems.
@@ -152,10 +152,10 @@ let getpwents venv _pos _loc _args =
  * It contains the following fields.
  *
  * \begin{description}
- * \item[pw_name]: the group name.
- * \item[pw_group]: the encrypted password.
- * \item[pw_gid]: group id of the group.
- * \item[pw_mem]: the group member's user names.
+ * \itemidx{gr\_name}: the group name.
+ * \itemidx{gr\_group}: the encrypted password.
+ * \itemidx{gr\_gid}: group id of the group.
+ * \itemidx{gr\_mem}: the group member's user names.
  * \end{description}
  *
  * Not all the fields will have meaning on all operating systems.
