@@ -28,15 +28,15 @@ open build/Common
 # A number of helper functions, using the autoconf names, when appropriate.
 #
 # \begin{doc}
-# \twofunslabel{AC_MSG_CHECKING}{AC\_MSG\_CHECKING}{AC_MSG_RESULT}{AC\_MSG\_RESULT}
+# \twofuns{ConfMsgChecking}{ConfMsgResult}
 # \begin{verbatim}
-# AC_MSG_CHECKING(<msg>)
+# ConfMsgChecking(<msg>)
 # ...
-# AC_MSG_RESULT(<msg>)
+# ConfMsgResult(<msg>)
 # \end{verbatim}
-# The \verb+AC_MSG_CHECKING+ function output message of the form \verb+--- Checking <msg>... +
-# \emph{without} any trailing newline. After the test advertized by \verb+AC_MSG_CHECKING+ is
-# performed, the \verb+AC_MSG_RESULT+ function should be used to output the result.
+# The \verb+ConfMsgChecking+ function output message of the form \verb+--- Checking <msg>... +
+# \emph{without} any trailing newline. After the test advertized by \verb+ConfMsgChecking+ is
+# performed, the \verb+ConfMsgResult+ function should be used to output the result.
 #
 # In certain cases users may want to redefine these function --- for example, to use a different
 # output formatting and/or to copy the messages to a log file.
@@ -44,85 +44,85 @@ open build/Common
 # Example:
 # \begin{verbatim}
 # static. =
-#    AC_MSG_CHECKING(which foo to use)
+#    ConfMsgChecking(which foo to use)
 #    foo = ...
-#    AC_MSG_RESULT($(foo))
+#    ConfMsgResult($(foo))
 # \end{verbatim}
 # \end{doc}
 #
-AC_MSG_CHECKING(msg) =
+ConfMsgChecking(msg) =
     print($"--- Checking $(msg)... ")
 
-AC_MSG_RESULT(msg) =
+ConfMsgResult(msg) =
     println($"($(msg))")
 
 # \begin{doc}
-# \twofunslabel{AC_MSG_WARN}{AC\_MSG\_WARN}{AC_MSG_ERROR}{AC\_MSG\_ERROR}
+# \twofuns{ConfMsgWarn}{ConfMsgError}
 # \begin{verbatim}
-# AC_MSG_WARN(<msg>)
-# AC_MSG_ERROR(<msg>)
+# ConfMsgWarn(<msg>)
+# ConfMsgError(<msg>)
 # \end{verbatim}
 # 
-# Print a warning or an error message respectively. \verb+AC_MSG_ERROR+ would then abort \OMake.
+# Print a warning or an error message respectively. \verb+ConfMsgError+ would then abort \OMake.
 # \end{doc}
-AC_MSG_WARN(msg) =
+ConfMsgWarn(msg) =
     msg[] = $(split $(nl), $"$(msg)")
     print($(concat $(EMPTY), $(add-wrapper $'--- *** ', $(nl), $(msg))))
 
-AC_MSG_ERROR(msg) =
+ConfMsgError(msg) =
     msg[] = $(split $(nl), $"$(msg)")
     eprintln($"""*** ERROR: $(concat '$(nl)---        ', $(msg))""")
     exit(1)
   
 #
 # \begin{doc}
-# \twofunslabel{AC_MSG_YES_NO}{AC\_MSG\_YES\_NO}{AC_MSG_FOUND}{AC\_MSG\_FOUND}
+# \twofuns{ConfMsgYesNo}{ConfMsgFound}
 # \begin{verbatim}
-# flag = $(AC_MSG_YES_NO <bool expr>
-# flag = $(AC_MSG_FOUND <bool expr>
+# flag = $(ConfMsgYesNo <bool expr>
+# flag = $(ConfMsgFound <bool expr>
 # \end{verbatim}
 #
-# The \verb+AC_MSG_FOUND+ function expects to receive a boolean flag describing whether a test
-# previously announced using the \hyperfunx{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} found what it
-# was looking for. \verb+AC_MSG_FOUND+ will output the appropriate result (``found'' or ``NOT found'')
-# using the \hyperfunx{AC_MSG_RESULT}{AC\_MSG\_RESULT} and return its argument back.
+# The \verb+ConfMsgFound+ function expects to receive a boolean flag describing whether a test
+# previously announced using the \hyperfun{ConfMsgChecking} found what it
+# was looking for. \verb+ConfMsgFound+ will output the appropriate result (``found'' or ``NOT found'')
+# using the \hyperfun{ConfMsgResult} and return its argument back.
 #
-# The \verb+AC_MSG_YES_NO+ function is similar, outputting a simple (``yes'' or ``NO'').
+# The \verb+ConfMsgYesNo+ function is similar, outputting a simple (``yes'' or ``NO'').
 # \end{doc}
 #
-AC_MSG_FOUND(found) =
-   AC_MSG_RESULT($(if $(found), found, NOT found))
-   return $(found)
-   
-AC_MSG_YES_NO(found) =
-   AC_MSG_RESULT($(if $(found), yes, NO))
+ConfMsgYesNo(found) =
+   ConfMsgResult($(if $(found), yes, NO))
    return $(found)
 
+ConfMsgFound(found) =
+   ConfMsgResult($(if $(found), found, NOT found))
+   return $(found)
+   
 # \begin{doc}
-# \threefunslabel{AC_TRY_COMPILE}{AC\_TRY\_COMPILE}{AC_TRY_LINK}{AC\_TRY\_LINK}{AC_TRY_RUN}{AC\_TRY\_RUN}
+# \threefuns{TryCompleC}{TryLinkC}{TryRunC}
 # \begin{verbatim}
-# success = $(AC_TRY_COMPILE <prog_text>)
-# success = $(AC_TRY_LINK <prog_text>)
-# success = $(AC_TRY_RUN <prog_text>)
+# success = $(TryCompleC <prog_text>)
+# success = $(TryLinkC <prog_text>)
+# success = $(TryRunC <prog_text>)
 # \end{verbatim}
 #
-# Given the \emph{text} of a C program, the \verb+AC_TRY_COMPILE+, \verb+AC_TRY_LINK+, and \verb+AC_TRY_RUN+
+# Given the \emph{text} of a C program, the \verb+TryCompleC+, \verb+TryLinkC+, and \verb+TryRunC+
 # functions would try to compile / compile and link / compile, link, and run, the given program and return a boolean flag
 # indicating whether the attempt was successful.
 #
-# \verb+AC_TRY_COMPILE+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
-# to run the C compiler. \verb+AC_TRY_LINK+ and \verb+AC_TRY_RUN+ will also use the \hypervar{LDFLAGS}
+# \verb+TryCompleC+ will use the \hypervarn{CC}, \hypervarn{CFLAGS} and \hypervarn{INCLUDES} variables 
+# to run the C compiler. \verb+TryLinkC+ and \verb+TryRunC+ will also use the \hypervar{LDFLAGS}
 # to run the C compiler and linker. However, the flags like \verb+/WX+, \verb+-Werror+ and \verb+-warn-error+
 # will be not be passed to the compiler, even if they occur in \verb+CFLAGS+.
 #
 # These functions are silent and should normally be used with an appropriate
-# \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} $\ldots$ \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT}.
+# \hyperfunn{ConfMsgChecking} $\ldots$ \hyperfunn{ConfMsgResult}.
 # \end{doc}
 
-AC_CLEAN_CFLAGS(cflags) =
+ConfCleanCFLAGS(cflags) =
     value $(filter-out /WX -Werror -warn-error, $(cflags))
 
-AC_TRY_COMPILING(command, command_suffix, ext, prog, extra) =
+TryCompilingC(command, command_suffix, ext, prog, extra) =
     # The command line
     tmp = $(file $(tmpfile omake))
     command[] += -o $(tmp)$(ext) $(file $(tmp).c) $(command_suffix)
@@ -156,57 +156,57 @@ $(prog)
 
     return $(result)
 
-AC_TRY_COMPILE(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
+TryCompleC(prog) =
+    return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
 
-AC_TRY_LINK(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), None)
+TryLinkC(prog) =
+    return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), None)
 
-AC_TRY_RUN(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Runs)
+TryRunC(prog) =
+    return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Runs)
 
 # \begin{doc}
-# \funlabel{AC_RUN_PROG}{AC\_RUN\_PROG}
+# \fun{RunCProg}
 # \begin{verbatim}
-# output = $(AC_RUN_PROG <prog>)
+# output = $(RunCProg <prog>)
 # \end{verbatim}
 #
-# \verb+AC_RUN_PROG+ is similar to the \hyperfunxn{AC_RUN_PROG}{AC\_RUN\_PROG}, except that it
+# \verb+RunCProg+ is similar to the \hyperfun{RunCProg}, except that it
 # returns the output of the function (will return \verb+false+ if the program fails to compile
 # or run).
 # \end{doc}
 
-AC_RUN_PROG(prog) =
-    return $(AC_TRY_COMPILING $(CC) $(AC_CLEAN_CFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Output)
+RunCProg(prog) =
+    return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), Output)
 
 #
 # Check whether a header file exists.
 # We call the C compiler.
 #
 # \begin{doc}
-# \twofuns{CheckHeader}{VerboseCheckHeader}
+# \twofuns{CheckCHeader}{VerboseCheckCHeader}
 # \begin{verbatim}
-# success = $(CheckHeader <files>)
-# success = $(VerboseCheckHeader <files>)
+# success = $(CheckCHeader <files>)
+# success = $(VerboseCheckCHeader <files>)
 # \end{verbatim}
 #
-# Use the \hyperfunx{AC_TRY_COMPILE}{AC\_TRY\_COMPILE} to check whether your C compiler can locate
+# Use the \hyperfun{TryCompleC} to check whether your C compiler can locate
 # and process the specified headers files.
 # Will incude \verb+<stdio.h>+ before including the header files.
 #
-# Both functions return a boolean value. The \verb+CheckHeader+ function is silent; the
-# \verb+VerboseCheckHeader+ function will use the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
-# \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions to describe the test and the outcome.
+# Both functions return a boolean value. The \verb+CheckCHeader+ function is silent; the
+# \verb+VerboseCheckCHeader+ function will use the \hyperfunn{ConfMsgChecking} and
+# \hyperfunn{ConfMsgResult} functions to describe the test and the outcome.
 #
 # Example:
 # \begin{verbatim}
 # static. =
-#    NCURSES_H_AVAILABLE = $(VerboseCheckHeader ncurses.h)
+#    NCURSES_H_AVAILABLE = $(VerboseCheckCHeader ncurses.h)
 # \end{verbatim}
 # \end{doc}
 #
-public.CheckHeader(files) =
-    return $(AC_TRY_COMPILE $"""
+public.CheckCHeader(files) =
+    return $(TryCompleC $"""
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -218,39 +218,39 @@ int main(int argc, char **argv) {
 }
 """)
 
-public.VerboseCheckHeader(files) =
-    AC_MSG_CHECKING(for $(files))
-    return $(AC_MSG_FOUND $(CheckHeader $(files)))
+public.VerboseCheckCHeader(files) =
+    ConfMsgChecking(for $(files))
+    return $(ConfMsgFound $(CheckCHeader $(files)))
 
 #
 # Check whether the libraries have the given functions
 #
 # \begin{doc}
-# \twofuns{CheckLib}{VerboseCheckLib}
+# \twofuns{CheckCLib}{VerboseCheckCLib}
 # \begin{verbatim}
-# success = $(CheckLib <libs>, <functions>)
-# success = $(VerboseCheckLib <libs>, <functions>)
+# success = $(CheckCLib <libs>, <functions>)
+# success = $(VerboseCheckCLib <libs>, <functions>)
 # \end{verbatim}
 #
-# Use the \hyperfunx{AC_TRY_LINK}{AC\_TRY\_LINK} to check whether your C compiler and linker can
+# Use the \hyperfun{TryLinkC} to check whether your C compiler and linker can
 # find the named functions when linking with the named libraries.  Will pass the \verb+<libs>+ to
 # the compiler using the \verb+-l+ flag.
 #
-# Both functions return a boolean value. The \verb+CheckLib+ function is silent; the
-# \verb+VerboseCheckHeader+ function will use the \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
-# \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions to describe the test and the outcome.
+# Both functions return a boolean value. The \verb+CheckCLib+ function is silent; the
+# \verb+VerboseCheckCHeader+ function will use the \hyperfunn{ConfMsgChecking} and
+# \hyperfunn{ConfMsgResult} functions to describe the test and the outcome.
 #
 # Example:
 # \begin{verbatim}
 # static. =
-#     NCURSES_LIB_AVAILABLE = $(VerboseCheckLib ncurses, initscr setupterm tigetstr)
+#     NCURSES_LIB_AVAILABLE = $(VerboseCheckCLib ncurses, initscr setupterm tigetstr)
 # \end{verbatim}
 # \end{doc}
 #
-public.CheckLib(libs, funs) =
+public.CheckCLib(libs, funs) =
     CFLAGS += $(addprefix -l, $(libs))
 
-    return $(AC_TRY_LINK $"""
+    return $(TryLinkC $"""
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -264,11 +264,22 @@ $(add-wrapper $(nl)    , $'();', $(funs))
 }
 """)
 
-public.VerboseCheckLib(libs, funs) =
+public.VerboseCheckCLib(libs, funs) =
     msg1 = $(if $(funs), $"""function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))""")
     msg2 = $(if $(libs), $"""librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))""")
-    AC_MSG_CHECKING($"""for $(msg1)$(if $(and $(funs), $(libs)), $' in ')$(msg2)""")
-    return $(AC_MSG_FOUND $(CheckLib $(libs), $(funs)))
+    ConfMsgChecking($"""for $(msg1)$(if $(and $(funs), $(libs)), $' in ')$(msg2)""")
+    return $(ConfMsgFound $(CheckCLib $(libs), $(funs)))
+
+#
+# Backwards compatibility
+#
+# XXX: Once we decide how we are going to provide the multi-language support,
+#      we should either update these or have them produce an "obsolete" warning.
+#
+public.CheckLib = $(CheckCLib)
+public.VerboseCheckLib = $(VerboseCheckCLib)
+public.CheckHeader = $(CheckCHeader)
+public.VerboseCheckHeader = $(VerboseCheckCHeader)
 
 #
 # Check whether a program exists in the PATH
@@ -278,23 +289,37 @@ public.VerboseCheckLib(libs, funs) =
 # \verb+success = $(CheckProg <prog>)+
 #
 # Checks whether the program \verb+<prog>+ exists in your path. Will use the
-# \hyperfunxn{AC_MSG_CHECKING}{AC\_MSG\_CHECKING} and
-# \hyperfunxn{AC_MSG_RESULT}{AC\_MSG\_RESULT} functions to describe the test and the outcome.
+# \hyperfunn{ConfMsgChecking} and
+# \hyperfunn{ConfMsgResult} functions to describe the test and the outcome.
 #
 # \end{doc}
 #
 public.CheckProg(prog) =
-   AC_MSG_CHECKING(for $(prog))
+   ConfMsgChecking(for $(prog))
    WHERE = $(where $(prog))
    if $(WHERE)
-      AC_MSG_RESULT(found $(nth 0, $(WHERE)))
+      ConfMsgResult(found $(nth 0, $(WHERE)))
       return true
    else
-      AC_MSG_RESULT(FAILED - no $(prog) found)
+      ConfMsgResult(FAILED - no $(prog) found)
       return false
 
 #
 # \begin{doc}
+# \section{Translating \code{autoconf} scripts}
+# Some of the functions described above are very similar to the ones present in \verb+autoconf+.
+# Below is a brief translation table for such functions.
+# \begin{description}
+# \item{AC\_MSG\_CHECKING} is very similar to \hyperfun{ConfMsgChecking}.
+# \item{AC\_MSG\_RESULT} is very similar to \hyperfun{ConfMsgResult}.
+# \item{AC\_MSG\_WARN} is very similar to \hyperfun{ConfMsgWarn}.
+# \item{AC\_MSG\_ERROR} is very similar to \hyperfun{ConfMsgError}.
+# \item{AC\_TRY\_COMPILE} is somewhat similar to \hyperfun{TryCompileC},
+#     except the \hyperfun{TryCompileC} returns a boolean value and only works for \verb+C+. Similarly,
+# \item{AC\_TRY\_LINK} is approximated by \hyperfun{TryLinkC}, and
+# \item{AC\_TRY\_RUN} is approximated by \hyperfun{TryRunC}.
+# \end{description}
+#
 # \section{Predefined configuration tests}
 # A number of configuration tests are already included in the standard library.
 # In order to use them in your project, simply \verb+open+ (see Section~\ref{section:include}) the

@@ -18,7 +18,7 @@ static. =
     NCURSES_AVAILABLE = false
     NCURSES_TERMH_IN_NCURSES = false
     if $(not $(equal $(OSTYPE), Win32))
-        AC_MSG_CHECKING(for ncurses)
+        ConfMsgChecking(for ncurses)
         NCURSES_TERMH_IN_NCURSES = $(CheckHeader ncurses/term.h)
-        NCURSES_AVAILABLE = $(AC_MSG_FOUND $(and $(CheckHeader ncurses.h), $(or $(NCURSES_TERMH_IN_NCURSES), $(CheckHeader term.h)), $(CheckLib ncurses, initscr setupterm tigetstr)))
+        NCURSES_AVAILABLE = $(ConfMsgFound $(and $(CheckHeader ncurses.h), $(or $(NCURSES_TERMH_IN_NCURSES), $(CheckHeader term.h)), $(CheckLib ncurses, initscr setupterm tigetstr)))
         export

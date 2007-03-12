@@ -103,12 +103,12 @@ static. =
     OCAMLC_EXISTS = $(or $(OCAMLC_OPT_EXISTS), $(CheckProg ocamlc))
     OCAMLOPT_OPT_EXISTS = $(CheckProg ocamlopt.opt)
     OCAMLOPT_EXISTS = $(or $(OCAMLOPT_OPT_EXISTS), $(CheckProg ocamlopt))
-    AC_MSG_CHECKING(whether ocamlc understands the "z" warnings)
+    ConfMsgChecking(whether ocamlc understands the "z" warnings)
     OCAML_ACCEPTS_Z_WARNING =
         if $(OCAMLC_EXISTS)
-            value $(AC_MSG_YES_NO $(shell-success-null ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt) -w Az))
+            value $(ConfMsgYesNo $(shell-success-null ocamlc$(if $(OCAMLC_OPT_EXISTS), .opt) -w Az))
         else
-            AC_MSG_RESULT($"FAILED - ocamlc not found")
+            ConfMsgResult($"FAILED - ocamlc not found")
             value false
 
 public.USE_OCAMLFIND = false
@@ -275,24 +275,24 @@ public.OCAML_LIB_FLAGS =
 #
 static. =
     OCAMLDEP_MODULES =
-    AC_MSG_CHECKING(if ocamldep understands -modules)
-    OCAMLDEP_MODULES_AVAILABLE = $(AC_MSG_YES_NO $(shell-success-null ocamldep -modules))
+    ConfMsgChecking(if ocamldep understands -modules)
+    OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamldep -modules))
     if $(OCAMLDEP_MODULES_AVAILABLE)
         OCAMLDEP_MODULES = ocamldep
         export
     else
-        AC_MSG_CHECKING(for ocamldep-omake bytecode file)
+        ConfMsgChecking(for ocamldep-omake bytecode file)
         OCAMLDEP_OMAKE = $(find-in-path-optional $(PATH), ocamldep-omake)
         if $(OCAMLDEP_OMAKE)
             OCAMLDEP_OMAKE = $(file $(OCAMLDEP_OMAKE))
-            AC_MSG_RESULT(found $(absname $(OCAMLDEP_OMAKE)))
+            ConfMsgResult(found $(absname $(OCAMLDEP_OMAKE)))
             
-            AC_MSG_CHECKING(if ocamldep-omake runs)
-            OCAMLDEP_MODULES_AVAILABLE = $(AC_MSG_YES_NO $(shell-success-null ocamlrun $(OCAMLDEP_OMAKE) -modules))
+            ConfMsgChecking(if ocamldep-omake runs)
+            OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamlrun $(OCAMLDEP_OMAKE) -modules))
             OCAMLDEP_MODULES = $(if $(OCAMLDEP_MODULES_AVAILABLE), ocamlrun $(OCAMLDEP_OMAKE))
             export
         else
-            AC_MSG_RESULT(NOT FOUND)
+            ConfMsgResult(NOT FOUND)
         export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
 
 public.OCAMLDEP_MODULES_ENABLED = false
@@ -580,8 +580,8 @@ static. =
     MENHIR_AVAILABLE = $(CheckProg $(MENHIR))
     MENHIR_RAW_DEPEND = false
     if $(MENHIR_AVAILABLE)
-        AC_MSG_CHECKING(if $(MENHIR) supports the --raw-depend option)
-        MENHIR_RAW_DEPEND = $(AC_MSG_YES_NO $(shell-success-null $(MENHIR) -help | grep $'^ *--raw-depend'))
+        ConfMsgChecking(if $(MENHIR) supports the --raw-depend option)
+        MENHIR_RAW_DEPEND = $(ConfMsgYesNo $(shell-success-null $(MENHIR) -help | grep $'^ *--raw-depend'))
         export
 
 # Menhir is being requested.  Check that it is installed.

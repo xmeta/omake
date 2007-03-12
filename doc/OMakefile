@@ -172,18 +172,18 @@ static. =
     HEVEA_DIR =
     HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
     if $(HEVEA_OK)
-        AC_MSG_CHECKING(for $(HEVEA) configs and version)
+        ConfMsgChecking(for $(HEVEA) configs and version)
         HEVEA_VERSION = $(shell $(HEVEA) -version)
         HEVEA_DIR = $(dir $(last $(HEVEA_VERSION)))
         HEVEA_VERSION = $(nth 1, $(HEVEA_VERSION))
-        AC_MSG_RESULT($(HEVEA_VERSION) in $(HEVEA_DIR))
+        ConfMsgResult($(HEVEA_VERSION) in $(HEVEA_DIR))
         if $(mem $(HEVEA_VERSION), $(ALLOWED_HEVEA_VERSIONS))
-            AC_MSG_CHECKING(if $(HEVEA_DIR) exists)
-            HEVEA_OK = $(AC_MSG_YES_NO $(test -d $(HEVEA_DIR)))
+            ConfMsgChecking(if $(HEVEA_DIR) exists)
+            HEVEA_OK = $(ConfMsgYesNo $(test -d $(HEVEA_DIR)))
             export
         else
             HEVEA_OK = false
-            AC_MSG_WARN($"""Hevea version $(HEVEA_VERSION) is not allowed; allowed versions: $(concat $', ', $(ALLOWED_HEVEA_VERSIONS)).
+            ConfMsgWarn($"""Hevea version $(HEVEA_VERSION) is not allowed; allowed versions: $(concat $', ', $(ALLOWED_HEVEA_VERSIONS)).
 If you think this is a mistake, edit the ALLOWED_HEVEA_VERSIONS variable
 in $(in $(ROOT), $(file OMakefile))
 (HEVEA DISABLED)""")
