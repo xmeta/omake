@@ -125,7 +125,15 @@ ConfCleanCFLAGS(cflags) =
 TryCompilingC(command, command_suffix, ext, prog, extra) =
     # The command line
     tmp = $(file $(tmpfile omake))
-    command[] += -o $(tmp)$(ext) $(file $(tmp).c) $(command_suffix)
+
+    if $(and $(not $(equal $(CCOUT), $(LDOUT))), $(equal $(ext), $(EXE)))
+        command[] += $(CCOUT)$(file $(tmp).$(EXT_OBJ)) $(LDOUT)$(file $(tmp)$(ext))
+        export
+    else
+        command[] += $(CCOUT)$(file $(tmp)$(ext))
+        export
+
+    command[] += $(file $(tmp).c) $(command_suffix)
 
     # The program
     program = $"""/* Configuration file; you can remove this. */
@@ -267,7 +275,7 @@ $(add-wrapper $(nl)    , $'();', $(funs))
 public.VerboseCheckCLib(libs, funs) =
     msg1 = $(if $(funs), $"""function$(if $(gt $(length $(funs)), 1), s) $(concat $", ", $(funs))""")
     msg2 = $(if $(libs), $"""librar$(if $(gt $(length $(libs)), 1), ies, y) $(concat $", ", $(libs))""")
-    ConfMsgChecking($"""for $(msg1)$(if $(and $(funs), $(libs)), $' in ')$(msg2)""")
+    ConfMsgChecking($"""for $(msg1)$(if $(not $(or $(not $(funs)), $(not $(libs)))), $' in ')$(msg2)""")
     return $(ConfMsgFound $(CheckCLib $(libs), $(funs)))
 
 #

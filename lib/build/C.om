@@ -72,13 +72,19 @@ open configure/Configure
 #   The directories are passed to the C and C++ compilers with the \verb+-I+ option.
 #   The include path with \verb+-I+ prefixes is defined in the \verb+PREFIXED_INCLUDES+ variable.
 # \var{LIBS} Additional libraries needed when building a program (default is empty).
+# \var{CCOUT} The option to use for specifying the output file in C and C++ compilers
+#     (defaults to \verb+-o+ on \verb+Unix+ and \verb+/Fo:+ on \verb+Win32+).
 # \var{AS} The name of the assembler (defaults to \verb+as+ on \verb+Unix+, and \verb+ml+ on \verb+Win32+).
-# \var{ASFLAGS} Flags to pass to the assembler (default is empty on \verb+Unix+, and \verb+/c /coff+ on \verb+Win32+).
+# \var{ASFLAGS} Flags to pass to the assembler (default is empty on \verb+Unix+, and \verb+/c /coff+
+#     on \verb+Win32+).
+# \var{ASOUT} The option string that specifies the output file for \verb+AS+ (defaults to \verb+-o+
+#     on \verb+Unix+ and \verb+/Fo+ on \verb+Win32+).
 # \var{AR} The name of the program to create static libraries (defaults to \verb+ar cq+ on \verb+Unix+,
 #     and \verb+lib+ on \verb+Win32+).
-# \var{AROUT} The option string that specifies the output file for \verb+AR+.
 # \var{LD} The name of the linker (defaults to \verb+ld+ on \verb+Unix+, and \verb+cl+ on \verb+Win32+).
 # \var{LDFLAGS} Options to pass to the linker (default is empty).
+# \var{LDOUT} The option to use for specifying the output file in C and C++ linkers
+#     (defaults to \verb+-o+ on \verb+Unix+ and \verb+/Fe:+ on \verb+Win32+).
 # \var{YACC} The name of the \verb+yacc+ parser generator (default is \verb+yacc+ on \verb+Unix+, empty on \verb+Win32+).
 # \var{LEX} The name of the \verb+lex+ lexer generator (default is \verb+lex+ on \verb+Unix+, empty on \verb+Win32+).
 # \end{doc}
@@ -92,16 +98,18 @@ if $(equal $(OSTYPE), Win32)
     public.AR(name) =
         return(lib /nologo /debugtype:CV /out:$(name))
     public.RANLIB = echo ranlib
-    public.LD = cl
     public.INCLUDES[] = .
     public.INCLUDES_OPT = /I
+    public.CCOUT = /Fo:
+    public.LD = cl /nologo
     public.YACC = echo yacc
     public.LEX = echo lex
     public.LIBS =
     public.LDFLAGS =
+    public.LDOUT = /Fe:
 
     public.AS = ml /nologo
-    public.ASOUT = /Fo
+    public.ASOUT = /Fo:
     public.ASFLAGS = /c /coff
 
     static. =
@@ -124,10 +132,12 @@ else
     public.LD = ld
     public.INCLUDES[] = .
     public.INCLUDES_OPT = -I
+    public.CCOUT = $(array -o)
     public.YACC = yacc
     public.LEX = lex
     public.LIBS =
     public.LDFLAGS =
+    public.LDOUT = $(array -o)
 
     public.AS = as
     public.ASOUT = $(array -o)
@@ -154,11 +164,11 @@ public.NATIVE_CFLAGS =
 public.CXX_EXTS[] = .cpp .cc .c++
 
 %$(EXT_OBJ): %.c :scanner: scan-c-%.c
-    $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c -o $@ $<
+    $(CC) $(CFLAGS) $(PREFIXED_INCLUDES) -c $(CCOUT)$@ $<
 
 foreach(CXX_EXT, $(CXX_EXTS))
     %$(EXT_OBJ): %$(CXX_EXT) :scanner: scan-cxx-%$(CXX_EXT)
-        $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -c -o $@ $<
+        $(CXX) $(CXXFLAGS) $(PREFIXED_INCLUDES) -c $(CCOUT)$@ $<
 
     export
 
@@ -411,7 +421,7 @@ public.StaticCObject(name, files) =
     private.NORMALLIB = $(file $(name)$(EXT_OBJ))
 
     $(NORMALLIB): $(OFILES)
-        $(LD) $(LDFLAGS) -r -o $@ $(OFILES)
+        $(LD) $(LDFLAGS) -r $(LDOUT)$@ $(OFILES)
 
     return $(NORMALLIB)
 
@@ -505,7 +515,7 @@ public.CProgram(name, files) =
    private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
 
    $(NAME): $(OFILES) $(LFILES)
-        $(CC) $(CFLAGS) -o $@ $,(OFILES) $(LFILES) $(LDFLAGS)
+        $(CC) $(CFLAGS) $(LDOUT)$@ $,(OFILES) $(LFILES) $(LDFLAGS)
 
    return $(NAME)
 
