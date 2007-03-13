@@ -127,7 +127,7 @@ TryCompilingC(command, command_suffix, ext, prog, extra) =
     tmp = $(file $(tmpfile omake))
 
     if $(and $(not $(equal $(CCOUT), $(LDOUT))), $(equal $(ext), $(EXE)))
-        command[] += $(CCOUT)$(file $(tmp).$(EXT_OBJ)) $(LDOUT)$(file $(tmp)$(ext))
+        command[] += $(CCOUT)$(file $(tmp)$(EXT_OBJ)) $(LDOUT)$(file $(tmp)$(ext))
         export
     else
         command[] += $(CCOUT)$(file $(tmp)$(ext))
@@ -165,7 +165,7 @@ $(prog)
     return $(result)
 
 TryCompileC(prog) =
-    return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES) -c, $(EMPTY), .$(EXT_OBJ), $(prog), None)
+    return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES) -c, $(EMPTY), $(EXT_OBJ), $(prog), None)
 
 TryLinkC(prog) =
     return $(TryCompilingC $(CC) $(ConfCleanCFLAGS $(CFLAGS)) $(PREFIXED_INCLUDES), $(LDFLAGS), $(EXE), $(prog), None)
