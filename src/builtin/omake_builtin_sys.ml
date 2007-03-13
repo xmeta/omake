@@ -218,6 +218,57 @@ let getgrgid venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{tgetstr}
+ *
+ * \begin{verbatim}
+ *    $(tgetstr id) : String
+ *       id : String
+ * \end{verbatim}
+ *
+ * The \verb+gettimeofday+ function looks up the terminal capability with the indicated \verb+id+.
+ * This assumes the terminfo to lookup is given in the \verb+TERM+ environment variable. This
+ * function returns an empty value if the given terminal capability is not defined.
+ * \end{doc}
+ *)
+let tgetstr venv pos loc args =
+   let pos = string_pos "tgetstr" pos in
+      match args with
+         [arg] ->
+            begin match Lm_terminfo.tgetstr (string_of_value venv pos arg) with
+               Some s -> ValData s
+             | None -> ValNone
+            end
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+let str_wrap name f v venv pos loc args =
+   let pos = string_pos name pos in
+      if args <> [] then
+         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
+      else
+         match f v with
+            Some s -> ValData s
+          | None -> ValNone
+
+(*
+ * \begin{doc}
+ * \twofuns{xterm_escape_begin}{xterm_escape_end}
+ *
+ * \begin{verbatim}
+ *    $(xterm_escape_begin) : String
+ *    $(xterm_escape_end) : String
+ * \end{verbatim}
+ *
+ * The \verb+xterm_escape_begin+ and \verb+xterm_escape_end+ functions return the escape sequences
+ * that can be used to set the XTerm window title. Will return empty values if this capability is
+ * not available.
+ * \end{doc}
+ *)
+let xterm_escape_begin = str_wrap "xterm_escape_begin" Lm_terminfo.xterm_escape_begin ()
+let xterm_escape_end   = str_wrap "xterm_escape_begin" Lm_terminfo.xterm_escape_end   ()
+
+(*
+ * \begin{doc}
  * \fun{gettimeofday}
  *
  * \begin{verbatim}
@@ -249,6 +300,9 @@ let () =
       true, "getpwents",     getpwents,     ArityExact 0;
       true, "getgrnam",      getgrnam,      ArityExact 1;
       true, "getgrgid",      getgrgid,      ArityExact 1;
+      true, "tgetstr",       tgetstr,       ArityExact 1;
+      true, "xterm_escape_begin", xterm_escape_begin, ArityExact 0;
+      true, "xterm_escape_end",   xterm_escape_end,   ArityExact 0;
    ] in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }
