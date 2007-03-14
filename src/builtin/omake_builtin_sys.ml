@@ -252,20 +252,36 @@ let str_wrap name f v venv pos loc args =
 
 (*
  * \begin{doc}
- * \twofuns{xterm_escape_begin}{xterm_escape_end}
+ * \twofuns{xterm-escape-begin}{xterm-escape-end}
  *
  * \begin{verbatim}
- *    $(xterm_escape_begin) : String
- *    $(xterm_escape_end) : String
+ *    $(xterm-escape-begin) : String
+ *    $(xterm-escape-end) : String
  * \end{verbatim}
  *
- * The \verb+xterm_escape_begin+ and \verb+xterm_escape_end+ functions return the escape sequences
+ * The \verb+xterm-escape-begin+ and \verb+xterm-escape-end+ functions return the escape sequences
  * that can be used to set the XTerm window title. Will return empty values if this capability is
  * not available.
  * \end{doc}
  *)
-let xterm_escape_begin = str_wrap "xterm_escape_begin" Lm_terminfo.xterm_escape_begin ()
-let xterm_escape_end   = str_wrap "xterm_escape_begin" Lm_terminfo.xterm_escape_end   ()
+let xterm_escape_begin = str_wrap "xterm-escape-begin" Lm_terminfo.xterm_escape_begin ()
+let xterm_escape_end   = str_wrap "xterm-escape-begin" Lm_terminfo.xterm_escape_end   ()
+
+(*
+ * \begin{doc}
+ * \fun{xterm-escape}
+ * 
+ * \begin{verbatim}
+ *    $(xterm-escape s) : Sequence
+ * \end{verbatim}
+ *
+ * When the \verb+TERM+ environment variable indicates that the XTerm title setting capability is available,
+ * \verb+$(xterm-escape s)+ is equivalent to \verb+$(xterm-escape-begin)s$(xterm-escape-end)+. Otherwise, it
+ * returns an empty value.
+ * \end{doc}
+ *
+ * Implemented in Pervasives.om
+ *)
 
 (*
  * \begin{doc}
@@ -301,8 +317,8 @@ let () =
       true, "getgrnam",      getgrnam,      ArityExact 1;
       true, "getgrgid",      getgrgid,      ArityExact 1;
       true, "tgetstr",       tgetstr,       ArityExact 1;
-      true, "xterm_escape_begin", xterm_escape_begin, ArityExact 0;
-      true, "xterm_escape_end",   xterm_escape_end,   ArityExact 0;
+      true, "xterm-escape-begin", xterm_escape_begin, ArityExact 0;
+      true, "xterm-escape-end",   xterm_escape_end,   ArityExact 0;
    ] in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }

@@ -77,6 +77,14 @@ join(l1, l2) =
     result[] += $(l2)
     value $(result) 
 
+# Documented in src/builtin/omake_builtin_sys.ml
+
+xterm-escape(s) =
+    if $(xterm-escape-begin)
+        value $(xterm-escape-begin)$s$(xterm-escape-end)
+    else
+        value $(EMPTY)
+
 ########################################################################
 # \begin{doc}
 #
