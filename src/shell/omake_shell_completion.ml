@@ -213,8 +213,11 @@ let complete_names s names =
    let names = StringSet.to_list names in
    let off = String.length s in
       match names with
-         name :: rest ->
-            let len = min_string_length off names in
+         [name] ->
+            (* Optimization *)
+            [| name; name |]
+       | name :: rest ->
+            let len = min_string_length (String.length name) rest in
             let len = search_matches off len name rest in
             let prefix = String.sub name 0 len in
                Array.of_list (prefix :: names)
