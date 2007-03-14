@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 external flush           : unit -> unit                          = "omake_readline_flush"
@@ -39,8 +39,14 @@ external load            : string -> unit                        = "omake_readli
 external save            : unit -> unit                          = "omake_readline_save_file"
 external set_length      : int -> unit                           = "omake_readline_set_length"
 external set_directory   : string -> unit                        = "omake_readline_set_directory"
+external get_prompt_invs : unit -> string * string               = "omake_rl_prompt_wrappers"
 
 let () = init ()
+
+let prompt_invisible =
+   match get_prompt_invs () with
+      "", "" -> None
+    | inv -> Some inv
 
 external ext_readline    : string -> string                      = "omake_readline"
 external ext_readstring  : string -> string -> int -> int -> int = "omake_readstring"
@@ -51,12 +57,9 @@ let readline s =
 let readstring s buf off len =
    Lm_thread_pool.blocking_section (ext_readstring s buf off) len
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

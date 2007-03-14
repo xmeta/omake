@@ -225,9 +225,12 @@ let getgrgid venv pos loc args =
  *       id : String
  * \end{verbatim}
  *
- * The \verb+gettimeofday+ function looks up the terminal capability with the indicated \verb+id+.
+ * The \verb+tgetstr+ function looks up the terminal capability with the indicated \verb+id+.
  * This assumes the terminfo to lookup is given in the \verb+TERM+ environment variable. This
  * function returns an empty value if the given terminal capability is not defined.
+ *
+ * Note: if you intend to use the value returned by \verb+tgetstr+ inside the shell
+ * \hypervarn{prompt}, you need to wrap it using the \hyperfun{prompt-invisible}.
  * \end{doc}
  *)
 let tgetstr venv pos loc args =
@@ -262,10 +265,14 @@ let str_wrap name f v venv pos loc args =
  * The \verb+xterm-escape-begin+ and \verb+xterm-escape-end+ functions return the escape sequences
  * that can be used to set the XTerm window title. Will return empty values if this capability is
  * not available.
+ * 
+ * Note: if you intend to use these strings inside the shell \hypervarn{prompt}, you need to use
+ * \verb+$(prompt_invisible_begin)$(xterm-escape-begin)+ and
+ * \verb+$(xterm-escape-end)$(prompt_invisible_end)+.
  * \end{doc}
  *)
 let xterm_escape_begin = str_wrap "xterm-escape-begin" Lm_terminfo.xterm_escape_begin ()
-let xterm_escape_end   = str_wrap "xterm-escape-begin" Lm_terminfo.xterm_escape_end   ()
+let xterm_escape_end   = str_wrap "xterm-escape-end"   Lm_terminfo.xterm_escape_end   ()
 
 (*
  * \begin{doc}
@@ -278,6 +285,45 @@ let xterm_escape_end   = str_wrap "xterm-escape-begin" Lm_terminfo.xterm_escape_
  * When the \verb+TERM+ environment variable indicates that the XTerm title setting capability is available,
  * \verb+$(xterm-escape s)+ is equivalent to \verb+$(xterm-escape-begin)s$(xterm-escape-end)+. Otherwise, it
  * returns an empty value.
+ *
+ * Note: if you intend to use the value returned by \verb+xterm-escape+ inside the shell
+ * \hypervarn{prompt}, you need to wrap it using the \hyperfun{prompt-invisible}.
+ * \end{doc}
+ *
+ * Implemented in Pervasives.om
+ *)
+
+(*
+ * \begin{doc}
+ * \twofuns{prompt-invisible-begin}{prompt-invisible-end}
+ *
+ * \begin{verbatim}
+ *    $(prompt-invisible-begin) : String
+ *    $(prompt-invisible-end) : String
+ * \end{verbatim}
+ *
+ * The \verb+prompt-invisible-begin+ and \verb+prompt-invisible-end+ functions return the escape sequences
+ * that must used to mark the ``invisible'' sections of the shell \hypervarn{prompt} (such as various escape sequences).
+ * \end{doc}
+ *)
+let opt_wrap f = function
+   Some x -> Some (f x)
+ | None -> None
+
+let prompt_invisible_begin = str_wrap "prompt-invisible-begin" (opt_wrap fst) Omake_readline.prompt_invisible
+let prompt_invisible_end   = str_wrap "prompt-invisible-end"   (opt_wrap snd) Omake_readline.prompt_invisible
+
+(*
+ * \begin{doc}
+ * \fun{prompt-invisible}
+ * 
+ * \begin{verbatim}
+ *    $(prompt-invisible s) : Sequence
+ * \end{verbatim}
+ *
+ * The \verb+prompt-invisible+ will wrap its argument with \verb+$(prompt-invisible-begin)+ and
+ * \verb+$(prompt-invisible-end)+. All the `invisible'' sections of the shell \hypervarn{prompt} (such as various
+ * escape sequences) must be wrapped this way.
  * \end{doc}
  *
  * Implemented in Pervasives.om
@@ -319,6 +365,8 @@ let () =
       true, "tgetstr",       tgetstr,       ArityExact 1;
       true, "xterm-escape-begin", xterm_escape_begin, ArityExact 0;
       true, "xterm-escape-end",   xterm_escape_end,   ArityExact 0;
+      true, "prompt-invisible-begin", prompt_invisible_begin, ArityExact 0;
+      true, "prompt-invisible-end",   prompt_invisible_end,   ArityExact 0;
    ] in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }

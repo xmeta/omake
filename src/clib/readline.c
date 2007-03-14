@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2007 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  */
 #include <stdio.h>
@@ -79,7 +79,7 @@
  * Prompts shouldn't be too wild.
  * In particular, they should be less than an average line length.
  */
-#define MAX_PROMPT_LENGTH       80
+#define MAX_PROMPT_LENGTH       70
 
 /*
  * Maximum length of the history filename. Defined by limits.h on Unix.
@@ -1134,10 +1134,19 @@ value omake_readline_init(value v_unit)
     return Val_unit;
 }
 
+#else /* !WIN32 */
+
 /************************************************************************
  * Unix readline interface.
  */
-#else /* !WIN32 */
+
+#ifdef RL_PROMPT_START_IGNORE
+#define INVIS_START RL_PROMPT_START_IGNORE
+#define INVIS_END   RL_PROMPT_END_IGNORE
+#else
+#define INVIS_START '\001'
+#define INVIS_END   '\002'
+#endif
 
 /*
  * Input state.
@@ -1148,7 +1157,8 @@ typedef struct _readline {
     int is_console;
 
     /* Prompts */
-    char prompt[MAX_PROMPT_LENGTH];
+    char * prompt;
+    int prompt_size;
     int force_prompt;
 
     /* Buffered data */
@@ -1179,6 +1189,12 @@ static ReadLine *AllocReadLine(int is_console, int console_in)
     if (readp->buffer == NULL)
         failwith("AllocReadLine: out of memory");
     readp->buffer_size = LINE_MAX;
+
+    readp->prompt = malloc(MAX_PROMPT_LENGTH);
+    if (readp->prompt == NULL)
+        failwith("AllocReadLine: out of memory");
+    readp->prompt_size = MAX_PROMPT_LENGTH;
+
     readp->console_in = console_in;
     readp->is_console = is_console;
     readp->dir[0] = '/';
@@ -1275,14 +1291,52 @@ static void readline_raw(ReadLine *readp)
  */
 static void do_readline(ReadLine *readp, const char *promptp)
 {
-    int c, i;
+    int i;
 
     /* Get the prompt */
-    for(i = 0; i < sizeof(readp->prompt) - 1; i++) {
-        c = *promptp++;
-        if(c == 0)
-            break;
-        readp->prompt[i] = c;
+    int is_vis = 1, vis_length = 0;
+    int last_vis[3] = {0,0,0}, vis_ind = 0;
+#ifdef RL_PROMPT_START_IGNORE
+    int copy_markers = readp -> is_console;
+#else
+#define copy_markers 0
+#endif
+    for(i = 0; *promptp; promptp++) {
+        if (i == readp->prompt_size - 1) {
+            /* Ran out of memory, allocate bigger buffer */
+            char * old_prompt = readp->prompt;
+            int new_size = readp->prompt_size * 2;
+            readp->prompt = malloc(new_size);
+            if (readp->prompt == NULL) {
+                readp->prompt = old_prompt;
+                failwith("do_readline: out of memory");
+            } else {
+                memcpy(readp->prompt, old_prompt, i);
+                free(old_prompt);
+                readp->prompt_size = new_size;
+            }
+        } 
+        if (*promptp == INVIS_START)
+            is_vis = 0;
+        if (is_vis) {
+            vis_length++;
+            if (vis_length == MAX_PROMPT_LENGTH + 1) {
+                /* We just ran out */
+                readp->prompt[last_vis[0]] = '.';
+                readp->prompt[last_vis[1]] = '.';
+                readp->prompt[last_vis[2]] = '.';
+            }
+        }
+
+        if (((!is_vis) || (vis_length <= MAX_PROMPT_LENGTH))
+                && (copy_markers
+                    || ((*promptp != INVIS_START) && (*promptp != INVIS_END)))) {
+            if (is_vis)
+                last_vis[vis_ind++ % 3] = i;
+            readp->prompt[i++] = *promptp;
+        }
+        if (*promptp == INVIS_END)
+            is_vis = 1;
     }
     readp->prompt[i] = 0;
 
@@ -1545,6 +1599,33 @@ value omake_readline_init(value v_unit)
 }
 
 #endif /* !WIN32 */
+
+value omake_rl_prompt_wrappers(value v_unit) {
+    CAMLparam1(v_unit);
+    CAMLlocal1(buf);
+
+#ifdef INVIS_START
+    {
+        char begin[2] = { INVIS_START, 0};
+        char end  [2] = { INVIS_END, 0};
+        CAMLlocal2(s1, s2);
+        s1 = caml_copy_string(begin);
+        s2 = caml_copy_string(end);
+        buf = alloc_tuple(2);
+        Field(buf, 0) = s1;
+        Field(buf, 1) = s2;
+    }
+#else /* INVIS_START */
+    {
+        CAMLlocal1(emptystr);
+        emptystr = caml_copy_string("");
+        buf = alloc_tuple(2);
+        Field(buf, 0) = emptystr;
+        Field(buf, 1) = emptystr;
+    }
+#endif /* INVIS_START */
+    CAMLreturn(buf);
+}
 
 /*
  * vim:tw=100:ts=4:et:sw=4:cin

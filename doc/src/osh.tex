@@ -35,6 +35,17 @@ An example of the latter prompt is as follows.
     <jyh:kenai.yapper.org ~/links/omake>
 \end{verbatim}
 
+If you include any "invisible" text in the prompt (such as various terminal
+escape sequences), they must be wrapped using the
+\hyperfun{prompt-invisible}. For example, to create a bold prompt on
+terminals that support it, you can use the following.
+\begin{verbatim}
+    prompt =
+       bold-begin = $(prompt-invisible $(tgetstr bold))
+       bold-end = $(prompt-invisible $(tgetstr sgr0))
+       value $(bold-begin)$"osh>"$(bold-end)
+\end{verbatim}
+
 \var{ignoreeof}
    If the \verb+ignoreeof+ is \verb+true+, then \verb+osh+ will not exit on
    a terminal end-of-file (usually \verb+^D+ on Unix systems).
