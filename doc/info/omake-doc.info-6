@@ -593,10 +593,90 @@ Node: Subsection 9-11-21,	Next: Subsection 9-11-22,	Prev: Subsection 9-11-20,	Up
 the `getgrgid' function looks up an entry by groups's numerical id
 (gid). If no entry is found, an exception will be raised.
 
-Node: Subsection 9-11-22,	Next: Chapter 10,	Prev: Subsection 9-11-21,	Up: Section 9-11
+Node: Subsection 9-11-22,	Next: Subsection 9-11-23,	Prev: Subsection 9-11-21,	Up: Section 9-11
   
 
-9.11.22   gettimeofday
+9.11.22   tgetstr
+=================
+
+<<   $(tgetstr id) : String
+        id : String
+>>
+  
+  The `tgetstr' function looks up the terminal capability with the
+indicated `id'. This assumes the terminfo to lookup is given in the
+`TERM' environment variable. This function returns an empty value if the
+given terminal capability is not defined.
+  Note: if you intend to use the value returned by `tgetstr' inside the
+shell 'prompt', you need to wrap it using the 'prompt-invisible'
+function. 
+
+Node: Subsection 9-11-23,	Next: Subsection 9-11-24,	Prev: Subsection 9-11-22,	Up: Section 9-11
+  
+
+9.11.23   xterm-escape-begin, xterm-escape-end
+==============================================
+
+<<   $(xterm-escape-begin) : String
+     $(xterm-escape-end) : String
+>>
+  
+  The `xterm-escape-begin' and `xterm-escape-end' functions return the
+escape sequences that can be used to set the XTerm window title. Will
+return empty values if this capability is not available.
+  Note: if you intend to use these strings inside the shell 'prompt',
+you need to use `$(prompt_invisible_begin)$(xterm-escape-begin)' and
+`$(xterm-escape-end)$(prompt_invisible_end)'. 
+
+Node: Subsection 9-11-24,	Next: Subsection 9-11-25,	Prev: Subsection 9-11-23,	Up: Section 9-11
+  
+
+9.11.24   xterm-escape
+======================
+
+<<   $(xterm-escape s) : Sequence
+>>
+  
+  When the `TERM' environment variable indicates that the XTerm title
+setting capability is available, `$(xterm-escape s)' is equivalent to
+`$(xterm-escape-begin)s$(xterm-escape-end)'. Otherwise, it returns an
+empty value.
+  Note: if you intend to use the value returned by `xterm-escape' inside
+the shell 'prompt', you need to wrap it using the 'prompt-invisible'
+function. 
+
+Node: Subsection 9-11-25,	Next: Subsection 9-11-26,	Prev: Subsection 9-11-24,	Up: Section 9-11
+  
+
+9.11.25   prompt-invisible-begin, prompt-invisible-end
+======================================================
+
+<<   $(prompt-invisible-begin) : String
+     $(prompt-invisible-end) : String
+>>
+  
+  The `prompt-invisible-begin' and `prompt-invisible-end' functions
+return the escape sequences that must used to mark the "invisible"
+sections of the shell 'prompt' (such as various escape sequences). 
+
+Node: Subsection 9-11-26,	Next: Subsection 9-11-27,	Prev: Subsection 9-11-25,	Up: Section 9-11
+  
+
+9.11.26   prompt-invisible
+==========================
+
+<<   $(prompt-invisible s) : Sequence
+>>
+  
+  The `prompt-invisible' will wrap its argument with
+`$(prompt-invisible-begin)' and `$(prompt-invisible-end)'. All the
+`invisible" sections of the shell 'prompt' (such as various escape
+sequences) must be wrapped this way. 
+
+Node: Subsection 9-11-27,	Next: Chapter 10,	Prev: Subsection 9-11-26,	Up: Section 9-11
+  
+
+9.11.27   gettimeofday
 ======================
 
 <<   $(gettimeofday) : Float
@@ -1610,84 +1690,3 @@ single array containing an argument list.
     See the documentation for the 'find' function.
   
    
-
-Node: Chapter 12,	Next: Section 12-1,	Prev: Section 11-1,	Up: Top
-  
-
-Chapter 12     Build functions and utilities
-********************************************
-     
-* Menu:
-
-* Section 12-1::	Builtin .PHONY targets
-* Section 12-2::	Options and versioning
-* Section 12-3::	Examining the dependency graph
-* Section 12-4::	The OMakeroot file
-* Section 12-5::	Building C and C++ code
-* Section 12-6::	Building OCaml code
-* Section 12-7::	Building LaTeX files
-
-
-Node: Section 12-1,	Next: Section 12-2,	Prev: Chapter 12,	Up: Chapter 12
-  
-
-12.1   Builtin .PHONY targets
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The complete set of builtin `.PHONY' targets include the following.
-  
-  
- .PHONY  Declares new phony targets (Section
-   7.10*Note Section 7-10::). 
- .DEFAULT  Declare the default build targets (Section
-   7.7*Note Section 7-7::). 
- .SUBDIRS  Include a directory as part of the project (Section
-   7.8*Note Section 7-8::). 
- .SCANNER  Define a dependency scanner (Section
-   7.8*Note Section 7-8::). 
- .INCLUDE  Include a file (Section 7.9*Note Section 7-9::). 
- .ORDER  Define a file-dependency ordering rule (Section
-   9.3.5*Note Subsection 9-3-5::). 
- .BUILD_BEGIN  Commands to be executed at the beginning of a build. 
- .BUILD_SUCCESS  Commands to be executed if the build is successful. 
- .BUILD_FAILURE  Commands to be executed if the build fails. 
-  
-
-
-
-  The `.BUILD' targets can be used to specify commands to be executed at
-the beginning and end of the build. The `.BUILD_BEGIN' target is built
-at the beginning of a project build, and one of `.BUILD_FAILURE' or
-`.BUILD_SUCCESS' is executed when the build terminates.
-  For example, the following set of rules simply print additional
-messages about the status of the build.
-<<   .BUILD_BEGIN:
-         echo Build starting
-  
-     .BUILD_SUCCESS:
-         echo The build was successful
-  
-     .BUILD_FAILURE:
-         println($"The build failed: $(length $(find-build-targets
-Failed)) targets could not be built")
->>
-  
-  Another common use is to define notifications to be performed when the
-build completes. For example, the following rule will create a new X
-terminal displaying the summary of the build (using the 'BUILD_SUMMARY'
-variable).
-<<    .BUILD_FAILURE:
-          xterm -e vi $(BUILD_SUMMARY)
->>
-  
-  If you do not wish to add these rules directly to your project (which
-is probably a good idea if you work with others), you can define them in
-your `.omakerc' (see Section A.8*Note Section A-8::).
-  The 'find-build-targets' function is useful for obtaining a firther
-summary of the build. Note that when output diversions are in effect
-(with the `--output-*' options --- see Chapter
-A*Note Appendix A::), any output produced by the commands is
-copied to a file. The name of the file is specified by the `output-file'
-field of the 'Target' object. You may find this useful in defining
-custom build summaries. 

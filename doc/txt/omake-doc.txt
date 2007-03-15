@@ -1,11 +1,11 @@
-   
+     
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                            12^thMarch, 2007
+                            15^thMarch, 2007
                             ================
   
    All the documentation on a single page (23)
@@ -405,7 +405,12 @@ Contents
        - 9.11.19  getpwents 
        - 9.11.20  Group 
        - 9.11.21  getgrnam, getgrgid 
-       - 9.11.22  gettimeofday 
+       - 9.11.22  tgetstr 
+       - 9.11.23  xterm-escape-begin, xterm-escape-end 
+       - 9.11.24  xterm-escape 
+       - 9.11.25  prompt-invisible-begin, prompt-invisible-end 
+       - 9.11.26  prompt-invisible 
+       - 9.11.27  gettimeofday 
      
   
  - Chapter 10  Shell commands 
@@ -8127,7 +8132,72 @@ the `getgrgid' function looks up an entry by groups's numerical id
 (gid). If no entry is found, an exception will be raised.
   
 
-9.11.22  gettimeofday
+9.11.22  tgetstr
+================
+  
+<<   $(tgetstr id) : String
+        id : String
+>>
+  
+  The `tgetstr' function looks up the terminal capability with the
+indicated `id'. This assumes the terminfo to lookup is given in the
+`TERM' environment variable. This function returns an empty value if the
+given terminal capability is not defined.
+  Note: if you intend to use the value returned by `tgetstr' inside the
+shell 'prompt', you need to wrap it using the 'prompt-invisible'
+function.
+
+9.11.23  xterm-escape-begin, xterm-escape-end
+=============================================
+  
+<<   $(xterm-escape-begin) : String
+     $(xterm-escape-end) : String
+>>
+  
+  The `xterm-escape-begin' and `xterm-escape-end' functions return the
+escape sequences that can be used to set the XTerm window title. Will
+return empty values if this capability is not available.
+  Note: if you intend to use these strings inside the shell 'prompt',
+you need to use `$(prompt_invisible_begin)$(xterm-escape-begin)' and
+`$(xterm-escape-end)$(prompt_invisible_end)'.
+
+9.11.24  xterm-escape
+=====================
+  
+<<   $(xterm-escape s) : Sequence
+>>
+  
+  When the `TERM' environment variable indicates that the XTerm title
+setting capability is available, `$(xterm-escape s)' is equivalent to
+`$(xterm-escape-begin)s$(xterm-escape-end)'. Otherwise, it returns an
+empty value.
+  Note: if you intend to use the value returned by `xterm-escape' inside
+the shell 'prompt', you need to wrap it using the 'prompt-invisible'
+function.
+
+9.11.25  prompt-invisible-begin, prompt-invisible-end
+=====================================================
+  
+<<   $(prompt-invisible-begin) : String
+     $(prompt-invisible-end) : String
+>>
+  
+  The `prompt-invisible-begin' and `prompt-invisible-end' functions
+return the escape sequences that must used to mark the "invisible"
+sections of the shell 'prompt' (such as various escape sequences).
+
+9.11.26  prompt-invisible
+=========================
+  
+<<   $(prompt-invisible s) : Sequence
+>>
+  
+  The `prompt-invisible' will wrap its argument with
+`$(prompt-invisible-begin)' and `$(prompt-invisible-end)'. All the
+`invisible" sections of the shell 'prompt' (such as various escape
+sequences) must be wrapped this way.
+
+9.11.27  gettimeofday
 =====================
   
 <<   $(gettimeofday) : Float
@@ -9915,7 +9985,7 @@ DVIPDFMFLAGS
 PDFLATEX
    The `.latex' to `.pdf' converter (default `pdflatex'). 
 PDFLATEXFLAGS
-   Flags to pass to pdflatex (default is empty). 
+   Flags to pass to pdflatex (default is `$`(LATEXFLAGS)'). 
 USEPDFLATEX
    Flag indicating whether to use pdflatex instead of dvipdfm to
 generate the `.pdf' document (default `false').
@@ -10164,6 +10234,13 @@ NCURSES_AVAILABLE
 NCURSES_TERMH_IN_NCURSES
    A boolean flag that would be set when `term.h' has to be included as
 `<ncurses/term.h>' instead of `<term.h>'.
+NCURSES_CFLAGS
+   The `CFLAGS' to use when compiling ncurses code. Will include
+`-DNCURSES' and `-DTERMH_IN_NCURSES', respectively when
+`NCURSES_AVAILABLE' and `NCURSES_TERMH_IN_NCURSES' are true.
+NCURSES_CLIBS
+   The `LDFLAGS' to use when linking ncurses code. Will normally contain
+`-lncurses' when ncurses is found and remain empty otherwise.
 
 13.3.2  ReadLine library configuration
 ======================================
@@ -10224,6 +10301,16 @@ simple string.
   An example of the latter prompt is as follows.
 <<    <jyh:kenai.yapper.org ~>cd links/omake
       <jyh:kenai.yapper.org ~/links/omake>
+>>
+  
+  If you include any "invisible" text in the prompt (such as various
+terminal escape sequences), they must be wrapped using the
+'prompt-invisible' function. For example, to create a bold prompt on
+terminals that support it, you can use the following. 
+<<    prompt =
+         bold-begin = $(prompt-invisible $(tgetstr bold))
+         bold-end = $(prompt-invisible $(tgetstr sgr0))
+         value $(bold-begin)$"osh>"$(bold-end)
 >>
   
 ignoreeof
@@ -11747,7 +11834,7 @@ Index
  - getpwuid, 9.11.18 
  - gets, 9.8.33 
  - getservbyname, 9.8.26 
- - gettimeofday, 9.11.22 
+ - gettimeofday, 9.11.27 
  - getvar, 8.2.16 
  - glob, 9.4.1 
  - gr_gid, 9.11.20 
@@ -11841,6 +11928,8 @@ Index
  
  - NATIVE_ENABLED, 12.6.2 
  - NCURSES_AVAILABLE, 13.3.1 
+ - NCURSES_CFLAGS, 13.3.1 
+ - NCURSES_CLIBS, 13.3.1 
  - NCURSES_TERMH_IN_NCURSES, 13.3.1 
  - NODENAME, 8.1 
  - Node, 11.1.12 
@@ -11926,6 +12015,9 @@ Index
  - private., 4.15 
  - project-directories, 12.3.4 
  - prompt, 14.1 
+ - prompt-invisible, 9.11.26 
+ - prompt-invisible-begin, 9.11.25 
+ - prompt-invisible-end, 9.11.25 
  - protected., 4.16 
  - public., 4.17 
  - pw_dir, 9.11.17 
@@ -12035,6 +12127,7 @@ Index
  - target-is-proper, 9.3.1 
  - tell, 9.8.10 
  - test, 9.7.1 
+ - tgetstr, 9.11.22 
  - tmpfile, 9.1.2 
  - truncate, 9.5.11 
  - try, 8.2.7, B.2.2.1 
@@ -12065,6 +12158,10 @@ Index
  - which, 9.2.1 
  - while, 8.3.40, B.2.2.1 
  - write, 9.8.7 
+ 
+ - xterm-escape, 9.11.24 
+ - xterm-escape-begin, 9.11.23 
+ - xterm-escape-end, 9.11.23 
  
  - YACC, 12.5.2 
 
@@ -12141,6 +12238,8 @@ Index of variables
  
  - NATIVE_ENABLED, 12.6.2 
  - NCURSES_AVAILABLE, 13.3.1 
+ - NCURSES_CFLAGS, 13.3.1 
+ - NCURSES_CLIBS, 13.3.1 
  - NCURSES_TERMH_IN_NCURSES, 13.3.1 
  - NODENAME, 8.1 
  
@@ -12337,7 +12436,7 @@ Index of functions and special forms
  - getpwuid, 9.11.18 
  - gets, 9.8.33 
  - getservbyname, 9.8.26 
- - gettimeofday, 9.11.22 
+ - gettimeofday, 9.11.27 
  - getvar, 8.2.16 
  - glob, 9.4.1 
  - grep, 9.11.3 
@@ -12426,6 +12525,9 @@ Index of functions and special forms
  - printv, 9.10 
  - printvln, 9.10 
  - project-directories, 12.3.4 
+ - prompt-invisible, 9.11.26 
+ - prompt-invisible-begin, 9.11.25 
+ - prompt-invisible-end, 9.11.25 
  
  - quote, 8.3.14 
  - quote-argv, 8.3.15 
@@ -12491,6 +12593,7 @@ Index of functions and special forms
  - target-is-proper, 9.3.1 
  - tell, 9.8.10 
  - test, 9.7.1 
+ - tgetstr, 9.11.22 
  - tmpfile, 9.1.2 
  - truncate, 9.5.11 
  - try, 8.2.7 
@@ -12514,6 +12617,10 @@ Index of functions and special forms
  - which, 9.2.1 
  - while, 8.3.40 
  - write, 9.8.7 
+ 
+ - xterm-escape, 9.11.24 
+ - xterm-escape-begin, 9.11.23 
+ - xterm-escape-end, 9.11.23 
 
 
 Index of objects
@@ -12642,7 +12749,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8 of 12^thMarch, 2007.
+  Version: 0.9.8 of 15^thMarch, 2007.
   
 
 C.3  License and Copyright

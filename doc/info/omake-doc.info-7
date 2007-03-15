@@ -1,5 +1,86 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Chapter 12,	Next: Section 12-1,	Prev: Section 11-1,	Up: Top
+  
+
+Chapter 12     Build functions and utilities
+********************************************
+     
+* Menu:
+
+* Section 12-1::	Builtin .PHONY targets
+* Section 12-2::	Options and versioning
+* Section 12-3::	Examining the dependency graph
+* Section 12-4::	The OMakeroot file
+* Section 12-5::	Building C and C++ code
+* Section 12-6::	Building OCaml code
+* Section 12-7::	Building LaTeX files
+
+
+Node: Section 12-1,	Next: Section 12-2,	Prev: Chapter 12,	Up: Chapter 12
+  
+
+12.1   Builtin .PHONY targets
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The complete set of builtin `.PHONY' targets include the following.
+  
+  
+ .PHONY  Declares new phony targets (Section
+   7.10*Note Section 7-10::). 
+ .DEFAULT  Declare the default build targets (Section
+   7.7*Note Section 7-7::). 
+ .SUBDIRS  Include a directory as part of the project (Section
+   7.8*Note Section 7-8::). 
+ .SCANNER  Define a dependency scanner (Section
+   7.8*Note Section 7-8::). 
+ .INCLUDE  Include a file (Section 7.9*Note Section 7-9::). 
+ .ORDER  Define a file-dependency ordering rule (Section
+   9.3.5*Note Subsection 9-3-5::). 
+ .BUILD_BEGIN  Commands to be executed at the beginning of a build. 
+ .BUILD_SUCCESS  Commands to be executed if the build is successful. 
+ .BUILD_FAILURE  Commands to be executed if the build fails. 
+  
+
+
+
+  The `.BUILD' targets can be used to specify commands to be executed at
+the beginning and end of the build. The `.BUILD_BEGIN' target is built
+at the beginning of a project build, and one of `.BUILD_FAILURE' or
+`.BUILD_SUCCESS' is executed when the build terminates.
+  For example, the following set of rules simply print additional
+messages about the status of the build.
+<<   .BUILD_BEGIN:
+         echo Build starting
+  
+     .BUILD_SUCCESS:
+         echo The build was successful
+  
+     .BUILD_FAILURE:
+         println($"The build failed: $(length $(find-build-targets
+Failed)) targets could not be built")
+>>
+  
+  Another common use is to define notifications to be performed when the
+build completes. For example, the following rule will create a new X
+terminal displaying the summary of the build (using the 'BUILD_SUMMARY'
+variable).
+<<    .BUILD_FAILURE:
+          xterm -e vi $(BUILD_SUMMARY)
+>>
+  
+  If you do not wish to add these rules directly to your project (which
+is probably a good idea if you work with others), you can define them in
+your `.omakerc' (see Section A.8*Note Section A-8::).
+  The 'find-build-targets' function is useful for obtaining a firther
+summary of the build. Note that when output diversions are in effect
+(with the `--output-*' options --- see Chapter
+A*Note Appendix A::), any output produced by the commands is
+copied to a file. The name of the file is specified by the `output-file'
+field of the 'Target' object. You may find this useful in defining
+custom build summaries. 
+
 Node: Section 12-2,	Next: Subsection 12-2-1,	Prev: Section 12-1,	Up: Chapter 12
   
 
@@ -103,7 +184,7 @@ Node: Subsection 12-3-1,	Next: Subsection 12-3-2,	Prev: Section 12-3,	Up: Sectio
 12.3.1   dependencies, dependencies-all, dependencies-proper
 ============================================================
 \@na
-me{@default349}
+me{@default356}
 <<   $(dependencies targets) : File Array
      $(dependencies-all targets) : File Array
      $(dependencies-proper targets) : File Array
@@ -530,7 +611,7 @@ the target directory.
 12.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@na
-me{@default396}
+me{@default403}
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
@@ -594,7 +675,7 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 StaticCXXLibraryInstall
 -----------------------
 \@na
-me{@default404}
+me{@default411}
   Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
 `StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
 `StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
@@ -1061,7 +1142,7 @@ letter').
 (default `pdflatex'). 
  PDFLATEXFLAGS
  Flags to pass to pdflatex (default is
-empty). 
+`$`(LATEXFLAGS)'). 
  USEPDFLATEX
  Flag indicating whether to use
 pdflatex instead of dvipdfm to generate the `.pdf' document (default
@@ -1235,7 +1316,7 @@ Node: Subsection 13-1-4,	Next: Subsection 13-1-5,	Prev: Subsection 13-1-3,	Up: S
 13.1.4   TryCompileC, TryLinkC, TryRunC
 =======================================
 \@na
-me{@default482} 
+me{@default489} 
 <<success = $(TryCompileC <prog_text>)
   success = $(TryLinkC <prog_text>)
   success = $(TryRunC <prog_text>)
@@ -1382,6 +1463,15 @@ library very found.
  NCURSES_TERMH_IN_NCURSES
  A boolean flag that would be set when
 `term.h' has to be included as `<ncurses/term.h>' instead of `<term.h>'.
+ NCURSES_CFLAGS
+ The `CFLAGS' to use when compiling
+ncurses code. Will include `-DNCURSES' and `-DTERMH_IN_NCURSES',
+respectively when `NCURSES_AVAILABLE' and `NCURSES_TERMH_IN_NCURSES' are
+true.
+ NCURSES_CLIBS
+ The `LDFLAGS' to use when linking
+ncurses code. Will normally contain `-lncurses' when ncurses is found
+and remain empty otherwise. 
 
 Node: Subsection 13-3-2,	Next: Subsection 13-3-3,	Prev: Subsection 13-3-1,	Up: Section 13-3
   
@@ -1406,109 +1496,3 @@ respectively when `READLINE_AVAILABLE' and `READLINE_GNU' are true.
  The `LDFLAGS' to use when linking
 readline code. Will normally contain `-lncurses -lreadline' when
 readline is found and remain empty otherwise. 
-
-Node: Subsection 13-3-3,	Next: Chapter 14,	Prev: Subsection 13-3-2,	Up: Section 13-3
-  
-
-13.3.3   Snprintf configuration
-===============================
-   Add `open configure/snprintf' line to your `OMakefile' to get access
-to the following autoconfiguration variables. 
- SNPRINTF_AVAILABLE
- A boolean flag telling whether the
-snprintf function is available in the standard C library.
-   
-
-Node: Chapter 14,	Next: Section 14-1,	Prev: Section 13-3,	Up: Top
-  
-
-Chapter 14     The OSH shell
-****************************
-    
-  OMake also includes a standalone command-line interpreter osh that can
-be used as an interactive shell. The shell uses the same syntax, and
-provides the same features on all platforms omake supports, including
-Win32.
-* Menu:
-
-* Section 14-1::	Startup
-* Section 14-2::	Aliases
-* Section 14-3::	Interactive syntax
-
-
-Node: Section 14-1,	Next: Section 14-2,	Prev: Chapter 14,	Up: Chapter 14
-  
-
-14.1   Startup
-*=*=*=*=*=*=*=
-
-  
-  On startup, osh reads the file `~/.oshrc' if it exists. The syntax of
-this file is the same as an OMakefile. The following additional
-variables are significant.
- prompt
- The `prompt' variable specifies the
-command-line prompt. It can be a simple string.
-<<    prompt = osh>
->>
-  
-  Or you may choose to define it as a function of no arguments.
-<<    prompt() =
-          return $"<$(USER):$(HOST) $(homename $(CWD))>"
->>
-  
-  An example of the latter prompt is as follows.
-<<    <jyh:kenai.yapper.org ~>cd links/omake
-      <jyh:kenai.yapper.org ~/links/omake>
->>
-  
- ignoreeof
- If the `ignoreeof' is `true', then
-`osh' will not exit on a terminal end-of-file (usually `^D' on Unix
-systems).
-
-Node: Section 14-2,	Next: Section 14-3,	Prev: Section 14-1,	Up: Chapter 14
-  
-
-14.2   Aliases
-*=*=*=*=*=*=*=
-
-   
-  Command aliases are defined by adding functions to the `Shell.'
-object. The following alias adds the `-AF' option to the `ls' command.
-<<    Shell. +=
-         ls(argv) =
-            "ls" -AF $(argv)
->>
-  
-  Quoted commands do not undergo alias expansion. The quotation `"ls"'
-prevents the alias from being recursive.
-
-Node: Section 14-3,	Next: Appendix A,	Prev: Section 14-2,	Up: Chapter 14
-  
-
-14.3   Interactive syntax
-*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The interactive syntax in `osh' is the same as the syntax of an
-`OMakefile', with one exception in regard to indentation. The line
-before an indented block must have a colon at the end of the line. A
-block is terminated with a `.' on a line by itself, or `^D'. In the
-following example, the first line `if true' has no body, because there
-is no colon.
-<<   # The following if has no body
-     osh>if true
-     # The following if has a body
-     osh>if true:
-     if>       if true:
-     if>          println(Hello world)
-     if>          .
-     Hello world
->>
-  
-  Note that `osh' makes some effort to modify the prompt while in an
-indented body, and it auto-indents the text.
-  The colon signifier is also allowed in files, although it is not
-required.
-   

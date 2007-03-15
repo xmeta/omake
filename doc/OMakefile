@@ -157,7 +157,15 @@ HTML_FILES = $(file $(addprefix html/, $(HTML_FILES)))
 #
 # XXX: HACK: we do not know how many pieces we'd have. For now we hardcode the number.
 #
-INFO_FILES = $(file $(addprefix info/omake-doc.info, $(EMPTY) -1 -2 -3 -4 -5 -6 -7 -8 -9))
+NUM_INFOS = 10
+INFO_BASE = $(file info/omake-doc.info)
+INFO_FILES[] = $(INFO_BASE)
+section
+    i = 1
+    while $(le $i, $(NUM_INFOS))
+        INFO_FILES[] += $(file $(INFO_BASE)-$(i))
+        i = $(add $i, 1)
+    export INFO_FILES
 
 #
 # At least 1.09 is needed, future versions may work as well.
@@ -216,6 +224,14 @@ if $(HEVEA_OK)
         $(INFO_FILES): $(TEX_FILES)
             rm -f omake-doc.info*
             $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
+            if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))
+                eprintln($"!!! Wrong number of info files!
+    Increase the NUM_INFOS variable in doc/OMakefile and make sure to add new info file(s) to svn")
+                exit 1
+            if $(not $(test -e $(INFO_BASE)-$(NUM_INFOS)))
+                eprintln($"!!! Wrong number of info files!
+    Decrease the NUM_INFOS variable in doc/OMakefile and make sure to remove old info file(s) from svn")
+                exit 1
 
     .SUBDIRS: ps
         TEXINPUTS[] += $(dir ../src ../tex $(HEVEA_DIR))

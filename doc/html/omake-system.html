@@ -1436,7 +1436,33 @@ It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-descr
     raises RuntimeException
 </PRE><P>The <CODE>getgrnam</CODE> function looks up a group entry by the group's name and the <CODE>getgrgid</CODE>
 function looks up an entry by groups's numerical id (gid). If no entry is found, an exception
-will be raised.</P><H3 CLASS="subsection"><A NAME="htoc281">9.11.22</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="@default307"></A><A NAME="@fun208"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
+will be raised.</P><H3 CLASS="subsection"><A NAME="htoc281">9.11.22</A>&#XA0;&#XA0;tgetstr</H3><P><A NAME="fun:tgetstr"></A><A NAME="@default307"></A><A NAME="@fun208"></A></P><PRE CLASS="verbatim">   $(tgetstr id) : String
+      id : String
+</PRE><P>The <CODE>tgetstr</CODE> function looks up the terminal capability with the indicated <CODE>id</CODE>.
+This assumes the terminfo to lookup is given in the <CODE>TERM</CODE> environment variable. This
+function returns an empty value if the given terminal capability is not defined.</P><P>Note: if you intend to use the value returned by <CODE>tgetstr</CODE> inside the shell
+<CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to wrap it using the <A HREF="#fun:prompt-invisible"><CODE>prompt-invisible</CODE> function</A>.
+</P><H3 CLASS="subsection"><A NAME="htoc282">9.11.23</A>&#XA0;&#XA0;xterm-escape-begin, xterm-escape-end</H3><P><A NAME="fun:xterm-escape-begin"></A><A NAME="@default308"></A><A NAME="@fun209"></A><A NAME="fun:xterm-escape-end"></A><A NAME="@default309"></A><A NAME="@fun210"></A></P><PRE CLASS="verbatim">   $(xterm-escape-begin) : String
+   $(xterm-escape-end) : String
+</PRE><P>The <CODE>xterm-escape-begin</CODE> and <CODE>xterm-escape-end</CODE> functions return the escape sequences
+that can be used to set the XTerm window title. Will return empty values if this capability is
+not available.</P><P>Note: if you intend to use these strings inside the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to use
+<CODE>$(prompt_invisible_begin)$(xterm-escape-begin)</CODE> and
+<CODE>$(xterm-escape-end)$(prompt_invisible_end)</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc283">9.11.24</A>&#XA0;&#XA0;xterm-escape</H3><P><A NAME="fun:xterm-escape"></A><A NAME="@default310"></A><A NAME="@fun211"></A></P><PRE CLASS="verbatim">   $(xterm-escape s) : Sequence
+</PRE><P>When the <CODE>TERM</CODE> environment variable indicates that the XTerm title setting capability is available,
+<CODE>$(xterm-escape s)</CODE> is equivalent to <CODE>$(xterm-escape-begin)s$(xterm-escape-end)</CODE>. Otherwise, it
+returns an empty value.</P><P>Note: if you intend to use the value returned by <CODE>xterm-escape</CODE> inside the shell
+<CODE><A HREF="osh.html#var:prompt">prompt</A></CODE>, you need to wrap it using the <A HREF="#fun:prompt-invisible"><CODE>prompt-invisible</CODE> function</A>.
+</P><H3 CLASS="subsection"><A NAME="htoc284">9.11.25</A>&#XA0;&#XA0;prompt-invisible-begin, prompt-invisible-end</H3><P><A NAME="fun:prompt-invisible-begin"></A><A NAME="@default311"></A><A NAME="@fun212"></A><A NAME="fun:prompt-invisible-end"></A><A NAME="@default312"></A><A NAME="@fun213"></A></P><PRE CLASS="verbatim">   $(prompt-invisible-begin) : String
+   $(prompt-invisible-end) : String
+</PRE><P>The <CODE>prompt-invisible-begin</CODE> and <CODE>prompt-invisible-end</CODE> functions return the escape sequences
+that must used to mark the &#X201C;invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various escape sequences).
+</P><H3 CLASS="subsection"><A NAME="htoc285">9.11.26</A>&#XA0;&#XA0;prompt-invisible</H3><P><A NAME="fun:prompt-invisible"></A><A NAME="@default313"></A><A NAME="@fun214"></A></P><PRE CLASS="verbatim">   $(prompt-invisible s) : Sequence
+</PRE><P>The <CODE>prompt-invisible</CODE> will wrap its argument with <CODE>$(prompt-invisible-begin)</CODE> and
+<CODE>$(prompt-invisible-end)</CODE>. All the `invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various
+escape sequences) must be wrapped this way.
+</P><H3 CLASS="subsection"><A NAME="htoc286">9.11.27</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="@default314"></A><A NAME="@fun215"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
 </PRE><P>The <CODE>gettimeofday</CODE> function returns the time of day in seconds
 since January 1, 1970.</P>
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
