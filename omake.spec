@@ -49,7 +49,7 @@ INSTALL_ROOT=$RPM_BUILD_ROOT\
    MANDIR=%{_mandir}\
    make install
 
-chmod +w %{_bindir}/*
+chmod +w $RPM_BUILD_ROOT/%{_bindir}/*
 
 %clean
 rm -rf $RPM_BUILD_ROOT
