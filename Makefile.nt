@@ -21,8 +21,10 @@ bootstrap: boot\Makefile.nt boot\Makefile.dep
 	copy omake.exe ..\omake-boot.exe
 	cd ..
 
-all: bootstrap
+.config:
 	echo # Empty config > .config
+
+all: bootstrap .config
 	set OMAKEFLAGS=
 	set OMAKEPATH=lib
 	.\omake-boot --dotomake .omake --force-dotomake -j2 main src\main\osh.exe
