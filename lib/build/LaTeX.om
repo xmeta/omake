@@ -56,7 +56,7 @@ open build/Common
 # \var{DVIPDFM} The \verb+.dvi+ to \verb+.pdf+ converter (default \verb+dvipdfm+).
 # \var{DVIPDFMFLAGS} Flags to pass to \verb+dvipdfm+ (default \verb+-p letter+).
 # \var{PDFLATEX} The \verb+.latex+ to \verb+.pdf+ converter (default \verb+pdflatex+).
-# \var{PDFLATEXFLAGS} Flags to pass to pdflatex (default is empty).
+# \var{PDFLATEXFLAGS} Flags to pass to pdflatex (default is \verb+$`(LATEXFLAGS)+).
 # \var{USEPDFLATEX} Flag indicating whether to use pdflatex instead of dvipdfm
 # to generate the \verb+.pdf+ document (default \verb+false+).
 # \end{doc}
@@ -68,7 +68,7 @@ public.DVIPSFLAGS = -t letter $`(if $(VERBOSE), $(EMPTY), -q)
 public.DVIPDFM = dvipdfm
 public.DVIPDFMFLAGS = -p letter
 public.PDFLATEX = pdflatex
-public.PDFLATEXFLAGS =
+public.PDFLATEXFLAGS = $`(LATEXFLAGS)
 public.USEPDFLATEX = false
 public.LATEX = latex
 
@@ -168,7 +168,7 @@ static. =
 #
 public.LATEXFLAGS =
     protected.BASE = $(if $(OUTPUT_COMMENT_SUPPORTED), $"-output-comment=LaTeX Output (built with OMake)")
-    value $`(if $(TETEX2_ENABLED), $(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
+    value $`(if $(TETEX2_ENABLED), $,(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
 #
 # Dynamically defined list of files that the TeX source depends on.
@@ -345,24 +345,25 @@ public.LaTeXDocument(name, texfiles) =
 
     Rule(use_pdflatex) =
         private.prog = $(if $(use_pdflatex), $(PDFLATEX), $(LATEX))
+        private.flags = $(if $(use_pdflatex), $(PDFLATEXFLAGS), $(LATEXFLAGS))
         private.ext = $(if $(use_pdflatex), .pdf, .dvi)
 
         $(name)$(ext): $(TEXDEPS) $(TEXFILES) :effects: $(name).aux $(name).log $(name).ind $(name).out
             if $(gt $(length $(TEXVARS)), 0)
                 echo "Enviroment variables $(concat $', ', $(TEXVARS)) set to $(getenv $(nth 0, $(TEXVARS)))"
-            run-latex $(prog) $(LATEXFLAGS) $(name)
+            run-latex $(prog) $(flags) $(name)
             if $(and $(file-exists  $(name).aux), $(grep q, $'\\citation', $(name).aux), $(grep q, $'\\bibdata', $(name).aux))
                 $(BIBTEX) $(name)
-                run-latex $(prog) $(LATEXFLAGS) $(name)
+                run-latex $(prog) $(flags) $(name)
             if $(and $(file-exists $(name).idx), $(grep q, $'\\indexentry', $(name).idx))
                 $(MAKEINDEX) $(name)
-                run-latex $(prog) $(LATEXFLAGS) $(name)
+                run-latex $(prog) $(flags) $(name)
             if $(grep q, $'Rerun to get', $(name).log)
-                run-latex $(prog) $(LATEXFLAGS) $(name)
+                run-latex $(prog) $(flags) $(name)
             if $(grep q, $'Rerun to get', $(name).log)
-                run-latex $(prog) $(LATEXFLAGS) $(name)
+                run-latex $(prog) $(flags) $(name)
             if $(grep q, $'Rerun to get', $(name).log)
-                run-latex $(prog) $(LATEXFLAGS) $(name)
+                run-latex $(prog) $(flags) $(name)
 
         #
         # TeTeX2 has the ability to compute dependencies for us
@@ -373,7 +374,7 @@ public.LaTeXDocument(name, texfiles) =
             .SCANNER: $(SCANNER): $(name).tex $(TEXDEPS) $(TEXFILES) /.PHONY/TeXGeneratedFilesTarget\
               :value: $(USEPDFLATEX) $(find-in-path-optional $(INPUTS), $&)\
               :effects: $(name).aux $(name).log $(name).ind $(name).out $(name).dvi $(name).fls
-                echo | run-latex stdout-to-stderr $(prog) $(LATEXFLAGS) -recorder $<
+                echo | run-latex stdout-to-stderr $(prog) $(flags) -recorder $<
                 builtin-tex-deps $(name)$(ext) $(name)
 
             $(name)$(ext): :scanner: $(SCANNER)
