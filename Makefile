@@ -18,12 +18,13 @@ default:
 	@exit 1
 
 boot: boot/Makefile
-	@touch boot/Makefile.dep
 	@cd boot; $(MAKE) Makefile.dep; $(MAKE) omake
 	@ln -sf boot/omake omake-boot
 
 boot/Makefile: src/Makefile
 	mkdir -p boot
+	@touch boot/Makefile.dep
+	@sleep 1
 	ln -sf ../src/Makefile boot/Makefile
 
 all: boot
