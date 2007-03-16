@@ -30,7 +30,6 @@ PREFIX = $(dir $"$(PREFIX)")
 
 public.BINDIR = $(dir $"$(getenv BINDIR, $(PREFIX)/bin)")
 public.LIBDIR = $(dir $"$(getenv LIBDIR, $(PREFIX)/lib)")
-public.MANDIR = $(dir $"$(getenv MANDIR, $(PREFIX)/man)")
 
 public.DEFAULT_SAVE_INTERVAL = $(if $(equal $(OSTYPE), Win32), 15, 60)
 
@@ -78,7 +77,6 @@ if $(file-exists $(CONFIG_FILE))
 PREFIX = $(dir $"$(PREFIX)")
 BINDIR = $(dir $"$(BINDIR)")
 LIBDIR = $(dir $"$(LIBDIR)")
-MANDIR = $(dir $"$(MANDIR)")
 
 #
 # XXX This is a big hack.
@@ -91,7 +89,6 @@ section
    if $(INSTALL_ROOT)
       INSTALL_BINDIR=$(dir $(INSTALL_ROOT)$(absname $(BINDIR)))
       INSTALL_LIBDIR=$(dir $(INSTALL_ROOT)$(absname $(LIBDIR)))
-      INSTALL_MANDIR=$(dir $(INSTALL_ROOT)$(absname $(MANDIR)))
       export
    elseif $(not $(equal $(INSTALL_PREFIX), $(PREFIX)))
       eprintln($"""
@@ -106,15 +103,13 @@ section
 """)
       INSTALL_BINDIR=$(dir $(getenv BINDIR, $(INSTALL_PREFIX)/bin))
       INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(INSTALL_PREFIX)/lib))
-      INSTALL_MANDIR=$(dir $(getenv MANDIR, $(INSTALL_PREFIX)/man))
       export
    else
       INSTALL_BINDIR=$(dir $(getenv BINDIR, $(BINDIR)))
       INSTALL_LIBDIR=$(dir $(getenv LIBDIR, $(LIBDIR)))
-      INSTALL_MANDIR=$(dir $(getenv MANDIR, $(MANDIR)))
       export
    
-   export INSTALL_BINDIR INSTALL_LIBDIR INSTALL_MANDIR
+   export INSTALL_BINDIR INSTALL_LIBDIR
 
 if $(not $(file-exists $(CONFIG_FILE)))
     eprintln($(CONFIG_FILE) does not exist)

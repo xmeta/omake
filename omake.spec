@@ -34,7 +34,6 @@ INSTALL_ROOT=$RPM_BUILD_ROOT\
    PREFIX=%{_prefix}\
    BINDIR=%{_bindir}\
    LIBDIR=%{_libdir}\
-   MANDIR=%{_mandir}\
    make all
 
 %install
@@ -46,7 +45,6 @@ INSTALL_ROOT=$RPM_BUILD_ROOT\
    PREFIX=%{_prefix}\
    BINDIR=%{_bindir}\
    LIBDIR=%{_libdir}\
-   MANDIR=%{_mandir}\
    make install
 
 chmod +w $RPM_BUILD_ROOT/%{_bindir}/*

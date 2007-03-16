@@ -18,10 +18,6 @@ MakeConfig(CONFIG_FILE) =
         LIBDIR = $'$(PREFIX)/lib'
         export
 
-    if $(equal $(MANDIR), $(dir $(PREFIX)/man))
-        MANDIR = $'$(PREFIX)/man'
-        export
-
     CONFIG = $"""\
 # Main OMake configuration file.
 
@@ -36,12 +32,10 @@ MakeConfig(CONFIG_FILE) =
 # following directories.
 #    BINDIR: program executables
 #    LIBDIR: omake standard library
-#    MANDIR: documentation
 #
 PREFIX = $$(dir $$'$(PREFIX)')
 BINDIR = $$(dir $$"$(BINDIR)")
 LIBDIR = $$(dir $$"$(LIBDIR)")
-MANDIR = $$(dir $$"$(MANDIR)")
 
 #
 # What C compiler do you want to use?
