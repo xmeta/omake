@@ -35,6 +35,14 @@ install: all
 	set OMAKEPATH=lib
 	.\omake-boot --dotomake .omake --force-dotomake -j2 install
 
+aip-install: all
+	mkdir ..\omake-install
+	set OMAKEFLAGS=
+	set OMAKEPATH=lib
+	set BINDIR=../omake-install/bin
+	set LIBDIR=../omake-install/lib
+	.\omake-boot --dotomake .omake --force-dotomake -j2 install
+
 boot\Makefile.nt: src\Makefile.nt
 	-mkdir boot
 	copy src\Makefile.nt boot\Makefile.nt
