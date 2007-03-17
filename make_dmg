@@ -20,13 +20,14 @@ if [ "x$1" = "xpkg" ]; then
     # cd omake-$VERSION
     # omake all || exit 1
 
-    rm -rf $OSX_TMP_INSTALL
-    INSTALL_ROOT=$OSX_TMP_INSTALL omake install || exit 1
+    sudo rm -rf $OSX_TMP_INSTALL || exit 1
+    INSTALL_ROOT=$OSX_TMP_INSTALL make install || exit 1
     
     # Install the html docs -- there's no omake target for it yet
     mkdir -p $OSX_TMP_INSTALL/usr/local/share/doc/omake
     cp -r doc/html/ $OSX_TMP_INSTALL/usr/local/share/doc/omake
     rm -rf `find $OSX_TMP_INSTALL/usr/local/share/doc/omake -name .svn`
+    sudo chown -R root:wheel $OSX_TMP_INSTALL/usr || exit 1
 
     open $OSX_DIR/OMake.pmproj
     echo "
@@ -40,12 +41,16 @@ if [ "x$1" = "xpkg" ]; then
     
 elif [ "x$1" = "xdmg" ]; then
     cd $OSX_DIR
+    if [ ! -d "./$OMAKE_BASE.pkg" ]; then
+        echo "Error: Can't find `pwd`/$OMAKE_BASE.pkg"
+        exit 1
+    fi
     rm -f $OMAKE_BASE.dmg
     hdiutil create -srcfolder ./$OMAKE_BASE.pkg $OMAKE_BASE.dmg
 
 elif [ "x$1" = "xclean" ]; then
     cd $OSX_DIR
-    rm -rf $OMAKE_BASE.pkg $OMAKE_BASE.dmg install
+    sudo rm -rf $OMAKE_BASE.pkg $OMAKE_BASE.dmg install || exit 1
     
 else
     echo "No such target: $1"
