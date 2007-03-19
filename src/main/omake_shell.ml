@@ -54,7 +54,7 @@ open Pos;;
 (*
  * Empty environment.
  *)
-let node_empty = Node.phony_global "interactive shell input"
+let node_empty = Node.create_phony_global "interactive shell input"
 
 (*
  * The parser.

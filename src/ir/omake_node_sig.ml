@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -29,16 +29,6 @@
  * @end[license]
  *)
 open Omake_marshal
-
-(*
- * Comparisons.
- *)
-module type CompareSig =
-sig
-   type t
-   val compare : t -> t -> int
-   val compare_alpha : t -> t -> int
-end
 
 (*
  * A directory node.
@@ -85,6 +75,7 @@ sig
     * Check if two directories are equal.
     *)
    val equal : t -> t -> bool
+   val compare : t -> t -> int
 
    (*
     * Marshaling.
@@ -104,24 +95,28 @@ type mount_option =
  * A "mount" specifies a virtual search path for files.
  * It doesn't specify directories.
  *)
+type 'a poly_mount_info =
+   { mount_file_exists : 'a -> bool;
+     mount_file_reset  : 'a -> unit;
+     mount_is_dir      : 'a -> bool;
+     mount_stat        : 'a -> Unix.LargeFile.stats;
+     mount_digest      : 'a -> string option
+   }
+
+(*
+ * A "mount" specifies a virtual search path for files.
+ * It doesn't specify directories.
+ *)
 module type MountSig =
 sig
    type node
    type dir
    type t
 
-   type mount_info =
-      { mount_file_exists : node -> bool;
-        mount_file_reset  : node -> unit;
-        mount_is_dir      : node -> bool;
-        mount_stat        : node -> Unix.LargeFile.stats;
-        mount_digest      : node -> string option
-      }
-
    (*
     * Default mount.
     *)
-   val create : mount_info -> t
+   val empty : t
 
    (*
     * Virtual mount of one directory onto another.
@@ -159,25 +154,34 @@ module type NodeSig =
 sig
    type t
    type dir
-   type db
    type mount
-
-   (*
-    * Get a set of all the important nodes for marshaling.
-    *)
-   val marshal_base : unit -> db
-   val unmarshal_base : db -> unit
 
    (*
     * Build a regular filename from a directory and string.
     * It is legal for the string to contain / chars.
     *)
-   val intern : mount -> phony_ok -> dir -> string -> t
+   val create_node : t poly_mount_info -> mount -> dir -> string -> t
+
+   (*
+    * A phony node does not correspond to a file.
+    *)
+   val create_phony_global : string -> t
+
+   (*
+    * A phony entry in a directory.  The string is not a path.
+    *)
+   val create_phony_dir : dir -> string -> t
+   val create_phony_chdir : t -> dir -> t
+
+   (*
+    * Build a phony node based on a file.
+    *)
+   val create_phony_node : t -> string -> t
 
    (*
     * Escape a node.
     *)
-   val escape : node_kind -> t -> t
+   val create_escape : node_kind -> t -> t
 
    (*
     * What kind of node is this?
@@ -228,27 +232,10 @@ sig
    val absname : t -> string
 
    (*
-    * A phony node does not correspond to a file.
-    *)
-   val phony_global : string -> t
-
-   (*
-    * A phony entry in a directory.  The string is not a path.
-    *)
-   val phony_dir : dir -> string -> t
-   val phony_chdir : t -> dir -> t
-
-   (*
-    * Build a phony node based on a file.
-    *)
-   val phony_node : t -> string -> t
-
-   (*
     * Equality testing.
     *)
    val equal : t -> t -> bool
    val compare : t -> t -> int
-   val compare_alpha : t -> t -> int
 
    (*
     * Just the tail.
@@ -279,12 +266,9 @@ sig
    val unmarshal : msg -> t
 end
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

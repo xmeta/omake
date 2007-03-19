@@ -16,16 +16,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -424,7 +424,7 @@ let history venv pos loc args =
 
 let () =
    let builtin_vars =
-      ["history-file",   (fun _ -> ValNode (Node.intern no_mount_points PhonyProhibited Dir.root (Omake_state.history_file ())));
+      ["history-file",   (fun _ -> ValNode (Node.create_node no_mount_info Mount.empty Dir.root (Omake_state.history_file ())));
        "history-length", (fun _ -> ValInt 100);
        "CDPATH",         (fun _ -> ValArray [ValString "."])]
    in

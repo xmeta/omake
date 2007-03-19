@@ -1147,7 +1147,7 @@ let check_sort venv pos loc args =
  *)
 let compare_dir_node dir1 node =
    let dir2 = Node.dir node in
-   let cmp = DirCompare.compare_alpha dir1 dir2 in
+   let cmp = Dir.compare dir1 dir2 in
       if cmp = 0 then
          -1
       else
@@ -1160,9 +1160,9 @@ let compare_val_nodes node1 node2 =
     | ValNode node, ValDir dir ->
          -(compare_dir_node dir node)
     | ValDir dir1, ValDir dir2 ->
-         DirCompare.compare_alpha dir1 dir2
+         Dir.compare dir1 dir2
     | ValNode node1, ValNode node2 ->
-         NodeCompare.compare_alpha node1 node2
+         Node.compare node1 node2
     | _ ->
          0
 

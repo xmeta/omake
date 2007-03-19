@@ -17,16 +17,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -139,9 +139,9 @@ type default_scanner_mode =
 let build_begin   = ".BUILD_BEGIN"
 let build_success = ".BUILD_SUCCESS"
 let build_failure = ".BUILD_FAILURE"
-let build_begin_target   = Node.phony_global build_begin
-let build_success_target = Node.phony_global build_success
-let build_failure_target = Node.phony_global build_failure
+let build_begin_target   = Node.create_phony_global build_begin
+let build_success_target = Node.create_phony_global build_success
+let build_failure_target = Node.create_phony_global build_failure
 
 (*
  * Directory listing.
@@ -584,7 +584,7 @@ let command_list_smallest env state =
                None ->
                   item := Some command1
              | Some command2 ->
-                  if Node.compare_alpha command1.command_target command2.command_target < 0 then
+                  if Node.compare command1.command_target command2.command_target < 0 then
                      item := Some command1);
       match !item with
          Some item ->
@@ -820,7 +820,7 @@ let build_any_command env pos loc venv target effects locks sources scanners com
             if scanner_mode = DefaultScannerIsDisabled then
                scanner_deps
             else
-               let scanner_target = Node.escape NodeScanner target in
+               let scanner_target = Node.create_escape NodeScanner target in
                   if target_is_buildable env venv pos scanner_target then
                      match scanner_mode with
                         DefaultScannerIsWarning ->
@@ -916,7 +916,7 @@ let build_explicit_command env pos loc target effects locks venv sources scanner
                   pp_print_target_loc buf (effect, (NodeTable.find env.env_explicit_targets effect).rule_loc);
                   pp_print_bogus_set buf (NodeSet.remove bogus effect)
             end
-         in        
+         in
          eprintf "@[<v 3>*** omake:@ These file are targeted separately, but appear as effects of a single rule.@ This is likely to lead to unpredictable behavior.@ @[<v 3>targets:%a%a@]@]@." (**)
             pp_print_target_loc (target, loc)
             pp_print_bogus_set bogus
@@ -2083,8 +2083,8 @@ let is_leaf_file env node =
    if NodeTable.mem env.env_commands node then
       is_leaf_node env node
    else
-      (NodeTable.mem env.env_commands (Node.escape NodeOptional node) ||
-       NodeTable.mem env.env_commands (Node.escape NodeExists node))
+      (NodeTable.mem env.env_commands (Node.create_escape NodeOptional node) ||
+       NodeTable.mem env.env_commands (Node.create_escape NodeExists node))
 
 (*
  * Process the running queue.
@@ -2157,8 +2157,8 @@ and invalidate_event_core env node =
          raise Restart
       end else
          let nodes = if is_leaf_node env node then NodeSet.singleton node else NodeSet.empty in
-         let nodes = NodeSet.union nodes (find_parents env (Node.escape NodeOptional node)) in
-         let nodes = NodeSet.union nodes (find_parents env (Node.escape NodeExists node)) in
+         let nodes = NodeSet.union nodes (find_parents env (Node.create_escape NodeOptional node)) in
+         let nodes = NodeSet.union nodes (find_parents env (Node.create_escape NodeExists node)) in
             invalidate_ancestors env nodes
 
 and do_invalidate_event env event =
@@ -2244,7 +2244,7 @@ let rec main_loop env progress =
          let options = venv_options env.env_venv in
          let now = Unix.gettimeofday () in
          let will_save = ! save_interval > 0.0 && now > progress.ps_save in
-         let progress = 
+         let progress =
             if will_save then begin
                save env;
                print_saving options;
@@ -2456,7 +2456,7 @@ let notify_wait_simple venv cwd exec cache =
          Exec.monitor exec node) files
    in
    let pstatus = opt_print_status (venv_options venv) in
-   let print_msg = 
+   let print_msg =
       if pstatus then
          fun node -> printf "*** omake: file %s changed@." (Node.fullname node)
       else
@@ -2554,9 +2554,9 @@ let load options targets =
             None
          else
             (* Load cache from the db file *)
-            try 
+            try
                let inx = open_in_bin db_name in
-               let cache = 
+               let cache =
                   try Omake_cache.from_channel inx with
                      exn ->
                         close_in inx;
@@ -2764,7 +2764,7 @@ let print_summary ?(unlink = true) env =
       Pervasives.flush Pervasives.stderr;
       close_in inx;
       if unlink then
-         unlink_file env.env_summary 
+         unlink_file env.env_summary
 
 (*
  * Build a pseudo-phased target .BUILD_* with a fresh worklist.
@@ -2816,7 +2816,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                close_out outx;
                core_success
          in
-         let () = 
+         let () =
             if begin_success then
                (* Build the core *)
                if parallel || opt_parallel options then begin
@@ -2922,8 +2922,9 @@ let build_core env dir_name dir start_time options targets =
       end
    in
 
-   let targets = List.map (Node.intern no_mount_points PhonyOK dir) targets in
-   let () = List.iter (fun s -> print_node_dependencies env (Node.intern no_mount_points PhonyOK dir s)) (opt_show_dependencies options) in
+   let venv = env.env_venv in
+   let targets = List.map (venv_intern venv PhonyOK) targets in
+   let () = List.iter (fun s -> print_node_dependencies env (venv_intern venv PhonyOK s)) (opt_show_dependencies options) in
    let options = env_options env in
       build_targets env true start_time false (opt_print_dependencies options) targets;
       print_stats env "done" start_time;

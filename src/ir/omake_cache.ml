@@ -157,13 +157,9 @@ type cache =
      mutable cache_digest_count      : int;
 
      (* Path lookups *)
-     mutable cache_dirs         : (stat option * dir_listing_item) DirHashTable.t;
+     mutable cache_dirs         : (stat option * dir_listing_item) DirTable.t;
      mutable cache_path         : (stat option list * dir_listing_item) DirListTable.t;
-     mutable cache_exe_path     : (stat option list * exe_listing_item) DirListTable.t;
-
-     (* Hash-cons versions of directories and paths *)
-     cache_dir_hash             : DirHash.state;
-     cache_path_hash            : DirListHash.state
+     mutable cache_exe_path     : (stat option list * exe_listing_item) DirListTable.t
    }
 
 (*
@@ -171,8 +167,7 @@ type cache =
  * contains a table of all nodes.
  *)
 type cache_save =
-   { save_nodes              : Node.db;
-     save_cache_nodes        : node_memo NodeTable.t;
+   { save_cache_nodes        : node_memo NodeTable.t;
      save_cache_info         : memo NodeTable.t array
    }
 
@@ -194,7 +189,7 @@ let rule_fun            = 1
 let env_fun             = 2
 let include_fun         = 3
 
-let env_target  = Node.phony_global ".ENV"
+let env_target  = Node.create_phony_global ".ENV"
 
 (************************************************************************
  * Printing.
@@ -271,15 +266,13 @@ let create () =
      cache_info            = [||];
      cache_file_stat_count = 0;
      cache_digest_count    = 0;
-     cache_dirs            = DirHashTable.empty;
+     cache_dirs            = DirTable.empty;
      cache_path            = DirListTable.empty;
-     cache_exe_path        = DirListTable.empty;
-     cache_dir_hash        = DirHash.create_state ();
-     cache_path_hash       = DirListHash.create_state ()
+     cache_exe_path        = DirListTable.empty
    }
 
 let rehash cache =
-   cache.cache_dirs <- DirHashTable.empty;
+   cache.cache_dirs <- DirTable.empty;
    cache.cache_path <- DirListTable.empty;
    cache.cache_exe_path <- DirListTable.empty
 
@@ -307,7 +300,6 @@ let save_of_cache cache =
          cache_info  = cache_info
        } = cache
    in
-   let nodes = Node.marshal_base () in
    let cache_nodes =
       NodeTable.fold (fun nodes target nmemo ->
             match nmemo.nmemo_stats with
@@ -320,8 +312,7 @@ let save_of_cache cache =
                   nodes) NodeTable.empty cache_nodes
    in
    let cache_info = Array.map (fun info -> info.cache_memos) cache_info in
-      { save_nodes       = nodes;
-        save_cache_nodes = cache_nodes;
+      { save_cache_nodes = cache_nodes;
         save_cache_info  = cache_info
       }
 
@@ -347,8 +338,7 @@ let create_index memos =
  * Rebuild the cache from the saved version.
  *)
 let cache_of_save save =
-   let { save_nodes = nodes;
-         save_cache_nodes = cache_nodes;
+   let { save_cache_nodes = cache_nodes;
          save_cache_info  = cache_info
        } = save
    in
@@ -359,10 +349,8 @@ let cache_of_save save =
                  cache_index = index
                }) cache_info
    in
-      Node.unmarshal_base nodes;
-      { (create ()) with
-        cache_nodes = cache_nodes;
-        cache_info  = cache_info;
+      { (create ()) with cache_nodes = cache_nodes;
+                         cache_info  = cache_info;
       }
 
 (*
@@ -1051,21 +1039,19 @@ let rec list_directory cache dir =
  * Get the directory listing as a StringTable.
  *)
 let ls_dir cache auto_rehash dir =
-   let key = DirHash.create cache.cache_dir_hash dir in
    let stat = lazy (stat_dir cache dir) in
-      try check_stat auto_rehash (DirHashTable.find cache.cache_dirs key) stat with
+      try check_stat auto_rehash (DirTable.find cache.cache_dirs dir) stat with
          Not_found ->
             let entries = list_directory cache dir in
             let stat = Lazy.force stat in
-               cache.cache_dirs <- DirHashTable.add cache.cache_dirs key (stat, entries);
+               cache.cache_dirs <- DirTable.add cache.cache_dirs dir (stat, entries);
                entries
 
 (*
  * Path version.
  *)
 let ls_path cache auto_rehash dirs =
-   let keys = List.map (DirHash.create cache.cache_dir_hash) dirs in
-   let key = DirListHash.create cache.cache_path_hash keys in
+   let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_path key) stats with
          Not_found ->
@@ -1092,7 +1078,7 @@ let listing_find_item cache listing s =
          DirEntryCore entry ->
             entry
        | LazyEntryCore (dir, s) ->
-            let node = Node.intern no_mount_points PhonyProhibited dir s in
+            let node = Node.create_node no_mount_info Mount.empty dir s in
             let entry =
                if is_dir cache node then
                   DirEntry (Dir.chdir dir s)
@@ -1119,8 +1105,7 @@ let listing_find_item cache listing s =
  *    - Only files that are executable count
  *)
 let ls_exe_path_win32 cache auto_rehash dirs =
-   let keys = List.map (DirHash.create cache.cache_dir_hash) dirs in
-   let key = DirListHash.create cache.cache_path_hash keys in
+   let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_exe_path key) stats with
          Not_found ->
@@ -1150,8 +1135,7 @@ let ls_exe_path_win32 cache auto_rehash dirs =
                entries
 
 let ls_exe_path_unix cache auto_rehash dirs =
-   let keys = List.map (DirHash.create cache.cache_dir_hash) dirs in
-   let key = DirListHash.create cache.cache_path_hash keys in
+   let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_exe_path key) stats with
          Not_found ->
@@ -1194,21 +1178,21 @@ let is_exe_file cache node =
          false
 
 let is_exe_win32 cache dir s =
-   let node = Node.intern no_mount_points PhonyProhibited dir s in
+   let node = Node.create_node no_mount_info Mount.empty dir s in
       if is_dir cache node then
          None
       else
          Some node
 
 let is_exe_unix cache dir s =
-   let node = Node.intern no_mount_points PhonyProhibited dir s in
+   let node = Node.create_node no_mount_info Mount.empty dir s in
       if is_exe_file cache node then
          Some node
       else
          None
 
 let is_exe_cygwin cache dir s =
-   let node = Node.intern no_mount_points PhonyProhibited dir s in
+   let node = Node.create_node no_mount_info Mount.empty dir s in
       if Filename.check_suffix s ".exe" || Filename.check_suffix s ".bat" || is_exe_file cache node then
          Some node
       else

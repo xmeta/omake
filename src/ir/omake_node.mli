@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -34,30 +34,32 @@ open Lm_printf
 open Omake_node_sig
 
 module Dir : DirSig
-module DirCompare : CompareSig with type t = Dir.t
 module DirSet : Lm_set_sig.LmSet with type elt = Dir.t
 module DirTable : Lm_map_sig.LmMap with type key = Dir.t
 
+module DirListHash : HashMarshalSig with type elt = Dir.t list
+module DirListSet   : Lm_set_sig.LmSet with type elt = DirListHash.t
+module DirListTable : Lm_map_sig.LmMap with type key = DirListHash.t
+
 module Node : NodeSig with type dir = Dir.t
-module NodeCompare : CompareSig with type t = Node.t
 module NodeSet : Lm_set_sig.LmSet with type elt = Node.t
 module NodeTable : Lm_map_sig.LmMap with type key = Node.t
 module NodeMTable : Lm_map_sig.LmMapList with type key = Node.t
 
-module Mount : MountSig with type dir = Dir.t and type node = Node.t and type t = Node.mount;;
+module Mount
+: MountSig
+  with type dir = Dir.t
+  with type node = Node.t
+  with type t = Node.mount;;
 
-val no_mount_points : Mount.t
+type mount_info = Node.t poly_mount_info
+
+val no_mount_info : mount_info
 
 (*
- * Hash-cons versions.
+ * Handle known phonies.
  *)
-module DirHash      : HashConsSig with type elt = Dir.t
-module DirHashSet   : Lm_set_sig.LmSet with type elt = DirHash.t
-module DirHashTable : Lm_map_sig.LmMap with type key = DirHash.t
-
-module DirListHash  : HashConsSig with type elt = DirHash.t list
-module DirListSet   : Lm_set_sig.LmSet with type elt = DirListHash.t
-module DirListTable : Lm_map_sig.LmMap with type key = DirListHash.t
+val create_node_or_phony : NodeSet.t -> mount_info -> Mount.t -> phony_ok -> Dir.t -> string -> Node.t
 
 (*
  * For debugging.

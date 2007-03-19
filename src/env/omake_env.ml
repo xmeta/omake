@@ -386,25 +386,49 @@ and venv_inner =
    }
 
 and venv_globals =
-   { venv_cwd                                : Dir.t;
+   { (* Execution service *)
      venv_exec                               : exec;
+
+     (* File cache *)
      venv_cache                              : Omake_cache.t;
+
+     (* Mounting functions *)
+     venv_mount_info                         : mount_info;
+
+     (* The set of files we have ever read *)
      mutable venv_files                      : NodeSet.t;
+
+     (* Save the environment for each directory in the project *)
      mutable venv_directories                : venv DirTable.t;
      mutable venv_excluded_directories       : DirSet.t;
+
+     (* All the phony targets we have ever generated *)
+     mutable venv_phonies                    : NodeSet.t;
+
+     (* Explicit rules are global *)
      mutable venv_explicit_rules             : erule list;
      mutable venv_explicit_targets           : NodeSet.t;
      mutable venv_explicit_new               : erule list;
+
+     (* Ordering rules *)
      mutable venv_ordering_rules             : orule list;
      mutable venv_orders                     : StringSet.t;
-     mutable venv_pervasives_obj             : obj;
-     mutable venv_pervasives_vars            : scope_kind SymbolTable.t;
+
+     (* Cached values for files *)
      mutable venv_ir_files                   : ir NodeTable.t;
      mutable venv_object_files               : obj NodeTable.t;
+
+     (* Cached values for static sections *)
      mutable venv_static_values              : obj SymbolTable.t NodeTable.t;
      mutable venv_modified_values            : obj SymbolTable.t NodeTable.t;
+
+     (* Cached values for the target_is_buildable function *)
      mutable venv_target_is_buildable        : bool NodeTable.t;
-     mutable venv_target_is_buildable_proper : bool NodeTable.t
+     mutable venv_target_is_buildable_proper : bool NodeTable.t;
+
+     (* The state right after Pervasives is evaluated *)
+     mutable venv_pervasives_obj             : obj;
+     mutable venv_pervasives_vars            : scope_kind SymbolTable.t
    }
 
 (*
@@ -536,6 +560,13 @@ type include_scope =
  | IncludeAll
 
 (************************************************************************
+ * Access to the globals.
+ * This actually performs some computation in 0.9.9
+ *)
+let venv_globals venv =
+   venv.venv_inner.venv_globals
+
+(************************************************************************
  * Tables of values.
  *)
 module ValueCompare =
@@ -608,9 +639,9 @@ struct
        | ValData s1, ValData s2 ->
             Pervasives.compare s1 s2
        | ValNode node1, ValNode node2 ->
-            NodeCompare.compare node1 node2
+            Node.compare node1 node2
        | ValDir dir1, ValDir dir2 ->
-            DirCompare.compare dir1 dir2
+            Dir.compare dir1 dir2
        | ValOther (ValLocation loc1), ValOther (ValLocation loc2) ->
             Lm_location.compare loc1 loc2
        | _ ->
@@ -1976,7 +2007,16 @@ let venv_save_static_values venv =
  * Convert a filename to a node.
  *)
 let venv_intern venv phony_flag name =
-   Node.intern venv.venv_inner.venv_mount phony_flag venv.venv_inner.venv_dir name
+   let { venv_mount   = mount;
+         venv_dir     = dir
+       } = venv.venv_inner
+   in
+   let globals = venv_globals venv in
+   let { venv_phonies = phonies;
+         venv_mount_info = mount_info
+       } = globals
+   in
+      create_node_or_phony phonies mount_info mount phony_flag dir name
 
 let venv_intern_target venv phony_flag target =
    match target with
@@ -1984,7 +2024,13 @@ let venv_intern_target venv phony_flag target =
     | TargetString name -> venv_intern venv phony_flag name
 
 let venv_intern_cd venv phony_flag dir name =
-   Node.intern venv.venv_inner.venv_mount phony_flag dir name
+   let mount = venv.venv_inner.venv_mount in
+   let globals = venv_globals venv in
+   let { venv_phonies = phonies;
+         venv_mount_info = mount_info
+       } = globals
+   in
+      create_node_or_phony phonies mount_info mount phony_flag dir name
 
 let venv_intern_rule_target venv multiple name =
    let node =
@@ -1992,12 +2038,12 @@ let venv_intern_rule_target venv multiple name =
          TargetNode node ->
             node
        | TargetString name ->
-            Node.intern venv.venv_inner.venv_mount PhonyOK venv.venv_inner.venv_dir name
+            venv_intern venv PhonyOK name
    in
       match multiple with
          RuleScannerSingle
        | RuleScannerMultiple ->
-            Node.escape NodeScanner node
+            Node.create_escape NodeScanner node
        | RuleSingle
        | RuleMultiple ->
             node
@@ -2100,7 +2146,7 @@ let subst_source_core venv dir subst source =
          node
 
 let subst_source venv dir subst (kind, source) =
-   Node.escape kind (subst_source_core venv dir subst source)
+   Node.create_escape kind (subst_source_core venv dir subst source)
 
 (*
  * No wildcard matching.
@@ -2113,7 +2159,7 @@ let intern_source venv (kind, source) =
        | TargetString name ->
             venv_intern venv PhonyOK name
    in
-      Node.escape kind source
+      Node.create_escape kind source
 
 (*
  * For variables, try to look them up as 0-arity functions first.
@@ -2442,27 +2488,37 @@ let venv_add_match venv line args =
  * Phony names.
  *)
 let venv_add_phony venv loc names =
-   let inner = venv.venv_inner in
-   let { venv_dir = dir;
-         venv_phony = phony
-       } = inner
-   in
-   let phony =
-      List.fold_left (fun phony name ->
-            let name =
-               match name with
-                  TargetNode _ ->
-                     raise (OmakeException (loc_exp_pos loc, StringError ".PHONY arguments should be names"))
-                | TargetString s ->
-                     s
-            in
-            let gnode = Node.phony_global name in
-            let dnode = Node.phony_dir dir name in
-            let phony = NodeSet.add phony dnode in
-               venv_add_explicit_dep venv loc gnode dnode;
-               phony) phony names
-   in
-      { venv with venv_inner = { inner with venv_phony = phony } }
+   if names = [] then
+      venv
+   else
+      let inner = venv.venv_inner in
+      let { venv_dir = dir;
+            venv_phony = phony
+          } = inner
+      in
+      let globals = venv_globals venv in
+      let phonies = globals.venv_phonies in
+      let phony, phonies =
+         List.fold_left (fun (phony, phonies) name ->
+               let name =
+                  match name with
+                     TargetNode _ ->
+                        raise (OmakeException (loc_exp_pos loc, StringError ".PHONY arguments should be names"))
+                   | TargetString s ->
+                        s
+               in
+               let gnode = Node.create_phony_global name in
+               let dnode = Node.create_phony_dir dir name in
+               let phony = NodeSet.add phony dnode in
+               let phonies = NodeSet.add phonies gnode in
+               let phonies = NodeSet.add phonies dnode in
+                  venv_add_explicit_dep venv loc gnode dnode;
+                  phony, phonies) (phony, phonies) names
+      in
+      let inner = { inner with venv_phony = phony } in
+      let venv = { venv with venv_inner = inner } in
+         globals.venv_phonies <- phonies;
+         venv
 
 (*
  * Create an environment.
@@ -2493,13 +2549,22 @@ let create_environ () =
 let create options dir exec cache =
    let cwd = Dir.cwd () in
    let env = create_environ () in
+   let mount_info =
+      { mount_file_exists = Omake_cache.exists cache;
+        mount_file_reset  = (fun node -> ignore (Omake_cache.force_stat cache node));
+        mount_is_dir      = Omake_cache.is_dir cache;
+        mount_digest      = Omake_cache.stat cache;
+        mount_stat        = Omake_cache.stat_unix cache
+      }
+   in
    let globals =
-      { venv_cwd                        = cwd;
-        venv_exec                       = exec;
+      { venv_exec                       = exec;
         venv_cache                      = cache;
+        venv_mount_info                 = mount_info;
         venv_files                      = NodeSet.empty;
         venv_directories                = DirTable.empty;
         venv_excluded_directories       = DirSet.empty;
+        venv_phonies                    = NodeSet.empty;
         venv_explicit_rules             = [];
         venv_explicit_new               = [];
         venv_explicit_targets           = NodeSet.empty;
@@ -2515,15 +2580,6 @@ let create options dir exec cache =
         venv_target_is_buildable_proper = NodeTable.empty
       }
    in
-   let mount_info =
-      { Mount.mount_file_exists = Omake_cache.exists cache;
-        Mount.mount_file_reset = (fun node -> ignore (Omake_cache.force_stat cache node));
-        Mount.mount_is_dir = Omake_cache.is_dir cache;
-        Mount.mount_digest = Omake_cache.stat cache;
-        Mount.mount_stat   = Omake_cache.stat_unix cache
-      }
-   in
-   let mount = Mount.create mount_info in
    let inner =
       { venv_dir            = cwd;
         venv_environ        = env;
@@ -2532,7 +2588,7 @@ let create options dir exec cache =
         venv_implicit_rules = [];
         venv_globals        = globals;
         venv_options        = options;
-        venv_mount          = mount;
+        venv_mount          = Mount.empty;
         venv_included_files = NodeSet.empty
       }
    in
@@ -2546,7 +2602,7 @@ let create options dir exec cache =
    let venv = venv_add_phony venv (Lm_location.bogus_loc makeroot_name) [TargetString ".PHONY"] in
    let venv = venv_add_var_dynamic venv cwd_sym (ValDir cwd) in
    let venv = venv_add_var_dynamic venv stdlib_sym (ValDir Dir.lib) in
-   let venv = venv_add_var_dynamic venv stdroot_sym (ValNode (Node.intern mount PhonyProhibited Dir.lib "OMakeroot")) in
+   let venv = venv_add_var_dynamic venv stdroot_sym (ValNode (venv_intern_cd venv PhonyProhibited Dir.lib "OMakeroot")) in
    let venv = venv_add_var_dynamic venv ostype_sym (ValString Sys.os_type) in
    let venv = venv_add_wild_match venv (ValData wild_string) in
    let omakepath =
@@ -2589,53 +2645,21 @@ let venv_get_pervasives venv node =
          venv_globals = globals
        } = inner
    in
-   let { venv_cwd = cwd;
-         venv_exec = exec;
-         venv_cache = cache;
-         venv_pervasives_obj = obj;
+   let { venv_exec            = exec;
+         venv_cache           = cache;
+         venv_pervasives_obj  = obj;
          venv_pervasives_vars = vars
        } = globals
    in
-   let globals =
-      { venv_cwd                        = Node.dir node;
-        venv_exec                       = exec;
-        venv_cache                      = cache;
-        venv_files                      = NodeSet.empty;
-        venv_directories                = DirTable.empty;
-        venv_excluded_directories       = DirSet.empty;
-        venv_explicit_rules             = [];
-        venv_explicit_new               = [];
-        venv_explicit_targets           = NodeSet.empty;
-        venv_ordering_rules             = [];
-        venv_orders                     = StringSet.empty;
-        venv_pervasives_obj             = obj;
-        venv_pervasives_vars            = vars;
-        venv_ir_files                   = NodeTable.empty;
-        venv_object_files               = NodeTable.empty;
-        venv_static_values              = NodeTable.empty;
-        venv_modified_values            = NodeTable.empty;
-        venv_target_is_buildable        = NodeTable.empty;
-        venv_target_is_buildable_proper = NodeTable.empty
-      }
-   in
-   let mount_info =
-      { Mount.mount_file_exists = Omake_cache.exists cache;
-        Mount.mount_file_reset = (fun node -> ignore (Omake_cache.force_stat cache node));
-        Mount.mount_is_dir = Omake_cache.is_dir cache;
-        Mount.mount_digest = Omake_cache.stat cache;
-        Mount.mount_stat   = Omake_cache.stat_unix cache
-      }
-   in
-   let mount = Mount.create mount_info in
    let inner =
-      { venv_dir            = cwd;
+      { venv_dir            = Node.dir node;
         venv_environ        = env;
         venv_phony          = NodeSet.empty;
         venv_implicit_deps  = [];
         venv_implicit_rules = [];
         venv_globals        = globals;
         venv_options        = options;
-        venv_mount          = mount;
+        venv_mount          = Mount.empty;
         venv_included_files = NodeSet.empty
       }
    in
@@ -2652,7 +2676,7 @@ let venv_get_pervasives venv node =
 let venv_fork venv =
    let inner = venv.venv_inner in
    let globals = inner.venv_globals in
-   let globals = { globals with venv_cwd = globals.venv_cwd } in
+   let globals = { globals with venv_exec = globals.venv_exec } in
    let inner = { inner with venv_globals = globals } in
       { venv with venv_inner = inner }
 
@@ -2709,13 +2733,24 @@ let venv_chdir_dir venv loc dir =
       else
          let venv = venv_add_var_dynamic venv cwd_sym (ValDir dir) in
          let venv = venv_chdir_tmp venv dir in
-         let phony =
-            NodeSet.fold (fun phony node ->
-                  let node' = Node.phony_chdir node dir in
+         let globals = venv_globals venv in
+         let phonies = globals.venv_phonies in
+         let phony, phonies =
+            NodeSet.fold (fun (phony, phonies) node ->
+                  let node' = Node.create_phony_chdir node dir in
+                  let phony = NodeSet.add phony node' in
+                  let phonies = NodeSet.add phonies node' in
                      venv_add_explicit_dep venv loc node node';
-                     NodeSet.add phony node') NodeSet.empty phony
+                     phony, phonies) (NodeSet.empty, phonies) phony
          in
-            { venv with venv_inner = { venv.venv_inner with venv_phony = phony } }
+         let inner =
+            { inner with venv_dir = dir;
+                         venv_phony = phony
+            }
+         in
+         let venv = { venv with venv_inner = inner } in
+            globals.venv_phonies <- phonies;
+            venv
 
 let venv_chdir venv loc dir =
    let dir = Dir.chdir venv.venv_inner.venv_dir dir in
