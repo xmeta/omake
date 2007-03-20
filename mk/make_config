@@ -51,12 +51,6 @@ CFLAGS = $(CFLAGS)
 #
 NATIVE_ENABLED = $(NATIVE_ENABLED)
 BYTE_ENABLED = $(BYTE_ENABLED)
-
-#
-# Do you want to enable native-code profiling?
-# Unless you really care, you should leave this disabled.
-#
-NATIVE_PROFILE = $(NATIVE_PROFILE)
 """$(if $(READLINE_AVAILABLE), $"""
 #
 # Do you want to include readline for the interactive shell?
@@ -115,7 +109,13 @@ OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_ENABLED)
 # dependency analysis.
 #
 # OCAMLDEP_MODULES_ENABLED is false
-""")
+""")$"""
+#
+# Do you want to enable native-code profiling?
+# Unless you really care, you should leave this disabled.
+#
+NATIVE_PROFILE = $(NATIVE_PROFILE)
+"""
 
     # Save the text in the output file
     exists = $(file-exists $(CONFIG_FILE))
