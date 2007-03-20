@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_hash
@@ -46,6 +46,8 @@ module NodeSet : Lm_set_sig.LmSet with type elt = Node.t
 module NodeTable : Lm_map_sig.LmMap with type key = Node.t
 module NodeMTable : Lm_map_sig.LmMapList with type key = Node.t
 
+module PreNodeSet : Lm_set_sig.LmSet with type elt = Node.pre
+
 module Mount
 : MountSig
   with type dir = Dir.t
@@ -59,7 +61,7 @@ val no_mount_info : mount_info
 (*
  * Handle known phonies.
  *)
-val create_node_or_phony : NodeSet.t -> mount_info -> Mount.t -> phony_ok -> Dir.t -> string -> Node.t
+val create_node_or_phony : PreNodeSet.t -> mount_info -> Mount.t -> phony_ok -> Dir.t -> string -> Node.t
 
 (*
  * For debugging.
@@ -75,12 +77,9 @@ val pp_print_node_table : formatter -> 'a NodeTable.t -> unit
 val pp_print_node_set_table : formatter -> NodeSet.t NodeTable.t -> unit
 val pp_print_node_set_table_opt : formatter -> NodeSet.t NodeTable.t option -> unit
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

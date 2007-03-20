@@ -152,6 +152,7 @@ type phony_ok =
  *)
 module type NodeSig =
 sig
+   type pre
    type t
    type dir
    type mount
@@ -264,6 +265,11 @@ sig
     *)
    val marshal : t -> msg
    val unmarshal : msg -> t
+
+   (*
+    * An internal representation of a node (optimization for the set of phony nodes)
+    *)
+   val dest : t -> pre
 end
 
 (*

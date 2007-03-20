@@ -403,7 +403,7 @@ and venv_globals =
      mutable venv_excluded_directories       : DirSet.t;
 
      (* All the phony targets we have ever generated *)
-     mutable venv_phonies                    : NodeSet.t;
+     mutable venv_phonies                    : PreNodeSet.t;
 
      (* Explicit rules are global *)
      mutable venv_explicit_rules             : erule list;
@@ -2510,8 +2510,8 @@ let venv_add_phony venv loc names =
                let gnode = Node.create_phony_global name in
                let dnode = Node.create_phony_dir dir name in
                let phony = NodeSet.add phony dnode in
-               let phonies = NodeSet.add phonies gnode in
-               let phonies = NodeSet.add phonies dnode in
+               let phonies = PreNodeSet.add phonies (Node.dest gnode) in
+               let phonies = PreNodeSet.add phonies (Node.dest dnode) in
                   venv_add_explicit_dep venv loc gnode dnode;
                   phony, phonies) (phony, phonies) names
       in
@@ -2564,7 +2564,7 @@ let create options dir exec cache =
         venv_files                      = NodeSet.empty;
         venv_directories                = DirTable.empty;
         venv_excluded_directories       = DirSet.empty;
-        venv_phonies                    = NodeSet.empty;
+        venv_phonies                    = PreNodeSet.empty;
         venv_explicit_rules             = [];
         venv_explicit_new               = [];
         venv_explicit_targets           = NodeSet.empty;
@@ -2739,7 +2739,7 @@ let venv_chdir_dir venv loc dir =
             NodeSet.fold (fun (phony, phonies) node ->
                   let node' = Node.create_phony_chdir node dir in
                   let phony = NodeSet.add phony node' in
-                  let phonies = NodeSet.add phonies node' in
+                  let phonies = PreNodeSet.add phonies (Node.dest node') in
                      venv_add_explicit_dep venv loc node node';
                      phony, phonies) (NodeSet.empty, phonies) phony
          in

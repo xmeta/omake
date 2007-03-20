@@ -424,6 +424,8 @@ module NodeSet = Lm_set.LmMake (NodeHash);;
 module NodeTable = Lm_map.LmMake (NodeHash);;
 module NodeMTable = Lm_map.LmMakeList (NodeHash);;
 
+module PreNodeSet = Lm_set.LmMake (NodeCompare);;
+
 (************************************************************************
  * Implementation.
  *)
@@ -997,11 +999,14 @@ let no_mount_info =
  *)
 module Node =
 struct
+   type pre   = node_elt
    type t     = node
    type dir   = Dir.t
    type mount = Mount.t
 
    open Mount;;
+
+   let dest = NodeHash.get
 
    (*
     * Get the name.
@@ -1412,27 +1417,16 @@ let create_node_or_phony phonies mount_info mount phony_ok dir name =
             raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
        | PhonySimpleString, PhonyOK ->
             (* Try PhonyDir first *)
-            (try
-                let key  = Filename.create name in
-                let node = NodePhonyDir (dir, key, name) in
-                let node = NodeHash.intern node in
-                   if NodeSet.mem phonies node then
-                      node
-                   else
-                      raise Not_found
-             with
-                Not_found ->
-                      (* Try PhonyGlobal next *)
-                   try
-                      let node = NodePhonyGlobal name in
-                      let node = NodeHash.intern node in
-                         if NodeSet.mem phonies node then
-                            node
-                         else
-                            raise Not_found
-                   with
-                      Not_found ->
-                         Node.create_node mount_info mount dir name)
+            let node = NodePhonyDir (dir, Filename.create name, name) in
+               if PreNodeSet.mem phonies node then
+                  NodeHash.create node
+               else
+                  (* Try PhonyGlobal next *)
+                  let node = NodePhonyGlobal name in
+                     if PreNodeSet.mem phonies node then
+                        NodeHash.create node
+                     else
+                        Node.create_node mount_info mount dir name
        | PhonySimpleString, PhonyExplicit
        | PhonySimpleString, PhonyProhibited
        | PhonyPathString, _ ->
