@@ -574,24 +574,6 @@ let command_list_head env state =
          Some command -> command
        | None -> raise (Invalid_argument "command_list_head")
 
-(*
- * Get the command with the shortest name.
- *)
-let command_list_smallest env state =
-   let item = ref None in
-      command_iter env state (fun command1 ->
-            match !item with
-               None ->
-                  item := Some command1
-             | Some command2 ->
-                  if Node.compare command1.command_target command2.command_target < 0 then
-                     item := Some command1);
-      match !item with
-         Some item ->
-            item
-       | None ->
-            raise (Invalid_argument "command_list_smallest")
-
 (************************************************************************
  * Other target utilities.
  *)
