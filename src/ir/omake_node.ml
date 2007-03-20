@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2006 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey <jyh@cs.caltech.edu>
- * Modified by: Aleksey Nogin <nogin@cs.caltech.edu>
+ * Modified by: Aleksey Nogin <nogin@cs.caltech.edu>, <anogin@hrl.com>
  * @end[license]
  *)
 open Lm_hash
@@ -70,8 +70,8 @@ struct
    (* %%MAGICEND%% *)
 
    let create = Lm_filename_util.normalize_string
-   let compare = Pervasives.compare
-   let equal = (=)
+   let compare = String.compare
+   let equal (s1: string) s2 = (s1 = s2)
    let add_filename = HashCode.add_string
    let add_filename_string = Buffer.add_string
 
@@ -92,8 +92,6 @@ type filename = Filename.t
  * It is too dangerous.
  *)
 let (compare_roots     : root -> root -> int) = Pervasives.compare
-let (compare_strings   : string -> string -> int) = Pervasives.compare
-let (compare_filenames : filename -> filename -> int) = Filename.compare
 
 (************************************************************************
  * Directories.
@@ -108,7 +106,7 @@ let (compare_filenames : filename -> filename -> int) = Filename.compare
  *)
 (* %%MAGICBEGIN%% *)
 type dir_elt =
-   DirRoot of root
+   DirRoot of Lm_filename_util.root
  | DirSub of filename * string * dir_elt hash_marshal_item
 (* %%MAGICEND%% *)
 
@@ -135,7 +133,7 @@ struct
          DirRoot root1, DirRoot root2 ->
             compare_roots root1 root2
        | DirSub (name1, _, parent1), DirSub (name2, _, parent2) ->
-            let cmp = compare_filenames name1 name2 in
+            let cmp = Filename.compare name1 name2 in
                if cmp = 0 then
                   DirHash.compare parent1 parent2
                else
@@ -251,7 +249,7 @@ struct
     | CodeNodeIsScanner
 
    let add_code buf (code : code) =
-      HashCode.add_int buf (Obj.magic code)
+      HashCode.add_bits buf (Obj.magic code)
 
    let add_flag_code buf code =
       let code =
@@ -341,17 +339,17 @@ struct
        | NodePhonyDir (dir1, key1, _), NodePhonyDir (dir2, key2, _) ->
             let cmp = DirHash.compare dir1 dir2 in
                if cmp = 0 then
-                  compare_filenames key1 key2
+                  Filename.compare key1 key2
                else
                   cmp
        | NodePhonyGlobal name1, NodePhonyGlobal name2 ->
-            compare_strings name1 name2
+            String.compare name1 name2
        | NodePhonyFile (dir1, key1, _, name1), NodePhonyFile (dir2, key2, _, name2) ->
             let cmp = DirHash.compare dir1 dir2 in
                if cmp = 0 then
-                  let cmp = compare_filenames key1 key2 in
+                  let cmp = Filename.compare key1 key2 in
                      if cmp = 0 then
-                        compare_strings name1 name2
+                        String.compare name1 name2
                      else
                         cmp
                else
@@ -576,14 +574,14 @@ let abs_dir_name dir =
          DirRoot root ->
             Buffer.add_string buf (Lm_filename_util.string_of_root root)
        | DirSub (key, _, parent) ->
-            match DirHash.get parent with
+            name parent;
+            begin match DirHash.get parent with
                DirRoot _ ->
-                  name parent;
-                  Filename.add_filename_string buf key
+                  ()
              | _ ->
-                  name parent;
-                  Buffer.add_char buf Lm_filename_util.separator_char;
-                  Filename.add_filename_string buf key
+                  Buffer.add_char buf Lm_filename_util.separator_char
+            end;
+            Filename.add_filename_string buf key
    in
    let () = name dir in
       Buffer.contents buf
@@ -1523,12 +1521,9 @@ let pp_print_node_set_table_opt buf table_opt =
          pp_print_string buf "<none>"
 
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
