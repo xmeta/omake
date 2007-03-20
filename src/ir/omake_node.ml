@@ -434,15 +434,15 @@ module PreNodeSet = Lm_set.LmMake (NodeCompare);;
  * Get a pathname from a directory.
  * The name must be reversed.
  *)
+let rec path_of_dir_aux keypath path dir =
+   match DirHash.get dir with
+      DirRoot root ->
+         root, keypath, path
+    | DirSub (key, name, parent) ->
+         path_of_dir_aux (key :: keypath) (name :: path) parent
+
 let path_of_dir dir =
-   let rec path_of_dir keypath path dir =
-      match DirHash.get dir with
-         DirRoot root ->
-            root, keypath, path
-       | DirSub (key, name, parent) ->
-            path_of_dir (key :: keypath) (name :: path) parent
-   in
-      path_of_dir [] [] dir
+   path_of_dir_aux [] [] dir
 
 (*
  * Build a list of the directories, in reverse order.
