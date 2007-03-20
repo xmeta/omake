@@ -2160,30 +2160,6 @@ and invalidate_event env event =
    else
       do_invalidate_event env event
 
-(*
- * Worklist switching.
- *)
-
-let with_fresh_wl env f =
-   let code = env.env_error_code in
-   let restore_wl () =
-      env.env_current_wl <- env.env_main_wl;
-      if env.env_error_code = 0 then
-         env.env_error_code <- code;
-      Queue.iter (fun event -> ignore (do_invalidate_event env event)) env.env_pending_events;
-      Queue.clear env.env_pending_events
-   in
-      try
-         env.env_current_wl <- create_wl ();
-         env.env_error_code <- 0;
-         let x = f () in
-            restore_wl();
-            x
-      with
-         exn ->
-            restore_wl();
-            raise exn
-
 (************************************************************************
  * Main processing loop.
  *)
@@ -2749,17 +2725,35 @@ let print_summary ?(unlink = true) env =
          unlink_file env.env_summary
 
 (*
+ * Worklist switching.
+ *
  * Build a pseudo-phased target .BUILD_* with a fresh worklist.
  * The reason for switching worklists is so we don't damage the
  * main build, and also so that we ignore the main build
  * when executing phases.
  *)
 let build_phase env target =
-   with_fresh_wl env (fun () ->
+   let code = env.env_error_code in
+   let restore_wl () =
+      env.env_current_wl <- env.env_main_wl;
+      if env.env_error_code = 0 then
+         env.env_error_code <- code;
+      Queue.iter (fun event -> ignore (do_invalidate_event env event)) env.env_pending_events;
+      Queue.clear env.env_pending_events
+   in
+      try
+         env.env_current_wl <- create_wl ();
+         env.env_error_code <- 0;
          build_target env false target;
          invalidate_children env (NodeSet.singleton target);
          make env;
-         command_list_is_empty env CommandFailedTag)
+         let success = command_list_is_empty env CommandFailedTag in
+            restore_wl();
+            success
+      with
+         exn ->
+            restore_wl();
+            raise exn
 
 (*
  * Build command line targets.
