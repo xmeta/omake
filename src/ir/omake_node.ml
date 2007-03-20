@@ -509,38 +509,34 @@ let null_root =
 (*
  * Split the directory name into a path.
  *)
+let rec path_simplify stack = function
+   "" :: path
+ | "." :: path ->
+      path_simplify stack path
+ | ".." :: path ->
+      let stack =
+         match stack with
+            _ :: stack ->
+               stack
+          | [] ->
+               stack
+      in
+         path_simplify stack path
+ | name :: path ->
+      path_simplify (name :: stack) path
+ | [] ->
+      stack
+
 let new_path dir path =
-   let root, _, dir = path_of_dir dir in
-   let path = Lm_filename_util.filename_path path in
-   let root, stack, path =
-      match path with
-         AbsolutePath (root, path) ->
-            (* This is an absolute path, so ignore the directory *)
-            root, [], path
-       | RelativePath path ->
-            (* This is relative to the directory *)
-            root, List.rev dir, path
-   in
-   let rec simplify stack path =
-      match path with
-         "" :: path
-       | "." :: path ->
-            simplify stack path
-       | ".." :: path ->
-            let stack =
-               match stack with
-                  _ :: stack ->
-                     stack
-                | [] ->
-                     stack
-            in
-               simplify stack path
-       | name :: path ->
-            simplify (name :: stack) path
-       | [] ->
-            root, stack
-   in
-      simplify stack path
+   match Lm_filename_util.filename_path path with
+      AbsolutePath (root, path) ->
+         (* This is an absolute path, so ignore the directory *)
+         root, (List.rev path)
+    | RelativePath path ->
+         (* This is relative to the directory *)
+         let root, _, dir = path_of_dir dir in
+         let stack = List.rev dir in
+            root, path_simplify stack path
 
 let new_dir dir path =
    let root, stack = new_path dir path in
