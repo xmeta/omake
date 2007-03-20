@@ -49,7 +49,6 @@ open Omake_exec_type
 open Omake_exec_util
 open Omake_cache_type
 open Omake_command_type
-open Omake_command_digest
 open Omake_symbol
 
 module Pos = MakePos (struct let name = "Omake_eval" end)

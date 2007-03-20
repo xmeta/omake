@@ -411,8 +411,8 @@ OCAML_LIB_FLAGS_magic =
 magic.cma: $(CMOFILES_magic)
 	$(OCAMLC) $(OCAMLFLAGS) $(OCAML_LIB_FLAGS_magic) -a -o $@ $(CMOFILES_magic)
 
-GENMAGIC_DEPS = lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache.ml omake_cache_type.ml omake_node.ml lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml omake_node.ml omake_ir.ml lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml version.txt
-MAGIC_FILES =    --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache.ml omake_cache_type.ml omake_node.ml    --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml omake_node.ml omake_ir.ml    --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml
+GENMAGIC_DEPS = lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml omake_node.ml omake_ir.ml lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml version.txt
+MAGIC_FILES =    --cache-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_map.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache.ml omake_cache_type.ml omake_node.ml omake_command_digest.ml    --omc-files lm_filename_util.ml lm_hash.ml lm_location.ml lm_symbol.ml omake_node.ml omake_ir.ml    --omo-files lm_filename_util.ml lm_hash.ml lm_lexer.ml lm_location.ml lm_map.ml lm_parser.ml lm_position.ml lm_set.ml lm_symbol.ml omake_cache_type.ml omake_ir.ml omake_node.ml omake_env.ml
 
 omake_magic.ml: omake_gen_magic$(EXE) $(GENMAGIC_DEPS)
 	$(DOT)omake_gen_magic -o $@ --version version.txt --magic $(MAGIC_FILES)
