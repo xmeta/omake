@@ -474,20 +474,11 @@ let rec path_of_dir_list dirs =
 (*
  * Make a directory node from the pathname.
  *)
+let make_subdir parent name =
+   DirHash.create (DirSub (Filename.create name, name, parent))
+
 let make_dir root path =
-   let rec make parent path =
-      match path with
-         [] ->
-            parent
-       | name :: path ->
-            let key = Filename.create name in
-            let dir = DirSub (key, name, parent) in
-            let dir = DirHash.create dir in
-               make dir path
-   in
-   let root = DirRoot root in
-   let root = DirHash.create root in
-      make root path
+   List.fold_left make_subdir (DirHash.create (DirRoot root)) path
 
 (*
  * Get the current absolute name of the working directory.
@@ -509,47 +500,48 @@ let null_root =
 (*
  * Split the directory name into a path.
  *)
-let rec path_simplify stack = function
+let rec path_simplify dir = function
    "" :: path
  | "." :: path ->
-      path_simplify stack path
+      path_simplify dir path
  | ".." :: path ->
-      let stack =
-         match stack with
-            _ :: stack ->
-               stack
-          | [] ->
-               stack
+      let dir =
+         match DirHash.get dir with
+            DirSub (_, _, parent) ->
+               parent
+          | DirRoot _ ->
+               dir
       in
-         path_simplify stack path
+         path_simplify dir path
+ | [name] ->
+      dir, Some name
  | name :: path ->
-      path_simplify (name :: stack) path
+      path_simplify (make_subdir dir name) path
  | [] ->
-      stack
+      dir, None
 
 let new_path dir path =
    match Lm_filename_util.filename_path path with
       AbsolutePath (root, path) ->
          (* This is an absolute path, so ignore the directory *)
-         root, (List.rev path)
+         path_simplify (make_dir root []) path
     | RelativePath path ->
          (* This is relative to the directory *)
-         let root, _, dir = path_of_dir dir in
-         let stack = List.rev dir in
-            root, path_simplify stack path
+         path_simplify dir path
 
 let new_dir dir path =
-   let root, stack = new_path dir path in
-      make_dir root (List.rev stack)
+   match new_path dir path with
+      dir, None ->
+         dir
+    | dir, Some name ->
+         make_subdir dir name
 
 let new_file dir path =
-   let root, stack = new_path dir path in
-   let dir, name =
-      match stack with
-         [] ->
-            make_dir root [], "."
-       | name :: stack ->
-            make_dir root (List.rev stack), name
+   let dir, name = new_path dir path in
+   let name =
+      match name with
+         Some name -> name
+       | None -> "."
    in
    let key = Filename.create name in
       dir, key, name
@@ -881,7 +873,7 @@ struct
    (*
     * Absolute name.
     *)
-   let root = make_dir Lm_filename_util.null_root []
+   let root = null_root
 
    let absname dir =
       name root dir
