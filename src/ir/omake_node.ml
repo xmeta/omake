@@ -851,8 +851,7 @@ struct
    (*
     * Building a new path.
     *)
-   let chdir dir1 dir2 =
-      new_dir dir1 (Lm_filename_util.unescape_string dir2)
+   let chdir = new_dir
 
    (*
     * Name, relative to the cwd.
@@ -1391,34 +1390,33 @@ end
  * node if it does not already exist.
  *)
 let create_node_or_phony phonies mount_info mount phony_ok dir name =
-   let name = Lm_filename_util.unescape_string name in
-      match parse_phony_name name, phony_ok with
-         PhonyDirString name, PhonyOK
-       | PhonyDirString name, PhonyExplicit ->
-            let dir, key, name = new_file dir name in
-               NodeHash.create (NodePhonyDir (dir, key, name))
-       | PhonyGlobalString name, PhonyOK
-       | PhonyGlobalString name, PhonyExplicit ->
-            NodeHash.create (NodePhonyGlobal name)
-       | PhonyDirString _, PhonyProhibited
-       | PhonyGlobalString _, PhonyProhibited ->
-            raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
-       | PhonySimpleString, PhonyOK ->
-            (* Try PhonyDir first *)
-            let node = NodePhonyDir (dir, Filename.create name, name) in
-               if PreNodeSet.mem phonies node then
-                  NodeHash.create node
-               else
-                  (* Try PhonyGlobal next *)
-                  let node = NodePhonyGlobal name in
-                     if PreNodeSet.mem phonies node then
-                        NodeHash.create node
-                     else
-                        Node.create_node mount_info mount dir name
-       | PhonySimpleString, PhonyExplicit
-       | PhonySimpleString, PhonyProhibited
-       | PhonyPathString, _ ->
-            Node.create_node mount_info mount dir name
+   match parse_phony_name name, phony_ok with
+      PhonyDirString name, PhonyOK
+    | PhonyDirString name, PhonyExplicit ->
+         let dir, key, name = new_file dir name in
+            NodeHash.create (NodePhonyDir (dir, key, name))
+    | PhonyGlobalString name, PhonyOK
+    | PhonyGlobalString name, PhonyExplicit ->
+         NodeHash.create (NodePhonyGlobal name)
+    | PhonyDirString _, PhonyProhibited
+    | PhonyGlobalString _, PhonyProhibited ->
+         raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
+    | PhonySimpleString, PhonyOK ->
+         (* Try PhonyDir first *)
+         let node = NodePhonyDir (dir, Filename.create name, name) in
+            if PreNodeSet.mem phonies node then
+               NodeHash.create node
+            else
+               (* Try PhonyGlobal next *)
+               let node = NodePhonyGlobal name in
+                  if PreNodeSet.mem phonies node then
+                     NodeHash.create node
+                  else
+                     Node.create_node mount_info mount dir name
+    | PhonySimpleString, PhonyExplicit
+    | PhonySimpleString, PhonyProhibited
+    | PhonyPathString, _ ->
+         Node.create_node mount_info mount dir name
 
 (*
  * Print the directory, for debugging.
