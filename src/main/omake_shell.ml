@@ -197,7 +197,7 @@ let maybe_exit_on_exception pos venv =
             false
    in
       if abort then
-         exit 1
+         exit exn_error_code
 
 (*
  * The shell main loop.
@@ -334,7 +334,7 @@ let shell_script venv scriptname args =
             exit code
        | exn ->
             eprintf "%a@." pp_print_exn (UncaughtException (pos, exn));
-            raise exn
+            maybe_exit_on_exception pos venv
 
 (*
  * Evaluate a string.
@@ -353,9 +353,11 @@ let shell_string venv s =
     | RaiseException _ as exn ->
          eprintf "%a@." pp_print_exn exn;
          exit 1
+    | ExitException (_, code) ->
+         exit code
     | exn ->
          eprintf "%a@." pp_print_exn exn;
-         raise exn
+         maybe_exit_on_exception (string_exp_pos "shell_string") venv
 
 (*
  * Get the initial environment.
@@ -394,7 +396,7 @@ let shell options command targets =
       try create_venv options targets with
          exn when not (opt_allow_exceptions options) ->
             eprintf "%a@." pp_print_exn exn;
-            raise exn
+            exit exn_error_code
    in
       match command with
          Some command ->

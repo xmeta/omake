@@ -257,7 +257,7 @@ let main shell options =
    with
       exn ->
          eprintf "@[<hv 3>*** server: uncaught exception:@ %s@]@." (Printexc.to_string exn);
-         exit 2
+         exit exn_error_code
 
 (************************************************************************
  * Remote service.
