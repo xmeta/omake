@@ -931,18 +931,18 @@ public.OCamlLibraryCopy(tag, lib, name, ifiles) =
    public.FILES[] =
 
    if $(BYTE_ENABLED)
-      $(tag): $(LIBBYTE)
       FILES[] += $(LIBBYTE)
       export
 
    if $(NATIVE_ENABLED)
-      $(tag): $(LIBNATIVE) $(LIBCLIB)
-
       FILES[] +=
          $(LIBNATIVE)
          $(LIBCLIB)
-
       export
+
+   $(tag): $(FILES)
+
+   return $(FILES)
 
 #
 # We often use them together
