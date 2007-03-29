@@ -3062,47 +3062,37 @@ let venv_explicit_rules venv =
              | None ->
                   erule)
    in
-   let add_deps table target locks sources scanners =
-      NodeTable.filter_add table target (fun deps ->
-            match deps with
+      if not (NodeMTable.is_empty !errors) then
+         raise_multiple_error !errors
+      else
+         let add_deps table target locks sources scanners =
+            NodeTable.filter_add table target (function
                Some (lock_deps, source_deps, scanner_deps) ->
                   NodeSet.union lock_deps locks, NodeSet.union source_deps sources, NodeSet.union scanner_deps scanners
              | None ->
                   locks, sources, scanners)
-   in
-   let info =
-      { explicit_targets      = NodeTable.empty;
-        explicit_deps         = NodeTable.empty;
-        explicit_rules        = NodeMTable.empty;
-        explicit_directories  = venv_directories venv
-      }
-   in
-   let rules =
-      venv_explicit_flush venv;
-      List.fold_left (fun info erule ->
-            let { explicit_targets          = target_table;
-                  explicit_deps             = dep_table;
-                  explicit_rules            = rules
-                } = info
-            in
-            let { rule_target   = target;
-                  rule_locks    = locks;
-                  rule_sources  = sources;
-                  rule_scanners = scanners;
-                  rule_multiple = multiple
-                } = erule
-            in
-            let target_table   = add_target target_table target erule in
-            let dep_table      = add_deps dep_table target locks sources scanners in
-               { info with explicit_targets  = target_table;
-                           explicit_deps     = dep_table;
-                           explicit_rules    = NodeMTable.add rules target erule
-               }) info (List.rev venv.venv_inner.venv_globals.venv_explicit_rules)
-   in
-      if NodeMTable.is_empty !errors then
-         rules
-      else
-         raise_multiple_error !errors
+         in
+         let info =
+            { explicit_targets      = NodeTable.empty;
+              explicit_deps         = NodeTable.empty;
+              explicit_rules        = NodeMTable.empty;
+              explicit_directories  = venv_directories venv
+            }
+         in
+            venv_explicit_flush venv;
+            List.fold_left (fun info erule ->
+                  let { rule_target   = target;
+                        rule_locks    = locks;
+                        rule_sources  = sources;
+                        rule_scanners = scanners;
+                      } = erule
+                  in
+                  let target_table   = add_target info.explicit_targets target erule in
+                  let dep_table      = add_deps info.explicit_deps target locks sources scanners in
+                     { info with explicit_targets  = target_table;
+                                 explicit_deps     = dep_table;
+                                 explicit_rules    = NodeMTable.add info.explicit_rules target erule
+                     }) info (List.rev venv.venv_inner.venv_globals.venv_explicit_rules)
 
 (*
  * Find all the explicit dependencies listed through null
