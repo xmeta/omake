@@ -425,10 +425,10 @@ public.OCamlScannerPostproc() =
     protected.filename =
     protected.modules[] =
     awk(b, $(stdin))
-    case $'^\(.*\):$'
+    case $'^\(.*\):[[:space:]]*\(.*\)$'
         PrintDependencies($(filename), $(modules))
         filename = $1
-        modules[] =
+        modules[] = $2
         export
     case $'^	\(.*\)'
         # Add the dependency
