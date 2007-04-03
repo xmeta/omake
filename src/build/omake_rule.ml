@@ -811,13 +811,24 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
             let venv = eval_subdirs_rule venv loc sources (exp_list_of_commands venv pos body) in
                venv, ValNone
        | [TargetString ".PHONY"]  ->
-            if commands_are_nontrivial then
-               raise (OmakeException (loc_exp_pos loc, SyntaxError ".PHONY rule cannot have build commands"));
-            if effects <> [] || patterns <> [] || scanners <> [] || values <> [] then
-               raise (OmakeException (loc_exp_pos loc, SyntaxError ".PHONY rule cannot have patterns, effects, scanners, or values"));
-            let sources = List.map snd sources in
-            let venv = venv_add_phony venv loc sources in
-               venv, ValNone
+            let targets, sources =
+               if patterns = [] then
+                  List.map snd sources, []
+               else
+                  patterns, sources
+            in
+            let multiple =
+               if multiple then
+                  RuleMultiple
+               else
+                  RuleSingle
+            in
+            let venv = venv_add_phony venv loc targets in
+               if effects <> [] || sources <> [] || scanners <> [] || values <> [] || commands_are_nontrivial then
+                  let venv, rules = venv_add_rule venv pos loc multiple targets [TargetString "%"] effects sources scanners values commands in
+                     venv, ValRules rules
+               else
+                  venv, ValNone
        | [TargetString ".SCANNER"] ->
             let targets, sources =
                if patterns = [] then
