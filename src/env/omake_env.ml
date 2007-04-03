@@ -48,7 +48,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,7 +69,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -286,6 +286,7 @@ and command_info =
 and irule =
    { irule_loc        : loc;
      irule_multiple   : rule_multiple;
+     irule_targets    : StringSet.t option;
      irule_patterns   : wild_in_patt list;
      irule_locks      : source_core source list;
      irule_sources    : source_core source list;
@@ -2134,6 +2135,14 @@ let compile_source_core venv s =
 let compile_source venv (kind, s) =
    kind, compile_source_core venv s
 
+let compile_implicit3_target pos loc = function
+   TargetString s ->
+      if Lm_string_util.contains_any s Lm_filename_util.separators then
+         raise (OmakeException (loc_pos loc pos, StringStringError ("target of a 3-place rule is a path", s))); 
+      s
+ | target ->
+      raise (OmakeException (loc_pos loc pos, StringTargetError ("target of a 3-place rule is not a simple string", target)))
+
 (*
  * Perform a wild substitution on a source.
  *)
@@ -2843,15 +2852,11 @@ let venv_add_implicit_deps venv pos loc multiple patterns locks sources scanners
 (*
  * Add an implicit rule.
  *)
-let venv_add_implicit_rule venv pos loc multiple patterns locks sources scanners values body =
-   let pos = string_pos "venv_add_implicit_rule" pos in
-   let patterns = List.map (compile_wild_pattern venv pos loc) patterns in
-   let locks = List.map (compile_source venv) locks in
-   let sources = List.map (compile_source venv) sources in
-   let scanners = List.map (compile_source venv) scanners in
+let venv_add_implicit_rule venv loc multiple targets patterns locks sources scanners values body =
    let irule =
       { irule_loc        = loc;
         irule_multiple   = multiple;
+        irule_targets    = targets;
         irule_patterns   = patterns;
         irule_locks      = locks;
         irule_sources    = sources;
@@ -2861,17 +2866,28 @@ let venv_add_implicit_rule venv pos loc multiple patterns locks sources scanners
       }
    in
    let venv = { venv with venv_inner = { venv.venv_inner with venv_implicit_rules = irule :: venv.venv_inner.venv_implicit_rules } } in
-      if debug debug_implicit then
-         eprintf "@[<hv 3>venv_add_implicit_rule:@ @[<b 3>patterns =%a@]@ @[<b 3>sources =%a@]@]@." (**)
-            pp_print_wild_list patterns
-            pp_print_source_list sources;
       venv_flush_target_cache venv;
       venv, []
 
 (*
- * Add a 2-place explicit rule.
+ * Add an 2-place implicit rule.
  *)
-let venv_add_explicit2_rules venv pos loc multiple targets locks sources scanners values body =
+let venv_add_implicit2_rule venv pos loc multiple patterns locks sources scanners values body =
+   let pos = string_pos "venv_add_implicit2_rule" pos in
+   let patterns = List.map (compile_wild_pattern venv pos loc) patterns in
+   let locks = List.map (compile_source venv) locks in
+   let sources = List.map (compile_source venv) sources in
+   let scanners = List.map (compile_source venv) scanners in
+      if debug debug_implicit then
+         eprintf "@[<hv 3>venv_add_implicit2_rule:@ @[<b 3>patterns =%a@]@ @[<b 3>sources =%a@]@]@." (**)
+            pp_print_wild_list patterns
+            pp_print_source_list sources;
+      venv_add_implicit_rule venv loc multiple None patterns locks sources scanners values body
+
+(*
+ * Add an explicit rule.
+ *)
+let venv_add_explicit_rules venv pos loc multiple targets locks sources scanners values body =
    let _pos = string_pos "venv_add_explicit_rule" pos in
    let target_args = List.map (venv_intern_rule_target venv multiple) targets in
    let lock_args = List.map (intern_source venv) locks in
@@ -2900,67 +2916,47 @@ let venv_add_explicit2_rules venv pos loc multiple targets locks sources scanner
       venv, rules
 
 (*
- * Add a 3-place rule.  Add a separate rule for each target.
+ * Add a 3-place rule (automatically implicit).
  *)
-let venv_add_explicit3_rules venv pos loc multiple targets locks patterns sources scanners values body =
-   let pos = string_pos "venv_add_explicit_rule" pos in
-   let patterns_wild = List.map (compile_wild_pattern venv pos loc) patterns in
+let venv_add_implicit3_rule venv pos loc multiple targets locks patterns sources scanners values body =
+   let pos = string_pos "venv_add_implicit3_rule" pos in
+   let patterns = List.map (compile_wild_pattern venv pos loc) patterns in
    let locks = List.map (compile_source venv) locks in
    let sources = List.map (compile_source venv) sources in
    let scanners = List.map (compile_source venv) scanners in
-   let target_list = List.map (venv_intern_rule_target venv multiple) targets in
-   let add_target rules target =
-      let dir = Node.dir target in
-      let target_str = Node.tail target in
-      let rec search patterns =
-         match patterns with
-            pattern :: patterns ->
-               (match wild_match pattern target_str with
-                   Some subst ->
-                      let lock_args    = List.map (subst_source venv dir subst) locks in
-                      let locks        = node_set_of_list lock_args in
-                      let source_args  = List.map (subst_source venv dir subst) sources in
-                      let sources      = node_set_of_list source_args in
-                      let scanner_args = List.map (subst_source venv dir subst) scanners in
-                      let scanners     = node_set_of_list scanner_args in
-                      let effects =
-                         List.fold_left (fun effects pattern ->
-                               let effect = wild_subst_in subst pattern in
-                               let effect = venv_intern_rule_target venv multiple (TargetString effect) in
-                                  NodeSet.add effects effect) NodeSet.empty patterns_wild
-                      in
-                      let core = wild_core subst in
-                      let venv = venv_add_wild_match venv (ValData core) in
-                      let commands = make_command_info venv source_args values body in
-                      let erule =
-                         { rule_loc        = loc;
-                           rule_env        = venv;
-                           rule_target     = target;
-                           rule_effects    = effects;
-                           rule_locks      = locks;
-                           rule_match      = Some core;
-                           rule_sources    = sources;
-                           rule_scanners   = scanners;
-                           rule_multiple   = multiple;
-                           rule_commands   = commands
-                         }
-                      in
-                         erule :: rules
-                 | None ->
-                      search patterns)
-          | [] ->
-               raise (OmakeException (loc_pos loc pos, StringError ("bad match: " ^ target_str)))
-      in
-         search patterns_wild
+   let targets = List.map (compile_implicit3_target pos loc) targets in
+   let rec check_target target = function
+      pattern :: patterns ->
+         begin match wild_match pattern target with
+            Some _ -> ()
+          | None -> check_target target patterns
+         end
+    | [] ->
+         raise (OmakeException (loc_pos loc pos, StringStringError ("bad match", target)))
    in
-   let rules = List.fold_left add_target [] target_list in
-      venv_save_explicit_rules venv loc rules;
-      venv, rules
+   let () = List.iter (fun target -> check_target target patterns) targets in
+      if debug debug_implicit then
+         eprintf "@[<hv 3>venv_add_implicit3_rule:@ @[<b 3>targets =%a@] @[<b 3>patterns =%a@]@ @[<b 3>sources =%a@]@]@." (**)
+            pp_print_string_list targets
+            pp_print_wild_list patterns
+            pp_print_source_list sources;
+      venv_add_implicit_rule venv loc multiple (Some (StringSet.of_list targets)) patterns locks sources scanners values body
+
+let rec is_implicit loc = function
+   [] -> false
+ | [target] -> target_is_wild target
+ | target :: targets ->
+      let imp1 = target_is_wild target in
+      let imp2 = is_implicit loc targets in
+         if imp1 <> imp2 then
+            raise (OmakeException (loc_exp_pos loc, (**)
+               StringError "Rule contains an illegal mixture of implicit (pattern) targets and explicit ones"))
+         else
+            imp1
 
 (*
  * Figure out what to do based on all the parts.
- * A rule is implicit if it has no targets _or_ if the
- * patterns do not contain a %.
+ * A 2-place rule is implicit if the targets do not contain a %. 3-place rules are always implicit.
  *)
 let venv_add_rule venv pos loc multiple targets patterns locks sources scanners values commands =
    let pos = string_pos "venv_add_rule" pos in
@@ -2968,17 +2964,20 @@ let venv_add_rule venv pos loc multiple targets patterns locks sources scanners 
          [], [], _ ->
             raise (OmakeException (loc_exp_pos loc, StringError "invalid null rule"))
        | _, [], [] ->
-            if List.exists target_is_wild targets then
+            if is_implicit loc targets then
                venv_add_implicit_deps venv pos loc multiple targets locks sources scanners values
             else
-               venv_add_explicit2_rules venv pos loc multiple targets locks sources scanners values commands
+               venv_add_explicit_rules venv pos loc multiple targets locks sources scanners values commands
        | _, [], _ ->
-            if List.exists target_is_wild targets then
-               venv_add_implicit_rule venv pos loc multiple targets locks sources scanners values commands
+            if is_implicit loc targets then
+               venv_add_implicit2_rule venv pos loc multiple targets locks sources scanners values commands
             else
-               venv_add_explicit2_rules venv pos loc multiple targets locks sources scanners values commands
+               venv_add_explicit_rules venv pos loc multiple targets locks sources scanners values commands
        | _ ->
-            venv_add_explicit3_rules venv pos loc multiple targets locks patterns sources scanners values commands
+            if not (is_implicit loc patterns) then
+               raise (OmakeException (loc_exp_pos loc, StringError "3-place rule does not contain patterns"))
+            else
+               venv_add_implicit3_rule venv pos loc multiple targets locks patterns sources scanners values commands
       with
          Failure err ->
             raise (OmakeException (loc_exp_pos loc, StringError err))
@@ -3170,55 +3169,62 @@ let venv_find_implicit_rules_inner venv target =
       if debug debug_implicit then
          eprintf "Finding implicit rules for %s@." target_name
    in
+   let rec patt_search = function
+         pattern :: patterns ->
+            begin match wild_match pattern target_name with
+               None -> patt_search patterns
+             | (Some _) as subst -> subst
+            end
+       | [] ->
+            None
+   in
    let rec collect matched = function
       irule :: irules ->
-         let { irule_loc      = loc;
-               irule_multiple = multiple;
-               irule_patterns = patterns;
-               irule_locks    = locks;
-               irule_sources  = sources;
-               irule_scanners = scanners;
-               irule_values   = values;
-               irule_body     = body
-             } = irule
-         in
+         let multiple = irule.irule_multiple in
             if rule_kind multiple = is_scanner then
-               let _ =
-                  if debug debug_implicit then
-                     eprintf "@[<hv 3>venv_find_implicit_rules: considering implicit rule for@ target = %s:@ @[<b 3>patterns =%a@]@ @[<b 3>sources =%a@]@]@." (**)
-                        target_name
-                        pp_print_wild_list patterns
-                        pp_print_source_list sources
-               in
-               let rec search = function
-                  pattern :: patterns ->
-                     let subst = wild_match pattern target_name in
-                        (match subst with
-                            Some _ -> subst
-                          | None -> search patterns)
-                | [] ->
-                     None
+               let subst =
+                  if debug debug_implicit then begin
+                     eprintf "@[<hv 3>venv_find_implicit_rules: considering implicit rule for@ target = %s:@ " target_name;
+                     begin match irule.irule_targets with
+                        Some targets ->
+                           eprintf "@[<b 3>3-place targets =%a@]@ " pp_print_string_list (StringSet.elements targets)
+                      | None ->
+                           ()
+                     end;
+                     eprintf "@[<b 3>patterns =%a@]@ @[<b 3>sources =%a@]@]@." (**)
+                        pp_print_wild_list irule.irule_patterns
+                        pp_print_source_list irule.irule_sources
+                  end;
+                  let matches = 
+                     match irule.irule_targets with
+                        None -> true
+                      | Some targets -> StringSet.mem targets target_name
+                  in
+                     if matches then
+                        patt_search irule.irule_patterns
+                     else
+                        None
                in
                let matched =
-                  match search patterns with
+                  match subst with
                      Some subst ->
-                        let source_args = List.map (subst_source venv target_dir subst) sources in
+                        let source_args = List.map (subst_source venv target_dir subst) irule.irule_sources in
                         let sources = node_set_of_list source_args in
-                        let lock_args = List.map (subst_source venv target_dir subst) locks in
+                        let lock_args = List.map (subst_source venv target_dir subst) irule.irule_locks in
                         let locks = node_set_of_list lock_args in
-                        let scanner_args = List.map (subst_source venv target_dir subst) scanners in
+                        let scanner_args = List.map (subst_source venv target_dir subst) irule.irule_scanners in
                         let scanners = node_set_of_list scanner_args in
                         let core = wild_core subst in
                         let venv = venv_add_wild_match venv (ValData core) in
-                        let commands = make_command_info venv source_args values body in
+                        let commands = make_command_info venv source_args irule.irule_values irule.irule_body in
                         let effects =
                            List.fold_left (fun effects pattern ->
                                  let effect = wild_subst_in subst pattern in
                                  let effect = venv_intern_rule_target venv multiple (TargetString effect) in
-                                    NodeSet.add effects effect) NodeSet.empty patterns
+                                    NodeSet.add effects effect) NodeSet.empty irule.irule_patterns
                         in
                         let erule =
-                           { rule_loc         = loc;
+                           { rule_loc         = irule.irule_loc;
                              rule_env         = venv;
                              rule_target      = target;
                              rule_match       = Some core;

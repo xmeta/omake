@@ -787,10 +787,10 @@ let exp_list_of_commands venv pos commands =
  * Evaluate a rule.  This is the most complicated part of evaluation.
  *
  * There are two types of rules.  Implicit rules are 2-place rules that
- * have a % in the target name.  Explicit rules are 2-place rules
- * that do not have a %, or 3-place rules.
+ * have a % in the target name, or 3-place rules. Explicit rules are 2-place rules
+ * that do not have a %.
  *
- * In a 3-place rule, the targets are always explicit.
+ * In 3-place implicit rules, the targets are always explicit.
  *)
 let rec eval_rule_exp venv pos loc multiple target pattern source options body =
    let pos = string_pos "eval_rule_exp" pos in
