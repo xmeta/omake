@@ -608,28 +608,23 @@ used to build a file \verb+foo.cmo+, then the dependency list would be \verb+foo
 There is also a three-part version of a rule, where the rule specification has three parts.
 
 \begin{verbatim}
-    targets : pattern : dependencies rule-options
+    targets : patterns : dependencies rule-options
        indented-body
 \end{verbatim}
 
-In this case, the pattern \emph{must} contain a single \verb+%+ character.  However this is
-considered to be a sequence of \emph{explicit} rules, where each target is matched against the
-pattern, and a new rule is computed based on the pattern match.  For example, the following rule
-specifies how to build the explicit targets \verb+a.cmo+ and \verb+b.cmo+.
+In this case, the patterns \emph{must} contain a single \verb+%+ character. Three-part rules are
+also considered \emph{implicit}. For example, the following defines a default rule for the
+\verb+clean+ target.
 
 \begin{verbatim}
-    a.cmo b.cmo: %.cmo: %.ml %.mli
-       $(OCAMLC) -c $<
+    .PHONY: clean
+    
+    clean: %:
+        rm -f *$(EXT_OBJ) *$(EXT_LIB)
 \end{verbatim}
 
-This example is equivalent to the following two-rule sequence.
-
-\begin{verbatim}
-    a.cmo: a.ml a.mli
-       $(OCAMLC) -c $<
-    b.cmo: b.ml b.mli
-       $(OCAMLC) -c $<
-\end{verbatim}
+Three-part implicit rules are inherited by the subdirectories in the exact same way as with
+the usual two-part implicit rules.
 
 There are several special targets, including the following.
 
@@ -776,3 +771,4 @@ osh> println($"$X")  # force the evaluation and print
 % TeX-command-default: "LaTeX/dvips Interactive"
 % End:
 % -*-
+% vim:tw=100:fo=tcq:
