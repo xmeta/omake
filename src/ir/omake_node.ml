@@ -650,15 +650,10 @@ let rec relocate_generic add_string contents buf (dirs1 : dir list) (dirs2 : dir
     | _, [] ->
          updirs_generic add_string contents buf dirs1 dirs2
     | dir1 :: dirs1', dir2 :: dirs2'  ->
-         match DirHash.get dir1, DirHash.get dir2 with
-            DirSub (key1, _, _), DirSub (key2, _, _) ->
-               if Filename.equal key1 key2 then
-                  relocate_generic add_string contents buf dirs1' dirs2'
-               else
-                  updirs_generic add_string contents buf dirs1 dirs2
-          | DirRoot _, _
-          | _, DirRoot _ ->
-               raise (Invalid_argument "relocate_generic")
+         if dir1 == dir2 then
+            relocate_generic add_string contents buf dirs1' dirs2'
+         else
+            updirs_generic add_string contents buf dirs1 dirs2
 
 (*
  * If the files differ in the root directory, just use the absolute path.
@@ -726,7 +721,10 @@ let flatten_file dir name =
       flatten_generic dir_add_string (file_contents name) buf dir
 
 let relocate_file dir1 dir2 name =
-   relocate_generic dir_add_string (file_contents name) dir_buffer dir1 dir2
+   if dir1 == dir2 then
+      name
+   else
+      relocate_generic dir_add_string (file_contents name) dir_buffer dir1 dir2
 
 (*
  * Apply a mount point.
@@ -857,11 +855,10 @@ struct
     * Name, relative to the cwd.
     *)
    let name dir1 dir2 =
-      let s = relocate_dir dir1 dir2 in
-         if s = "" then
-            "."
-         else
-            s
+      if dir1 == dir2 then
+         "."
+      else
+         relocate_dir dir1 dir2
 
    (*
     * Name relative to the root.
@@ -999,7 +996,7 @@ struct
     * Get the name.
     *)
    let phony_name name =
-      ".PHONY:" ^ name
+      "<" ^ name ^ ">"
 
    (*
     * Name of the node.
