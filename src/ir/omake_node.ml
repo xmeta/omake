@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech and HRL Laboratories, LLC
+ * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -650,7 +650,7 @@ let rec relocate_generic add_string contents buf (dirs1 : dir list) (dirs2 : dir
     | _, [] ->
          updirs_generic add_string contents buf dirs1 dirs2
     | dir1 :: dirs1', dir2 :: dirs2'  ->
-         if dir1 == dir2 then
+         if DirHash.equal dir1 dir2 then
             relocate_generic add_string contents buf dirs1' dirs2'
          else
             updirs_generic add_string contents buf dirs1 dirs2
@@ -721,7 +721,7 @@ let flatten_file dir name =
       flatten_generic dir_add_string (file_contents name) buf dir
 
 let relocate_file dir1 dir2 name =
-   if dir1 == dir2 then
+   if DirHash.equal dir1 dir2 then
       name
    else
       relocate_generic dir_add_string (file_contents name) dir_buffer dir1 dir2
@@ -855,7 +855,7 @@ struct
     * Name, relative to the cwd.
     *)
    let name dir1 dir2 =
-      if dir1 == dir2 then
+      if DirHash.equal dir1 dir2 then
          "."
       else
          relocate_dir dir1 dir2
