@@ -864,27 +864,57 @@ let stat_reset venv pos loc args =
  *    be built in the current project.
  * \end{itemize}
  *
- * One way to create a simple ``clean'' rule that removes generated files from
+ * \paragraph{Creating a ``distclean'' target}
+ * \label{section:distclean}
+ *
+ * One way to create a simple ``\verb+distclean+'' rule that removes generated files from
  * the project is by removing all files that can be built in the current
- * project.  CAUTION: you should be careful before you do this.  The rule
+ * project.
+ *
+ * \textbf{CAUTION:} you should be careful before you do this.  The rule
  * removes \emph{any} file that can \emph{potentially} be reconstructed.
  * There is no check to make sure that the commands to rebuild the file
  * would actually succeed.  Also, note that no file outside the
  * current project will be deleted.
  *
  * \begin{verbatim}
- *     .PHONY: clean
+ *     .PHONY: distclean
  *
- *     clean:
+ *     distclean:
  *         rm $(filter-proper-targets $(ls R, .))
  * \end{verbatim}
  *
- * See the \verb+dependencies-proper+ function to see an alternate method
- * for removing intermediate files.
+ * If you use CVS, you may wish to utilize the \verb+cvs_realclean+ program that
+ * is distributed with \OMake{} in order to create a ``\verb+distclean+'' rule that would
+ * delete all the files thare are not known to CVS. For example, if you already have a more traditional
+ * ``\verb+clean+'' target defined in your project, and if you want the ``\verb+distclean+'' rule to
+ * be interactive by default, you can write the following:
  *
- * If you use CVS, you may wish to use the \verb+cvs_realclean+ program that
- * is distributed with \verb+omake+.
+ * \begin{verbatim}
+ *     if $(not $(defined FORCE_REALCLEAN))
+ *         FORCE_REALCLEAN = false
+ *         export
+ *     
+ *     distclean: clean
+ *         cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+ * \end{verbatim}
+ * 
+ * You can add more files that you want to always keep (such as configuration files) with the -i option.
  *
+ * Similarly, if you use Subversion, you utilize the \verb+build/svn_realclean.om+ script that comes with \OMake:
+ *
+ * \begin{verbatim}
+ *     if $(not $(defined FORCE_REALCLEAN))
+ *         FORCE_REALCLEAN = false
+ *         export
+ *         
+ *     open build/svn_realclean
+ *     
+ *     distclean: clean
+ *         svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+ * \end{verbatim}
+ *
+ * See also the \hyperfun{dependencies-proper} for an alternate method for removing intermediate files.
  * \end{doc}
  *)
 let filter_nodes node_exists venv pos loc args =

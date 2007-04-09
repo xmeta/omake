@@ -93,22 +93,27 @@ open Pos
  * in the current project.
  *
  * In all three functions, files that are not part of the current project are silently
- * discarded.
+ * discarded. All three functions will return phony and scanner targets along with the 
+ * ``real'' ones.
  *
  * One purpose of the \verb+dependencies-proper+ function is for ``clean'' targets.
  * For example, one way to delete all intermediate files in a build is with a rule
  * that uses the \verb+dependencies-proper+.  Note however, that the rule requires
- * building the project before it can be deleted.  For a shorter form, see the
- * \hyperfun{filter-proper-targets}.
+ * building the project before it can be deleted.
  *
  * \begin{verbatim}
  *     .PHONY: clean
  *
  *     APP = ...     # the name of the target application
  *     clean: $(APP)
- *        rm $(dependencies-proper $(APP))
+ *        rm -f $(dependencies-proper $(APP))
  * \end{verbatim}
  *
+ * Also note that the \verb+dependencies-proper+ function will return the phony and scanner
+ * targets in addition to real one.
+ *
+ * For other (possibly better) alternatives, see Section~\ref{section:distclean} and
+ * \hyperfun{filter-proper-targets}.
  * \end{doc}
  *)
 let dependencies venv pos loc args =
