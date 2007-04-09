@@ -1415,26 +1415,21 @@ the pattern match. For example, if this rule were used to build a file
 `foo.cmo', then the dependency list would be `foo.ml foo.mli'.
   There is also a three-part version of a rule, where the rule
 specification has three parts.
-<<    targets : pattern : dependencies rule-options
+<<    targets : patterns : dependencies rule-options
          indented-body
 >>
   
-  In this case, the pattern must contain a single `%' character. However
-this is considered to be a sequence of explicit rules, where each target
-is matched against the pattern, and a new rule is computed based on the
-pattern match. For example, the following rule specifies how to build
-the explicit targets `a.cmo' and `b.cmo'.
-<<    a.cmo b.cmo: %.cmo: %.ml %.mli
-         $(OCAMLC) -c $<
+  In this case, the patterns must contain a single `%' character.
+Three-part rules are also considered implicit. For example, the
+following defines a default rule for the `clean' target.
+<<    .PHONY: clean
+      
+      clean: %:
+          rm -f *$(EXT_OBJ) *$(EXT_LIB)
 >>
   
-  This example is equivalent to the following two-rule sequence.
-<<    a.cmo: a.ml a.mli
-         $(OCAMLC) -c $<
-      b.cmo: b.ml b.mli
-         $(OCAMLC) -c $<
->>
-  
+  Three-part implicit rules are inherited by the subdirectories in the
+exact same way as with the usual two-part implicit rules.
   There are several special targets, including the following.
   
   

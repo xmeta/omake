@@ -113,16 +113,19 @@ ones.</P><P>The <CODE>dependencies-proper</CODE> function returns all recursive 
 the dependencies that are leaf targets. A leaf target is a target that has no
 dependencies and no build commands; a leaf target corresponds to a source file
 in the current project.</P><P>In all three functions, files that are not part of the current project are silently
-discarded.</P><P>One purpose of the <CODE>dependencies-proper</CODE> function is for &#X201C;clean&#X201D; targets.
+discarded. All three functions will return phony and scanner targets along with the 
+&#X201C;real&#X201D; ones.</P><P>One purpose of the <CODE>dependencies-proper</CODE> function is for &#X201C;clean&#X201D; targets.
 For example, one way to delete all intermediate files in a build is with a rule
 that uses the <CODE>dependencies-proper</CODE>. Note however, that the rule requires
-building the project before it can be deleted. For a shorter form, see the
-<CODE>filter-proper-targets</CODE> function.</P><PRE CLASS="verbatim">    .PHONY: clean
+building the project before it can be deleted.</P><PRE CLASS="verbatim">    .PHONY: clean
 
     APP = ...     # the name of the target application
     clean: $(APP)
-       rm $(dependencies-proper $(APP))
-</PRE><H3 CLASS="subsection"><A NAME="htoc342">12.3.2</A>&#XA0;&#XA0;target</H3><P><A NAME="fun:target"></A><A NAME="@default357"></A><A NAME="@fun232"></A>
+       rm -f $(dependencies-proper $(APP))
+</PRE><P>Also note that the <CODE>dependencies-proper</CODE> function will return the phony and scanner
+targets in addition to real one.</P><P>For other (possibly better) alternatives, see Section&#XA0;<A HREF="omake-system.html#section:distclean">9.3.3</A> and
+<A HREF="omake-system.html#fun:filter-proper-targets"><CODE>filter-proper-targets</CODE> function</A>.
+</P><H3 CLASS="subsection"><A NAME="htoc342">12.3.2</A>&#XA0;&#XA0;target</H3><P><A NAME="fun:target"></A><A NAME="@default357"></A><A NAME="@fun232"></A>
 </P><PRE CLASS="verbatim">   $(target targets) : Target Array
       targets : File Sequence
    raises RuntimeException

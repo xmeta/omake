@@ -1,5 +1,40 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Section 9-3
+  
+
+9.3.4   find-targets-in-path, find-targets-in-path-optional
+===========================================================
+
+<<    $(find-targets-in-path path files) : File Array
+      $(find-targets-in-path-optional path, files) : File Array
+          path : Dir Array
+          files : File Sequence
+>>
+  
+  The `find-target-in-path' function searches for targets in the search
+path. For each file `file' in the file list, the path is searched
+sequentially for a directory `dir' such that the target `dir/file'
+exists. If so, the file `dir/file' is returned.
+  For example, suppose you are building a C project, and project
+contains a subdirectory `src/' containing only the files `fee.c' and
+`foo.c'. The following expression evaluates to the files `src/fee.o'
+`src/foo.o' even if the files have not already been built.
+<<    $(find-targets-in-path lib src, fee.o foo.o)
+  
+      # Evaluates to
+      src/fee.o src/foo.o
+>>
+  
+  The `find-targets-in-path' function raises an exception if the file
+can't be found. The `find-targets-in-path-optional' function silently
+removes targets that can't be found.
+<<    $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+  
+      # Evaluates to
+      src/fee.o src/foo.o
+>>
+
 Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
   
 

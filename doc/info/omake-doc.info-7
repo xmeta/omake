@@ -205,19 +205,24 @@ except the dependencies that are leaf targets. A leaf target is a target
 that has no dependencies and no build commands; a leaf target
 corresponds to a source file in the current project.
   In all three functions, files that are not part of the current project
-are silently discarded.
+are silently discarded. All three functions will return phony and
+scanner targets along with the  "real" ones.
   One purpose of the `dependencies-proper' function is for "clean"
 targets. For example, one way to delete all intermediate files in a
 build is with a rule that uses the `dependencies-proper'. Note however,
 that the rule requires building the project before it can be deleted.
-For a shorter form, see the `filter-proper-targets' function.
 <<    .PHONY: clean
   
       APP = ...     # the name of the target application
       clean: $(APP)
-         rm $(dependencies-proper $(APP))
+         rm -f $(dependencies-proper $(APP))
 >>
   
+  Also note that the `dependencies-proper' function will return the
+phony and scanner targets in addition to real one.
+  For other (possibly better) alternatives, see Section
+9.3.3*Note Subsection 9-3-3:: and 'filter-proper-targets'
+function. 
 
 Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: Section 12-3
   

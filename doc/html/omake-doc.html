@@ -43,7 +43,7 @@ CODE{padding-left:0.2ex; padding-right:0.2ex; background:#eef7ff;}
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
 <!--ENDHTML-->
-<!--CUT DEF chapter 1 --><TABLE CLASS="title"><TR><TD><H1 CLASS="titlemain">The OMake user guide and reference manual</H1><H3 CLASS="titlerest">Jason Hickey, Aleksey Nogin, <EM>et. al.</EM></H3><H3 CLASS="titlerest">15<SUP>th</SUP>March,&#XA0;2007</H3></TD></TR>
+<!--CUT DEF chapter 1 --><TABLE CLASS="title"><TR><TD><H1 CLASS="titlemain">The OMake user guide and reference manual</H1><H3 CLASS="titlerest">Jason Hickey, Aleksey Nogin, <EM>et. al.</EM></H3><H3 CLASS="titlerest">9<SUP>th</SUP>April,&#XA0;2007</H3></TD></TR>
 </TABLE><P>
 <A HREF="omake-doc.html">All the documentation on a single page</A></P><P><B>OMake table of contents</B>
 </P><!--TOC chapter Contents-->
@@ -1388,7 +1388,7 @@ and the <CODE>CatProgram</CODE> function specifies how to build the executable.<
     .DEFAULT: $(CatProgram rover, neko chat)
 </PRE><!--TOC subsection Dependency scanning-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc22">3.4.3</A>&#XA0;&#XA0;Dependency scanning</H3><!--SEC END --><P>
-<A NAME="sec:scanner-exm"></A><A NAME="@default8"></A></P><P>That's it, almost. The part we left out was automated dependency scanning. This is one of the
+<A NAME="section:scanner-exm"></A><A NAME="@default8"></A></P><P>That's it, almost. The part we left out was automated dependency scanning. This is one of the
 nicer features of OMake, and one that makes build specifications easier to write and more robust.
 Strictly speaking, it isn't required, but you definitely want to do it.</P><P>The mechanism is to define a <CODE>.SCANNER</CODE> rule, which is like a normal rule, but it specifies how
 to compute dependencies, not the target itself. In this case, we want to define a <CODE>.SCANNER</CODE>
@@ -2893,7 +2893,7 @@ content that OMake will not be able to parse as a dependency. The output is allo
 dependency specifications for unrelated targets, however such dependencies will be ignored. The
 scanner rules are allowed to produce arbitrary output on the standard error channel &#X2014; such output
 will be handled in the same way as the output of the ordinary rules (in other words, it will be
-presented to the user, when dictated by the <CODE>--output-</CODE>&#X2026; options enabled).</P><P>Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&#XA0;<A HREF="#sec:scanner-exm">3.4.3</A>.</P><!--TOC subsection Named scanners, and the <CODE>:scanner:</CODE> dependencies-->
+presented to the user, when dictated by the <CODE>--output-</CODE>&#X2026; options enabled).</P><P>Additional examples of the <CODE>.SCANNER</CODE> rules can be found in Section&#XA0;<A HREF="#section:scanner-exm">3.4.3</A>.</P><!--TOC subsection Named scanners, and the <CODE>:scanner:</CODE> dependencies-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc80">7.6.1</A>&#XA0;&#XA0;Named scanners, and the <CODE>:scanner:</CODE> dependencies</H3><!--SEC END --><P>
 <A NAME="@default47"></A></P><P>Sometimes it may be useful to specify explicitly which scanner should be used in a rule. For
 example, we might compile <CODE>.c</CODE> files with different options, or (heaven help us) we may be
@@ -4129,19 +4129,38 @@ functions remove files from a list of files.
 can be built by the current project.
 </LI><LI CLASS="li-itemize"><CODE>filter-proper-targets</CODE>: the result is the list of files that can
 be built in the current project.
-</LI></UL><P>One way to create a simple &#X201C;clean&#X201D; rule that removes generated files from
+</LI></UL><!--TOC paragraph Creating a &#X201C;distclean&#X201D; target-->
+<H5 CLASS="paragraph"><!--SEC ANCHOR -->Creating a &#X201C;distclean&#X201D; target</H5><!--SEC END --><P>
+<A NAME="section:distclean"></A></P><P>One way to create a simple &#X201C;<CODE>distclean</CODE>&#X201D; rule that removes generated files from
 the project is by removing all files that can be built in the current
-project. CAUTION: you should be careful before you do this. The rule
+project.</P><P><B>CAUTION:</B> you should be careful before you do this. The rule
 removes <EM>any</EM> file that can <EM>potentially</EM> be reconstructed.
 There is no check to make sure that the commands to rebuild the file
 would actually succeed. Also, note that no file outside the
-current project will be deleted.</P><PRE CLASS="verbatim">    .PHONY: clean
+current project will be deleted.</P><PRE CLASS="verbatim">    .PHONY: distclean
 
-    clean:
+    distclean:
         rm $(filter-proper-targets $(ls R, .))
-</PRE><P>See the <CODE>dependencies-proper</CODE> function to see an alternate method
-for removing intermediate files.</P><P>If you use CVS, you may wish to use the <CODE>cvs_realclean</CODE> program that
-is distributed with <CODE>omake</CODE>.</P><!--TOC subsection find-targets-in-path, find-targets-in-path-optional-->
+</PRE><P>If you use CVS, you may wish to utilize the <CODE>cvs_realclean</CODE> program that
+is distributed with OMake in order to create a &#X201C;<CODE>distclean</CODE>&#X201D; rule that would
+delete all the files thare are not known to CVS. For example, if you already have a more traditional
+&#X201C;<CODE>clean</CODE>&#X201D; target defined in your project, and if you want the &#X201C;<CODE>distclean</CODE>&#X201D; rule to
+be interactive by default, you can write the following:</P><PRE CLASS="verbatim">    if $(not $(defined FORCE_REALCLEAN))
+        FORCE_REALCLEAN = false
+        export
+    
+    distclean: clean
+        cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+</PRE><P>You can add more files that you want to always keep (such as configuration files) with the -i option.</P><P>Similarly, if you use Subversion, you utilize the <CODE>build/svn_realclean.om</CODE> script that comes with OMake:</P><PRE CLASS="verbatim">    if $(not $(defined FORCE_REALCLEAN))
+        FORCE_REALCLEAN = false
+        export
+        
+    open build/svn_realclean
+    
+    distclean: clean
+        svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+</PRE><P>See also the <A HREF="#fun:dependencies-proper"><CODE>dependencies-proper</CODE> function</A> for an alternate method for removing intermediate files.
+</P><!--TOC subsection find-targets-in-path, find-targets-in-path-optional-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc194">9.3.4</A>&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</H3><!--SEC END --><P><A NAME="fun:find-targets-in-path"></A><A NAME="@default202"></A><A NAME="@fun130"></A><A NAME="fun:find-targets-in-path-optional"></A><A NAME="@default203"></A><A NAME="@fun131"></A></P><PRE CLASS="verbatim">    $(find-targets-in-path path files) : File Array
     $(find-targets-in-path-optional path, files) : File Array
         path : Dir Array
@@ -6029,16 +6048,19 @@ ones.</P><P>The <CODE>dependencies-proper</CODE> function returns all recursive 
 the dependencies that are leaf targets. A leaf target is a target that has no
 dependencies and no build commands; a leaf target corresponds to a source file
 in the current project.</P><P>In all three functions, files that are not part of the current project are silently
-discarded.</P><P>One purpose of the <CODE>dependencies-proper</CODE> function is for &#X201C;clean&#X201D; targets.
+discarded. All three functions will return phony and scanner targets along with the 
+&#X201C;real&#X201D; ones.</P><P>One purpose of the <CODE>dependencies-proper</CODE> function is for &#X201C;clean&#X201D; targets.
 For example, one way to delete all intermediate files in a build is with a rule
 that uses the <CODE>dependencies-proper</CODE>. Note however, that the rule requires
-building the project before it can be deleted. For a shorter form, see the
-<CODE>filter-proper-targets</CODE> function.</P><PRE CLASS="verbatim">    .PHONY: clean
+building the project before it can be deleted.</P><PRE CLASS="verbatim">    .PHONY: clean
 
     APP = ...     # the name of the target application
     clean: $(APP)
-       rm $(dependencies-proper $(APP))
-</PRE><!--TOC subsection target-->
+       rm -f $(dependencies-proper $(APP))
+</PRE><P>Also note that the <CODE>dependencies-proper</CODE> function will return the phony and scanner
+targets in addition to real one.</P><P>For other (possibly better) alternatives, see Section&#XA0;<A HREF="#section:distclean">9.3.3</A> and
+<A HREF="#fun:filter-proper-targets"><CODE>filter-proper-targets</CODE> function</A>.
+</P><!--TOC subsection target-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc342">12.3.2</A>&#XA0;&#XA0;target</H3><!--SEC END --><P><A NAME="fun:target"></A><A NAME="@default357"></A><A NAME="@fun232"></A>
 </P><PRE CLASS="verbatim">   $(target targets) : Target Array
       targets : File Sequence
@@ -7286,18 +7308,16 @@ default rule for compiling OCaml files.</P><PRE CLASS="verbatim">    %.cmo: %.ml
        $(OCAMLC) -c $&lt;
 </PRE><P>This rule would be consulted as a default way of building any file with a <CODE>.cmo</CODE> suffix. The
 dependencies list is also constructed based on the pattern match. For example, if this rule were
-used to build a file <CODE>foo.cmo</CODE>, then the dependency list would be <CODE>foo.ml foo.mli</CODE>.</P><P>There is also a three-part version of a rule, where the rule specification has three parts.</P><PRE CLASS="verbatim">    targets : pattern : dependencies rule-options
+used to build a file <CODE>foo.cmo</CODE>, then the dependency list would be <CODE>foo.ml foo.mli</CODE>.</P><P>There is also a three-part version of a rule, where the rule specification has three parts.</P><PRE CLASS="verbatim">    targets : patterns : dependencies rule-options
        indented-body
-</PRE><P>In this case, the pattern <EM>must</EM> contain a single <CODE>%</CODE> character. However this is
-considered to be a sequence of <EM>explicit</EM> rules, where each target is matched against the
-pattern, and a new rule is computed based on the pattern match. For example, the following rule
-specifies how to build the explicit targets <CODE>a.cmo</CODE> and <CODE>b.cmo</CODE>.</P><PRE CLASS="verbatim">    a.cmo b.cmo: %.cmo: %.ml %.mli
-       $(OCAMLC) -c $&lt;
-</PRE><P>This example is equivalent to the following two-rule sequence.</P><PRE CLASS="verbatim">    a.cmo: a.ml a.mli
-       $(OCAMLC) -c $&lt;
-    b.cmo: b.ml b.mli
-       $(OCAMLC) -c $&lt;
-</PRE><P>There are several special targets, including the following.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</PRE><P>In this case, the patterns <EM>must</EM> contain a single <CODE>%</CODE> character. Three-part rules are
+also considered <EM>implicit</EM>. For example, the following defines a default rule for the
+<CODE>clean</CODE> target.</P><PRE CLASS="verbatim">    .PHONY: clean
+    
+    clean: %:
+        rm -f *$(EXT_OBJ) *$(EXT_LIB)
+</PRE><P>Three-part implicit rules are inherited by the subdirectories in the exact same way as with
+the usual two-part implicit rules.</P><P>There are several special targets, including the following.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>.PHONY</CODE> : declare a &#X201C;phony&#X201D; target. That is, the target does not correspond to a file.
 </LI><LI CLASS="li-itemize"><CODE>.ORDER</CODE> : declare a rule for dependency ordering.
 </LI><LI CLASS="li-itemize"><CODE>.INCLUDE</CODE> : define a rule to generate a file for textual inclusion.
@@ -8600,7 +8620,7 @@ Array, <A HREF="#@obj14">11.1.7</A>
 <H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc473">C.1</A>&#XA0;&#XA0;See Also</H2><!--SEC END --><P>omake(1) (Chapter&#XA0;<A HREF="#chapter:omake">1</A>),
 osh(1) (Chapter&#XA0;<A HREF="#chapter:osh">14</A>),
 make(1)</P><!--TOC section Version-->
-<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc474">C.2</A>&#XA0;&#XA0;Version</H2><!--SEC END --><P>Version: 0.9.8.1 of 15<SUP>th</SUP>March,&#XA0;2007.</P><!--TOC section License and Copyright-->
+<H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc474">C.2</A>&#XA0;&#XA0;Version</H2><!--SEC END --><P>Version: 0.9.8.1 of 9<SUP>th</SUP>April,&#XA0;2007.</P><!--TOC section License and Copyright-->
 <H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc475">C.3</A>&#XA0;&#XA0;License and Copyright</H2><!--SEC END --><P>&#XA9; 2003-2006, Mojave Group, Caltech</P><P>This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; version 2

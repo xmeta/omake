@@ -352,18 +352,16 @@ default rule for compiling OCaml files.</P><PRE CLASS="verbatim">    %.cmo: %.ml
        $(OCAMLC) -c $&lt;
 </PRE><P>This rule would be consulted as a default way of building any file with a <CODE>.cmo</CODE> suffix. The
 dependencies list is also constructed based on the pattern match. For example, if this rule were
-used to build a file <CODE>foo.cmo</CODE>, then the dependency list would be <CODE>foo.ml foo.mli</CODE>.</P><P>There is also a three-part version of a rule, where the rule specification has three parts.</P><PRE CLASS="verbatim">    targets : pattern : dependencies rule-options
+used to build a file <CODE>foo.cmo</CODE>, then the dependency list would be <CODE>foo.ml foo.mli</CODE>.</P><P>There is also a three-part version of a rule, where the rule specification has three parts.</P><PRE CLASS="verbatim">    targets : patterns : dependencies rule-options
        indented-body
-</PRE><P>In this case, the pattern <EM>must</EM> contain a single <CODE>%</CODE> character. However this is
-considered to be a sequence of <EM>explicit</EM> rules, where each target is matched against the
-pattern, and a new rule is computed based on the pattern match. For example, the following rule
-specifies how to build the explicit targets <CODE>a.cmo</CODE> and <CODE>b.cmo</CODE>.</P><PRE CLASS="verbatim">    a.cmo b.cmo: %.cmo: %.ml %.mli
-       $(OCAMLC) -c $&lt;
-</PRE><P>This example is equivalent to the following two-rule sequence.</P><PRE CLASS="verbatim">    a.cmo: a.ml a.mli
-       $(OCAMLC) -c $&lt;
-    b.cmo: b.ml b.mli
-       $(OCAMLC) -c $&lt;
-</PRE><P>There are several special targets, including the following.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</PRE><P>In this case, the patterns <EM>must</EM> contain a single <CODE>%</CODE> character. Three-part rules are
+also considered <EM>implicit</EM>. For example, the following defines a default rule for the
+<CODE>clean</CODE> target.</P><PRE CLASS="verbatim">    .PHONY: clean
+    
+    clean: %:
+        rm -f *$(EXT_OBJ) *$(EXT_LIB)
+</PRE><P>Three-part implicit rules are inherited by the subdirectories in the exact same way as with
+the usual two-part implicit rules.</P><P>There are several special targets, including the following.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>.PHONY</CODE> : declare a &#X201C;phony&#X201D; target. That is, the target does not correspond to a file.
 </LI><LI CLASS="li-itemize"><CODE>.ORDER</CODE> : declare a rule for dependency ordering.
 </LI><LI CLASS="li-itemize"><CODE>.INCLUDE</CODE> : define a rule to generate a file for textual inclusion.

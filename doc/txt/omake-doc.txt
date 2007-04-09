@@ -1,12 +1,12 @@
-   
+     
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                            15^thMarch, 2007
-                            ================
+                            9^thApril, 2007
+                            ===============
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -6118,24 +6118,53 @@ functions remove files from a list of files.
  - `filter-proper-targets': the result is the list of files that can be
    built in the current project. 
   
-  One way to create a simple "clean" rule that removes generated files
-from the project is by removing all files that can be built in the
-current project. CAUTION: you should be careful before you do this. The
-rule removes any file that can potentially be reconstructed. There is no
-check to make sure that the commands to rebuild the file would actually
-succeed. Also, note that no file outside the current project will be
-deleted.
-<<    .PHONY: clean
+Creating a "distclean" target
+   
+  One way to create a simple "`distclean'" rule that removes generated
+files from the project is by removing all files that can be built in the
+current project.
+  CAUTION: you should be careful before you do this. The rule removes
+any file that can potentially be reconstructed. There is no check to
+make sure that the commands to rebuild the file would actually succeed.
+Also, note that no file outside the current project will be deleted.
+<<    .PHONY: distclean
   
-      clean:
+      distclean:
           rm $(filter-proper-targets $(ls R, .))
 >>
   
-  See the `dependencies-proper' function to see an alternate method for
-removing intermediate files.
-  If you use CVS, you may wish to use the `cvs_realclean' program that
-is distributed with `omake'.
+  If you use CVS, you may wish to utilize the `cvs_realclean' program
+that is distributed with OMake in order to create a "`distclean'" rule
+that would delete all the files thare are not known to CVS. For example,
+if you already have a more traditional "`clean'" target defined in your
+project, and if you want the "`distclean'" rule to be interactive by
+default, you can write the following:
+<<    if $(not $(defined FORCE_REALCLEAN))
+          FORCE_REALCLEAN = false
+          export
+      
+      distclean: clean
+          cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i
+.omakedb.lock
+>>
   
+  You can add more files that you want to always keep (such as
+configuration files) with the -i option.
+  Similarly, if you use Subversion, you utilize the
+`build/svn_realclean.om' script that comes with OMake:
+<<    if $(not $(defined FORCE_REALCLEAN))
+          FORCE_REALCLEAN = false
+          export
+          
+      open build/svn_realclean
+      
+      distclean: clean
+          svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i
+.omakedb.lock
+>>
+  
+  See also the 'dependencies-proper' function for an alternate method
+for removing intermediate files.
 
 9.3.4  find-targets-in-path, find-targets-in-path-optional
 ==========================================================
@@ -9175,20 +9204,23 @@ except the dependencies that are leaf targets. A leaf target is a target
 that has no dependencies and no build commands; a leaf target
 corresponds to a source file in the current project.
   In all three functions, files that are not part of the current project
-are silently discarded.
+are silently discarded. All three functions will return phony and
+scanner targets along with the  "real" ones.
   One purpose of the `dependencies-proper' function is for "clean"
 targets. For example, one way to delete all intermediate files in a
 build is with a rule that uses the `dependencies-proper'. Note however,
 that the rule requires building the project before it can be deleted.
-For a shorter form, see the `filter-proper-targets' function.
 <<    .PHONY: clean
   
       APP = ...     # the name of the target application
       clean: $(APP)
-         rm $(dependencies-proper $(APP))
+         rm -f $(dependencies-proper $(APP))
 >>
   
-  
+  Also note that the `dependencies-proper' function will return the
+phony and scanner targets in addition to real one.
+  For other (possibly better) alternatives, see Section 9.3.3 and
+'filter-proper-targets' function.
 
 12.3.2  target
 ==============
@@ -11439,26 +11471,21 @@ the pattern match. For example, if this rule were used to build a file
 `foo.cmo', then the dependency list would be `foo.ml foo.mli'.
   There is also a three-part version of a rule, where the rule
 specification has three parts.
-<<    targets : pattern : dependencies rule-options
+<<    targets : patterns : dependencies rule-options
          indented-body
 >>
   
-  In this case, the pattern must contain a single `%' character. However
-this is considered to be a sequence of explicit rules, where each target
-is matched against the pattern, and a new rule is computed based on the
-pattern match. For example, the following rule specifies how to build
-the explicit targets `a.cmo' and `b.cmo'.
-<<    a.cmo b.cmo: %.cmo: %.ml %.mli
-         $(OCAMLC) -c $<
+  In this case, the patterns must contain a single `%' character.
+Three-part rules are also considered implicit. For example, the
+following defines a default rule for the `clean' target.
+<<    .PHONY: clean
+      
+      clean: %:
+          rm -f *$(EXT_OBJ) *$(EXT_LIB)
 >>
   
-  This example is equivalent to the following two-rule sequence.
-<<    a.cmo: a.ml a.mli
-         $(OCAMLC) -c $<
-      b.cmo: b.ml b.mli
-         $(OCAMLC) -c $<
->>
-  
+  Three-part implicit rules are inherited by the subdirectories in the
+exact same way as with the usual two-part implicit rules.
   There are several special targets, including the following.
   
   
@@ -12749,7 +12776,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.1 of 15^thMarch, 2007.
+  Version: 0.9.8.1 of 9^thApril, 2007.
   
 
 C.3  License and Copyright

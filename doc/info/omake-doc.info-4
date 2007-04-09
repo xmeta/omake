@@ -1743,55 +1743,50 @@ functions remove files from a list of files.
  - `filter-proper-targets': the result is the list of files that can be
    built in the current project. 
   
-  One way to create a simple "clean" rule that removes generated files
-from the project is by removing all files that can be built in the
-current project. CAUTION: you should be careful before you do this. The
-rule removes any file that can potentially be reconstructed. There is no
-check to make sure that the commands to rebuild the file would actually
-succeed. Also, note that no file outside the current project will be
-deleted.
-<<    .PHONY: clean
+ Creating a "distclean" target
+   
+  One way to create a simple "`distclean'" rule that removes generated
+files from the project is by removing all files that can be built in the
+current project.
+  CAUTION: you should be careful before you do this. The rule removes
+any file that can potentially be reconstructed. There is no check to
+make sure that the commands to rebuild the file would actually succeed.
+Also, note that no file outside the current project will be deleted.
+<<    .PHONY: distclean
   
-      clean:
+      distclean:
           rm $(filter-proper-targets $(ls R, .))
 >>
   
-  See the `dependencies-proper' function to see an alternate method for
-removing intermediate files.
-  If you use CVS, you may wish to use the `cvs_realclean' program that
-is distributed with `omake'.
-
-Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Section 9-3
-  
-
-9.3.4   find-targets-in-path, find-targets-in-path-optional
-===========================================================
-
-<<    $(find-targets-in-path path files) : File Array
-      $(find-targets-in-path-optional path, files) : File Array
-          path : Dir Array
-          files : File Sequence
+  If you use CVS, you may wish to utilize the `cvs_realclean' program
+that is distributed with OMake in order to create a "`distclean'" rule
+that would delete all the files thare are not known to CVS. For example,
+if you already have a more traditional "`clean'" target defined in your
+project, and if you want the "`distclean'" rule to be interactive by
+default, you can write the following:
+<<    if $(not $(defined FORCE_REALCLEAN))
+          FORCE_REALCLEAN = false
+          export
+      
+      distclean: clean
+          cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i
+.omakedb.lock
 >>
   
-  The `find-target-in-path' function searches for targets in the search
-path. For each file `file' in the file list, the path is searched
-sequentially for a directory `dir' such that the target `dir/file'
-exists. If so, the file `dir/file' is returned.
-  For example, suppose you are building a C project, and project
-contains a subdirectory `src/' containing only the files `fee.c' and
-`foo.c'. The following expression evaluates to the files `src/fee.o'
-`src/foo.o' even if the files have not already been built.
-<<    $(find-targets-in-path lib src, fee.o foo.o)
-  
-      # Evaluates to
-      src/fee.o src/foo.o
+  You can add more files that you want to always keep (such as
+configuration files) with the -i option.
+  Similarly, if you use Subversion, you utilize the
+`build/svn_realclean.om' script that comes with OMake:
+<<    if $(not $(defined FORCE_REALCLEAN))
+          FORCE_REALCLEAN = false
+          export
+          
+      open build/svn_realclean
+      
+      distclean: clean
+          svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i
+.omakedb.lock
 >>
   
-  The `find-targets-in-path' function raises an exception if the file
-can't be found. The `find-targets-in-path-optional' function silently
-removes targets that can't be found.
-<<    $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
-  
-      # Evaluates to
-      src/fee.o src/foo.o
->>
+  See also the 'dependencies-proper' function for an alternate method
+for removing intermediate files. 

@@ -192,19 +192,37 @@ functions remove files from a list of files.
 can be built by the current project.
 </LI><LI CLASS="li-itemize"><CODE>filter-proper-targets</CODE>: the result is the list of files that can
 be built in the current project.
-</LI></UL><P>One way to create a simple &#X201C;clean&#X201D; rule that removes generated files from
+</LI></UL><H5 CLASS="paragraph">Creating a &#X201C;distclean&#X201D; target</H5><P>
+<A NAME="section:distclean"></A></P><P>One way to create a simple &#X201C;<CODE>distclean</CODE>&#X201D; rule that removes generated files from
 the project is by removing all files that can be built in the current
-project. CAUTION: you should be careful before you do this. The rule
+project.</P><P><B>CAUTION:</B> you should be careful before you do this. The rule
 removes <EM>any</EM> file that can <EM>potentially</EM> be reconstructed.
 There is no check to make sure that the commands to rebuild the file
 would actually succeed. Also, note that no file outside the
-current project will be deleted.</P><PRE CLASS="verbatim">    .PHONY: clean
+current project will be deleted.</P><PRE CLASS="verbatim">    .PHONY: distclean
 
-    clean:
+    distclean:
         rm $(filter-proper-targets $(ls R, .))
-</PRE><P>See the <CODE>dependencies-proper</CODE> function to see an alternate method
-for removing intermediate files.</P><P>If you use CVS, you may wish to use the <CODE>cvs_realclean</CODE> program that
-is distributed with <CODE>omake</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc194">9.3.4</A>&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</H3><P><A NAME="fun:find-targets-in-path"></A><A NAME="@default202"></A><A NAME="@fun130"></A><A NAME="fun:find-targets-in-path-optional"></A><A NAME="@default203"></A><A NAME="@fun131"></A></P><PRE CLASS="verbatim">    $(find-targets-in-path path files) : File Array
+</PRE><P>If you use CVS, you may wish to utilize the <CODE>cvs_realclean</CODE> program that
+is distributed with OMake in order to create a &#X201C;<CODE>distclean</CODE>&#X201D; rule that would
+delete all the files thare are not known to CVS. For example, if you already have a more traditional
+&#X201C;<CODE>clean</CODE>&#X201D; target defined in your project, and if you want the &#X201C;<CODE>distclean</CODE>&#X201D; rule to
+be interactive by default, you can write the following:</P><PRE CLASS="verbatim">    if $(not $(defined FORCE_REALCLEAN))
+        FORCE_REALCLEAN = false
+        export
+    
+    distclean: clean
+        cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+</PRE><P>You can add more files that you want to always keep (such as configuration files) with the -i option.</P><P>Similarly, if you use Subversion, you utilize the <CODE>build/svn_realclean.om</CODE> script that comes with OMake:</P><PRE CLASS="verbatim">    if $(not $(defined FORCE_REALCLEAN))
+        FORCE_REALCLEAN = false
+        export
+        
+    open build/svn_realclean
+    
+    distclean: clean
+        svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
+</PRE><P>See also the <A HREF="omake-build.html#fun:dependencies-proper"><CODE>dependencies-proper</CODE> function</A> for an alternate method for removing intermediate files.
+</P><H3 CLASS="subsection"><A NAME="htoc194">9.3.4</A>&#XA0;&#XA0;find-targets-in-path, find-targets-in-path-optional</H3><P><A NAME="fun:find-targets-in-path"></A><A NAME="@default202"></A><A NAME="@fun130"></A><A NAME="fun:find-targets-in-path-optional"></A><A NAME="@default203"></A><A NAME="@fun131"></A></P><PRE CLASS="verbatim">    $(find-targets-in-path path files) : File Array
     $(find-targets-in-path-optional path, files) : File Array
         path : Dir Array
         files : File Sequence
