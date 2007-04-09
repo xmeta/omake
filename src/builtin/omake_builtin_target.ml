@@ -99,7 +99,7 @@ open Pos
  * For example, one way to delete all intermediate files in a build is with a rule
  * that uses the \verb+dependencies-proper+.  Note however, that the rule requires
  * building the project before it can be deleted.  For a shorter form, see the
- * \verb+filter-proper-targets+ function.
+ * \hyperfun{filter-proper-targets}.
  *
  * \begin{verbatim}
  *     .PHONY: clean
