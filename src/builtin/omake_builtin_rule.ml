@@ -236,11 +236,13 @@ let check_version venv pos loc args =
    let version = Omake_magic.version in
    let check lowest highest =
       if compare_versions version lowest < 0 then
-         raise (OmakeFatalErr (loc_pos loc pos, StringError (sprintf "This version of omake is too old, you need to upgrade to at least version %s; current omake version is %s" lowest version)));
+         raise (OmakeFatalErr (loc_pos loc pos, LazyError (fun out ->
+            fprintf out "@[<0>This version of OMake is too old,@ you need to upgrade to at least version@ %s;@ current OMake version is@ %s.@ You should be able to download the latest version of OMake from http://omake.metaprl.org/download.html@]" lowest version)));
       match highest with
          Some highest ->
             if compare_versions version highest > 0 then
-               raise (OmakeFatalErr (loc_pos loc pos, StringError (sprintf "This version of omake is too new or the given file is too old.  This file accepts versions %s-%s; current omake version is %s" lowest highest version)))
+               raise (OmakeFatalErr (loc_pos loc pos, LazyError (fun out ->
+                  fprintf out "@[<0>This version of OMake is too new or the given file is too old.@ This file accepts versions@ %s-%s;@ current OMake version is@ %s@]" lowest highest version)))
        | None ->
             ()
    in
