@@ -538,13 +538,19 @@ let new_dir dir path =
 
 let new_file dir path =
    let dir, name = new_path dir path in
-   let name =
       match name with
-         Some name -> name
-       | None -> "."
-   in
-   let key = Filename.create name in
-      dir, key, name
+         Some name ->
+            let key = Filename.create name in
+               dir, key, name
+       | None ->
+            begin match DirHash.get dir with
+               DirSub (key, name, dir) ->
+                  dir, key, name
+             | DirRoot _ ->
+                  let name = "." in
+                  let key = Filename.create name in
+                     dir, key, name
+            end 
 
 (*
  * Check if .. works in a directory.
