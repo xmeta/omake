@@ -1038,7 +1038,7 @@ let start_or_build_commands env pos loc parent targets =
  * target is explicit.
  *)
 let start_or_build_scanners env pos loc parent targets venv =
-   let pos = string_pos "start_or_build_commands" pos in
+   let pos = string_pos "start_or_build_scanners" pos in
       NodeSet.iter (fun target ->
             try
                let command = find_command env target in
@@ -2014,7 +2014,8 @@ let process_initial env =
       start_or_build_scanners env pos loc target scanner_deps venv;
 
       (* Take the union of all the effects *)
-      start_or_build_effects env pos loc target effects;
+      if NodeSet.cardinal effects > 1 then
+         start_or_build_effects env pos loc target effects;
 
       (* Initially, we enter scanning mode *)
       command_set_blocked env command scanner_deps;
