@@ -86,28 +86,25 @@ let wild_compile_out s =
 (*
  * Perform a match.
  *)
-let string_match s1 off s2 len =
-   let rec loop i =
-      if i = len then
-         true
-      else
-         s1.[off + i] = s2.[i] && loop (succ i)
-   in
-      loop 0
+let rec string_match s1 off s2 len i =
+   if i = len then
+      true
+   else
+      s1.[off + i] = s2.[i] && string_match s1 off s2 len (succ i)
 
 (*
  * Does the node match?
  *)
 let wild_matches (plen, prefix, slen, suffix) s =
    let len = String.length s in
-      len >= plen + slen && string_match s 0 prefix plen && string_match s (len - slen) suffix slen
+      len >= plen + slen && string_match s 0 prefix plen 0 && string_match s (len - slen) suffix slen 0
 
 (*
  * Match the wild pattern, and return a subst.
  *)
 let wild_match (plen, prefix, slen, suffix) s =
    let len = String.length s in
-      if len >= plen + slen && string_match s 0 prefix plen && string_match s (len - slen) suffix slen then
+      if len >= plen + slen && string_match s 0 prefix plen 0 && string_match s (len - slen) suffix slen 0 then
          let len = len - plen - slen in
             Some (len, String.sub s plen len)
       else
