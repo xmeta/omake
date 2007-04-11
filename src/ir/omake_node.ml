@@ -776,50 +776,46 @@ type phony_name =
  | PhonySimpleString
  | PhonyPathString
 
-let string_prefix_equal s1 s2 =
-   let len1 = String.length s1 in
-   let len2 = String.length s2 in
-      if len1 < len2 then
-         false
-      else
-         let rec search i =
-            if i = len2 then
-               true
-            else
-               match s1.[i], s2.[i] with
-                  '/', '/'
-                | '/', '\\' ->
-                     search (succ i)
-                | c1, c2 ->
-                     c1 = c2 && search (succ i)
-         in
-            search 0
+(* Starting at position i, s begins with ".PHONY/" *)
+let string_prefix_phony s i len =
+   len >= i + 7 &&
+      s.[i  ] = '.' &&
+      s.[i+1] = 'P' && 
+      s.[i+2] = 'H' && 
+      s.[i+3] = 'O' && 
+      s.[i+4] = 'N' && 
+      s.[i+5] = 'Y' && 
+      (s.[i+6] = '/' || s.[i+6] = '\\')
 
-let is_simple_string s i =
-   let len = String.length s in
-   let rec search i =
-      if i = len then
-         true
-      else
-         match s.[i] with
-            '/'
-          | '\\' ->
-               false
-          | _ ->
-               search (succ i)
-   in
-      search i
+let rec is_simple_string s len i =
+   (i = len) ||
+      match s.[i] with
+         '/'
+       | '\\' ->
+            false
+       | _ ->
+            is_simple_string s len (succ i)
 
 let parse_phony_name s =
    let len = String.length s in
-      if string_prefix_equal s "/.PHONY/" && is_simple_string s 8 then
-         PhonyGlobalString (String.sub s 8 (len - 8))
-      else if string_prefix_equal s ".PHONY/" then
-         PhonyDirString (String.sub s 7 (len - 7))
-      else if is_simple_string s 0 then
+      if len = 0 then
          PhonySimpleString
-      else
-         PhonyPathString
+      else match s.[0] with
+         '/'
+       | '\\' ->
+         if string_prefix_phony s 1 len && is_simple_string s len 8 then
+            (* /.PHONY/foo *)
+            PhonyGlobalString (String.sub s 8 (len - 8))
+         else
+            PhonyPathString
+       | '.' when string_prefix_phony s 0 len ->
+            (* .PHONY/foo/bar *)
+            PhonyDirString (String.sub s 7 (len - 7))
+       | _ -> 
+            if is_simple_string s len 1 then
+               PhonySimpleString
+            else
+               PhonyPathString
 
 (************************************************************************
  * Modules.
