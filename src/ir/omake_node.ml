@@ -70,7 +70,7 @@ struct
    (* %%MAGICEND%% *)
 
    let create = Lm_filename_util.normalize_string
-   let compare = String.compare
+   let compare = Lm_string_util.string_compare
    let equal (s1: string) s2 = (s1 = s2)
    let add_filename = HashCode.add_string
    let add_filename_string = Buffer.add_string
@@ -902,9 +902,7 @@ struct
     * Equality.
     *)
    let compare = DirHash.compare
-
-   let equal dir1 dir2 =
-      compare dir1 dir2 = 0
+   let equal = DirHash.equal
 
    (*
     * Marshaling.
@@ -1217,9 +1215,7 @@ struct
     * Equality testing.
     *)
    let compare = NodeHash.compare
-
-   let equal node1 node2 =
-      compare node1 node2 = 0
+   let equal = NodeHash.equal
 
    (*
     * Flags.
