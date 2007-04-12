@@ -53,8 +53,9 @@ open Omake_print_util
 module type FilenameSig =
 sig
    type t
+   type dir
 
-   val create              : string -> t
+   val create              : dir -> string -> t
    val compare             : t -> t -> int
    val equal               : t -> t -> bool
    val add_filename        : HashCode.t -> t -> unit
@@ -63,13 +64,19 @@ sig
    val unmarshal           : msg -> t
 end;;
 
-module Filename : FilenameSig =
+module rec Filename : FilenameSig with type dir = DirHash.t =
 struct
    (* %%MAGICBEGIN%% *)
    type t = string
    (* %%MAGICEND%% *)
 
-   let create = Lm_filename_util.normalize_string
+   type dir = DirHash.t
+
+   (*
+    * XXX: BUG - create should check its input dir for case sensitivity 
+    * See http://bugzilla.metaprl.org/show_bug.cgi?id=657
+    *)
+   let create _ f = Lm_filename_util.normalize_string f
    let compare = Lm_string_util.string_compare
    let equal (s1: string) s2 = (s1 = s2)
    let add_filename = HashCode.add_string
@@ -83,15 +90,7 @@ struct
          s
     | _ ->
          raise MarshalError
-end;;
-
-type filename = Filename.t
-
-(*
- * Wrap all uses of Pervasives.compare
- * It is too dangerous.
- *)
-let (compare_roots     : root -> root -> int) = Pervasives.compare
+end
 
 (************************************************************************
  * Directories.
@@ -105,17 +104,27 @@ let (compare_roots     : root -> root -> int) = Pervasives.compare
  *    dir_name : the actual path will full capitalization
  *)
 (* %%MAGICBEGIN%% *)
-type dir_elt =
-   DirRoot of Lm_filename_util.root
- | DirSub of filename * string * dir_elt hash_marshal_item
+and DirElt :
+sig 
+   type t =
+      DirRoot of Lm_filename_util.root
+    | DirSub of Filename.t * string * t hash_marshal_item
+end
+=
+struct
+   type t =
+      DirRoot of Lm_filename_util.root
+    | DirSub of Filename.t * string * t hash_marshal_item
+end
 (* %%MAGICEND%% *)
 
 (*
  * Sets and tables.
  *)
-module rec DirCompare : HashMarshalArgSig with type t = dir_elt =
+and DirCompare : HashMarshalArgSig with type t = DirElt.t =
 struct
-   type t = dir_elt
+   open DirElt
+   type t = DirElt.t
 
    let debug = "Dir"
 
@@ -131,7 +140,7 @@ struct
    let rec compare dir1 dir2 =
       match dir1, dir2 with
          DirRoot root1, DirRoot root2 ->
-            compare_roots root1 root2
+            Pervasives.compare root1 root2
        | DirSub (name1, _, parent1), DirSub (name2, _, parent2) ->
             let cmp = Filename.compare name1 name2 in
                if cmp = 0 then
@@ -156,7 +165,7 @@ struct
 end
 
 (* %%MAGICBEGIN%% *)
-and DirHash : HashMarshalSig with type elt = dir_elt =
+and DirHash : HashMarshalSig with type elt = DirElt.t =
    MakeHashMarshal (DirCompare);;
 
 type dir = DirHash.t
@@ -204,6 +213,8 @@ and DirListHash : HashMarshalSig with type elt = dir list =
 module DirListSet = Lm_set.LmMake (DirListHash);;
 module DirListTable = Lm_map.LmMake (DirListHash);;
 
+open DirElt
+
 (************************************************************************
  * Nodes.
  *)
@@ -222,10 +233,10 @@ type node_flag =
  * A node is a phony, or it is a filename.
  *)
 type node_elt =
-   NodeFile        of dir * filename * string
+   NodeFile        of dir * Filename.t * string
  | NodePhonyGlobal of string
- | NodePhonyDir    of dir * filename * string
- | NodePhonyFile   of dir * filename * string * string
+ | NodePhonyDir    of dir * Filename.t * string
+ | NodePhonyFile   of dir * Filename.t * string * string
  | NodeFlagged     of node_flag * node_elt hash_marshal_item
 (* %%MAGICEND%% *)
 
@@ -475,7 +486,7 @@ let rec path_of_dir_list dirs =
  * Make a directory node from the pathname.
  *)
 let make_subdir parent name =
-   DirHash.create (DirSub (Filename.create name, name, parent))
+   DirHash.create (DirSub (Filename.create parent name, name, parent))
 
 let make_dir root path =
    List.fold_left make_subdir (DirHash.create (DirRoot root)) path
@@ -540,7 +551,7 @@ let new_file dir path =
    let dir, name = new_path dir path in
       match name with
          Some name ->
-            let key = Filename.create name in
+            let key = Filename.create dir name in
                dir, key, name
        | None ->
             begin match DirHash.get dir with
@@ -548,7 +559,7 @@ let new_file dir path =
                   dir, key, name
              | DirRoot _ ->
                   let name = "." in
-                  let key = Filename.create name in
+                  let key = Filename.create dir name in
                      dir, key, name
             end 
 
@@ -1024,7 +1035,7 @@ struct
     * Create a phony from a dir.
     *)
    let create_phony_dir dir name =
-      let key = Filename.create name in
+      let key = Filename.create dir name in
          NodeHash.create (NodePhonyDir (dir, key, name))
 
    (*
@@ -1046,7 +1057,7 @@ struct
          NodeFile (dir, key1, name1) ->
             NodeHash.create (NodePhonyFile (dir, key1, name1, name))
        | NodePhonyGlobal name1 ->
-            let key1 = Filename.create name1 in
+            let key1 = Filename.create null_root name1 in
                NodeHash.create (NodePhonyFile (null_root, key1, name1, name))
        | NodePhonyDir (dir, key1, name1)
        | NodePhonyFile (dir, key1, name1, _) ->
@@ -1282,7 +1293,7 @@ struct
     *)
    let node_of_dir dir =
       let name = "." in
-         NodeHash.create (NodeFile (dir, Filename.create name, name))
+         NodeHash.create (NodeFile (dir, Filename.create dir name, name))
 
    (*
     * Full name is relative to the cwd.
@@ -1398,7 +1409,7 @@ let create_node_or_phony phonies mount_info mount phony_ok dir name =
          raise (Invalid_argument "Omake_node.Node.intern: NodePhony is not allowed");
     | PhonySimpleString, PhonyOK ->
          (* Try PhonyDir first *)
-         let node = NodePhonyDir (dir, Filename.create name, name) in
+         let node = NodePhonyDir (dir, Filename.create dir name, name) in
             if PreNodeSet.mem phonies node then
                NodeHash.create node
             else
