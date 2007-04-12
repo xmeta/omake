@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2006 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -498,30 +498,24 @@ let find_executable_string venv pos loc exe =
    let pos = string_pos "find_executable" pos in
    let cache = venv_cache venv in
       if not (Filename.is_relative exe) || Lm_string_util.contains_any exe Lm_filename_util.separators then
-         let node = venv_intern venv PhonyProhibited exe in
-            if Omake_cache.exists cache node then
-               node
-            else if (Sys.os_type = "Win32" || Sys.os_type = "Cygwin")
-               && not (Filename.check_suffix exe ".exe" || Filename.check_suffix exe ".bat")
-            then
-               let node = venv_intern venv PhonyProhibited (exe ^ ".exe") in
+         let rec resolve_exe = function
+            suff :: suffixes ->
+               let node = venv_intern venv PhonyProhibited (exe ^ suff) in
                   if Omake_cache.exists cache node then
                      node
                   else
-                     let node = venv_intern venv PhonyProhibited (exe ^ ".bat") in
-                        if Omake_cache.exists cache node then
-                           node
-                        else
-                           raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", exe)))
-            else
+                     resolve_exe suffixes
+          | [] ->
                raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", exe)))
+         in
+            resolve_exe Omake_cache.exe_suffixes
       else
          let path = venv_find_var venv ScopeGlobal pos loc path_sym in
          let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
          let path = Omake_cache.ls_exe_path cache path in
             try Omake_cache.exe_find cache path exe with
                Not_found ->
-                  raise (OmakeException (loc_pos loc pos, StringStringError ("command not found", exe)))
+                  raise (OmakeException (loc_pos loc pos, StringStringError ("command not found in PATH", exe)))
 
 let find_executable venv pos loc exe =
    let node =

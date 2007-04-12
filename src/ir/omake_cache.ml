@@ -13,7 +13,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,8 +33,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_debug
@@ -1094,16 +1094,18 @@ let listing_find_item cache listing s =
  *
  * On Win32:
  *    - File permission doesn't matter
- *    - Files without suffix, and with .exe and .bat suffixes are executable
+ *    - Files without suffix, and with .com, .exe, .bat and .cmd suffixes are executable
  *
  * On Cygwin:
  *    - Files without suffix must be executable
- *    - Files with .exe and .bat suffixes are executable
+ *    - Files with .com, .exe, .bat and .cmd suffixes are executable
  *
  * On Unix:
  *    - There is no .exe suffix
  *    - Only files that are executable count
  *)
+let win32_suffixes = [".com"; ".exe"; ".bat"; ".cmd"]
+
 let ls_exe_path_win32 cache auto_rehash dirs =
    let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
@@ -1116,12 +1118,12 @@ let ls_exe_path_win32 cache auto_rehash dirs =
                            StringTable.fold (fun entries name _ ->
                                  let info = dir, name in
                                  let name = String.lowercase name in
-                                    if Filename.check_suffix name ".exe" || Filename.check_suffix name ".bat" then
-                                       let name_core = Filename.chop_extension name in
-                                       let entries = StringMTable.add entries name_core info in
+                                 let entries = StringMTable.add entries name info in
+                                    if List.exists (Filename.check_suffix name) win32_suffixes then
+                                       let name = Filename.chop_extension name in
                                           StringMTable.add entries name info
                                     else
-                                       StringMTable.add entries name info) entries1 entries2
+                                       entries) entries1 entries2
                      with
                         Not_found ->
                            entries1) StringMTable.empty (List.rev dirs)
@@ -1166,7 +1168,7 @@ let is_exe_file cache node =
             Unix.LargeFile.st_perm = perm;
             Unix.LargeFile.st_uid = uid;
             Unix.LargeFile.st_gid = gid
-          } = Unix.LargeFile.stat (Node.fullname node)
+          } = stat_unix cache node
       in
          (kind = Unix.S_REG)
          && ((perm land 0o001) <> 0
@@ -1193,18 +1195,18 @@ let is_exe_unix cache dir s =
 
 let is_exe_cygwin cache dir s =
    let node = Node.create_node no_mount_info Mount.empty dir s in
-      if Filename.check_suffix s ".exe" || Filename.check_suffix s ".bat" || is_exe_file cache node then
+      if List.exists (Filename.check_suffix s) win32_suffixes || is_exe_file cache node then
          Some node
       else
          None
 
-let ls_exe_path, is_exe, name_exe =
+let ls_exe_path, is_exe, name_exe, exe_suffixes =
    if Sys.os_type = "Win32" then
-      ls_exe_path_win32, is_exe_win32, String.lowercase
+      ls_exe_path_win32, is_exe_win32, String.lowercase, "" :: win32_suffixes
    else if Sys.os_type = "Cygwin" then
-      ls_exe_path_win32, is_exe_cygwin, String.lowercase
+      ls_exe_path_win32, is_exe_cygwin, String.lowercase, "" :: win32_suffixes
    else
-      ls_exe_path_unix, is_exe_unix, (fun s -> s)
+      ls_exe_path_unix, is_exe_unix, (fun s -> s), [""]
 
 let rec search_exe cache entries =
    Lm_list_util.some_map (fun (dir, s) ->
@@ -1297,12 +1299,9 @@ let ls_exe_path cache groups =
    List.map (fun (auto_rehash, dirs) ->
          ls_exe_path cache auto_rehash dirs) groups
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

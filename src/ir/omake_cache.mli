@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -114,6 +114,8 @@ val exe_find         : t -> exe_listing -> string -> Node.t
 val exe_find_all     : t -> exe_listing -> string -> Node.t list
 val exe_complete     : t -> exe_listing -> string -> StringSet.t
 
+val exe_suffixes     : string list
+
 (*
  * Memoizing commands.
  *
@@ -138,12 +140,9 @@ val pp_print_digest            : formatter -> digest -> unit
 val pp_print_node_digest_table : formatter -> digest NodeTable.t -> unit
 val pp_print_memo_result       : (formatter -> NodeSet.t NodeTable.t -> unit) -> formatter -> memo_result -> unit
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
