@@ -66,11 +66,11 @@ ConfMsgResult(msg) =
 # Print a warning or an error message respectively. \verb+ConfMsgError+ would then abort \OMake.
 # \end{doc}
 ConfMsgWarn(msg) =
-    msg[] = $(split $(nl), $"$(msg)")
+    msg[] = $(split $(nl), $(msg))
     print($(concat $(EMPTY), $(add-wrapper $'--- *** ', $(nl), $(msg))))
 
 ConfMsgError(msg) =
-    msg[] = $(split $(nl), $"$(msg)")
+    msg[] = $(split $(nl), $(msg))
     eprintln($"""*** ERROR: $(concat '$(nl)---        ', $(msg))""")
     exit(1)
   
