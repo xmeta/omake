@@ -176,6 +176,7 @@ let opt_print_progress opts =
     | Default ->
          let ok_to_print =
             try
+               (* XXX: TODO: in OCaml 3.10, use Unix.isatty *)
                ignore (Unix.tcgetattr Unix.stdout); true
             with
                Unix.Unix_error _ ->
