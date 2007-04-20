@@ -11,7 +11,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -119,7 +119,11 @@ let rule_fun    = Omake_cache.rule_fun
 let env_fun     = Omake_cache.env_fun
 let env_target  = Omake_cache.env_target
 
-exception Restart
+(*
+ * The argument to "Restart" is the reason for restarting.
+ * The default reason is a change in one of the OMakefiles or included files.
+ *)
+exception Restart of string option
 exception UnknownTarget of Node.t
 
 
@@ -1915,9 +1919,10 @@ let save_aux env =
  * Save to the .omakedb.
  *)
 let save env =
-   try save_aux env with
-      Sys_error _ as exn ->
-         eprintf "*** omake: failure during saving: %s@." (Printexc.to_string exn)
+   if not (opt_dry_run (env_options env)) then
+      try save_aux env with
+         Sys_error _ as exn ->
+            eprintf "*** omake: failure during saving: %s@." (Printexc.to_string exn)
 
 (*
  * Close the environment.
@@ -2137,7 +2142,7 @@ and invalidate_event_core env node =
       (* If this is an OMakefile, abort and restart *)
       if NodeTable.mem env.env_includes node then begin
          wait_all env verbose;
-         raise Restart
+         raise (Restart None)
       end else
          let nodes = if is_leaf_node env node then NodeSet.singleton node else NodeSet.empty in
          let nodes = NodeSet.union nodes (find_parents env (Node.create_escape NodeOptional node)) in
@@ -2414,9 +2419,8 @@ let notify_wait_simple venv cwd exec cache =
          ignore (Omake_cache.stat cache node);
          Exec.monitor exec node) files
    in
-   let pstatus = opt_print_status (venv_options venv) in
    let print_msg =
-      if pstatus then
+      if opt_print_status (venv_options venv) then
          fun node -> printf "*** omake: file %s changed@." (Node.fullname node)
       else
          fun node -> ()
@@ -2427,9 +2431,16 @@ let notify_wait_simple venv cwd exec cache =
          if (not changed || Exec.pending exec) then
             loop ()
    in
-      loop ();
-      if pstatus then
-         printf "*** omake: a configuration file changed, restarting@."
+      loop ()
+
+let print_restart options reason =
+   if opt_print_status options then
+      let reason =
+         match reason with
+            None -> "a configuration file changed"
+          | Some reason -> reason
+      in
+         printf "*** omake: %s, restarting@." reason
 
 (*
  * Create and parse, given a cache.
@@ -2479,7 +2490,7 @@ let create_env exec options cache targets =
             end;
             eprintf "%a@." Omake_exn_print.pp_print_exn exn;
             notify_wait_simple venv cwd exec cache;
-            raise Restart
+            raise (Restart None)
          end else begin
             unlink_file summary;
             raise exn
@@ -2497,7 +2508,8 @@ let create_env exec options cache targets =
 let rec create_env_loop exec options cache targets =
    try
       create_env exec options cache targets
-   with Restart ->
+   with Restart reason ->
+      print_restart options reason;
       create_env_loop exec options cache targets
 
 (*
@@ -2555,79 +2567,93 @@ let copy_to_stderr fd =
          End_of_file ->
             ()
 
-let wait_for_lock () =
+let wait_for_lock, unlock_db =
    let name = db_name ^ ".lock" in
-   let fd =
-      try Lm_unix_util.openfile name [Unix.O_RDWR; Unix.O_CREAT] 0o666 with
-         Unix.Unix_error _ ->
-            raise (Failure ("project lock file is not writable: " ^ name))
-   in
-   let () =
-      (*
-       * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking.
-       * .omakedb locking is only convenience, not safety, so it's not a huge problem.
-       * But may be we should implement a "sloppy" locking as well - see
-       * also the mailing list discussions:
-       *    - http://lists.metaprl.org/pipermail/omake/2005-November/thread.html#744
-       *    - http://lists.metaprl.org/pipermail/omake-devel/2005-November/thread.html#122
-       *)
-      try
-         (* Try for a lock first, and report it if the file is locked *)
-         try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
-            Unix.Unix_error (Unix.EAGAIN, _, _) ->
-               eprintf "*** omake: the project is currently locked.@.";
-               (try copy_to_stderr fd with _ -> ());
-
-               (* Unfortunately, we have to poll, since OCaml doesn't allow ^C during the lock request *)
-               let rec poll col =
-                  let col =
-                     if col >= 40 then begin
-                        if col = 40 then eprintf "@.";
-                        eprintf "*** omake: waiting for project lock: .@?";
-                        0
-                     end
-                     else begin
-                        eprintf ".@?";
-                        succ col
-                     end
-                  in
-                     Unix.sleep 1;
-                     try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
-                        Unix.Unix_error (Unix.EAGAIN, _, _) ->
-                           poll col
-               in
-                  poll 1000
-      with
-         (*
-          * XXX: When lockf is not supported, we just print a warning and keep going.
-          *      .omakedb locking is only convenience, not safety, so it's not a huge problem.
-          *)
-         Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
-            eprintf "*** omake WARNING: Can not lock the project database file .omakedb:
-\t%s. Will proceed anyway.
-\tWARNING: Be aware that simultaneously running more than one instance
-\t\tof OMake on the same project is not recommended.  It may
-\t\tresult in some OMake instances failing to record their
-\t\tprogress in the database@."
-               (Unix.error_message err)
-       | Unix.Unix_error (err, _, _) ->
-            raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ (Unix.error_message err)))
-       | Failure err ->
-            raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ err))
-   in
-      Omake_shell_sys.set_close_on_exec fd;
-      (* Print the message to the lock file  *)
-      try
-         ignore (Unix.lseek fd 0 Unix.SEEK_SET);
-         Lm_unix_util.ftruncate fd;
-         let outx = Unix.out_channel_of_descr fd in
-            Printf.fprintf outx "*** omake: the project was last locked by %s:%d.\n" (Unix.gethostname ()) (Unix.getpid ());
-            Pervasives.flush outx
-      with
-         Unix.Unix_error _
-       | Sys_error _
-       | Failure _ ->
+   let save_fd = ref None in
+   let unlock_db () =
+      match !save_fd with
+         None ->
             ()
+       | Some fd ->
+            let () = try Unix.close fd with _ -> () in
+               save_fd := None
+   in
+   let wait_for_lock () =
+      unlock_db ();
+      let fd =
+         try Lm_unix_util.openfile name [Unix.O_RDWR; Unix.O_CREAT] 0o666 with
+            Unix.Unix_error _ ->
+               raise (Failure ("project lock file is not writable: " ^ name))
+      in
+      let () =
+         (*
+          * XXX: TODO: We use lockf, but it is not NFS-safe if filesystem is mounted w/o locking.
+          * .omakedb locking is only convenience, not safety, so it's not a huge problem.
+          * But may be we should implement a "sloppy" locking as well - see
+          * also the mailing list discussions:
+          *    - http://lists.metaprl.org/pipermail/omake/2005-November/thread.html#744
+          *    - http://lists.metaprl.org/pipermail/omake-devel/2005-November/thread.html#122
+          *)
+         try
+            (* Try for a lock first, and report it if the file is locked *)
+            try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
+               Unix.Unix_error (Unix.EAGAIN, _, _) ->
+                  eprintf "*** omake: the project is currently locked.@.";
+                  (try copy_to_stderr fd with _ -> ());
+   
+                  (* Unfortunately, we have to poll, since OCaml doesn't allow ^C during the lock request *)
+                  let rec poll col =
+                     let col =
+                        if col >= 40 then begin
+                           if col = 40 then eprintf "@.";
+                           eprintf "*** omake: waiting for project lock: .@?";
+                           0
+                        end
+                        else begin
+                           eprintf ".@?";
+                           succ col
+                        end
+                     in
+                        Unix.sleep 1;
+                        try Lm_unix_util.lockf fd Unix.F_TLOCK 0 with
+                           Unix.Unix_error (Unix.EAGAIN, _, _) ->
+                              poll col
+                  in
+                     poll 1000
+         with
+            (*
+             * XXX: When lockf is not supported, we just print a warning and keep going.
+             *      .omakedb locking is only convenience, not safety, so it's not a huge problem.
+             *)
+            Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
+               eprintf "*** omake WARNING: Can not lock the project database file .omakedb:
+   \t%s. Will proceed anyway.
+   \tWARNING: Be aware that simultaneously running more than one instance
+   \t\tof OMake on the same project is not recommended.  It may
+   \t\tresult in some OMake instances failing to record their
+   \t\tprogress in the database@."
+                  (Unix.error_message err)
+          | Unix.Unix_error (err, _, _) ->
+               raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ (Unix.error_message err)))
+          | Failure err ->
+               raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ err))
+      in
+         Omake_shell_sys.set_close_on_exec fd;
+         save_fd := Some fd;
+         (* Print the message to the lock file  *)
+         try
+            ignore (Unix.lseek fd 0 Unix.SEEK_SET);
+            Lm_unix_util.ftruncate fd;
+            let outx = Unix.out_channel_of_descr fd in
+               Printf.fprintf outx "*** omake: the project was last locked by %s:%d.\n" (Unix.gethostname ()) (Unix.getpid ());
+               Pervasives.flush outx
+         with
+            Unix.Unix_error _
+          | Sys_error _
+          | Failure _ ->
+               ()
+   in
+      wait_for_lock, unlock_db
 
 (*
  * We want to build the target string.
@@ -2675,6 +2701,7 @@ let notify_wait env =
          env_venv = venv
        } = env
    in
+   let db_node = venv_intern_cd venv PhonyProhibited (Dir.cwd ()) db_name in
    let rec loop found =
       if not found || Exec.pending exec then
          let event = Exec.next_event exec in
@@ -2682,7 +2709,13 @@ let notify_wait env =
             loop (changed || found)
    in
       eprintf "*** omake: polling for filesystem changes@.";
+      save env;
+      ignore (Omake_cache.stat_changed env.env_cache db_node);
+      unlock_db ();
       loop false;
+      wait_for_lock ();
+      if Omake_cache.stat_changed env.env_cache db_node then
+         raise (Restart (Some "another OMake process have modified the build DB"));
       if opt_print_status (env_options env) then
          eprintf "*** omake: rebuilding@."
 
@@ -2695,7 +2728,7 @@ let notify_wait_omakefile env =
       try
          loop ()
       with
-         Restart -> ()
+         Restart reason -> reason
 
 (*
  * Summary management.
@@ -2834,17 +2867,16 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                print_summary env ~unlink:false;
                if opt_poll options && restartable_exn exn then begin
                   unlink_file env.env_summary;
-                  notify_wait_omakefile env;
-                  raise Restart
+                  let reason = notify_wait_omakefile env in
+                     raise (Restart reason)
                end else begin
-                  if not (opt_dry_run options) then
-                     save env;
+                  save env;
                   close env;
                   exit exn_error_code
                end
    in
       (* Save database before exiting *)
-      if save_flag && not (opt_dry_run options) then
+      if save_flag then
          save env;
 
       (* Return error if that happened *)
@@ -2895,7 +2927,7 @@ let build_core env dir_name dir start_time options targets =
    let () =
       if changed then begin
          env.env_includes <- Omake_cache.stat_table env.env_cache env.env_includes;
-         raise Restart
+         raise (Restart None)
       end
    in
 
@@ -2945,23 +2977,22 @@ let rec build_time start_time options dir_name targets =
          exit 1
       end
    in
-   let restart () =
-      if opt_print_status options then
-         printf "*** omake: a configuration file changed, restarting@.";
+   let restart reason =
+      print_restart options reason;
       close env;
       save env;
       build_time start_time options dir_name targets
    in
       try build_core env dir_name dir start_time options targets with
-         Restart ->
-            restart ()
+         Restart reason ->
+            restart reason
        | Sys.Break ->
             close env;
             save env
        | exn when opt_poll options && restartable_exn exn ->
             eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-            notify_wait_omakefile env;
-            restart ()
+            let reason = notify_wait_omakefile env in
+               restart reason
 
 let build options dir_name targets =
    Omake_shell_sys.set_interactive false;
