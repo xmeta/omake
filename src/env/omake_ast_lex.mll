@@ -371,6 +371,7 @@ let lexeme_name state lexbuf =
        | "return"
        | "export"
        | "open"
+       | "autoload"
        | "declare"
        | "value"
        | "while"
