@@ -2659,7 +2659,17 @@ let () =
           "USER",           (fun _ -> ValData user);
           "PID",            (fun _ -> ValInt (Unix.getpid ()));
           "HOME",           (fun venv -> ValDir (venv_intern_dir venv home_dir));
-          "VERBOSE",        (fun venv -> val_of_bool (Omake_options.opt_verbose (venv_options venv)))
+          "VERBOSE",        (fun venv -> val_of_bool (Omake_options.opt_verbose (venv_options venv)));
+
+          (* ZZZ: Used to be defined in Common.om *)
+          "SCANNER_MODE",               (fun _ -> ValData "enabled");
+          "ABORT_ON_COMMAND_ERROR",     (fun _ -> val_true);
+
+          (* ZZZ: needs documentation *)
+          "ALLOW_EMPTY_SUBDIRS",        (fun _ -> val_false);
+          "CREATE_SUBDIRS",             (fun _ -> val_false);
+          "EXIT_ON_UNCAUGHT_EXCEPTION", (fun _ -> val_false);
+          "AUTO_REHASH",                (fun _ -> val_false);
          ]
    in
    let builtin_funs =
