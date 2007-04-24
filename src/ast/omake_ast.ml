@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -74,6 +74,7 @@ type exp =
  | ApplyExp        of apply_strategy * var * exp list * loc
  | SuperApplyExp   of apply_strategy * var * var * exp list * loc
  | MethodApplyExp  of apply_strategy * var list * exp list * loc
+ | CommandLineExp  of string list * loc
  | CommandExp      of var * exp * exp list * loc
  | VarDefExp       of var list * define_kind * define_flag * exp * loc
  | VarDefBodyExp   of var list * define_kind * define_flag * exp list * loc

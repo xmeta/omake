@@ -16,16 +16,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -158,8 +158,8 @@ let set_options venv pos loc args =
    let pos = string_pos "OMakeFlags" pos in
       match args with
          [arg] ->
-            let s = string_of_value venv pos arg in
-               ValEnv (venv_set_options venv loc pos s, ExportAll)
+            let argv = strings_of_value venv pos arg in
+               ValEnv (venv_set_options venv loc pos argv, ExportAll)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 

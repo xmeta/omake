@@ -2138,7 +2138,7 @@ let compile_source venv (kind, s) =
 let compile_implicit3_target pos loc = function
    TargetString s ->
       if Lm_string_util.contains_any s Lm_filename_util.separators then
-         raise (OmakeException (loc_pos loc pos, StringStringError ("target of a 3-place rule is a path", s))); 
+         raise (OmakeException (loc_pos loc pos, StringStringError ("target of a 3-place rule is a path", s)));
       s
  | target ->
       raise (OmakeException (loc_pos loc pos, StringTargetError ("target of a 3-place rule is not a simple string", target)))
@@ -2325,12 +2325,15 @@ let venv_defined_env venv v =
    SymbolTable.mem venv.venv_inner.venv_environ v
 
 (*
- * Set the options.
+ * Options.
  *)
-let venv_set_options venv loc pos options =
-   let argv = Array.of_list ("omake" :: Lm_string_util.tokens_std options) in
-   let add_unknown _ s =
-      raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
+let venv_set_options_aux strict venv loc pos argv =
+   let argv = Array.of_list argv in
+   let add_unknown options s =
+      if strict then
+         raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
+      else
+         options, false
    in
    let options_spec =
       Lm_arg.StrictOptions, (**)
@@ -2343,6 +2346,12 @@ let venv_set_options venv loc pos options =
             raise (OmakeException (loc_pos loc pos, StringError s))
    in
       { venv with venv_inner = { venv.venv_inner with venv_options = options } }
+
+let venv_set_options_argv venv loc pos argv =
+   venv_set_options_aux false venv loc pos argv
+
+let venv_set_options venv loc pos argv =
+   venv_set_options_aux true venv loc pos ("omake" :: argv)
 
 let venv_options venv =
    venv.venv_inner.venv_options
@@ -3195,7 +3204,7 @@ let venv_find_implicit_rules_inner venv target =
                         pp_print_wild_list irule.irule_patterns
                         pp_print_source_list irule.irule_sources
                   end;
-                  let matches = 
+                  let matches =
                      match irule.irule_targets with
                         None -> true
                       | Some targets -> StringSet.mem targets target_name

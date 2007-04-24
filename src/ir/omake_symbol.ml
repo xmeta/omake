@@ -224,7 +224,8 @@ let values_sym   = Lm_symbol.add ":value:"
 (*
  * Builtin functions.
  *)
-let extends_sym  = Lm_symbol.add "extends"
+let extends_sym    = Lm_symbol.add "extends"
+let omakeflags_sym = Lm_symbol.add "OMakeFlags"
 
 (*
  * Symbols.

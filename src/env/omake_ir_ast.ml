@@ -258,6 +258,7 @@ let build_literal_argv e pos =
        | Omake_ast.MethodApplyExp (_, _, _, loc)
        | Omake_ast.BodyExp (_, loc)
        | Omake_ast.KeyExp (_, _, loc)
+       | Omake_ast.CommandLineExp (_, loc)
        | Omake_ast.CommandExp (_, _, _, loc)
        | Omake_ast.VarDefExp (_, _, _, _, loc)
        | Omake_ast.VarDefBodyExp (_, _, _, _, loc)
@@ -310,6 +311,7 @@ let rec build_string senv e pos =
             build_body_string senv el pos loc
        | Omake_ast.KeyExp (strategy, v, loc) ->
             KeyString (loc, ir_strategy_of_ast_strategy strategy, v)
+       | Omake_ast.CommandLineExp (_, loc)
        | Omake_ast.CommandExp (_, _, _, loc)
        | Omake_ast.VarDefExp (_, _, _, _, loc)
        | Omake_ast.VarDefBodyExp (_, _, _, _, loc)
@@ -521,6 +523,8 @@ and build_exp senv e =
             build_super_apply_exp senv super v args pos loc
        | Omake_ast.MethodApplyExp (_, vl, args, loc) ->
             build_method_apply_exp senv vl args pos loc
+       | Omake_ast.CommandLineExp (argv, loc) ->
+            build_command_line_exp senv argv pos loc
        | Omake_ast.CommandExp (v, arg, commands, loc) ->
             build_command_exp senv v arg commands pos loc
        | Omake_ast.VarDefExp (v, kind, flag, e, loc) ->
@@ -723,6 +727,17 @@ and build_opt_cases_command_exp senv v arg cases commands pos loc =
             cases @ [default]
    in
       build_cases_apply_exp senv v [arg] cases pos loc
+
+(*
+ * The command line is handled at parse time as well as
+ * at evaluation time.
+ *)
+and build_command_line_exp senv argv pos loc =
+   let _pos = string_pos "build_apply_exp" pos in
+   let argv = List.map (fun s -> ConstString (loc, s)) argv in
+   let argv = ArrayString (loc, argv) in
+   let e = ApplyExp (loc, ScopeGlobal, omakeflags_sym, [argv]) in
+      senv, e
 
 (*
  * Commands.
