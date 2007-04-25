@@ -626,7 +626,7 @@ omake_ast_lex.mll: ..$(slash)src$(slash)env$(slash)omake_ast_lex.mll
 omake_ast_parse.input: ..$(slash)src$(slash)env$(slash)omake_ast_parse.input
 	$(LN) ..$(slash)src$(slash)env$(slash)omake_ast_parse.input omake_ast_parse.input
 
-omake_lexer.cmo omake_parser.cmo omake_ir_free_vars.cmo omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_ir_free_vars.cmi omake_env.cmi omake_exn_print.cmi omake_ast_parse.cmi omake_ast_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
+omake_lexer.cmo omake_parser.cmo omake_ir_free_vars.cmo omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_ir_free_vars.cmi omake_env.cmi omake_exn_print.cmi omake_ast_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
 
 Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast_parse.ml
 

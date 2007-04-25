@@ -25,15 +25,21 @@ CUTIL_FILES[] =
     inotify.om
     lm_termsize.c
     lm_terminfo.c
+    lm_fs_case_sensitive.c
 
 MakeLinkExternal($(EXTERNAL)/cutil, $(CUTIL_FILES))
 
 CGeneratedFiles($(CUTIL_FILES))
 
 open configure/snprintf
+open configure/fs_case_sensitive
 
 if $(SNPRINTF_AVAILABLE)
     CFLAGS += -DHAVE_SNPRINTF
+    export
+
+if $(DETECT_FS_CASE_SENSITIVE)
+    CFLAGS += $(DETECT_FS_CASE_SENSITIVE_CFLAGS)
     export
 
 FILES[] =
@@ -52,6 +58,7 @@ FILES[] =
     lm_notify
     lm_termsize
     lm_terminfo
+    lm_fs_case_sensitive
 
 MakeStaticCLibrary(clib, $(FILES))
 
