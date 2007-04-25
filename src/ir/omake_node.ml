@@ -72,7 +72,176 @@ struct
 
    type dir = DirHash.t
 
-   open DirElt
+   open DirElt;;
+
+   (*
+    * Check whether a directory is case-sensitive.
+    *)
+   let case_table = ref DirTable.empty
+
+   (* We'll use randomly generated names *)
+   let fs_random = Random.State.make_self_init ()
+
+   (*
+    * Test whether stats are equal enough that we think the
+    * file is up-to-date.  (Borrowed from Omake_cache).
+    *)
+   let stats_equal stat1 stat2 =
+      let { Unix.LargeFile.st_ino   = ino1;
+            Unix.LargeFile.st_kind  = kind1;
+            Unix.LargeFile.st_size  = size1;
+            Unix.LargeFile.st_mtime = mtime1
+          } = stat1
+      in
+      let { Unix.LargeFile.st_ino   = ino2;
+            Unix.LargeFile.st_kind  = kind2;
+            Unix.LargeFile.st_size  = size2;
+            Unix.LargeFile.st_mtime = mtime2
+          } = stat2
+      in
+         ino1 = ino2 && kind1 = kind2 && size1 = size2 && mtime1 = mtime2
+
+   (*
+    * Toggle the case of the name.
+    * Raises Not_found if the name contains no alphabetic letters.
+    *)
+   let rec toggle_name_case name len i =
+      if i = len then
+         raise Not_found
+      else
+         match name.[i] with
+            'A'..'Z' -> String.lowercase name
+          | 'a'..'z' -> String.uppercase name
+          | _ -> toggle_name_case name len (succ i)
+
+   (*
+    * Stat, does not fail.
+    *)
+   let do_stat absname =
+      try Some (Unix.LargeFile.lstat absname) with
+         Unix.Unix_error _ ->
+            None
+
+   (*
+    * Unlink, does not fail.
+    *)
+   let do_unlink absname =
+      try Unix.unlink absname with
+         Unix.Unix_error _ ->
+            ()
+
+   (*
+    * Create a file, raising Not_found if the file can't be created.
+    *)
+   let do_create absname =
+      try Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600) with
+         Unix.Unix_error _ ->
+            raise Not_found
+
+   (*
+    * Given two filenames that differ only in case,
+    * stat them both.  If the stats are different,
+    * the directory is on a case-sensitive fs.
+    *
+    * XXX: try to detect race conditions by performing
+    * a stat on the first file before and after.
+    * Raise Not_found if a race condition is detected.
+    *)
+   let stats_are_equal name1 name2 =
+      let stat1 = do_stat name1 in
+      let stat2 = do_stat name2 in
+      let stat3 = do_stat name1 in
+         match stat1, stat3 with
+            Some s1, Some s3 when stats_equal s1 s3 ->
+               (match stat2 with
+                   Some s2 when stats_equal s2 s1 -> true
+                 | _ -> false)
+          | _ ->
+               raise Not_found
+
+   (*
+    * If we have an alphabetic name, just toggle the case.
+    *)
+   let stat_with_toggle_case absdir name =
+      let alternate_name = toggle_name_case name (String.length name) 0 in
+         stats_are_equal (Filename.concat absdir name) (Filename.concat absdir alternate_name)
+
+   (*
+    * Look through the entire directory for a name with alphabetic characters.
+    * A check for case-sensitivity base on that.
+    *
+    * Raises Not_found if there are no such filenames.
+    *)
+   let dir_test_all_entries_exn absdir =
+      let rec test names =
+         match names with
+            [] ->
+               raise Not_found
+          | name :: names ->
+               try stat_with_toggle_case absdir name with
+                  Not_found ->
+                     test names
+      in
+      let names =
+         try Lm_filename_util.lsdir absdir with
+            Unix.Unix_error _ ->
+               raise Not_found
+      in
+         test names
+
+   (*
+    * Check for sensativity by creating a dummy file.
+    *)
+   let dir_test_new_entry_exn absdir =
+      let name = sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
+      let absname = Filename.concat absdir name in
+      let () = do_create absname in
+      let flag = stat_with_toggle_case absdir name in
+         do_unlink absname;
+         flag
+
+   (*
+    * To check for case sensitivity, try these tests in order,
+    * stopping when one is successful.
+    *    1. Try the directory name itself.
+    *    2. Try looking at the directory entries.
+    *    3. Create a dummy file, and test.
+    *    4. Test the parent.
+    *)
+   let rec dir_test_sensitivity dir absdir name =
+      try stat_with_toggle_case absdir name with
+         Not_found ->
+            let absdir = Filename.concat absdir name in
+               try dir_test_all_entries_exn absdir with
+                  Not_found ->
+                     try dir_test_new_entry_exn absdir with
+                        Not_found ->
+                           match DirHash.get dir with
+                              DirRoot _ ->
+                                 (* Nothing else we can do, assume sensitive *)
+                                 true
+                            | DirSub (_, name, parent) ->
+                                 dir_is_sensitive parent name
+
+   (*
+    * This is the caching version of the case-sensitivity test.
+    *)
+   and dir_is_sensitive dir name =
+      try DirTable.find !case_table dir with
+         Not_found ->
+            let absdir = abs_dir_name dir in
+            let sensitive =
+               if Lm_fs_case_sensitive.available then
+                  try
+                     Lm_fs_case_sensitive.case_sensitive absdir
+                  with
+                     Failure _ ->
+                        dir_test_sensitivity dir absdir name
+               else
+                  dir_test_sensitivity dir absdir name
+            in
+               case_table := DirTable.add !case_table dir sensitive;
+               sensitive
 
    (*
     * On Unix-like OS (especially on Mac OS X), create needs to check the fs of the node's parent
@@ -83,106 +252,9 @@ struct
       match Sys.os_type with
          "Win32"
        | "Cygwin" ->
-            (fun _ f -> String.lowercase f)
+            (fun _ name -> String.lowercase name)
        | _ ->
-            let case_table = ref DirTable.empty in
-            let rnd = Random.State.make_self_init () in
-            let rec switch_name name len i =
-               if i = len then
-                  raise Not_found
-               else
-                  match name.[i] with
-                     'A'..'Z' -> String.lowercase name
-                   | 'a'..'z' -> String.uppercase name
-                   | _ -> switch_name name len (succ i)
-            in
-            let do_stat f =
-               try Some (Unix.LargeFile.lstat f)
-               with _ -> None
-            in
-            let stat_sensitivity name alternate_name =
-               (* We stat the existing name twice to make sure things have not just changed on us *)
-               let stat1 = do_stat name in
-               let stat2 = do_stat alternate_name in
-               let stat3 = do_stat name in
-                  match stat1, stat3 with
-                     Some s1, Some s3 when s1 = s3 ->
-                        (* Sensitive iff stats differ *)
-                        stat1 <> stat2
-                   | _ ->
-                        (* Something went wrong - either file in being modified, or stat is not readable, give up on it *)
-                        raise Not_found
-            in
-            let stat_w_alternate dir name =
-               let alternate_name = switch_name name (String.length name) 0 in
-                  stat_sensitivity (Filename.concat dir name) (Filename.concat dir alternate_name)
-            in
-            let rec dir_handle_sensitivity dir dh =
-               let name =
-                  try Unix.readdir dh
-                  with exn ->
-                     Unix.closedir dh;
-                     raise exn
-               in
-                  try
-                     stat_w_alternate dir name
-                  with Not_found ->
-                     dir_handle_sensitivity dir dh
-            in
-            let rec is_sensitive dir f =
-               try
-                  DirTable.find !case_table dir
-               with
-                  Not_found ->
-                     let absdir = abs_dir_name dir in
-                     let sensitive =
-                        try
-                           stat_w_alternate absdir f         
-                        with _ ->
-                           (* Using f did not work, let's try another entry *)
-                           begin try
-                              dir_handle_sensitivity absdir (Unix.opendir absdir)
-                           with _ ->
-                              (* Could not figure out through existing nodes, try creating one *)
-                              begin try
-                                 let rand = sprintf "%06x.tmp" ((Random.State.bits rnd) land 0xFFFFFF) in
-                                 let name = Filename.concat absdir ("OM" ^ rand) in
-                                 let alternate_name = Filename.concat absdir ("om" ^ rand) in
-                                 let fd = Unix.openfile name [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600 in
-                                    try 
-                                       let result = stat_sensitivity name alternate_name in
-                                          begin try
-                                             Unix.close fd;
-                                             Unix.unlink name
-                                          with _ ->
-                                             ()
-                                          end;
-                                          result
-                                    with exn ->
-                                       Unix.close fd;
-                                       Unix.unlink name;
-                                       raise exn
-                           
-                              with _ ->
-                                 (*
-                                  * Could not figure this directory out, may be it is not accessible,
-                                  * or does not exist. We will try its parent instead.
-                                  *)
-                                 begin match DirHash.get dir with
-                                    DirRoot _ ->
-                                       (* Nothing else we can do, assume sensitive *)
-                                       true
-                                  | DirSub (_, name, parent) ->
-                                       is_sensitive parent name
-                                 end
-                              end
-                           end
-                     in
-                        case_table := DirTable.add !case_table dir sensitive;
-                        sensitive
-            in
-            (fun dir f -> 
-               if is_sensitive dir f then f else String.lowercase f)
+            (fun dir name -> if dir_is_sensitive dir name then name else String.lowercase name)
 
    let compare = Lm_string_util.string_compare
    let equal (s1: string) s2 = (s1 = s2)
@@ -212,7 +284,7 @@ end
  *)
 (* %%MAGICBEGIN%% *)
 and DirElt :
-sig 
+sig
    type t =
       DirRoot of Lm_filename_util.root
     | DirSub of FileCase.t * string * DirHash.t
@@ -691,7 +763,7 @@ let new_file dir path =
                   let name = "." in
                   let key = FileCase.create dir name in
                      dir, key, name
-            end 
+            end
 
 (*
  * Check if .. works in a directory.
@@ -902,11 +974,11 @@ type phony_name =
 let string_prefix_phony s i len =
    len >= i + 7 &&
       s.[i  ] = '.' &&
-      s.[i+1] = 'P' && 
-      s.[i+2] = 'H' && 
-      s.[i+3] = 'O' && 
-      s.[i+4] = 'N' && 
-      s.[i+5] = 'Y' && 
+      s.[i+1] = 'P' &&
+      s.[i+2] = 'H' &&
+      s.[i+3] = 'O' &&
+      s.[i+4] = 'N' &&
+      s.[i+5] = 'Y' &&
       (s.[i+6] = '/' || s.[i+6] = '\\')
 
 let rec is_simple_string s len i =
@@ -933,7 +1005,7 @@ let parse_phony_name s =
        | '.' when string_prefix_phony s 0 len ->
             (* .PHONY/foo/bar *)
             PhonyDirString (String.sub s 7 (len - 7))
-       | _ -> 
+       | _ ->
             if is_simple_string s len 1 then
                PhonySimpleString
             else
