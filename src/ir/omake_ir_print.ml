@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -108,15 +108,63 @@ let pp_print_var_def_kind buf kind =
 (*
  * Scope.
  *)
-let pp_print_scope_kind complete buf kind =
-   if complete then
-      pp_print_string buf begin
-         match kind with
-            ScopePrivate ->   "private."
-          | ScopeDynamic ->   "public."
-          | ScopeProtected -> "this."
-          | ScopeGlobal -> "global."
-      end
+let pp_print_var_scope buf kind =
+   let s =
+      match kind with
+         VarScopePrivate   -> "private."
+       | VarScopeThis      -> "this."
+       | VarScopeVirtual   -> "public."
+       | VarScopeGlobal    -> "global."
+   in
+      pp_print_string buf s
+
+(*
+ * Variables.
+ *)
+let pp_print_var_info buf v =
+   match v with
+      VarPrivate (_, v) ->
+         fprintf buf "private.%a" (**)
+            pp_print_symbol v
+    | VarThis (_, v) ->
+         fprintf buf "this.%a" (**)
+            pp_print_symbol v
+    | VarVirtual (_, v) ->
+         fprintf buf "public.%a" (**)
+            pp_print_symbol v
+    | VarGlobal (_, v) ->
+         fprintf buf "global.%a" (**)
+            pp_print_symbol v
+
+(*
+ * Print the export info.
+ *)
+let pp_print_export_item buf item =
+   match item with
+      ExportRules ->
+         pp_print_string buf "<item>"
+    | ExportPhonies ->
+         pp_print_string buf "<phonies>"
+    | ExportVar v ->
+         pp_print_var_info buf v
+
+let rec pp_print_export_items buf items =
+   match items with
+      [item] ->
+         pp_print_export_item buf item
+    | item :: items ->
+         fprintf buf "%a@ %a" pp_print_export_item item pp_print_export_items items
+    | [] ->
+         ()
+
+let pp_print_export_info buf info =
+   match info with
+      ExportNone ->
+         pp_print_string buf "<none>"
+    | ExportAll ->
+         pp_print_string buf "<all>"
+    | ExportList items ->
+         fprintf buf "@[<b 3>%a@]" pp_print_export_items items
 
 (*
  * Print a string expression.
@@ -129,39 +177,35 @@ let rec pp_print_string_exp complete buf s =
          fprintf buf "\"%s\"" (String.escaped s)
     | KeyString (_, strategy, s) ->
          fprintf buf "$%a|%s|" pp_print_strategy strategy s
-    | ApplyString (_, strategy, scope, v, []) ->
-         fprintf buf "@[<hv 3>$%a(%a%a)@]" (**)
+    | ApplyString (_, strategy, v, []) ->
+         fprintf buf "@[<hv 3>$%a(%a)@]" (**)
             pp_print_strategy strategy
-            (pp_print_scope_kind complete) scope
-            pp_print_symbol v
-    | ApplyString (_, strategy, scope, v, args) ->
-         fprintf buf "@[<hv 3>$%a(%a%a %a)@]" (**)
+            pp_print_var_info v
+    | ApplyString (_, strategy, v, args) ->
+         fprintf buf "@[<hv 3>$%a(%a %a)@]" (**)
             pp_print_strategy strategy
-            (pp_print_scope_kind complete) scope
-            pp_print_symbol v
+            pp_print_var_info v
             (pp_print_string_exp_list complete) args
-    | SuperApplyString (_, strategy, scope, super, v, []) ->
-         fprintf buf "@[<hv 3>$%a(%a%a::%a)@]" (**)
+    | SuperApplyString (_, strategy, super, v, []) ->
+         fprintf buf "@[<hv 3>$%a(%a::%a)@]" (**)
             pp_print_strategy strategy
-            (pp_print_scope_kind complete) scope
             pp_print_symbol super
             pp_print_symbol v
-    | SuperApplyString (_, strategy, scope, super, v, args) ->
-         fprintf buf "@[<hv 3>$%a(%a%a::%a %a)@]" (**)
+    | SuperApplyString (_, strategy, super, v, args) ->
+         fprintf buf "@[<hv 3>$%a(%a::%a %a)@]" (**)
             pp_print_strategy strategy
-            (pp_print_scope_kind complete) scope
             pp_print_symbol super
             pp_print_symbol v
             (pp_print_string_exp_list complete) args
-    | MethodApplyString (_, strategy, scope, vl, []) ->
-         fprintf buf "@[<hv 3>$%a(%a%a)@]" (**)
+    | MethodApplyString (_, strategy, v, vl, []) ->
+         fprintf buf "@[<hv 3>$%a(%a.%a)@]" (**)
             pp_print_strategy strategy
-            (pp_print_scope_kind complete) scope
+            pp_print_var_info v
             pp_print_method_name vl
-    | MethodApplyString (_, strategy, scope, vl, args) ->
-         fprintf buf "@[<hv 3>$%a(%a%a %a)@]" (**)
+    | MethodApplyString (_, strategy, v, vl, args) ->
+         fprintf buf "@[<hv 3>$%a(%a.%a %a)@]" (**)
             pp_print_strategy strategy
-            (pp_print_scope_kind complete) scope
+            pp_print_var_info v
             pp_print_method_name vl
             (pp_print_string_exp_list complete) args
     | SequenceString (_, sl) ->
@@ -181,12 +225,12 @@ let rec pp_print_string_exp complete buf s =
             c (pp_print_string_exp_list complete) sl c
     | BodyString (_, e) ->
          if complete then
-            fprintf buf "@[<hv 3>body@ %a@]" (pp_print_exp complete) e
+            fprintf buf "@[<hv 3>body@ %a@]" (pp_print_exp_list complete) e
          else
             pp_print_string buf "<body...>"
     | ExpString (_, e) ->
          if complete then
-            fprintf buf "@[<hv 3>exp@ %a@]" (pp_print_exp complete) e
+            fprintf buf "@[<hv 3>exp@ %a@]" (pp_print_exp_list complete) e
          else
             pp_print_string buf "<exp...>"
     | CasesString (_, cases) ->
@@ -196,18 +240,12 @@ let rec pp_print_string_exp complete buf s =
                   fprintf buf "@ @[<hv 3>%a %a:@ %a@]" (**)
                      pp_print_symbol v
                      (pp_print_string_exp complete) e1
-                     (pp_print_exp complete) e2) cases;
+                     (pp_print_exp_list complete) e2) cases;
             fprintf buf "@]"
          end else
             pp_print_string buf "<cases...>"
-    | ThisString (loc, ScopeProtected) ->
+    | ThisString loc ->
          pp_print_string buf "$<this>"
-    | ThisString (loc, ScopePrivate) ->
-         pp_print_string buf "$<private>"
-    | ThisString (loc, ScopeDynamic) ->
-         pp_print_string buf "$<public>"
-    | ThisString (loc, ScopeGlobal) ->
-         pp_print_string buf "$<global>"
 
 and pp_print_string_exp_list complete buf sl =
    match sl with
@@ -225,22 +263,19 @@ and pp_print_exp complete buf e =
    if complete && !print_location then
       fprintf buf "<%a>" pp_print_location (loc_of_exp e);
    match e with
-      LetVarExp (_, scope, v, kind, s) ->
-         fprintf buf "@[<hv 3>%a%a %a@ %a@]" (**)
-            (pp_print_scope_kind complete) scope
-            pp_print_symbol v
+      LetVarExp (_, v, kind, s) ->
+         fprintf buf "@[<hv 3>%a %a@ %a@]" (**)
+            pp_print_var_info v
             pp_print_var_def_kind kind
             (pp_print_string_exp complete) s
-    | LetFunExp (_, scope, v, params, e) ->
-         fprintf buf "@[<hv 3>%a%a(%a) =@ %a@]" (**)
-            (pp_print_scope_kind complete) scope
-            pp_print_symbol v
+    | LetFunExp (_, v, params, el) ->
+         fprintf buf "@[<hv 3>%a(%a) =@ %a@]" (**)
+            pp_print_var_info v
             pp_print_symbol_list params
-            (string_override "<...>" pp_print_exp complete) e
-    | LetObjectExp (_, scope, v, el) ->
-         fprintf buf "@[<v 3>%a%a. =@ %a@]" (**)
-            (pp_print_scope_kind complete) scope
-            pp_print_symbol v
+            (string_override "<...>" pp_print_exp_list complete) el
+    | LetObjectExp (_, v, el) ->
+         fprintf buf "@[<v 3>%a. =@ %a@]" (**)
+            pp_print_var_info v
             (string_override "<...>" pp_print_exp_list complete) el
     | LetThisExp (_, e) ->
          fprintf buf "@[<hv 3><this> =@ %a@]" (pp_print_string_exp complete) e
@@ -249,10 +284,10 @@ and pp_print_exp complete buf e =
     | IfExp (_, cases) ->
          if complete then begin
             fprintf buf "@[<hv 0>if";
-            List.iter (fun (s, e) ->
+            List.iter (fun (s, el) ->
                   fprintf buf "@ @[<hv 3>| %a ->@ %a@]" (**)
                      (pp_print_string_exp complete) s
-                     (pp_print_exp complete) e) cases;
+                     (pp_print_exp_list complete) el) cases;
             fprintf buf "@]"
          end else
             pp_print_string buf "<if ... then ... [else ...]>"
@@ -271,30 +306,29 @@ and pp_print_exp complete buf e =
          fprintf buf "@[<hv 3>include %a:%a@]" (**)
             (pp_print_string_exp complete) s
             (pp_print_commands complete) commands
-    | ApplyExp (_, scope, v, args) ->
-         fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
-            (pp_print_scope_kind complete) scope
-            pp_print_symbol v
+    | ApplyExp (_, v, args) ->
+         fprintf buf "@[<hv 3>%a(%a)@]" (**)
+            pp_print_var_info v
             (pp_print_string_exp_list complete) args
-    | SuperApplyExp (_, scope, super, v, args) ->
-         fprintf buf "@[<hv 0>%a%a::%a(%a)@]" (**)
-            (pp_print_scope_kind complete) scope
+    | SuperApplyExp (_, super, v, args) ->
+         fprintf buf "@[<hv 0>%a::%a(%a)@]" (**)
             pp_print_symbol super
             pp_print_symbol v
             (pp_print_string_exp_list complete) args
-    | MethodApplyExp (_, scope, vl, args) ->
-         fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
-            (pp_print_scope_kind complete) scope
+    | MethodApplyExp (_, v, vl, args) ->
+         fprintf buf "@[<hv 3>%a.%a(%a)@]" (**)
+            pp_print_var_info v
             pp_print_method_name vl
             (pp_print_string_exp_list complete) args
-    | ReturnCatchExp (_, e) ->
-         fprintf buf "@[<hv 3>return-catch@ %a@]" (pp_print_exp complete) e
+    | ReturnBodyExp (_, el) ->
+         fprintf buf "@[<hv 3>return-body@ %a@]"
+            (string_override "<...>" pp_print_exp_list complete) el
     | StringExp (_, s) ->
          fprintf buf "string(%a)" (pp_print_string_exp complete) s
     | ReturnExp (_, s) ->
          fprintf buf "return(%a)" (pp_print_string_exp complete) s
     | ExportExp (_, s) ->
-         fprintf buf "export(%a)" (pp_print_string_exp complete) s
+         fprintf buf "export(%a)" pp_print_export_info s
     | CancelExportExp _ ->
          pp_print_string buf "cancel-export"
     | ReturnSaveExp _ ->
@@ -339,12 +373,13 @@ let pp_print_exp_simple = pp_print_exp false
  * The complete printers.
  *)
 let pp_print_exp = pp_print_exp true
-let pp_print_scope_kind = pp_print_scope_kind true
 let pp_print_string_exp = pp_print_string_exp true
 let pp_print_string_exp_list = pp_print_string_exp_list true
 
+let pp_print_exp_list = pp_print_exp_list true
+
 let pp_print_prog buf el =
-   fprintf buf "@[<v 0>%a@]" (pp_print_exp_list true) el
+   fprintf buf "@[<v 0>%a@]" pp_print_exp_list el
 
 (*
  * -*-

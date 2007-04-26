@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -43,9 +43,78 @@ open Omake_value
 open Omake_state
 open Omake_node_sig
 open Omake_build_type
+open Omake_symbol
 
-module Pos = MakePos (struct let name = "Omake_builtin" end)
+module Pos = MakePos (struct let name = "Omake_builtin_util" end)
 open Pos
+
+(************************************************************************
+ * Run-time variables.
+ *
+ * Strip the leading qualifiers.
+ * This is a big hack, repeating Omake_ir_ast.
+ * We may want to move this into there.
+ *)
+let parse_path unlinked venv pos loc s =
+   let vl = List.map Lm_symbol.add (Lm_string_util.split "." s) in
+      match Omake_ir_ast.parse_declaration venv pos loc vl with
+         NameEmpty _ ->
+            raise (OmakeException (pos, StringError "empty name"))
+
+       | NameMethod (info, v, vl) ->
+            let info =
+               match info.name_scope with
+                  Some VarScopePrivate ->
+                     VarPrivate (loc, v)
+                | Some VarScopeThis ->
+                     VarThis (loc, v)
+                | Some VarScopeVirtual
+                | None ->
+                     VarVirtual (loc, v)
+                | Some VarScopeGlobal ->
+                     VarGlobal (loc, v)
+            in
+               info, vl
+
+let parse_sym =
+   parse_path (fun loc v -> VarThis (loc, v))
+
+let parse_def venv pos loc s =
+   let v, vl =
+      parse_path (fun loc v ->
+            VarVirtual (loc, v)) venv pos loc s
+   in
+      if vl <> [] then
+         raise (OmakeException (pos, StringError "name has too many components"));
+      v
+
+(*
+ * Variable manipulations.
+ *)
+let defined_sym venv pos loc s =
+   let pos = string_pos "defined_sym" pos in
+   let v, vl = parse_sym venv pos loc s in
+      match vl with
+         [] ->
+            venv_defined venv v
+       | _ ->
+            eval_defined_method_var venv pos loc v vl
+
+let get_sym venv pos loc s =
+   let pos = string_pos "get_sym" pos in
+   let v, vl = parse_sym venv pos loc s in
+      match vl with
+         [] ->
+            venv_find_var venv pos loc v
+       | _ ->
+            snd (eval_find_method_var venv pos loc v vl)
+
+let add_sym venv pos loc s x =
+   let pos = string_pos "add_sym" pos in
+   let v, vl = parse_sym venv pos loc s in
+      if vl <> [] then
+         raise (OmakeException (loc_pos loc pos, StringError "name has too many components"));
+      venv_add_var venv v x
 
 (*
  * Command-line definitions.
@@ -59,7 +128,11 @@ let command_defs_are_nonempty () =
    !command_defs <> []
 
 let venv_add_command_defs venv =
-   venv_add_assoc venv !command_defs
+   let loc = bogus_loc "<command-line>" in
+   let pos = string_pos "venv_add_command_defs" (loc_exp_pos loc) in
+      List.fold_left (fun venv (v, s) ->
+            let v = parse_def venv pos loc v in
+               venv_add_var venv v (ValString s)) venv !command_defs
 
 (*
  * Fold its in a sequence, and place separators between them.

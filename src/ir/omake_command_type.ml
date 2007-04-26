@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -68,7 +68,7 @@ type command_flag =
  * or passed to the shell.
  *)
 type ('exp, 'argv, 'value) poly_command_inst =
-   CommandEval   of 'exp
+   CommandEval   of 'exp list
  | CommandPipe   of 'argv
  | CommandValues of 'value list
 
@@ -166,7 +166,7 @@ let pp_print_arg =
       ArgString s ->
          pp_print_string buf s
     | ArgData s ->
-         pp_arg_data_string buf s 
+         pp_arg_data_string buf s
    in
       (fun buf arg -> List.iter (pp_print_arg_elem buf) arg)
 
@@ -206,7 +206,8 @@ struct
          CommandPipe argv ->
             pp_print_argv buf argv
        | CommandEval exp ->
-            pp_print_exp_simple buf exp
+            (* ZZZ: this used to be a "simple" printer *)
+            pp_print_exp_list buf exp
        | CommandValues values ->
             fprintf buf "<compute %i value dependencies>" (List.length values)
 

@@ -15,16 +15,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -46,6 +46,7 @@ open Omake_symbol
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_test" end)
 open Pos
@@ -434,7 +435,7 @@ let older_than_file stat1 stat2 =
 let eval_string_exp venv pos arg =
    match arg with
       TokCurrentFile _ ->
-         string_of_value venv pos (venv_get_var venv ScopeGlobal pos braces_sym)
+         string_of_value venv pos (venv_get_var venv pos braces_var)
     | _ ->
          string_of_token arg
 
@@ -535,7 +536,7 @@ let eval_intop_exp venv pos op e1 e2 =
  *)
 let eval_match_exp venv pos regex =
    let basename =
-      match venv_get_var venv ScopeGlobal pos braces_sym with
+      match venv_get_var venv pos braces_var with
          ValNode node ->
             Node.tail node
        | v ->
@@ -760,13 +761,13 @@ and parse_exp venv pos tokens =
  * \end{doc}
  *)
 let print_usage venv pos loc =
-   let outv = venv_find_var venv ScopeGlobal pos loc stderr_sym in
+   let outv = venv_find_var venv pos loc stderr_var in
    let outx = channel_of_value venv pos outv in
       Lm_channel.output_string outx "test <expression>\nFor usage, see the omake manual\n";
       false
 
 let print_version venv pos loc =
-   let outv = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+   let outv = venv_find_var venv pos loc stdout_var in
    let outx = channel_of_value venv pos outv in
       Lm_channel.output_string outx "test version 1.0.0\n";
       false
@@ -905,7 +906,7 @@ let rec find_file venv pos nodes name e =
 
    (* Add this node if the expression matches *)
    let nodes =
-      let venv = venv_add_var venv ScopeGlobal pos braces_sym v in
+      let venv = venv_add_var venv braces_var v in
          if eval_bool_exp venv pos e then
             v :: nodes
          else
@@ -965,7 +966,7 @@ let shell_find venv pos loc args =
    let pos = string_pos "find" pos in
       match args with
          [arg] ->
-            let stdout_fd = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+            let stdout_fd = venv_find_var venv pos loc stdout_var in
             let outp, close_flag = out_channel_of_any_value venv pos stdout_fd in
             let outx = venv_find_channel venv pos outp in
             let nodes = find_top venv pos loc arg in

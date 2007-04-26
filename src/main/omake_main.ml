@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -41,6 +41,7 @@ open Omake_state
 open Omake_symbol
 open Omake_exec_type
 open Omake_options
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_main" end)
 open Pos
@@ -81,7 +82,7 @@ let add_unknown options s =
          let l = String.length s in
          let v = String.sub s 0 i in
          let x = String.sub s (succ i) (l - i - 1) in
-            Omake_builtin.add_command_def (Lm_symbol.add v) x
+            Omake_builtin.add_command_def v x
       with
          Not_found ->
             add_target s
@@ -289,10 +290,9 @@ let main_remote cwd options =
    let cwd   = Dir.cwd () in
    let exec  = Exec.create cwd options in
    let cache = Omake_cache.create () in
-   let pos   = string_exp_pos "main_remote" in
    let venv  = Omake_env.create options "." exec cache in
    let venv  = Omake_builtin.venv_add_command_defs venv in
-   let venv  = Omake_env.venv_add_var venv ScopeGlobal pos targets_sym (ValString (String.concat " " !targets)) in
+   let venv  = Omake_env.venv_add_var venv targets_var (ValString (String.concat " " !targets)) in
    let venv  = Omake_builtin.venv_add_builtins venv in
 
    (* Shell evaluator *)

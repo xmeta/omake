@@ -63,6 +63,10 @@ let parser_object_sym          = Lm_symbol.add "Parser"
 let location_object_sym        = Lm_symbol.add "Location"
 let position_object_sym        = Lm_symbol.add "Position"
 let target_object_sym          = Lm_symbol.add "Target"
+let options_object_sym         = Lm_symbol.add "Options"
+
+let wild_sym                   = Lm_symbol.add "%"
+let explicit_target_sym        = Lm_symbol.add "$EXPLICIT-TARGET"
 
 let current_prec_sym           = Lm_symbol.add "current-prec"
 
@@ -164,6 +168,7 @@ let if_sym        = Lm_symbol.add "if"
 let else_sym      = Lm_symbol.add "else"
 let elseif_sym    = Lm_symbol.add "elseif"
 let switch_sym    = Lm_symbol.add "switch"
+let select_sym    = Lm_symbol.add "select"
 let case_sym      = Lm_symbol.add "case"
 let do_sym        = Lm_symbol.add "do"
 let while_sym     = Lm_symbol.add "while"
@@ -178,6 +183,7 @@ let private_sym   = Lm_symbol.add "private"
 let protected_sym = Lm_symbol.add "protected"
 let public_sym    = Lm_symbol.add "public"
 let static_sym    = Lm_symbol.add "static"
+let const_sym     = Lm_symbol.add "const"
 let rule_sym      = Lm_symbol.add "rule"
 let system_sym    = Lm_symbol.add "system"
 let open_sym      = Lm_symbol.add "open"
@@ -186,6 +192,8 @@ let declare_sym   = Lm_symbol.add "declare"
 let return_sym    = Lm_symbol.add "return"
 let export_sym    = Lm_symbol.add "export"
 let value_sym     = Lm_symbol.add "value"
+let file_sym      = Lm_symbol.add "__FILE__"
+let file_id_sym   = Lm_symbol.add "__ID__"
 
 let empty_map_sym       = Lm_symbol.add "empty-map"
 let create_map_sym      = Lm_symbol.add "create-map"
@@ -226,6 +234,7 @@ let values_sym   = Lm_symbol.add ":value:"
  *)
 let extends_sym    = Lm_symbol.add "extends"
 let omakeflags_sym = Lm_symbol.add "OMakeFlags"
+let omakeargv_sym  = Lm_symbol.add "OMakeArgv"
 
 (*
  * Symbols.

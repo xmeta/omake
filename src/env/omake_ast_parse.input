@@ -246,11 +246,19 @@ shell_line:
           }
 
           /* Builtin functions */
-        | TokKeyword opt_white text_optcolon TokEol
+        | TokKeyword opt_white keyword_text_optcolon TokEol
           { let id, loc1 = $1 in
             let body, arg = get_optcolon_text $3 $4 in
             let loc = union_loc loc1 $4 in
                body, CommandExp (Lm_symbol.add id, arg, [], loc)
+          }
+
+          /* Builtin functions with array bodies */
+        | TokKeyword opt_white TokArray opt_white TokEol
+          { let id, loc1 = $1 in
+            let loc = union_loc loc1 $5 in
+            let arg = NullExp loc in
+               OptStringBody, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
 
           /* Keyword applications */
@@ -886,16 +894,54 @@ rev_target:
  *    text_colon:     [^ TokEol]* TokColon
  *    text_noncolon: ([^ TokEol]* [^ TokEol TokColon])?
  */
-text_optcolon:
+keyword_text_optcolon:
           /* empty */
           { None }
-        | rev_text_noncolon
+        | rev_keyword_text_noncolon
           { let w, l, loc = $1 in
                Some (OptBody, sequence_exp (List.rev (w @ l)) loc)
           }
-        | rev_text_colon
+        | rev_keyword_text_colon
           { let l, loc = $1 in
                Some (ColonBody, sequence_exp (List.rev (List.tl l)) loc)
+          }
+        ;
+
+rev_keyword_text_opt_colon:
+          rev_keyword_text_noncolon
+          { $1 }
+        | rev_keyword_text_colon
+          { let l, loc = $1 in
+               [], l, loc
+          }
+        ;
+
+rev_keyword_text_noncolon:
+          keyword_target_start
+          { let e, loc = $1 in
+               [], [e], loc
+          }
+        | rev_keyword_text_opt_colon target_start
+          { let w, l, loc1 = $1 in
+            let e, loc2 = $2 in
+               [], e :: (w @ l), union_loc loc1 loc2
+          }
+        | rev_keyword_text_opt_colon white
+          { let w, l, loc1 = $1 in
+            let e, loc2 = $2 in
+               e :: w, l, union_loc loc1 loc2
+          }
+        ;
+
+rev_keyword_text_colon:
+          colon
+          { let e, loc = $1 in
+               [e], loc
+          }
+        | rev_keyword_text_opt_colon colon
+          { let w, l, loc1 = $1 in
+            let e, loc2 = $2 in
+               e :: (w @ l), union_loc loc1 loc2
           }
         ;
 
@@ -903,47 +949,21 @@ text_optcolon:
  * Strip trailing whitespace from nonempty text.
  */
 text_nonempty:
-          rev_text_opt_colon
-          { let _, l, loc = $1 in
+          rev_text_nonempty
+          { let l, loc = $1 in
                sequence_exp (List.rev l) loc
           }
         ;
 
-rev_text_opt_colon:
-          rev_text_noncolon
-          { $1 }
-        | rev_text_colon
-          { let l, loc = $1 in
-               [], l, loc
-          }
-        ;
-
-rev_text_noncolon:
-          keyword_target_start
-          { let e, loc = $1 in
-               [], [e], loc
-          }
-        | rev_text_opt_colon target_start
-          { let w, l, loc1 = $1 in
-            let e, loc2 = $2 in
-               [], e :: (w @ l), union_loc loc1 loc2
-          }
-        | rev_text_opt_colon white
-          { let w, l, loc1 = $1 in
-            let e, loc2 = $2 in
-               e :: w, l, union_loc loc1 loc2
-          }
-        ;
-
-rev_text_colon:
-          colon
+rev_text_nonempty:
+          text_nonwhite
           { let e, loc = $1 in
                [e], loc
           }
-        | rev_text_opt_colon colon
-          { let w, l, loc1 = $1 in
+        | rev_text_nonempty text_next
+          { let l, loc1 = $1 in
             let e, loc2 = $2 in
-               e :: (w @ l), union_loc loc1 loc2
+               e :: l, union_loc loc1 loc2
           }
         ;
 

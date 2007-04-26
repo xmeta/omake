@@ -36,6 +36,7 @@ open Omake_env
 open Omake_node
 open Omake_lexer
 open Omake_parser
+open Omake_var
 
 (*
  * If there is only one value,
@@ -84,8 +85,8 @@ val dir_value_of_value  : venv -> pos -> value -> value
 val filename_of_value   : venv -> pos -> value -> string
 
 val prim_channel_of_value    : venv -> pos -> value -> prim_channel
-val prim_channel_of_var      : venv -> pos -> loc -> var -> prim_channel
-val channel_of_var           : venv -> pos -> loc -> var -> Lm_channel.t
+val prim_channel_of_var      : venv -> pos -> loc -> var_info -> prim_channel
+val channel_of_var           : venv -> pos -> loc -> var_info -> Lm_channel.t
 val channel_of_value         : venv -> pos -> value -> Lm_channel.t
 val in_channel_of_any_value  : venv -> pos -> value -> prim_channel * bool
 val out_channel_of_any_value : venv -> pos -> value -> prim_channel * bool

@@ -47,6 +47,7 @@ open Omake_shell_type
 open Omake_options
 open Omake_command_type
 open Omake_ir_free_vars
+open Omake_var
 
 (*
  * Debugging.
@@ -122,6 +123,7 @@ type rule_kind =
 (*
  * Export kinds.
  *    ExportFile: this is the result of file evaluation
+ *    ExportDir: export the current directory
  *    ExportList: export just the listed items (variable values, implicit rules/dependencies, phony target set)
  *    ExportAll: export the entire environment.
  *    ExportValue v: just like Exportall, but return the value too
@@ -130,13 +132,8 @@ and export =
    ExportFile
  | ExportAll
  | ExportDir
- | ExportList of export_elt list
+ | ExportList of export_item list
  | ExportValue of value
-
-and export_elt =
-   ExportSymbol of symbol
- | ExportRules
- | ExportPhonies
 
 (*
  * Possible values.
@@ -152,24 +149,34 @@ and value =
  | ValData        of string
  | ValQuote       of value list
  | ValQuoteString of char * value list
- | ValApply       of loc * scope_kind * var * value list
- | ValSuperApply  of loc * scope_kind * var * var * value list
- | ValMethodApply of loc * scope_kind * var list * value list
- | ValImplicit    of loc * scope_kind * var
- | ValFun         of arity * env * var list * exp
- | ValFunValue    of arity * env * var list * value
- | ValPrim        of arity * bool * prim_fun
  | ValRules       of erule list
  | ValNode        of Node.t
  | ValDir         of Dir.t
  | ValEnv         of venv * export
- | ValBody        of env * exp
  | ValObject      of obj
  | ValMap         of map
  | ValChannel     of channel_mode * prim_channel
  | ValClass       of obj SymbolTable.t
+
+   (* Raw expressions *)
+ | ValBody        of env * exp list
  | ValCases       of (var * value * value) list
+
+   (* Functions *)
+ | ValFun         of arity * env * var list * exp list
+ | ValFunValue    of arity * env * var list * value
+
+   (* Closed values *)
+ | ValApply       of loc * var_info * value list
+ | ValSuperApply  of loc * var * var * value list
+ | ValMethodApply of loc * var_info * var list * value list
  | ValKey         of loc * string
+ | ValPrim        of arity * bool * prim_fun
+
+   (* Potentially undefined values, used only in implicit value dependencies *)
+ | ValImplicit    of loc * var_info
+
+   (* Other values *)
  | ValOther       of value_other
 
 (*
@@ -190,7 +197,7 @@ and value_other =
  * for various kinds of commands.
  *)
 and command =
-   CommandSection of value * free_vars * exp    (* Name of the section, its free variables, and the expression *)
+   CommandSection of value * free_vars * exp list   (* Name of the section, its free variables, and the expression *)
  | CommandValue of loc * value
 
 and command_info =
@@ -291,11 +298,6 @@ type include_scope =
  | IncludeAll
 
 (*
- * Intermediate code include the names of the classes.
- *)
-type ir = symbol list * scope_kind SymbolTable.t * Omake_ir.exp
-
-(*
  * Check if command list does not contain anything to execute.
  *)
 val commands_are_trivial : command_info list -> bool
@@ -319,7 +321,7 @@ val venv_get_pervasives : venv -> Node.t -> venv
 (*
  * Variables in scope.
  *)
-val venv_include_scope : venv -> include_scope -> scope_kind SymbolTable.t
+val venv_include_scope : venv -> include_scope -> senv
 
 (*
  * Fork, so that a thread can work on a private copy in peace.
@@ -352,11 +354,10 @@ val venv_nodename         : venv -> Node.t -> string
 
 val venv_mount       : venv -> mount_option list -> Dir.t -> Dir.t -> venv
 
-val venv_add_var     : venv -> scope_kind -> pos -> var -> value -> venv
-val venv_add_args    : venv -> pos -> loc -> env -> var list -> value list -> venv
-val venv_add_assoc   : venv -> (var * string) list -> venv
+val venv_add_var     : venv -> var_info -> value -> venv
 val venv_add_phony   : venv -> loc -> target list -> venv
 
+val venv_add_args    : venv -> pos -> loc -> env -> var list -> value list -> venv
 val venv_add_args_hack : venv -> pos -> loc -> env -> var list -> value list -> venv
 
 val venv_add_wild_match  : venv -> value -> venv
@@ -394,12 +395,15 @@ val venv_set_options_argv : venv -> loc -> pos -> string list -> venv
 (*
  * Find values.
  *)
-val venv_dir          : venv -> Dir.t
-val venv_defined      : venv -> scope_kind -> var -> bool
-val venv_get_var      : venv -> scope_kind -> pos -> var -> value
-val venv_find_var     : venv -> scope_kind -> pos -> loc -> var -> value
-val venv_find_var_exn : venv -> scope_kind -> var -> value
-val venv_find_object_or_empty : venv -> scope_kind -> symbol -> obj
+val venv_dir                  : venv -> Dir.t
+val venv_defined              : venv -> var_info -> bool
+val venv_defined_field        : obj -> var -> bool
+
+val venv_get_var              : venv -> pos -> var_info -> value
+
+val venv_find_var             : venv -> pos -> loc -> var_info -> value
+val venv_find_var_exn         : venv -> var_info -> value
+val venv_find_object_or_empty : venv -> var_info -> obj
 
 (*
  * Static environments.
@@ -445,14 +449,15 @@ val venv_add_formatter_channel : venv -> Format.formatter -> prim_channel
  *)
 val venv_empty_object    : obj
 val venv_this            : venv -> obj
-val venv_this_object     : venv -> scope_kind -> obj
 val venv_current_object  : venv -> symbol list -> obj
-val venv_current_objects : venv -> scope_kind -> obj list
 val venv_define_object   : venv -> venv
 val venv_with_object     : venv -> obj -> venv
 val venv_include_object  : venv -> obj -> venv
 val venv_flatten_object  : venv -> obj -> venv
 val venv_find_super      : venv -> pos -> loc -> symbol -> obj
+
+(* ZZZ: don't exist in 0.9.9 *)
+val venv_current_objects : venv -> var_info -> value list
 
 val venv_add_field       : obj -> var -> value -> obj
 val venv_find_field_exn  : obj -> var -> value
@@ -577,6 +582,7 @@ type omake_error =
  | StringTargetError of string * target
  | LazyError         of (formatter -> unit)
  | UnboundVar        of var
+ | UnboundVarInfo    of var_info
  | UnboundFun        of var
  | UnboundMethod     of var list
  | ArityMismatch     of arity * int

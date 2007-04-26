@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -87,6 +87,10 @@ type omake_options =
      opt_allow_exceptions     : bool;
      opt_absname              : bool;
      opt_output               : (output_flag * bool) list;
+
+     (* Warnings *)
+     opt_warn_declare        : bool;
+     opt_warn_error          : bool
    }
 
 let opt_job_count opts =
@@ -299,6 +303,18 @@ let opt_absname opts =
 let set_absname_opt opts flag =
    { opts with opt_absname = flag }
 
+let opt_warn_declare opts =
+   opts.opt_warn_declare
+
+let set_warn_declare_opt opts flag =
+   { opts with opt_warn_declare = flag }
+
+let opt_warn_error opts =
+   opts.opt_warn_error
+
+let set_warn_error_opt opts flag =
+   { opts with opt_warn_error = flag }
+
 (*
  * Output control.
  *)
@@ -414,6 +430,8 @@ let default_options =
      opt_allow_exceptions     = false;
      opt_absname              = false;
      opt_output               = [];
+     opt_warn_declare         = false;
+     opt_warn_error           = false;
    }
 
 (*
@@ -457,7 +475,12 @@ let options_spec =
     "--verbose-dependencies", Lm_arg.SetFold set_verbose_dependencies_opt, (**)
        "For --print-dependencies and --show-dependencies, print all dependencies too";
     "--absname", Lm_arg.SetFold set_absname_opt, (**)
-       "Filenames are always displayed as absolute paths"]
+       "Filenames are always displayed as absolute paths";
+    "-Wdeclare", Lm_arg.SetFold set_warn_declare_opt, (**)
+       "Warn about undeclared variables";
+    "-warn-error", Lm_arg.SetFold set_warn_error_opt, (**)
+       "Treat warnings as errors"
+   ]
 
 let progress_usage =
    match Sys.os_type with

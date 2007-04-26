@@ -55,6 +55,7 @@ open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
 open Omake_command_type
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_base" end)
 open Pos
@@ -448,10 +449,10 @@ let switch_fun =
 let match_fun =
    let compare venv pos loc s1 s2 =
       let lex =
-         try lexer_of_string s1
-         with Failure err ->
-            let msg = sprintf "Mailformed regular expression '%s'" s1 in
-               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
+         try lexer_of_string s1 with
+            Failure err ->
+               let msg = sprintf "Malformed regular expression '%s'" s1 in
+                  raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
       in
       let channel = Lm_channel.of_string s2 in
          match Lexer.search lex channel with
@@ -527,7 +528,7 @@ let object_of_omake_exception venv pos exp =
       pp_print_exn stdstr exp;
       flush_stdstr ()
    in
-   let obj = venv_find_object_or_empty venv ScopeGlobal runtime_exception_sym in
+   let obj = venv_find_object_or_empty venv runtime_exception_var in
    let obj = venv_add_field obj pos_sym (ValString pos) in
    let obj = venv_add_field obj message_sym (ValString exp) in
    let obj = venv_add_class obj runtime_exception_sym in
@@ -542,7 +543,7 @@ let object_of_uncaught_exception venv pos exn =
       pp_print_pos stdstr pos;
       flush_stdstr ()
    in
-   let obj = venv_find_object_or_empty venv ScopeGlobal runtime_exception_sym in
+   let obj = venv_find_object_or_empty venv runtime_exception_var in
    let obj = venv_add_field obj pos_sym (ValString pos) in
    let obj = venv_add_field obj message_sym (ValString (Printexc.to_string exn)) in
    let obj = venv_add_class obj runtime_exception_sym in
@@ -578,7 +579,7 @@ let rec eval_catch_rest venv_orig venv pos obj result cases =
          Some result
 
 and eval_catch_case venv_orig pos v obj e cases =
-   let venv = venv_add_var venv_orig ScopeGlobal pos v (ValObject obj) in
+   let venv = venv_add_var venv_orig v (ValObject obj) in
    let venv, result = eval_body_exp venv pos ValNone e in
       eval_catch_rest venv_orig venv pos obj result cases
 
@@ -594,7 +595,9 @@ and eval_exception venv pos obj cases =
          else if Lm_symbol.eq v finally_sym then
             None
          else if Lm_symbol.eq v default_sym || venv_instanceof obj v then
-            eval_catch_case venv pos (Lm_symbol.add (string_of_value venv pos s)) obj e cases
+            (* FIXME: BUG: JYH: this binding occurence should be fixed *)
+            let v = VarThis (loc_of_pos pos, Lm_symbol.add (string_of_value venv pos s)) in
+               eval_catch_case venv pos v obj e cases
          else
             eval_exception venv pos obj cases
     | [] ->
@@ -746,6 +749,13 @@ let exit_fun venv pos loc args =
  *        X = a b c
  *        export
  * \end{verbatim}
+ *
+ * It is acceptable to use qualified names.
+ *
+ * \begin{verbatim}
+ *     $(defined X.a.b)
+ *     $(defined public.X)
+ * \end{verbatim}
  * \end{doc}
  *)
 let defined venv pos loc args =
@@ -753,11 +763,11 @@ let defined venv pos loc args =
       match args with
          [arg] ->
             let args = strings_of_value venv pos arg in
-            let b =
-               List.for_all (fun s ->
-                     venv_defined venv ScopeGlobal (Lm_symbol.add s)) args
-            in
-               val_of_bool b
+            let b = List.for_all (fun s -> defined_sym venv pos loc s) args in
+               if b then
+                  val_true
+               else
+                  val_false
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -1010,14 +1020,19 @@ let get_registry venv pos loc args =
  *     foo_1 = abc
  *     X = $(getvar $(NAME)_1)
  * \end{verbatim}
+ *
+ * It is acceptable to use qualified names.
+ *
+ * \begin{verbatim}
+ *     $(getvar X.a.b)
+ * \end{verbatim}
  * \end{doc}
  *)
 let getvar venv pos loc args =
    let pos = string_pos "getvar" pos in
       match args with
          [arg] ->
-            let s = string_of_value venv pos arg in
-               venv_find_var venv ScopeGlobal pos loc (Lm_symbol.add s)
+            get_sym venv pos loc (string_of_value venv pos arg)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -1038,14 +1053,20 @@ let getvar venv pos loc args =
  *    NAME = X
  *    setvar($(NAME), abc)
  * \end{verbatim}
+ *
+ * It is acceptable to use qualified names.
+ *
+ * \begin{verbatim}
+ *     setvar(public.X, abc)
+ * \end{verbatim}
  * \end{doc}
  *)
 let setvar venv pos loc args =
    let pos = string_pos "setvar" pos in
       match args with
          [arg1; arg2] ->
-            let v = Lm_symbol.add (string_of_value venv pos arg1) in
-            let venv = venv_add_var venv ScopeGlobal pos v arg2 in
+            let s = string_of_value venv pos arg1 in
+            let venv = add_sym venv pos loc s arg2 in
                ValEnv (venv, ExportAll)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -2430,7 +2451,7 @@ let shella venv pos loc args =
 
 let shell_code venv pos loc args =
    let pos = string_pos "shell-code" pos in
-   let venv = venv_add_var venv ScopeGlobal pos abort_on_command_error_sym val_false in
+   let venv = venv_add_var venv abort_on_command_error_var val_false in
    let _, result =
       match args with
          [arg] ->
@@ -2477,8 +2498,6 @@ let export venv pos loc args =
             ValEnv (venv, ExportAll)
        | [(ValEnv _) as result] ->
             result
-       | [arg] ->
-            eval_export_args venv pos arg
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 

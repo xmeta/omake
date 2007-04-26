@@ -15,16 +15,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -85,16 +85,26 @@ type code =
  | CodeQuoteString
  | CodeQuoteStringString
  | CodeExportExp
+ | CodeExportNone
+ | CodeExportAll
+ | CodeExportList
+ | CodeExportRules
+ | CodeExportPhonies
+ | CodeExportVar
  | CodeCancelExportExp
- | CodeReturnCatchExp
+ | CodeReturnBodyExp
  | CodeStringExp
  | CodeReturnExp
  | CodeReturnObjectExp
  | CodeReturnSaveExp
- | CodeScopeDynamic
- | CodeScopeGlobal
- | CodeScopePrivate
- | CodeScopeProtected
+ | CodeVarScopePrivate
+ | CodeVarScopeThis
+ | CodeVarScopeVirtual
+ | CodeVarScopeGlobal
+ | CodeVarPrivate
+ | CodeVarThis
+ | CodeVarVirtual
+ | CodeVarGlobal
  | CodeSectionExp
  | CodeSequenceExp
  | CodeSequenceString
@@ -198,6 +208,25 @@ let rec squash_vars buf vars =
     | [] ->
          ()
 
+let squash_var_info buf v =
+   match v with
+      VarPrivate (_, v) ->
+         Hash.add_code buf CodeVarPrivate;
+         Hash.add_code buf CodeSpace;
+         squash_var buf v
+    | VarThis (_, v) ->
+         Hash.add_code buf CodeVarThis;
+         Hash.add_code buf CodeSpace;
+         squash_var buf v
+    | VarVirtual (_, v) ->
+         Hash.add_code buf CodeVarVirtual;
+         Hash.add_code buf CodeSpace;
+         squash_var buf v
+    | VarGlobal (_, v) ->
+         Hash.add_code buf CodeVarGlobal;
+         Hash.add_code buf CodeSpace;
+         squash_var buf v
+
 (*
  * File.
  *)
@@ -207,16 +236,15 @@ let squash_node buf node =
 (*
  * String representations.
  *)
-let squash_scope buf scope =
-   match scope with
-      ScopeGlobal ->
-         Hash.add_code buf CodeScopeGlobal
-    | ScopeProtected ->
-         Hash.add_code buf CodeScopeProtected
-    | ScopeDynamic ->
-         Hash.add_code buf CodeScopeDynamic
-    | ScopePrivate ->
-         Hash.add_code buf CodeScopePrivate
+let squash_var_scope buf scope =
+   let code =
+      match scope with
+         VarScopePrivate -> CodeVarScopePrivate
+       | VarScopeThis    -> CodeVarScopeThis
+       | VarScopeVirtual -> CodeVarScopeVirtual
+       | VarScopeGlobal  -> CodeVarScopeGlobal
+   in
+      Hash.add_code buf code
 
 let squash_strategy buf strategy =
    let s =
@@ -241,6 +269,27 @@ let squash_def_kind buf kind =
       Hash.add_code buf s
 
 (*
+ * Export info.
+ *)
+let squash_export_info buf info =
+   match info with
+      Omake_ir.ExportNone ->
+         Hash.add_code buf CodeExportNone
+    | Omake_ir.ExportAll ->
+         Hash.add_code buf CodeExportAll
+    | Omake_ir.ExportList items ->
+         Hash.add_code buf CodeExportList;
+         List.iter (fun item ->
+               match item with
+                  Omake_ir.ExportRules ->
+                     Hash.add_code buf CodeExportRules
+                | Omake_ir.ExportPhonies ->
+                     Hash.add_code buf CodeExportPhonies
+                | Omake_ir.ExportVar v ->
+                     Hash.add_code buf CodeExportVar;
+                     squash_var_info buf v) items
+
+(*
  * Squash string expressions.
  *)
 let rec squash_string_exp pos buf e =
@@ -256,31 +305,27 @@ let rec squash_string_exp pos buf e =
             Hash.add_code buf CodeKeyString;
             squash_strategy buf strategy;
             Hash.add_string buf s
-       | ApplyString (_, strategy, scope, v, sl) ->
+       | ApplyString (_, strategy, v, sl) ->
             Hash.add_code buf CodeApplyString;
             squash_strategy buf strategy;
             Hash.add_code buf CodeSpace;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_string_exp_list pos buf sl
-       | SuperApplyString (_, strategy, scope, v1, v2, sl) ->
+       | SuperApplyString (_, strategy, v1, v2, sl) ->
             Hash.add_code buf CodeSuperApplyString;
             squash_strategy buf strategy;
-            Hash.add_code buf CodeSpace;
-            squash_scope buf scope;
             Hash.add_code buf CodeSpace;
             squash_var buf v1;
             Hash.add_code buf CodeSpace;
             squash_var buf v2;
             Hash.add_code buf CodeSpace;
             squash_string_exp_list pos buf sl
-       | MethodApplyString (_, strategy, scope, vars, sl) ->
+       | MethodApplyString (_, strategy, v, vars, sl) ->
             Hash.add_code buf CodeMethodApplyString;
             squash_strategy buf strategy;
             Hash.add_code buf CodeSpace;
-            squash_scope buf scope;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_vars buf vars;
             Hash.add_code buf CodeSpace;
@@ -301,18 +346,17 @@ let rec squash_string_exp pos buf e =
             Hash.add_code buf CodeQuoteStringString;
             Hash.add_char buf c;
             squash_string_exp_list pos buf sl
-       | BodyString (_, e) ->
+       | BodyString (_, el) ->
             Hash.add_code buf CodeBodyString;
-            squash_exp pos buf e
-       | ExpString (_, e) ->
+            squash_exp_list pos buf el
+       | ExpString (_, el) ->
             Hash.add_code buf CodeExpString;
-            squash_exp pos buf e
+            squash_exp_list pos buf el
        | CasesString (_, cases) ->
             Hash.add_code buf CodeCasesString;
             squash_cases_exp pos buf cases
-       | ThisString (_, scope) ->
-            Hash.add_code buf CodeThisString;
-            squash_scope buf scope
+       | ThisString _ ->
+            Hash.add_code buf CodeThisString
    end;
    Hash.add_code buf CodeEnd
 
@@ -327,13 +371,13 @@ and squash_string_exp_list pos buf sl =
     | [] ->
          ()
 
-and squash_case_exp pos buf (v, s, e) =
+and squash_case_exp pos buf (v, s, el) =
    Hash.add_code buf CodeCaseString;
    squash_var buf v;
    Hash.add_code buf CodeSpace;
    squash_string_exp pos buf s;
    Hash.add_code buf CodeSpace;
-   squash_exp pos buf e;
+   squash_exp_list pos buf el;
    Hash.add_code buf CodeEnd
 
 and squash_cases_exp pos buf cases =
@@ -348,11 +392,9 @@ and squash_exp pos buf e =
    Hash.add_code buf CodeBegin;
    begin
       match e with
-         LetVarExp (_, scope, v, def, s) ->
+         LetVarExp (_, v, def, s) ->
             Hash.add_code buf CodeLetVarExp;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_def_kind buf def;
             Hash.add_code buf CodeSpace;
@@ -367,20 +409,16 @@ and squash_exp pos buf e =
             squash_def_kind buf def;
             Hash.add_code buf CodeSpace;
             squash_string_exp pos buf s
-       | LetFunExp (_, scope, v, params, s) ->
+       | LetFunExp (_, v, params, s) ->
             Hash.add_code buf CodeLetFunExp;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_vars buf params;
             Hash.add_code buf CodeSpace;
-            squash_exp pos buf s
-       | LetObjectExp (_, scope, v, el) ->
+            squash_exp_list pos buf s
+       | LetObjectExp (_, v, el) ->
             Hash.add_code buf CodeLetObjectExp;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_exp_list pos buf el
        | LetThisExp (_, s) ->
@@ -410,37 +448,33 @@ and squash_exp pos buf e =
             squash_string_exp pos buf s;
             Hash.add_code buf CodeCommaExp;
             squash_string_exp_list pos buf sl
-       | ApplyExp (_, scope, v, sl) ->
+       | ApplyExp (_, v, sl) ->
             Hash.add_code buf CodeApplyExp;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_string_exp_list pos buf sl
-       | SuperApplyExp (_, scope, v1, v2, sl) ->
+       | SuperApplyExp (_, v1, v2, sl) ->
             Hash.add_code buf CodeSuperApplyExp;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
             squash_var buf v1;
             Hash.add_code buf CodeSpace;
             squash_var buf v2;
             Hash.add_code buf CodeSpace;
             squash_string_exp_list pos buf sl
-       | MethodApplyExp (_, scope, vars, sl) ->
+       | MethodApplyExp (_, v, vars, sl) ->
             Hash.add_code buf CodeMethodApplyExp;
-            squash_scope buf scope;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_vars buf vars;
             Hash.add_code buf CodeSpace;
             squash_string_exp_list pos buf sl
-       | ExportExp (_, s) ->
+       | ExportExp (_, info) ->
             Hash.add_code buf CodeExportExp;
-            squash_string_exp pos buf s
+            squash_export_info buf info
        | CancelExportExp _ ->
             Hash.add_code buf CodeCancelExportExp
-       | ReturnCatchExp (_, e) ->
-            Hash.add_code buf CodeReturnCatchExp;
-            squash_exp pos buf e
+       | ReturnBodyExp (_, el) ->
+            Hash.add_code buf CodeReturnBodyExp;
+            squash_exp_list pos buf el
        | StringExp (_, s) ->
             Hash.add_code buf CodeStringExp;
             squash_string_exp pos buf s
@@ -473,11 +507,11 @@ and squash_exp_list pos buf el =
     | [] ->
          ()
 
-and squash_if_case pos buf (s, e) =
+and squash_if_case pos buf (s, el) =
    Hash.add_code buf CodeCaseExp;
    squash_string_exp pos buf s;
    Hash.add_code buf CodeSpace;
-   squash_exp pos buf e;
+   squash_exp_list pos buf el;
    Hash.add_code buf CodeEnd
 
 and squash_if_cases pos buf cases =
@@ -519,30 +553,24 @@ let rec squash_value pos buf v =
             Hash.add_code buf CodeValQuoteString;
             Hash.add_char buf c;
             squash_values pos buf vl
-       | ValApply (_, scope, v, vl) ->
+       | ValApply (_, v, vl) ->
             Hash.add_code buf CodeValApply;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_values pos buf vl
-       | ValImplicit (_, scope, v) ->
+       | ValImplicit (_, v) ->
             Hash.add_code buf CodeValImplicit;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
-            squash_var buf v;
-       | ValSuperApply (_, scope, v1, v2, vl) ->
+            squash_var_info buf v;
+       | ValSuperApply (_, v1, v2, vl) ->
             Hash.add_code buf CodeValSuperApply;
-            squash_scope buf scope;
-            Hash.add_code buf CodeSpace;
             squash_var buf v1;
             Hash.add_code buf CodeSpace;
             squash_var buf v2;
             Hash.add_code buf CodeSpace;
             squash_values pos buf vl
-       | ValMethodApply (_, scope, vars, vl) ->
+       | ValMethodApply (_, v, vars, vl) ->
             Hash.add_code buf CodeValMethodApply;
-            squash_scope buf scope;
+            squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_vars buf vars;
             Hash.add_code buf CodeSpace;
@@ -551,7 +579,7 @@ let rec squash_value pos buf v =
             Hash.add_code buf CodeValFun;
             squash_vars buf params;
             Hash.add_code buf CodeArrow;
-            squash_exp pos buf body
+            squash_exp_list pos buf body
        | ValFunValue (_, _, params, body) ->
             Hash.add_code buf CodeValFunValue;
             squash_vars buf params;
@@ -568,7 +596,7 @@ let rec squash_value pos buf v =
             Hash.add_string buf (Dir.fullname dir)
        | ValBody (_, e) ->
             Hash.add_code buf CodeValBody;
-            squash_exp pos buf e
+            squash_exp_list pos buf e
        | ValObject obj ->
             Hash.add_code buf CodeValObject;
             squash_object pos buf obj
@@ -812,7 +840,7 @@ let squash_command_line pos buf (command : arg_command_inst) =
          squash_pipe pos buf argv;
          Hash.add_code buf CodeEnd
     | CommandEval e ->
-         squash_exp pos buf e
+         squash_exp_list pos buf e
     | CommandValues values ->
          squash_values pos buf values
 

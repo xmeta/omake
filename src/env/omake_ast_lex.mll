@@ -362,6 +362,7 @@ let lexeme_name state lexbuf =
        | "else"
        | "switch"
        | "match"
+       | "select"
        | "case"
        | "default"
        | "section"

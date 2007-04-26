@@ -57,6 +57,7 @@ open Omake_shell_type
 open Omake_ir_free_vars
 open Omake_command_type
 open Omake_command_digest
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_rule" end);;
 open Pos;;
@@ -280,18 +281,18 @@ let rec expand_command venv pos loc buf command =
       match command with
          CommandValue _ ->
             Command.add_command buf command
-       | CommandSection (arg, fv, e) ->
+       | CommandSection (arg, fv, el) ->
             if debug debug_active_rules then
-               eprintf "@[<hv 3>section %a@ %a@]@." pp_print_value arg pp_print_exp e;
+               eprintf "@[<hv 3>section %a@ %a@]@." pp_print_value arg pp_print_exp_list el;
 
             (* The section should be either a rule or eval case *)
             match Lm_string_util.trim (string_of_value venv pos arg) with
                "" ->
-                  expand_eval_section venv pos loc buf "eval" fv e
+                  expand_eval_section venv pos loc buf "eval" fv el
              | "eval" as s ->
-                  expand_eval_section venv pos loc buf s fv e
+                  expand_eval_section venv pos loc buf s fv el
              | "rule" ->
-                  expand_rule_section venv pos loc buf e
+                  expand_rule_section venv pos loc buf el
              | s ->
                   raise (OmakeException (loc_exp_pos loc, StringStringError ("invalid section argument, valid arguments are rule, eval", s)))
 
@@ -311,7 +312,7 @@ and expand_rule_section venv pos loc buf e =
    let target, core = Command.target buf in
    let venv = venv_explicit_target venv target in
    let venv = venv_add_wild_match venv core in
-   let v = eval venv e in
+   let _, v = eval_sequence_exp venv pos e in
       if debug debug_active_rules then
          eprintf "@[<v 0>%a@ @[<hv 3>*** omake: rule body returned@ @[<hv 3>%a@]@]@]@." (**)
             pp_print_location loc
@@ -617,9 +618,9 @@ let find_alias_exn shell_obj venv pos loc exe =
       let stdin  = venv_add_channel venv stdin_chan in
       let stdout = venv_add_channel venv stdout_chan in
       let stderr = venv_add_channel venv stderr_chan in
-      let venv   = venv_add_var venv ScopeGlobal pos stdin_sym  (ValChannel (InChannel,  stdin)) in
-      let venv   = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, stdout)) in
-      let venv   = venv_add_var venv ScopeGlobal pos stderr_sym (ValChannel (OutChannel, stderr)) in
+      let venv   = venv_add_var venv stdin_var  (ValChannel (InChannel,  stdin)) in
+      let venv   = venv_add_var venv stdout_var (ValChannel (OutChannel, stdout)) in
+      let venv   = venv_add_var venv stderr_var (ValChannel (OutChannel, stderr)) in
       let v      = ValArray argv in
       let () =
          if !debug_eval then
@@ -670,7 +671,7 @@ let find_alias obj venv pos loc exe =
 
 let find_alias_of_env venv pos =
    try
-      let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+      let obj = venv_find_var_exn venv shell_object_var in
          match eval_single_value venv pos obj with
             ValObject obj ->
                find_alias obj
@@ -758,28 +759,24 @@ let lazy_command venv pos command =
    match command with
       SectionExp (loc, s, el) ->
          let fv = free_vars_exp_list el in
-            CommandSection (eager_string_exp venv pos s, fv, SequenceExp (loc, el))
+            CommandSection (eager_string_exp venv pos s, fv, el)
     | ShellExp (loc, s) ->
          CommandValue (loc, lazy_string_exp venv pos s)
     | _ ->
          let fv = free_vars_exp command in
-            CommandSection (ValData "eval", fv, command)
+            CommandSection (ValData "eval", fv, [command])
 
 let lazy_commands venv pos commands =
    match eval_value venv pos commands with
-      ValBody (env, SequenceExp (_, el)) ->
+      ValBody (env, el) ->
          List.map (lazy_command (venv_with_env venv env) pos) el
-    | ValBody (env, e) ->
-         [lazy_command (venv_with_env venv env) pos e]
     | _ ->
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
 let exp_list_of_commands venv pos commands =
    match eval_value venv pos commands with
-      ValBody (_, SequenceExp (_, el)) ->
+      ValBody (_, el) ->
          el
-    | ValBody (_, e) ->
-         [e]
     | _ ->
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
@@ -906,7 +903,7 @@ and eval_subdir venv loc (kind, dir) commands =
       (* Check that the directory exists *)
       if not (Omake_cache.exists_dir cache dir) then
          let create_flag =
-            try bool_of_value venv pos (venv_find_var_exn venv ScopeGlobal create_subdirs_sym) with
+            try bool_of_value venv pos (venv_find_var_exn venv create_subdirs_var) with
                Not_found ->
                   false
          in
@@ -949,7 +946,7 @@ and eval_subdir venv loc (kind, dir) commands =
       (* Otherwise, check if an empty file is acceptable *)
       else
          let allow_empty_subdirs =
-            try bool_of_value venv' pos (venv_find_var_exn venv' ScopeGlobal allow_empty_subdirs_sym) with
+            try bool_of_value venv' pos (venv_find_var_exn venv' allow_empty_subdirs_var) with
                Not_found ->
                   false
          in
@@ -1023,8 +1020,8 @@ and eval_include_rule venv pos loc sources deps values commands =
  * Evaluate the commands NOW.
  *)
 and exec_commands venv pos loc commands =
-   let stdin  = channel_of_var venv pos loc stdin_sym in
-   let stdout = channel_of_var venv pos loc stdout_sym in
+   let stdin  = channel_of_var venv pos loc stdin_var in
+   let stdout = channel_of_var venv pos loc stdout_var in
    let stdin  = Lm_channel.descr stdin in
    let stdout = Lm_channel.descr stdout in
       List.iter (fun command ->
@@ -1077,9 +1074,9 @@ and eval_rule venv loc target sources sloppy_deps values commands =
    let target_name  = venv_nodename venv target in
    let root         = Lm_filename_util.root target_name in
    let root'        = Lm_filename_util.strip_suffixes target_name in
-   let venv         = venv_add_var venv ScopeGlobal pos star_sym (ValData root) in
-   let venv         = venv_add_var venv ScopeGlobal pos gt_sym   (ValData root') in
-   let venv         = venv_add_var venv ScopeGlobal pos at_sym   (ValNode target) in
+   let venv         = venv_add_var venv star_var (ValData root) in
+   let venv         = venv_add_var venv gt_var   (ValData root') in
+   let venv         = venv_add_var venv at_var   (ValNode target) in
    let source_all   = ValArray (List.map (fun v -> ValNode v) sources) in
    let source_names = List.map (venv_nodename venv) sources in
    let source_set   = List.fold_left LexStringSet.add LexStringSet.empty source_names in
@@ -1090,11 +1087,11 @@ and eval_rule venv loc target sources sloppy_deps values commands =
          source :: _ -> ValNode source
        | [] -> ValNone
    in
-   let venv = venv_add_var venv ScopeGlobal pos plus_sym source_all in
-   let venv = venv_add_var venv ScopeGlobal pos hat_sym  source_set in
-   let venv = venv_add_var venv ScopeGlobal pos lt_sym   source in
+   let venv = venv_add_var venv plus_var source_all in
+   let venv = venv_add_var venv hat_var  source_set in
+   let venv = venv_add_var venv lt_var   source in
    let sloppy_deps = List.map (fun v -> ValNode v) (NodeSet.to_list sloppy_deps) in
-   let venv = venv_add_var venv ScopeGlobal pos amp_sym  (ValArray sloppy_deps) in
+   let venv = venv_add_var venv amp_var  (ValArray sloppy_deps) in
    let options = Lm_glob.create_options (glob_options_of_env venv pos) in
    let find_alias = find_alias_of_env venv pos in
    let command_line (commands, fv) command =
@@ -1117,8 +1114,8 @@ and eval_rule venv loc target sources sloppy_deps values commands =
    let commands, fv = List.fold_left command_line ([], free_vars_empty) commands in
    let commands = List.rev commands in
    let values =
-      free_vars_fold (fun values v kind ->
-            ValImplicit (loc, kind, v) :: values) values fv
+      VarInfoSet.fold (fun values v ->
+            ValImplicit (loc, v) :: values) values (free_vars_set fv)
    in
    let values =
       List.fold_left (fun values v ->
@@ -1154,7 +1151,7 @@ and glob_options_of_env venv pos =
    let options = [] in
    let options =
       try
-         let s = venv_find_var_exn venv ScopeGlobal glob_options_sym in
+         let s = venv_find_var_exn venv glob_options_var in
          let s = string_of_value venv pos s in
             glob_options_of_string options s
       with
@@ -1163,7 +1160,7 @@ and glob_options_of_env venv pos =
    in
    let options =
       try
-         let ignore = venv_find_var_exn venv ScopeGlobal glob_ignore_sym in
+         let ignore = venv_find_var_exn venv glob_ignore_var in
          let ignore = strings_of_value venv pos ignore in
             GlobIgnore ignore :: options
       with
@@ -1172,7 +1169,7 @@ and glob_options_of_env venv pos =
    in
    let options =
       try
-         let allow = venv_find_var_exn venv ScopeGlobal glob_allow_sym in
+         let allow = venv_find_var_exn venv glob_allow_var in
          let allow = strings_of_value venv pos allow in
             GlobAllow allow :: options
       with
@@ -1190,7 +1187,7 @@ and compile_glob_options venv pos =
 and eval_path venv pos =
    let pos = string_pos "eval_path" pos in
       try
-         let path = venv_find_var_exn venv ScopeGlobal path_sym in
+         let path = venv_find_var_exn venv path_var in
          let path = strings_of_value venv pos path in
          let path = String.concat pathsep path in
             venv_setenv venv path_sym path
@@ -1208,9 +1205,9 @@ and eval_shell_exp venv pos loc e =
    let options = compile_glob_options venv pos in
    let _, pipe = pipe_of_value venv find_alias options pos loc e in
    let pipe   = normalize_pipe venv pos pipe in
-   let stdin  = channel_of_var venv pos loc stdin_sym in
-   let stdout = channel_of_var venv pos loc stdout_sym in
-   let stderr = channel_of_var venv pos loc stderr_sym in
+   let stdin  = channel_of_var venv pos loc stdin_var in
+   let stdout = channel_of_var venv pos loc stdout_var in
+   let stderr = channel_of_var venv pos loc stderr_var in
    let stdin  = Lm_channel.descr stdin in
    let stdout = Lm_channel.descr stdout in
    let stderr = Lm_channel.descr stderr in
@@ -1228,7 +1225,7 @@ and eval_shell_exp venv pos loc e =
 
    (* Check exit code *)
    let exit_on_error =
-      try bool_of_value venv pos (venv_find_var_exn venv ScopeGlobal abort_on_command_error_sym) with
+      try bool_of_value venv pos (venv_find_var_exn venv abort_on_command_error_var) with
          Not_found ->
             false
    in
@@ -1250,7 +1247,7 @@ and eval_shell_output venv pos loc e =
    let fd = Lm_unix_util.openfile tmpname [Unix.O_RDWR; Unix.O_CREAT; Unix.O_TRUNC] 0o600 in
    let channel = Lm_channel.create tmpname Lm_channel.PipeChannel Lm_channel.OutChannel false (Some fd) in
    let channel = venv_add_channel venv channel in
-   let venv = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, channel)) in
+   let venv = venv_add_var venv stdout_var (ValChannel (OutChannel, channel)) in
    let result =
       try
          let _ = eval_shell_exp venv pos loc e in
@@ -1328,12 +1325,12 @@ and eval_command venv stdout stderr pos loc e =
       let stdin  = venv_add_channel venv stdin in
       let stdout = venv_add_channel venv stdout in
       let stderr = venv_add_channel venv stderr in
-      let venv   = venv_add_var venv ScopeGlobal pos stdin_sym  (ValChannel (InChannel,  stdin)) in
-      let venv   = venv_add_var venv ScopeGlobal pos stdout_sym (ValChannel (OutChannel, stdout)) in
-      let venv   = venv_add_var venv ScopeGlobal pos stderr_sym (ValChannel (OutChannel, stderr)) in
+      let venv   = venv_add_var venv stdin_var  (ValChannel (InChannel,  stdin)) in
+      let venv   = venv_add_var venv stdout_var (ValChannel (OutChannel, stdout)) in
+      let venv   = venv_add_var venv stderr_var (ValChannel (OutChannel, stderr)) in
       let code =
          try
-            (match eval venv e with
+            (match snd (eval_sequence_exp venv pos e) with
                 ValRules _ ->
                    eprintf "@[<hv 3>*** omake warning:@ %a@ Rule value discarded.@]@." (**)
                       pp_print_pos (loc_pos loc pos)

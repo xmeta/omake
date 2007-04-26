@@ -154,6 +154,15 @@ let phony_targets =
  * \end{verbatim}
  * \end{doc}
  *)
+let set_argv venv pos loc args =
+   let pos = string_pos "OMakeArgv" pos in
+      match args with
+         [arg] ->
+            let argv = strings_of_value venv pos arg in
+               ValEnv (venv_set_options_argv venv loc pos argv, ExportAll)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
 let set_options venv pos loc args =
    let pos = string_pos "OMakeFlags" pos in
       match args with
@@ -300,6 +309,7 @@ let define_command_vars venv pos loc args =
 let () =
    let builtin_funs =
       [true,  "OMakeVersion",          check_version,       ArityRange (1, 2);
+       true,  "OMakeArgv",             set_argv,            ArityExact 1;
        true,  "OMakeFlags",            set_options,         ArityExact 1;
        true,  "cmp-versions",          cmp_version,         ArityExact 2;
        true,  "DefineCommandVars",     define_command_vars, ArityRange (0, 1)]

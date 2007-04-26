@@ -42,6 +42,7 @@ open Omake_value
 open Omake_shell_sys
 open Omake_shell_type
 open Omake_shell_sys_type
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_shell_job" end)
 open Pos
@@ -200,7 +201,7 @@ let print_exit_code venv force pid code =
          if force then
             eprintf "- %d: done@." pid
     | JobExited code ->
-         if force || venv_defined venv ScopeGlobal printexitvalue_sym then
+         if force || venv_defined venv printexitvalue_var then
             eprintf "- %d: exited with code %d@." pid code
     | JobSignaled code ->
          eprintf "- %d: terminated with signal %d@." pid code
@@ -510,7 +511,7 @@ let find_executable_string venv pos loc exe =
          in
             resolve_exe Omake_cache.exe_suffixes
       else
-         let path = venv_find_var venv ScopeGlobal pos loc path_sym in
+         let path = venv_find_var venv pos loc path_var in
          let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
          let path = Omake_cache.ls_exe_path cache path in
             try Omake_cache.exe_find cache path exe with

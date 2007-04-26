@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -110,8 +110,9 @@ let venv_add_builtins venv =
    let venv =
       List.fold_left (fun venv (special, s, f, arity) ->
             let name = Lm_symbol.add s in
+            let v = VarGlobal (loc, name) in
             let p = venv_add_prim_fun venv name f in
-               venv_add_var venv ScopeGlobal pos name (ValPrim (arity, special, p))) venv builtin_funs
+               venv_add_var venv v (ValPrim (arity, special, p))) venv builtin_funs
    in
    let venv =
       List.fold_left (fun venv (multiple, targets, sources) ->
@@ -134,17 +135,20 @@ let venv_add_builtins venv =
    let venv =
       List.fold_left (fun venv (s, v, x) ->
             let obj = venv_add_field obj v x in
-               venv_add_var venv ScopeGlobal pos (Lm_symbol.add s) (ValObject obj)) venv builtin_objects
+            let v = VarGlobal (loc, Lm_symbol.add s) in
+               venv_add_var venv v (ValObject obj)) venv builtin_objects
    in
    let venv =
       List.fold_left (fun venv s ->
-            venv_add_var venv ScopeGlobal pos (Lm_symbol.add s) (ValObject obj)) venv pervasives_objects
+            let v = VarGlobal (loc, Lm_symbol.add s) in
+               venv_add_var venv v (ValObject obj)) venv pervasives_objects
    in
 
    (* Add the variables last *)
    let venv =
       List.fold_left (fun venv (s, v) ->
-            venv_add_var venv ScopeGlobal pos (Lm_symbol.add s) (v venv)) venv builtin_vars
+            let x = VarGlobal (loc, Lm_symbol.add s) in
+               venv_add_var venv x (v venv)) venv builtin_vars
    in
       venv
 

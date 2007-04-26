@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -36,48 +36,40 @@ open Omake_env
 open Omake_node
 
 (*
- * Scope environments.
+ * Parsing environments.
  *)
-type senv
+type penv
 
 (*
- * Scopes for variables.
+ * Parse a variable declaration.
  *)
-type senv_var_scope  = scope_kind SymbolTable.t
+val parse_declaration : venv -> pos -> loc -> var list -> method_name
 
 (*
- * A function to return the variable declarations in a
- * file, to implement the "open" operation.
+ * Environment for parsing AST files.
  *)
-type senv_open_file  = string -> pos -> loc -> Node.t * senv_var_scope
-
-(*
- * senv_create open_file vars file
- *   open_file: function to return the variable declarations in a file
- *   vars: the current scope kind for all the defined vars
- *   file: the file being read
- *
- * For a normal "include", the vars should be the Pervasives vars.
- * For .SUBDIRS it should be the current environment.
- *)
-val senv_create      : senv_open_file -> senv_var_scope -> Node.t -> senv
-
-(*
- * Class declarations in this scope.
- *)
-val senv_class_names : senv -> symbol list * scope_kind SymbolTable.t
+type senv_open_file  = string -> pos -> loc -> Node.t * senv
 
 (*
  * Internal function for converting string expressions.
  *)
-val build_string     : senv -> Omake_ast.exp -> pos -> string_exp
+val build_string     : penv -> Omake_ast.exp -> pos -> penv * string_exp
+
+(*
+ * Create a parsing environment for the given file.
+ *    penv_create (file, pervasives_id)
+ *)
+val penv_create        : senv_open_file -> venv -> Node.t -> penv
+val penv_class_names   : penv -> symbol list * senv
+val penv_of_vars       : senv_open_file -> venv -> Node.t -> senv -> penv
 
 (*
  * Compile an AST program.
  *)
-val compile_exp      : senv -> Omake_ast.exp -> senv * exp
-val compile_exp_list : senv -> Omake_ast.exp list -> senv * exp
-val compile_prog     : senv -> Omake_ast.prog -> senv * exp
+val compile_string   : penv -> Omake_ast.exp -> pos -> penv * string_exp
+val compile_exp      : penv -> Omake_ast.exp        -> penv * ir
+val compile_exp_list : penv -> Omake_ast.exp list   -> penv * ir
+val compile_prog     : penv -> Omake_ast.prog       -> penv * ir
 
 (*!
  * @docoff

@@ -11,16 +11,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -38,17 +38,6 @@ open Omake_node
 (* %%MAGICBEGIN%% *)
 (* Revision 9341: changed the generated IR *)
 type var = symbol
-
-(*
- * Var lookup may be private (static scoping),
- * or protected (object scoping),
- * or dynamic (dynamic scoping).
- *)
-type scope_kind =
-   ScopePrivate
- | ScopeDynamic
- | ScopeProtected
- | ScopeGlobal
 
 (*
  * Evaluation of lazy applications is delayed as much as possible.
@@ -87,24 +76,53 @@ type var_def_kind =
  | VarDefAppend
 
 (*
+ * Simple version of variables includes the kind of
+ * scope, the location, and the variable name.
+ *)
+type var_info =
+   VarPrivate        of loc * var
+ | VarThis           of loc * var
+ | VarVirtual        of loc * var
+ | VarGlobal         of loc * var
+
+(*
+ * A symbol table maps variables to their info.
+ *)
+type senv = var_info SymbolTable.t
+
+(*
+ * Exporting.
+ *)
+type export_item =
+   ExportRules
+ | ExportPhonies
+ | ExportVar of var_info
+
+type export_info =
+   ExportNone
+ | ExportAll
+ | ExportList of export_item list
+
+(*
  * Expression that results in a string.
  *)
 type string_exp =
    NoneString        of loc
  | ConstString       of loc * string
- | ApplyString       of loc * apply_strategy * scope_kind * var * string_exp list
- | SuperApplyString  of loc * apply_strategy * scope_kind * var * var * string_exp list
- | MethodApplyString of loc * apply_strategy * scope_kind * var list * string_exp list
+   (* ZZZ: FunString, MethodString *)
+ | ApplyString       of loc * apply_strategy * var_info * string_exp list
+ | SuperApplyString  of loc * apply_strategy * var * var * string_exp list
+ | MethodApplyString of loc * apply_strategy * var_info * var list * string_exp list
  | SequenceString    of loc * string_exp list
  | ArrayString       of loc * string_exp list
  | ArrayOfString     of loc * string_exp
  | QuoteString       of loc * string_exp list
  | QuoteStringString of loc * char * string_exp list
- | BodyString        of loc * exp
- | ExpString         of loc * exp
- | CasesString       of loc * (var * string_exp * exp) list
- | ThisString        of loc * scope_kind
+ | BodyString        of loc * exp list
+ | ExpString         of loc * exp list
+ | CasesString       of loc * (var * string_exp * exp list) list
  | KeyString         of loc * apply_strategy * string
+ | ThisString        of loc
 
 and source_exp = node_kind * string_exp
 
@@ -118,32 +136,192 @@ and rule_command =
  | RuleString of string_exp
 
 and exp =
-   LetVarExp        of loc * scope_kind * var * var_def_kind * string_exp
- | LetFunExp        of loc * scope_kind * var * var list * exp
- | LetObjectExp     of loc * scope_kind * var * exp list
+   (* Definitions *)
+   LetVarExp        of loc * var_info * var_def_kind * string_exp
+ | LetFunExp        of loc * var_info * var list * exp list
+   (* ZZZ: LetMethodExp *)
+ | LetObjectExp     of loc * var_info * exp list
  | LetThisExp       of loc * string_exp
- | ShellExp         of loc * string_exp
- | IfExp            of loc * (string_exp * exp) list
+ | LetKeyExp        of loc * string * var_def_kind * string_exp
+
+   (* Applications *)
+ | ApplyExp         of loc * var_info * string_exp list
+ | SuperApplyExp    of loc * var * var * string_exp list
+ | MethodApplyExp   of loc * var_info * var list * string_exp list
+ | KeyExp           of loc * string
+
+   (* Sequences *)
  | SequenceExp      of loc * exp list
  | SectionExp       of loc * string_exp * exp list
- | OpenExp          of loc * Node.t list
- | IncludeExp       of loc * string_exp * string_exp list
- | ApplyExp         of loc * scope_kind * var * string_exp list
- | SuperApplyExp    of loc * scope_kind * var * var * string_exp list
- | MethodApplyExp   of loc * scope_kind * var list * string_exp list
- | KeyExp           of loc * string
- | LetKeyExp        of loc * string * var_def_kind * string_exp
+
+   (* StaticExp (loc, filename, id, el) *)
  | StaticExp        of loc * Node.t * symbol * exp list
- | ExportExp        of loc * string_exp
+
+   (* Conditional *)
+ | IfExp            of loc * (string_exp * exp list) list
+
+   (* Export the bindings from an inner scope to an outer one *)
+ | ExportExp        of loc * export_info
  | CancelExportExp  of loc
+
+   (* Shell command *)
+ | ShellExp         of loc * string_exp
+
+   (*
+    * StringExp (loc, s)
+    *    This is just an identity, evaluating to s
+    * ReturnExp (loc, s)
+    *    This is a control operation, branching to the innermost ReturnBodyExp
+    * ReturnBodyExp (loc, e)
+    *    Return to here.
+    *)
  | StringExp        of loc * string_exp
  | ReturnExp        of loc * string_exp
- | ReturnCatchExp   of loc * exp
+ | ReturnBodyExp    of loc * exp list
+
+   (*
+    * LetOpenExp (loc, v, id, file, link)
+    *    id    : the current object
+    *    file  : name of the file/object to open
+    *    link  : link information for the rest of the variables in scope.
+    *)
+ | OpenExp          of loc * Node.t list
+ | IncludeExp       of loc * string_exp * string_exp list
+
+   (* Return the current object *)
  | ReturnObjectExp  of loc * symbol list
  | ReturnSaveExp    of loc
 
-type prog = exp list
+(*
+ * The IR stored in a file.
+ *    ir_classnames   : class names of the file
+ *    ir_vars         : variables defined by this file
+ *    ir_exp          : the expression
+ *)
+type ir =
+   { ir_classnames   : symbol list;
+     ir_vars         : senv;
+     ir_exp          : exp
+   }
 (* %%MAGICEND%% *)
+
+(*
+ * Variable classes.
+ *    private: variables local to the file, statically scoped.
+ *    this: object fields, dynamically scoped.
+ *    virtual: file fields, dynamically scoped.
+ *    global: search each of the scopes in order (ZZZ: 0.9.8 only)
+ *)
+type var_scope =
+   VarScopePrivate
+ | VarScopeThis
+ | VarScopeVirtual
+ | VarScopeGlobal
+
+(************************************************************************
+ * Simplified variables.
+ *)
+type simple_var_info = var_scope * var
+
+module SimpleVarCompare =
+struct
+   type t = simple_var_info
+
+   let compare (s1, v1) (s2, v2) =
+      match s1, s2 with
+         VarScopePrivate, VarScopePrivate
+       | VarScopeThis, VarScopeThis
+       | VarScopeVirtual, VarScopeVirtual
+       | VarScopeGlobal, VarScopeGlobal ->
+            Lm_symbol.compare v1 v2
+       | VarScopePrivate, VarScopeThis
+       | VarScopePrivate, VarScopeVirtual
+       | VarScopePrivate, VarScopeGlobal
+       | VarScopeThis, VarScopeVirtual
+       | VarScopeThis, VarScopeGlobal
+       | VarScopeVirtual, VarScopeGlobal ->
+            -1
+       | VarScopeThis, VarScopePrivate
+       | VarScopeVirtual, VarScopePrivate
+       | VarScopeVirtual, VarScopeThis
+       | VarScopeGlobal, VarScopePrivate
+       | VarScopeGlobal, VarScopeThis
+       | VarScopeGlobal, VarScopeVirtual ->
+            1
+end;;
+
+module SimpleVarSet = Lm_set.LmMake (SimpleVarCompare);;
+module SimpleVarTable = Lm_map.LmMake (SimpleVarCompare);;
+
+(************************************************************************
+ * Variable tables.  The const_flag and protected_flag are just
+ * comments, and aren't part of the comparison.
+ *)
+module VarInfoCompare =
+struct
+   type t = var_info
+
+   let compare info1 info2 =
+      match info1, info2 with
+         VarPrivate   (_, v1), VarPrivate   (_, v2)
+       | VarThis (_, v1),      VarThis (_, v2)
+       | VarVirtual (_, v1),   VarVirtual (_, v2)
+       | VarGlobal (_, v1),    VarGlobal (_, v2) ->
+            Lm_symbol.compare v1 v2
+       | VarPrivate _,        VarThis _
+       | VarPrivate _,        VarVirtual _
+       | VarPrivate _,        VarGlobal _
+       | VarThis _,           VarVirtual _
+       | VarThis _,           VarGlobal _
+       | VarVirtual _,        VarGlobal _ ->
+            -1
+       | VarThis _,           VarPrivate _
+       | VarVirtual _,        VarPrivate _
+       | VarVirtual _,        VarThis _
+       | VarGlobal _,         VarPrivate _
+       | VarGlobal _,         VarThis _
+       | VarGlobal _,         VarVirtual _ ->
+            1
+end;;
+
+module VarInfoSet =
+struct
+   module Set = Lm_set.LmMake (VarInfoCompare);;
+   include Set;;
+
+   let loc = bogus_loc "VarInfoSet"
+
+   (* Remove classes of variables *)
+   let remove_private set v =
+      remove set (VarPrivate (loc, v))
+
+   (* Parameters are always private *)
+   let remove_param = remove_private
+end;;
+
+module VarInfoTable = Lm_map.LmMake (VarInfoCompare);;
+
+let var_equal v1 v2 =
+   VarInfoCompare.compare v1 v2 = 0
+
+let var_of_var_info = function
+   VarPrivate (loc, v)
+ | VarThis (loc, v)
+ | VarVirtual (loc, v)
+ | VarGlobal (loc, v) ->
+      loc, v
+
+(************************************************************************
+ * Path definitions.
+ *)
+type name_info =
+   { name_static     : bool;
+     name_scope      : var_scope option
+   }
+
+type method_name =
+   NameEmpty   of name_info
+ | NameMethod  of name_info * var * var list
 
 (*!
  * @docoff

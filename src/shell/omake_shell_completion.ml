@@ -35,6 +35,7 @@ open Omake_node_sig
 open Omake_node
 open Omake_symbol
 open Omake_value
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_shell_job" end)
 open Pos;;
@@ -161,7 +162,7 @@ let command_completion_exn venv pos loc s =
    let pos = string_pos "command_completion" pos in
 
    (* Aliases *)
-   let shell_obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+   let shell_obj = venv_find_var_exn venv shell_object_var in
    let items1 =
       match eval_single_value venv pos shell_obj with
          ValObject obj ->
@@ -177,7 +178,7 @@ let command_completion_exn venv pos loc s =
 
    (* Commands *)
    let cache  = venv_cache venv in
-   let path   = venv_find_var_exn venv ScopeGlobal path_sym in
+   let path   = venv_find_var_exn venv path_var in
    let path   = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
    let path   = Omake_cache.ls_exe_path cache path in
    let items2 = Omake_cache.exe_complete cache path s in

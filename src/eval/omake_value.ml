@@ -37,6 +37,7 @@ open Omake_node
 open Omake_lexer
 open Omake_parser
 open Omake_symbol
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_value" end)
 open Pos
@@ -395,7 +396,7 @@ let prim_channel_of_value venv pos v =
             raise (OmakeException (pos, StringError "not an input channel"))
 
 let prim_channel_of_var venv pos loc v =
-   prim_channel_of_value venv pos (venv_find_var venv ScopeGlobal pos loc v)
+   prim_channel_of_value venv pos (venv_find_var venv pos loc v)
 
 let channel_of_var venv pos loc v =
    let channel = prim_channel_of_var venv pos loc v in
@@ -554,7 +555,7 @@ and is_glob_value_list options vl =
 let current_lexer venv pos =
    let pos = string_pos "current_lexer" pos in
       try
-         match venv_find_var_exn venv ScopeProtected builtin_sym with
+         match venv_find_var_exn venv builtin_field_var with
             ValOther (ValLexer lexer) ->
                lexer
           | v ->
@@ -566,7 +567,7 @@ let current_lexer venv pos =
 let current_parser venv pos =
    let pos = string_pos "current_parser" pos in
       try
-         match venv_find_var_exn venv ScopeProtected builtin_sym with
+         match venv_find_var_exn venv builtin_field_var with
             ValOther (ValParser parser) ->
                parser
           | v ->

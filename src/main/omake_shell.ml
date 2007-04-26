@@ -46,6 +46,7 @@ open Omake_exn_print
 open Omake_shell_type
 open Omake_shell_job
 open Omake_shell_completion
+open Omake_var
 open Omake_options
 
 module Pos = MakePos (struct let name = "Omake_shell" end)
@@ -65,7 +66,7 @@ let parse_string venv s =
       if debug print_ast then
          eprintf "@[<v 3>AST:@ %a@]@." Omake_ast_print.pp_print_prog ast
    in
-   let senv = senv_create (eval_open_file venv) (venv_include_scope venv IncludePervasives) node_empty in
+   let senv = penv_of_vars (eval_open_file venv) venv node_empty (venv_include_scope venv IncludePervasives) in
    let _, ir = Omake_ir_ast.compile_exp_list senv ast in
       postprocess_ir ir
 
@@ -76,12 +77,13 @@ let parse_ir state senv prompt =
          eprintf "@[<v 3>AST:@ %a@]@." Omake_ast_print.pp_print_prog ast
    in
    let senv, ir = Omake_ir_ast.compile_exp_list senv ast in
-   let ir =
+   let e =
       (* We are interested in not hiding top-level values. *)
-      match ir with
-         SequenceExp (_, [ir]) -> ir
-       | _ -> ir
+      match ir.ir_exp with
+         SequenceExp (_, [e]) -> e
+       | e -> e
    in
+   let ir = { ir with ir_exp = e } in
       senv, postprocess_ir ir
 
 (*
@@ -132,7 +134,7 @@ let load_history_file =
    let existing_file = ref None in
    let load venv pos =
       try
-         let v = venv_find_var_exn venv ScopeGlobal history_file_sym in
+         let v = venv_find_var_exn venv history_file_var in
             match v with
                ValNone ->
                   ()
@@ -158,7 +160,7 @@ let set_history_length =
    let existing_length = ref 0 in
    let set venv pos =
       try
-         let v = venv_find_var_exn venv ScopeGlobal history_length_sym in
+         let v = venv_find_var_exn venv history_length_var in
          let i = int_of_value venv pos v in
             if !existing_length <> i then begin
                Omake_readline.set_length i;
@@ -192,7 +194,7 @@ let exit code =
  *)
 let maybe_exit_on_exception pos venv =
    let abort =
-      try bool_of_value venv pos (venv_find_var_exn venv ScopeGlobal exit_on_uncaught_exception_sym) with
+      try bool_of_value venv pos (venv_find_var_exn venv exit_on_uncaught_exception_var) with
          Not_found ->
             false
    in
@@ -229,7 +231,7 @@ let rec main state senv venv result =
 
    let prompt =
       try
-         let prompt = ValApply (loc, ScopeGlobal, prompt_sym, []) in
+         let prompt = ValApply (loc, VarVirtual (loc, prompt_sym), []) in
             string_of_value venv pos prompt
       with
          OmakeException _
@@ -245,12 +247,12 @@ let rec main state senv venv result =
    (* Evaluate it *)
    let senv, venv, result =
       try
-         let senv, e = parse_ir state senv prompt in
-         let venv, result = Omake_eval.eval_exp venv result e in
+         let senv, ir = parse_ir state senv prompt in
+         let venv, result = Omake_eval.eval_exp venv result ir.ir_exp in
             senv, venv, result
       with
          End_of_file ->
-            if venv_defined venv ScopeGlobal ignoreeof_sym then begin
+            if venv_defined venv ignoreeof_var then begin
                eprintf "^D@.Use \"exit\" leave osh.@.";
                senv, venv, result
             end
@@ -292,10 +294,9 @@ let shell_interactive venv =
    in
 
    (* Set up the environment *)
-   let pos = string_exp_pos "shell_interactive" in
-   let venv = venv_add_var venv ScopeGlobal pos argv_sym (ValString Sys.argv.(0)) in
-   let venv = venv_add_var venv ScopeGlobal pos star_sym ValNone in
-   let senv = senv_create (eval_open_file venv) (venv_include_scope venv IncludeAll) node_empty in
+   let venv = venv_add_var venv argv_var (ValString Sys.argv.(0)) in
+   let venv = venv_add_var venv star_var ValNone in
+   let senv = penv_of_vars (eval_open_file venv) venv node_empty (venv_include_scope venv IncludeAll) in
       main state senv venv ValNone
 
 (*
@@ -312,13 +313,13 @@ let shell_script venv scriptname args =
    (* Add the command line to the environment *)
    let argv = scriptname :: args in
    let argv_val = ValArray (List.map (fun s -> ValString s) argv) in
-   let venv = venv_add_var venv ScopeGlobal pos argv_sym argv_val in
+   let venv = venv_add_var venv argv_var argv_val in
    let star_val = ValArray (List.map (fun s -> ValString s) args) in
-   let venv = venv_add_var venv ScopeGlobal pos star_sym star_val in
+   let venv = venv_add_var venv star_var star_val in
    let venv, _ =
       List.fold_left (fun (venv, i) s ->
-            let v = Lm_symbol.add (string_of_int i) in
-            let venv = venv_add_var venv ScopeGlobal pos v (ValString s) in
+            let v = create_numeric_var i in
+            let venv = venv_add_var venv v (ValString s) in
                venv, succ i) (venv, 0) argv
    in
       (* Evaluate the file *)
@@ -344,7 +345,7 @@ let shell_string venv s =
    Omake_shell_sys.set_interactive false;
 
    (* Evaluate the string *)
-   try ignore (Omake_eval.eval_exp venv ValNone (parse_string venv s)) with
+   try ignore (Omake_eval.eval_exp venv ValNone (parse_string venv s).ir_exp) with
       End_of_file ->
          eprintf "Empty command: %s@." s;
          exit 1
@@ -372,7 +373,6 @@ let create_venv options targets =
       Unix.chdir (omake_dir ());
       Dir.reset_cwd ()
    in
-   let pos = string_exp_pos "create_venv" in
 
    (* Now start creating *)
    let exec  = Exec.create cwd options in
@@ -380,7 +380,7 @@ let create_venv options targets =
    let venv  = Omake_env.create options "." exec cache in
    let venv  = venv_chdir_tmp venv cwd in
    let venv  = Omake_builtin.venv_add_command_defs venv in
-   let venv  = Omake_env.venv_add_var venv ScopeGlobal pos targets_sym (ValString (String.concat " " targets)) in
+   let venv  = Omake_env.venv_add_var venv targets_var (ValString (String.concat " " targets)) in
    let venv  = Omake_builtin.venv_add_builtins venv in
    let venv  = Omake_builtin.venv_include_rc_file venv omakeinit_file in
    let venv  = Omake_builtin.venv_add_pervasives venv in

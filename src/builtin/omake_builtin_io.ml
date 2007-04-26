@@ -48,6 +48,7 @@ open Omake_symbol
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_io" end)
 open Pos
@@ -720,7 +721,7 @@ let pipe venv pos loc args =
             let write = Lm_channel.create "<writepipe>" Lm_channel.PipeChannel OutChannel false (Some fd_write) in
             let fd_read = ValChannel (InChannel, venv_add_channel venv read) in
             let fd_write = ValChannel (OutChannel, venv_add_channel venv write) in
-            let obj = venv_find_object_or_empty venv ScopeGlobal pipe_object_sym in
+            let obj = venv_find_object_or_empty venv pipe_object_var in
             let obj = venv_add_field obj read_sym fd_read in
             let obj = venv_add_field obj write_sym fd_write in
                ValObject obj
@@ -813,7 +814,7 @@ let select venv pos loc args =
             let rfd = reintern_channel rfd in
             let wfd = reintern_channel wfd in
             let efd = reintern_channel efd in
-            let obj = venv_find_object_or_empty venv ScopeGlobal select_object_sym in
+            let obj = venv_find_object_or_empty venv select_object_var in
             let obj = venv_add_field obj read_sym  (ValArray rfd) in
             let obj = venv_add_field obj write_sym (ValArray wfd) in
             let obj = venv_add_field obj error_sym (ValArray efd) in
@@ -1333,7 +1334,7 @@ let getc venv pos loc args =
    let arg =
       match args with
          [] ->
-            venv_find_var venv ScopeGlobal pos loc stdin_sym
+            venv_find_var venv pos loc stdin_var
        | [arg] ->
             arg
        | _ ->
@@ -1374,7 +1375,7 @@ let gets venv pos loc args =
    let arg =
       match args with
          [] ->
-            venv_find_var venv ScopeGlobal pos loc stdin_sym
+            venv_find_var venv pos loc stdin_var
        | [arg] ->
             arg
        | _ ->
@@ -1415,7 +1416,7 @@ let fgets venv pos loc args =
    let arg =
       match args with
          [] ->
-            venv_find_var venv ScopeGlobal pos loc stdin_sym
+            venv_find_var venv pos loc stdin_var
        | [arg] ->
             arg
        | _ ->
@@ -1481,12 +1482,12 @@ let fprint venv pos loc args =
 
 let print venv pos loc args =
    let pos = string_pos "print" pos in
-   let stdout_fd = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+   let stdout_fd = venv_find_var venv pos loc stdout_var in
       fprint venv pos loc (stdout_fd :: args)
 
 let eprint venv pos loc args =
    let pos = string_pos "eprint" pos in
-   let stderr_fd = venv_find_var venv ScopeGlobal pos loc stderr_sym in
+   let stderr_fd = venv_find_var venv pos loc stderr_var in
       fprint venv pos loc (stderr_fd :: args)
 
 let fprintln venv pos loc args =
@@ -1495,12 +1496,12 @@ let fprintln venv pos loc args =
 
 let println venv pos loc args =
    let pos = string_pos "println" pos in
-   let stdout_fd = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+   let stdout_fd = venv_find_var venv pos loc stdout_var in
      fprintln venv pos loc (stdout_fd :: args)
 
 let eprintln venv pos loc args =
    let pos = string_pos "eprintln" pos in
-   let stderr_fd = venv_find_var venv ScopeGlobal pos loc stderr_sym in
+   let stderr_fd = venv_find_var venv pos loc stderr_var in
       fprintln venv pos loc (stderr_fd :: args)
 
 (*
@@ -1555,12 +1556,12 @@ let fprintv venv pos loc args =
 
 let printv venv pos loc args =
    let pos = string_pos "printv" pos in
-   let stdout_fd = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+   let stdout_fd = venv_find_var venv pos loc stdout_var in
       fprintv venv pos loc (stdout_fd :: args)
 
 let eprintv venv pos loc args =
    let pos = string_pos "eprintv" pos in
-   let stderr_fd = venv_find_var venv ScopeGlobal pos loc stderr_sym in
+   let stderr_fd = venv_find_var venv pos loc stderr_var in
       fprintv venv pos loc (stderr_fd :: args)
 
 let fprintvln venv pos loc args =
@@ -1569,12 +1570,12 @@ let fprintvln venv pos loc args =
 
 let printvln venv pos loc args =
    let pos = string_pos "printvln" pos in
-   let stdout_fd = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+   let stdout_fd = venv_find_var venv pos loc stdout_var in
      fprintvln venv pos loc (stdout_fd :: args)
 
 let eprintvln venv pos loc args =
    let pos = string_pos "eprintvln" pos in
-   let stderr_fd = venv_find_var venv ScopeGlobal pos loc stderr_sym in
+   let stderr_fd = venv_find_var venv pos loc stderr_var in
       fprintvln venv pos loc (stderr_fd :: args)
 
 (************************************************************************
@@ -1795,7 +1796,7 @@ let printf_fun venv pos loc args =
    let pos = string_pos "printf" pos in
       match args with
          fmt :: args ->
-            let stdout = venv_find_var venv ScopeGlobal pos loc stdout_sym in
+            let stdout = venv_find_var venv pos loc stdout_var in
             let stdout = channel_of_value venv pos stdout in
                fprintf_aux venv pos loc stdout fmt args
        | _ ->
@@ -1805,7 +1806,7 @@ let eprintf_fun venv pos loc args =
    let pos = string_pos "eprintf" pos in
       match args with
          fmt :: args ->
-            let stderr = venv_find_var venv ScopeGlobal pos loc stderr_sym in
+            let stderr = venv_find_var venv pos loc stderr_var in
             let stderr = channel_of_value venv pos stderr in
                fprintf_aux venv pos loc stderr fmt args
        | _ ->
@@ -1837,6 +1838,36 @@ let sprintf_fun venv pos loc args =
                ValData (Buffer.contents buf)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \subsection{Miscellaneous functions}
+ * \subsubsection{set-channel-line}
+ *
+ * \begin{verbatim}
+ *     set-channel-line(channel, filename, line)
+ *         channel : Channel
+ *         filename : File
+ *         line : int
+ * \end{verbatim}
+ *
+ * Set the line number information for the channel.
+ * \end{doc}
+ *)
+let set_channel_line_fun venv pos loc args =
+   let pos = string_pos "set-channel-line" pos in
+   let chan, file, line =
+      match args with
+         [chan; file; line] ->
+            chan, file, line
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+   in
+   let chan = channel_of_value venv pos chan in
+   let file = string_of_value venv pos file in
+   let line = int_of_value venv pos line in
+      Lm_channel.set_line chan file line;
+      ValNone
 
 (************************************************************************
  * Tables.
@@ -1892,7 +1923,8 @@ let () =
        true, "printf",                printf_fun,           ArityAny;
        true, "eprintf",               eprintf_fun,          ArityAny;
        true, "fprintf",               fprintf_fun,          ArityAny;
-       true, "sprintf",               sprintf_fun,          ArityAny]
+       true, "sprintf",               sprintf_fun,          ArityAny;
+       true, "set-channel-line",      set_channel_line_fun, ArityExact 3]
    in
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;

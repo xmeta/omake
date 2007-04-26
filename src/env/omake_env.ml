@@ -1,50 +1,6 @@
 (*
  * The environment for evaluating programs.
  *
- * Scoping is primarily dynamic, but there are issues.
- * Consider the following code.
- *
- *    F(x) =
- *       A = $(x)
- *       G() =
- *          println(A=$(A))
- *       return($(G))
- *    G = $(F 1)
- *    G()
- *
- * With pure dynamic scope, the variable A is unbound in the
- * function call.
- *
- * The same problem occurs with nested objects.
- * Consider the following program.
- *
- *   A. =
- *      X = 1
- *      B. =
- *         F() =
- *            println(X=$(X))
- *
- * The inner object B refers to the variable X defined in
- * the outer object A.
- *
- * We expect the following code to print X=17:
- *
- *    X = 17
- *    A.B.F()
- *
- * What about calling F without defining a value for X?
- *
- *    A.B.F()
- *
- * There are two choices here:
- *    1. X is undefined
- *    2. X gets the value from A (so the program prints X=1)
- *
- * In general we address this by using both static and
- * dynamic scope.  Dynamic scoping takes precedence,
- * but if a dynamic lookup fails, fall back to the
- * the static scope.
- *
  * ----------------------------------------------------------------
  *
  * @begin[license]
@@ -96,6 +52,7 @@ open Omake_shell_type
 open Omake_command_type
 open Omake_options
 open Omake_ir_free_vars
+open Omake_var
 
 (*
  * Debugging.
@@ -126,11 +83,6 @@ let debug_db =
         debug_description = "Debug the files";
         debug_value = false
       }
-
-(*
- * Environment for parsing AST files.
- *)
-type ir = symbol list * scope_kind SymbolTable.t * Omake_ir.exp
 
 (*
  * A source is either
@@ -198,24 +150,34 @@ type value =
  | ValData        of string
  | ValQuote       of value list
  | ValQuoteString of char * value list
- | ValApply       of loc * scope_kind * var * value list
- | ValSuperApply  of loc * scope_kind * var * var * value list
- | ValMethodApply of loc * scope_kind * var list * value list
- | ValImplicit    of loc * scope_kind * var
- | ValFun         of arity * env * var list * exp
- | ValFunValue    of arity * env * var list * value
- | ValPrim        of arity * bool * prim_fun
  | ValRules       of erule list
  | ValNode        of Node.t
  | ValDir         of Dir.t
  | ValEnv         of venv * export
- | ValBody        of env * exp
  | ValObject      of obj
  | ValMap         of map
  | ValChannel     of channel_mode * prim_channel
  | ValClass       of obj SymbolTable.t
+
+   (* Raw expressions *)
+ | ValBody        of env * exp list
  | ValCases       of (var * value * value) list
+
+   (* Functions *)
+ | ValFun         of arity * env * var list * exp list
+ | ValFunValue    of arity * env * var list * value
+
+   (* Closed values *)
+ | ValApply       of loc * var_info * value list
+ | ValSuperApply  of loc * var * var * value list
+ | ValMethodApply of loc * var_info * var list * value list
  | ValKey         of loc * string
+ | ValPrim        of arity * bool * prim_fun
+
+   (* Potentially undefined values, used only in implicit value dependencies *)
+ | ValImplicit    of loc * var_info
+
+   (* Other values *)
  | ValOther       of value_other
 
 and value_other =
@@ -236,13 +198,8 @@ and export =
    ExportFile
  | ExportAll
  | ExportDir
- | ExportList of export_elt list
+ | ExportList of export_item list
  | ExportValue of value
-
-and export_elt =
-   ExportSymbol of symbol
- | ExportRules
- | ExportPhonies
 
 (*
  * Primitives are option refs.
@@ -267,7 +224,7 @@ and map = (value, value) Lm_map.tree
  * Command lists have source arguments.
  *)
 and command =
-   CommandSection of value * free_vars * exp
+   CommandSection of value * free_vars * exp list
  | CommandValue of loc * value
 
 and command_info =
@@ -428,8 +385,8 @@ and venv_globals =
      mutable venv_target_is_buildable_proper : bool NodeTable.t;
 
      (* The state right after Pervasives is evaluated *)
-     mutable venv_pervasives_obj             : obj;
-     mutable venv_pervasives_vars            : scope_kind SymbolTable.t
+     mutable venv_pervasives_vars            : senv;
+     mutable venv_pervasives_obj             : obj
    }
 
 (*
@@ -495,6 +452,7 @@ and omake_error =
  | StringTargetError of string * target
  | LazyError         of (formatter -> unit)
  | UnboundVar        of var
+ | UnboundVarInfo    of var_info
  | UnboundFun        of var
  | UnboundMethod     of var list
  | ArityMismatch     of arity * int
@@ -768,26 +726,23 @@ let rec pp_print_value buf v =
          fprintf buf "@[<hv 3><sequence%a>@ : Sequence@]" pp_print_value_list vl
     | ValArray vl ->
          fprintf buf "@[<v 3><array%a>@ : Array@]" pp_print_value_list vl
-    | ValApply (_, scope, f, args) ->
-         fprintf buf "@[<hv 3>$(apply %a%a%a)@]" (**)
-            pp_print_scope_kind scope
-            pp_print_symbol f
+    | ValApply (_, f, args) ->
+         fprintf buf "@[<hv 3>$(apply %a%a)@]" (**)
+            pp_print_var_info f
             pp_print_value_list args
-    | ValSuperApply (_, scope, super, f, args) ->
-         fprintf buf "@[<hv 3>$(apply %a%a::%a%a)@]" (**)
-            pp_print_scope_kind scope
+    | ValSuperApply (_, super, f, args) ->
+         fprintf buf "@[<hv 3>$(apply %a::%a%a)@]" (**)
             pp_print_symbol super
             pp_print_symbol f
             pp_print_value_list args
-    | ValMethodApply (_, scope, vl, args) ->
+    | ValMethodApply (_, v, vl, args) ->
          fprintf buf "@[<hv 3>$(%a%a%a)@]" (**)
-            pp_print_scope_kind scope
+            pp_print_var_info v
             pp_print_method_name vl
             pp_print_value_list args
-    | ValImplicit (_, scope, v) ->
-         fprintf buf "@[<hv 3>ifdefined(%a%a)@]" (**)
-            pp_print_scope_kind scope
-            pp_print_symbol v
+    | ValImplicit (_, v) ->
+         fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
+            pp_print_var_info v
     | ValFun (arity, _, _, _)
     | ValFunValue (arity, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
@@ -806,8 +761,8 @@ let rec pp_print_value buf v =
          fprintf buf "%a : File" pp_print_node node
     | ValEnv (_, export) ->
          fprintf buf "@[<hv 3><export@ %a>@]" pp_print_export export
-    | ValBody (_, e) ->
-         fprintf buf "@[<v 0>%a@ : Body@]" pp_print_exp e
+    | ValBody (_, el) ->
+         fprintf buf "@[<v 0>%a@ : Body@]" pp_print_exp_list el
     | ValObject env ->
          pp_print_env buf env
     | ValMap map ->
@@ -858,7 +813,7 @@ and pp_print_env buf env =
 and pp_print_command buf command =
    match command with
       CommandSection (arg, fv, e) ->
-         fprintf buf "@[<hv 3>section %a@ %a@]" pp_print_value arg pp_print_exp e
+         fprintf buf "@[<hv 3>section %a@ %a@]" pp_print_value arg pp_print_exp_list e
     | CommandValue (_, v) ->
          pp_print_value buf v
 
@@ -906,14 +861,14 @@ and pp_print_export buf = function
       pp_print_string buf "ExportDir"
  | ExportList vars ->
       fprintf buf "@[<hv 3>ExportSymbols";
-      List.iter (fun v -> fprintf buf "@ %a" pp_print_export_elt v) vars;
+      List.iter (fun v -> fprintf buf "@ %a" pp_print_export_item v) vars;
       fprintf buf "@]"
  | ExportValue v ->
       fprintf buf "@[<hv 3>ExportValue@ %a@]" pp_print_value v
 
-and pp_print_export_elt buf = function
-   ExportSymbol sym ->
-      pp_print_symbol buf sym
+and pp_print_export_item buf = function
+   ExportVar v ->
+      pp_print_var_info buf v
  | ExportRules ->
       pp_print_string buf ".RULE"
  | ExportPhonies ->
@@ -947,26 +902,23 @@ let rec pp_print_simple_value buf v =
          pp_print_simple_value_list buf vl
     | ValArray vl ->
          pp_print_simple_arg_list buf vl
-    | ValApply (_, scope, f, args) ->
-         fprintf buf "$(%a%a%a)" (**)
-            pp_print_scope_kind scope
-            pp_print_symbol f
+    | ValApply (_, f, args) ->
+         fprintf buf "$(%a%a)" (**)
+            pp_print_var_info f
             pp_print_simple_arg_list args
-    | ValSuperApply (_, scope, super, f, args) ->
-         fprintf buf "$(%a%a::%a%a)" (**)
-            pp_print_scope_kind scope
+    | ValSuperApply (_, super, f, args) ->
+         fprintf buf "$(%a::%a%a)" (**)
             pp_print_symbol super
             pp_print_symbol f
             pp_print_simple_arg_list args
-    | ValMethodApply (_, scope, vl, args) ->
+    | ValMethodApply (_, v, vl, args) ->
          fprintf buf "$(%a%a%a)" (**)
-            pp_print_scope_kind scope
+            pp_print_var_info v
             pp_print_method_name vl
             pp_print_value_list args
-    | ValImplicit (_, scope, v) ->
-         fprintf buf "$?(%a%a)" (**)
-            pp_print_scope_kind scope
-            pp_print_symbol v
+    | ValImplicit (_, v) ->
+         fprintf buf "$?(%a)" (**)
+            pp_print_var_info v
     | ValFun _
     | ValFunValue _ ->
          pp_print_string buf "<fun>"
@@ -1201,6 +1153,8 @@ and pp_print_exn buf = function
       printer buf
  | UnboundVar v ->
       fprintf buf "unbound variable: %a" pp_print_symbol v
+ | UnboundVarInfo v ->
+      fprintf buf "unbound variable: %a" pp_print_var_info v
  | UnboundKey v ->
       fprintf buf "unbound key: %s" v
  | UnboundValue v ->
@@ -1282,6 +1236,215 @@ module Pos = MakePos (struct let name = "Omake_env" end)
 open Pos;;
 
 let () = pp_print_pos_ref := pp_print_pos
+
+(************************************************************************
+ * Utilities.
+ *)
+
+(*
+ * Don't make command info if there are no commands.
+ *)
+let make_command_info venv sources values body =
+   match values, body with
+      [], [] ->
+         []
+    | _ ->
+         [{ command_env     = venv;
+            command_sources = sources;
+            command_values  = values;
+            command_body    = body
+          }]
+
+(*
+ * Check if the commands are trivial.
+ *)
+let commands_are_trivial commands =
+   List.for_all (fun command -> command.command_body = []) commands
+
+(*
+ * Multiple flags.
+ *)
+let is_multiple_rule = function
+   RuleMultiple
+ | RuleScannerMultiple ->
+      true
+ | RuleSingle
+ | RuleScannerSingle ->
+      false
+
+let is_scanner_rule = function
+   RuleScannerSingle
+ | RuleScannerMultiple ->
+      true
+ | RuleSingle
+ | RuleMultiple ->
+      false
+
+let rule_kind = function
+   RuleScannerSingle
+ | RuleScannerMultiple ->
+      RuleScanner
+ | RuleSingle
+ | RuleMultiple ->
+      RuleNormal
+
+(************************************************************************
+ * Channels.
+ *)
+
+(*
+ * Add a channel slot.
+ *)
+let venv_add_channel venv data =
+   let { venv_channel_index = index;
+         venv_channels      = channels
+       } = venv_runtime
+   in
+   let data =
+      Lm_channel.set_id data index;
+      ChannelValue data
+   in
+   let channel =
+      { channel_id = index;
+        channel_data = data
+      }
+   in
+      venv_runtime.venv_channels <- IntTable.add channels index (channel, data);
+      venv_runtime.venv_channel_index <- succ index;
+      channel
+
+let add_channel file kind mode binary fd =
+   Lm_channel.create file kind mode binary (Some fd)
+
+let venv_stdin  = venv_add_channel () (add_channel "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false Unix.stdin)
+let venv_stdout = venv_add_channel () (add_channel "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stdout)
+let venv_stderr = venv_add_channel () (add_channel "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stderr)
+
+(*
+ * A formatting channel.
+ *)
+let venv_add_formatter_channel venv fmt =
+   let { venv_channel_index = index;
+         venv_channels      = channels
+       } = venv_runtime
+   in
+   let fd = Lm_channel.create "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
+   let () = Lm_channel.set_id fd index in
+   let data = ChannelValue fd in
+   let channel =
+      { channel_id = index;
+        channel_data = data
+      }
+   in
+   let reader s off len =
+      raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
+   in
+   let writer s off len =
+      Format.pp_print_string fmt (String.sub s off len);
+      len
+   in
+      Lm_channel.set_io_functions fd reader writer;
+      venv_runtime.venv_channels <- IntTable.add channels index (channel, data);
+      venv_runtime.venv_channel_index <- succ index;
+      channel
+
+(*
+ * Get the channel.
+ *)
+let venv_channel_data channel =
+   match channel with
+      { channel_data = ChannelDelayed; channel_id = id } ->
+         (try
+             let _, data = IntTable.find venv_runtime.venv_channels id in
+                channel.channel_data <- data;
+                data
+          with
+             Not_found ->
+                (* This should never happen, because we close channels on marshaling *)
+                raise (Invalid_argument "expand_channel"))
+    | { channel_data = data } ->
+         data
+
+(*
+ * When a channel is closed, close the buffers too.
+ *)
+let venv_close_channel venv pos channel =
+   try
+      let () =
+         match venv_channel_data channel with
+            ChannelClosed ->
+               ()
+          | ChannelValue channel ->
+               Lm_channel.close channel
+          | ChannelDelayed ->
+               raise (Invalid_argument "venv_close_channel")
+      in
+         channel.channel_data <- ChannelClosed;
+         venv_runtime.venv_channels <- IntTable.remove venv_runtime.venv_channels channel.channel_id
+   with
+      Not_found ->
+         (* Fail silently *)
+         ()
+
+(*
+ * Get the channel.
+ *)
+let venv_find_channel venv pos channel =
+   let pos = string_pos "venv_find_in_channel" pos in
+      match venv_channel_data channel with
+         ChannelClosed ->
+            raise (OmakeException (pos, StringError "channel is closed"))
+       | ChannelValue channel ->
+            channel
+       | ChannelDelayed ->
+            raise (Invalid_argument "venv_find_in_channel")
+
+(*
+ * Finding by identifiers.
+ *)
+let venv_find_channel_id venv pos id =
+   let channel, _ =
+      try IntTable.find venv_runtime.venv_channels id with
+         Not_found ->
+            raise (OmakeException (pos, StringIntError ("channel is closed", id)))
+   in
+      channel
+
+(************************************************************************
+ * Primitive values.
+ *)
+
+(*
+ * Allocate a function primitive.
+ *)
+let venv_add_prim_fun venv name f =
+   let data = Some f in
+   let value = { fun_id = name; fun_data = data } in
+      venv_runtime.venv_primitives <- SymbolTable.add venv_runtime.venv_primitives name (value, data);
+      value
+
+(*
+ * Look up the primitive value if we haven't seen it already.
+ *)
+let venv_apply_prim_fun p venv pos loc args =
+   match p with
+      { fun_data = Some f } ->
+         f venv pos loc args
+    | { fun_id = name; fun_data = None } ->
+         let opt =
+            try
+               let _, data = SymbolTable.find venv_runtime.venv_primitives name in
+                  p.fun_data <- data;
+                  data
+            with
+               Not_found ->
+                  None
+         in
+            match opt with
+               Some f ->
+                  f venv pos loc args
+             | None ->
+                  raise (OmakeException (loc_pos loc pos, UnboundVar name))
 
 (************************************************************************
  * Static values.
@@ -1564,349 +1727,6 @@ struct
    let get_values = find_values
 end;;
 
-(************************************************************************
- * Utilities.
- *)
-
-(*
- * Don't make command info if there are no commands.
- *)
-let make_command_info venv sources values body =
-   match values, body with
-      [], [] ->
-         []
-    | _ ->
-         [{ command_env     = venv;
-            command_sources = sources;
-            command_values  = values;
-            command_body    = body
-          }]
-
-(*
- * Check if the commands are trivial.
- *)
-let commands_are_trivial commands =
-   List.for_all (fun command -> command.command_body = []) commands
-
-(*
- * Multiple flags.
- *)
-let is_multiple_rule = function
-   RuleMultiple
- | RuleScannerMultiple ->
-      true
- | RuleSingle
- | RuleScannerSingle ->
-      false
-
-let is_scanner_rule = function
-   RuleScannerSingle
- | RuleScannerMultiple ->
-      true
- | RuleSingle
- | RuleMultiple ->
-      false
-
-let rule_kind = function
-   RuleScannerSingle
- | RuleScannerMultiple ->
-      RuleScanner
- | RuleSingle
- | RuleMultiple ->
-      RuleNormal
-
-(************************************************************************
- * Channels.
- *)
-
-(*
- * Add a channel slot.
- *)
-let venv_add_channel venv data =
-   let { venv_channel_index = index;
-         venv_channels      = channels
-       } = venv_runtime
-   in
-   let data =
-      Lm_channel.set_id data index;
-      ChannelValue data
-   in
-   let channel =
-      { channel_id = index;
-        channel_data = data
-      }
-   in
-      venv_runtime.venv_channels <- IntTable.add channels index (channel, data);
-      venv_runtime.venv_channel_index <- succ index;
-      channel
-
-let add_channel file kind mode binary fd =
-   Lm_channel.create file kind mode binary (Some fd)
-
-let venv_stdin  = venv_add_channel () (add_channel "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false Unix.stdin)
-let venv_stdout = venv_add_channel () (add_channel "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stdout)
-let venv_stderr = venv_add_channel () (add_channel "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stderr)
-
-(*
- * A formatting channel.
- *)
-let venv_add_formatter_channel venv fmt =
-   let { venv_channel_index = index;
-         venv_channels      = channels
-       } = venv_runtime
-   in
-   let fd = Lm_channel.create "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
-   let () = Lm_channel.set_id fd index in
-   let data = ChannelValue fd in
-   let channel =
-      { channel_id = index;
-        channel_data = data
-      }
-   in
-   let reader s off len =
-      raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
-   in
-   let writer s off len =
-      Format.pp_print_string fmt (String.sub s off len);
-      len
-   in
-      Lm_channel.set_io_functions fd reader writer;
-      venv_runtime.venv_channels <- IntTable.add channels index (channel, data);
-      venv_runtime.venv_channel_index <- succ index;
-      channel
-
-(*
- * Get the channel.
- *)
-let venv_channel_data channel =
-   match channel with
-      { channel_data = ChannelDelayed; channel_id = id } ->
-         (try
-             let _, data = IntTable.find venv_runtime.venv_channels id in
-                channel.channel_data <- data;
-                data
-          with
-             Not_found ->
-                (* This should never happen, because we close channels on marshaling *)
-                raise (Invalid_argument "expand_channel"))
-    | { channel_data = data } ->
-         data
-
-(*
- * When a channel is closed, close the buffers too.
- *)
-let venv_close_channel venv pos channel =
-   try
-      let () =
-         match venv_channel_data channel with
-            ChannelClosed ->
-               ()
-          | ChannelValue channel ->
-               Lm_channel.close channel
-          | ChannelDelayed ->
-               raise (Invalid_argument "venv_close_channel")
-      in
-         channel.channel_data <- ChannelClosed;
-         venv_runtime.venv_channels <- IntTable.remove venv_runtime.venv_channels channel.channel_id
-   with
-      Not_found ->
-         (* Fail silently *)
-         ()
-
-(*
- * Get the channel.
- *)
-let venv_find_channel venv pos channel =
-   let pos = string_pos "venv_find_in_channel" pos in
-      match venv_channel_data channel with
-         ChannelClosed ->
-            raise (OmakeException (pos, StringError "channel is closed"))
-       | ChannelValue channel ->
-            channel
-       | ChannelDelayed ->
-            raise (Invalid_argument "venv_find_in_channel")
-
-(*
- * Finding by identifiers.
- *)
-let venv_find_channel_id venv pos id =
-   let channel, _ =
-      try IntTable.find venv_runtime.venv_channels id with
-         Not_found ->
-            raise (OmakeException (pos, StringIntError ("channel is closed", id)))
-   in
-      channel
-
-(************************************************************************
- * Primitive values.
- *)
-
-(*
- * Allocate a function primitive.
- *)
-let venv_add_prim_fun venv name f =
-   let data = Some f in
-   let value = { fun_id = name; fun_data = data } in
-      venv_runtime.venv_primitives <- SymbolTable.add venv_runtime.venv_primitives name (value, data);
-      value
-
-(*
- * Look up the primitive value if we haven't seen it already.
- *)
-let venv_apply_prim_fun p venv pos loc args =
-   match p with
-      { fun_data = Some f } ->
-         f venv pos loc args
-    | { fun_id = name; fun_data = None } ->
-         let opt =
-            try
-               let _, data = SymbolTable.find venv_runtime.venv_primitives name in
-                  p.fun_data <- data;
-                  data
-            with
-               Not_found ->
-                  None
-         in
-            match opt with
-               Some f ->
-                  f venv pos loc args
-             | None ->
-                  raise (OmakeException (loc_pos loc pos, UnboundVar name))
-
-(************************************************************************
- * Methods and objects.
- *)
-
-(*
- * Default empty object.
- *)
-let venv_empty_object = SymbolTable.empty
-
-(*
- * Add a class to an object.
- *)
-let venv_add_class obj v =
-   let table = venv_get_class obj in
-   let table = SymbolTable.add table v obj in
-      SymbolTable.add obj class_sym (ValClass table)
-
-(*
- * The current object is always in the venv_this field.
- *)
-let venv_this venv =
-   venv.venv_this
-
-let venv_this_object venv scope =
-   match scope with
-      ScopeProtected ->
-         venv.venv_this
-    | ScopeGlobal
-    | ScopeDynamic ->
-         venv.venv_dynamic
-    | ScopePrivate ->
-         venv.venv_static
-
-let venv_current_object venv classnames =
-   let obj = venv.venv_this in
-      if classnames = [] then
-         obj
-      else
-         let table = venv_get_class obj in
-         let table = List.fold_left (fun table v -> SymbolTable.add table v obj) table classnames in
-            SymbolTable.add obj class_sym (ValClass table)
-
-let venv_current_objects venv scope =
-   let { venv_this = this;
-         venv_dynamic = dynamic;
-         venv_static = static
-       } = venv
-   in
-      match scope with
-         ScopePrivate ->
-            [static]
-       | ScopeDynamic ->
-            [dynamic]
-       | ScopeProtected ->
-            [this; dynamic; static]
-       | ScopeGlobal ->
-            [dynamic; this; static]
-
-(*
- * Execute a method in an object.
- * If we are currently in the outermost object,
- * push the dynamic scope.
- *)
-let venv_with_object venv this =
-   { venv with venv_this = this }
-
-(*
- * Define a new object.
- *)
-let venv_define_object venv =
-   venv_with_object venv SymbolTable.empty
-
-(*
- * Object field lookup.
- *)
-let venv_find_field_exn = SymbolTable.find
-let venv_add_field      = SymbolTable.add
-let venv_object_mem     = SymbolTable.mem
-let venv_object_length  = SymbolTable.cardinal
-let venv_object_fold    = SymbolTable.fold
-
-let venv_find_field obj pos v =
-   try SymbolTable.find obj v with
-      Not_found ->
-         let pos = string_pos "venv_find_field" pos in
-            raise (OmakeException (pos, UnboundVar v))
-
-(*
- * Add the class to the current object.
- *)
-let venv_instanceof obj s =
-   SymbolTable.mem (venv_get_class obj) s
-
-(*
- * Include the fields in the given class.
- * Be careful to merge classnames.
- *)
-let venv_include_object_aux obj1 obj2 =
-   let table1 = venv_get_class obj1 in
-   let table2 = venv_get_class obj2 in
-   let table = SymbolTable.fold SymbolTable.add table1 table2 in
-   let obj1 = SymbolTable.fold SymbolTable.add obj1 obj2 in
-      SymbolTable.add obj1 class_sym (ValClass table)
-
-let venv_include_object venv obj2 =
-   let obj = venv_include_object_aux venv.venv_this obj2 in
-      { venv with venv_this = obj }
-
-let venv_flatten_object venv obj2 =
-   let obj = venv_include_object_aux venv.venv_dynamic obj2 in
-      { venv with venv_dynamic = obj }
-
-(*
- * Get a parent class.
- *)
-let venv_find_super venv pos loc v =
-   let table = venv_get_class venv.venv_this in
-      try SymbolTable.find table v with
-         Not_found ->
-            let pos = string_pos "venv_find_super" (loc_pos loc pos) in
-               raise (OmakeException (pos, StringVarError ("not a super-class", v)))
-
-(*
- * Function scoping.
- *)
-let venv_empty_env =
-   SymbolTable.empty
-
-let venv_get_env venv =
-   venv.venv_static
-
-let venv_with_env venv env =
-   { venv with venv_static = env }
-
 (*
  * Cached object files.
  *)
@@ -1925,7 +1745,208 @@ let venv_add_object_file venv node obj =
       globals.venv_object_files <- NodeTable.add globals.venv_object_files node obj
 
 (************************************************************************
- * Static objects.
+ * Variables.
+ *)
+
+(*
+ * Default empty object.
+ *)
+let venv_empty_object = SymbolTable.empty
+
+(*
+ * For variables, try to look them up as 0-arity functions first.
+ *)
+let venv_find_var_private_exn venv v =
+   SymbolTable.find venv.venv_static v
+
+let venv_find_var_dynamic_exn venv v =
+   SymbolTable.find venv.venv_dynamic v
+
+let venv_find_var_protected_exn venv v =
+   try SymbolTable.find venv.venv_this v with
+      Not_found ->
+         try SymbolTable.find venv.venv_dynamic v with
+            Not_found ->
+               try SymbolTable.find venv.venv_static v with
+                  Not_found ->
+                     ValString (SymbolTable.find venv.venv_inner.venv_environ v)
+
+let venv_find_var_global_exn venv v =
+   try SymbolTable.find venv.venv_dynamic v with
+      Not_found ->
+         try SymbolTable.find venv.venv_this v with
+            Not_found ->
+               try SymbolTable.find venv.venv_static v with
+                  Not_found ->
+                     ValString (SymbolTable.find venv.venv_inner.venv_environ v)
+
+let venv_find_var_exn venv v =
+   match v with
+      VarPrivate (_, v) ->
+         venv_find_var_private_exn venv v
+    | VarThis (_, v) ->
+         venv_find_var_protected_exn venv v
+    | VarVirtual (_, v) ->
+         venv_find_var_dynamic_exn venv v
+    | VarGlobal (_, v) ->
+         venv_find_var_global_exn venv v
+
+let venv_get_var venv pos v =
+   try venv_find_var_exn venv v with
+      Not_found ->
+         let pos = string_pos "venv_get_var" pos in
+            raise (OmakeException (pos, UnboundVarInfo v))
+
+let venv_find_var venv pos loc v =
+   try venv_find_var_exn venv v with
+      Not_found ->
+         let pos = string_pos "venv_find_var" (loc_pos loc pos) in
+            raise (OmakeException (loc_pos loc pos, UnboundVarInfo v))
+
+let venv_find_object_or_empty venv v =
+   try
+      match venv_find_var_exn venv v with
+         ValObject obj ->
+            obj
+       | _ ->
+            venv_empty_object
+   with
+      Not_found ->
+         venv_empty_object
+
+let venv_defined venv v =
+   let { venv_this = this;
+         venv_static = static;
+         venv_dynamic = dynamic
+       } = venv
+   in
+      match v with
+         VarPrivate (_, v) ->
+            SymbolTable.mem static v
+       | VarVirtual (_, v) ->
+            SymbolTable.mem dynamic v
+       | VarThis (_, v)
+       | VarGlobal (_, v) ->
+            SymbolTable.mem this v || SymbolTable.mem dynamic v || SymbolTable.mem static v
+
+let venv_defined_field obj v =
+   SymbolTable.mem obj v
+
+(*
+ * Adding to variable environment.
+ * Add to the current object and the static scope.
+ *)
+let venv_add_var venv v s =
+   let { venv_this = this;
+         venv_static = static;
+         venv_dynamic = dynamic
+       } = venv
+   in
+      match v with
+         VarPrivate (_, v) ->
+            { venv with venv_static  = SymbolTable.add static v s }
+       | VarVirtual (_, v) ->
+            { venv with venv_dynamic = SymbolTable.add dynamic v s }
+       | VarThis (_, v) ->
+            { venv with venv_this    = SymbolTable.add this v s;
+                        venv_static  = SymbolTable.add static v s
+            }
+       | VarGlobal (_, v) ->
+            { venv with venv_dynamic = SymbolTable.add dynamic v s;
+                        venv_static  = SymbolTable.add static v s
+            }
+
+let venv_add_args venv pos loc env vl sl =
+   let len1 = List.length vl in
+   let len2 = List.length sl in
+   let _ =
+      if len1 <> len2 then
+         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
+   in
+      { venv with venv_this = List.fold_left2 SymbolTable.add venv.venv_this vl sl;
+                  venv_static = List.fold_left2 SymbolTable.add env vl sl
+      }
+
+(*
+ * !!!HACK!!!
+ *
+ * This is here only to get around the problem with
+ * not finding binding occurrences in argument lists.
+ * This should go away!
+ *
+ * Sat Jul  2 07:16:09 PDT 2005
+ *)
+let venv_add_args_hack venv pos loc env vl sl =
+   let len1 = List.length vl in
+   let len2 = List.length sl in
+   let _ =
+      if len1 <> len2 then
+         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
+   in
+   let { venv_this = this;
+         venv_dynamic = dynamic
+       } = venv
+   in
+      { venv with venv_this = List.fold_left2 SymbolTable.add this vl sl;
+                  venv_static = List.fold_left2 SymbolTable.add env vl sl;
+                  venv_dynamic = List.fold_left2 SymbolTable.add dynamic vl sl
+      }
+
+(*
+ * The system environment.
+ *)
+let venv_environment venv =
+   venv.venv_inner.venv_environ
+
+let venv_getenv venv v =
+   SymbolTable.find venv.venv_inner.venv_environ v
+
+let venv_setenv venv v x =
+   { venv with venv_inner = { venv.venv_inner with venv_environ = SymbolTable.add venv.venv_inner.venv_environ v x } }
+
+let venv_unsetenv venv v =
+   { venv with venv_inner = { venv.venv_inner with venv_environ = SymbolTable.remove venv.venv_inner.venv_environ v } }
+
+let venv_defined_env venv v =
+   SymbolTable.mem venv.venv_inner.venv_environ v
+
+(*
+ * Options.
+ *)
+let venv_set_options_aux strict venv loc pos argv =
+   let argv = Array.of_list argv in
+   let add_unknown options s =
+      if strict then
+         raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
+      else
+         options, false
+   in
+   let options_spec =
+      Lm_arg.StrictOptions, (**)
+         ["Make options", options_spec;
+          "Output options", output_spec]
+   in
+   let options =
+      try Lm_arg.fold_argv argv options_spec venv.venv_inner.venv_options add_unknown "Generic system builder" with
+          Lm_arg.BogusArg s ->
+            raise (OmakeException (loc_pos loc pos, StringError s))
+   in
+      { venv with venv_inner = { venv.venv_inner with venv_options = options } }
+
+let venv_set_options_argv venv loc pos argv =
+   venv_set_options_aux false venv loc pos argv
+
+let venv_set_options venv loc pos argv =
+   venv_set_options_aux true venv loc pos ("omake" :: argv)
+
+let venv_options venv =
+   venv.venv_inner.venv_options
+
+let venv_options venv =
+   venv.venv_inner.venv_options
+
+(************************************************************************
+ * Manipulating static objects.
  *)
 
 (*
@@ -1999,6 +2020,139 @@ let venv_save_static_values venv =
                 | None ->
                      ()) globals.venv_modified_values;
       globals.venv_modified_values <- NodeTable.empty
+
+(************************************************************************
+ * Methods and objects.
+ *)
+
+(*
+ * Object field lookup.
+ *)
+let venv_find_field_exn = SymbolTable.find
+let venv_add_field      = SymbolTable.add
+let venv_object_mem     = SymbolTable.mem
+let venv_object_length  = SymbolTable.cardinal
+let venv_object_fold    = SymbolTable.fold
+
+let venv_find_field obj pos v =
+   try SymbolTable.find obj v with
+      Not_found ->
+         let pos = string_pos "venv_find_field" pos in
+            raise (OmakeException (pos, UnboundVar v))
+
+(*
+ * Add a class to an object.
+ *)
+let venv_add_class obj v =
+   let table = venv_get_class obj in
+   let table = SymbolTable.add table v obj in
+      SymbolTable.add obj class_sym (ValClass table)
+
+(*
+ * Execute a method in an object.
+ * If we are currently in the outermost object,
+ * push the dynamic scope.
+ *)
+let venv_with_object venv this =
+   { venv with venv_this = this }
+
+(*
+ * Define a new object.
+ *)
+let venv_define_object venv =
+   venv_with_object venv SymbolTable.empty
+
+(*
+ * Add the class to the current object.
+ *)
+let venv_instanceof obj s =
+   SymbolTable.mem (venv_get_class obj) s
+
+(*
+ * Include the fields in the given class.
+ * Be careful to merge classnames.
+ *)
+let venv_include_object_aux obj1 obj2 =
+   let table1 = venv_get_class obj1 in
+   let table2 = venv_get_class obj2 in
+   let table = SymbolTable.fold SymbolTable.add table1 table2 in
+   let obj1 = SymbolTable.fold SymbolTable.add obj1 obj2 in
+      SymbolTable.add obj1 class_sym (ValClass table)
+
+let venv_include_object venv obj2 =
+   let obj = venv_include_object_aux venv.venv_this obj2 in
+      { venv with venv_this = obj }
+
+let venv_flatten_object venv obj2 =
+   let obj = venv_include_object_aux venv.venv_dynamic obj2 in
+      { venv with venv_dynamic = obj }
+
+(*
+ * Get a parent class.
+ *)
+let venv_find_super venv pos loc v =
+   let table = venv_get_class venv.venv_this in
+      try SymbolTable.find table v with
+         Not_found ->
+            let pos = string_pos "venv_find_super" (loc_pos loc pos) in
+               raise (OmakeException (pos, StringVarError ("not a super-class", v)))
+
+(*
+ * Function scoping.
+ *)
+let venv_empty_env =
+   SymbolTable.empty
+
+let venv_get_env venv =
+   venv.venv_static
+
+let venv_with_env venv env =
+   { venv with venv_static = env }
+
+(*
+ * The current object is always in the venv_this field.
+ *)
+let venv_this venv =
+   venv.venv_this
+
+let venv_current_object venv classnames =
+   let obj = venv.venv_this in
+      if classnames = [] then
+         obj
+      else
+         let table = venv_get_class obj in
+         let table = List.fold_left (fun table v -> SymbolTable.add table v obj) table classnames in
+            SymbolTable.add obj class_sym (ValClass table)
+
+(*
+ * ZZZ: this will go away in 0.9.9.
+ *)
+let rec filter_objects v objl = function
+      obj :: rev_objl ->
+         let objl =
+            try venv_find_field_exn obj v :: objl with
+               Not_found ->
+                  objl
+         in
+            filter_objects v objl rev_objl
+    | [] ->
+         objl
+
+let venv_current_objects venv v =
+   let { venv_this = this;
+         venv_dynamic = dynamic;
+         venv_static = static
+       } = venv
+   in
+      match v with
+         VarPrivate (_, v) ->
+            filter_objects v [] [static]
+       | VarThis (_, v) ->
+            filter_objects v [] [static; dynamic; this]
+       | VarVirtual (_, v) ->
+            filter_objects v [] [dynamic]
+       | VarGlobal (_, v) ->
+            filter_objects v [] [static; this; dynamic]
 
 (************************************************************************
  * Environment.
@@ -2170,192 +2324,6 @@ let intern_source venv (kind, source) =
    in
       Node.create_escape kind source
 
-(*
- * For variables, try to look them up as 0-arity functions first.
- *)
-let venv_find_var_private venv v =
-   SymbolTable.find venv.venv_static v
-
-let venv_find_var_dynamic venv v =
-   SymbolTable.find venv.venv_dynamic v
-
-let venv_find_var_protected venv v =
-   try SymbolTable.find venv.venv_this v with
-      Not_found ->
-         try SymbolTable.find venv.venv_dynamic v with
-            Not_found ->
-               try SymbolTable.find venv.venv_static v with
-                  Not_found ->
-                     ValString (SymbolTable.find venv.venv_inner.venv_environ v)
-
-let venv_find_var_global venv v =
-   try SymbolTable.find venv.venv_dynamic v with
-      Not_found ->
-         try SymbolTable.find venv.venv_this v with
-            Not_found ->
-               try SymbolTable.find venv.venv_static v with
-                  Not_found ->
-                     ValString (SymbolTable.find venv.venv_inner.venv_environ v)
-
-let venv_find_var_exn venv scope v =
-   match scope with
-      ScopePrivate ->
-         venv_find_var_private venv v
-    | ScopeDynamic ->
-         venv_find_var_dynamic venv v
-    | ScopeProtected ->
-         venv_find_var_protected venv v
-    | ScopeGlobal ->
-         venv_find_var_global venv v
-
-let venv_get_var venv scope pos v =
-   try venv_find_var_exn venv scope v with
-      Not_found ->
-         let pos = string_pos "venv_get_var" pos in
-            raise (OmakeException (pos, UnboundVar v))
-
-let venv_find_var venv scope pos loc v =
-   try venv_find_var_exn venv scope v with
-      Not_found ->
-         let pos = string_pos "venv_find_var" (loc_pos loc pos) in
-            raise (OmakeException (loc_pos loc pos, UnboundVar v))
-
-let venv_defined venv scope v =
-   List.exists (fun env -> SymbolTable.mem env v) (venv_current_objects venv scope)
-
-let venv_find_object_or_empty venv scope symbol =
-   try
-      match venv_find_var_exn venv scope symbol with
-         ValObject obj ->
-            obj
-       | _ ->
-            venv_empty_object
-   with
-      Not_found ->
-         venv_empty_object
-
-(*
- * Adding to variable environment.
- * Add to the current object and the static scope.
- *)
-let venv_add_var venv scope pos v s =
-   let { venv_this = this;
-         venv_static = static;
-         venv_dynamic = dynamic
-       } = venv
-   in
-      match scope with
-         ScopePrivate ->
-            { venv with venv_static  = SymbolTable.add static v s }
-       | ScopeDynamic ->
-            { venv with venv_dynamic = SymbolTable.add dynamic v s }
-       | ScopeProtected ->
-            { venv with venv_this    = SymbolTable.add this v s;
-                        venv_static  = SymbolTable.add static v s
-            }
-       | ScopeGlobal ->
-            { venv with venv_dynamic = SymbolTable.add dynamic v s;
-                        venv_static  = SymbolTable.add static v s
-            }
-
-let venv_add_var_tmp venv v s =
-   { venv with venv_dynamic = SymbolTable.add venv.venv_dynamic v s }
-
-let venv_add_var_dynamic venv v s =
-   { venv with venv_dynamic = SymbolTable.add venv.venv_dynamic v s;
-               venv_static  = SymbolTable.add venv.venv_static v s
-   }
-
-let venv_add_assoc venv values =
-   List.fold_left (fun venv (v, s) ->
-            venv_add_var_dynamic venv v (ValString s)) venv values
-
-let venv_add_args venv pos loc env vl sl =
-   let len1 = List.length vl in
-   let len2 = List.length sl in
-   let _ =
-      if len1 <> len2 then
-         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
-   in
-      { venv with venv_this = List.fold_left2 SymbolTable.add venv.venv_this vl sl;
-                  venv_static = List.fold_left2 SymbolTable.add env vl sl
-      }
-
-(*
- * !!!HACK!!!
- *
- * This is here only to get around the problem with
- * not finding binding occurrences in argument lists.
- * This should go away!
- *
- * Sat Jul  2 07:16:09 PDT 2005
- *)
-let venv_add_args_hack venv pos loc env vl sl =
-   let len1 = List.length vl in
-   let len2 = List.length sl in
-   let _ =
-      if len1 <> len2 then
-         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
-   in
-   let { venv_this = this;
-         venv_dynamic = dynamic
-       } = venv
-   in
-      { venv with venv_this = List.fold_left2 SymbolTable.add this vl sl;
-                  venv_static = List.fold_left2 SymbolTable.add env vl sl;
-                  venv_dynamic = List.fold_left2 SymbolTable.add dynamic vl sl
-      }
-
-(*
- * The system environment.
- *)
-let venv_environment venv =
-   venv.venv_inner.venv_environ
-
-let venv_getenv venv v =
-   SymbolTable.find venv.venv_inner.venv_environ v
-
-let venv_setenv venv v x =
-   { venv with venv_inner = { venv.venv_inner with venv_environ = SymbolTable.add venv.venv_inner.venv_environ v x } }
-
-let venv_unsetenv venv v =
-   { venv with venv_inner = { venv.venv_inner with venv_environ = SymbolTable.remove venv.venv_inner.venv_environ v } }
-
-let venv_defined_env venv v =
-   SymbolTable.mem venv.venv_inner.venv_environ v
-
-(*
- * Options.
- *)
-let venv_set_options_aux strict venv loc pos argv =
-   let argv = Array.of_list argv in
-   let add_unknown options s =
-      if strict then
-         raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
-      else
-         options, false
-   in
-   let options_spec =
-      Lm_arg.StrictOptions, (**)
-         ["Make options", options_spec;
-          "Output options", output_spec]
-   in
-   let options =
-      try Lm_arg.fold_argv argv options_spec venv.venv_inner.venv_options add_unknown "Generic system builder" with
-          Lm_arg.BogusArg s ->
-            raise (OmakeException (loc_pos loc pos, StringError s))
-   in
-      { venv with venv_inner = { venv.venv_inner with venv_options = options } }
-
-let venv_set_options_argv venv loc pos argv =
-   venv_set_options_aux false venv loc pos argv
-
-let venv_set_options venv loc pos argv =
-   venv_set_options_aux true venv loc pos ("omake" :: argv)
-
-let venv_options venv =
-   venv.venv_inner.venv_options
-
 (************************************************************************
  * Target cache.
  *
@@ -2412,7 +2380,7 @@ let explicit_target_sym = Lm_symbol.add "<EXPLICIT_TARGET>"
  * Don't save explicit rules.
  *)
 let venv_explicit_target venv target =
-   venv_add_var_dynamic venv explicit_target_sym (ValNode target)
+   venv_add_var venv explicit_target_var (ValNode target)
 
 (*
  * Save explicit rules.
@@ -2421,7 +2389,7 @@ let venv_save_explicit_rules venv loc erules =
    (* Filter out the rules with a different target *)
    let rules =
       try
-         match venv_find_var_dynamic venv explicit_target_sym with
+         match venv_find_var_dynamic_exn venv explicit_target_sym with
             ValNode target ->
                let rules =
                   List.fold_left (fun rules erule ->
@@ -2475,7 +2443,7 @@ let venv_add_explicit_dep venv loc target source =
  * Add the wild target.
  *)
 let venv_add_wild_match venv v =
-   venv_add_var_tmp venv wild_sym v
+   venv_add_var venv wild_var v
 
 (*
  * This is the standard way to add results of a pattern match.
@@ -2483,8 +2451,8 @@ let venv_add_wild_match venv v =
 let venv_add_match_args venv args =
    let venv, _ =
       List.fold_left (fun (venv, i) arg ->
-            let v = Lm_symbol.add (string_of_int i) in
-            let venv = venv_add_var_tmp venv v (ValData arg) in
+            let v = create_numeric_var i in
+            let venv = venv_add_var venv v (ValData arg) in
                venv, succ i) (venv, 1) args
    in
       venv
@@ -2493,13 +2461,13 @@ let venv_add_match venv line args =
    let args = List.map (fun s -> ValData s) args in
    let venv, _ =
       List.fold_left (fun (venv, i) arg ->
-            let v = Lm_symbol.add (string_of_int i) in
-            let venv = venv_add_var_tmp venv v arg in
+            let v = create_numeric_var i in
+            let venv = venv_add_var venv v arg in
                venv, succ i) (venv, 1) args
    in
-   let venv = venv_add_var_tmp venv zero_sym (ValData line) in
-   let venv = venv_add_var_tmp venv star_sym (ValArray args) in
-   let venv = venv_add_var_tmp venv nf_sym   (ValInt (List.length args)) in
+   let venv = venv_add_var venv zero_var (ValData line) in
+   let venv = venv_add_var venv star_var (ValArray args) in
+   let venv = venv_add_var venv nf_var   (ValInt (List.length args)) in
       venv
 
 (*
@@ -2618,10 +2586,10 @@ let create options dir exec cache =
       }
    in
    let venv = venv_add_phony venv (Lm_location.bogus_loc makeroot_name) [TargetString ".PHONY"] in
-   let venv = venv_add_var_dynamic venv cwd_sym (ValDir cwd) in
-   let venv = venv_add_var_dynamic venv stdlib_sym (ValDir Dir.lib) in
-   let venv = venv_add_var_dynamic venv stdroot_sym (ValNode (venv_intern_cd venv PhonyProhibited Dir.lib "OMakeroot")) in
-   let venv = venv_add_var_dynamic venv ostype_sym (ValString Sys.os_type) in
+   let venv = venv_add_var venv cwd_var (ValDir cwd) in
+   let venv = venv_add_var venv stdlib_var (ValDir Dir.lib) in
+   let venv = venv_add_var venv stdroot_var (ValNode (venv_intern_cd venv PhonyProhibited Dir.lib "OMakeroot")) in
+   let venv = venv_add_var venv ostype_var (ValString Sys.os_type) in
    let venv = venv_add_wild_match venv (ValData wild_string) in
    let omakepath =
       try
@@ -2632,7 +2600,7 @@ let create options dir exec cache =
             [ValString "."; ValDir Dir.lib]
    in
    let omakepath = ValArray omakepath in
-   let venv = venv_add_var_dynamic venv omakepath_sym omakepath in
+   let venv = venv_add_var venv omakepath_var omakepath in
    let path =
       try
          let path = Lm_string_util.split pathsep (SymbolTable.find env path_sym) in
@@ -2642,7 +2610,7 @@ let create options dir exec cache =
             eprintf "*** omake: PATH environment variable is not set!@.";
             ValArray []
    in
-   let venv = venv_add_var_dynamic venv path_sym path in
+   let venv = venv_add_var venv path_var path in
       venv
 
 (*
@@ -2652,7 +2620,11 @@ let create options dir exec cache =
 let venv_set_pervasives venv =
    let globals = venv.venv_inner.venv_globals in
    let obj = venv.venv_dynamic in
-   let vars = SymbolTable.map (fun _ -> ScopeGlobal) obj in
+   let loc = bogus_loc "Pervasives" in
+   let vars =
+      SymbolTable.fold (fun vars v _ ->
+            SymbolTable.add vars v (VarVirtual (loc, v))) SymbolTable.empty obj
+   in
       globals.venv_pervasives_obj <- venv.venv_dynamic;
       globals.venv_pervasives_vars <- vars
 
@@ -2706,12 +2678,14 @@ let venv_include_scope venv mode =
       IncludePervasives ->
          venv.venv_inner.venv_globals.venv_pervasives_vars
     | IncludeAll ->
+         let loc = bogus_loc "venv_include_scope" in
          let { venv_this = this;
                venv_dynamic = dynamic
              } = venv
          in
-         let vars = SymbolTable.map (fun _ -> ScopeProtected) this in
-            SymbolTable.fold (fun vars v _ -> SymbolTable.add vars v ScopeGlobal) vars dynamic
+         let vars = SymbolTable.mapi (fun v _ -> VarThis (loc, v)) this in
+         let vars = SymbolTable.fold (fun vars v _ -> SymbolTable.add vars v (VarGlobal (loc, v))) vars dynamic in
+            vars
 
 (*
  * Add an included file.
@@ -2749,7 +2723,7 @@ let venv_chdir_dir venv loc dir =
       if Dir.equal dir cwd then
          venv
       else
-         let venv = venv_add_var_dynamic venv cwd_sym (ValDir dir) in
+         let venv = venv_add_var venv cwd_var (ValDir dir) in
          let venv = venv_chdir_tmp venv dir in
          let globals = venv_globals venv in
          let phonies = globals.venv_phonies in
@@ -2782,7 +2756,7 @@ let venv_chdir_tmp venv dir =
       if Dir.equal dir cwd then
          venv
       else
-         let venv = venv_add_var_dynamic venv cwd_sym (ValDir dir) in
+         let venv = venv_add_var venv cwd_var (ValDir dir) in
             venv_chdir_tmp venv dir
 
 (*
@@ -3398,8 +3372,19 @@ let unexport env v vars =
 (*
  * Export an item from one environment to another.
  *)
+let copy_var pos dst src v =
+   try SymbolTable.add dst v (SymbolTable.find src v) with
+      Not_found ->
+         raise (OmakeException (pos, UnboundVar v))
+
 let export_item pos venv_dst venv_src = function
-   ExportSymbol v ->
+   ExportVar (VarPrivate (_, v)) ->
+      { venv_dst with venv_static = copy_var pos venv_dst.venv_static venv_src.venv_static v }
+ | ExportVar (VarThis (_, v)) ->
+      { venv_dst with venv_this = copy_var pos venv_dst.venv_this venv_src.venv_this v }
+ | ExportVar (VarVirtual (_, v)) ->
+      { venv_dst with venv_this = copy_var pos venv_dst.venv_dynamic venv_src.venv_dynamic v }
+ | ExportVar (VarGlobal (_, v)) ->
       (*
        * For now, we don't know which scope to use, so we
        * copy them all.
@@ -3511,7 +3496,6 @@ let add_include venv pos result =
 (************************************************************************
  * Squashing.
  *)
-
 let squash_prim_fun f =
    f.fun_id
 

@@ -16,16 +16,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -158,15 +158,15 @@ let rec build_string env s =
     | ThisString _
     | KeyString _ ->
          false, s
-    | ApplyString (loc, strategy, scope, v, args) ->
+    | ApplyString (loc, strategy, v, args) ->
          let has_return, args = build_string_list env args in
-            has_return, ApplyString (loc, strategy, scope, v, args)
-    | SuperApplyString (loc, strategy, scope, v1, v2, args) ->
+            has_return, ApplyString (loc, strategy, v, args)
+    | SuperApplyString (loc, strategy, v1, v2, args) ->
          let has_return, args = build_string_list env args in
-            has_return, SuperApplyString (loc, strategy, scope, v1, v2, args)
-    | MethodApplyString (loc, strategy, scope, vl, args) ->
+            has_return, SuperApplyString (loc, strategy, v1, v2, args)
+    | MethodApplyString (loc, strategy, v, vl, args) ->
          let has_return, args = build_string_list env args in
-            has_return, MethodApplyString (loc, strategy, scope, vl, args)
+            has_return, MethodApplyString (loc, strategy, v, vl, args)
     | SequenceString (loc, sl) ->
          let has_return, sl = build_string_list env sl in
             has_return, SequenceString (loc, sl)
@@ -182,18 +182,18 @@ let rec build_string env s =
     | QuoteStringString (loc, c, sl) ->
          let has_return, sl = build_string_list env sl in
             has_return, QuoteStringString (loc, c, sl)
-    | BodyString (loc, e) ->
-         let renv, e = build_exp env e in
-            renv.renv_has_return, BodyString (loc, e)
-    | ExpString (loc, e) ->
-         let renv, e = build_exp env e in
-            renv.renv_has_return, ExpString (loc, e)
+    | BodyString (loc, el) ->
+         let renv, e = build_sequence_exp env el in
+            renv.renv_has_return, BodyString (loc, el)
+    | ExpString (loc, el) ->
+         let renv, el = build_sequence_exp env el in
+            renv.renv_has_return, ExpString (loc, el)
     | CasesString (loc, cases) ->
          let env = { env with env_in_cond = true } in
          let has_return, cases =
-            List.fold_left (fun (has_return, cases) (v, s, e) ->
+            List.fold_left (fun (has_return, cases) (v, s, el) ->
                   let has_return2, s = build_string env s in
-                  let renv, e = build_exp env e in
+                  let renv, e = build_sequence_exp env el in
                   let has_return = has_return || has_return2 || renv.renv_has_return in
                      has_return, (v, s, e) :: cases) (false, []) cases
          in
@@ -212,19 +212,19 @@ and build_string_list env sl =
  *)
 and build_exp env e =
    match e with
-      LetFunExp (loc, kind, v, vars, e) ->
-         let renv, e = build_exp env_fun e in
-         let e =
+      LetFunExp (loc, v, vars, el) ->
+         let renv, el = build_sequence_exp env_fun el in
+         let el =
             if renv.renv_has_return then
-               ReturnCatchExp (loc, e)
+               [ReturnBodyExp (loc, el)]
             else
-               e
+               el
          in
-         let e = LetFunExp (loc, kind, v, vars, e) in
+         let e = LetFunExp (loc, v, vars, el) in
             renv_empty, e
-    | LetObjectExp (loc, kind, v, el) ->
+    | LetObjectExp (loc, v, el) ->
          let el = build_object_exp el in
-         let e = LetObjectExp (loc, kind, v, el) in
+         let e = LetObjectExp (loc, v, el) in
             renv_empty, e
     | StaticExp (loc, node, v, el) ->
          let el = build_object_exp el in
@@ -243,30 +243,30 @@ and build_exp env e =
          let renv, el = build_sequence_exp env el in
          let e = SectionExp (loc, s, el) in
             update_return renv has_return, e
-    | ReturnCatchExp (loc, e) ->
-         let renv, e = build_exp env e in
-         let e = ReturnCatchExp (loc, e) in
-            renv, e
-    | LetVarExp (loc, scope, v, kind, s) ->
+    | ReturnBodyExp (loc, el) ->
+         let renv, el = build_sequence_exp env el in
+         let el = ReturnBodyExp (loc, el) in
+            renv, el
+    | LetVarExp (loc, v, kind, s) ->
          let has_return, s = build_string env s in
-         let e = LetVarExp (loc, scope, v, kind, s) in
+         let e = LetVarExp (loc, v, kind, s) in
             update_return renv_empty has_return, e
     | IncludeExp (loc, s, sl) ->
          let has_return1, s = build_string env s in
          let has_return2, sl = build_string_list env sl in
          let e = IncludeExp (loc, s, sl) in
             update_return renv_empty (has_return1 || has_return2), e
-    | ApplyExp (loc, scope, v, args) ->
+    | ApplyExp (loc, v, args) ->
          let has_return, args = build_string_list env args in
-         let e = ApplyExp (loc, scope, v, args) in
+         let e = ApplyExp (loc, v, args) in
             update_return renv_empty has_return, e
-    | SuperApplyExp (loc, scope, v1, v2, args) ->
+    | SuperApplyExp (loc, v1, v2, args) ->
          let has_return, args = build_string_list env args in
-         let e = SuperApplyExp (loc, scope, v1, v2, args) in
+         let e = SuperApplyExp (loc, v1, v2, args) in
             update_return renv_empty has_return, e
-    | MethodApplyExp (loc, scope, vl, args) ->
+    | MethodApplyExp (loc, v, vl, args) ->
          let has_return, args = build_string_list env args in
-         let e = MethodApplyExp (loc, scope, vl, args) in
+         let e = MethodApplyExp (loc, v, vl, args) in
             update_return renv_empty has_return, e
     | LetKeyExp (loc, v, kind, s) ->
          let has_return, s = build_string env s in
@@ -287,10 +287,7 @@ and build_exp env e =
          let has_return, s = build_string env s in
          let e = StringExp (loc, s) in
             update_return renv_value has_return, e
-    | ExportExp (loc, s) ->
-         let has_return, s = build_string env s in
-         let e = ExportExp (loc, s) in
-            update_return renv_value has_return, e
+    | ExportExp _
     | CancelExportExp _ ->
          renv_value, e
     | ReturnExp (loc, s) ->
@@ -369,15 +366,15 @@ and build_cases_exp env cases =
       }
    in
    let has_return, cases =
-      List.fold_left (fun (has_return, cases) (s, e) ->
-            let renv, e = build_exp env e in
+      List.fold_left (fun (has_return, cases) (s, el) ->
+            let renv, el = build_sequence_exp env el in
             let has_return = has_return || renv.renv_has_return in
-               has_return, (s, e) :: cases) (false, []) cases
+               has_return, (s, el) :: cases) (false, []) cases
    in
    let cases = List.rev cases in
    let renv =
-      { renv_is_final = false;
-        renv_is_value = true;
+      { renv_is_final   = false;
+        renv_is_value   = true;
         renv_has_return = has_return
       }
    in

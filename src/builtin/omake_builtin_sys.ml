@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -34,6 +34,7 @@ open Lm_location
 
 open Omake_ir
 open Omake_env
+open Omake_var
 open Omake_node
 open Omake_value
 open Omake_symbol
@@ -105,7 +106,7 @@ let create_passwd_obj obj passwd =
 
 let getpwnam venv pos loc args =
    let pos = string_pos "getpwnam" pos in
-   let obj = venv_find_object_or_empty venv ScopeGlobal passwd_object_sym in
+   let obj = venv_find_object_or_empty venv passwd_object_var in
    let user =
       match args with
          [user] -> string_of_value venv pos user
@@ -121,7 +122,7 @@ let getpwnam venv pos loc args =
 
 let getpwuid venv pos loc args =
    let pos = string_pos "getpwuid" pos in
-   let obj = venv_find_object_or_empty venv ScopeGlobal passwd_object_sym in
+   let obj = venv_find_object_or_empty venv passwd_object_var in
    let uid =
       match args with
          [uid] -> int_of_value venv pos uid
@@ -136,7 +137,7 @@ let getpwuid venv pos loc args =
       create_passwd_obj obj passwd
 
 let getpwents venv _pos _loc _args =
-   let obj = venv_find_object_or_empty venv ScopeGlobal passwd_object_sym in
+   let obj = venv_find_object_or_empty venv passwd_object_var in
    let ents = List.map (create_passwd_obj obj) (Lm_unix_util.getpwents ()) in
       ValArray ents
 
@@ -186,7 +187,7 @@ let create_group_obj obj group =
 
 let getgrnam venv pos loc args =
    let pos = string_pos "getgrnam" pos in
-   let obj = venv_find_object_or_empty venv ScopeGlobal group_object_sym in
+   let obj = venv_find_object_or_empty venv group_object_var in
    let user =
       match args with
          [user] -> string_of_value venv pos user
@@ -202,7 +203,7 @@ let getgrnam venv pos loc args =
 
 let getgrgid venv pos loc args =
    let pos = string_pos "getgruid" pos in
-   let obj = venv_find_object_or_empty venv ScopeGlobal group_object_sym in
+   let obj = venv_find_object_or_empty venv group_object_var in
    let gid =
       match args with
          [gid] -> int_of_value venv pos gid
@@ -265,7 +266,7 @@ let str_wrap name f v venv pos loc args =
  * The \verb+xterm-escape-begin+ and \verb+xterm-escape-end+ functions return the escape sequences
  * that can be used to set the XTerm window title. Will return empty values if this capability is
  * not available.
- * 
+ *
  * Note: if you intend to use these strings inside the shell \hypervarn{prompt}, you need to use
  * \verb+$(prompt_invisible_begin)$(xterm-escape-begin)+ and
  * \verb+$(xterm-escape-end)$(prompt_invisible_end)+.
@@ -277,7 +278,7 @@ let xterm_escape_end   = str_wrap "xterm-escape-end"   Lm_terminfo.xterm_escape_
 (*
  * \begin{doc}
  * \fun{xterm-escape}
- * 
+ *
  * \begin{verbatim}
  *    $(xterm-escape s) : Sequence
  * \end{verbatim}
@@ -316,7 +317,7 @@ let prompt_invisible_end   = str_wrap "prompt-invisible-end"   (opt_wrap snd) Om
 (*
  * \begin{doc}
  * \fun{prompt-invisible}
- * 
+ *
  * \begin{verbatim}
  *    $(prompt-invisible s) : Sequence
  * \end{verbatim}
@@ -328,6 +329,7 @@ let prompt_invisible_end   = str_wrap "prompt-invisible-end"   (opt_wrap snd) Om
  *
  * Implemented in Pervasives.om
  *)
+
 
 (*
  * \begin{doc}

@@ -104,8 +104,8 @@ let import_fun venv pos loc args =
             let obj = object_of_file venv pos loc name in
             let name = Filename.basename name in
             let name = Lm_filename_util.root name in
-            let name = Lm_symbol.add name in
-               venv_add_var venv ScopeGlobal pos name (ValObject obj)
+            let name = VarVirtual (loc, Lm_symbol.add name) in
+               venv_add_var venv name (ValObject obj)
    in
    let import_arg venv arg =
       let values = values_of_value venv pos arg in
@@ -188,7 +188,8 @@ let object_map venv pos loc args =
             let obj = eval_object venv pos arg in
             let f venv pos loc args =
                let venv = venv_add_args venv pos loc env params args in
-                  eval venv body
+               let _, result = eval_sequence_exp venv pos body in
+                  result
             in
                f, obj
        | _ ->
@@ -207,6 +208,25 @@ let object_map venv pos loc args =
          ValObject obj
       else
          ValEnv (venv', ExportAll)
+
+(*
+ * instanceof predicate.
+ *)
+let object_instanceof venv pos loc args =
+   let pos = string_pos "instanceof" pos in
+   let obj, v =
+      match args with
+         [obj; v] ->
+            obj, v
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+   let obj = eval_object venv pos obj in
+   let v = Lm_symbol.add (string_of_value venv pos v) in
+      if venv_instanceof obj v then
+         val_true
+      else
+         val_false
 
 (************************************************************************
  * Map operations.
@@ -317,7 +337,8 @@ let map_map venv pos loc args =
             let map = map_of_object venv pos obj in
             let f venv pos loc args =
                let venv = venv_add_args venv pos loc env params args in
-                  eval venv body
+               let _, result = eval_sequence_exp venv pos body in
+                  result
             in
                f, obj, map
        | _ ->
@@ -678,7 +699,8 @@ let foreach_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let f venv pos loc args =
                let venv = venv_add_args_hack venv pos loc env params args in
-                  eval venv body
+               let _, result = eval_sequence_exp venv pos body in
+                  result
             in
                f, args
        | _ ->
@@ -701,6 +723,88 @@ let foreach_fun venv pos loc args =
       else
          ValEnv (venv', ExportAll)
 
+(*
+ * \begin{doc}
+ * \section{Boolean tests}
+ *
+ * \subsection{forall}
+ *
+ * The \verb+forall+ function tests whether a predicate halds for each
+ * element of a sequence.
+ *
+ * \begin{verbatim}
+ *     $(forall <fun>, <args>)
+ *
+ *     forall(<var> => <args>)
+ *        <body>
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let forall_fun venv pos loc args =
+   let pos = string_pos "forall" pos in
+   let f, args =
+      match args with
+         [fun_val; arg] ->
+            let args = values_of_value venv pos arg in
+            let _, _, f = eval_fun venv pos fun_val in
+               f, args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+   let rec test args =
+      match args with
+         arg :: args ->
+            let result = f venv pos loc [arg] in
+               bool_of_value venv pos result && test args
+       | [] ->
+            true
+   in
+      if test args then
+         val_true
+      else
+         val_false
+
+(*
+ * \begin{doc}
+ * \subsection{exists}
+ *
+ * The \verb+exists+ function tests whether a predicate holds for
+ * some element of a sequence.
+ *
+ * \begin{verbatim}
+ *     $(exists <fun>, <args>)
+ *
+ *     exists(<var> => <args>)
+ *        <body>
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let exists_fun venv pos loc args =
+   let pos = string_pos "exists" pos in
+   let f, args =
+      match args with
+         [fun_val; arg] ->
+            let args = values_of_value venv pos arg in
+            let _, _, f = eval_fun venv pos fun_val in
+               f, args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+
+   (* If the body exports the environment, preserve it across calls *)
+   let rec test args =
+      match args with
+         arg :: args ->
+            let result = f venv pos loc [arg] in
+               bool_of_value venv pos result || test args
+       | [] ->
+            false
+   in
+      if test args then
+         val_true
+      else
+         val_false
+
 (************************************************************************
  * Define the functions.
  *)
@@ -719,6 +823,7 @@ let () =
        true, "obj-mem",              object_mem,          ArityExact 2;
        true, "obj-length",           object_length,       ArityExact 1;
        true, "obj-map",              object_map,          ArityRange (3, 4);
+       true, "obj-instanceof",       object_instanceof,   ArityExact 2;
        true, "map-add",              map_add,             ArityExact 3;
        true, "map-find",             map_find,            ArityExact 2;
        true, "map-mem",              map_mem,             ArityExact 2;
@@ -728,6 +833,8 @@ let () =
        true, "map-keys",             map_keys,            ArityExact 1;
        true, "map-values",           map_values,          ArityExact 1;
        true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
+       true, "sequence-forall",      forall_fun,          ArityExact 2;
+       true, "sequence-exists",      exists_fun,          ArityExact 2;
        true, "sequence-length",      sequence_length,     ArityExact 1;
        true, "sequence-nth",         sequence_nth,        ArityExact 1;
        true, "sequence-rev",         sequence_rev,        ArityExact 1;

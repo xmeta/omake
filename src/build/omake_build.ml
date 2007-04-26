@@ -65,8 +65,9 @@ open Omake_cache_type
 open Omake_build_tee
 open Omake_build_type
 open Omake_builtin_util
-open Omake_options
 open Omake_command_digest
+open Omake_var
+open Omake_options
 
 module Pos = MakePos (struct let name = "Omake_build" end);;
 open Pos
@@ -199,7 +200,7 @@ let flatten_deps table =
  *)
 let venv_find_scanner_mode venv pos =
    try
-      let v = venv_find_var_exn venv ScopeGlobal scanner_mode_sym in
+      let v = venv_find_var_exn venv scanner_mode_var in
          match string_of_value venv pos v with
             "enabled" ->
                DefaultScannerIsEnabled
@@ -2446,11 +2447,10 @@ let print_restart options reason =
  * Create and parse, given a cache.
  *)
 let create_env exec options cache targets =
-   let pos = string_exp_pos "create_env" in
    let venv = Omake_env.create options "." exec cache in
    let venv = Omake_builtin.venv_add_command_defs venv in
    let targets_value = ValArray (List.map (fun v -> ValData v) targets) in
-   let venv = Omake_env.venv_add_var venv ScopeGlobal pos targets_sym targets_value in
+   let venv = Omake_env.venv_add_var venv targets_var targets_value in
    let venv = Omake_builtin.venv_add_builtins venv in
 
    (* Summary file *)
@@ -2460,10 +2460,10 @@ let create_env exec options cache targets =
          summary
    in
    let summary_value = ValNode (venv_intern venv PhonyProhibited summary) in
-   let venv = venv_add_var venv ScopeGlobal pos build_summary_sym summary_value in
+   let venv = venv_add_var venv build_summary_var summary_value in
 
    (* Ignore match errors *)
-   let venv = venv_add_var venv ScopeGlobal pos glob_options_sym (ValString "n") in
+   let venv = venv_add_var venv glob_options_var (ValString "n") in
 
    (* Start reading files *)
    let now = Unix.gettimeofday () in

@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -47,8 +47,10 @@ val debug_eval  : bool ref
 (*
  * Evaluate an expression.
  *)
-val eval_exp : venv -> value -> exp -> venv * value
 val eval : venv -> exp -> value
+val eval_exp : venv -> value -> exp -> venv * value
+val eval_sequence : venv -> pos -> value -> exp list -> venv * value
+val eval_sequence_exp : venv -> pos -> exp list -> venv * value
 
 (*
  * String expression evaluation.
@@ -78,7 +80,7 @@ val compile : venv -> unit
 (*
  * Passes the IR thru Omake_ir_semant.build_prog, printing it if print_ir is enabled.
  *)
-val postprocess_ir : exp -> exp
+val postprocess_ir : ir -> ir
 
 (*
  * Evaluate a dependency file.
@@ -101,6 +103,8 @@ val eval_body_exp   : venv -> pos -> value -> value -> venv * value
  * Get the object for the value.
  *)
 val eval_object : venv -> pos -> value -> obj
+val eval_find_method_var : venv -> pos -> loc -> var_info -> var list -> obj * value
+val eval_defined_method_var : venv -> pos -> loc -> var_info -> var list -> bool
 
 (*
  * Evaluate a value that should be a function.
@@ -128,11 +132,6 @@ val eval_prim_value : venv -> pos -> value -> value
  * Evaluate a function application.
  *)
 val eval_apply : venv -> pos -> loc -> value -> value list -> value
-
-(*
- * Evaluate "export" arguments.
- *)
-val eval_export_args : venv -> pos -> value -> value
 
 (*
  * Conversions.

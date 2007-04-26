@@ -55,6 +55,7 @@ open Omake_builtin_type
 open Omake_builtin
 open Omake_build_type
 open Omake_cache_type
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_file" end)
 open Pos
@@ -493,7 +494,7 @@ let which venv pos loc args =
    let pos = string_pos "which" pos in
       match args with
          [arg] ->
-            let path = venv_find_var venv ScopeGlobal pos loc path_sym in
+            let path = venv_find_var venv pos loc path_var in
             let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
             let cache = venv_cache venv in
             let path = Omake_cache.ls_exe_path cache path in
@@ -531,7 +532,7 @@ let where venv pos loc args =
          [arg] ->
             (match strings_of_value venv pos arg with
                 [arg] ->
-                   let path = venv_find_var venv ScopeGlobal pos loc path_sym in
+                   let path = venv_find_var venv pos loc path_var in
                    let path = Omake_eval.path_of_values venv pos (values_of_value venv pos path) "." in
                    let cache = venv_cache venv in
                    let path = Omake_cache.ls_exe_path cache path in
@@ -539,7 +540,7 @@ let where venv pos loc args =
                    let res = List.map (fun v -> ValNode v) res in
                    let res =
                       try
-                         let obj = venv_find_var_exn venv ScopeGlobal shell_object_sym in
+                         let obj = venv_find_var_exn venv shell_object_var in
                             match eval_single_value venv pos obj with
                                ValObject obj ->
                                   let v = venv_find_field_exn obj (Lm_symbol.add arg) in
@@ -1702,7 +1703,7 @@ let mkdir venv pos loc args =
  * \obj{Stat}
  *
  * The \verb+Stat+ object represents an information about a filesystem node,
- * as returned by the \verb+stat+ and \verb+lstat+ functions. 
+ * as returned by the \verb+stat+ and \verb+lstat+ functions.
  * It contains the following fields.
  *
  * \begin{description}
@@ -1785,7 +1786,7 @@ let create_stat_obj obj stat =
 
 let stat_aux stat_fun venv pos loc args =
    let pos = string_pos "stat" pos in
-   let obj = venv_find_object_or_empty venv ScopeGlobal stat_object_sym in
+   let obj = venv_find_object_or_empty venv stat_object_var in
       match args with
          [arg] ->
             let args = values_of_value venv pos arg in

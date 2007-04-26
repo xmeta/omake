@@ -48,6 +48,7 @@ open Omake_shell_type
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_io" end)
 open Pos
@@ -116,7 +117,7 @@ let echo_fun venv pos loc args =
    let pos = string_pos "echo" pos in
    let args = List.map (strings_of_value venv pos) args in
    let args = List.flatten args in
-   let outx = channel_of_value venv pos (venv_find_var venv ScopeGlobal pos loc stdout_sym) in
+   let outx = channel_of_var venv pos loc stdout_var in
    let rec echo args =
       match args with
          [arg] ->
@@ -244,7 +245,7 @@ let cd_aux venv cd_path pos loc arg =
 let cd_fun venv pos loc args =
    let pos = string_pos "cd" pos in
    let cd_path =
-      try venv_find_var_exn venv ScopeGlobal cdpath_sym with
+      try venv_find_var_exn venv cdpath_var with
          Not_found ->
             ValString "."
    in

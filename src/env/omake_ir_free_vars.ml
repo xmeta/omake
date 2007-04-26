@@ -9,22 +9,22 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -40,66 +40,51 @@ open Omake_ir
 (*
  * Tables of free variables.
  *)
-type free_vars = scope_kind list SymbolTable.t
+type free_vars = VarInfoSet.t
 
-let free_vars_empty = SymbolTable.empty
-
-(*
- * Remove a binding variable only if it was not free before.
- *)
-let rec remove_kind kinds kind =
-   match kinds with
-      kind' :: kinds ->
-         if kind' = kind then
-            kinds
-         else
-            kind' :: remove_kind kinds kind
-    | [] ->
-         []
-
-let remove_kind kinds kind =
-   match remove_kind kinds kind with
-      [] ->
-         None
-    | kinds ->
-         Some kinds
-
-let free_vars_remove fv v kind =
-   try SymbolTable.filter_remove fv v (fun kinds -> remove_kind kinds kind) with
-      Not_found ->
-         fv
-
-let free_vars_remove_list fv vars kind =
-   List.fold_left (fun fv v -> free_vars_remove fv v kind) fv vars
+let free_vars_empty = VarInfoSet.empty
 
 (*
- * Add a binding variable.
+ * Free variable operations.
  *)
-let free_vars_add fv v kind =
-   if Lm_symbol.is_numeric_symbol v then
-      fv
-   else
-      SymbolTable.filter_add fv v (fun kinds ->
-            match kinds with
-               Some kinds ->
-                  if List.mem kind kinds then
-                     kinds
-                  else
-                     kind :: kinds
-             | None ->
-                  [kind])
+let free_vars_add = VarInfoSet.add
+let free_vars_remove = VarInfoSet.remove
+
+let free_vars_remove_params fv params =
+   List.fold_left VarInfoSet.remove_param fv params
 
 (*
  * Union of two free variable sets.
  *)
 let free_vars_union fv1 fv2 =
-   SymbolTable.fold (fun fv1 v kinds2 ->
-         SymbolTable.filter_add fv1 v (fun kinds1 ->
-               match kinds1 with
-                  Some kinds1 ->
-                     Lm_list_util.unionq kinds1 kinds2
-                | None ->
-                     kinds2)) fv1 fv2
+   VarInfoSet.fold VarInfoSet.add fv1 fv2
+
+(*
+ * Free vars of the export.
+ *)
+let rec free_vars_export_info fv info =
+   match info with
+      Omake_ir.ExportNone
+    | Omake_ir.ExportAll ->
+         fv
+    | Omake_ir.ExportList items ->
+         List.fold_left (fun fv item ->
+               match item with
+                  ExportRules
+                | ExportPhonies ->
+                     fv
+                | ExportVar v ->
+                     VarInfoSet.add fv v) fv items
+
+(*
+ * Free vars in optional args.
+ *)
+and free_vars_opt_params fv opt_params =
+   match opt_params with
+      (_, s) :: opt_params ->
+         free_vars_opt_params (free_vars_string_exp fv s) opt_params
+    | [] ->
+         fv
 
 (*
  * Calculate free vars.
@@ -107,20 +92,20 @@ let free_vars_union fv1 fv2 =
  * Since the language is dynamically scoped, this will miss
  * the dynamic free variables.
  *)
-let rec free_vars_string_exp fv s =
+and free_vars_string_exp fv s =
    match s with
       NoneString _
     | ConstString _
     | ThisString _
     | KeyString _ ->
          fv
-    | ApplyString (_, _, kind, v, sl)
-    | SuperApplyString (_, _, kind, v, _, sl) ->
-         let fv = free_vars_string_exp_list fv sl in
-            free_vars_add fv v kind
-    | MethodApplyString (_, _, kind, vars, sl) ->
-         let fv = free_vars_string_exp_list fv sl in
-            free_vars_add fv (List.hd vars) kind
+    | ApplyString (_, _, v, args)
+    | MethodApplyString (_, _, v, _, args) ->
+         let fv = free_vars_string_exp_list fv args in
+            free_vars_add fv v
+    | SuperApplyString (_, _, _, _, args) ->
+         let fv = free_vars_string_exp_list fv args in
+            fv
     | SequenceString (_, sl)
     | ArrayString (_, sl)
     | QuoteString (_, sl)
@@ -130,7 +115,7 @@ let rec free_vars_string_exp fv s =
          free_vars_string_exp fv s
     | BodyString (_, e)
     | ExpString (_, e) ->
-         free_vars_exp fv e
+         free_vars_exp_list fv e
     | CasesString (loc, cases) ->
          free_vars_cases fv cases
 
@@ -141,10 +126,17 @@ and free_vars_string_exp_list fv sl =
     | [] ->
          fv
 
+and free_vars_keyword_exp_list fv sl =
+   match sl with
+      (_, s) :: sl ->
+         free_vars_keyword_exp_list (free_vars_string_exp fv s) sl
+    | [] ->
+         fv
+
 and free_vars_cases fv cases =
    match cases with
       (_, s, e) :: cases ->
-         free_vars_cases (free_vars_string_exp (free_vars_exp fv e) s) cases
+         free_vars_cases (free_vars_string_exp (free_vars_exp_list fv e) s) cases
     | [] ->
          fv
 
@@ -157,17 +149,19 @@ and free_vars_exp_list fv el =
 
 and free_vars_exp fv e =
    match e with
-      LetVarExp (_, kind, v, _, s) ->
-         let fv = free_vars_remove fv v kind in
+      LetVarExp (_, v, _, s) ->
+         let fv = free_vars_remove fv v in
             free_vars_string_exp fv s
-    | LetFunExp (_, kind, v, vars, e) ->
-         let fv_body = free_vars_exp free_vars_empty e in
-         let fv_body = free_vars_remove_list fv_body vars ScopeProtected in
+    | LetFunExp (_, v, vars, el) ->
+         let fv_body = free_vars_exp_list free_vars_empty el in
+         let fv_body = free_vars_remove_params fv_body vars in
          let fv = free_vars_union fv fv_body in
-            free_vars_remove fv v kind
-    | LetObjectExp (_, kind, v, el) ->
+         let fv = free_vars_remove fv v in
+            fv
+    | LetObjectExp (_, v, el) ->
          let fv = free_vars_exp_list fv el in
-            free_vars_remove fv v kind
+         let fv = free_vars_remove fv v in
+            fv
     | IfExp (_, cases) ->
          free_vars_if_cases fv cases
     | SequenceExp (_, el)
@@ -177,31 +171,32 @@ and free_vars_exp fv e =
          free_vars_string_exp (free_vars_exp_list fv el) s
     | IncludeExp (_, s, sl) ->
          free_vars_string_exp (free_vars_string_exp_list fv sl) s
-    | ApplyExp (_, kind, v, sl)
-    | SuperApplyExp (_, kind, v, _, sl) ->
-         free_vars_string_exp_list (free_vars_add fv v kind) sl
-    | MethodApplyExp (_, kind, vars, sl) ->
-         free_vars_string_exp_list (free_vars_add fv (List.hd vars) kind) sl
-    | ReturnCatchExp (_, e) ->
-         free_vars_exp fv e
+    | ApplyExp (_, v, args)
+    | MethodApplyExp (_, v, _, args) ->
+         free_vars_string_exp_list (free_vars_add fv v) args
+    | SuperApplyExp (_, _, _, args) ->
+         free_vars_string_exp_list fv args
+    | ReturnBodyExp (_, el) ->
+         free_vars_exp_list fv el
+    | ExportExp (_, info) ->
+         free_vars_export_info fv info
     | LetKeyExp (_, _, _, s)
     | LetThisExp (_, s)
     | ShellExp (_, s)
     | StringExp (_, s)
-    | ReturnExp (_, s)
-    | ExportExp (_, s) ->
+    | ReturnExp (_, s) ->
          free_vars_string_exp fv s
+    | OpenExp _
     | KeyExp _
     | ReturnObjectExp _
     | ReturnSaveExp _
-    | OpenExp _
     | CancelExportExp _ ->
          fv
 
 and free_vars_if_cases fv cases =
    match cases with
       (s, e) :: cases ->
-         free_vars_if_cases (free_vars_string_exp (free_vars_exp fv e) s) cases
+         free_vars_if_cases (free_vars_string_exp (free_vars_exp_list fv e) s) cases
     | [] ->
          fv
 
@@ -214,10 +209,8 @@ let free_vars_exp e =
 let free_vars_exp_list el =
    free_vars_exp_list free_vars_empty el
 
-let free_vars_fold f x fv =
-   SymbolTable.fold (fun x v kinds ->
-         List.fold_left (fun x kind ->
-               f x v kind) x kinds) x fv
+let free_vars_set fv =
+   fv
 
 (*!
  * @docoff

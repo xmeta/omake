@@ -14,16 +14,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -55,6 +55,7 @@ open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util
 open Omake_build
+open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_target" end)
 open Pos
@@ -257,7 +258,7 @@ let target_of_command venv pos loc command =
    let command_values, command_lines = split_commands venv commands in
 
    (* Get the default target object *)
-   let obj = venv_find_var_exn venv ScopeGlobal target_object_sym in
+   let obj = venv_find_var_exn venv target_object_var in
    let obj =
       match obj with
          ValObject obj ->
