@@ -49,17 +49,6 @@ open Pos;;
  * Variable checking.
  *)
 
-let var_info_of_mode loc mode v =
-   match mode with
-      VarScopePrivate ->
-         VarPrivate (loc, v)
-    | VarScopeThis ->
-         VarThis (loc, v)
-    | VarScopeVirtual ->
-         VarVirtual (loc, v)
-    | VarScopeGlobal ->
-         VarGlobal (loc, v)
-
 (*XXX*)
 let raise_var_def_error pos info1 info2 =
    let print_error buf =
@@ -834,8 +823,8 @@ let senv_find_var genv oenv senv cenv pos loc v =
  *)
 let senv_find_scoped_var genv oenv senv cenv pos loc info v =
    match info.name_scope with
-      Some mode ->
-         let info = var_info_of_mode loc mode v in
+      Some scope ->
+         let info = create_var genv oenv senv cenv loc scope v in
             oenv, info
     | None ->
          senv_find_var genv oenv senv cenv pos loc v
@@ -898,9 +887,10 @@ let senv_define_var scope genv oenv senv cenv pos loc v =
       senv, info
 (*/XXX*)
 
+(* ZZZ: 0.9.8.x parameters are this; in 0.9.9 this should be changed to private *)
 let senv_add_params genv oenv senv cenv pos loc vl =
    List.fold_left (fun senv v ->
-         let senv, _ = senv_define_var VarScopePrivate genv oenv senv cenv pos loc v in
+         let senv, _ = senv_define_var VarScopeThis genv oenv senv cenv pos loc v in
             senv) senv vl
 
 (*XXX*)
@@ -916,13 +906,30 @@ let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
             Not_found ->
                create_var genv oenv senv cenv loc scope v
       in
+      (* ZZZ: in 0.9.8.x:
+       * If the scope is specified explicitly,
+       * do not add it as a definition to senv.
+       *
+       * This should be uncommented in 0.9.9.
       let senv = senv_define_var_info senv pos loc scope v info in
+       *)
          genv, oenv, senv, info
    else
-      let info =
-         try ForcedVars.find_var senv.senv_forced_vars v with
-            Not_found ->
-               VarGlobal (loc, v)
+      (* ZZZ: in 0.9.8.x:
+       * If the current scope is forced, add the variable in that mode.
+       * Otherwise, if the variable is already defined, use that.
+       * Otherwise, force the variable in global mode.
+       * In all cases, add to senv.
+       *
+       * This should be valid until var3, where the VarScopeGlobal becomes a link var *)
+      let senv, info =
+         match cenv.cenv_scope with
+            Some scope ->
+               senv_define_var scope genv oenv senv cenv pos loc v
+          | None ->
+               try senv, ForcedVars.find_var senv.senv_forced_vars v with
+                  Not_found ->
+                     senv_define_var VarScopeGlobal genv oenv senv cenv pos loc v
       in
          genv, oenv, senv, info
 (*/XXX*)
