@@ -166,15 +166,20 @@ struct
     * Raises Not_found if there are no such filenames.
     *)
    let rec dir_test_all_entries_exn absdir dir_handle =
-      let name = 
+      let name =
          try Unix.readdir dir_handle
-         with exn ->
+         with Unix.Unix_error _ | End_of_file as exn ->
             Unix.closedir dir_handle;
             raise exn
       in
-         try stat_with_toggle_case absdir name
-         with Not_found ->
-            dir_test_all_entries_exn absdir dir_handle
+         match name with
+            "."
+          | ".." ->
+               dir_test_all_entries_exn absdir dir_handle
+          | _ ->
+               try stat_with_toggle_case absdir name
+               with Not_found ->
+                     dir_test_all_entries_exn absdir dir_handle
 
    (*
     * Check for sensativity by creating a dummy file.
@@ -183,11 +188,11 @@ struct
       let name = sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
       let absname = Filename.concat absdir name in
       let () = do_create absname in
-         try 
+         try
             let flag = stat_with_toggle_case absdir name in
                do_unlink absname;
                flag
-         with exn ->
+         with Not_found as exn ->
             do_unlink absname;
             raise exn
 
@@ -203,7 +208,7 @@ struct
       try stat_with_toggle_case absdir name
       with Not_found ->
          try dir_test_all_entries_exn absdir (Unix.opendir absdir)
-         with Unix.Unix_error _ | Not_found  ->
+         with Unix.Unix_error _ | Not_found | End_of_file ->
             try dir_test_new_entry_exn absdir
             with Unix.Unix_error _ | Not_found | End_of_file ->
                match DirHash.get dir with
