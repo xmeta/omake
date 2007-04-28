@@ -321,12 +321,13 @@ let set_warn_error_opt opts flag =
 let output_opt_char options c =
    match c with
       '0' ->
-         (* -s --output-errors-only *)
+         (* -s --output-errors-only --no--progress *)
          { options with opt_print_status   = false;
                         opt_print_dir      = false;
                         opt_print_file     = false;
                         opt_print_exit     = false;
                         opt_print_command  = EvalNever;
+                        opt_print_progress = Set false;
                         opt_output         = [(OutputPostponeError, true)]
          }
     | '1' ->

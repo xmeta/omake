@@ -9,7 +9,7 @@ static. =
         DETECT_FS_CASE_SENSITIVE = false
         export
     else
-        ConfMsgChecking(for ability to detect filesystem case-sensitivity)
+        ConfMsgChecking(for optimal filesystem case-sensitivity test)
         if $(TryLinkC $"""
 /* For statfs */
 #include <sys/param.h>
@@ -42,10 +42,10 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 """)
-            ConfMsgResult(yes)
+            ConfMsgResult(Mac OS X implementation, using getattrlist)
             DETECT_FS_CASE_SENSITIVE = true
             DETECT_FS_CASE_SENSITIVE_CFLAGS = -DDETECT_FS_CASE_SENSITIVE_GETATTRLIST
             export
         else
-            ConfMsgResult(NO)
+            ConfMsgResult(Generic)
         export

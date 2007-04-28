@@ -72,7 +72,8 @@ struct
 
    type dir = DirHash.t
 
-   open DirElt;;
+   open DirElt
+   open Unix.LargeFile
 
    (*
     * Check whether a directory is case-sensitive.
@@ -83,23 +84,17 @@ struct
    let fs_random = Random.State.make_self_init ()
 
    (*
-    * Test whether stats are equal enough that we think the
-    * file is up-to-date.  (Borrowed from Omake_cache).
+    * Test whether stats are equal enough that we think that it's the same file.
     *)
    let stats_equal stat1 stat2 =
-      let { Unix.LargeFile.st_ino   = ino1;
-            Unix.LargeFile.st_kind  = kind1;
-            Unix.LargeFile.st_size  = size1;
-            Unix.LargeFile.st_mtime = mtime1
-          } = stat1
-      in
-      let { Unix.LargeFile.st_ino   = ino2;
-            Unix.LargeFile.st_kind  = kind2;
-            Unix.LargeFile.st_size  = size2;
-            Unix.LargeFile.st_mtime = mtime2
-          } = stat2
-      in
-         ino1 = ino2 && kind1 = kind2 && size1 = size2 && mtime1 = mtime2
+      stat1.st_dev = stat2.st_dev
+         && stat1.st_ino = stat2.st_ino
+         && stat1.st_kind = stat2.st_kind
+         && stat1.st_rdev = stat2.st_rdev
+         && stat1.st_nlink = stat2.st_nlink
+         && stat1.st_size = stat2.st_size
+         && stat1.st_mtime = stat2.st_mtime
+         && stat1.st_ctime = stat2.st_ctime
 
    (*
     * Toggle the case of the name.
@@ -131,12 +126,10 @@ struct
             ()
 
    (*
-    * Create a file, raising Not_found if the file can't be created.
+    * Create a file, raising Unix_error if the file can't be created.
     *)
    let do_create absname =
-      try Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600) with
-         Unix.Unix_error _ ->
-            raise Not_found
+      Unix.close (Unix.openfile absname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_EXCL] 0o600)
 
    (*
     * Given two filenames that differ only in case,
@@ -172,22 +165,16 @@ struct
     *
     * Raises Not_found if there are no such filenames.
     *)
-   let dir_test_all_entries_exn absdir =
-      let rec test names =
-         match names with
-            [] ->
-               raise Not_found
-          | name :: names ->
-               try stat_with_toggle_case absdir name with
-                  Not_found ->
-                     test names
+   let rec dir_test_all_entries_exn absdir dir_handle =
+      let name = 
+         try Unix.readdir dir_handle
+         with exn ->
+            Unix.closedir dir_handle;
+            raise exn
       in
-      let names =
-         try Lm_filename_util.lsdir absdir with
-            Unix.Unix_error _ ->
-               raise Not_found
-      in
-         test names
+         try stat_with_toggle_case absdir name
+         with Not_found ->
+            dir_test_all_entries_exn absdir dir_handle
 
    (*
     * Check for sensativity by creating a dummy file.
@@ -196,32 +183,35 @@ struct
       let name = sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
       let absname = Filename.concat absdir name in
       let () = do_create absname in
-      let flag = stat_with_toggle_case absdir name in
-         do_unlink absname;
-         flag
+         try 
+            let flag = stat_with_toggle_case absdir name in
+               do_unlink absname;
+               flag
+         with exn ->
+            do_unlink absname;
+            raise exn
 
    (*
     * To check for case sensitivity, try these tests in order,
     * stopping when one is successful.
-    *    1. Try the directory name itself.
+    *    1. Try the name being created itself.
     *    2. Try looking at the directory entries.
     *    3. Create a dummy file, and test.
     *    4. Test the parent.
     *)
    let rec dir_test_sensitivity dir absdir name =
-      try stat_with_toggle_case absdir name with
-         Not_found ->
-            let absdir = Filename.concat absdir name in
-               try dir_test_all_entries_exn absdir with
-                  Not_found ->
-                     try dir_test_new_entry_exn absdir with
-                        Not_found ->
-                           match DirHash.get dir with
-                              DirRoot _ ->
-                                 (* Nothing else we can do, assume sensitive *)
-                                 true
-                            | DirSub (_, name, parent) ->
-                                 dir_is_sensitive parent name
+      try stat_with_toggle_case absdir name
+      with Not_found ->
+         try dir_test_all_entries_exn absdir (Unix.opendir absdir)
+         with Unix.Unix_error _ | Not_found  ->
+            try dir_test_new_entry_exn absdir
+            with Unix.Unix_error _ | Not_found | End_of_file ->
+               match DirHash.get dir with
+                  DirRoot _ ->
+                     (* Nothing else we can do, assume sensitive *)
+                     true
+                | DirSub (_, name, parent) ->
+                     dir_is_sensitive parent name
 
    (*
     * This is the caching version of the case-sensitivity test.
