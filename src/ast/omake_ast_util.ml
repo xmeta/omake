@@ -41,7 +41,6 @@ let loc_of_exp = function
  | ApplyExp (_, _, _, loc)
  | SuperApplyExp (_, _, _, _, loc)
  | MethodApplyExp (_, _, _, loc)
- | CommandLineExp (_, loc)
  | CommandExp (_, _, _, loc)
  | VarDefExp (_, _, _, _, loc)
  | VarDefBodyExp (_, _, _, _, loc)
@@ -70,8 +69,7 @@ let rec last vl =
          raise (Invalid_argument "last")
 
 let key_of_exp = function
-   NullExp _
- | CommandLineExp _ ->
+   NullExp _ ->
      "null"
  | StringExp _
  | QuoteExp _
@@ -121,8 +119,7 @@ let update_body e body =
        | KeyDefExp _
        | BodyExp _
        | ShellExp _
-       | ClassExp _
-       | CommandLineExp _ ->
+       | ClassExp _ ->
             raise (Invalid_argument "update_body")
        | ApplyExp (strategy, v, args, loc) ->
             ApplyExp (strategy, v, BodyExp (body, loc) :: args, loc)
@@ -183,8 +180,7 @@ let can_continue e =
     | RuleExp _
     | BodyExp _
     | ShellExp _
-    | ClassExp _
-    | CommandLineExp _ ->
+    | ClassExp _ ->
          None
     | CatchExp _ ->
          Some "catch"

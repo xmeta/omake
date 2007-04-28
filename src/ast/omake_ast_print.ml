@@ -123,10 +123,6 @@ let rec pp_print_exp buf e =
                        pp_print_exp buf e;
                        false) true el);
          fprintf buf ")@]"
-    | CommandLineExp (argv, _) ->
-         fprintf buf "@[<b 3>#!";
-         List.iter (fun s -> fprintf buf "@ %s" s) argv;
-         fprintf buf "@]"
     | CommandExp (v, arg, commands, _) ->
          fprintf buf "@[<hv 0>@[<hv 3>command %a(%a) {%a@]@ }@]" (**)
             pp_print_symbol v

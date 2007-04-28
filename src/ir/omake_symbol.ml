@@ -194,6 +194,7 @@ let export_sym    = Lm_symbol.add "export"
 let value_sym     = Lm_symbol.add "value"
 let file_sym      = Lm_symbol.add "__FILE__"
 let file_id_sym   = Lm_symbol.add "__ID__"
+let set_sym       = Lm_symbol.add "set"
 
 let empty_map_sym       = Lm_symbol.add "empty-map"
 let create_map_sym      = Lm_symbol.add "create-map"

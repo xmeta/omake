@@ -1019,7 +1019,6 @@ let build_literal_string e =
        | Omake_ast.MethodApplyExp (_, _, _, loc)
        | Omake_ast.BodyExp (_, loc)
        | Omake_ast.KeyExp (_, _, loc)
-       | Omake_ast.CommandLineExp (_, loc)
        | Omake_ast.CommandExp (_, _, _, loc)
        | Omake_ast.VarDefExp (_, _, _, _, loc)
        | Omake_ast.VarDefBodyExp (_, _, _, _, loc)
@@ -1076,7 +1075,6 @@ let rec build_string genv oenv senv cenv e pos =
             build_body_string genv oenv senv cenv el pos loc
        | Omake_ast.KeyExp (strategy, v, loc) ->
             genv, oenv, KeyString (loc, ir_strategy_of_ast_strategy strategy, v)
-       | Omake_ast.CommandLineExp (_, loc)
        | Omake_ast.CommandExp (_, _, _, loc)
        | Omake_ast.VarDefExp (_, _, _, _, loc)
        | Omake_ast.VarDefBodyExp (_, _, _, _, loc)
@@ -1262,8 +1260,6 @@ and build_exp genv oenv senv cenv result e =
             build_super_apply_exp genv oenv senv cenv super v args pos loc
        | Omake_ast.MethodApplyExp (_, vl, args, loc) ->
             build_method_apply_exp genv oenv senv cenv vl args pos loc
-       | Omake_ast.CommandLineExp (argv, loc) ->
-            build_command_line_exp genv oenv senv cenv argv pos loc
        | Omake_ast.CommandExp (v, arg, commands, loc) ->
             build_command_exp genv oenv senv cenv v arg commands pos loc
        | Omake_ast.VarDefExp (v, kind, flag, e, loc) ->
@@ -1483,11 +1479,13 @@ and build_opt_cases_command_exp genv oenv senv cenv v arg cases commands pos loc
  * The command line is handled at parse time as well as
  * at evaluation time.
  *)
-and build_command_line_exp genv oenv senv cenv argv pos loc =
-   let _pos = string_pos "build_apply_exp" pos in
+and build_set_exp genv oenv senv cenv e pos loc =
+   let _pos = string_pos "build_set_exp" pos in
+   let argv = build_literal_argv e pos in
+   let senv = { senv with senv_venv = venv_set_options senv.senv_venv loc pos argv } in
    let argv = List.map (fun s -> ConstString (loc, s)) argv in
    let argv = ArrayString (loc, argv) in
-   let e = ApplyExp (loc, omakeargv_var, [argv]) in
+   let e = ApplyExp (loc, omakeflags_var, [argv]) in
       genv, oenv, senv, e, ValValue
 
 (*
@@ -1515,6 +1513,8 @@ and build_command_exp genv oenv senv cenv v arg commands pos loc =
          build_open_exp genv oenv senv cenv arg pos loc
       else if Lm_symbol.eq v autoload_sym then
          genv, oenv, senv, SequenceExp (loc, []), ValValue
+      else if Lm_symbol.eq v set_sym then
+         build_set_exp genv oenv senv cenv arg pos loc
       else
          build_apply_exp genv oenv senv cenv v [arg] pos loc
 

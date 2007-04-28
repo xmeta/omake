@@ -390,7 +390,6 @@ val venv_defined_env : venv -> var -> bool
  *)
 val venv_options          : venv -> omake_options
 val venv_set_options      : venv -> loc -> pos -> string list -> venv
-val venv_set_options_argv : venv -> loc -> pos -> string list -> venv
 
 (*
  * Find values.

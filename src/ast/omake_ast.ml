@@ -74,7 +74,6 @@ type exp =
  | ApplyExp        of apply_strategy * var * exp list * loc
  | SuperApplyExp   of apply_strategy * var * var * exp list * loc
  | MethodApplyExp  of apply_strategy * var list * exp list * loc
- | CommandLineExp  of string list * loc
  | CommandExp      of var * exp * exp list * loc
  | VarDefExp       of var list * define_kind * define_flag * exp * loc
  | VarDefBodyExp   of var list * define_kind * define_flag * exp list * loc

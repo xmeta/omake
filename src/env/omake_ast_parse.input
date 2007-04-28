@@ -37,7 +37,6 @@ open Omake_ast_util
 open Omake_symbol
 
 let replacesuffixes_sym = Lm_symbol.add "replacesuffixes"
-let command_line_sym    = Lm_symbol.add "CommandLine"
 
 module Pos = MakePos (struct let name = "Omake_parse" end)
 open Pos;;
@@ -196,12 +195,6 @@ let rule2 multiple target ploc source loc2 body =
 %token <Omake_ast.apply_strategy * string * Lm_location.loc> TokVarQuote
 
 /*
- * Command line.
- * #!...
- */
-%token <string list * Lm_location.loc> TokCommandLine
-
-/*
  * A complete program.
  */
 %start deps
@@ -238,12 +231,6 @@ shell_line:
           /* Blank lines */
           opt_white TokEol
           { NoBody, sequence_exp [] $2 }
-
-          /* Command line */
-        | TokCommandLine TokEol
-          { let argv, loc = $1 in
-               NoBody, CommandLineExp (argv, loc)
-          }
 
           /* Builtin functions */
         | TokKeyword opt_white keyword_text_optcolon TokEol
@@ -565,21 +552,21 @@ var_quote:
  * Variable lookup.
  */
 quote_opt_white:
-	  var_quote_opt_white
-	  { var_quote $1 }
-	;
+          var_quote_opt_white
+          { var_quote $1 }
+        ;
 
 quote_white:
-	  var_quote_white
-	  { let strategy, id, s, loc = $1 in
+          var_quote_white
+          { let strategy, id, s, loc = $1 in
             let e, _ = var_quote (strategy, id, loc) in
                e, s, loc
           }
-	;
+        ;
 
 quote:    var_quote
           { var_quote $1 }
-	;
+        ;
 
 /*
  * Names separated by dots.
@@ -1055,4 +1042,3 @@ opt_white:
         | TokWhite
           { Some $1 }
         ;
-

@@ -182,10 +182,6 @@ let pp_print_token buf = function
        fprintf buf "quote: %s" s
   | TokVarQuote (_, s, _) ->
        fprintf buf "key: %s" s
-  | TokCommandLine (argv, _) ->
-       fprintf buf "@[<b 3>#!";
-       List.iter (fun s -> fprintf buf "@ %s" s) argv;
-       fprintf buf "@]"
 
 (*
  * Set state.
@@ -380,7 +376,8 @@ let lexeme_name state lexbuf =
        | "declare"
        | "value"
        | "while"
-       | "do" ->
+       | "do"
+       | "set" ->
              TokKeyword (id, loc)
        | "catch" ->
              TokCatch (id, loc)
@@ -532,11 +529,6 @@ let comment_nl      = comment nl
 let comment_eol     = comment eol
 
 (*
- * Options.
- *)
-let command_line    = "#!" [^ '\n']*
-
-(*
  * Quotes.
  *)
 let squote         = ['\'']+
@@ -594,12 +586,6 @@ rule lex_main state = parse
      let _ = lexeme_loc state lexbuf in
         set_next_line state lexbuf;
         TokEol loc
-   }
- | command_line
-   { let argv, loc = lexeme_string state lexbuf in
-     let argv = String.sub argv 2 (String.length argv - 2) in
-     let argv = Lm_string_util.parse_args argv in
-        TokCommandLine (argv, loc)
    }
  | white
    { let s, loc = lexeme_string state lexbuf in

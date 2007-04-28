@@ -1913,13 +1913,10 @@ let venv_defined_env venv v =
 (*
  * Options.
  *)
-let venv_set_options_aux strict venv loc pos argv =
+let venv_set_options_aux venv loc pos argv =
    let argv = Array.of_list argv in
    let add_unknown options s =
-      if strict then
-         raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
-      else
-         options, false
+      raise (OmakeException (loc_pos loc pos, StringStringError ("unknown option", s)))
    in
    let options_spec =
       Lm_arg.StrictOptions, (**)
@@ -1933,11 +1930,8 @@ let venv_set_options_aux strict venv loc pos argv =
    in
       { venv with venv_inner = { venv.venv_inner with venv_options = options } }
 
-let venv_set_options_argv venv loc pos argv =
-   venv_set_options_aux false venv loc pos argv
-
 let venv_set_options venv loc pos argv =
-   venv_set_options_aux true venv loc pos ("omake" :: argv)
+   venv_set_options_aux venv loc pos ("omake" :: argv)
 
 let venv_options venv =
    venv.venv_inner.venv_options
