@@ -129,7 +129,7 @@ type handle_env
  * Possible values.
  * For the function, the obj is the static scope.
  *)
-and value =
+type value =
    ValNone
  | ValInt         of int
  | ValFloat       of float
@@ -139,7 +139,7 @@ and value =
  | ValData        of string
  | ValQuote       of value list
  | ValQuoteString of char * value list
- | ValRules       of erule list
+ | ValRules       of Node.t list
  | ValNode        of Node.t
  | ValDir         of Dir.t
  | ValObject      of obj
@@ -185,7 +185,7 @@ and value_other =
  * and the actual body.  The body is polymorphic
  * for various kinds of commands.
  *)
-and command =
+type command =
    CommandSection of value * free_vars * exp list   (* Name of the section, its free variables, and the expression *)
  | CommandValue of loc * value
 
@@ -353,6 +353,7 @@ val venv_add_wild_match  : venv -> value -> venv
 val venv_add_match_args  : venv -> string list -> venv
 val venv_add_match       : venv -> string -> string list -> venv
 val venv_explicit_target : venv -> Node.t -> venv
+val venv_explicit_find   : venv -> pos -> Node.t -> erule
 
 val venv_add_rule : venv -> pos -> loc ->
    rule_multiple ->                     (* multiple, scanner, etc *)
@@ -363,7 +364,7 @@ val venv_add_rule : venv -> pos -> loc ->
    target source list ->                (* scanners *)
    value list ->                        (* additional values the target depends on *)
    command list ->                      (* commands *)
-   venv * erule list
+   venv * Node.t list
 
 (*
  * System environment.
@@ -642,6 +643,7 @@ val pp_print_env            : formatter -> env -> unit
 val pp_print_value          : formatter -> value -> unit
 val pp_print_value_list     : formatter -> value list -> unit
 val pp_print_explicit_rules : formatter -> venv -> unit
+val pp_print_rule           : formatter -> erule -> unit
 
 (*
  * Static values.

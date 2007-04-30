@@ -197,7 +197,7 @@ type value =
  | ValData        of string
  | ValQuote       of value list
  | ValQuoteString of char * value list
- | ValRules       of erule list
+ | ValRules       of Node.t list
  | ValNode        of Node.t
  | ValDir         of Dir.t
  | ValObject      of obj
@@ -238,12 +238,7 @@ and value_other =
  * We do this so that we can marshal these values.
  * Just before marshaling, all the options are set to None.
  *)
-and prim_fun_data = venv -> pos -> loc -> value list -> venv * value
-
-and prim_fun =
-   { fun_id           : symbol;
-     mutable fun_data : prim_fun_data option
-   }
+and prim_fun = symbol
 
 (*
  * An object is just an environment.
@@ -253,9 +248,45 @@ and env = value SymbolTable.t
 and map = (value, value) Lm_map.tree
 
 (*
+ * Exceptions.
+ *)
+and item =
+   Symbol        of symbol
+ | String        of string
+ | AstExp        of Omake_ast.exp
+ | IrExp         of Omake_ir.exp
+ | Location      of loc
+ | Value         of value
+ | Error         of omake_error
+
+and pos = item Lm_position.pos
+
+and omake_error =
+   SyntaxError       of string
+ | StringError       of string
+ | StringStringError of string * string
+ | StringDirError    of string * Dir.t
+ | StringNodeError   of string * Node.t
+ | StringVarError    of string * var
+ | StringIntError    of string * int
+ | StringMethodError of string * var list
+ | StringValueError  of string * value
+ | StringTargetError of string * target
+ | LazyError         of (formatter -> unit)
+ | UnboundVar        of var
+ | UnboundVarInfo    of var_info
+ | UnboundFun        of var
+ | UnboundMethod     of var list
+ | ArityMismatch     of arity * int
+ | NotImplemented    of string
+ | UnboundKey        of string
+ | UnboundValue      of value
+ | NullCommand
+
+(*
  * Command lists have source arguments.
  *)
-and command =
+type command =
    CommandSection of value * free_vars * exp list
  | CommandValue of loc * value
 
@@ -400,7 +431,7 @@ and venv_globals =
 
      (* Explicit rules are global *)
      mutable venv_explicit_rules             : erule list;
-     mutable venv_explicit_targets           : NodeSet.t;
+     mutable venv_explicit_targets           : erule NodeTable.t;
      mutable venv_explicit_new               : erule list;
 
      (* Ordering rules *)
@@ -461,42 +492,6 @@ and string_group = (simple_exe, string, value, string, apply) poly_group
 and string_pipe  = (simple_exe, string, value, string, apply) poly_pipe
 
 (*
- * Exceptions.
- *)
-and item =
-   Symbol        of symbol
- | String        of string
- | AstExp        of Omake_ast.exp
- | IrExp         of Omake_ir.exp
- | Location      of loc
- | Value         of value
- | Error         of omake_error
-
-and pos = item Lm_position.pos
-
-and omake_error =
-   SyntaxError       of string
- | StringError       of string
- | StringStringError of string * string
- | StringDirError    of string * Dir.t
- | StringNodeError   of string * Node.t
- | StringVarError    of string * var
- | StringIntError    of string * int
- | StringMethodError of string * var list
- | StringValueError  of string * value
- | StringTargetError of string * target
- | LazyError         of (formatter -> unit)
- | UnboundVar        of var
- | UnboundVarInfo    of var_info
- | UnboundFun        of var
- | UnboundMethod     of var list
- | ArityMismatch     of arity * int
- | NotImplemented    of string
- | UnboundKey        of string
- | UnboundValue      of value
- | NullCommand
-
-(*
  * Error during translation.
  *)
 exception OmakeException    of pos * omake_error
@@ -523,10 +518,12 @@ end;;
 
 module IntTable = Lm_map.LmMake (IntCompare);;
 
+type prim_fun_data = venv -> pos -> loc -> value list -> venv * value
+
 type venv_runtime =
    { mutable venv_channel_index  : int;
      mutable venv_channels       : (prim_channel * channel_data) IntTable.t;
-     mutable venv_primitives     : (prim_fun * prim_fun_data option) SymbolTable.t
+     mutable venv_primitives     : prim_fun_data SymbolTable.t
    }
 
 let venv_runtime =
@@ -780,14 +777,14 @@ let rec pp_print_value buf v =
             pp_print_var_info v
     | ValFun (arity, _, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
-    | ValPrim (arity, special, _) ->
+    | ValPrim (_, special, name) ->
          if special then
-            fprintf buf "<special-function %a>" pp_print_arity arity
+            fprintf buf "<special-function %a>" pp_print_symbol name
          else
-            fprintf buf "<prim-function %a>" pp_print_arity arity
+            fprintf buf "<prim-function %a>" pp_print_symbol name
     | ValRules rules ->
          fprintf buf "<@[<hv 3>rules:";
-         List.iter (fun erule -> fprintf buf "@ %a" pp_print_rule erule) rules;
+         List.iter (fun erule -> fprintf buf "@ %a" pp_print_node erule) rules;
          fprintf buf "@]>"
     | ValDir dir ->
          fprintf buf "%a : Dir" pp_print_dir dir
@@ -1444,34 +1441,20 @@ let venv_find_channel_id venv pos id =
 (*
  * Allocate a function primitive.
  *)
-let venv_add_prim_fun venv name f =
-   let data = Some f in
-   let value = { fun_id = name; fun_data = data } in
-      venv_runtime.venv_primitives <- SymbolTable.add venv_runtime.venv_primitives name (value, data);
-      value
+let venv_add_prim_fun venv name data =
+   venv_runtime.venv_primitives <- SymbolTable.add venv_runtime.venv_primitives name data;
+   name
 
 (*
  * Look up the primitive value if we haven't seen it already.
  *)
-let venv_apply_prim_fun p venv pos loc args =
-   match p with
-      { fun_data = Some f } ->
-         f venv pos loc args
-    | { fun_id = name; fun_data = None } ->
-         let opt =
-            try
-               let _, data = SymbolTable.find venv_runtime.venv_primitives name in
-                  p.fun_data <- data;
-                  data
-            with
-               Not_found ->
-                  None
-         in
-            match opt with
-               Some f ->
-                  f venv pos loc args
-             | None ->
-                  raise (OmakeException (loc_pos loc pos, UnboundVar name))
+let venv_apply_prim_fun name venv pos loc args =
+   let f =
+      try SymbolTable.find venv_runtime.venv_primitives name with
+         Not_found ->
+            raise (OmakeException (loc_pos loc pos, UnboundVar name))
+   in
+      f venv pos loc args
 
 (************************************************************************
  * Static values.
@@ -1492,17 +1475,13 @@ let venv_marshal venv f x =
             if channel.channel_id <= 2 then
                channel.channel_data <- ChannelDelayed
             else
-               channel.channel_data <- ChannelClosed) channels;
-      SymbolTable.iter (fun _ (value, _) ->
-            value.fun_data <- None) primitives
+               channel.channel_data <- ChannelClosed) channels
    in
 
    (* Restore by reopening channels and readding function data *)
    let restore () =
       IntTable.iter (fun _ (channel, data) ->
-            channel.channel_data <- data) channels;
-      SymbolTable.iter (fun _ (value, data) ->
-            value.fun_data <- data) primitives
+            channel.channel_data <- data) channels
    in
       prepare ();
       try
@@ -2575,7 +2554,7 @@ let create options dir exec cache =
         venv_phonies                    = PreNodeSet.empty;
         venv_explicit_rules             = [];
         venv_explicit_new               = [];
-        venv_explicit_targets           = NodeSet.empty;
+        venv_explicit_targets           = NodeTable.empty;
         venv_ordering_rules             = [];
         venv_orders                     = StringSet.empty;
         venv_pervasives_obj             = SymbolTable.empty;
@@ -2917,8 +2896,9 @@ let venv_add_explicit_rules venv pos loc multiple targets locks sources scanners
       }
    in
    let rules = List.map add_target target_args in
+   let names = List.map (fun erule -> erule.rule_target) rules in
       venv_save_explicit_rules venv loc rules;
-      venv, rules
+      venv, names
 
 (*
  * Add a 3-place rule (automatically implicit).
@@ -3001,7 +2981,7 @@ let venv_explicit_flush venv =
          let targets, erules =
             List.fold_left (fun (targets, erules) erule ->
                   let erules = erule :: erules in
-                  let targets = NodeSet.add targets erule.rule_target in
+                  let targets = NodeTable.add targets erule.rule_target erule in
                      targets, erules) (targets, erules) (List.rev enew)
          in
             globals.venv_explicit_new <- [];
@@ -3011,9 +2991,15 @@ let venv_explicit_flush venv =
 (*
  * Check if an explicit rule exists.
  *)
+let venv_explicit_find venv pos target =
+   venv_explicit_flush venv;
+   try NodeTable.find venv.venv_inner.venv_globals.venv_explicit_targets target with
+      Not_found ->
+         raise (OmakeException (pos, StringNodeError ("explicit target not found", target)))
+
 let venv_explicit_exists venv target =
    venv_explicit_flush venv;
-   NodeSet.mem venv.venv_inner.venv_globals.venv_explicit_targets target
+   NodeTable.mem venv.venv_inner.venv_globals.venv_explicit_targets target
 
 let multiple_add_error errors target loc1 loc2 =
    let table = !errors in
@@ -3468,7 +3454,7 @@ let add_exports venv_dst venv_src pos = function
  * Squashing.
  *)
 let squash_prim_fun f =
-   f.fun_id
+   f
 
 let squash_object obj =
    obj

@@ -121,9 +121,7 @@ let dependencies venv pos loc args =
    let pos = string_pos "dependencies" pos in
    let nodes =
       match args with
-         [ValRules rules] ->
-            List.fold_left (fun deps r -> NodeSet.union deps r.rule_sources) NodeSet.empty rules
-       | [arg] ->
+         [arg] ->
             let args  = values_of_value venv pos arg in
             let nodes = List.map (file_of_value venv pos) args in
             let rec find_deps deps node =
@@ -290,9 +288,7 @@ let target_of_command venv pos loc command =
 let target_core optional_flag venv pos loc args =
    let pos = string_pos "target" pos in
       match args with
-         [ValRules rules] ->
-            concat_array (List.map (fun r -> ValNode r.rule_target) rules)
-       | [arg] ->
+         [arg] ->
             let args     = values_of_value venv pos arg in
             let env      = get_env pos loc in
             let commands = env.env_commands in

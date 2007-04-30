@@ -251,15 +251,10 @@ end
 (*
  * Find a rule in a list.
  *)
-let rec find_rule loc target rules =
-   match rules with
-      erule :: rules ->
-         if Node.equal target erule.rule_target then
-            erule
-         else
-            find_rule loc target rules
-    | [] ->
-         raise (OmakeException (loc_exp_pos loc, StringNodeError ("computed rule does not match target", target)))
+let find_rule venv pos loc target names =
+   if not (List.exists (Node.equal target) names) then
+      raise (OmakeException (loc_exp_pos loc, StringNodeError ("computed rule does not match target", target)));
+   venv_explicit_find venv pos target
 
 (*
  * Check if there are any computed commands.
@@ -320,7 +315,7 @@ and expand_rule_section venv pos loc buf e =
 
       match v with
          ValRules erules ->
-            let erule = find_rule loc target erules in
+            let erule = find_rule venv pos loc target erules in
             let { rule_locks    = locks;
                   rule_effects  = effects;
                   rule_sources  = deps;
@@ -408,7 +403,7 @@ let expand_rule erule =
          if debug debug_active_rules then
             eprintf "@[<v 0>%a@ @[<hv 3>*** omake: static rule@ @[<hv 3>%a@]@]@]@." (**)
                pp_print_location loc
-               pp_print_value (ValRules [erule]);
+               pp_print_rule erule;
          erule
       end
 
