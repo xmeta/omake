@@ -229,7 +229,6 @@ and value_other =
    ValLexer       of Lexer.t
  | ValParser      of Parser.t
  | ValLocation    of loc
- | ValPosition    of pos
  | ValExitCode    of int
  | ValEnv         of HandleTable.handle
 
@@ -246,42 +245,6 @@ and prim_fun = symbol
 and obj = value SymbolTable.t
 and env = value SymbolTable.t
 and map = (value, value) Lm_map.tree
-
-(*
- * Exceptions.
- *)
-and item =
-   Symbol        of symbol
- | String        of string
- | AstExp        of Omake_ast.exp
- | IrExp         of Omake_ir.exp
- | Location      of loc
- | Value         of value
- | Error         of omake_error
-
-and pos = item Lm_position.pos
-
-and omake_error =
-   SyntaxError       of string
- | StringError       of string
- | StringStringError of string * string
- | StringDirError    of string * Dir.t
- | StringNodeError   of string * Node.t
- | StringVarError    of string * var
- | StringIntError    of string * int
- | StringMethodError of string * var list
- | StringValueError  of string * value
- | StringTargetError of string * target
- | LazyError         of (formatter -> unit)
- | UnboundVar        of var
- | UnboundVarInfo    of var_info
- | UnboundFun        of var
- | UnboundMethod     of var list
- | ArityMismatch     of arity * int
- | NotImplemented    of string
- | UnboundKey        of string
- | UnboundValue      of value
- | NullCommand
 
 (*
  * Command lists have source arguments.
@@ -490,6 +453,42 @@ and string_cmd   = (simple_exe, string, string) poly_cmd
 and string_apply = (value, string, apply) poly_apply
 and string_group = (simple_exe, string, value, string, apply) poly_group
 and string_pipe  = (simple_exe, string, value, string, apply) poly_pipe
+
+(*
+ * Exceptions.
+ *)
+and item =
+   Symbol        of symbol
+ | String        of string
+ | AstExp        of Omake_ast.exp
+ | IrExp         of Omake_ir.exp
+ | Location      of loc
+ | Value         of value
+ | Error         of omake_error
+
+and pos = item Lm_position.pos
+
+and omake_error =
+   SyntaxError       of string
+ | StringError       of string
+ | StringStringError of string * string
+ | StringDirError    of string * Dir.t
+ | StringNodeError   of string * Node.t
+ | StringVarError    of string * var
+ | StringIntError    of string * int
+ | StringMethodError of string * var list
+ | StringValueError  of string * value
+ | StringTargetError of string * target
+ | LazyError         of (formatter -> unit)
+ | UnboundVar        of var
+ | UnboundVarInfo    of var_info
+ | UnboundFun        of var
+ | UnboundMethod     of var list
+ | ArityMismatch     of arity * int
+ | NotImplemented    of string
+ | UnboundKey        of string
+ | UnboundValue      of value
+ | NullCommand
 
 (*
  * Error during translation.
@@ -826,8 +825,6 @@ let rec pp_print_value buf v =
          fprintf buf "<parser> : Parser"
     | ValOther (ValLocation loc) ->
          fprintf buf "<location %a> : Location" pp_print_location loc
-    | ValOther (ValPosition pos) ->
-         fprintf buf "<position %a> : Position" !pp_print_pos_ref pos
     | ValOther (ValExitCode code) ->
          fprintf buf "<exit-code %d> : Int" code
     | ValOther (ValEnv _) ->
@@ -962,8 +959,6 @@ let rec pp_print_simple_value buf v =
          pp_print_string buf "<parser>"
     | ValOther (ValLocation _) ->
          pp_print_string buf "<location>"
-    | ValOther (ValPosition pos) ->
-         pp_print_string buf "<position>"
     | ValOther (ValExitCode i) ->
          pp_print_int buf i
     | ValOther (ValEnv _) ->

@@ -165,8 +165,7 @@ let rec key_of_value venv pos v =
        | ValInt _
        | ValFloat _
        | ValOther (ValExitCode _)
-       | ValOther (ValLocation _)
-       | ValOther (ValPosition _) ->
+       | ValOther (ValLocation _) ->
             v
        | ValQuote _
        | ValQuoteString _
@@ -564,8 +563,6 @@ let loc_of_value venv pos v =
    match eval_prim_value venv pos v with
       ValOther (ValLocation loc) ->
          loc
-    | ValOther (ValPosition pos) ->
-         loc_of_pos pos
     | _ ->
          raise (OmakeException (pos, StringValueError ("not a location", v)))
 

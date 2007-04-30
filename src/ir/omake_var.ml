@@ -121,7 +121,6 @@ let in_out_channel_object_var  = create_pervasives_var in_out_channel_object_sym
 let lexer_object_var           = create_pervasives_var lexer_object_sym
 let parser_object_var          = create_pervasives_var parser_object_sym
 let location_object_var        = create_pervasives_var location_object_sym
-let position_object_var        = create_pervasives_var position_object_sym
 let map_object_var             = create_pervasives_var map_object_sym
 let shell_object_var           = create_pervasives_var shell_object_sym
 let target_object_var          = create_pervasives_var target_object_sym

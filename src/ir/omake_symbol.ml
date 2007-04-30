@@ -61,7 +61,6 @@ let group_object_sym           = Lm_symbol.add "Group"
 let lexer_object_sym           = Lm_symbol.add "Lexer"
 let parser_object_sym          = Lm_symbol.add "Parser"
 let location_object_sym        = Lm_symbol.add "Location"
-let position_object_sym        = Lm_symbol.add "Position"
 let target_object_sym          = Lm_symbol.add "Target"
 let options_object_sym         = Lm_symbol.add "Options"
 

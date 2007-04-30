@@ -1317,8 +1317,6 @@ and eval_object_exn venv pos x =
          create_object venv x parser_object_var
     | ValOther (ValLocation _) ->
          create_object venv x location_object_var
-    | ValOther (ValPosition _) ->
-         create_object venv x position_object_var
     | ValOther (ValEnv _) ->
          raise (OmakeException (pos, StringError "dereferenced <env>"))
     | ValClass _ ->

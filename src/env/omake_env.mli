@@ -175,7 +175,6 @@ and value_other =
    ValLexer       of Lexer.t
  | ValParser      of Parser.t
  | ValLocation    of loc
- | ValPosition    of pos
  | ValExitCode    of int
  | ValEnv         of handle_env
 

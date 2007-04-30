@@ -104,7 +104,6 @@ val in_out_channel_object_var  : var_info
 val lexer_object_var           : var_info
 val parser_object_var          : var_info
 val location_object_var        : var_info
-val position_object_var        : var_info
 val map_object_var             : var_info
 val shell_object_var           : var_info
 val target_object_var          : var_info
