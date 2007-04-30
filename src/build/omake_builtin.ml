@@ -62,6 +62,7 @@ let builtin_info = ref builtin_empty
 let register_builtin info =
    let { builtin_vars       = builtin_vars1;
          builtin_funs       = builtin_funs1;
+         builtin_kfuns      = builtin_kfuns1;
          builtin_objects    = builtin_objects1;
          pervasives_objects = pervasives_objects1;
          phony_targets      = phony_targets1;
@@ -70,6 +71,7 @@ let register_builtin info =
    in
    let { builtin_vars       = builtin_vars2;
          builtin_funs       = builtin_funs2;
+         builtin_kfuns      = builtin_kfuns2;
          builtin_objects    = builtin_objects2;
          pervasives_objects = pervasives_objects2;
          phony_targets      = phony_targets2;
@@ -79,6 +81,7 @@ let register_builtin info =
    let info =
       { builtin_vars       = builtin_vars1 @ builtin_vars2;
         builtin_funs       = builtin_funs1 @ builtin_funs2;
+        builtin_kfuns      = builtin_kfuns1 @ builtin_kfuns2;
         builtin_objects    = builtin_objects1 @ builtin_objects2;
         pervasives_objects = pervasives_objects1 @ pervasives_objects2;
         phony_targets      = phony_targets1 @ phony_targets2;
@@ -91,6 +94,12 @@ let get_registered_builtins () =
    !builtin_info
 
 (*
+ * Check that there are no keyword arguments.
+ *)
+let wrap_normal_prim_fun f venv pos loc args =
+   venv, f venv pos loc args
+
+(*
  * Add all the functions to the environment.
  *)
 let venv_add_builtins venv =
@@ -98,6 +107,7 @@ let venv_add_builtins venv =
    let pos = string_pos "venv_add_builtins" (loc_exp_pos loc) in
    let { builtin_vars       = builtin_vars;
          builtin_funs       = builtin_funs;
+         builtin_kfuns      = builtin_kfuns;
          builtin_objects    = builtin_objects;
          pervasives_objects = pervasives_objects;
          phony_targets      = phony_targets;
@@ -111,8 +121,15 @@ let venv_add_builtins venv =
       List.fold_left (fun venv (special, s, f, arity) ->
             let name = Lm_symbol.add s in
             let v = VarGlobal (loc, name) in
-            let p = venv_add_prim_fun venv name f in
+            let p = venv_add_prim_fun venv name (wrap_normal_prim_fun f) in
                venv_add_var venv v (ValPrim (arity, special, p))) venv builtin_funs
+   in
+   let venv =
+      List.fold_left (fun venv (special, s, f, arity) ->
+            let name = Lm_symbol.add s in
+            let v = VarGlobal (loc, name) in
+            let p = venv_add_prim_fun venv name f in
+               venv_add_var venv v (ValPrim (arity, special, p))) venv builtin_kfuns
    in
    let venv =
       List.fold_left (fun venv (multiple, targets, sources) ->

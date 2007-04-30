@@ -906,13 +906,7 @@ let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
             Not_found ->
                create_var genv oenv senv cenv loc scope v
       in
-      (* ZZZ: in 0.9.8.x:
-       * If the scope is specified explicitly,
-       * do not add it as a definition to senv.
-       *
-       * This should be uncommented in 0.9.9.
       let senv = senv_define_var_info senv pos loc scope v info in
-       *)
          genv, oenv, senv, info
    else
       (* ZZZ: in 0.9.8.x:
@@ -1235,7 +1229,7 @@ and build_method_apply_string genv oenv senv cenv strategy vl args pos loc =
 and build_body_string genv oenv senv cenv el pos loc =
    let pos = string_pos "build_body_string" pos in
    let genv, oenv, body, export, _ = build_body genv oenv senv cenv el pos loc in
-      genv, oenv, BodyString (loc, body)
+      genv, oenv, BodyString (loc, body, export)
 
 (*
  * Build an expression.
@@ -1317,13 +1311,17 @@ and build_sequence genv oenv senv cenv result pos rval el =
          let genv, oenv, senv, el, result = build_sequence genv oenv senv cenv result pos rval el in
             genv, oenv, senv, e :: el, result
 
-    | Omake_ast.CommandExp (v, arg, body, loc) :: el ->
+    | Omake_ast.CommandExp (v, e, body, loc) :: el ->
          let cases, el = collect_cases [] el in
          let pos = loc_pos loc pos in
-         let cenv_body = cenv_sequence_scope cenv el in
-         let genv, oenv, senv, e, result = build_cases_command_exp genv oenv senv cenv_body v arg cases body pos loc in
-         let genv, oenv, senv, el, result = build_sequence genv oenv senv cenv result pos rval el in
-            genv, oenv, senv, e :: el, result
+            if Lm_symbol.eq v export_sym then
+               let oenv, senv = build_export_command genv oenv senv cenv e cases body pos loc in
+                  build_sequence genv oenv senv cenv result pos rval el
+            else
+               let cenv_body = cenv_sequence_scope cenv el in
+               let genv, oenv, senv, e, result = build_cases_command_exp genv oenv senv cenv_body v e cases body pos loc in
+               let genv, oenv, senv, el, result = build_sequence genv oenv senv cenv result pos rval el in
+                  genv, oenv, senv, e :: el, result
 
     | Omake_ast.ApplyExp (_, v, args, loc) :: el ->
          let cases, el = collect_cases [] el in
@@ -1363,39 +1361,53 @@ and build_body genv oenv senv cenv el pos loc =
 (*
  * Export the environment.
  *)
-and build_export_exp genv oenv senv cenv e pos loc =
-   let pos = string_pos "build_export_exp" pos in
+and build_export_command genv oenv senv cenv e cases body pos loc =
+   let pos = string_pos "build_export_command" pos in
+   let () =
+      if cases <> [] then
+         raise (OmakeException (pos, StringError "illegal cases"));
+      if body <> [] then
+         raise (OmakeException (pos, StringError "illegal body"))
+   in
+
+   (* Merge the export set *)
    let argv = build_literal_argv e pos in
-   let genv, oenv, info =
-      match argv with
-         [] ->
-            genv, oenv, Omake_ir.ExportAll
-       | ["all"] ->
+   let oenv, mode =
+      match senv.senv_export_mode, argv with
+         _, ["all"] ->
             eprintf "@[<hv3>*** omake WARNING: %a:\
 @ @[<hov0>\"export all\" syntax is deprecated;\
 @ use an empty \"export\" instead.@]@]@." pp_print_pos pos;
-            genv, oenv, Omake_ir.ExportAll
-       | items ->
-            let genv, oenv, items =
-               List.fold_left (fun (genv, oenv, items) v ->
-                     match v with
-                        "rules" ->
-                           eprintf "@[<hv3>*** omake WARNING: %a:\
+            oenv, ExportAllMode loc
+       | _, []
+       | ExportAllMode _, _ ->
+            oenv, ExportAllMode loc
+       | mode, argv ->
+            let items = items_of_export_mode mode in
+            let oenv, items =
+               List.fold_left (fun (oenv, items) v ->
+                     let oenv, item =
+                        match v with
+                           "rules" ->
+                              eprintf "@[<hv3>*** omake WARNING: %a:\
 @ @[<hov0>\"export rules\" syntax is deprecated;\
 @ use \"export .RULE .PHONY\" instead.@]@]@." pp_print_pos pos;
-                           genv, oenv, Omake_ir.ExportRules :: items
-                      | ".RULE" ->
-                           genv, oenv, Omake_ir.ExportRules :: items
-                      | ".PHONY" ->
-                           genv, oenv, Omake_ir.ExportPhonies :: items
-                      | v ->
-                           let v = Lm_symbol.add v in
-                           let oenv, info = senv_find_var genv oenv senv cenv pos loc v in
-                              genv, oenv, Omake_ir.ExportVar info :: items) (genv, oenv, []) argv
+                              oenv, Omake_ir.ExportRules
+                         | ".RULE" ->
+                              oenv, Omake_ir.ExportRules
+                         | ".PHONY" ->
+                              oenv, Omake_ir.ExportPhonies
+                         | v ->
+                              let v = Lm_symbol.add v in
+                              let oenv, info = senv_find_var genv oenv senv cenv pos loc v in
+                                 oenv, Omake_ir.ExportVar info
+                     in
+                        oenv, item:: items) (oenv, items) argv
             in
-               genv, oenv, Omake_ir.ExportList (List.rev items)
+               oenv, ExportListMode (loc, List.rev items)
    in
-      genv, oenv, senv, ExportExp (loc, info), ValValue
+   let senv = { senv with senv_export_mode = mode } in
+      oenv, senv
 
 (*
  * In an application, turn the arguments into strings.
@@ -1441,9 +1453,9 @@ and build_cases_apply_exp genv oenv senv cenv v args cases pos loc =
             let oenv, v = senv_find_var genv oenv senv cenv pos loc v in
             let genv, oenv, cases =
                List.fold_left (fun (genv, oenv, cases) (v, e, body) ->
-                     let genv, oenv, body, _, _ = build_body genv oenv senv cenv body pos loc in
+                     let genv, oenv, body, export, _ = build_body genv oenv senv cenv body pos loc in
                      let genv, oenv, s = build_string genv oenv senv cenv e pos in
-                     let case = v, s, body in
+                     let case = v, s, body, export in
                         genv, oenv, case :: cases) (genv, oenv, []) cases
             in
             let args = CasesString (loc, List.rev cases) :: args in
@@ -1507,8 +1519,6 @@ and build_command_exp genv oenv senv cenv v arg commands pos loc =
          raise (OmakeException (loc_pos loc pos, StringVarError ("illegal body for", v)))
       else if Lm_symbol.eq v return_sym then
          build_return_exp genv oenv senv cenv arg pos loc
-      else if Lm_symbol.eq v export_sym then
-         build_export_exp genv oenv senv cenv arg pos loc
       else if Lm_symbol.eq v open_sym then
          build_open_exp genv oenv senv cenv arg pos loc
       else if Lm_symbol.eq v autoload_sym then
@@ -1537,7 +1547,7 @@ and build_if_exp genv oenv senv cenv cases pos loc =
             let is_complete = is_complete || is_true_string e1 in
             let genv, oenv, s = build_string genv oenv senv cenv e1 pos in
             let genv, oenv, e2, export, result = build_body genv oenv senv cenv e2 pos loc in
-            let cases = (s, e2) :: cases in
+            let cases = (s, e2, export) :: cases in
             let results = result :: results in
                genv, oenv, cases, results, is_complete) (genv, oenv, [], [], false) cases
    in
@@ -1562,7 +1572,8 @@ and build_section_exp genv oenv senv cenv e1 e2 pos loc =
    let pos = string_pos "build_section_exp" pos in
    let genv, oenv, s = build_string genv oenv senv cenv e1 pos in
    let genv, oenv, body, export, result = build_body genv oenv senv cenv e2 pos loc in
-      genv, oenv, senv, SectionExp (loc, s, body), result
+   let senv, result = senv_export_section senv pos result in
+      genv, oenv, senv, SectionExp (loc, s, body, export), result
 
 (*
  * Return a value.
@@ -1574,8 +1585,8 @@ and build_value_exp genv oenv senv cenv e commands pos loc =
          e, [] ->
             build_string genv oenv senv cenv e pos
        | Omake_ast.NullExp _, el ->
-            let genv, oenv, el, _, _ = build_body genv oenv senv cenv el pos loc in
-               genv, oenv, ExpString (loc, el)
+            let genv, oenv, el, export, _ = build_body genv oenv senv cenv el pos loc in
+               genv, oenv, ExpString (loc, el, export)
        | _, _ :: _  ->
             raise (OmakeException (loc_pos loc pos, StringError ("Value can have an argument or a body, but not both")))
    in
@@ -1720,11 +1731,10 @@ and build_normal_object_exp genv oenv senv cenv info v flag body pos loc =
    let genv, oenv_body, senv_body, body, result =
       build_sequence genv oenv_body senv_body cenv_body ValValue pos rval body
    in
-   let _export, _ = senv_add_exports senv_body result in
+   let export, _ = senv_add_exports senv_body result in
 
    (* Add the extends directive to the object body *)
-   let body = ApplyExp (loc, extends_var, [parent_string]) :: body in
-   let e =  LetObjectExp (loc, info, body) in
+   let e =  LetObjectExp (loc, info, parent_string, body, export) in
       genv, oenv, senv, e, ValValue
 
 (*
@@ -1763,8 +1773,8 @@ and build_var_def_body_exp genv oenv senv cenv v kind flag body pos loc =
    let genv, oenv, e =
       match kind with
          Omake_ast.DefineString ->
-            let genv, oenv, el, _, _ = build_body genv oenv senv cenv body pos loc in
-               genv, oenv, ExpString (loc, el)
+            let genv, oenv, el, export, _ = build_body genv oenv senv cenv body pos loc in
+               genv, oenv, ExpString (loc, el, export)
        | Omake_ast.DefineArray ->
             let genv, oenv, sl = build_string_list genv oenv senv cenv body pos in
                genv, oenv, ArrayString (loc, sl)
@@ -1794,8 +1804,8 @@ and build_key_def_body_exp genv oenv senv cenv v kind flag body pos loc =
    let genv, oenv, e =
       match kind with
          Omake_ast.DefineString ->
-            let genv, oenv, el, _, _ = build_body genv oenv senv cenv body pos loc in
-               genv, oenv, ExpString (loc, el)
+            let genv, oenv, el, export, _ = build_body genv oenv senv cenv body pos loc in
+               genv, oenv, ExpString (loc, el, export)
        | Omake_ast.DefineArray ->
             let genv, oenv, sl =  build_string_list genv oenv senv cenv body pos in
                genv, oenv, ArrayString (loc, sl)
@@ -1810,9 +1820,9 @@ and build_fun_def_exp genv oenv senv cenv v params el pos loc =
    let pos = string_pos "build_fun_def_exp" pos in
    let cenv_body = cenv_fun_scope cenv in
    let senv_body = senv_add_params genv oenv senv cenv_body pos loc params in
-   let genv, oenv, body, _, _ = build_body genv oenv senv_body cenv_body el pos loc in
+   let genv, oenv, body, export, _ = build_body genv oenv senv_body cenv_body el pos loc in
    let genv, oenv, senv, v = senv_add_method_def_var genv oenv senv cenv pos loc v in
-      genv, oenv, senv, LetFunExp (loc, v, params, body), ValValue
+      genv, oenv, senv, LetFunExp (loc, v, params, body, export), ValValue
 
 (*
  * Special rule expressions.
@@ -1827,9 +1837,9 @@ and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos 
       let original_class_names = oenv.oenv_class_names in
       let oenv = { (* oenv with *) oenv_class_names = SymbolSet.empty } in
       let cenv = cenv_rule_scope cenv in
-      let genv, oenv, body, _, _ = build_body genv oenv senv cenv body pos loc in
+      let genv, oenv, body, export, _ = build_body genv oenv senv cenv body pos loc in
       let oenv = { (* oenv with *) oenv_class_names = original_class_names } in
-         genv, oenv, BodyString (loc, body)
+         genv, oenv, BodyString (loc, body, export)
    in
 
    (* Get the option list *)
@@ -1874,7 +1884,7 @@ and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos 
    (* Construct the argument list *)
    let args = [multiple; target; pattern; source; options; body] in
    let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc rule_sym in
-   let e = StringExp (loc, ApplyString (loc, EagerApply, rule_var, args)) in
+   let e = ApplyExp (loc, rule_var, args) in
       genv, oenv, senv, e, ValValue
 
 (*

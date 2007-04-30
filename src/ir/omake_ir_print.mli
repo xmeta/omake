@@ -40,6 +40,7 @@ val pp_print_string_exp_list : formatter -> string_exp list -> unit
 val pp_print_exp             : formatter -> exp -> unit
 val pp_print_exp_simple      : formatter -> exp -> unit
 val pp_print_exp_list        : formatter -> exp list -> unit
+val pp_print_export_info     : formatter -> export -> unit
 
 (*
  * -*-

@@ -160,11 +160,11 @@ let rec pp_print_export_items buf items =
 let pp_print_export_info buf info =
    match info with
       ExportNone ->
-         pp_print_string buf "<none>"
+         ()
     | ExportAll ->
-         pp_print_string buf "<all>"
+         fprintf buf "@ export <all>"
     | ExportList items ->
-         fprintf buf "@[<b 3>%a@]" pp_print_export_items items
+         fprintf buf "@ @[<b 3>export %a@]" pp_print_export_items items
 
 (*
  * Print a string expression.
@@ -223,24 +223,29 @@ let rec pp_print_string_exp complete buf s =
     | QuoteStringString (_, c, sl) ->
          fprintf buf "@[<hv 1>(quote %c%a%c)@]" (**)
             c (pp_print_string_exp_list complete) sl c
-    | BodyString (_, e) ->
+    | BodyString (_, e, export) ->
          if complete then
-            fprintf buf "@[<hv 3>body@ %a@]" (pp_print_exp_list complete) e
+            fprintf buf "@[<hv 3>body@ %a%a@]" (**)
+               (pp_print_exp_list complete) e
+               pp_print_export_info export
          else
             pp_print_string buf "<body...>"
-    | ExpString (_, e) ->
+    | ExpString (_, e, export) ->
          if complete then
-            fprintf buf "@[<hv 3>exp@ %a@]" (pp_print_exp_list complete) e
+            fprintf buf "@[<hv 3>exp@ %a%a@]" (**)
+               (pp_print_exp_list complete) e
+               pp_print_export_info export
          else
             pp_print_string buf "<exp...>"
     | CasesString (_, cases) ->
          if complete then begin
             fprintf buf "@[<hv 3>cases:";
-            List.iter (fun (v, e1, e2) ->
-                  fprintf buf "@ @[<hv 3>%a %a:@ %a@]" (**)
+            List.iter (fun (v, e1, e2, export) ->
+                  fprintf buf "@ @[<hv 3>%a %a:@ %a%a@]" (**)
                      pp_print_symbol v
                      (pp_print_string_exp complete) e1
-                     (pp_print_exp_list complete) e2) cases;
+                     (pp_print_exp_list complete) e2
+                     pp_print_export_info export) cases;
             fprintf buf "@]"
          end else
             pp_print_string buf "<cases...>"
@@ -268,15 +273,18 @@ and pp_print_exp complete buf e =
             pp_print_var_info v
             pp_print_var_def_kind kind
             (pp_print_string_exp complete) s
-    | LetFunExp (_, v, params, el) ->
-         fprintf buf "@[<hv 3>%a(%a) =@ %a@]" (**)
+    | LetFunExp (_, v, params, el, export) ->
+         fprintf buf "@[<hv 3>%a(%a) =@ %a%a@]" (**)
             pp_print_var_info v
             pp_print_symbol_list params
             (string_override "<...>" pp_print_exp_list complete) el
-    | LetObjectExp (_, v, el) ->
-         fprintf buf "@[<v 3>%a. =@ %a@]" (**)
+            pp_print_export_info export
+    | LetObjectExp (_, v, s, el, export) ->
+         fprintf buf "@[<v 3>%a. =@ extends %a@ %a%a@]" (**)
             pp_print_var_info v
+            (pp_print_string_exp complete) s
             (string_override "<...>" pp_print_exp_list complete) el
+            pp_print_export_info export
     | LetThisExp (_, e) ->
          fprintf buf "@[<hv 3><this> =@ %a@]" (pp_print_string_exp complete) e
     | ShellExp (_, e) ->
@@ -284,20 +292,22 @@ and pp_print_exp complete buf e =
     | IfExp (_, cases) ->
          if complete then begin
             fprintf buf "@[<hv 0>if";
-            List.iter (fun (s, el) ->
-                  fprintf buf "@ @[<hv 3>| %a ->@ %a@]" (**)
+            List.iter (fun (s, el, export) ->
+                  fprintf buf "@ @[<hv 3>| %a ->@ %a%a@]" (**)
                      (pp_print_string_exp complete) s
-                     (pp_print_exp_list complete) el) cases;
+                     (pp_print_exp_list complete) el
+                     pp_print_export_info export) cases;
             fprintf buf "@]"
          end else
             pp_print_string buf "<if ... then ... [else ...]>"
     | SequenceExp (_, el) ->
          fprintf buf "@[<hv 3>sequence@ %a@]" (**)
             (pp_print_exp_list complete) el
-    | SectionExp (_, s, el) ->
-         fprintf buf "@[<hv 3>section %a@ %a@]" (**)
+    | SectionExp (_, s, el, export) ->
+         fprintf buf "@[<hv 3>section %a@ %a%a@]" (**)
             (pp_print_string_exp complete) s
             (string_override "<...>" pp_print_exp_list complete) el
+            pp_print_export_info export
     | OpenExp (_, nodes) ->
          fprintf buf "@[<hv 3>open";
          List.iter (fun node -> fprintf buf "@ %a" pp_print_node node) nodes;
@@ -327,10 +337,6 @@ and pp_print_exp complete buf e =
          fprintf buf "string(%a)" (pp_print_string_exp complete) s
     | ReturnExp (_, s) ->
          fprintf buf "return(%a)" (pp_print_string_exp complete) s
-    | ExportExp (_, s) ->
-         fprintf buf "export(%a)" pp_print_export_info s
-    | CancelExportExp _ ->
-         pp_print_string buf "cancel-export"
     | ReturnSaveExp _ ->
          pp_print_string buf "return-current-file"
     | ReturnObjectExp (_, names) ->

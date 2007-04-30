@@ -92,7 +92,7 @@ join(l1, l2) =
     # the extra words are copied unchanged into the result
     result[] += $(l1)
     result[] += $(l2)
-    value $(result) 
+    value $(result)
 
 # Documented in src/builtin/omake_builtin_sys.ml
 
@@ -687,7 +687,7 @@ InChannel. +=
     # using a string as input.
     # \end{doc}
     of-string = $(open-in-string)
-       
+
 #
 # \begin{doc}
 # \end{itemize}
@@ -1065,7 +1065,7 @@ Shell. +=
       src = $(file $"$(nth 0, $(argv))")
       dst = $(file $"$(nth 1, $(argv))")
       if $(and $(test -e $(dst)), $(not $(test -d $(dst))))
-         rm($(array -f, $(dst)))   
+         rm($(array -f, $(dst)))
          if $(test -e $(dst))
             # The dst might be read-only; on Windows this will prevent deletion.
             # Will try to fix the permissions and rm again.
@@ -1073,7 +1073,7 @@ Shell. +=
             # the permissions on src, so we will try to restore them.
             src_was_ro = $(not $(test -w $(src)))
             chmod -f -m u+w $(dst)
-            rm($(array -f, $(dst)))   
+            rm($(array -f, $(dst)))
             if $(and $(src_was_ro), $(test -w $(src)))
                 chmod -f -m u-w $(src)
       try
@@ -1163,6 +1163,8 @@ Shell. +=
    # \begin{itemize}
    # \end{doc}
    #
+   declare [
+   declare true
    if $(not $(defined USE_SYSTEM_COMMANDS))
        #
        # \begin{doc}

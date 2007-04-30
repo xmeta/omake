@@ -45,7 +45,7 @@ val create_thread : venv -> (Unix.file_descr -> Unix.file_descr -> Unix.file_des
 (*
  * Start a job given a pipe specification.
  *)
-val create_job : venv -> string_pipe -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> value
+val create_job : venv -> string_pipe -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> venv * value
 
 (*
  * Create a process in the background.

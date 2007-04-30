@@ -14,16 +14,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -93,19 +93,21 @@ let fun_fun venv pos loc args =
    let pos = string_pos "fun" pos in
    let env = venv_get_env venv in
       match args with
-         ValBody (_, body) :: params ->
+         ValBody (_, body, export) :: params ->
             let params =
                List.map (fun param ->
                      Lm_symbol.add (string_of_value venv pos param)) params
             in
-               ValFun (ArityExact (List.length params), env, params, body)
+               ValFun (ArityExact (List.length params), env, params, body, export)
        | _ ->
             let params, body = param_list venv pos loc args in
                match body with
-                  ValBody (_, body) ->
-                     ValFun (ArityExact (List.length params), env, params, body)
+                  ValBody (_, body, export) ->
+                     ValFun (ArityExact (List.length params), env, params, body, export)
                 | _ ->
-                     ValFunValue (ArityExact (List.length params), env, params, body)
+                     raise (OmakeException (pos, StringValueError ("This version of OMake is being changed,
+and inline syntax for anonymous functions doesn't work.
+If you really want this to work, name the function.", body)))
 
 (*
  * Function application.
@@ -187,11 +189,17 @@ let applya_fun venv pos loc args =
 let () =
    let builtin_funs =
       [false, "fun",                  fun_fun,             ArityExact 1;
-       true,  "apply",                apply_fun,           ArityAny;
-       true,  "applya",               applya_fun,          ArityAny]
+      ]
+   in
+   let builtin_kfuns =
+      [true,  "apply",                apply_fun,           ArityAny;
+       true,  "applya",               applya_fun,          ArityAny;
+      ]
    in
    let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs }
+      { builtin_empty with builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns
+      }
    in
       register_builtin builtin_info
 

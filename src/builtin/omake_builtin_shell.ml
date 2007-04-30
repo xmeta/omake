@@ -210,7 +210,7 @@ let cd_dir venv pos loc dir =
          let relname = Dir.name (venv_dir venv) dir in
             raise (OmakeException (loc_pos loc pos, StringStringError ("not a directory", relname)))
     | CdSuccess ->
-         venv_chdir_tmp venv dir
+         dir
 
 let rec cd_search venv cdpath pos loc name =
    match cdpath with
@@ -223,7 +223,7 @@ let rec cd_search venv cdpath pos loc name =
              | CdFile ->
                   cd_search venv cd_path pos loc name
              | CdSuccess ->
-                  venv_chdir_dir venv loc dir
+                  dir
 
 let cd_aux venv cd_path pos loc arg =
    match values_of_value venv pos arg with
@@ -253,12 +253,15 @@ let cd_fun venv pos loc args =
    let cd_path = List.map (dir_of_value venv pos) cd_path in
       match args with
          [arg] ->
-            ValEnv (cd_aux venv cd_path pos loc arg, ExportDir)
+            let dir = cd_aux venv cd_path pos loc arg in
+            let venv = venv_chdir_tmp venv dir in
+               venv, ValDir dir
        | [dir; e] ->
             (* Change temporarily and evaluate the exp *)
-            let venv = cd_aux venv cd_path pos loc dir in
-            let values = values_of_value venv pos e in
-               concat_array values
+            let dir = cd_aux venv cd_path pos loc dir in
+            let venv_new = venv_chdir_tmp venv dir in
+            let values = values_of_value venv_new pos e in
+               venv, concat_array values
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
 
@@ -437,15 +440,20 @@ let () =
        true,  "fg",                    fg_fun,                   ArityExact 1;
        true,  "stop",                  stop_fun,                 ArityExact 1;
        true,  "wait",                  wait_fun,                 ArityExact 1;
-       false, "cd",                    cd_fun,                   ArityRange (1, 2);
        true,  "kill",                  kill_fun,                 ArityExact 1;
        true,  "history-index",         history_index,            ArityExact 0;
-       true,  "history",               history,                  ArityExact 0]
+       true,  "history",               history,                  ArityExact 0;
+      ]
+   in
+   let builtin_kfuns =
+      [false, "cd",                    cd_fun,                   ArityRange (1, 2);
+      ]
    in
 
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;
-                           builtin_funs = builtin_funs
+                           builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns
       }
    in
       register_builtin builtin_info

@@ -50,7 +50,9 @@ val debug_eval  : bool ref
 val eval : venv -> exp -> value
 val eval_exp : venv -> value -> exp -> venv * value
 val eval_sequence : venv -> pos -> value -> exp list -> venv * value
+val eval_sequence_export : venv -> pos -> value -> exp list -> export -> venv * value
 val eval_sequence_exp : venv -> pos -> exp list -> venv * value
+val eval_sequence_export_exp : venv -> pos -> exp list -> export -> venv * value
 
 (*
  * String expression evaluation.
@@ -63,7 +65,7 @@ val lazy_string_exp : venv -> pos -> string_exp -> value
  *)
 val find_include_file : venv -> pos -> loc -> string -> Node.t
 val eval_open_file : venv -> senv_open_file
-val eval_include_file : venv -> include_scope -> pos -> loc -> Node.t -> value
+val eval_include_file : venv -> include_scope -> pos -> loc -> Node.t -> venv * value
 val include_file : venv -> include_scope -> pos -> loc -> Node.t -> venv
 
 (*
@@ -111,7 +113,7 @@ val eval_defined_method_var : venv -> pos -> loc -> var_info -> var list -> bool
  * Be careful with this: don't create a ValPrim using
  * this function, since marshaling will fail.
  *)
-val eval_fun : venv -> pos -> value -> arity * bool * (venv -> pos -> loc -> value list -> value)
+val eval_fun : venv -> pos -> value -> arity * bool * (venv -> pos -> loc -> value list -> venv * value)
 
 (*
  * Also, if the value is an array of 1 element,
@@ -131,7 +133,7 @@ val eval_prim_value : venv -> pos -> value -> value
 (*
  * Evaluate a function application.
  *)
-val eval_apply : venv -> pos -> loc -> value -> value list -> value
+val eval_apply : venv -> pos -> loc -> value -> value list -> venv * value
 
 (*
  * Conversions.

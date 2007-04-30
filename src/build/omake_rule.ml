@@ -626,9 +626,9 @@ let find_alias_exn shell_obj venv pos loc exe =
          if !debug_eval then
             eprintf "normalize_apply: evaluating internal function@."
       in
-      let code, value, reraise =
+      let code, venv, value, reraise =
          try
-            let v = f venv pos loc [v] in
+            let venv, v = f venv pos loc [v] in
             let code =
                match v with
                   ValOther (ValExitCode code) ->
@@ -636,20 +636,20 @@ let find_alias_exn shell_obj venv pos loc exe =
                 | _ ->
                      0
             in
-               code, v, None
+               code, venv, v, None
          with
             ExitException (_, code) as exn ->
-               code, ValNone, Some exn
+               code, venv, ValNone, Some exn
           | OmakeException _
           | UncaughtException _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn exn;
-               Omake_state.exn_error_code, ValNone, None
+               Omake_state.exn_error_code, venv, ValNone, None
           | Unix.Unix_error _
           | Sys_error _
           | Not_found
           | Failure _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
-               Omake_state.exn_error_code, ValNone, None
+               Omake_state.exn_error_code, venv, ValNone, None
       in
          if !debug_eval then
             eprintf "normalize_apply: internal function is done: %d, %a@." code pp_print_value value;
@@ -660,7 +660,7 @@ let find_alias_exn shell_obj venv pos loc exe =
             Some exn ->
                raise exn
           | None ->
-               code, value
+               code, venv, value
    in
       name, f
 
@@ -757,7 +757,7 @@ let sources_of_options venv pos loc sources options =
  *)
 let lazy_command venv pos command =
    match command with
-      SectionExp (loc, s, el) ->
+      SectionExp (loc, s, el, _) ->
          let fv = free_vars_exp_list el in
             CommandSection (eager_string_exp venv pos s, fv, el)
     | ShellExp (loc, s) ->
@@ -768,14 +768,14 @@ let lazy_command venv pos command =
 
 let lazy_commands venv pos commands =
    match eval_value venv pos commands with
-      ValBody (env, el) ->
-         List.map (lazy_command (venv_with_env venv env) pos) el
+      ValBody (env, el, export) ->
+         List.map (lazy_command (venv_with_env venv env) pos) el, export
     | _ ->
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
 let exp_list_of_commands venv pos commands =
    match eval_value venv pos commands with
-      ValBody (_, el) ->
+      ValBody (_, el, _) ->
          el
     | _ ->
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
@@ -798,14 +798,14 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
    let sources  = targets_of_value venv pos source in
    let sources  = add_sources [] NodeNormal sources in
    let effects, sources, scanners, values = sources_of_options venv pos loc sources options in
-   let commands = lazy_commands venv pos body in
+   let commands, export = lazy_commands venv pos body in
    let commands_are_nontrivial = commands <> [] in
       (* Process special rules *)
       match targets with
          [TargetString ".SUBDIRS"] ->
             if effects <> [] || patterns <> [] || scanners <> [] || values <> [] then
                raise (OmakeException (loc_exp_pos loc, SyntaxError ".SUBDIRS rule cannot have patterns, effects, scanners, or values"));
-            let venv = eval_subdirs_rule venv loc sources (exp_list_of_commands venv pos body) in
+            let venv = eval_subdirs_rule venv loc sources (exp_list_of_commands venv pos body) export in
                venv, ValNone
        | [TargetString ".PHONY"]  ->
             let targets, sources =
@@ -886,13 +886,13 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
 (*
  * Read the OMakefiles in the subdirectories too.
  *)
-and eval_subdirs_rule venv loc sources commands =
-   List.fold_left (fun venv dir -> eval_subdir venv loc dir commands) venv sources
+and eval_subdirs_rule venv loc sources commands export =
+   List.fold_left (fun venv dir -> eval_subdir venv loc dir commands export) venv sources
 
 (*
  * Compile an OMakefile.
  *)
-and eval_subdir venv loc (kind, dir) commands =
+and eval_subdir venv loc (kind, dir) commands export =
    let pos = string_pos "eval_subdir" (loc_exp_pos loc) in
    let cache = venv_cache venv in
    let dir = venv_intern_dir venv (string_of_target venv dir) in
@@ -915,44 +915,34 @@ and eval_subdir venv loc (kind, dir) commands =
             else
                raise (OmakeException (pos, StringDirError ("directory does not exist", dir)))
    in
-   let cwd = venv_dir venv in
-   let venv' = venv_chdir_dir venv loc dir in
-   let node = venv_intern venv' PhonyProhibited makefile_name in
-   let name = Node.fullname node in
-   let result =
+   let venv_body = venv_chdir_dir venv loc dir in
+   let node = venv_intern venv_body PhonyProhibited makefile_name in
+   let venv_body, result =
       (*
        * Ignore the file if the commands are listed explicity.
        * The OMakefile can always be included explicitly.
        *)
       if commands <> [] then
-         let exp = SequenceExp (loc, commands @ [ReturnSaveExp loc]) in
-            eval venv' exp
+         eval_sequence_exp venv_body pos commands
 
       (* Otherwise, use the file if it exists *)
       else if Omake_cache.exists cache node then
-         let venv' = venv_add_file venv' node in
+         let venv_body = venv_add_file venv_body node in
+         let name = Node.fullname node in
          let loc = bogus_loc name in
-            (*
-             * Do not allow implicit exports from the OMakefile.
-             * If the user wants the export, they have to do it explicitly
-             * with a .SUBDIRS body.
-             *)
-            match eval_include_file venv' IncludeAll pos loc node with
-               ValEnv (venv, _) ->
-                  ValEnv (venv, ExportFile)
-             | result ->
-                  result
+         let venv_body = include_file venv_body IncludeAll pos loc node in
+            venv_body, ValNone
 
       (* Otherwise, check if an empty file is acceptable *)
       else
          let allow_empty_subdirs =
-            try bool_of_value venv' pos (venv_find_var_exn venv' allow_empty_subdirs_var) with
+            try bool_of_value venv_body pos (venv_find_var_exn venv_body allow_empty_subdirs_var) with
                Not_found ->
                   false
          in
             if not allow_empty_subdirs then
                raise (OmakeException (pos, StringNodeError ("file does not exist", node)));
-            ValEnv (venv', ExportAll)
+            venv_body, ValNone
    in
 
    (*
@@ -960,17 +950,13 @@ and eval_subdir venv loc (kind, dir) commands =
     * for targets in this directory.  Also change back to the
     * current directory.
     *)
-   let result =
-      match result with
-         ValEnv (venv, syms) ->
-            venv_add_dir venv;
-            ValEnv (venv_chdir_tmp venv cwd, syms)
-       | _ ->
-            result
+   let venv =
+      venv_add_dir venv_body;
+      add_exports venv venv_body pos export
    in
       if debug print_rules then
          eprintf "@[<hv 3>Rules:%a@]@." pp_print_explicit_rules venv;
-      fst (add_exports venv pos result)
+      venv
 
 (*
  * Include all the sources.
@@ -1211,7 +1197,7 @@ and eval_shell_exp venv pos loc e =
    let stdin  = Lm_channel.descr stdin in
    let stdout = Lm_channel.descr stdout in
    let stderr = Lm_channel.descr stderr in
-   let result = Omake_shell_job.create_job venv pipe stdin stdout stderr in
+   let _, result = Omake_shell_job.create_job venv pipe stdin stdout stderr in
 
    (* Get the exit code *)
    let code =
@@ -1299,7 +1285,7 @@ and eval_shell_internal stdout stderr command =
          CommandEval e ->
             eval_command venv stdout stderr pos loc e
        | CommandValues _ ->
-            ResultPid (0, ValNone)
+            ResultPid (0, venv, ValNone)
        | CommandPipe pipe ->
             let pipe = normalize_pipe venv pos pipe in
             let pid =

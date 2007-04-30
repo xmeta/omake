@@ -2471,8 +2471,15 @@ let create_env exec options cache targets =
    let () =
       if opt_print_dir options then
          printf "make[0]: Entering directory `%s'@." (Dir.absname cwd);
-      if opt_print_status options then
+      if opt_print_status options then begin
+         printf "*** omake: THIS VERSION OF OMAKE IS UNDERGOING CHANGES!
+*** omake: It may act differently than you expect.
+*** omake: If you encounter problems,
+*** omake: consider using a released version,
+*** omake: or the 0.9.8.2 branch in preparation.
+*** omake: ---@.";
          printf "*** omake: reading %ss@." makefile_name
+      end
    in
    let venv =
       try
@@ -2600,7 +2607,7 @@ let wait_for_lock, unlock_db =
                Unix.Unix_error (Unix.EAGAIN, _, _) ->
                   eprintf "*** omake: the project is currently locked.@.";
                   (try copy_to_stderr fd with _ -> ());
-   
+
                   (* Unfortunately, we have to poll, since OCaml doesn't allow ^C during the lock request *)
                   let rec poll col =
                      let col =

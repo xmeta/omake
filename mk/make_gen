@@ -34,8 +34,8 @@ MakeLinkFile(dst, src) =
 
     private.srcfile = $"$(cwd)$(slash)$(private.src)"
     MAKEFILE_TEXT += $"""
-$(dst): $(private.srcfile)
-	$$(LN) $(private.srcfile) $(dst)
+$(dst): $(srcfile)
+	$$(LN) $(srcfile) $(dst)
 """
     MAKEFILE_EXPLICIT_LINK += $(dst)
     export

@@ -548,8 +548,7 @@ let where venv pos loc args =
                                      match eval_value venv pos v with
                                         ValPrim _ ->
                                            "Shell object method (a built-in function)"
-                                      | ValFun _
-                                      | ValFunValue _ ->
+                                      | ValFun _ ->
                                            "Shell object method (an omake function)"
                                       | _ ->
                                            "Shell object method"
@@ -895,11 +894,11 @@ let stat_reset venv pos loc args =
  *     if $(not $(defined FORCE_REALCLEAN))
  *         FORCE_REALCLEAN = false
  *         export
- *     
+ *
  *     distclean: clean
  *         cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
  * \end{verbatim}
- * 
+ *
  * You can add more files that you want to always keep (such as configuration files) with the -i option.
  *
  * Similarly, if you use Subversion, you utilize the \verb+build/svn_realclean.om+ script that comes with \OMake:
@@ -908,9 +907,9 @@ let stat_reset venv pos loc args =
  *     if $(not $(defined FORCE_REALCLEAN))
  *         FORCE_REALCLEAN = false
  *         export
- *         
+ *
  *     open build/svn_realclean
- *     
+ *
  *     distclean: clean
  *         svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i .omakedb.lock
  * \end{verbatim}
@@ -2699,7 +2698,7 @@ let vmount venv pos loc args =
    let venv = venv_mount venv mount_flags src dst in
       if List.mem MountForce local_flags then
          vmount_touch_files venv pos src dst;
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * \begin{doc}
@@ -2811,12 +2810,17 @@ let () =
        true, "find-targets-in-path",     find_targets_in_path,      ArityExact 2;
        true, "find-targets-in-path-optional", find_targets_in_path_optional, ArityExact 2;
 
-       true, "vmount",                  vmount,                   ArityRange (2, 3);
        true, "add-project-directories", add_project_directories,  ArityExact 1;
        true, "remove-project-directories", remove_project_directories,  ArityExact 1]
    in
+   let builtin_kfuns =
+      [true, "vmount",                  vmount,                   ArityRange (2, 3);
+      ]
+   in
    let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs }
+      { builtin_empty with builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns
+      }
    in
       register_builtin builtin_info
 

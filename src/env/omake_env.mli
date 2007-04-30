@@ -121,21 +121,6 @@ type rule_kind =
  | RuleScanner
 
 (*
- * Export kinds.
- *    ExportFile: this is the result of file evaluation
- *    ExportDir: export the current directory
- *    ExportList: export just the listed items (variable values, implicit rules/dependencies, phony target set)
- *    ExportAll: export the entire environment.
- *    ExportValue v: just like Exportall, but return the value too
- *)
-and export =
-   ExportFile
- | ExportAll
- | ExportDir
- | ExportList of export_item list
- | ExportValue of value
-
-(*
  * Possible values.
  * For the function, the obj is the static scope.
  *)
@@ -152,19 +137,17 @@ and value =
  | ValRules       of erule list
  | ValNode        of Node.t
  | ValDir         of Dir.t
- | ValEnv         of venv * export
  | ValObject      of obj
  | ValMap         of map
  | ValChannel     of channel_mode * prim_channel
  | ValClass       of obj SymbolTable.t
 
    (* Raw expressions *)
- | ValBody        of env * exp list
- | ValCases       of (var * value * value) list
+ | ValBody        of env * exp list * export
+ | ValCases       of (var * value * exp list * export) list
 
    (* Functions *)
- | ValFun         of arity * env * var list * exp list
- | ValFunValue    of arity * env * var list * value
+ | ValFun         of arity * env * var list * exp list * export
 
    (* Closed values *)
  | ValApply       of loc * var_info * value list
@@ -247,7 +230,7 @@ and arg_command_line = (venv, exp, arg_pipe, value) poly_command_line
 and string_command_inst = (exp, string_pipe, value) poly_command_inst
 and string_command_line = (venv, exp, string_pipe, value) poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (symbol * string) list -> value list -> int * value
+and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (symbol * string) list -> value list -> int * venv * value
 
 and value_cmd    = (unit, value list, value list) poly_cmd
 and value_apply  = (value list, value list, apply) poly_apply
@@ -280,7 +263,7 @@ type tok =
 type pid =
    InternalPid of int
  | ExternalPid of int
- | ResultPid of int * value
+ | ResultPid of int * venv * value
 
 type exec = (arg_command_line, pid, value) Exec.t
 
@@ -427,8 +410,10 @@ val venv_save_static_values    : venv -> unit
 (*
  * Primitive functions.
  *)
-val venv_add_prim_fun    : venv -> var -> (venv -> pos -> loc -> value list -> value) -> prim_fun
-val venv_apply_prim_fun  : prim_fun -> venv -> pos -> loc -> value list -> value
+type prim_fun_data = venv -> pos -> loc -> value list -> venv * value
+
+val venv_add_prim_fun    : venv -> var -> prim_fun_data -> prim_fun
+val venv_apply_prim_fun  : prim_fun -> prim_fun_data
 
 (*
  * Channels.
@@ -517,20 +502,13 @@ val venv_get_ordering_deps : venv -> ordering_info -> NodeSet.t -> NodeSet.t
 (*
  * Update the environment with a result.
  *)
-val add_exports : venv -> pos -> value -> venv * value
-val add_include : venv -> pos -> value -> venv * value
-
-(*
- * Remove exports from a value
- *)
-val export_none : value -> value
+val add_exports      : venv -> venv -> pos -> export -> venv
 
 (*
  * In case a value is an export, return the given variables in that
  * export to their state in the original environment.
- * (XXX: variables are updated in all 3 scope classes).
  *)
-val unexport : venv -> value -> var list -> value
+val unexport : venv -> venv -> var list -> venv
 
 (*
  * Cached buildable flags.
@@ -652,7 +630,6 @@ val pp_print_env            : formatter -> env -> unit
 val pp_print_value          : formatter -> value -> unit
 val pp_print_value_list     : formatter -> value list -> unit
 val pp_print_explicit_rules : formatter -> venv -> unit
-val pp_print_export         : formatter -> export -> unit
 
 (*
  * Static values.

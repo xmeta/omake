@@ -522,7 +522,7 @@ let scan venv pos loc args =
 
    (* Get lexers for all the cases *)
    let cases, def =
-      List.fold_left (fun (cases, def) (v, test, body) ->
+      List.fold_left (fun (cases, def) (v, test, body, export) ->
             if Lm_symbol.eq v case_sym then
                let s = string_of_value venv pos test in
                let cases =
@@ -531,7 +531,7 @@ let scan venv pos loc args =
                            Some _ ->
                               raise (OmakeException (loc_pos loc pos, StringVarError ("duplicate case", v)))
                          | None ->
-                              body)
+                              body, export)
                in
                   cases, def
             else if Lm_symbol.eq v default_sym then
@@ -539,7 +539,7 @@ let scan venv pos loc args =
                   Some _ ->
                      raise (OmakeException (loc_pos loc pos, StringError "duplicate default case"))
                 | None ->
-                     cases, Some body
+                     cases, Some (body, export)
             else
                raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (SymbolTable.empty, None) cases
    in
@@ -571,15 +571,12 @@ let scan venv pos loc args =
           | [] ->
                def
       in
-      let result =
          match body with
-            Some body ->
-               eval_body_value venv pos body
+            Some (body, export) ->
+               let venv_new, _ = eval_sequence_exp venv pos body in
+                  add_exports venv venv_new pos export
           | None ->
-               ValNone
-      in
-      let venv, _ = add_exports venv pos result in
-         venv
+               venv
    in
 
    (* Read the file a line at a time *)
@@ -615,7 +612,7 @@ let scan venv pos loc args =
        | [] ->
             venv
    in
-      ValEnv (file_loop venv files, ExportAll)
+      file_loop venv files, ValNone
 
 (*
  * \begin{doc}
@@ -723,24 +720,25 @@ let scan venv pos loc args =
  *)
 let rec awk_eval_cases venv pos loc break line cases =
    match cases with
-      (None, body) :: cases ->
-         let result = eval_body_value venv pos body in
-         let venv, _ = add_exports venv pos result in
+      (None, body, export) :: cases ->
+         let venv_new, _ = eval_sequence_exp venv pos body in
+         let venv = add_exports venv venv_new pos export in
             if break then
                venv
             else
                awk_eval_cases venv pos loc break line cases
-    | (Some lex, body) :: cases ->
+    | (Some lex, body, export) :: cases ->
          let channel = Lm_channel.of_string line in
          let result, stop =
             match Lexer.search lex channel with
                Some (_, _, _, _, args) ->
                   let venv = venv_add_match_args venv args in
-                     eval_body_value venv pos body, break
+                  let venv_new, _ = eval_sequence_exp venv pos body in
+                  let venv = add_exports venv venv_new pos export in
+                     venv, break
              | None ->
-                  ValNone, false
+                  venv, false
          in
-         let venv, _ = add_exports venv pos result in
             if stop then
                venv
             else
@@ -828,7 +826,7 @@ let awk venv pos loc args =
 
    (* Get lexers for all the cases *)
    let cases =
-      List.map (fun (v, test, body) ->
+      List.map (fun (v, test, body, export) ->
             if Lm_symbol.eq v case_sym then
                let s = string_of_value venv pos test in
                let _, lex =
@@ -837,9 +835,9 @@ let awk venv pos loc args =
                         let msg = sprintf "Malformed regular expression '%s'" s in
                            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
                in
-                  Some lex, body
+                  Some lex, body, export
             else if Lm_symbol.eq v default_sym then
-               None, body
+               None, body, export
             else
                raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) cases
    in
@@ -893,7 +891,7 @@ let awk venv pos loc args =
          Break (_, venv) ->
             venv
    in
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * \begin{doc}
@@ -978,7 +976,7 @@ let rec subst_eval_case venv pos loc buf channel lex options body =
          Buffer.add_string buf skipped
     | Lexer.LexMatched (_, _, skipped, matched, args) ->
          let venv' = venv_add_match venv matched args in
-         let result = eval_body_value venv' pos body in
+         let _, result = eval_sequence_exp venv' pos body in
             Buffer.add_string buf skipped;
             Buffer.add_string buf (string_of_value venv pos result);
             if (options land subst_global_opt) <> 0 then
@@ -1015,7 +1013,7 @@ let fsubst venv pos loc args =
 
    (* Get lexers for all the cases *)
    let cases =
-      List.map (fun (v, test, body) ->
+      List.map (fun (v, test, body, _) ->
             let args = values_of_value venv pos test in
             let pattern, options =
                match args with
@@ -1076,13 +1074,13 @@ let fsubst venv pos loc args =
        | [] ->
             ()
    in
-   let return =
-      try file_loop files; ValNone with
+   let venv =
+      try file_loop files; venv with
          Break (_, venv) ->
-            ValEnv (venv, ExportAll)
+            venv
    in
       Lm_channel.flush outx;
-      return
+      venv, ValNone
 
 (*
  * \begin{doc}
@@ -1144,7 +1142,7 @@ let lex venv pos loc args =
 
    (* Get lexers for all the cases *)
    let lex, cases, _ =
-      List.fold_left (fun (lex, cases, index) (v, test, body) ->
+      List.fold_left (fun (lex, cases, index) (v, test, body, export) ->
             let args = values_of_value venv pos test in
             let pattern =
                match args with
@@ -1168,7 +1166,7 @@ let lex venv pos loc args =
                         let msg = sprintf "Malformed regular expression '%s'" pattern in
                            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
                in
-               let cases = SymbolTable.add cases action_sym body in
+               let cases = SymbolTable.add cases action_sym (body, export) in
                   lex, cases, succ index) (lex, SymbolTable.empty, 0) cases
    in
 
@@ -1178,15 +1176,15 @@ let lex venv pos loc args =
          if Lm_symbol.eq action_sym eof_sym then
             venv
          else
-            let venv = venv_add_match venv lexeme args in
-            let venv = venv_add_var venv loc_field_var (ValOther (ValLocation lexeme_loc)) in
-            let body =
+            let venv_new = venv_add_match venv lexeme args in
+            let venv_new = venv_add_var venv_new loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let body, export =
                try SymbolTable.find cases action_sym with
                   Not_found ->
                      raise (Invalid_argument "lex")
             in
-            let result = eval_body_value venv pos body in
-            let venv, _ = add_exports venv pos result in
+            let venv_new, _ = eval_sequence_exp venv_new pos body in
+            let venv = add_exports venv venv_new pos export in
                input_loop venv inx
    in
    let rec file_loop venv files =
@@ -1216,7 +1214,7 @@ let lex venv pos loc args =
          Break (_, venv) ->
             venv
    in
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * \begin{doc}
@@ -1264,7 +1262,7 @@ let lex_search venv pos loc args =
 
    (* Get lexers for all the cases *)
    let lex, cases, default, _ =
-      List.fold_left (fun (lex, cases, default, index) (v, test, body) ->
+      List.fold_left (fun (lex, cases, default, index) (v, test, body, export) ->
             let args = values_of_value venv pos test in
             let pattern =
                match args with
@@ -1281,10 +1279,10 @@ let lex_search venv pos loc args =
                            let msg = sprintf "Malformed regular expression '%s'" pattern in
                               raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
                   in
-                  let cases = SymbolTable.add cases action_sym body in
+                  let cases = SymbolTable.add cases action_sym (body, export) in
                      lex, cases, default, succ index
                else if Lm_symbol.eq v default_sym then
-                  lex, cases, Some body, index
+                  lex, cases, Some (body, export), index
                else
                   raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (**)
          (Lexer.empty, SymbolTable.empty, None, 0) cases
@@ -1296,12 +1294,11 @@ let lex_search venv pos loc args =
          "", _
        | _, None ->
             venv
-       | _, Some body ->
-            let venv = venv_add_match venv lexeme [] in
-            let venv = venv_add_var venv loc_field_var (ValOther (ValLocation lexeme_loc)) in
-            let result = eval_body_value venv pos body in
-            let venv, _ = add_exports venv pos result in
-               venv
+       | _, Some (body, export) ->
+            let venv_new = venv_add_match venv lexeme [] in
+            let venv_new = venv_add_var venv_new loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let venv_new, _ = eval_sequence_exp venv_new pos body in
+               add_exports venv venv_new pos export
    in
 
    (* Process the files *)
@@ -1316,15 +1313,15 @@ let lex_search venv pos loc args =
             let venv = skip venv lexeme_loc skipped in
 
             (* Process the matched text *)
-            let venv = venv_add_match venv lexeme args in
-            let venv = venv_add_var venv loc_field_var (ValOther (ValLocation lexeme_loc)) in
-            let body =
+            let venv_new = venv_add_match venv lexeme args in
+            let venv_new = venv_add_var venv_new loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let body, export =
                try SymbolTable.find cases action_sym with
                   Not_found ->
                      raise (Invalid_argument "lex")
             in
-            let result = eval_body_value venv pos body in
-            let venv, _ = add_exports venv pos result in
+            let venv_new, _ = eval_sequence_exp venv_new pos body in
+            let venv = add_exports venv venv_new pos export in
                input_loop venv inx
    in
 
@@ -1356,7 +1353,7 @@ let lex_search venv pos loc args =
          Break (_, venv) ->
             venv
    in
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * \begin{doc}
@@ -1526,7 +1523,7 @@ let lex_search venv pos loc args =
 let lex_rule venv pos loc args =
    let pos = string_pos "lex-rule" pos in
       match args with
-         [_; action; _; pattern; _; ValBody (_, body)] ->
+         [_; action; _; pattern; _; ValBody (_, body, export)] ->
             let lexer = current_lexer venv pos in
             let action_name = string_of_value venv pos action in
             let action_sym = Lm_symbol.add action_name in
@@ -1540,9 +1537,9 @@ let lex_rule venv pos loc args =
 
             (* Add the method *)
             let action_var = VarThis (loc, action_sym) in
-            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, [], body)) in
+            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, [], body, export)) in
             let venv = venv_add_var venv builtin_field_var (ValOther (ValLexer lexer)) in
-               ValEnv (venv, ExportAll)
+               venv, ValNone
 
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
@@ -1736,7 +1733,7 @@ let lex_engine venv pos loc args =
  *)
 let parse_start venv pos loc args =
    let pos = string_pos "parse-start" pos in
-   let parser = current_parser venv pos in
+   let parse = current_parser venv pos in
    let args =
       match args with
          [arg] ->
@@ -1744,14 +1741,14 @@ let parse_start venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
-   let parser =
-      List.fold_left (fun parser s ->
-            Parser.add_start parser (Lm_symbol.add s)) parser args
+   let parse =
+      List.fold_left (fun parse s ->
+            Parser.add_start parse (Lm_symbol.add s)) parse args
    in
 
    (* Redefine the parser *)
-   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parser)) in
-      ValEnv (venv, ExportAll)
+   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parse)) in
+      venv, ValNone
 
 (*
  * Precedence operations.
@@ -1759,34 +1756,34 @@ let parse_start venv pos loc args =
 let parse_prec venv pos loc args assoc =
    let pos = string_pos "parse-prec" pos in
    let this = venv_this venv in
-   let parser = current_parser venv pos in
-   let parser, level, args =
+   let parse = current_parser venv pos in
+   let parse, level, args =
       match args with
          [before; args] ->
             let current_prec = Lm_symbol.add (string_of_value venv pos before) in
             let level =
-               try Parser.find_prec parser current_prec with
+               try Parser.find_prec parse current_prec with
                   Not_found ->
                      raise (OmakeException (loc_pos loc pos, StringVarError ("no such precedence", current_prec)))
             in
-            let parser, level = Parser.create_prec_lt parser level assoc in
-               parser, level, args
+            let parse, level = Parser.create_prec_lt parse level assoc in
+               parse, level, args
        | [args] ->
             let current_prec = Lm_symbol.add (string_of_value venv pos (venv_find_field this pos current_prec_sym)) in
             let level =
-               try Parser.find_prec parser current_prec with
+               try Parser.find_prec parse current_prec with
                   Not_found ->
                      raise (OmakeException (loc_pos loc pos, StringVarError ("current precedence is not found", current_prec)))
             in
-            let parser, level = Parser.create_prec_gt parser level assoc in
-               parser, level, args
+            let parse, level = Parser.create_prec_gt parse level assoc in
+               parse, level, args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (1, 2), List.length args)))
    in
    let args = strings_of_value venv pos args in
-   let parser =
-      List.fold_left (fun parser s ->
-            Parser.add_prec parser level (Lm_symbol.add s)) parser args
+   let parse =
+      List.fold_left (fun parse s ->
+            Parser.add_prec parse level (Lm_symbol.add s)) parse args
    in
 
    (* Reset the current precedence *)
@@ -1799,8 +1796,8 @@ let parse_prec venv pos loc args assoc =
    in
 
    (* Redefine the parser *)
-   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parser)) in
-      ValEnv (venv, ExportAll)
+   let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parse)) in
+      venv, ValNone
 
 let parse_left venv pos loc args =
    let pos = string_pos "parse-left" pos in
@@ -1852,15 +1849,15 @@ let find_action_name venv loc =
  *)
 let parse_rule venv pos loc args =
    let pos = string_pos "parse-rule" pos in
-   let action, head, rhs, options, body =
+   let action, head, rhs, options, body, export =
       match args with
-         [_; action; head; rhs; ValMap options; ValBody (_, body)] ->
+         [_; action; head; rhs; ValMap options; ValBody (_, body, export)] ->
             let action = string_of_value venv pos action in
             let head = string_of_value venv pos head in
                if head = "" then   (* Action name was omitted *)
-                  find_action_name venv loc, Lm_symbol.add action, rhs, options, body
+                  find_action_name venv loc, Lm_symbol.add action, rhs, options, body, export
                else
-                  Lm_symbol.add action, Lm_symbol.add head, rhs, options, body
+                  Lm_symbol.add action, Lm_symbol.add head, rhs, options, body, export
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
    in
@@ -1876,14 +1873,14 @@ let parse_rule venv pos loc args =
             let body =
                LetVarExp (loc, VarThis (loc, val_sym), VarDefNormal, ConstString (loc, "")) :: body
             in
-               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, [], body))
+               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, [], body, export))
        | [] ->
             venv
    in
 
    (* Add back the parser *)
    let venv = venv_add_var venv builtin_field_var (ValOther (ValParser par)) in
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * Perform the lexing.
@@ -1909,19 +1906,8 @@ let parse_engine venv pos loc args =
             let lex (venv, parser_obj, lexer) =
                let lex = venv_find_field lexer pos lex_sym in
                let venv = venv_with_object venv lexer in
-               let result = eval_apply venv pos loc lex [] in
-
-               (* If the lex action resulted in an export, thread the lexer object *)
-               let venv, lexer, obj =
-                  match result with
-                     ValEnv _ ->
-                        let venv, _ = add_exports venv pos result in
-                        let lexer = venv_this venv in
-                           venv, lexer, lexer
-                   | _ ->
-                        let obj = eval_object venv pos result in
-                           venv, lexer, obj
-               in
+               let venv, result = eval_apply venv pos loc lex [] in
+               let obj = eval_object venv pos result in
                   try
                      let lex_loc = venv_find_field_exn obj loc_sym in
                      let lex_loc = loc_of_value venv pos lex_loc in
@@ -1949,29 +1935,7 @@ let parse_engine venv pos loc args =
                let action = venv_find_field parser_obj pos action in
                let venv = venv_with_object venv parser_obj in
                let venv = venv_add_var venv loc_var (ValOther (ValLocation loc)) in
-               let result = eval_apply venv pos loc action [] in
-
-               (* If the parse action resulted in an export, thread the parser object *)
-               let venv, parser_obj, result =
-                  match result with
-                     ValEnv _ ->
-                        let venv, _ = add_exports venv pos result in
-                        let parser_obj = venv_this venv in
-                        let result =
-                           try venv_find_field_exn parser_obj val_sym with
-                              Not_found ->
-                                 let print_error buf =
-                                    fprintf buf "@[<v 3>The parser returned a malformed object.\
-@ You used a parser action that ended in an 'export' and you did not define\
-@ the 'value' field in the parser object\
-@ %a@]" pp_print_value (ValObject parser_obj)
-                                 in
-                                    raise (OmakeException (pos, LazyError print_error))
-                        in
-                           venv, parser_obj, result
-                   | _ ->
-                        venv, parser_obj, result
-               in
+               let venv, result = eval_apply venv pos loc action [] in
                   (venv, parser_obj, lexer), result
             in
             let _, value =
@@ -1991,23 +1955,29 @@ let () =
       [true, "grep",                  grep,                 ArityRange (1, 3);
        true, "builtin-grep",          builtin_grep,         ArityExact 1;
        true, "cat",                   cat,                  ArityExact 1;
-       true, "lex-rule",              lex_rule,             ArityRange (3, 4);
+       true, "parse-engine",          parse_engine,         ArityExact 1;
+       true, "parse-build",           parse_build,          ArityExact 1;
+      ]
+   in
+   let builtin_kfuns =
+      [true, "lex-rule",              lex_rule,             ArityRange (3, 4);
        true, "lex-engine",            lex_engine,           ArityExact 1;
        true, "parse-rule",            parse_rule,           ArityRange (3, 5);
        true, "parse-start",           parse_start,          ArityExact 1;
-       true, "parse-engine",          parse_engine,         ArityExact 1;
        true, "parse-left",            parse_left,           ArityExact 1;
        true, "parse-right",           parse_right,          ArityExact 1;
        true, "parse-nonassoc",        parse_nonassoc,       ArityExact 1;
-       true, "parse-build",           parse_build,          ArityExact 1;
        true, "scan",                  scan,                 ArityRange (1, 3);
        true, "awk",                   awk,                  ArityExact 3;
        true, "fsubst",                fsubst,               ArityExact 3;
        true, "lex",                   lex,                  ArityExact 3;
-       true, "lex-search",            lex_search,           ArityExact 3]
+       true, "lex-search",            lex_search,           ArityExact 3;
+      ]
    in
    let builtin_info =
-      { builtin_empty with builtin_funs = builtin_funs }
+      { builtin_empty with builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns
+      }
    in
       register_builtin builtin_info
 

@@ -396,20 +396,20 @@ let if_fun venv pos loc args =
  *)
 let rec eval_match_cases1 compare venv pos loc s cases =
    match cases with
-      (v, pattern, e) :: cases ->
+      (v, pattern, el, export) :: cases ->
          if Lm_symbol.eq v case_sym then
             let pattern = string_of_value venv pos pattern in
                match compare venv pos loc pattern s with
                   Some venv ->
-                     eval_body_value venv pos e
+                     eval_sequence_export_exp venv pos el export
                 | None ->
                      eval_match_cases1 compare venv pos loc s cases
          else if Lm_symbol.eq v default_sym then
-            eval_body_value venv pos e
+            eval_sequence_export_exp venv pos el export
          else
             raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
     | [] ->
-         ValNone
+         venv, ValNone
 
 let rec eval_match_cases2 compare venv pos loc s cases =
    match cases with
@@ -417,13 +417,13 @@ let rec eval_match_cases2 compare venv pos loc s cases =
          let pattern = string_of_value venv pos pattern in
             (match compare venv pos loc pattern s with
                 Some venv ->
-                   eval_body_value venv pos e
+                   eval_body_exp venv pos ValNone e
               | None ->
                    eval_match_cases2 compare venv pos loc s cases)
     | [v] ->
          raise (OmakeException (loc_pos loc pos, StringValueError ("match requires an odd number of arguments", v)))
     | [] ->
-         ValNone
+         venv, ValNone
 
 let eval_match_exp compare venv pos loc args =
    let pos = string_pos "eval_match_exp" pos in
@@ -435,7 +435,7 @@ let eval_match_exp compare venv pos loc args =
             let s = string_of_value venv pos arg in
                eval_match_cases2 compare venv pos loc s rest
        | [] ->
-            ValNone
+            venv, ValNone
 
 let switch_fun =
    let compare venv _ _ s1 s2 =
@@ -554,8 +554,8 @@ let object_of_uncaught_exception venv pos exn =
  *)
 let rec eval_finally_case venv pos cases =
    match cases with
-      (v, _, e) :: cases when Lm_symbol.eq v finally_sym ->
-         ignore (eval_body_value venv pos e)
+      (v, _, e, _) :: cases when Lm_symbol.eq v finally_sym ->
+         ignore (eval_sequence_exp venv pos e)
     | _ :: cases ->
          eval_finally_case venv pos cases
     | [] ->
@@ -568,19 +568,19 @@ let rec eval_finally_case venv pos cases =
  *)
 let rec eval_catch_rest venv_orig venv pos obj result cases =
    match cases with
-      (v, s, e) :: cases when Lm_symbol.eq v when_sym ->
+      (v, s, e, export) :: cases when Lm_symbol.eq v when_sym ->
          let b = bool_of_value venv pos s in
             if b then
-               let venv, result = eval_body_exp venv pos result e in
+               let venv_new, result = eval_sequence_export venv pos result e export in
                   eval_catch_rest venv_orig venv pos obj result cases
             else
                eval_exception venv_orig pos obj cases
     | _ ->
          Some result
 
-and eval_catch_case venv_orig pos v obj e cases =
+and eval_catch_case venv_orig pos v obj e cases export =
    let venv = venv_add_var venv_orig v (ValObject obj) in
-   let venv, result = eval_body_exp venv pos ValNone e in
+   let venv, result = eval_sequence_export_exp venv pos e export in
       eval_catch_rest venv_orig venv pos obj result cases
 
 (*
@@ -589,7 +589,7 @@ and eval_catch_case venv_orig pos v obj e cases =
  *)
 and eval_exception venv pos obj cases =
    match cases with
-      (v, s, e) :: cases ->
+      (v, s, e, export) :: cases ->
          if Lm_symbol.eq v when_sym then
             eval_exception venv pos obj cases
          else if Lm_symbol.eq v finally_sym then
@@ -597,7 +597,7 @@ and eval_exception venv pos obj cases =
          else if Lm_symbol.eq v default_sym || venv_instanceof obj v then
             (* FIXME: BUG: JYH: this binding occurence should be fixed *)
             let v = VarThis (loc_of_pos pos, Lm_symbol.add (string_of_value venv pos s)) in
-               eval_catch_case venv pos v obj e cases
+               eval_catch_case venv pos v obj e cases export
          else
             eval_exception venv pos obj cases
     | [] ->
@@ -885,7 +885,7 @@ let setenv venv pos loc args =
             let v = string_of_value venv pos arg1 in
             let s = string_of_value venv pos arg2 in
             let venv = venv_setenv venv (Lm_symbol.add v) s in
-               ValEnv (venv, ExportAll)
+               venv, ValData s
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -913,7 +913,7 @@ let unsetenv venv pos loc args =
                List.fold_left (fun venv v ->
                      venv_unsetenv venv (Lm_symbol.add v)) venv vars
             in
-               ValEnv (venv, ExportAll)
+               venv, ValNone
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -1067,7 +1067,7 @@ let setvar venv pos loc args =
          [arg1; arg2] ->
             let s = string_of_value venv pos arg1 in
             let venv = add_sym venv pos loc s arg2 in
-               ValEnv (venv, ExportAll)
+               venv, arg2
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -2493,13 +2493,7 @@ let shell_code venv pos loc args =
  *)
 let export venv pos loc args =
    let pos = string_pos "export" pos in
-      match args with
-         [] ->
-            ValEnv (venv, ExportAll)
-       | [(ValEnv _) as result] ->
-            result
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
+      raise (OmakeException (loc_pos loc pos, StringError "export: not implemented"))
 
 (*
  * Loop.
@@ -2573,9 +2567,9 @@ let export venv pos loc args =
  *)
 let rec eval_while_cases venv pos loc orig_cases arg cases =
    match cases with
-      (v, pattern, e) :: cases ->
+      (v, pattern, e, export) :: cases ->
          if Lm_symbol.eq v case_sym && bool_of_value venv pos pattern || Lm_symbol.eq v default_sym then
-            let venv, _ = eval_body_value_env venv pos e in
+            let venv, _ = eval_sequence_exp venv pos e in
                while_loop venv pos loc orig_cases arg
          else
             eval_while_cases venv pos loc orig_cases arg cases
@@ -2604,7 +2598,7 @@ let while_fun venv pos loc args =
          Break (_, venv) ->
             venv
    in
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * \begin{doc}
@@ -2724,15 +2718,12 @@ let () =
        (* System operations *)
        true,  "getenv",                getenv,              ArityRange (1, 2);
        true,  "defined-env",           defined_env,         ArityExact 1;
-       true,  "setenv",                setenv,              ArityExact 2;
-       true,  "unsetenv",              unsetenv,            ArityExact 1;
        true,  "exit",                  exit_fun,            ArityRange (0, 1);
        true,  "raise",                 raise_fun,           ArityExact 1;
        true,  "get-registry",          get_registry,        ArityRange (3, 4);
 
        (* Normal variables *)
        true,  "getvar",                getvar,              ArityExact 1;
-       true,  "setvar",                setvar,              ArityExact 2;
 
        (* Logic *)
        true,  "not",                   not_fun,             ArityExact 1;
@@ -2741,8 +2732,6 @@ let () =
        true,  "equal",                 equal,               ArityExact 2;
        true,  "if",                    if_fun,              ArityRange (2, 3);
        false, "try",                   try_fun,             ArityExact 2;
-       false, "switch",                switch_fun,          ArityAny;
-       false, "match",                 match_fun,           ArityAny;
        true,  "defined",               defined,             ArityExact 1;
 
        (* List operations *)
@@ -2773,15 +2762,24 @@ let () =
 
        true,  "export",                export,              ArityRange (0, 1);
 
-       false, "while",                 while_fun,           ArityExact 2;
        true,  "break",                 break,               ArityExact 0;
 
        true,  "random",                random,              ArityExact 0;
        true,  "random-init",           random_init,         ArityExact 1]
    in
+   let builtin_kfuns =
+      [true,  "setenv",                setenv,              ArityExact 2;
+       true,  "unsetenv",              unsetenv,            ArityExact 1;
+       true,  "setvar",                setvar,              ArityExact 2;
+       false, "switch",                switch_fun,          ArityAny;
+       false, "match",                 match_fun,           ArityAny;
+       false, "while",                 while_fun,           ArityExact 2;
+      ]
+   in
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;
-                           builtin_funs = builtin_funs
+                           builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns
       }
    in
       register_builtin builtin_info

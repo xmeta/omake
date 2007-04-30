@@ -431,12 +431,12 @@ let create_apply_top venv stdin stdout stderr apply =
          let stdin  = Unix.dup stdin in
          let stdout = Unix.dup stdout in
          let stderr = Unix.dup stderr in
-         let code, v = f venv stdin stdout stderr env args in
-         let v = unexport venv v restore_vars in
+         let code, venv_new, v = f venv stdin stdout stderr env args in
+         let venv = unexport venv venv_new restore_vars in
             if !debug_shell then
                eprintf "create_apply_top %i: done@." (Unix.getpid ());
             cleanup ();
-            code, v
+            code, venv, v
       with
          exn ->
             if !debug_shell then
@@ -466,7 +466,8 @@ let create_apply venv pgrp bg stdin stdout stderr apply =
 
    (* The actual function call *)
    let apply_fun stdin stdout stderr pgrp =
-      fst (f venv stdin stdout stderr env args)
+      let code, _, _ = f venv stdin stdout stderr env args in
+         code
    in
    let thread_info =
       { create_thread_stdin = stdin;
@@ -720,9 +721,7 @@ and create_pipe_aux venv pgrp fork stdin stdout stderr pipe =
          if fork then
             SubjobProcess (create_apply venv pgrp true stdin stdout stderr apply, venv)
          else
-            let code, v = create_apply_top venv stdin stdout stderr apply in
-            let pos = string_pos "Omake_shell_job.create_pipe_aux" (loc_exp_pos loc) in
-            let venv, _ = add_exports venv pos v in
+            let code, venv, _ = create_apply_top venv stdin stdout stderr apply in
                SubjobFinished (JobExited code, venv)
     | PipeCommand (_, command) ->
          SubjobProcess (create_command venv pgrp true stdin stdout stderr command, venv)
@@ -947,13 +946,14 @@ let create_job venv pipe stdin stdout stderr =
    (* Evaluate applications eagerly *)
    match pipe with
       PipeApply (loc, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
-         let _, value = create_apply_top venv stdin stdout stderr apply in
-            value
+         let _, venv, value = create_apply_top venv stdin stdout stderr apply in
+            venv, value
     | _ ->
          (* Otherwise, create the pipeline *)
          let bg   = is_background_pipe pipe in
          let pgrp = create_pipe_exn venv bg stdin stdout stderr pipe in
          let job  = new_job pgrp (Some pipe) in
+         let v =
             if not bg then begin
                if !debug_shell then
                   eprintf "Running pgrp %d (my pid = %d)@." pgrp (Unix.getpid ());
@@ -976,6 +976,8 @@ let create_job venv pipe stdin stdout stderr =
                job.job_state <- JobBackground;
                ValNone
             end
+         in
+            venv, v
 
 (*
  * This is a variation: create the process and return the pid.
@@ -990,10 +992,10 @@ let create_process venv pipe stdin stdout stderr =
        * prevent possible blocking on I/O.
        *)
       PipeApply (loc, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
-         let code, value =
+         let code, venv, value =
             create_apply_top venv stdin stdout stderr apply
          in
-            ResultPid (code, value)
+            ResultPid (code, venv, value)
     | _ ->
          let pgrp = create_pipe_exn venv true stdin stdout stderr pipe in
          let job  = new_job pgrp (Some pipe) in
@@ -1149,7 +1151,7 @@ let waitpid venv pos pid =
                eprintf "Omake_shell_job.waitpid: internal id %i@." pid;
             let status = wait_pid venv (job_of_pid pos pid) in
                pid, status, ValNone
-       | ResultPid (code, value) ->
+       | ResultPid (code, _, value) ->
             0, Unix.WEXITED code, value
 
 (*

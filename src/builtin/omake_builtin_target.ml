@@ -94,7 +94,7 @@ open Pos
  * in the current project.
  *
  * In all three functions, files that are not part of the current project are silently
- * discarded. All three functions will return phony and scanner targets along with the 
+ * discarded. All three functions will return phony and scanner targets along with the
  * ``real'' ones.
  *
  * One purpose of the \verb+dependencies-proper+ function is for ``clean'' targets.
@@ -220,7 +220,7 @@ let split_command venv (values1, lines1) command =
             let v =
                match line with
                   CommandSection (_, _, e) ->
-                     ValBody (env, e)
+                     ValBody (env, e, ExportNone)
                 | CommandValue (_, v) ->
                      v
             in
@@ -454,8 +454,7 @@ let rule_fun venv pos loc args =
       match args with
          [multiple; target; pattern; source; options; body] ->
             let multiple = bool_of_value venv pos multiple in
-            let venv, v = eval_rule_exp venv pos loc multiple target pattern source options body in
-               ValEnv (venv, ExportValue v)
+               eval_rule_exp venv pos loc multiple target pattern source options body
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
 
@@ -472,15 +471,18 @@ let () =
        true,  "dependencies-proper",  dependencies_proper, ArityExact 1;
        true,  "project-directories",  project_directories, ArityExact 0;
        true,  "find-build-targets",   find_build_targets,  ArityExact 1;
-
-       (* Rule definition *)
-       true,  "rule",                 rule_fun,            ArityExact 6]
+      ]
+   in
+   let builtin_kfuns =
+      [true,  "rule",                 rule_fun,            ArityExact 6;
+      ]
    in
    let pervasives_objects =
       ["Target"]
    in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns;
                            pervasives_objects = pervasives_objects
       }
    in

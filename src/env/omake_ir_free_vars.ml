@@ -113,9 +113,9 @@ and free_vars_string_exp fv s =
          free_vars_string_exp_list fv sl
     | ArrayOfString (_, s) ->
          free_vars_string_exp fv s
-    | BodyString (_, e)
-    | ExpString (_, e) ->
-         free_vars_exp_list fv e
+    | BodyString (_, e, export)
+    | ExpString (_, e, export) ->
+         free_vars_exp_list (free_vars_export_info fv export) e
     | CasesString (loc, cases) ->
          free_vars_cases fv cases
 
@@ -135,8 +135,8 @@ and free_vars_keyword_exp_list fv sl =
 
 and free_vars_cases fv cases =
    match cases with
-      (_, s, e) :: cases ->
-         free_vars_cases (free_vars_string_exp (free_vars_exp_list fv e) s) cases
+      (_, s, e, export) :: cases ->
+         free_vars_cases (free_vars_string_exp (free_vars_exp_list (free_vars_export_info fv export) e) s) cases
     | [] ->
          fv
 
@@ -152,23 +152,27 @@ and free_vars_exp fv e =
       LetVarExp (_, v, _, s) ->
          let fv = free_vars_remove fv v in
             free_vars_string_exp fv s
-    | LetFunExp (_, v, vars, el) ->
-         let fv_body = free_vars_exp_list free_vars_empty el in
+    | LetFunExp (_, v, vars, el, export) ->
+         let fv_body = free_vars_export_info free_vars_empty export in
+         let fv_body = free_vars_exp_list fv_body el in
          let fv_body = free_vars_remove_params fv_body vars in
          let fv = free_vars_union fv fv_body in
          let fv = free_vars_remove fv v in
             fv
-    | LetObjectExp (_, v, el) ->
+    | LetObjectExp (_, v, s, el, export) ->
+         let fv = free_vars_export_info fv export in
          let fv = free_vars_exp_list fv el in
          let fv = free_vars_remove fv v in
+         let fv = free_vars_string_exp fv s in
             fv
     | IfExp (_, cases) ->
          free_vars_if_cases fv cases
-    | SequenceExp (_, el)
+    | SequenceExp (_, el) ->
+         free_vars_exp_list fv el
+    | SectionExp (_, s, el, export) ->
+         free_vars_string_exp (free_vars_exp_list (free_vars_export_info fv export) el) s
     | StaticExp (_, _, _, el) ->
          free_vars_exp_list fv el
-    | SectionExp (_, s, el) ->
-         free_vars_string_exp (free_vars_exp_list fv el) s
     | IncludeExp (_, s, sl) ->
          free_vars_string_exp (free_vars_string_exp_list fv sl) s
     | ApplyExp (_, v, args)
@@ -178,8 +182,6 @@ and free_vars_exp fv e =
          free_vars_string_exp_list fv args
     | ReturnBodyExp (_, el) ->
          free_vars_exp_list fv el
-    | ExportExp (_, info) ->
-         free_vars_export_info fv info
     | LetKeyExp (_, _, _, s)
     | LetThisExp (_, s)
     | ShellExp (_, s)
@@ -189,14 +191,13 @@ and free_vars_exp fv e =
     | OpenExp _
     | KeyExp _
     | ReturnObjectExp _
-    | ReturnSaveExp _
-    | CancelExportExp _ ->
+    | ReturnSaveExp _ ->
          fv
 
 and free_vars_if_cases fv cases =
    match cases with
-      (s, e) :: cases ->
-         free_vars_if_cases (free_vars_string_exp (free_vars_exp_list fv e) s) cases
+      (s, e, export) :: cases ->
+         free_vars_if_cases (free_vars_string_exp (free_vars_exp_list (free_vars_export_info fv export) e) s) cases
     | [] ->
          fv
 

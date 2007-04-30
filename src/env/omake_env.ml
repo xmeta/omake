@@ -153,19 +153,17 @@ type value =
  | ValRules       of erule list
  | ValNode        of Node.t
  | ValDir         of Dir.t
- | ValEnv         of venv * export
  | ValObject      of obj
  | ValMap         of map
  | ValChannel     of channel_mode * prim_channel
  | ValClass       of obj SymbolTable.t
 
    (* Raw expressions *)
- | ValBody        of env * exp list
- | ValCases       of (var * value * value) list
+ | ValBody        of env * exp list * export
+ | ValCases       of (var * value * exp list * export) list
 
    (* Functions *)
- | ValFun         of arity * env * var list * exp list
- | ValFunValue    of arity * env * var list * value
+ | ValFun         of arity * env * var list * exp list * export
 
    (* Closed values *)
  | ValApply       of loc * var_info * value list
@@ -188,29 +186,15 @@ and value_other =
  | ValExitCode    of int
 
 (*
- * Export kinds.
- *    ExportFile: this is the result of file evaluation
- *    ExportList: export just the listed items (variable values, implicit rules/dependencies, phony target set)
- *    ExportAll: export the entire environment.
- *    ExportValue v: just like ExportAll, but return the value too
- *)
-and export =
-   ExportFile
- | ExportAll
- | ExportDir
- | ExportList of export_item list
- | ExportValue of value
-
-(*
  * Primitives are option refs.
  * We do this so that we can marshal these values.
  * Just before marshaling, all the options are set to None.
  *)
-and prim_fun_data = (venv -> pos -> loc -> value list -> value) option
+and prim_fun_data = venv -> pos -> loc -> value list -> venv * value
 
 and prim_fun =
    { fun_id           : symbol;
-     mutable fun_data : prim_fun_data
+     mutable fun_data : prim_fun_data option
    }
 
 (*
@@ -395,7 +379,7 @@ and venv_globals =
 and pid =
    InternalPid of int
  | ExternalPid of int
- | ResultPid of int * value
+ | ResultPid of int * venv * value
 
 and exec = (arg_command_line, pid, value) Exec.t
 
@@ -408,7 +392,7 @@ and arg_command_line = (venv, exp, arg_pipe, value) poly_command_line
 and string_command_inst = (exp, string_pipe, value) poly_command_inst
 and string_command_line = (venv, exp, string_pipe, value) poly_command_line
 
-and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (symbol * string) list -> value list -> int * value
+and apply        = venv -> Unix.file_descr -> Unix.file_descr -> Unix.file_descr -> (symbol * string) list -> value list -> int * venv * value
 
 and value_cmd    = (unit, value list, value list) poly_cmd
 and value_apply  = (value list, value list, apply) poly_apply
@@ -491,7 +475,7 @@ module IntTable = Lm_map.LmMake (IntCompare);;
 type venv_runtime =
    { mutable venv_channel_index  : int;
      mutable venv_channels       : (prim_channel * channel_data) IntTable.t;
-     mutable venv_primitives     : (prim_fun * prim_fun_data) SymbolTable.t
+     mutable venv_primitives     : (prim_fun * prim_fun_data option) SymbolTable.t
    }
 
 let venv_runtime =
@@ -743,8 +727,7 @@ let rec pp_print_value buf v =
     | ValImplicit (_, v) ->
          fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
             pp_print_var_info v
-    | ValFun (arity, _, _, _)
-    | ValFunValue (arity, _, _, _) ->
+    | ValFun (arity, _, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
     | ValPrim (arity, special, _) ->
          if special then
@@ -759,10 +742,8 @@ let rec pp_print_value buf v =
          fprintf buf "%a : Dir" pp_print_dir dir
     | ValNode node ->
          fprintf buf "%a : File" pp_print_node node
-    | ValEnv (_, export) ->
-         fprintf buf "@[<hv 3><export@ %a>@]" pp_print_export export
-    | ValBody (_, el) ->
-         fprintf buf "@[<v 0>%a@ : Body@]" pp_print_exp_list el
+    | ValBody (_, el, export) ->
+         fprintf buf "@[<v 0>%a%a@ : Body@]" pp_print_exp_list el pp_print_export_info export
     | ValObject env ->
          pp_print_env buf env
     | ValMap map ->
@@ -782,8 +763,12 @@ let rec pp_print_value buf v =
          fprintf buf "@]"
     | ValCases cases ->
          fprintf buf "@[<hv 3>cases";
-         List.iter (fun (v, e1, e2) ->
-               fprintf buf "@[<hv 3>%a %a:@ %a@]" pp_print_symbol v pp_print_value e1 pp_print_value e2) cases;
+         List.iter (fun (v, e1, e2, export) ->
+               fprintf buf "@[<hv 3>%a %a:@ %a%a@]" (**)
+                  pp_print_symbol v
+                  pp_print_value e1
+                  pp_print_exp_list e2
+                  pp_print_export_info export) cases;
          fprintf buf "@]"
     | ValKey (_, v) ->
          fprintf buf "key $|%s|" v
@@ -852,28 +837,6 @@ and pp_print_rule buf erule =
       fprintf buf "@ @[<hv 3>commands =%a@]" pp_print_command_info_list commands;
       fprintf buf "@]@ }@]"
 
-and pp_print_export buf = function
-   ExportFile ->
-      pp_print_string buf "ExportFile"
- | ExportAll ->
-      pp_print_string buf "ExportAll"
- | ExportDir ->
-      pp_print_string buf "ExportDir"
- | ExportList vars ->
-      fprintf buf "@[<hv 3>ExportSymbols";
-      List.iter (fun v -> fprintf buf "@ %a" pp_print_export_item v) vars;
-      fprintf buf "@]"
- | ExportValue v ->
-      fprintf buf "@[<hv 3>ExportValue@ %a@]" pp_print_value v
-
-and pp_print_export_item buf = function
-   ExportVar v ->
-      pp_print_var_info buf v
- | ExportRules ->
-      pp_print_string buf ".RULE"
- | ExportPhonies ->
-      pp_print_string buf ".PHONY"
-
 let pp_print_explicit_rules buf venv =
    fprintf buf "@[<hv 3>Explicit rules:";
    List.iter (fun erule -> fprintf buf "@ %a" pp_print_rule erule) venv.venv_inner.venv_globals.venv_explicit_rules;
@@ -919,8 +882,7 @@ let rec pp_print_simple_value buf v =
     | ValImplicit (_, v) ->
          fprintf buf "$?(%a)" (**)
             pp_print_var_info v
-    | ValFun _
-    | ValFunValue _ ->
+    | ValFun _ ->
          pp_print_string buf "<fun>"
     | ValPrim _ ->
          pp_print_string buf "<prim>"
@@ -930,8 +892,6 @@ let rec pp_print_simple_value buf v =
          pp_print_dir buf dir
     | ValNode node ->
          pp_print_node buf node
-    | ValEnv _ ->
-         pp_print_string buf "<export>"
     | ValBody _ ->
          pp_print_string buf "<body>"
     | ValObject _ ->
@@ -3326,42 +3286,17 @@ let venv_get_ordering_deps venv orules deps =
  * Return values.
  *)
 
-(*
- * Don't export from a value.
- *)
-let export_none v =
-   match v with
-      ValEnv _ ->
-         ValNone
-    | _ ->
-         v
-
 let restore_var src dst var =
-   { dst with
-      venv_dynamic =
-         if SymbolTable.mem src.venv_dynamic var then
-            SymbolTable.add dst.venv_dynamic var (SymbolTable.find src.venv_dynamic var)
-         else
-            SymbolTable.remove dst.venv_dynamic var;
-      venv_static =
-         if SymbolTable.mem src.venv_static var then
-            SymbolTable.add dst.venv_static var (SymbolTable.find src.venv_static var)
-         else
-            SymbolTable.remove dst.venv_static var;
-      venv_this =
-         if SymbolTable.mem src.venv_this var then
-            SymbolTable.add dst.venv_this var (SymbolTable.find src.venv_this var)
-         else
-            SymbolTable.remove dst.venv_this var
-   }
+   let dynamic =
+      if SymbolTable.mem src.venv_dynamic var then
+         SymbolTable.add dst.venv_dynamic var (SymbolTable.find src.venv_dynamic var)
+      else
+         SymbolTable.remove dst.venv_dynamic var
+   in
+      { dst with venv_dynamic = dynamic }
 
-let unexport env v vars =
-   match v with
-      ValEnv(env', export) ->
-         let env' = List.fold_left (restore_var env) env' vars in
-            ValEnv(env', export)
-    | _ ->
-         v
+let unexport src dst vars =
+   List.fold_left (restore_var src) dst vars
 
 (*
  * Export an item from one environment to another.
@@ -3453,39 +3388,13 @@ let venv_export_venv venv1 venv2 =
 (*
  * Add the exported result to the current environment.
  *)
-let add_exports venv pos result =
-   match result with
-      ValEnv (_, ExportFile) ->
-         venv, result
-    | ValEnv (venv', ExportAll) ->
-         venv_export_venv venv venv', result
-    | ValEnv (venv', ExportDir) ->
-         venv_chdir_tmp venv (venv_dir venv'), result
-    | ValEnv (venv', ExportValue v) ->
-         venv_export_venv venv venv', v
-    | ValEnv (venv', ExportList vars) ->
-         let venv = export_list pos venv venv' vars in
-            venv, result
-    | _ ->
-         venv, result
-
-(*
- * The result is different for include files.
- *)
-let add_include venv pos result =
-   match result with
-      ValEnv (venv', ExportFile)
-    | ValEnv (venv', ExportAll) ->
-         venv_export_venv venv venv', result
-    | ValEnv (venv', ExportDir) ->
-         venv_chdir_tmp venv (venv_dir venv'), result
-    | ValEnv (venv', ExportValue v) ->
-         venv_export_venv venv venv', v
-    | ValEnv (venv', ExportList vars) ->
-         let venv = export_list pos venv venv' vars in
-            venv, result
-    | _ ->
-         venv, result
+let add_exports venv_dst venv_src pos = function
+   ExportNone ->
+      venv_dst
+ | ExportAll ->
+      venv_export_venv venv_dst venv_src
+ | ExportList vars ->
+      export_list pos venv_dst venv_src vars
 
 (************************************************************************
  * Squashing.

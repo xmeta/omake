@@ -69,7 +69,7 @@ let extends_fun venv pos loc args =
          venv_include_object venv obj
    in
    let venv = List.fold_left extend_arg venv args in
-      ValEnv (venv, ExportAll)
+      venv, ValNone
 
 (*
  * Get the object form of a value.
@@ -85,34 +85,6 @@ let object_fun venv pos loc args =
    in
    let values = List.map (fun v -> ValObject (eval_object venv pos v)) values in
       concat_array values
-
-(*
- * Import an object from a file.
- * And add that object by its name to the environment.
- *
- * The argument may be a file or an object,
- * but if it is an object, this does nothing.
- *)
-let import_fun venv pos loc args =
-   let pos = string_pos "import" pos in
-   let import_val venv v =
-      match eval_value venv pos v with
-         ValObject _ ->
-            venv
-       | _ ->
-            let name = string_of_value venv pos v in
-            let obj = object_of_file venv pos loc name in
-            let name = Filename.basename name in
-            let name = Lm_filename_util.root name in
-            let name = VarVirtual (loc, Lm_symbol.add name) in
-               venv_add_var venv name (ValObject obj)
-   in
-   let import_arg venv arg =
-      let values = values_of_value venv pos arg in
-         List.fold_left import_val venv values
-   in
-   let venv = List.fold_left import_arg venv args in
-      ValEnv (venv, ExportAll)
 
 (************************************************************************
  * Object operations.
@@ -180,7 +152,7 @@ let object_map venv pos loc args =
             let obj = eval_object venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, obj
-       | [arg; param1; param2; ValBody (env, body)] ->
+       | [arg; param1; param2; ValBody (env, body, export)] ->
             let params =
                [Lm_symbol.add (string_of_value venv pos param1);
                 Lm_symbol.add (string_of_value venv pos param2)]
@@ -188,8 +160,9 @@ let object_map venv pos loc args =
             let obj = eval_object venv pos arg in
             let f venv pos loc args =
                let venv = venv_add_args venv pos loc env params args in
-               let _, result = eval_sequence_exp venv pos body in
-                  result
+               let venv_new, result = eval_sequence_exp venv pos body in
+               let venv = add_exports venv venv_new pos export in
+                  venv, result
             in
                f, obj
        | _ ->
@@ -199,15 +172,11 @@ let object_map venv pos loc args =
    (* If the body exports the environment, preserve it across calls *)
    let venv', obj =
       venv_object_fold (fun (venv, obj) v x ->
-            let result = f venv pos loc [ValString (Lm_symbol.to_string v); x] in
+            let venv, result = f venv pos loc [ValString (Lm_symbol.to_string v); x] in
             let obj = venv_add_field obj v result in
-            let venv, result = add_exports venv pos result in
                venv, obj) (venv, obj) obj
    in
-      if venv' == venv then
-         ValObject obj
-      else
-         ValEnv (venv', ExportAll)
+      venv, ValObject obj
 
 (*
  * instanceof predicate.
@@ -328,7 +297,7 @@ let map_map venv pos loc args =
             let map = map_of_object venv pos obj in
             let _, _, f = eval_fun venv pos fun_val in
                f, obj, map
-       | [arg; param1; param2; ValBody (env, body)] ->
+       | [arg; param1; param2; ValBody (env, body, export)] ->
             let params =
                [Lm_symbol.add (string_of_value venv pos param1);
                 Lm_symbol.add (string_of_value venv pos param2)]
@@ -337,8 +306,9 @@ let map_map venv pos loc args =
             let map = map_of_object venv pos obj in
             let f venv pos loc args =
                let venv = venv_add_args venv pos loc env params args in
-               let _, result = eval_sequence_exp venv pos body in
-                  result
+               let venv_new, result = eval_sequence_exp venv pos body in
+               let venv = add_exports venv venv_new pos export in
+                  venv, result
             in
                f, obj, map
        | _ ->
@@ -348,15 +318,11 @@ let map_map venv pos loc args =
    (* If the body exports the environment, preserve it across calls *)
    let venv', map =
       venv_map_fold (fun (venv, map) v x ->
-            let result = f venv pos loc [v; x] in
+            let venv, result = f venv pos loc [v; x] in
             let map = venv_map_add map pos v result in
-            let venv, result = add_exports venv pos result in
                venv, map) (venv, map) map
    in
-      if venv' == venv then
-         wrap_map obj map
-      else
-         ValEnv (venv', ExportAll)
+      venv, wrap_map obj map
 
 (*
  * Get an array of keys of the map.
@@ -450,8 +416,7 @@ let sequence_length venv pos loc args =
                      venv_map_length map
                 | ValObject obj ->
                      venv_object_length obj
-                | ValNone
-                | ValEnv _ ->
+                | ValNone ->
                      0
                 | ValInt _
                 | ValFloat _
@@ -471,8 +436,7 @@ let sequence_length venv pos loc args =
                      List.length (values_of_value venv pos arg)
                 | ValArray a ->
                      List.length a
-                | ValFun (arity, _, _, _)
-                | ValFunValue (arity, _, _, _)
+                | ValFun (arity, _, _, _, _)
                 | ValPrim (arity, _, _) ->
                      (match arity with
                          ArityExact i
@@ -513,14 +477,12 @@ let sequence_nth venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
-                 | ValFunValue _
                  | ValPrim _
                  | ValKey _
                  | ValApply _
                  | ValImplicit _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValEnv _
                  | ValMap _
                  | ValObject _ ->
                       raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)))
@@ -587,14 +549,12 @@ let sequence_rev venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
-                 | ValFunValue _
                  | ValPrim _
                  | ValKey _
                  | ValApply _
                  | ValImplicit _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValEnv _
                  | ValMap _
                  | ValObject _
                  | ValInt _
@@ -694,13 +654,14 @@ let foreach_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, args
-       | [ValBody (env, body); param; arg] ->
+       | [ValBody (env, body, export); param; arg] ->
             let params = [Lm_symbol.add (string_of_value venv pos param)] in
             let args = values_of_value venv pos arg in
             let f venv pos loc args =
-               let venv = venv_add_args_hack venv pos loc env params args in
-               let _, result = eval_sequence_exp venv pos body in
-                  result
+               let venv_new = venv_add_args_hack venv pos loc env params args in
+               let venv_new, result = eval_sequence_exp venv_new pos body in
+               let venv = add_exports venv venv_new pos export in
+                  venv, result
             in
                f, args
        | _ ->
@@ -708,20 +669,16 @@ let foreach_fun venv pos loc args =
    in
 
    (* If the body exports the environment, preserve it across calls *)
-   let venv', values =
+   let venv, values =
       try
          List.fold_left (fun (venv, values) v ->
-               let result = f venv pos loc [v] in
-               let venv, result = add_exports venv pos result in
+               let venv, result = f venv pos loc [v] in
                   venv, result :: values) (venv, []) args
       with
          Break (_, venv) ->
             venv, []
    in
-      if venv' == venv then
-         ValArray (List.rev values)
-      else
-         ValEnv (venv', ExportAll)
+      venv, ValArray (List.rev values)
 
 (*
  * \begin{doc}
@@ -751,18 +708,25 @@ let forall_fun venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
-   let rec test args =
+   let rec test venv args =
       match args with
          arg :: args ->
-            let result = f venv pos loc [arg] in
-               bool_of_value venv pos result && test args
+            let venv, result = f venv pos loc [arg] in
+               if bool_of_value venv pos result then
+                  test venv args
+               else
+                  venv, false
        | [] ->
-            true
+            venv, true
    in
-      if test args then
+   let venv, x = test venv args in
+   let x =
+      if x then
          val_true
       else
          val_false
+   in
+      venv, x
 
 (*
  * \begin{doc}
@@ -792,18 +756,25 @@ let exists_fun venv pos loc args =
    in
 
    (* If the body exports the environment, preserve it across calls *)
-   let rec test args =
+   let rec test venv args =
       match args with
          arg :: args ->
-            let result = f venv pos loc [arg] in
-               bool_of_value venv pos result || test args
+            let venv, result = f venv pos loc [arg] in
+               if bool_of_value venv pos result then
+                  venv, true
+               else
+                  test venv args
        | [] ->
-            false
+            venv, false
    in
-      if test args then
+   let venv, x = test venv args in
+   let x =
+      if x then
          val_true
       else
          val_false
+   in
+      venv, x
 
 (************************************************************************
  * Define the functions.
@@ -815,33 +786,35 @@ let exists_fun venv pos loc args =
  *)
 let () =
    let builtin_funs =
-      [true, "extends",              extends_fun,         ArityAny;
-       true, "object",               object_fun,          ArityExact 1;
-       true, "foreach",              foreach_fun,         ArityExact 2;
+      [true, "object",               object_fun,          ArityExact 1;
        true, "obj-add",              object_add,          ArityExact 3;
        true, "obj-find",             object_find,         ArityExact 2;
        true, "obj-mem",              object_mem,          ArityExact 2;
        true, "obj-length",           object_length,       ArityExact 1;
-       true, "obj-map",              object_map,          ArityRange (3, 4);
        true, "obj-instanceof",       object_instanceof,   ArityExact 2;
        true, "map-add",              map_add,             ArityExact 3;
        true, "map-find",             map_find,            ArityExact 2;
        true, "map-mem",              map_mem,             ArityExact 2;
        true, "map-length",           map_length,          ArityExact 1;
-       true, "map-map",              map_map,             ArityRange (3, 4);
        true, "map-remove",           map_remove,          ArityExact 1;
        true, "map-keys",             map_keys,            ArityExact 1;
        true, "map-values",           map_values,          ArityExact 1;
-       true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
-       true, "sequence-forall",      forall_fun,          ArityExact 2;
-       true, "sequence-exists",      exists_fun,          ArityExact 2;
        true, "sequence-length",      sequence_length,     ArityExact 1;
        true, "sequence-nth",         sequence_nth,        ArityExact 1;
        true, "sequence-rev",         sequence_rev,        ArityExact 1;
        true,  "create-map",          create_map,          ArityAny;
        false, "create-lazy-map",     create_map,          ArityAny]
    in
-
+   let builtin_kfuns =
+      [true, "extends",              extends_fun,         ArityAny;
+       true, "foreach",              foreach_fun,         ArityExact 2;
+       true, "obj-map",              object_map,          ArityRange (3, 4);
+       true, "map-map",              map_map,             ArityRange (3, 4);
+       true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
+       true, "sequence-forall",      forall_fun,          ArityExact 2;
+       true, "sequence-exists",      exists_fun,          ArityExact 2;
+      ]
+   in
    let builtin_vars =
       ["empty-map",        (fun _ -> ValMap venv_map_empty)]
    in
@@ -851,7 +824,7 @@ let () =
        "Float",            value_sym, ValFloat 0.0;
        "String",           value_sym, ValNone;
        "Array",            value_sym, ValArray [];
-       "Fun",              value_sym, ValFunValue (ArityExact 0, venv_empty_env, [], ValNone);
+       "Fun",              value_sym, ValFun (ArityExact 0, venv_empty_env, [], [], ExportNone);
        "Rule",             value_sym, ValRules [];
        "File",             value_sym, ValNone;
        "Dir",              value_sym, ValNone;
@@ -884,6 +857,7 @@ let () =
    in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs;
+                           builtin_kfuns = builtin_kfuns;
                            builtin_vars = builtin_vars;
                            builtin_objects = builtin_objects;
                            pervasives_objects = pervasives_objects

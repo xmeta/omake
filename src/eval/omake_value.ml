@@ -181,10 +181,8 @@ let rec key_of_value venv pos v =
        | ValApply _
        | ValImplicit _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValRules _
-       | ValEnv _
        | ValBody _
        | ValMap _
        | ValObject _
@@ -223,10 +221,8 @@ let dir_of_value venv pos dir =
        | ValApply _
        | ValImplicit _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValRules _
-       | ValEnv _
        | ValBody _
        | ValMap _
        | ValObject _
@@ -267,9 +263,7 @@ let node_value_of_value venv pos v =
                else
                   ValNode node
        | ValNone
-       | ValEnv _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValRules _
        | ValMap _
@@ -304,9 +298,7 @@ let dir_value_of_value venv pos v =
             let name = string_of_value venv pos v in
                ValDir (venv_intern_dir venv name)
        | ValNone
-       | ValEnv _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValRules _
        | ValMap _
@@ -382,9 +374,7 @@ let prim_channel_of_value venv pos v =
        | ValMethodApply _
        | ValBody _
        | ValNone
-       | ValEnv _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValArray _
        | ValRules _
@@ -445,9 +435,7 @@ let in_channel_of_any_value venv pos v =
                      pc, true
        | ValChannel (OutChannel, _)
        | ValNone
-       | ValEnv _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValArray _
        | ValRules _
@@ -496,9 +484,7 @@ let out_channel_of_any_value venv pos v =
                      prim, true
        | ValChannel (InChannel, _)
        | ValNone
-       | ValEnv _
        | ValFun _
-       | ValFunValue _
        | ValPrim _
        | ValArray _
        | ValRules _
@@ -534,9 +520,7 @@ let rec is_glob_value options v =
     | ValInt _
     | ValFloat _
     | ValNone
-    | ValEnv _
     | ValFun _
-    | ValFunValue _
     | ValPrim _
     | ValRules _
     | ValMap _

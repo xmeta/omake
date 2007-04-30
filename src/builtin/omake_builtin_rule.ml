@@ -159,7 +159,8 @@ let set_options venv pos loc args =
       match args with
          [arg] ->
             let argv = strings_of_value venv pos arg in
-               ValEnv (venv_set_options venv loc pos argv, ExportAll)
+            let venv = venv_set_options venv loc pos argv in
+               venv, ValNone
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -290,7 +291,7 @@ let define_command_vars venv pos loc args =
       match args with
          []
        | [_] ->
-            ValEnv (venv_add_command_defs venv, ExportAll)
+            venv_add_command_defs venv, ValNone
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 
@@ -300,15 +301,20 @@ let define_command_vars venv pos loc args =
 let () =
    let builtin_funs =
       [true,  "OMakeVersion",          check_version,       ArityRange (1, 2);
-       true,  "OMakeFlags",            set_options,         ArityExact 1;
        true,  "cmp-versions",          cmp_version,         ArityExact 2;
-       true,  "DefineCommandVars",     define_command_vars, ArityRange (0, 1)]
+      ]
+   in
+   let builtin_kfuns =
+      [true,  "OMakeFlags",            set_options,         ArityExact 1;
+       true,  "DefineCommandVars",     define_command_vars, ArityRange (0, 1);
+      ]
    in
    let builtin_rules =
       [true, [".PHONY"], phony_targets]
    in
    let builtin_info =
       { builtin_empty with builtin_funs  = builtin_funs;
+                           builtin_kfuns = builtin_kfuns;
                            builtin_rules = builtin_rules;
                            phony_targets = phony_targets
       }

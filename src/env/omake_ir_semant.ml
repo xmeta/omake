@@ -182,20 +182,20 @@ let rec build_string env s =
     | QuoteStringString (loc, c, sl) ->
          let has_return, sl = build_string_list env sl in
             has_return, QuoteStringString (loc, c, sl)
-    | BodyString (loc, el) ->
+    | BodyString (loc, el, export) ->
          let renv, e = build_sequence_exp env el in
-            renv.renv_has_return, BodyString (loc, el)
-    | ExpString (loc, el) ->
+            renv.renv_has_return, BodyString (loc, el, export)
+    | ExpString (loc, el, export) ->
          let renv, el = build_sequence_exp env el in
-            renv.renv_has_return, ExpString (loc, el)
+            renv.renv_has_return, ExpString (loc, el, export)
     | CasesString (loc, cases) ->
          let env = { env with env_in_cond = true } in
          let has_return, cases =
-            List.fold_left (fun (has_return, cases) (v, s, el) ->
+            List.fold_left (fun (has_return, cases) (v, s, el, export) ->
                   let has_return2, s = build_string env s in
                   let renv, e = build_sequence_exp env el in
                   let has_return = has_return || has_return2 || renv.renv_has_return in
-                     has_return, (v, s, e) :: cases) (false, []) cases
+                     has_return, (v, s, e, export) :: cases) (false, []) cases
          in
             has_return, CasesString (loc, List.rev cases)
 
@@ -212,7 +212,7 @@ and build_string_list env sl =
  *)
 and build_exp env e =
    match e with
-      LetFunExp (loc, v, vars, el) ->
+      LetFunExp (loc, v, vars, el, export) ->
          let renv, el = build_sequence_exp env_fun el in
          let el =
             if renv.renv_has_return then
@@ -220,12 +220,13 @@ and build_exp env e =
             else
                el
          in
-         let e = LetFunExp (loc, v, vars, el) in
+         let e = LetFunExp (loc, v, vars, el, export) in
             renv_empty, e
-    | LetObjectExp (loc, v, el) ->
+    | LetObjectExp (loc, v, s, el, export) ->
          let el = build_object_exp el in
-         let e = LetObjectExp (loc, v, el) in
-            renv_empty, e
+         let has_return, s = build_string env s in
+         let e = LetObjectExp (loc, v, s, el, export) in
+            update_return renv_empty has_return, e
     | StaticExp (loc, node, v, el) ->
          let el = build_object_exp el in
          let e = StaticExp (loc, node, v, el) in
@@ -238,10 +239,10 @@ and build_exp env e =
          let renv, el = build_sequence_exp env el in
          let e = SequenceExp (loc, el) in
             renv, e
-    | SectionExp (loc, s, el) ->
+    | SectionExp (loc, s, el, export) ->
          let has_return, s = build_string env s in
          let renv, el = build_sequence_exp env el in
-         let e = SectionExp (loc, s, el) in
+         let e = SectionExp (loc, s, el, export) in
             update_return renv has_return, e
     | ReturnBodyExp (loc, el) ->
          let renv, el = build_sequence_exp env el in
@@ -287,9 +288,6 @@ and build_exp env e =
          let has_return, s = build_string env s in
          let e = StringExp (loc, s) in
             update_return renv_value has_return, e
-    | ExportExp _
-    | CancelExportExp _ ->
-         renv_value, e
     | ReturnExp (loc, s) ->
          check_return_placement env loc;
          let has_return, s = build_string env s in
@@ -334,13 +332,6 @@ and build_sequence_exp env el =
             let env_tail = { env with env_section_tail = true } in
             let renv, e = build_exp env_tail e in
             let rel = e :: rel in
-            let rel =
-               if renv.renv_is_final || renv.renv_is_value then
-                  rel
-               else
-                  (* Add a dummy value *)
-                  CancelExportExp (loc_of_exp e) :: rel
-            in
                update_return renv has_return, rel
        | e :: el ->
             let renv, e = build_exp env_non_tail e in
@@ -366,10 +357,10 @@ and build_cases_exp env cases =
       }
    in
    let has_return, cases =
-      List.fold_left (fun (has_return, cases) (s, el) ->
+      List.fold_left (fun (has_return, cases) (s, el, export) ->
             let renv, el = build_sequence_exp env el in
             let has_return = has_return || renv.renv_has_return in
-               has_return, (s, el) :: cases) (false, []) cases
+               has_return, (s, el, export) :: cases) (false, []) cases
    in
    let cases = List.rev cases in
    let renv =

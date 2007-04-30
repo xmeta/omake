@@ -98,7 +98,7 @@ type export_item =
  | ExportPhonies
  | ExportVar of var_info
 
-type export_info =
+type export =
    ExportNone
  | ExportAll
  | ExportList of export_item list
@@ -118,9 +118,9 @@ type string_exp =
  | ArrayOfString     of loc * string_exp
  | QuoteString       of loc * string_exp list
  | QuoteStringString of loc * char * string_exp list
- | BodyString        of loc * exp list
- | ExpString         of loc * exp list
- | CasesString       of loc * (var * string_exp * exp list) list
+ | BodyString        of loc * exp list * export
+ | ExpString         of loc * exp list * export
+ | CasesString       of loc * (var * string_exp * exp list * export) list
  | KeyString         of loc * apply_strategy * string
  | ThisString        of loc
 
@@ -138,9 +138,9 @@ and rule_command =
 and exp =
    (* Definitions *)
    LetVarExp        of loc * var_info * var_def_kind * string_exp
- | LetFunExp        of loc * var_info * var list * exp list
+ | LetFunExp        of loc * var_info * var list * exp list * export
    (* ZZZ: LetMethodExp *)
- | LetObjectExp     of loc * var_info * exp list
+ | LetObjectExp     of loc * var_info * string_exp * exp list * export
  | LetThisExp       of loc * string_exp
  | LetKeyExp        of loc * string * var_def_kind * string_exp
 
@@ -152,17 +152,13 @@ and exp =
 
    (* Sequences *)
  | SequenceExp      of loc * exp list
- | SectionExp       of loc * string_exp * exp list
+ | SectionExp       of loc * string_exp * exp list * export
 
    (* StaticExp (loc, filename, id, el) *)
  | StaticExp        of loc * Node.t * symbol * exp list
 
    (* Conditional *)
- | IfExp            of loc * (string_exp * exp list) list
-
-   (* Export the bindings from an inner scope to an outer one *)
- | ExportExp        of loc * export_info
- | CancelExportExp  of loc
+ | IfExp            of loc * (string_exp * exp list * export) list
 
    (* Shell command *)
  | ShellExp         of loc * string_exp
