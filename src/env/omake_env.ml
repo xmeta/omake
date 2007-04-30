@@ -32,6 +32,7 @@ open Lm_printf
 
 open Lm_debug
 open Lm_symbol
+open Lm_int_set
 open Lm_location
 open Lm_string_set
 open Lm_string_util
@@ -136,6 +137,52 @@ type rule_kind =
  | RuleScanner
 
 (*
+ * Handles.  These need to be heap allocated so that we can register
+ * finalization functions.
+ *)
+module type HandleTableSig =
+sig
+   type 'a t
+   type handle
+
+   val create : unit -> 'a t
+   val add : 'a t -> 'a -> handle
+   val find : 'a t -> handle -> 'a
+end;;
+
+module HandleTable : HandleTableSig =
+struct
+   type 'a t =
+      { mutable hand_table : 'a IntTable.t;
+        mutable hand_index : int
+      }
+
+   (* This must be heap-allocated *)
+   type handle = { handle_index : int }
+
+   let create () =
+      { hand_table = IntTable.empty;
+        hand_index = 0
+      }
+
+   let free table hand =
+      table.hand_table <- IntTable.remove table.hand_table hand.handle_index
+
+   let add table x =
+      let i = table.hand_index in
+      let hand = { handle_index = i } in
+         Gc.finalise (free table) hand;
+         table.hand_index <- succ i;
+         table.hand_table <- IntTable.add table.hand_table i x;
+         hand
+
+    let find table hand =
+       IntTable.find table.hand_table hand.handle_index
+end;;
+
+type handle_env = HandleTable.handle
+
+(*
  * Possible values.
  * Someday we may want to include rules and functions.
  * For the function, the obj is the static scope.
@@ -184,6 +231,7 @@ and value_other =
  | ValLocation    of loc
  | ValPosition    of pos
  | ValExitCode    of int
+ | ValEnv         of HandleTable.handle
 
 (*
  * Primitives are option refs.
@@ -336,6 +384,9 @@ and venv_globals =
 
      (* Mounting functions *)
      venv_mount_info                         : mount_info;
+
+     (* Values from handles *)
+     venv_environments                       : venv HandleTable.t;
 
      (* The set of files we have ever read *)
      mutable venv_files                      : NodeSet.t;
@@ -782,6 +833,8 @@ let rec pp_print_value buf v =
          fprintf buf "<position %a> : Position" !pp_print_pos_ref pos
     | ValOther (ValExitCode code) ->
          fprintf buf "<exit-code %d> : Int" code
+    | ValOther (ValEnv _) ->
+         fprintf buf "<env>"
 
 and pp_print_value_list buf vl =
    List.iter (fun v -> fprintf buf "@ %a" pp_print_value v) vl
@@ -916,6 +969,8 @@ let rec pp_print_simple_value buf v =
          pp_print_string buf "<position>"
     | ValOther (ValExitCode i) ->
          pp_print_int buf i
+    | ValOther (ValEnv _) ->
+         pp_print_string buf "<env>"
 
 and pp_print_simple_value_list buf vl =
    List.iter (pp_print_simple_value buf) vl
@@ -1247,6 +1302,18 @@ let rule_kind = function
  | RuleSingle
  | RuleMultiple ->
       RuleNormal
+
+(************************************************************************
+ * Handles.
+ *)
+let venv_add_environment venv =
+   HandleTable.add venv.venv_inner.venv_globals.venv_environments venv
+
+let venv_find_environment venv pos hand =
+   try HandleTable.find venv.venv_inner.venv_globals.venv_environments hand with
+      Not_found ->
+         let pos = string_pos "venv_find_environment" pos in
+            raise (OmakeException (pos, StringError "unbound environment"))
 
 (************************************************************************
  * Channels.
@@ -2501,6 +2568,7 @@ let create options dir exec cache =
       { venv_exec                       = exec;
         venv_cache                      = cache;
         venv_mount_info                 = mount_info;
+        venv_environments               = HandleTable.create ();
         venv_files                      = NodeSet.empty;
         venv_directories                = DirTable.empty;
         venv_excluded_directories       = DirSet.empty;

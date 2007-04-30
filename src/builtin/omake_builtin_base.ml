@@ -2493,7 +2493,14 @@ let shell_code venv pos loc args =
  *)
 let export venv pos loc args =
    let pos = string_pos "export" pos in
-      raise (OmakeException (loc_pos loc pos, StringError "export: not implemented"))
+      match args with
+         [ValOther (ValEnv hand)] ->
+            venv_find_environment venv pos hand, ValNone
+       | [] ->
+            let hand = venv_add_environment venv in
+               venv, ValOther (ValEnv hand)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 
 (*
  * Loop.
@@ -2760,8 +2767,6 @@ let () =
        true,  "shella",                shella,              ArityExact 1;
        true,  "shell-code",            shell_code,          ArityExact 1;
 
-       true,  "export",                export,              ArityRange (0, 1);
-
        true,  "break",                 break,               ArityExact 0;
 
        true,  "random",                random,              ArityExact 0;
@@ -2774,7 +2779,8 @@ let () =
        false, "switch",                switch_fun,          ArityAny;
        false, "match",                 match_fun,           ArityAny;
        false, "while",                 while_fun,           ArityExact 2;
-      ]
+       true,  "export",                export,              ArityExact 0;
+     ]
    in
    let builtin_info =
       { builtin_empty with builtin_vars = builtin_vars;

@@ -121,6 +121,11 @@ type rule_kind =
  | RuleScanner
 
 (*
+ * Handles to values.
+ *)
+type handle_env
+
+(*
  * Possible values.
  * For the function, the obj is the static scope.
  *)
@@ -172,6 +177,7 @@ and value_other =
  | ValLocation    of loc
  | ValPosition    of pos
  | ValExitCode    of int
+ | ValEnv         of handle_env
 
 (*
  * Command lists are used for rule bodies.
@@ -373,6 +379,12 @@ val venv_defined_env : venv -> var -> bool
  *)
 val venv_options          : venv -> omake_options
 val venv_set_options      : venv -> loc -> pos -> string list -> venv
+
+(*
+ * Values represented with handles.
+ *)
+val venv_add_environment      : venv -> handle_env
+val venv_find_environment     : venv -> pos -> handle_env -> venv
 
 (*
  * Find values.

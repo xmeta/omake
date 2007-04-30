@@ -113,7 +113,7 @@ val eval_defined_method_var : venv -> pos -> loc -> var_info -> var list -> bool
  * Be careful with this: don't create a ValPrim using
  * this function, since marshaling will fail.
  *)
-val eval_fun : venv -> pos -> value -> arity * bool * (venv -> pos -> loc -> value list -> venv * value)
+val eval_fun : venv -> pos -> value -> arity * bool * prim_fun_data
 
 (*
  * Also, if the value is an array of 1 element,
