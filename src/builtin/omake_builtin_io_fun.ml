@@ -729,7 +729,7 @@ let rec awk_eval_cases venv pos loc break line cases =
                awk_eval_cases venv pos loc break line cases
     | (Some lex, body, export) :: cases ->
          let channel = Lm_channel.of_string line in
-         let result, stop =
+         let venv, stop =
             match Lexer.search lex channel with
                Some (_, _, _, _, args) ->
                   let venv = venv_add_match_args venv args in
