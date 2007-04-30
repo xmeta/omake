@@ -1402,7 +1402,7 @@ and build_export_command genv oenv senv cenv e cases body pos loc =
                               let oenv, info = senv_find_var genv oenv senv cenv pos loc v in
                                  oenv, Omake_ir.ExportVar info
                      in
-                        oenv, item:: items) (oenv, items) argv
+                        oenv, item :: items) (oenv, items) argv
             in
                oenv, ExportListMode (loc, List.rev items)
    in
@@ -1734,7 +1734,7 @@ and build_normal_object_exp genv oenv senv cenv info v flag body pos loc =
    let export, _ = senv_add_exports senv_body result in
 
    (* Add the extends directive to the object body *)
-   let e =  LetObjectExp (loc, info, parent_string, body, export) in
+   let e = LetObjectExp (loc, info, parent_string, body, export) in
       genv, oenv, senv, e, ValValue
 
 (*

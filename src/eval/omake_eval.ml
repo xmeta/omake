@@ -1801,9 +1801,8 @@ and eval_let_fun_exp venv pos loc v params body export =
 and eval_shell_exp venv pos loc e =
    let pos = string_pos "eval_shell_exp" pos in
    let v = venv_find_var venv pos loc system_var in
-   let s = eager_string_exp venv pos e in
-   let result = eval_apply venv pos loc v [s] in
-      venv, result
+   let venv, s = eval_string_export_exp true venv pos e in
+      eval_apply_export venv pos loc v [s]
 
 (*
  * Conditionals.
@@ -1894,7 +1893,7 @@ and eval_let_object_exp venv pos v s el export =
  *)
 and eval_let_this_exp venv pos s =
    let pos = string_pos "eval_this_exp" pos in
-   let obj = eager_string_exp venv pos s in
+   let venv, obj = eval_string_export_exp true venv pos s in
    let obj = eval_object venv pos obj in
    let venv = venv_with_object venv obj in
       venv, ValObject obj
