@@ -26,6 +26,7 @@
 open Lm_location
 
 open Omake_env
+open Omake_pos
 
 (*
  * Set the command completion fur use by readline.

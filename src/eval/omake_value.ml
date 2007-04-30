@@ -31,13 +31,15 @@
 open Lm_printf
 
 open Omake_ir
+open Omake_var
 open Omake_env
+open Omake_pos
 open Omake_node_sig
 open Omake_node
 open Omake_lexer
 open Omake_parser
 open Omake_symbol
-open Omake_var
+open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_value" end)
 open Pos

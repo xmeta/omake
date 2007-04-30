@@ -33,7 +33,9 @@ open Lm_symbol
 
 open Omake_ir
 open Omake_env
+open Omake_pos
 open Omake_exec
+open Omake_value_type
 open Omake_build_type
 
 type builtin_fun = venv -> pos -> loc -> value list -> value

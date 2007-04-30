@@ -36,17 +36,20 @@ open Lm_location
 open Lm_symbol
 
 open Omake_ir
+open Omake_pos
 open Omake_node
 open Omake_exec
 open Omake_cache
 open Omake_lexer
 open Omake_parser
+open Omake_options
 open Omake_node_sig
 open Omake_exec_type
 open Omake_shell_type
-open Omake_options
 open Omake_command_type
 open Omake_ir_free_vars
+open Omake_handle_table
+open Omake_value_type
 open Omake_var
 
 (*
@@ -56,127 +59,9 @@ val debug_scanner  : bool ref
 val debug_implicit : bool ref
 
 (*
- * A source string.
- *)
-type 'a source = node_kind * 'a
-
-(*
- * A target value that represents a node in a rule.
- *)
-type target =
-   TargetNode of Node.t
- | TargetString of string
-
-(*
- * Type of objects.
- *)
-type obj
-
-(*
- * Type of maps.
- *)
-type map
-
-(*
- * Static scopes.
- *)
-type env
-
-(*
  * Type of environments.
  *)
 type venv
-
-(*
- * Primitive values.
- *)
-type prim_fun
-
-(*
- * Exception positions.
- *)
-type pos
-
-(*
- * IoChannels.
- *)
-type prim_channel
-
-type channel_mode = Lm_channel.mode =
-   InChannel
- | OutChannel
- | InOutChannel
-
-(*
- * Kinds of rules.
- *)
-type rule_multiple =
-   RuleSingle
- | RuleMultiple
- | RuleScannerSingle
- | RuleScannerMultiple
-
-type rule_kind =
-   RuleNormal
- | RuleScanner
-
-(*
- * Handles to values.
- *)
-type handle_env
-
-(*
- * Possible values.
- * For the function, the obj is the static scope.
- *)
-type value =
-   ValNone
- | ValInt         of int
- | ValFloat       of float
- | ValSequence    of value list
- | ValArray       of value list
- | ValString      of string
- | ValData        of string
- | ValQuote       of value list
- | ValQuoteString of char * value list
- | ValRules       of Node.t list
- | ValNode        of Node.t
- | ValDir         of Dir.t
- | ValObject      of obj
- | ValMap         of map
- | ValChannel     of channel_mode * prim_channel
- | ValClass       of obj SymbolTable.t
-
-   (* Raw expressions *)
- | ValBody        of env * exp list * export
- | ValCases       of (var * value * exp list * export) list
-
-   (* Functions *)
- | ValFun         of arity * env * var list * exp list * export
-
-   (* Closed values *)
- | ValApply       of loc * var_info * value list
- | ValSuperApply  of loc * var * var * value list
- | ValMethodApply of loc * var_info * var list * value list
- | ValKey         of loc * string
- | ValPrim        of arity * bool * prim_fun
-
-   (* Potentially undefined values, used only in implicit value dependencies *)
- | ValImplicit    of loc * var_info
-
-   (* Other values *)
- | ValOther       of value_other
-
-(*
- * Put all the other stuff here, to keep the primary value type
- * smaller.
- *)
-and value_other =
-   ValLexer       of Lexer.t
- | ValParser      of Parser.t
- | ValLocation    of loc
- | ValExitCode    of int
- | ValEnv         of handle_env
 
 (*
  * Command lists are used for rule bodies.
@@ -184,11 +69,7 @@ and value_other =
  * and the actual body.  The body is polymorphic
  * for various kinds of commands.
  *)
-type command =
-   CommandSection of value * free_vars * exp list   (* Name of the section, its free variables, and the expression *)
- | CommandValue of loc * value
-
-and command_info =
+type command_info =
    { command_env       : venv;
      command_sources   : Node.t list;
      command_values    : value list;
@@ -551,96 +432,14 @@ val pp_print_arg_command_lines : formatter -> arg_command_line list -> unit
 val squash_prim_fun : prim_fun -> var
 val squash_object : obj -> value SymbolTable.t
 
-(************************************************************************
- * Exceptions.
- *)
-
-(*
- * Errors.
- *)
-type omake_error =
-   SyntaxError       of string
- | StringError       of string
- | StringStringError of string * string
- | StringDirError    of string * Dir.t
- | StringNodeError   of string * Node.t
- | StringVarError    of string * var
- | StringIntError    of string * int
- | StringMethodError of string * var list
- | StringValueError  of string * value
- | StringTargetError of string * target
- | LazyError         of (formatter -> unit)
- | UnboundVar        of var
- | UnboundVarInfo    of var_info
- | UnboundFun        of var
- | UnboundMethod     of var list
- | ArityMismatch     of arity * int
- | NotImplemented    of string
- | UnboundKey        of string
- | UnboundValue      of value
- | NullCommand
-
 (*
  * General exception includes debugging info.
  *)
-exception OmakeException    of pos * omake_error
-exception UncaughtException of pos * exn
-exception RaiseException    of pos * obj
-exception ExitException     of pos * int
-exception Return            of loc * value
 exception Break             of loc * venv
-
-(*
- * Omake's internal version of the Invalid_argument
- *)
-exception OmakeFatal of string
-exception OmakeFatalErr of pos * omake_error
-
-(*
- * Module for creating positions.
- * You have to specify the name of the module
- * where the exception are being created: use
- * MakePos in each file where Name.name is set
- * to the name of the module.
- *)
-module type PosSig =
-sig
-   val loc_exp_pos    : loc -> pos
-   val loc_pos        : loc -> pos -> pos
-
-   val ast_exp_pos    : Omake_ast.exp -> pos
-   val ir_exp_pos     : Omake_ir.exp -> pos
-   val var_exp_pos    : var -> pos
-   val string_exp_pos : string -> pos
-   val value_exp_pos  : value -> pos
-
-   val string_pos     : string -> pos -> pos
-   val pos_pos        : pos -> pos -> pos
-   val int_pos        : int -> pos -> pos
-   val var_pos        : var -> pos -> pos
-   val error_pos      : omake_error -> pos -> pos
-
-   val del_pos        : (formatter -> unit) -> loc -> pos
-   val del_exp_pos    : (formatter -> unit) -> pos -> pos
-
-   (* Utilities *)
-   val loc_of_pos     : pos -> loc
-   val pp_print_pos   : formatter -> pos -> unit
-end
-
-module MakePos (Name : sig val name : string end) : PosSig
-
-(*
- * Exception printing.
- *)
-val pp_print_exn : formatter -> omake_error -> unit
 
 (*
  * For debugging.
  *)
-val pp_print_env            : formatter -> env -> unit
-val pp_print_value          : formatter -> value -> unit
-val pp_print_value_list     : formatter -> value list -> unit
 val pp_print_explicit_rules : formatter -> venv -> unit
 val pp_print_rule           : formatter -> erule -> unit
 

@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Jason Hickey, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,10 +41,12 @@ open Lm_location
 
 open Omake_ast
 open Omake_env
+open Omake_pos
 open Omake_ast_util
 open Omake_ast_parse
 open Omake_ast_print
 open Omake_exn_print
+open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_ast_lex" end)
 open Pos

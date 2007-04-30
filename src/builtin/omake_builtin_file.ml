@@ -42,20 +42,22 @@ open Lm_string_set
 
 open Omake_ir
 open Omake_env
+open Omake_var
+open Omake_pos
 open Omake_eval
 open Omake_node
 open Omake_rule
 open Omake_value
 open Omake_target
 open Omake_symbol
+open Omake_builtin
 open Omake_node_sig
 open Omake_build_util
 open Omake_builtin_util
 open Omake_builtin_type
-open Omake_builtin
 open Omake_build_type
 open Omake_cache_type
-open Omake_var
+open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_builtin_file" end)
 open Pos

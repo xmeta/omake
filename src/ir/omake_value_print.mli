@@ -1,15 +1,15 @@
 (*
- * Compute a digest of a value.
+ * Value printers.
  *
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2007 Mojave Group, Caltech
+ * Copyright (C) 2006 Mojave Group, Caltech
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,31 +18,29 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * Author: Jason Hickey
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Omake_env
-open Omake_pos
-open Omake_command_type
+open Lm_printf
+
+open Omake_wild
+open Omake_value_type
+
+val pp_print_target           : formatter -> target -> unit
+val pp_print_wild_list        : formatter -> wild_in_patt list -> unit
+val pp_print_source_list      : formatter -> ('a * source_core) list -> unit
+val pp_print_value            : formatter -> value -> unit
+val pp_print_simple_value     : formatter -> value -> unit
+val pp_print_value_list       : formatter -> value list -> unit
 
 (*
- * Digests.
- *)
-val digest_of_commands : pos -> arg_command_line list -> command_digest
-
-(*!
- * @docoff
- *
  * -*-
  * Local Variables:
- * Caml-master: "compile"
+ * Fill-column: 100
  * End:
  * -*-
+ * vim:ts=3:et:tw=100
  *)

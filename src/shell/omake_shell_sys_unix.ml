@@ -31,6 +31,7 @@
 open Lm_printf
 open Lm_debug
 
+open Omake_pos
 open Omake_exn_print
 open Omake_shell_type
 open Omake_shell_sys_type
@@ -203,7 +204,7 @@ let create_thread info =
                ignore (Sys.signal Sys.sigtstp Sys.Signal_default);
                f Unix.stdin Unix.stdout Unix.stderr pgrp
             with
-               Omake_env.ExitException (_, code) ->
+               Omake_value_type.ExitException (_, code) ->
                   code
              | exn ->
                   let () =

@@ -38,6 +38,8 @@ open Lm_location
 
 open Omake_ir
 open Omake_env
+open Omake_var
+open Omake_pos
 open Omake_eval
 open Omake_node
 open Omake_value
@@ -46,9 +48,10 @@ open Omake_parser
 open Omake_printf
 open Omake_symbol
 open Omake_builtin
+open Omake_value_type
+open Omake_value_print
 open Omake_builtin_type
 open Omake_builtin_util
-open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_io" end)
 open Pos
@@ -1592,7 +1595,7 @@ struct
         print_channel : Lm_channel.t
       }
 
-   type value = Omake_env.value
+   type value = Omake_value_type.value
 
    (*
     * Create the buffers and channels.

@@ -40,8 +40,11 @@ open Lm_hash
 
 open Omake_ir
 open Omake_env
+open Omake_pos
 open Omake_node
 open Omake_shell_type
+open Omake_value_type
+open Omake_value_print
 open Omake_command_type
 
 (*

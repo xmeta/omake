@@ -36,21 +36,24 @@ open Lm_string_set
 
 open Omake_ir
 open Omake_env
+open Omake_var
+open Omake_pos
 open Omake_exec
 open Omake_wild
 open Omake_node
 open Omake_util
 open Omake_state
 open Omake_ir_ast
+open Omake_symbol
 open Omake_command
 open Omake_ir_print
 open Omake_node_sig
 open Omake_exec_type
 open Omake_exec_util
 open Omake_cache_type
+open Omake_value_type
+open Omake_value_print
 open Omake_command_type
-open Omake_symbol
-open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_eval" end)
 open Pos

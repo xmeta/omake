@@ -32,7 +32,9 @@ open Lm_symbol
 open Lm_location
 
 open Omake_env
+open Omake_pos
 open Omake_node
+open Omake_value_type
 open Omake_build_type
 
 (*

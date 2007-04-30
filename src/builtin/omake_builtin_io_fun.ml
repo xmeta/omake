@@ -117,6 +117,8 @@ open Lm_symbol
 
 open Omake_ir
 open Omake_env
+open Omake_var
+open Omake_pos
 open Omake_eval
 open Omake_node
 open Omake_value
@@ -125,9 +127,10 @@ open Omake_parser
 open Omake_printf
 open Omake_symbol
 open Omake_builtin
+open Omake_value_type
+open Omake_value_print
 open Omake_builtin_util
 open Omake_builtin_type
-open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_builtin_io_fun" end)
 open Pos

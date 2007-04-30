@@ -36,12 +36,14 @@ open Lm_string_set
 
 open Omake_ir
 open Omake_env
+open Omake_pos
 open Omake_eval
 open Omake_wild
 open Omake_node
 open Omake_value
 open Omake_state
 open Omake_node_sig
+open Omake_value_type
 open Omake_build_type
 open Omake_symbol
 

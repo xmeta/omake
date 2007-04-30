@@ -36,11 +36,13 @@ open Lm_lexer
 open Omake_ir
 open Omake_env
 open Omake_var
+open Omake_pos
 open Omake_node
 open Omake_symbol
+open Omake_options
 open Omake_node_sig
 open Omake_ir_print
-open Omake_options
+open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_ir_ast" end)
 open Pos;;

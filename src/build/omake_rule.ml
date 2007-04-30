@@ -38,6 +38,8 @@ open Lm_string_set
 
 open Omake_ir
 open Omake_env
+open Omake_var
+open Omake_pos
 open Omake_util
 open Omake_node
 open Omake_eval
@@ -54,10 +56,11 @@ open Omake_exec_util
 open Omake_shell_lex
 open Omake_cache_type
 open Omake_shell_type
+open Omake_value_type
+open Omake_value_print
 open Omake_ir_free_vars
 open Omake_command_type
 open Omake_command_digest
-open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_rule" end);;
 open Pos;;

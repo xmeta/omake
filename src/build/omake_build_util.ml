@@ -32,8 +32,10 @@ open Lm_printf
 open Lm_symbol
 
 open Omake_env
+open Omake_pos
 open Omake_node
 open Omake_build_type
+open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_build_util" end)
 open Pos

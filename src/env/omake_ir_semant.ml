@@ -39,7 +39,9 @@ open Lm_printf
 
 open Omake_ir
 open Omake_env
+open Omake_pos
 open Omake_ir_util
+open Omake_value_type
 
 module Pos = MakePos (struct let name = "Omake_ir_semant" end)
 open Pos

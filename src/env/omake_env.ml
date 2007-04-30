@@ -38,22 +38,27 @@ open Lm_string_set
 open Lm_string_util
 
 open Omake_ir
+open Omake_pos
 open Omake_util
 open Omake_wild
 open Omake_node
 open Omake_exec
 open Omake_state
-open Omake_lexer
-open Omake_parser
 open Omake_symbol
 open Omake_ir_print
 open Omake_node_sig
 open Omake_print_util
 open Omake_shell_type
 open Omake_command_type
-open Omake_options
 open Omake_ir_free_vars
+open Omake_handle_table
+open Omake_value_print
+open Omake_value_type
+open Omake_options
 open Omake_var
+
+module Pos = MakePos (struct let name = "Omake_env" end)
+open Pos;;
 
 (*
  * Debugging.
@@ -86,174 +91,9 @@ let debug_db =
       }
 
 (*
- * A source is either
- *   1. A wild string
- *   2. A node
- *   3. An optional source
- *   4. A squashed source
- *)
-type source_core =
-   SourceWild of wild_out_patt
- | SourceNode of Node.t
-
-type 'a source = node_kind * 'a
-
-(*
- * A target value that represents a node in a rule.
- *)
-type target =
-   TargetNode of Node.t
- | TargetString of string
-
-(*
- * IoChannels.
- *)
-type channel_mode = Lm_channel.mode =
-   InChannel
- | OutChannel
- | InOutChannel
-
-type channel_data =
-   ChannelDelayed
- | ChannelClosed
- | ChannelValue of Lm_channel.t
-
-type prim_channel =
-   { channel_id           : int;
-     mutable channel_data : channel_data
-   }
-
-(*
- * Kinds of rules.
- *)
-type rule_multiple =
-   RuleSingle
- | RuleMultiple
- | RuleScannerSingle
- | RuleScannerMultiple
-
-type rule_kind =
-   RuleNormal
- | RuleScanner
-
-(*
- * Handles.  These need to be heap allocated so that we can register
- * finalization functions.
- *)
-module type HandleTableSig =
-sig
-   type 'a t
-   type handle
-
-   val create : unit -> 'a t
-   val add : 'a t -> 'a -> handle
-   val find : 'a t -> handle -> 'a
-end;;
-
-module HandleTable : HandleTableSig =
-struct
-   type 'a t =
-      { mutable hand_table : 'a IntTable.t;
-        mutable hand_index : int
-      }
-
-   (* This must be heap-allocated *)
-   type handle = { handle_index : int }
-
-   let create () =
-      { hand_table = IntTable.empty;
-        hand_index = 0
-      }
-
-   let free table hand =
-      table.hand_table <- IntTable.remove table.hand_table hand.handle_index
-
-   let add table x =
-      let i = table.hand_index in
-      let hand = { handle_index = i } in
-         Gc.finalise (free table) hand;
-         table.hand_index <- succ i;
-         table.hand_table <- IntTable.add table.hand_table i x;
-         hand
-
-    let find table hand =
-       IntTable.find table.hand_table hand.handle_index
-end;;
-
-type handle_env = HandleTable.handle
-
-(*
- * Possible values.
- * Someday we may want to include rules and functions.
- * For the function, the obj is the static scope.
- *)
-type value =
-   ValNone
- | ValInt         of int
- | ValFloat       of float
- | ValSequence    of value list
- | ValArray       of value list
- | ValString      of string
- | ValData        of string
- | ValQuote       of value list
- | ValQuoteString of char * value list
- | ValRules       of Node.t list
- | ValNode        of Node.t
- | ValDir         of Dir.t
- | ValObject      of obj
- | ValMap         of map
- | ValChannel     of channel_mode * prim_channel
- | ValClass       of obj SymbolTable.t
-
-   (* Raw expressions *)
- | ValBody        of env * exp list * export
- | ValCases       of (var * value * exp list * export) list
-
-   (* Functions *)
- | ValFun         of arity * env * var list * exp list * export
-
-   (* Closed values *)
- | ValApply       of loc * var_info * value list
- | ValSuperApply  of loc * var * var * value list
- | ValMethodApply of loc * var_info * var list * value list
- | ValKey         of loc * string
- | ValPrim        of arity * bool * prim_fun
-
-   (* Potentially undefined values, used only in implicit value dependencies *)
- | ValImplicit    of loc * var_info
-
-   (* Other values *)
- | ValOther       of value_other
-
-and value_other =
-   ValLexer       of Lexer.t
- | ValParser      of Parser.t
- | ValLocation    of loc
- | ValExitCode    of int
- | ValEnv         of HandleTable.handle
-
-(*
- * Primitives are option refs.
- * We do this so that we can marshal these values.
- * Just before marshaling, all the options are set to None.
- *)
-and prim_fun = symbol
-
-(*
- * An object is just an environment.
- *)
-and obj = value SymbolTable.t
-and env = value SymbolTable.t
-and map = (value, value) Lm_map.tree
-
-(*
  * Command lists have source arguments.
  *)
-type command =
-   CommandSection of value * free_vars * exp list
- | CommandValue of loc * value
-
-and command_info =
+type command_info =
    { command_env     : venv;
      command_sources : Node.t list;
      command_values  : value list;
@@ -455,56 +295,9 @@ and string_group = (simple_exe, string, value, string, apply) poly_group
 and string_pipe  = (simple_exe, string, value, string, apply) poly_pipe
 
 (*
- * Exceptions.
- *)
-and item =
-   Symbol        of symbol
- | String        of string
- | AstExp        of Omake_ast.exp
- | IrExp         of Omake_ir.exp
- | Location      of loc
- | Value         of value
- | Error         of omake_error
-
-and pos = item Lm_position.pos
-
-and omake_error =
-   SyntaxError       of string
- | StringError       of string
- | StringStringError of string * string
- | StringDirError    of string * Dir.t
- | StringNodeError   of string * Node.t
- | StringVarError    of string * var
- | StringIntError    of string * int
- | StringMethodError of string * var list
- | StringValueError  of string * value
- | StringTargetError of string * target
- | LazyError         of (formatter -> unit)
- | UnboundVar        of var
- | UnboundVarInfo    of var_info
- | UnboundFun        of var
- | UnboundMethod     of var list
- | ArityMismatch     of arity * int
- | NotImplemented    of string
- | UnboundKey        of string
- | UnboundValue      of value
- | NullCommand
-
-(*
  * Error during translation.
  *)
-exception OmakeException    of pos * omake_error
-exception UncaughtException of pos * exn
-exception RaiseException    of pos * obj
-exception ExitException     of pos * int
-exception Return            of loc * value
 exception Break             of loc * venv
-
-(*
- * Omake's internal version of the Invalid_argument
- *)
-exception OmakeFatal of string
-exception OmakeFatalErr of pos * omake_error
 
 (*
  * Now the stuff that is really global, not saved in venv.
@@ -556,105 +349,6 @@ type include_scope =
 let venv_globals venv =
    venv.venv_inner.venv_globals
 
-(************************************************************************
- * Tables of values.
- *)
-module ValueCompare =
-struct
-   type t = value
-
-   (*
-    * Check for simple values.
-    * Arrays cannot be nested.
-    *)
-   let check_simple pos v =
-      match v with
-         ValNone
-       | ValInt _
-       | ValFloat _
-       | ValData _
-       | ValNode _
-       | ValDir _
-       | ValOther (ValLocation _)
-       | ValOther (ValExitCode _) ->
-            ()
-       | _ ->
-            raise (OmakeException (pos, StringValueError ("illegal Map key", v)))
-
-   let check pos v =
-      (match v with
-          ValArray vl ->
-             List.iter (check_simple pos) vl
-        | _ ->
-             check_simple pos v);
-      v
-
-   (*
-    * Compare two simple values.
-    *)
-   let tag = function
-      ValNone                  -> 0
-    | ValInt _                 -> 1
-    | ValFloat _               -> 2
-    | ValArray _               -> 3
-    | ValData _                -> 4
-    | ValNode _                -> 5
-    | ValDir _                 -> 6
-    | ValOther (ValExitCode _) -> 7
-    | ValOther (ValLocation _) -> 8
-    | _ ->
-         raise (Invalid_argument "ValueCompare: value not supported")
-
-   let rec compare v1 v2 =
-      match v1, v2 with
-         ValNone, ValNone ->
-            0
-       | ValInt i1, ValInt i2
-       | ValOther (ValExitCode i1), ValOther (ValExitCode i2) ->
-            if i1 < i2 then
-               -1
-            else if i1 > i2 then
-               1
-            else
-               0
-       | ValFloat x1, ValFloat x2 ->
-            if x1 < x2 then
-               -1
-            else if x1 > x2 then
-               1
-            else
-               0
-       | ValArray a1, ValArray a2 ->
-            compare_list a1 a2
-       | ValData s1, ValData s2 ->
-            Pervasives.compare s1 s2
-       | ValNode node1, ValNode node2 ->
-            Node.compare node1 node2
-       | ValDir dir1, ValDir dir2 ->
-            Dir.compare dir1 dir2
-       | ValOther (ValLocation loc1), ValOther (ValLocation loc2) ->
-            Lm_location.compare loc1 loc2
-       | _ ->
-            tag v1 - tag v2
-
-   and compare_list l1 l2 =
-      match l1, l2 with
-         v1 :: l1, v2 :: l2 ->
-            let cmp = compare v1 v2 in
-               if cmp = 0 then
-                  compare_list l1 l2
-               else
-                  cmp
-       | [], [] ->
-            0
-       | [], _ :: _ ->
-            -1
-       | _ :: _, [] ->
-            1
-end;;
-
-module ValueTable = Lm_map.LmMakeRec (ValueCompare);;
-
 (*
  * Map functions.
  *)
@@ -682,167 +376,9 @@ let venv_map_fold   = ValueTable.fold
 let venv_map_length = ValueTable.cardinal
 
 (************************************************************************
- * Special symbols.
- *)
-
-let class_sym = Lm_symbol.add "$class"
-
-(*
- * Basic utilities.
- *)
-let venv_get_class obj =
-   match
-      try SymbolTable.find obj class_sym with
-         Not_found ->
-            ValNone
-   with
-      ValClass table ->
-         table
-    | _ ->
-         SymbolTable.empty
-
-(************************************************************************
  * Printing.
  *)
-let pp_print_pos_ref = ref (fun _ _ -> ())
-
-let pp_print_string_list buf sl =
-   List.iter (fun s -> fprintf buf "@ %s" s) sl
-
-let pp_print_node_list buf l =
-   List.iter (fun s -> fprintf buf "@ %a" pp_print_node s) l
-
-let pp_print_node_set buf set =
-   NodeSet.iter (fun s -> fprintf buf "@ %a" pp_print_node s) set
-
-let pp_print_wild_list buf wl =
-   List.iter (fun w -> fprintf buf "@ %a" pp_print_wild_in w) wl
-
-let pp_print_source buf (_, source) =
-   match source with
-      SourceWild wild ->
-         pp_print_wild_out buf wild
-    | SourceNode node ->
-         pp_print_node buf node
-
-let pp_print_source_list buf sources =
-   List.iter (fun source -> fprintf buf "@ %a" pp_print_source source) sources
-
-let pp_print_target buf target =
-   match target with
-      TargetNode node ->
-         pp_print_node buf node
-    | TargetString s ->
-         pp_print_string buf s
-
-let rec pp_print_value buf v =
-   match v with
-      ValNone ->
-         pp_print_string buf "<none>"
-    | ValInt i ->
-         fprintf buf "%d : Int" i
-    | ValFloat x ->
-         fprintf buf "%g : Float" x
-    | ValData s ->
-         fprintf buf "@[<v 3><data \"%s\"> : String@]" (String.escaped s)
-    | ValQuote vl ->
-         fprintf buf "@[<v 3><string%a>@ : String@]" pp_print_value_list vl
-    | ValString s ->
-         fprintf buf "\"%s\" : Sequence" (String.escaped s)
-    | ValQuoteString (c, vl) ->
-         fprintf buf "@[<v 3><string %c%a%c>@ : String@]" c pp_print_value_list vl c
-    | ValSequence [v] ->
-         pp_print_value buf v
-    | ValSequence vl ->
-         fprintf buf "@[<hv 3><sequence%a>@ : Sequence@]" pp_print_value_list vl
-    | ValArray vl ->
-         fprintf buf "@[<v 3><array%a>@ : Array@]" pp_print_value_list vl
-    | ValApply (_, f, args) ->
-         fprintf buf "@[<hv 3>$(apply %a%a)@]" (**)
-            pp_print_var_info f
-            pp_print_value_list args
-    | ValSuperApply (_, super, f, args) ->
-         fprintf buf "@[<hv 3>$(apply %a::%a%a)@]" (**)
-            pp_print_symbol super
-            pp_print_symbol f
-            pp_print_value_list args
-    | ValMethodApply (_, v, vl, args) ->
-         fprintf buf "@[<hv 3>$(%a%a%a)@]" (**)
-            pp_print_var_info v
-            pp_print_method_name vl
-            pp_print_value_list args
-    | ValImplicit (_, v) ->
-         fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
-            pp_print_var_info v
-    | ValFun (arity, _, _, _, _) ->
-         fprintf buf "<fun %a>" pp_print_arity arity
-    | ValPrim (_, special, name) ->
-         if special then
-            fprintf buf "<special-function %a>" pp_print_symbol name
-         else
-            fprintf buf "<prim-function %a>" pp_print_symbol name
-    | ValRules rules ->
-         fprintf buf "<@[<hv 3>rules:";
-         List.iter (fun erule -> fprintf buf "@ %a" pp_print_node erule) rules;
-         fprintf buf "@]>"
-    | ValDir dir ->
-         fprintf buf "%a : Dir" pp_print_dir dir
-    | ValNode node ->
-         fprintf buf "%a : File" pp_print_node node
-    | ValBody (_, el, export) ->
-         fprintf buf "@[<v 0>%a%a@ : Body@]" pp_print_exp_list el pp_print_export_info export
-    | ValObject env ->
-         pp_print_env buf env
-    | ValMap map ->
-         fprintf buf "@[<hv 3>map";
-         ValueTable.iter (fun v e -> fprintf buf "@ %a@ = %a" pp_print_value v pp_print_value e) map;
-         fprintf buf "@]"
-    | ValChannel (InChannel, _) ->
-         fprintf buf "<channel> : InChannel"
-    | ValChannel (OutChannel, _) ->
-         fprintf buf "<channel> : OutChannel"
-    | ValChannel (InOutChannel, _) ->
-         fprintf buf "<channel> : InOutChannel"
-    | ValClass c ->
-         fprintf buf "@[<hv 3>class";
-         SymbolTable.iter (fun v _ ->
-               fprintf buf "@ %a" pp_print_symbol v) c;
-         fprintf buf "@]"
-    | ValCases cases ->
-         fprintf buf "@[<hv 3>cases";
-         List.iter (fun (v, e1, e2, export) ->
-               fprintf buf "@[<hv 3>%a %a:@ %a%a@]" (**)
-                  pp_print_symbol v
-                  pp_print_value e1
-                  pp_print_exp_list e2
-                  pp_print_export_info export) cases;
-         fprintf buf "@]"
-    | ValKey (_, v) ->
-         fprintf buf "key $|%s|" v
-    | ValOther (ValLexer _) ->
-         fprintf buf "<lexer> : Lexer"
-    | ValOther (ValParser _) ->
-         fprintf buf "<parser> : Parser"
-    | ValOther (ValLocation loc) ->
-         fprintf buf "<location %a> : Location" pp_print_location loc
-    | ValOther (ValExitCode code) ->
-         fprintf buf "<exit-code %d> : Int" code
-    | ValOther (ValEnv _) ->
-         fprintf buf "<env>"
-
-and pp_print_value_list buf vl =
-   List.iter (fun v -> fprintf buf "@ %a" pp_print_value v) vl
-
-and pp_print_env buf env =
-   let tags = venv_get_class env in
-   let env = SymbolTable.remove env class_sym in
-      fprintf buf "@[<v 3>@[<hv 3>class";
-      SymbolTable.iter (fun v _ -> fprintf buf "@ %a" pp_print_symbol v) tags;
-      fprintf buf "@]";
-      SymbolTable.iter (fun v e -> fprintf buf "@ %a = %a" pp_print_symbol v pp_print_value e) env;
-      fprintf buf "@]"
-
-and pp_print_command buf command =
+let rec pp_print_command buf command =
    match command with
       CommandSection (arg, fv, e) ->
          fprintf buf "@[<hv 3>section %a@ %a@]" pp_print_value arg pp_print_exp_list e
@@ -888,95 +424,6 @@ let pp_print_explicit_rules buf venv =
    fprintf buf "@[<hv 3>Explicit rules:";
    List.iter (fun erule -> fprintf buf "@ %a" pp_print_rule erule) venv.venv_inner.venv_globals.venv_explicit_rules;
    fprintf buf "@]"
-
-(************************************************************************
- * Simplified printing.
- *)
-let rec pp_print_simple_value buf v =
-   match v with
-      ValNone ->
-         pp_print_string buf "<none>"
-    | ValInt i ->
-         pp_print_int buf i
-    | ValFloat x ->
-         pp_print_float buf x
-    | ValData s ->
-         Omake_command_type.pp_print_arg buf [ArgData s]
-    | ValString s ->
-         Omake_command_type.pp_print_arg buf [ArgString s]
-    | ValQuote vl ->
-         fprintf buf "\"%a\"" pp_print_simple_value_list vl
-    | ValQuoteString (c, vl) ->
-         fprintf buf "%c%a%c" c pp_print_simple_value_list vl c
-    | ValSequence vl ->
-         pp_print_simple_value_list buf vl
-    | ValArray vl ->
-         pp_print_simple_arg_list buf vl
-    | ValApply (_, f, args) ->
-         fprintf buf "$(%a%a)" (**)
-            pp_print_var_info f
-            pp_print_simple_arg_list args
-    | ValSuperApply (_, super, f, args) ->
-         fprintf buf "$(%a::%a%a)" (**)
-            pp_print_symbol super
-            pp_print_symbol f
-            pp_print_simple_arg_list args
-    | ValMethodApply (_, v, vl, args) ->
-         fprintf buf "$(%a%a%a)" (**)
-            pp_print_var_info v
-            pp_print_method_name vl
-            pp_print_value_list args
-    | ValImplicit (_, v) ->
-         fprintf buf "$?(%a)" (**)
-            pp_print_var_info v
-    | ValFun _ ->
-         pp_print_string buf "<fun>"
-    | ValPrim _ ->
-         pp_print_string buf "<prim>"
-    | ValRules _ ->
-         pp_print_string buf "<rules>"
-    | ValDir dir ->
-         pp_print_dir buf dir
-    | ValNode node ->
-         pp_print_node buf node
-    | ValBody _ ->
-         pp_print_string buf "<body>"
-    | ValObject _ ->
-         pp_print_string buf "<object>"
-    | ValMap _ ->
-         pp_print_string buf "<map>"
-    | ValChannel _ ->
-         pp_print_string buf "<channel>"
-    | ValClass _ ->
-         pp_print_string buf "<class>"
-    | ValCases _ ->
-         pp_print_string buf "<cases>"
-    | ValKey (_, v) ->
-         fprintf buf "$|%s|" v
-    | ValOther (ValLexer _) ->
-         pp_print_string buf "<lexer>"
-    | ValOther (ValParser _) ->
-         pp_print_string buf "<parser>"
-    | ValOther (ValLocation _) ->
-         pp_print_string buf "<location>"
-    | ValOther (ValExitCode i) ->
-         pp_print_int buf i
-    | ValOther (ValEnv _) ->
-         pp_print_string buf "<env>"
-
-and pp_print_simple_value_list buf vl =
-   List.iter (pp_print_simple_value buf) vl
-
-and pp_print_simple_arg_list buf vl =
-   match vl with
-      [] ->
-         ()
-    | [v] ->
-         pp_print_simple_value buf v
-    | v :: vl ->
-         pp_print_simple_value buf v;
-         pp_print_char buf ' ';
-         pp_print_simple_arg_list buf vl
 
 (************************************************************************
  * Pipeline printing.
@@ -1082,167 +529,6 @@ let pp_print_arg_pipe = PrintArgPipe.pp_print_pipe
 let pp_print_arg_command_inst = PrintArgCommand.pp_print_command_inst
 let pp_print_arg_command_line = PrintArgCommand.pp_print_command_line
 let pp_print_arg_command_lines = PrintArgCommand.pp_print_command_lines
-
-(************************************************************************
- * Exceptions
- *)
-
-(*
- * Get the source location for an exception.
- *)
-let string_loc = bogus_loc "<Omake_env>"
-
-let rec loc_of_item x =
-   match x with
-      AstExp e ->
-         Omake_ast_util.loc_of_exp e
-    | IrExp e ->
-         Omake_ir_util.loc_of_exp e
-    | Location loc ->
-         loc
-    | Value _
-    | Symbol _
-    | String _
-    | Error _ ->
-         string_loc
-
-(*
- * Value printing.
- *)
-let rec pp_print_item buf x =
-   match x with
-      AstExp e ->
-         Omake_ast_print.pp_print_exp buf e
-
-    | IrExp e ->
-         Omake_ir_print.pp_print_exp buf e
-
-    | Location _ ->
-         ()
-
-    | Symbol v ->
-         pp_print_symbol buf v
-
-    | String s ->
-         pp_print_string buf s
-
-    | Value v ->
-         pp_print_value buf v
-
-    | Error e ->
-         pp_print_exn buf e
-
-(*
- * Exception printer.
- *)
-and pp_print_exn buf = function
-   SyntaxError s ->
-      fprintf buf "syntax error: %s" s
- | StringError s ->
-      pp_print_string buf s
- | StringIntError (s, i) ->
-      fprintf buf "%s: %d" s i
- | StringStringError (s1, s2) ->
-      fprintf buf "%s: %s" s1 s2
- | StringVarError (s, v) ->
-      fprintf buf "%s: %a" s pp_print_symbol v
- | StringMethodError (s, v) ->
-      fprintf buf "%s: %a" s pp_print_method_name v
- | StringDirError (s, n)->
-      fprintf buf "%s: %a" s pp_print_dir n
- | StringNodeError (s, n)->
-      fprintf buf "%s: %a" s pp_print_node n
- | StringValueError (s, v) ->
-      fprintf buf "@[<hv 3>%s:@ %a@]" s pp_print_value v
- | StringTargetError (s, t) ->
-      fprintf buf "%s: %a" s pp_print_target t
- | LazyError printer ->
-      printer buf
- | UnboundVar v ->
-      fprintf buf "unbound variable: %a" pp_print_symbol v
- | UnboundVarInfo v ->
-      fprintf buf "unbound variable: %a" pp_print_var_info v
- | UnboundKey v ->
-      fprintf buf "unbound key: %s" v
- | UnboundValue v ->
-      fprintf buf "unbound value: %a" pp_print_value v
- | UnboundFun v ->
-      fprintf buf "unbound function: %a" pp_print_symbol v
- | UnboundMethod vl ->
-      fprintf buf "unbound method: %a" pp_print_method_name vl
- | ArityMismatch (len1, len2) ->
-      fprintf buf "arity mismatch: expected %a args, got %d" pp_print_arity len1 len2
- | NotImplemented s ->
-      fprintf buf "not implemented: %s" s
- | NullCommand ->
-      pp_print_string buf "invalid null command"
-
-(************************************************************************
- * Positions.
- *)
-module type PosSig =
-sig
-   val loc_exp_pos    : loc -> pos
-   val loc_pos        : loc -> pos -> pos
-
-   val ast_exp_pos    : Omake_ast.exp -> pos
-   val ir_exp_pos     : Omake_ir.exp -> pos
-   val var_exp_pos    : var -> pos
-   val string_exp_pos : string -> pos
-   val value_exp_pos  : value -> pos
-
-   val string_pos     : string -> pos -> pos
-   val pos_pos        : pos -> pos -> pos
-   val int_pos        : int -> pos -> pos
-   val var_pos        : var -> pos -> pos
-   val error_pos      : omake_error -> pos -> pos
-
-   val del_pos        : (formatter -> unit) -> loc -> pos
-   val del_exp_pos    : (formatter -> unit) -> pos -> pos
-
-   (* Utilities *)
-   val loc_of_pos     : pos -> loc
-   val pp_print_pos   : formatter -> pos -> unit
-end
-
-module type NameSig =
-sig
-   val name : string
-end
-
-module MakePos (Name : NameSig) : PosSig =
-struct
-   module Name' =
-   struct
-      type t = item
-
-      let name = Name.name
-
-      let loc_of_value = loc_of_item
-      let pp_print_value = pp_print_item
-   end
-
-   module Pos = Lm_position.MakePos (Name')
-
-   include Pos
-
-   let loc_pos_pos loc pos =
-      cons_pos (Location loc) pos
-
-   let ast_exp_pos e    = base_pos (AstExp e)
-   let ir_exp_pos e     = base_pos (IrExp e)
-   let var_exp_pos v    = base_pos (Symbol v)
-   let string_exp_pos s = base_pos (String s)
-   let value_exp_pos v  = base_pos (Value v)
-   let var_pos          = symbol_pos
-   let value_pos v pos  = cons_pos (Value v) pos
-   let error_pos e pos  = cons_pos (Error e) pos
-end
-
-module Pos = MakePos (struct let name = "Omake_env" end)
-open Pos;;
-
-let () = pp_print_pos_ref := pp_print_pos
 
 (************************************************************************
  * Utilities.
@@ -1450,6 +736,111 @@ let venv_apply_prim_fun name venv pos loc args =
             raise (OmakeException (loc_pos loc pos, UnboundVar name))
    in
       f venv pos loc args
+
+(************************************************************************
+ * Target cache.
+ *
+ * To keep this up-to-date, entries are added for explicit targets,
+ * and the cache is flushed whenever an implicit rule is added.
+ *)
+let venv_find_target_is_buildable_exn venv target =
+   NodeTable.find venv.venv_inner.venv_globals.venv_target_is_buildable target
+
+let venv_find_target_is_buildable_proper_exn venv target =
+   NodeTable.find venv.venv_inner.venv_globals.venv_target_is_buildable_proper target
+
+let venv_add_target_is_buildable venv target flag =
+   let globals = venv.venv_inner.venv_globals in
+      globals.venv_target_is_buildable <- NodeTable.add globals.venv_target_is_buildable target flag
+
+let venv_add_target_is_buildable_proper venv target flag =
+   let globals = venv.venv_inner.venv_globals in
+      globals.venv_target_is_buildable_proper <- NodeTable.add globals.venv_target_is_buildable_proper target flag
+
+let venv_add_explicit_targets venv rules =
+   let globals = venv.venv_inner.venv_globals in
+   let { venv_target_is_buildable = cache;
+         venv_target_is_buildable_proper = cache_proper
+       } = globals
+   in
+   let cache =
+      List.fold_left (fun cache erule ->
+            NodeTable.add cache erule.rule_target true) cache rules
+   in
+   let cache_proper =
+      List.fold_left (fun cache erule ->
+            NodeTable.add cache erule.rule_target true) cache_proper rules
+   in
+      globals.venv_target_is_buildable <- cache;
+      globals.venv_target_is_buildable_proper <- cache_proper
+
+let venv_flush_target_cache venv =
+   let globals = venv.venv_inner.venv_globals in
+      globals.venv_target_is_buildable <- NodeTable.empty;
+      globals.venv_target_is_buildable_proper <- NodeTable.empty
+
+(*
+ * Save explicit rules.
+ *)
+let venv_save_explicit_rules venv loc rules =
+   let globals = venv.venv_inner.venv_globals in
+      globals.venv_explicit_new <- List.rev_append rules globals.venv_explicit_new;
+      venv_add_explicit_targets venv rules
+
+(*
+ * Add an explicit dependency.
+ *)
+let venv_add_explicit_dep venv loc target source =
+   let erule =
+      { rule_loc        = loc;
+        rule_env        = venv;
+        rule_target     = target;
+        rule_effects    = NodeSet.singleton target;
+        rule_sources    = NodeSet.singleton source;
+        rule_locks      = NodeSet.empty;
+        rule_scanners   = NodeSet.empty;
+        rule_match      = None;
+        rule_multiple   = RuleSingle;
+        rule_commands   = []
+      }
+   in
+      ignore (venv_save_explicit_rules venv loc [erule])
+
+(*
+ * Phony names.
+ *)
+let venv_add_phony venv loc names =
+   if names = [] then
+      venv
+   else
+      let inner = venv.venv_inner in
+      let { venv_dir = dir;
+            venv_phony = phony
+          } = inner
+      in
+      let globals = venv_globals venv in
+      let phonies = globals.venv_phonies in
+      let phony, phonies =
+         List.fold_left (fun (phony, phonies) name ->
+               let name =
+                  match name with
+                     TargetNode _ ->
+                        raise (OmakeException (loc_exp_pos loc, StringError ".PHONY arguments should be names"))
+                   | TargetString s ->
+                        s
+               in
+               let gnode = Node.create_phony_global name in
+               let dnode = Node.create_phony_dir dir name in
+               let phony = NodeSet.add phony dnode in
+               let phonies = PreNodeSet.add phonies (Node.dest gnode) in
+               let phonies = PreNodeSet.add phonies (Node.dest dnode) in
+                  venv_add_explicit_dep venv loc gnode dnode;
+                  phony, phonies) (phony, phonies) names
+      in
+      let inner = { inner with venv_phony = phony } in
+      let venv = { venv with venv_inner = inner } in
+         globals.venv_phonies <- phonies;
+         venv
 
 (************************************************************************
  * Static values.
@@ -2320,48 +1711,6 @@ let intern_source venv (kind, source) =
       Node.create_escape kind source
 
 (************************************************************************
- * Target cache.
- *
- * To keep this up-to-date, entries are added for explicit targets,
- * and the cache is flushed whenever an implicit rule is added.
- *)
-let venv_find_target_is_buildable_exn venv target =
-   NodeTable.find venv.venv_inner.venv_globals.venv_target_is_buildable target
-
-let venv_find_target_is_buildable_proper_exn venv target =
-   NodeTable.find venv.venv_inner.venv_globals.venv_target_is_buildable_proper target
-
-let venv_add_target_is_buildable venv target flag =
-   let globals = venv.venv_inner.venv_globals in
-      globals.venv_target_is_buildable <- NodeTable.add globals.venv_target_is_buildable target flag
-
-let venv_add_target_is_buildable_proper venv target flag =
-   let globals = venv.venv_inner.venv_globals in
-      globals.venv_target_is_buildable_proper <- NodeTable.add globals.venv_target_is_buildable_proper target flag
-
-let venv_add_explicit_targets venv rules =
-   let globals = venv.venv_inner.venv_globals in
-   let { venv_target_is_buildable = cache;
-         venv_target_is_buildable_proper = cache_proper
-       } = globals
-   in
-   let cache =
-      List.fold_left (fun cache erule ->
-            NodeTable.add cache erule.rule_target true) cache rules
-   in
-   let cache_proper =
-      List.fold_left (fun cache erule ->
-            NodeTable.add cache erule.rule_target true) cache_proper rules
-   in
-      globals.venv_target_is_buildable <- cache;
-      globals.venv_target_is_buildable_proper <- cache_proper
-
-let venv_flush_target_cache venv =
-   let globals = venv.venv_inner.venv_globals in
-      globals.venv_target_is_buildable <- NodeTable.empty;
-      globals.venv_target_is_buildable_proper <- NodeTable.empty
-
-(************************************************************************
  * Rules
  *)
 
@@ -2382,7 +1731,7 @@ let venv_explicit_target venv target =
  *)
 let venv_save_explicit_rules venv loc erules =
    (* Filter out the rules with a different target *)
-   let rules =
+   let erules =
       try
          match venv_find_var_dynamic_exn venv explicit_target_sym with
             ValNode target ->
@@ -2411,28 +1760,7 @@ let venv_save_explicit_rules venv loc erules =
          Not_found ->
             erules
    in
-   let globals = venv.venv_inner.venv_globals in
-      globals.venv_explicit_new <- List.rev_append rules globals.venv_explicit_new;
-      venv_add_explicit_targets venv rules
-
-(*
- * Add an explicit dependency.
- *)
-let venv_add_explicit_dep venv loc target source =
-   let erule =
-      { rule_loc        = loc;
-        rule_env        = venv;
-        rule_target     = target;
-        rule_effects    = NodeSet.singleton target;
-        rule_sources    = NodeSet.singleton source;
-        rule_locks      = NodeSet.empty;
-        rule_scanners   = NodeSet.empty;
-        rule_match      = None;
-        rule_multiple   = RuleSingle;
-        rule_commands   = []
-      }
-   in
-      ignore (venv_save_explicit_rules venv loc [erule])
+      venv_save_explicit_rules venv loc erules
 
 (*
  * Add the wild target.
@@ -2464,42 +1792,6 @@ let venv_add_match venv line args =
    let venv = venv_add_var venv star_var (ValArray args) in
    let venv = venv_add_var venv nf_var   (ValInt (List.length args)) in
       venv
-
-(*
- * Phony names.
- *)
-let venv_add_phony venv loc names =
-   if names = [] then
-      venv
-   else
-      let inner = venv.venv_inner in
-      let { venv_dir = dir;
-            venv_phony = phony
-          } = inner
-      in
-      let globals = venv_globals venv in
-      let phonies = globals.venv_phonies in
-      let phony, phonies =
-         List.fold_left (fun (phony, phonies) name ->
-               let name =
-                  match name with
-                     TargetNode _ ->
-                        raise (OmakeException (loc_exp_pos loc, StringError ".PHONY arguments should be names"))
-                   | TargetString s ->
-                        s
-               in
-               let gnode = Node.create_phony_global name in
-               let dnode = Node.create_phony_dir dir name in
-               let phony = NodeSet.add phony dnode in
-               let phonies = PreNodeSet.add phonies (Node.dest gnode) in
-               let phonies = PreNodeSet.add phonies (Node.dest dnode) in
-                  venv_add_explicit_dep venv loc gnode dnode;
-                  phony, phonies) (phony, phonies) names
-      in
-      let inner = { inner with venv_phony = phony } in
-      let venv = { venv with venv_inner = inner } in
-         globals.venv_phonies <- phonies;
-         venv
 
 (*
  * Create an environment.
