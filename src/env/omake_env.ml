@@ -2664,7 +2664,7 @@ let venv_add_static_rule venv pos loc multiple key vars sources values body =
    let venv =
       List.fold_left (fun venv info ->
             let _, v = var_of_var_info info in
-               venv_add_var venv info (ValStaticApply (key, v))) venv vars
+               venv_add_var venv info (ValDelayed (ref (ValStaticApply (key, v))))) venv vars
    in
       globals.venv_static_rules <- ValueTable.add globals.venv_static_rules key (StaticRule srule);
       venv

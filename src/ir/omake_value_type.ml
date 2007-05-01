@@ -102,14 +102,14 @@ type value =
    (* Implicit value dependencies *)
  | ValMaybeApply  of loc * var_info
 
-   (* Value in a static block *)
- | ValStaticApply of value * var
-
    (* Variables that are not applications *)
  | ValVar         of loc * var_info
 
    (* Other values *)
  | ValOther       of value_other
+
+   (* Delayed values *)
+ | ValDelayed     of value_delayed ref
 
 and value_other =
    ValLexer       of Lexer.t
@@ -117,6 +117,12 @@ and value_other =
  | ValLocation    of loc
  | ValExitCode    of int
  | ValEnv         of handle_env
+
+and value_delayed =
+   ValValue of value
+
+   (* Value in a static block *)
+ | ValStaticApply of value * var
 
 (*
  * Primitives are option refs.

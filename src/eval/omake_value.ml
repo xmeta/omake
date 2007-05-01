@@ -208,7 +208,7 @@ let rec key_of_value venv pos v =
        | ValClass _
        | ValCases _
        | ValOther _
-       | ValStaticApply _ ->
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringValueError ("bad map key", v)))
 
 
@@ -235,7 +235,6 @@ let dir_of_value venv pos dir =
             venv_intern_dir venv (string_of_value venv pos dir)
        | ValNone
        | ValVar _
-       | ValStaticApply _
        | ValKeyApply _
        | ValApply _
        | ValMaybeApply _
@@ -250,7 +249,8 @@ let dir_of_value venv pos dir =
        | ValChannel _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringError "not a directory"))
 
 let node_value_of_value venv pos v =
@@ -271,7 +271,6 @@ let node_value_of_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
-       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -292,7 +291,8 @@ let node_value_of_value venv pos v =
        | ValChannel _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringValueError("not a file", v)))
 
 let dir_value_of_value venv pos v =
@@ -313,7 +313,6 @@ let dir_value_of_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
-       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -329,7 +328,8 @@ let dir_value_of_value venv pos v =
        | ValChannel _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringValueError("not a file", v)))
 
 let filename_of_value venv pos v =
@@ -395,7 +395,6 @@ let prim_channel_of_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
-       | ValStaticApply _
        | ValVar _
        | ValBody _
        | ValNone
@@ -407,7 +406,8 @@ let prim_channel_of_value venv pos v =
        | ValObject _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringError "not an input channel"))
 
 let prim_channel_of_var venv pos loc v =
@@ -441,7 +441,6 @@ let in_channel_of_any_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
-       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -470,7 +469,8 @@ let in_channel_of_any_value venv pos v =
        | ValClass _
        | ValCases _
        | ValOther _
-       | ValVar _ ->
+       | ValVar _
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringError "not an input channel"))
 
 let out_channel_of_any_value venv pos v =
@@ -492,7 +492,6 @@ let out_channel_of_any_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
-       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -521,7 +520,8 @@ let out_channel_of_any_value venv pos v =
        | ValClass _
        | ValCases _
        | ValOther _
-       | ValVar _ ->
+       | ValVar _
+       | ValDelayed _ ->
             raise (OmakeException (pos, StringError "not an output channel"))
 
 (*
@@ -558,7 +558,7 @@ let rec is_glob_value options v =
     | ValCases _
     | ValOther _
     | ValVar _
-    | ValStaticApply _ ->
+    | ValDelayed _ ->
          false
 
 and is_glob_value_list options vl =

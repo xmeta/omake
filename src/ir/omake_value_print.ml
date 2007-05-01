@@ -157,8 +157,6 @@ let rec pp_print_value buf v =
          fprintf buf "key $|%s|" v
     | ValVar (_, v) ->
          fprintf buf "`%a" pp_print_var_info v
-    | ValStaticApply (key, v) ->
-         fprintf buf "<static %a::%a>" pp_print_value key pp_print_symbol v
     | ValOther (ValLexer _) ->
          fprintf buf "<lexer> : Lexer"
     | ValOther (ValParser _) ->
@@ -169,6 +167,10 @@ let rec pp_print_value buf v =
          fprintf buf "<exit-code %d> : Int" code
     | ValOther (ValEnv _) ->
          fprintf buf "<env>"
+    | ValDelayed { contents = ValValue v } ->
+         fprintf buf "<delayed:normal %a>" pp_print_value v
+    | ValDelayed { contents = ValStaticApply (key, v) } ->
+         fprintf buf "<delayed:static %a::%a>" pp_print_value key pp_print_symbol v
 
 and pp_print_value_list buf vl =
    List.iter (fun v -> fprintf buf "@ %a" pp_print_value v) vl
@@ -248,8 +250,6 @@ let rec pp_print_simple_value buf v =
          fprintf buf "$|%s|" v
     | ValVar (_, v) ->
          fprintf buf "`%a" pp_print_var_info v
-    | ValStaticApply _ ->
-         pp_print_string buf "<static>"
     | ValOther (ValLexer _) ->
          pp_print_string buf "<lexer>"
     | ValOther (ValParser _) ->
@@ -260,6 +260,10 @@ let rec pp_print_simple_value buf v =
          pp_print_int buf i
     | ValOther (ValEnv _) ->
          pp_print_string buf "<env>"
+    | ValDelayed { contents = ValValue v } ->
+         pp_print_simple_value buf v
+    | ValDelayed { contents = ValStaticApply _ } ->
+         pp_print_string buf "<static>"
 
 and pp_print_simple_value_list buf vl =
    List.iter (pp_print_simple_value buf) vl

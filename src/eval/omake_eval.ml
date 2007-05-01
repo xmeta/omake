@@ -153,7 +153,7 @@ let rec is_empty_value v =
     | ValCases _
     | ValOther _
     | ValKeyApply _
-    | ValStaticApply _
+    | ValDelayed _
     | ValVar _ ->
          false
 
@@ -202,7 +202,7 @@ let rec is_array_value v =
     | ValOther _
     | ValKeyApply _
     | ValVar _
-    | ValStaticApply _ ->
+    | ValDelayed _ ->
          false
 
 (*
@@ -547,7 +547,7 @@ and string_of_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
-       | ValStaticApply _ ->
+       | ValDelayed _ ->
             raise (Invalid_argument "string_of_value")
    in
       collect v;
@@ -611,7 +611,7 @@ and string_of_quote_buf scratch_buf venv pos vl =
        | ValSuperApply _
        | ValMaybeApply _
        | ValMethodApply _
-       | ValStaticApply _ ->
+       | ValDelayed _ ->
             raise (Invalid_argument "string_of_value")
    and collect_array vl =
       match vl with
@@ -718,7 +718,7 @@ and values_of_value venv pos v =
                  | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValStaticApply _ ->
+                 | ValDelayed _ ->
                       raise (OmakeException (pos, StringValueError ("illegal application", v))))
        | [], vl :: vll ->
             collect tokens vl vll
@@ -822,7 +822,7 @@ and tokens_of_value venv pos lexer v =
                  | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValStaticApply _ ->
+                 | ValDelayed _ ->
                       raise (OmakeException (pos, StringValueError ("illegal application", v))))
        | [], vl :: vll ->
             collect tokens vl vll
@@ -894,7 +894,7 @@ and arg_of_values venv pos vl =
                  | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValStaticApply _ ->
+                 | ValDelayed _ ->
                       raise (OmakeException (pos, StringValueError ("illegal application", v))))
        | [], vl :: vll ->
             collect is_quoted tokens vl vll
@@ -960,7 +960,7 @@ and file_of_value venv pos file =
        | ValClass _
        | ValCases _
        | ValVar _
-       | ValStaticApply _
+       | ValDelayed _
        | ValOther _ ->
             raise (OmakeException (pos, StringError "illegal value"))
 
@@ -1002,6 +1002,15 @@ and eval_value_static venv pos key v =
                         obj
    in
       venv_find_field obj pos v
+
+and eval_value_delayed venv pos p =
+   match !p with
+      ValValue v ->
+         v
+    | ValStaticApply (key, v) ->
+         let v = eval_value_static venv pos key v in
+            p := ValValue v;
+            v
 
 (*
  * Unfold the outermost application to get a real value.
@@ -1045,8 +1054,8 @@ and eval_value_core venv pos v =
          let obj, v = eval_find_method_var venv pos loc v vl in
          let venv = venv_with_object venv obj in
             eval_value_core venv pos (eval_apply venv pos loc v args)
-    | ValStaticApply (node, v) ->
-         eval_value_static venv pos node v
+    | ValDelayed p ->
+         eval_value_delayed venv pos p
     | ValSequence [v] ->
          eval_value_core venv pos v
     | _ ->
@@ -1143,7 +1152,7 @@ and eval_body_value venv pos v =
     | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
-    | ValStaticApply _ ->
+    | ValDelayed _ ->
          raise (Invalid_argument "eval_body_value")
 
 (* XXX: JYH: this is temporary, there is no need for it in 0.9.9 *)
@@ -1180,7 +1189,7 @@ and eval_body_value_env venv pos v =
     | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
-    | ValStaticApply _ ->
+    | ValDelayed _ ->
          raise (Invalid_argument "eval_body_value_env")
 
 and eval_body_exp venv pos x v =
@@ -1216,7 +1225,7 @@ and eval_body_exp venv pos x v =
     | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
-    | ValStaticApply _ ->
+    | ValDelayed _ ->
          raise (Invalid_argument "eval_body_exp")
 
 (*
@@ -1395,7 +1404,7 @@ and eval_object_exn venv pos x =
     | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
-    | ValStaticApply _ ->
+    | ValDelayed _ ->
          raise (Invalid_argument "find_object")
 
 and create_object venv x v =

@@ -461,7 +461,7 @@ let sequence_length venv pos loc args =
                 | ValMaybeApply _
                 | ValSuperApply _
                 | ValMethodApply _
-                | ValStaticApply _ ->
+                | ValDelayed _ ->
                      raise (Invalid_argument "Omake_builtin_base.length")
             in
                ValInt len
@@ -487,7 +487,7 @@ let sequence_nth venv pos loc args =
                  | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValStaticApply _
+                 | ValDelayed _
                  | ValMap _
                  | ValObject _ ->
                       raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)))
@@ -561,7 +561,7 @@ let sequence_rev venv pos loc args =
                  | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
-                 | ValStaticApply _
+                 | ValDelayed _
                  | ValMap _
                  | ValObject _
                  | ValInt _

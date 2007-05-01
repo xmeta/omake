@@ -118,7 +118,6 @@ let print_result result =
     | ValSuperApply _
     | ValMethodApply _
     | ValVar _
-    | ValStaticApply _
     | ValObject _
     | ValMap _
     | ValChannel _
@@ -127,7 +126,8 @@ let print_result result =
     | ValBody _
     | ValRules _
     | ValOther _
-    | ValCases _ ->
+    | ValCases _
+    | ValDelayed _ ->
          printf "- : %a@." pp_print_value result
 
 (*

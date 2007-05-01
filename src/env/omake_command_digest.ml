@@ -629,7 +629,9 @@ let rec squash_value pos buf v =
        | ValVar (_, v) ->
             Hash.add_code buf CodeValVar;
             squash_var_info buf v;
-       | ValStaticApply (node, v) ->
+       | ValDelayed { contents = ValValue v } ->
+            squash_value pos buf v
+       | ValDelayed { contents = ValStaticApply (node, v) } ->
             Hash.add_code buf CodeValStaticApply;
             squash_value pos buf node;
             Hash.add_code buf CodeSpace;
