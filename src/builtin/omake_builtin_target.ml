@@ -456,6 +456,23 @@ let rule_fun venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
 
+(*
+ * This is called whenever a .STATIC: ... rule is evaluated.
+ * It isn't clear whether we want to document this.
+ *)
+let static_rule_fun venv pos loc args =
+   let pos = string_pos "static_rule_fun" pos in
+      match args with
+         [multiple; node; index; key; vars; source; options; body] ->
+            let multiple = bool_of_value venv pos multiple in
+            let key  = key_of_value venv pos (ValArray [node; index; key]) in
+            let vars = vars_of_value venv pos vars in
+            let target = file_of_value venv pos node in
+            let venv = eval_static_rule_exp venv pos loc multiple key vars target source options body in
+               venv, ValNone
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 8, List.length args)))
+
 (************************************************************************
  * Hooks.
  *)
@@ -473,6 +490,7 @@ let () =
    in
    let builtin_kfuns =
       [true,  "rule",                 rule_fun,            ArityExact 6;
+       true,  "static-rule",          static_rule_fun,     ArityExact 8;
       ]
    in
    let pervasives_objects =

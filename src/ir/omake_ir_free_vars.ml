@@ -97,7 +97,8 @@ and free_vars_string_exp fv s =
       NoneString _
     | ConstString _
     | ThisString _
-    | KeyString _ ->
+    | KeyApplyString _
+    | VarString _ ->
          fv
     | ApplyString (_, _, v, args)
     | MethodApplyString (_, _, v, _, args) ->

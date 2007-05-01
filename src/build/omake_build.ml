@@ -1429,7 +1429,7 @@ let save_and_finish_scanner_results env command scanned_deps =
        | CommandInfo _ ->
             raise (Invalid_argument "scanner_lines")
    in
-      Omake_cache.add cache scanner_fun target targets build_deps digest (MemoResult scanned_deps);
+      Omake_cache.add cache scanner_fun target targets build_deps digest (MemoSuccess scanned_deps);
       finish_scanner env command scanned_deps
 
 (*
@@ -1670,7 +1670,7 @@ let save_and_finish_rule_success env command =
 
       (* Add the memo only if the target is not phony *)
       if not (NodeSet.is_empty effects) then
-         Omake_cache.add cache rule_fun target effects build_deps commands_digest MemoSuccess;
+         Omake_cache.add cache rule_fun target effects build_deps commands_digest (MemoSuccess NodeTable.empty);
 
       (* Remove the tees *)
       env_close_success_tee env command;
@@ -1900,7 +1900,7 @@ let save_aux env =
    in
    let targets = NodeSet.singleton env_target in
       try
-         Omake_cache.add cache env_fun env_target targets includes None MemoSuccess;
+         Omake_cache.add cache env_fun env_target targets includes None (MemoSuccess NodeTable.empty);
          Omake_cache.to_channel outx cache;
          close_out outx;
          if not db_win32_bug then

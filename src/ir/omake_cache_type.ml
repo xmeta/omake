@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -33,6 +33,7 @@ open Lm_string_set
 
 open Omake_ir
 open Omake_node
+open Omake_value_type
 
 (* %%MAGICBEGIN%% *)
 (*
@@ -44,10 +45,15 @@ type digest = Digest.t option
  * The memo result is used only for the scanner,
  * whice produces a table of dependencies.
  *)
-type memo_result =
-   MemoSuccess
- | MemoFailure of int
- | MemoResult of NodeSet.t NodeTable.t
+type 'a memo_result =
+   MemoFailure of int
+ | MemoSuccess of 'a
+
+type memo_deps = NodeSet.t NodeTable.t
+
+type memo_deps_result = memo_deps memo_result
+
+type memo_obj_result = obj memo_result
 
 (*
  * Status query.

@@ -45,6 +45,7 @@ open Omake_node
 open Omake_command
 open Omake_node_sig
 open Omake_cache_type
+open Omake_value_type
 
 let debug_cache =
    create_debug (**)
@@ -99,12 +100,12 @@ type exe_listing = exe_listing_item list
  * care what their digest is.
  *)
 (* %%MAGICBEGIN%% *)
-type memo =
+type 'a memo =
    { memo_index    : int;
      memo_targets  : digest NodeTable.t;
      memo_deps     : digest NodeTable.t;
      memo_commands : digest;
-     memo_result   : memo_result
+     memo_result   : 'a memo_result
    }
 (* %%MAGICEND%% *)
 
@@ -112,6 +113,7 @@ type memo =
  * Stats of a file.
  * FreshStats: we have taken the stats during this program run
  * OldStats: we took the stats during a prior run of this program
+ * PartialStats: we took the stats, but not the digest
  * NoStats: we tried to take stats, but an error occurred (usually
  *    because the file did not exist).
  *)
@@ -139,8 +141,8 @@ type node_memo =
  *)
 type key = int
 
-type cache_info =
-   { mutable cache_memos     : memo NodeTable.t;
+type 'a cache_info =
+   { mutable cache_memos     : 'a memo NodeTable.t;
      mutable cache_index     : Node.t IndexMTable.t
    }
 
@@ -152,8 +154,9 @@ type stat = Unix.LargeFile.stats
 type cache =
    { (* State *)
      mutable cache_nodes             : node_memo NodeTable.t;
-     mutable cache_info              : cache_info array;
-     mutable cache_file_stat_count   : int;  (* only succeeded stats are counted *)
+     mutable cache_info              : memo_deps cache_info array;
+     mutable cache_values            : obj memo ValueTable.t;
+     mutable cache_file_stat_count   : int;  (* only succeessful stats are counted *)
      mutable cache_digest_count      : int;
 
      (* Path lookups *)
@@ -166,10 +169,13 @@ type cache =
  * The version of the cache that is saved in the file also
  * contains a table of all nodes.
  *)
+(* %%MAGICBEGIN%% *)
 type cache_save =
    { save_cache_nodes        : node_memo NodeTable.t;
-     save_cache_info         : memo NodeTable.t array
+     save_cache_info         : memo_deps memo NodeTable.t array;
+     save_cache_value        : obj memo ValueTable.t
    }
+(* %%MAGICEND%% *)
 
 (*
  * Squash stat code.
@@ -222,12 +228,10 @@ let pp_print_node_digest_table buf deps =
  *)
 let pp_print_memo_result pp_print_result buf result =
    match result with
-      MemoSuccess ->
-         ()
+      MemoSuccess _ ->
+         fprintf buf "@ success"
     | MemoFailure code ->
          fprintf buf "@ failed(%d)" code
-    | MemoResult result ->
-         pp_print_result buf result
 
 (*
  * Print a memo.
@@ -264,6 +268,7 @@ let output_magic = Omake_magic.output_magic
 let create () =
    { cache_nodes           = NodeTable.empty;
      cache_info            = [||];
+     cache_values          = ValueTable.empty;
      cache_file_stat_count = 0;
      cache_digest_count    = 0;
      cache_dirs            = DirTable.empty;
@@ -296,8 +301,9 @@ let clear cache index =
  * as well as any files that don't exist.
  *)
 let save_of_cache cache =
-   let { cache_nodes = cache_nodes;
-         cache_info  = cache_info
+   let { cache_nodes  = cache_nodes;
+         cache_info   = cache_info;
+         cache_values = cache_values
        } = cache
    in
    let cache_nodes =
@@ -313,7 +319,8 @@ let save_of_cache cache =
    in
    let cache_info = Array.map (fun info -> info.cache_memos) cache_info in
       { save_cache_nodes = cache_nodes;
-        save_cache_info  = cache_info
+        save_cache_info  = cache_info;
+        save_cache_value = cache_values
       }
 
 (*
@@ -326,8 +333,7 @@ let create_index memos =
              } = memo
          in
             match result with
-               MemoSuccess
-             | MemoResult _ ->
+               MemoSuccess _ ->
                   let index = IndexMTable.add index hash target in
                      memos, index
              | MemoFailure _ ->
@@ -339,7 +345,8 @@ let create_index memos =
  *)
 let cache_of_save save =
    let { save_cache_nodes = cache_nodes;
-         save_cache_info  = cache_info
+         save_cache_info  = cache_info;
+         save_cache_value = cache_values
        } = save
    in
    let cache_info =
@@ -349,8 +356,9 @@ let cache_of_save save =
                  cache_index = index
                }) cache_info
    in
-      { (create ()) with cache_nodes = cache_nodes;
-                         cache_info  = cache_info;
+      { (create ()) with cache_nodes  = cache_nodes;
+                         cache_info   = cache_info;
+                         cache_values = cache_values
       }
 
 (*
@@ -886,8 +894,7 @@ let up_to_date cache key deps commands =
       let memo = find_memo cache key deps commands in
          if targets_equal cache memo.memo_targets then
             match memo.memo_result with
-               MemoSuccess
-             | MemoResult _ ->
+               MemoSuccess _ ->
                   true
              | MemoFailure _ ->
                   false
@@ -902,8 +909,7 @@ let up_to_date_status cache key deps commands =
       let memo = find_memo cache key deps commands in
          if targets_equal cache memo.memo_targets then
             match memo.memo_result with
-               MemoSuccess
-             | MemoResult _ ->
+               MemoSuccess _ ->
                   StatusSuccess
              | MemoFailure code ->
                   StatusFailure code
@@ -921,10 +927,8 @@ let target_results results =
    match results with
       MemoFailure _ ->
          raise Not_found
-    | MemoSuccess ->
-         NodeTable.empty
-    | MemoResult results ->
-         results
+    | MemoSuccess deps ->
+         deps
 
 let find_result cache key deps commands =
    let memo = find_memo cache key deps commands in
@@ -946,10 +950,57 @@ let find_result_sloppy cache key target =
       match memo.memo_result with
          MemoFailure _ ->
             raise Not_found
-       | MemoSuccess ->
-            NodeTable.empty
-       | MemoResult result ->
-            result
+       | MemoSuccess deps ->
+            deps
+
+(************************************************************************
+ * Values.  In this case, we use the key to find the memo.
+ *)
+
+(*
+ * Get the memo entry from the key.
+ *)
+let get_value cache key =
+   ValueTable.find cache.cache_values key
+
+(*
+ * Find a memo from the deps and commands.
+ *)
+let find_value_memo cache key deps1 commands1 =
+   let memo = get_value cache key in
+   let hash1 = hash_index deps1 commands1 in
+   let { memo_index = hash2;
+         memo_deps  = deps2;
+         memo_commands = commands2
+       } = memo
+   in
+      if hash1 = hash2 && deps_equal cache deps1 deps2 && commands1 = commands2 then
+         memo
+      else
+         raise Not_found
+
+let find_value cache key deps commands =
+   let memo = find_value_memo cache key deps commands in
+   let { memo_targets = targets;
+         memo_result  = result
+       } = memo
+   in
+      if targets_equal cache targets then
+         target_results result
+      else
+         raise Not_found
+
+let add_value cache key deps commands result =
+   let index = hash_index deps commands in
+   let memo =
+      { memo_index    = index;
+        memo_targets  = NodeTable.empty;
+        memo_deps     = stat_set cache deps;
+        memo_result   = result;
+        memo_commands = commands
+      }
+   in
+      cache.cache_values <- ValueTable.add cache.cache_values key memo
 
 (************************************************************************
  * Directory listings.

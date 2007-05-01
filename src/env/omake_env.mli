@@ -37,6 +37,7 @@ open Lm_symbol
 
 open Omake_ir
 open Omake_pos
+open Omake_var
 open Omake_node
 open Omake_exec
 open Omake_cache
@@ -46,11 +47,10 @@ open Omake_options
 open Omake_node_sig
 open Omake_exec_type
 open Omake_shell_type
+open Omake_value_type
 open Omake_command_type
 open Omake_ir_free_vars
 open Omake_handle_table
-open Omake_value_type
-open Omake_var
 
 (*
  * Debugging.
@@ -106,6 +106,18 @@ and erule_info =
      explicit_rules           : erule NodeMTable.t;
      explicit_directories     : venv DirTable.t
    }
+
+type srule =
+   { srule_loc      : loc;
+     srule_env      : venv;
+     srule_key      : value;
+     srule_deps     : NodeSet.t;
+     srule_exp      : exp
+   }
+
+type static_info =
+   StaticRule of srule
+ | StaticValue of obj
 
 (*
  * Command lines.
@@ -245,6 +257,18 @@ val venv_add_rule : venv -> pos -> loc ->
    value list ->                        (* additional values the target depends on *)
    command list ->                      (* commands *)
    venv * Node.t list
+
+val venv_add_static_rule : venv -> pos -> loc ->
+   bool ->                              (* multiple *)
+   value ->                             (* key *)
+   var_info list ->                     (* variables to be defined *)
+   target source list ->                (* sources *)
+   value list ->                        (* additional values the target depends on *)
+   exp ->                               (* commands *)
+   venv
+
+val venv_set_static_info  : venv -> value -> static_info -> unit
+val venv_find_static_info : venv -> pos -> value -> static_info
 
 (*
  * System environment.

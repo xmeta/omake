@@ -96,11 +96,17 @@ type value =
  | ValApply       of loc * var_info * value list
  | ValSuperApply  of loc * var * var * value list
  | ValMethodApply of loc * var_info * var list * value list
- | ValKey         of loc * string
+ | ValKeyApply    of loc * string
  | ValPrim        of arity * bool * prim_fun
 
-   (* Potentially undefined values, used only in implicit value dependencies *)
- | ValImplicit    of loc * var_info
+   (* Implicit value dependencies *)
+ | ValMaybeApply  of loc * var_info
+
+   (* Value in a static block *)
+ | ValStaticApply of value * var
+
+   (* Variables that are not applications *)
+ | ValVar         of loc * var_info
 
    (* Other values *)
  | ValOther       of value_other
@@ -256,11 +262,17 @@ end
 (************************************************************************
  * Basic values and functions.
  *)
-let class_sym = Lm_symbol.add "$class"
 
 (*
- * Basic utilities.
+ * Empty object.
  *)
+let empty_obj = SymbolTable.empty
+
+(*
+ * Get the class identifiers from the object.
+ *)
+let class_sym = Lm_symbol.add "$class"
+
 let venv_get_class obj =
    match
       try SymbolTable.find obj class_sym with
@@ -292,7 +304,8 @@ struct
        | ValNode _
        | ValDir _
        | ValOther (ValLocation _)
-       | ValOther (ValExitCode _) ->
+       | ValOther (ValExitCode _)
+       | ValVar _ ->
             ()
        | _ ->
             raise (OmakeException (pos, StringValueError ("illegal Map key", v)))
@@ -318,6 +331,7 @@ struct
     | ValDir _                 -> 6
     | ValOther (ValExitCode _) -> 7
     | ValOther (ValLocation _) -> 8
+    | ValVar _                 -> 9
     | _ ->
          raise (Invalid_argument "ValueCompare: value not supported")
 
@@ -350,6 +364,8 @@ struct
             Dir.compare dir1 dir2
        | ValOther (ValLocation loc1), ValOther (ValLocation loc2) ->
             Lm_location.compare loc1 loc2
+       | ValVar (_, v1), ValVar (_, v2) ->
+            VarInfoCompare.compare v1 v2
        | _ ->
             tag v1 - tag v2
 

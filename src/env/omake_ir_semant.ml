@@ -158,7 +158,8 @@ let rec build_string env s =
       NoneString _
     | ConstString _
     | ThisString _
-    | KeyString _ ->
+    | KeyApplyString _
+    | VarString _ ->
          false, s
     | ApplyString (loc, strategy, v, args) ->
          let has_return, args = build_string_list env args in

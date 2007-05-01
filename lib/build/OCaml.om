@@ -21,8 +21,6 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # FILE OR THE USE OR OTHER DEALINGS IN THE FILE.
 
-set -Wdeclare -warn-error
-
 open build/Common
 open configure/Configure
 
@@ -99,7 +97,7 @@ open configure/Configure
 #    \verb+menhir+ instead of \verb+ocamlyacc+ (default \verb+false+).
 # \end{doc}
 #
-static. =
+.STATIC:
     OCAMLFIND_EXISTS = $(CheckProg ocamlfind)
     OCAMLC_OPT_EXISTS = $(CheckProg ocamlc.opt)
     OCAMLC_EXISTS = $(or $(OCAMLC_OPT_EXISTS), $(CheckProg ocamlc))
@@ -275,7 +273,7 @@ public.OCAML_LIB_FLAGS =
 # \hypervarxn{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} variables will be set accordingly.
 # \end{doc}
 #
-static. =
+.STATIC:
     OCAMLDEP_MODULES =
     ConfMsgChecking(if ocamldep understands -modules)
     OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamldep -modules))
@@ -578,7 +576,7 @@ if you really want to build this file.
 public.MENHIR = menhir
 public.MENHIR_FLAGS =
 public.MENHIR_ENABLED = false
-static. =
+.STATIC:
     MENHIR_AVAILABLE = $(CheckProg $(MENHIR))
     MENHIR_RAW_DEPEND = false
     if $(MENHIR_AVAILABLE)

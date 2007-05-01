@@ -175,8 +175,10 @@ let rec pp_print_string_exp complete buf s =
          fprintf buf "<none>"
     | ConstString (_, s) ->
          fprintf buf "\"%s\"" (String.escaped s)
-    | KeyString (_, strategy, s) ->
+    | KeyApplyString (_, strategy, s) ->
          fprintf buf "$%a|%s|" pp_print_strategy strategy s
+    | VarString (_, v) ->
+         fprintf buf "`%a" pp_print_var_info v
     | ApplyString (_, strategy, v, []) ->
          fprintf buf "@[<hv 3>$%a(%a)@]" (**)
             pp_print_strategy strategy

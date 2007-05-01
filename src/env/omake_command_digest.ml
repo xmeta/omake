@@ -71,6 +71,7 @@ type code =
  | CodeCommands
  | CodeNoneString
  | CodeConstString
+ | CodeVarString
  | CodeEagerApply
  | CodeEnd
  | CodeExpString
@@ -135,14 +136,16 @@ type code =
  | CodeValQuoteString
  | CodeValSequence
  | CodeValString
- | CodeValImplicit
+ | CodeValVar
+ | CodeValMaybeApply
  | CodeValSuperApply
  | CodeVarDefApply
  | CodeVarDefNormal
  | CodeLetKeyExp
- | CodeKeyString
+ | CodeKeyApplyString
  | CodeKeyExp
- | CodeValKey
+ | CodeValKeyApply
+ | CodeValStaticApply
  | CodeArg
  | CodeArgString
  | CodeArgData
@@ -303,8 +306,11 @@ let rec squash_string_exp pos buf e =
        | ConstString (_, s) ->
             Hash.add_code buf CodeConstString;
             Hash.add_string buf s
-       | KeyString (_, strategy, s) ->
-            Hash.add_code buf CodeKeyString;
+       | VarString (_, v) ->
+            Hash.add_code buf CodeVarString;
+            squash_var_info buf v
+       | KeyApplyString (_, strategy, s) ->
+            Hash.add_code buf CodeKeyApplyString;
             squash_strategy buf strategy;
             Hash.add_string buf s
        | ApplyString (_, strategy, v, sl) ->
@@ -571,8 +577,8 @@ let rec squash_value pos buf v =
             squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_values pos buf vl
-       | ValImplicit (_, v) ->
-            Hash.add_code buf CodeValImplicit;
+       | ValMaybeApply (_, v) ->
+            Hash.add_code buf CodeValMaybeApply;
             squash_var_info buf v;
        | ValSuperApply (_, v1, v2, vl) ->
             Hash.add_code buf CodeValSuperApply;
@@ -617,9 +623,17 @@ let rec squash_value pos buf v =
             squash_map pos buf obj
        | ValCases cases ->
             squash_cases pos buf cases
-       | ValKey (_, v) ->
-            Hash.add_code buf CodeValKey;
+       | ValKeyApply (_, v) ->
+            Hash.add_code buf CodeValKeyApply;
             Hash.add_string buf v
+       | ValVar (_, v) ->
+            Hash.add_code buf CodeValVar;
+            squash_var_info buf v;
+       | ValStaticApply (node, v) ->
+            Hash.add_code buf CodeValStaticApply;
+            squash_value pos buf node;
+            Hash.add_code buf CodeSpace;
+            squash_var buf v
        | ValRules _
        | ValChannel _
        | ValClass _
@@ -875,6 +889,11 @@ let squash_commands pos buf commands =
 (*
  * Get the digest of some commands.
  *)
+let digest_of_exp pos e =
+   let buf = Hash.create () in
+   let () = squash_exp pos buf e in
+      Some (Hash.digest buf)
+
 let digest_of_commands pos commands =
    match commands with
       [] ->

@@ -82,6 +82,17 @@ val eval_rule_exp :
    value ->                     (* commands *)
    venv * value
 
+val eval_static_rule_exp :
+   venv -> pos -> loc ->
+   bool ->                      (* multiple (whether the rule was defined with a ::) *)
+   value ->                     (* key *)
+   var_info list ->             (* variables to be defined *)
+   Node.t ->                    (* Target *)
+   value ->                     (* sources *)
+   value ->                     (* options *)
+   value ->                     (* commands *)
+   venv
+
 val eval_shell_exp : venv -> pos -> loc -> value -> venv * value
 val eval_shell_output : venv -> pos -> loc -> value -> string
 

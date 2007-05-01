@@ -130,6 +130,7 @@ let group_object_var           = create_pervasives_var group_object_sym
 let pipe_object_var            = create_pervasives_var pipe_object_sym
 let select_object_var          = create_pervasives_var pipe_object_sym
 let runtime_exception_var      = create_pervasives_var runtime_exception_sym
+let var_object_var             = create_pervasives_var var_object_sym
 
 let extends_var                = create_pervasives_var extends_sym
 let omakeflags_var             = create_pervasives_var omakeflags_sym

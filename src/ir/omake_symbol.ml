@@ -63,6 +63,7 @@ let parser_object_sym          = Lm_symbol.add "Parser"
 let location_object_sym        = Lm_symbol.add "Location"
 let target_object_sym          = Lm_symbol.add "Target"
 let options_object_sym         = Lm_symbol.add "Options"
+let var_object_sym             = Lm_symbol.add "Var"
 
 let wild_sym                   = Lm_symbol.add "%"
 let explicit_target_sym        = Lm_symbol.add "$EXPLICIT-TARGET"
@@ -195,6 +196,7 @@ let file_sym      = Lm_symbol.add "__FILE__"
 let file_id_sym   = Lm_symbol.add "__ID__"
 let set_sym       = Lm_symbol.add "set"
 
+let static_rule_sym     = Lm_symbol.add "static-rule"
 let empty_map_sym       = Lm_symbol.add "empty-map"
 let create_map_sym      = Lm_symbol.add "create-map"
 let create_lazy_map_sym = Lm_symbol.add "create-lazy-map"
@@ -228,6 +230,7 @@ let squash_sym   = Lm_symbol.add ":squash:"
 let effects_sym  = Lm_symbol.add ":effects:"
 let scanner_sym  = Lm_symbol.add ":scanner:"
 let values_sym   = Lm_symbol.add ":value:"
+let key_sym      = Lm_symbol.add ":key:"
 
 (*
  * Builtin functions.

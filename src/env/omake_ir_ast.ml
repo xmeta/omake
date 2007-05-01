@@ -366,6 +366,21 @@ let rec collect_cases cases el =
     | _ ->
          List.rev cases, el
 
+(*
+ * Extract an option.
+ *)
+let extract_option loc map key =
+   try
+      let x = SymbolTable.find map key in
+      let map = SymbolTable.remove map key in
+         x, map
+   with
+      Not_found ->
+         Omake_ast.NullExp loc, map
+
+let build_bool_exp loc b =
+   ConstString (loc, if b then "true" else "false")
+
 (************************************************************************
  * Environments.
  *)
@@ -440,10 +455,14 @@ let cenv_sequence_scope cenv el =
 (*
  * Get a new static symbol.
  *)
-let genv_new_symbol_string name genv =
+let genv_new_index genv =
    let index = genv.genv_static_index in
-   let v = Lm_symbol.make name index in
    let genv = { genv with genv_static_index = succ index } in
+      genv, index
+
+let genv_new_symbol_string name genv =
+   let genv, index = genv_new_index genv in
+   let v = Lm_symbol.make name index in
       genv, v
 
 let genv_new_static_id = genv_new_symbol_string "static"
@@ -855,6 +874,36 @@ let senv_open_file genv senv pos loc filename =
       { senv with senv_forced_vars = vars }, node
 
 (*XXX*)
+(* ZZZ: in 0.9.8.x:
+ * If the scope is specified explicitly,
+ * do not add it as a definition to senv.
+ *
+ * This should be uncommented in 0.9.9.
+ *)
+let senv_define_var_info_bogus senv pos loc scope v info =
+   let { senv_object_senv = object_vars;
+         senv_update_vars = update_vars;
+         senv_forced_vars = forced_vars;
+         senv_all_vars    = all_vars
+       } = senv
+   in
+
+   (* They appear in the object only if not private *)
+   let object_vars =
+      match info with
+         VarPrivate _ ->
+            object_vars
+       | _ ->
+            SymbolTable.add object_vars v info
+   in
+   let update_vars = SymbolTable.add update_vars v info in
+   let all_vars    = AllVars.add all_vars (scope, v) info in
+      { senv with senv_object_senv = object_vars;
+                  senv_update_vars = update_vars;
+                  senv_forced_vars = forced_vars;
+                  senv_all_vars    = all_vars
+      }
+
 (*
  * Low-level variable definition.
  *)
@@ -1043,6 +1092,16 @@ let build_literal_argv e pos =
 let build_literal_argv_list el =
    List.map build_literal_string el
 
+let is_empty_string e =
+   try build_literal_string e = "" with
+      OmakeException _ ->
+         false
+
+let is_static_target e =
+   try build_literal_string e = ".STATIC" with
+      OmakeException _ ->
+         false
+
 (*
  * Conversion.
  *)
@@ -1070,7 +1129,7 @@ let rec build_string genv oenv senv cenv e pos =
        | Omake_ast.BodyExp (el, loc) ->
             build_body_string genv oenv senv cenv el pos loc
        | Omake_ast.KeyExp (strategy, v, loc) ->
-            genv, oenv, KeyString (loc, ir_strategy_of_ast_strategy strategy, v)
+            genv, oenv, KeyApplyString (loc, ir_strategy_of_ast_strategy strategy, v)
        | Omake_ast.CommandExp (_, _, _, loc)
        | Omake_ast.VarDefExp (_, _, _, _, loc)
        | Omake_ast.VarDefBodyExp (_, _, _, _, loc)
@@ -1159,7 +1218,7 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
                 | ConstString (loc, s) ->
                      let buf_opt = add_string buf_opt s loc in
                         collect genv oenv buf_opt args el
-                | KeyString _
+                | KeyApplyString _
                 | ApplyString _
                 | SuperApplyString _
                 | MethodApplyString _
@@ -1171,6 +1230,7 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
                 | QuoteStringString _
                 | ExpString _
                 | CasesString _
+                | VarString _
                 | ThisString _ ->
                      let args = flush_buffer buf_opt args in
                      let args = e :: args in
@@ -1688,10 +1748,10 @@ and build_static_object_exp genv oenv senv cenv el pos loc =
    let senv, vars =
       SymbolTable.fold (fun (senv, vars) _ info ->
             match info with
-               VarPrivate (loc, v)
-             | VarThis (loc, v) ->
+               VarThis (loc, v) ->
                   let senv, info = senv_declare_static_var genv oenv senv cenv pos loc v in
                      senv, info :: vars
+             | VarPrivate _
              | VarVirtual _
              | VarGlobal _ ->
                   senv, vars) (senv, []) senv_body.senv_object_senv
@@ -1829,22 +1889,7 @@ and build_fun_def_exp genv oenv senv cenv v params el pos loc =
 (*
  * Special rule expressions.
  *)
-and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
-   let pos = string_pos "build_rule_exp" pos in
-   let genv, oenv, target  = build_string genv oenv senv cenv target pos in
-   let genv, oenv, pattern = build_string genv oenv senv cenv pattern pos in
-
-   (* Get the body *)
-   let genv, oenv, body =
-      let original_class_names = oenv.oenv_class_names in
-      let oenv = { (* oenv with *) oenv_class_names = SymbolSet.empty } in
-      let cenv = cenv_rule_scope cenv in
-      let genv, oenv, body, export, _ = build_body genv oenv senv cenv body pos loc in
-      let oenv = { (* oenv with *) oenv_class_names = original_class_names } in
-         genv, oenv, BodyString (loc, body, export)
-   in
-
-   (* Get the option list *)
+and build_options_exp genv oenv senv cenv pos loc sources =
    let genv, oenv, options =
       SymbolTable.fold (fun (genv, oenv, options) v source ->
             if Lm_symbol.eq v normal_sym then
@@ -1861,31 +1906,102 @@ and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos 
    in
    let oenv, create_map_var = senv_find_var genv oenv senv cenv pos loc create_map_sym in
    let options = ApplyString (loc, EagerApply, create_map_var, options) in
+      genv, oenv, options
 
-   (* Add the sources *)
-   let genv, oenv, source =
-      try
-         let source = SymbolTable.find sources normal_sym in
-            build_string genv oenv senv cenv source pos
-      with
-         Not_found ->
-            genv, oenv, ConstString (loc, "")
+and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
+   let pos = string_pos "build_rule_exp" pos in
+   let multiple = build_bool_exp loc multiple in
+      if is_static_target target then
+         build_static_rule_exp genv oenv senv cenv multiple pattern sources body pos loc
+      else
+         build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc
+
+and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
+   let pos = string_pos "build_normal_rule_exp" pos in
+
+   (* Get the sources *)
+   let source, sources = extract_option loc sources normal_sym in
+   let genv, oenv, source = build_string genv oenv senv cenv source pos in
+   let genv, oenv, options = build_options_exp genv oenv senv cenv pos loc sources in
+
+   (* Get the body *)
+   let genv, oenv, body =
+      let original_class_names = oenv.oenv_class_names in
+      let oenv = { (* oenv with *) oenv_class_names = SymbolSet.empty } in
+      let cenv = cenv_rule_scope cenv in
+      let genv, oenv, body, export, _ = build_body genv oenv senv cenv body pos loc in
+      let oenv = { (* oenv with *) oenv_class_names = original_class_names } in
+         genv, oenv, BodyString (loc, body, export)
    in
 
-   (* Multiple string *)
-   let multiple =
-      let s =
-         if multiple then
-            "true"
-         else
-            "false"
-      in
-         ConstString (loc, s)
-   in
-
-   (* Construct the argument list *)
+   let genv, oenv, target  = build_string genv oenv senv cenv target pos in
+   let genv, oenv, pattern = build_string genv oenv senv cenv pattern pos in
    let args = [multiple; target; pattern; source; options; body] in
    let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc rule_sym in
+   let e = ApplyExp (loc, rule_var, args) in
+      genv, oenv, senv, e, ValValue
+
+and build_static_rule_exp genv oenv senv cenv multiple names sources body pos loc =
+   let pos = string_pos "build_static_rule_exp" pos in
+
+   (* Extract the special keys *)
+   let source, sources = extract_option loc sources normal_sym in
+   let key, sources = extract_option loc sources key_sym in
+   let genv, oenv, source = build_string genv oenv senv cenv source pos in
+   let genv, oenv, key = build_string genv oenv senv cenv key pos in
+   let genv, oenv, options = build_options_exp genv oenv senv cenv pos loc sources in
+
+   (* Build the body object expression *)
+   let senv_body, cenv_body = senv_static_body senv cenv (Lm_symbol.new_symbol static_sym) in
+   let genv, oenv, senv_body, el, _ =
+      build_sequence genv oenv senv_body cenv_body ValValue pos (fun genv oenv senv cenv _ ->
+            genv, oenv, senv, [ReturnObjectExp (loc, [])], ValValue) body
+   in
+   let body = BodyString (loc, el, ExportNone) in
+
+   (* Add the variables to the outer environment *)
+   let names = build_literal_argv names pos in
+   let senv, vars =
+      if names = [] then
+         (* Export all the object variables *)
+         SymbolTable.fold (fun (senv, vars) _ info ->
+               match info with
+                  VarThis (loc, v) ->
+                     let senv, info = senv_declare_static_var genv oenv senv cenv pos loc v in
+                        senv, info :: vars
+                | VarPrivate _
+                | VarVirtual _
+                | VarGlobal _ ->
+                     senv, vars) (senv, []) senv_body.senv_object_senv
+      else
+         (* Export only the ones that are named *)
+         List.fold_left (fun (senv, vars) name ->
+               let v = Lm_symbol.add name in
+               let v =
+                  try
+                     match SymbolTable.find senv_body.senv_object_senv v with
+                        VarThis (loc, v) ->
+                           v
+                      | VarPrivate _
+                      | VarVirtual _
+                      | VarGlobal _ as info ->
+                           eprintf "not found: %a@." pp_print_var_info info;
+                           raise Not_found
+                  with
+                     Not_found ->
+                        raise (OmakeException (pos, UnboundVar v))
+               in
+               let senv, info = senv_declare_static_var genv oenv senv cenv pos loc v in
+                  senv, info :: vars) (senv, []) names
+   in
+   let vars = ArrayString (loc, List.map (fun v -> VarString (loc, v)) vars) in
+
+   (* The name has three parts: (file, index, key) *)
+   let file = ApplyString (loc, EagerApply, file_var, []) in
+   let genv, index = genv_new_index genv in
+   let index = ConstString (loc, string_of_int index) in
+   let args = [multiple; file; index; key; vars; source; options; body] in
+   let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc static_rule_sym in
    let e = ApplyExp (loc, rule_var, args) in
       genv, oenv, senv, e, ValValue
 

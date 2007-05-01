@@ -33,6 +33,7 @@ open Lm_string_set
 
 open Omake_node
 open Omake_cache_type
+open Omake_value_type
 open Omake_command_type
 
 (* Debugging *)
@@ -127,18 +128,24 @@ val exe_suffixes     : string list
  * The sloppy function just returns the results for the target
  * without even considering the command and dependencies.
  *)
-val add                : t -> key -> Node.t -> NodeSet.t -> NodeSet.t -> command_digest -> memo_result -> unit
+val add                : t -> key -> Node.t -> NodeSet.t -> NodeSet.t -> command_digest -> memo_deps_result -> unit
 val up_to_date         : t -> key -> NodeSet.t -> command_digest -> bool
 val up_to_date_status  : t -> key -> NodeSet.t -> command_digest -> memo_status
-val find_result        : t -> key -> NodeSet.t -> command_digest -> NodeSet.t NodeTable.t
-val find_result_sloppy : t -> key -> Node.t -> NodeSet.t NodeTable.t
+val find_result        : t -> key -> NodeSet.t -> command_digest -> memo_deps
+val find_result_sloppy : t -> key -> Node.t -> memo_deps
+
+(*
+ * Similar functions for values.
+ *)
+val find_value         : t -> value -> NodeSet.t -> command_digest -> obj
+val add_value          : t -> value -> NodeSet.t -> command_digest -> memo_obj_result -> unit
 
 (*
  * Printing.
  *)
 val pp_print_digest            : formatter -> digest -> unit
 val pp_print_node_digest_table : formatter -> digest NodeTable.t -> unit
-val pp_print_memo_result       : (formatter -> NodeSet.t NodeTable.t -> unit) -> formatter -> memo_result -> unit
+val pp_print_memo_result       : (formatter -> NodeSet.t NodeTable.t -> unit) -> formatter -> memo_deps_result -> unit
 
 (*
  * -*-

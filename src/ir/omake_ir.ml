@@ -121,7 +121,8 @@ type string_exp =
  | BodyString        of loc * exp list * export
  | ExpString         of loc * exp list * export
  | CasesString       of loc * (var * string_exp * exp list * export) list
- | KeyString         of loc * apply_strategy * string
+ | KeyApplyString    of loc * apply_strategy * string
+ | VarString         of loc * var_info
  | ThisString        of loc
 
 and source_exp = node_kind * string_exp

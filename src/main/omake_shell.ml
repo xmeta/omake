@@ -112,11 +112,13 @@ let print_result result =
     | ValString _
     | ValNode _
     | ValDir _
-    | ValKey _
+    | ValKeyApply _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
+    | ValVar _
+    | ValStaticApply _
     | ValObject _
     | ValMap _
     | ValChannel _

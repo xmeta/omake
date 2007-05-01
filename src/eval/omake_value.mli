@@ -69,6 +69,7 @@ val add_object_value  : obj -> value -> obj
 val string_of_value  : venv -> pos -> value -> string
 val strings_of_value : venv -> pos -> value -> string list
 val values_of_value  : venv -> pos -> value -> value list
+val vars_of_value    : venv -> pos -> value -> var_info list
 
 (*
  * Coercions.

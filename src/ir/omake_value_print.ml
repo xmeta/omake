@@ -107,7 +107,7 @@ let rec pp_print_value buf v =
             pp_print_var_info v
             pp_print_method_name vl
             pp_print_value_list args
-    | ValImplicit (_, v) ->
+    | ValMaybeApply (_, v) ->
          fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
             pp_print_var_info v
     | ValFun (arity, _, _, _, _) ->
@@ -153,8 +153,12 @@ let rec pp_print_value buf v =
                   pp_print_exp_list e2
                   pp_print_export_info export) cases;
          fprintf buf "@]"
-    | ValKey (_, v) ->
+    | ValKeyApply (_, v) ->
          fprintf buf "key $|%s|" v
+    | ValVar (_, v) ->
+         fprintf buf "`%a" pp_print_var_info v
+    | ValStaticApply (key, v) ->
+         fprintf buf "<static %a::%a>" pp_print_value key pp_print_symbol v
     | ValOther (ValLexer _) ->
          fprintf buf "<lexer> : Lexer"
     | ValOther (ValParser _) ->
@@ -215,7 +219,7 @@ let rec pp_print_simple_value buf v =
             pp_print_var_info v
             pp_print_method_name vl
             pp_print_value_list args
-    | ValImplicit (_, v) ->
+    | ValMaybeApply (_, v) ->
          fprintf buf "$?(%a)" (**)
             pp_print_var_info v
     | ValFun _ ->
@@ -240,8 +244,12 @@ let rec pp_print_simple_value buf v =
          pp_print_string buf "<class>"
     | ValCases _ ->
          pp_print_string buf "<cases>"
-    | ValKey (_, v) ->
+    | ValKeyApply (_, v) ->
          fprintf buf "$|%s|" v
+    | ValVar (_, v) ->
+         fprintf buf "`%a" pp_print_var_info v
+    | ValStaticApply _ ->
+         pp_print_string buf "<static>"
     | ValOther (ValLexer _) ->
          pp_print_string buf "<lexer>"
     | ValOther (ValParser _) ->

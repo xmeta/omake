@@ -779,13 +779,35 @@ let exp_list_of_commands venv pos commands =
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
 (*
- * Evaluate a rule.  This is the most complicated part of evaluation.
+ * Evaluate a .STATIC rule.
+ *)
+let eval_static_rule_exp venv pos loc multiple key vars target source options body =
+   let pos = string_pos "eval_static_rule_exp" pos in
+
+   (* First, evaluate the parts *)
+   let sources = targets_of_value venv pos source in
+   let sources = add_sources [] NodeNormal sources in
+   let sources = (NodeNormal, TargetNode target) :: sources in
+   let effects, sources, scanners, values = sources_of_options venv pos loc sources options in
+   let el = exp_list_of_commands venv pos body in
+   let e = SequenceExp (loc, el) in
+
+   (* Reject some special flags *)
+   let () =
+      if effects <> [] || scanners <> [] then
+         raise (OmakeException (loc_exp_pos loc, SyntaxError ".STATIC rules cannot have effects or scanners"))
+   in
+
+   (* Add the rule *)
+   let venv = venv_add_static_rule venv pos loc multiple key vars sources values e in
+      venv
+
+(*
+ * Evaluate a rule.
  *
  * There are two types of rules.  Implicit rules are 2-place rules that
- * have a % in the target name, or 3-place rules. Explicit rules are 2-place rules
+ * have a % in the target name, or 3-place rules.  Explicit rules are 2-place rules
  * that do not have a %.
- *
- * In 3-place implicit rules, the targets are always explicit.
  *)
 let rec eval_rule_exp venv pos loc multiple target pattern source options body =
    let pos = string_pos "eval_rule_exp" pos in
@@ -805,6 +827,7 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
                raise (OmakeException (loc_exp_pos loc, SyntaxError ".SUBDIRS rule cannot have patterns, effects, scanners, or values"));
             let venv = eval_subdirs_rule venv loc sources (exp_list_of_commands venv pos body) export in
                venv, ValNone
+
        | [TargetString ".PHONY"]  ->
             let targets, sources =
                if patterns = [] then
@@ -824,6 +847,7 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
                      venv, ValRules rules
                else
                   venv, ValNone
+
        | [TargetString ".SCANNER"] ->
             let targets, sources =
                if patterns = [] then
@@ -839,6 +863,7 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
             in
             let venv, rules = venv_add_rule venv pos loc multiple targets [] effects sources scanners values commands in
                venv, ValRules rules
+
        | [TargetString ".INCLUDE"] ->
             if effects <> [] || scanners <> [] then
                raise (OmakeException (loc_exp_pos loc, SyntaxError ".INCLUDE cannot have effects or scanners"));
@@ -850,11 +875,12 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
             in
             let venv = eval_include_rule venv pos loc targets sources values commands in
                venv, ValNone
+
        | [TargetString ".ORDER"] ->
             if commands_are_nontrivial then
-               raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have build commands"));
+               raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rules cannot have build commands"));
             if effects <> [] || patterns <> [] || scanners <> [] || values <> [] then
-               raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have patterns, effects, scanners, or values"));
+               raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rules cannot have patterns, effects, scanners, or values"));
             let sources = List.map snd sources in
             let venv = venv_add_phony venv loc sources in
             let venv = venv_add_orders venv loc sources in
@@ -996,7 +1022,7 @@ and eval_include_rule venv pos loc sources deps values commands =
          raise (OmakeException (pos, StringNodeError (".INCLUDE rule failed to build the target", target)));
 
       (* Tell the cache we did the update *)
-      Omake_cache.add cache include_fun target (NodeSet.singleton target) deps commands_digest MemoSuccess
+      Omake_cache.add cache include_fun target (NodeSet.singleton target) deps commands_digest (MemoSuccess NodeTable.empty)
    in
       include_file venv IncludePervasives pos loc target
 
@@ -1099,7 +1125,7 @@ and eval_rule venv loc target sources sloppy_deps values commands =
    let commands = List.rev commands in
    let values =
       VarInfoSet.fold (fun values v ->
-            ValImplicit (loc, v) :: values) values (free_vars_set fv)
+            ValMaybeApply (loc, v) :: values) values (free_vars_set fv)
    in
    let values =
       List.fold_left (fun values v ->

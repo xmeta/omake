@@ -453,13 +453,15 @@ let sequence_length venv pos loc args =
                 | ValCases cases ->
                      List.length cases
                 | ValClass _
-                | ValOther _ ->
+                | ValOther _
+                | ValVar _ ->
                      0
-                | ValKey _
+                | ValKeyApply _
                 | ValApply _
-                | ValImplicit _
+                | ValMaybeApply _
                 | ValSuperApply _
-                | ValMethodApply _ ->
+                | ValMethodApply _
+                | ValStaticApply _ ->
                      raise (Invalid_argument "Omake_builtin_base.length")
             in
                ValInt len
@@ -480,11 +482,12 @@ let sequence_nth venv pos loc args =
                    ValNone
                  | ValFun _
                  | ValPrim _
-                 | ValKey _
+                 | ValKeyApply _
                  | ValApply _
-                 | ValImplicit _
+                 | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
+                 | ValStaticApply _
                  | ValMap _
                  | ValObject _ ->
                       raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)))
@@ -496,7 +499,8 @@ let sequence_nth venv pos loc args =
                  | ValChannel _
                  | ValClass _
                  | ValCases _
-                 | ValOther _ ->
+                 | ValOther _
+                 | ValVar _ ->
                       if i = 0 then
                          arg
                       else
@@ -552,11 +556,12 @@ let sequence_rev venv pos loc args =
                    ValNone
                  | ValFun _
                  | ValPrim _
-                 | ValKey _
+                 | ValKeyApply _
                  | ValApply _
-                 | ValImplicit _
+                 | ValMaybeApply _
                  | ValSuperApply _
                  | ValMethodApply _
+                 | ValStaticApply _
                  | ValMap _
                  | ValObject _
                  | ValInt _
@@ -566,7 +571,8 @@ let sequence_rev venv pos loc args =
                  | ValBody _
                  | ValChannel _
                  | ValClass _
-                 | ValOther _ ->
+                 | ValOther _
+                 | ValVar _ ->
                       arg
                  | ValData s1 ->
                       let len = String.length s1 in

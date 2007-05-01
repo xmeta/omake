@@ -54,8 +54,9 @@ open Omake_cache_type
 open Omake_value_type
 open Omake_value_print
 open Omake_command_type
+open Omake_command_digest
 
-module Pos = MakePos (struct let name = "Omake_eval" end)
+module Pos = MakePos (struct let name = "Omake_eval" end);;
 open Pos
 
 let debug_eval =
@@ -137,7 +138,7 @@ let rec is_empty_value v =
     | ValString _
     | ValArray _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValFun _
     | ValPrim _
     | ValRules _
@@ -151,7 +152,9 @@ let rec is_empty_value v =
     | ValClass _
     | ValCases _
     | ValOther _
-    | ValKey _ ->
+    | ValKeyApply _
+    | ValStaticApply _
+    | ValVar _ ->
          false
 
 (*
@@ -182,7 +185,7 @@ let rec is_array_value v =
     | ValQuoteString _
     | ValString _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSequence _
     | ValFun _
     | ValPrim _
@@ -197,7 +200,9 @@ let rec is_array_value v =
     | ValClass _
     | ValCases _
     | ValOther _
-    | ValKey _ ->
+    | ValKeyApply _
+    | ValVar _
+    | ValStaticApply _ ->
          false
 
 (*
@@ -502,7 +507,8 @@ and string_of_value venv pos v =
        | ValClass _
        | ValCases _
        | ValOther _
-       | ValArray [] ->
+       | ValArray []
+       | ValVar _ ->
             ()
        | ValSequence vl ->
             List.iter collect vl
@@ -536,11 +542,12 @@ and string_of_value venv pos v =
             Buffer.add_string scratch_buf (venv_dirname venv dir2)
        | ValNode node ->
             Buffer.add_string scratch_buf (venv_nodename venv node)
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValSuperApply _
-       | ValMethodApply _ ->
+       | ValMethodApply _
+       | ValStaticApply _ ->
             raise (Invalid_argument "string_of_value")
    in
       collect v;
@@ -574,7 +581,8 @@ and string_of_quote_buf scratch_buf venv pos vl =
        | ValClass _
        | ValCases _
        | ValOther _
-       | ValArray [] ->
+       | ValArray []
+       | ValVar _ ->
             ()
        | ValSequence vl
        | ValQuote vl ->
@@ -598,11 +606,12 @@ and string_of_quote_buf scratch_buf venv pos vl =
             Buffer.add_string scratch_buf (venv_dirname venv dir2)
        | ValNode node ->
             Buffer.add_string scratch_buf (venv_nodename venv node)
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
        | ValSuperApply _
-       | ValImplicit _
-       | ValMethodApply _ ->
+       | ValMaybeApply _
+       | ValMethodApply _
+       | ValStaticApply _ ->
             raise (Invalid_argument "string_of_value")
    and collect_array vl =
       match vl with
@@ -702,12 +711,14 @@ and values_of_value venv pos v =
                  | ValClass _
                  | ValCases _
                  | ValOther _
-                 | ValKey _ ->
+                 | ValVar _ ->
                       collect (Lm_string_util.tokens_atomic tokens v) vl vll
                  | ValApply _
-                 | ValImplicit _
+                 | ValKeyApply _
+                 | ValMaybeApply _
                  | ValSuperApply _
-                 | ValMethodApply _ ->
+                 | ValMethodApply _
+                 | ValStaticApply _ ->
                       raise (OmakeException (pos, StringValueError ("illegal application", v))))
        | [], vl :: vll ->
             collect tokens vl vll
@@ -804,12 +815,14 @@ and tokens_of_value venv pos lexer v =
                  | ValClass _
                  | ValCases _
                  | ValOther _
-                 | ValKey _ ->
+                 | ValVar _ ->
                       collect (Lm_string_util.tokens_atomic tokens (TokString v)) vl vll
                  | ValApply _
-                 | ValImplicit _
+                 | ValKeyApply _
+                 | ValMaybeApply _
                  | ValSuperApply _
-                 | ValMethodApply _ ->
+                 | ValMethodApply _
+                 | ValStaticApply _ ->
                       raise (OmakeException (pos, StringValueError ("illegal application", v))))
        | [], vl :: vll ->
             collect tokens vl vll
@@ -871,15 +884,17 @@ and arg_of_values venv pos vl =
                  | ValClass _
                  | ValCases _
                  | ValOther _
-                 | ValKey _ ->
+                 | ValVar _ ->
                       let tokens = arg_buffer_add_data tokens (string_of_value venv pos v) in
                          collect is_quoted tokens vl vll
 
                    (* Illegal values *)
                  | ValApply _
-                 | ValImplicit _
+                 | ValKeyApply _
+                 | ValMaybeApply _
                  | ValSuperApply _
-                 | ValMethodApply _ ->
+                 | ValMethodApply _
+                 | ValStaticApply _ ->
                       raise (OmakeException (pos, StringValueError ("illegal application", v))))
        | [], vl :: vll ->
             collect is_quoted tokens vl vll
@@ -930,9 +945,9 @@ and file_of_value venv pos file =
             venv_intern venv PhonyExplicit (string_of_value venv pos file)
        | ValArray _
        | ValNone
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValFun _
        | ValPrim _
        | ValRules _
@@ -944,6 +959,8 @@ and file_of_value venv pos file =
        | ValChannel _
        | ValClass _
        | ValCases _
+       | ValVar _
+       | ValStaticApply _
        | ValOther _ ->
             raise (OmakeException (pos, StringError "illegal value"))
 
@@ -952,11 +969,46 @@ and file_of_value venv pos file =
  *)
 
 (*
+ * Eval a static value.
+ *)
+and eval_value_static venv pos key v =
+   let pos = string_pos "eval_value_static" pos in
+   let obj =
+      match venv_find_static_info venv pos key with
+         StaticValue obj ->
+            obj
+       | StaticRule srule ->
+            let { srule_env  = venv;
+                  srule_deps = deps;
+                  srule_exp  = e
+                } = srule
+            in
+            let digest = digest_of_exp pos e in
+            let cache = venv_cache venv in
+               (* Try to fetch the value from the memo *)
+               try
+                  let obj = Omake_cache.find_value cache key deps digest in
+                     venv_set_static_info venv key (StaticValue obj);
+                     obj
+               with
+                  Not_found ->
+                     (* Finally, if we don't have a value, evaluate the rule.
+                      * Prevent recursive calls *)
+                     let () = venv_set_static_info venv key (StaticValue empty_obj) in
+                     let venv, v = eval_exp venv ValNone e in
+                     let obj = eval_object venv pos v in
+                        Omake_cache.add_value cache key deps digest (MemoSuccess obj);
+                        venv_set_static_info venv key (StaticValue obj);
+                        obj
+   in
+      venv_find_field obj pos v
+
+(*
  * Unfold the outermost application to get a real value.
  *)
 and eval_value_core venv pos v =
    match v with
-      ValKey (loc, v) ->
+      ValKeyApply (loc, v) ->
          eval_key venv pos loc v
     | ValApply (loc, v, []) ->
          (match venv_find_var venv pos loc v with
@@ -976,7 +1028,7 @@ and eval_value_core venv pos v =
                eval_value_core venv pos (eval_var venv pos loc v))
     | ValApply (loc, v, args) ->
          eval_value_core venv pos (eval_apply venv pos loc (venv_find_var venv pos loc v) args)
-    | ValImplicit (loc, v) ->
+    | ValMaybeApply (loc, v) ->
          let v =
             try Some (venv_find_var_exn venv v) with
                Not_found ->
@@ -993,6 +1045,8 @@ and eval_value_core venv pos v =
          let obj, v = eval_find_method_var venv pos loc v vl in
          let venv = venv_with_object venv obj in
             eval_value_core venv pos (eval_apply venv pos loc v args)
+    | ValStaticApply (node, v) ->
+         eval_value_static venv pos node v
     | ValSequence [v] ->
          eval_value_core venv pos v
     | _ ->
@@ -1081,13 +1135,15 @@ and eval_body_value venv pos v =
     | ValChannel _
     | ValClass _
     | ValCases _
+    | ValVar _
     | ValOther _ as result ->
          result
-    | ValKey _
+    | ValKeyApply _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSuperApply _
-    | ValMethodApply _ ->
+    | ValMethodApply _
+    | ValStaticApply _ ->
          raise (Invalid_argument "eval_body_value")
 
 (* XXX: JYH: this is temporary, there is no need for it in 0.9.9 *)
@@ -1116,13 +1172,15 @@ and eval_body_value_env venv pos v =
     | ValChannel _
     | ValClass _
     | ValCases _
+    | ValVar _
     | ValOther _ as result ->
          venv, result
-    | ValKey _
+    | ValKeyApply _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSuperApply _
-    | ValMethodApply _ ->
+    | ValMethodApply _
+    | ValStaticApply _ ->
          raise (Invalid_argument "eval_body_value_env")
 
 and eval_body_exp venv pos x v =
@@ -1150,13 +1208,15 @@ and eval_body_exp venv pos x v =
     | ValChannel _
     | ValClass _
     | ValCases _
+    | ValVar _
     | ValOther _ as result ->
          venv, result
-    | ValKey _
+    | ValKeyApply _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSuperApply _
-    | ValMethodApply _ ->
+    | ValMethodApply _
+    | ValStaticApply _ ->
          raise (Invalid_argument "eval_body_exp")
 
 (*
@@ -1328,11 +1388,14 @@ and eval_object_exn venv pos x =
          raise (Invalid_argument "internal error: dereferenced cases")
     | ValMap _ ->
          create_map venv x map_object_var
-    | ValKey _
+    | ValVar _ ->
+         create_object venv x var_object_var
+    | ValKeyApply _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSuperApply _
-    | ValMethodApply _ ->
+    | ValMethodApply _
+    | ValStaticApply _ ->
          raise (Invalid_argument "find_object")
 
 and create_object venv x v =
@@ -1475,11 +1538,11 @@ and eval_string_exp be_eager venv pos s =
             ValNone
        | ConstString (_, s) ->
             ValString s
-       | KeyString (loc, strategy, v) ->
+       | KeyApplyString (loc, strategy, v) ->
             if key_strategy_is_eager be_eager strategy then
                eval_key venv pos loc v
             else
-               ValKey (loc, v)
+               ValKeyApply (loc, v)
        | ApplyString (loc, strategy, v, []) ->
             if strategy_is_eager be_eager strategy v then
                eval_var venv pos loc (venv_find_var venv pos loc v)
@@ -1529,6 +1592,8 @@ and eval_string_exp be_eager venv pos s =
             simplify_quote_val venv pos None (List.map (eval_string_exp be_eager venv pos) el)
        | QuoteStringString (_, c, el) ->
             simplify_quote_val venv pos (Some c) (List.map (eval_string_exp be_eager venv pos) el)
+       | VarString (loc, v) ->
+            ValVar (loc, v)
        | ThisString _ ->
             ValObject (venv_this venv)
 
@@ -1618,11 +1683,11 @@ and eval_string_export_exp be_eager venv pos s =
             venv, ValNone
        | ConstString (_, s) ->
             venv, ValString s
-       | KeyString (loc, strategy, v) ->
+       | KeyApplyString (loc, strategy, v) ->
             if key_strategy_is_eager be_eager strategy then
                venv, eval_key venv pos loc v
             else
-               venv, ValKey (loc, v)
+               venv, ValKeyApply (loc, v)
        | ApplyString (loc, strategy, v, []) ->
             if strategy_is_eager be_eager strategy v then
                eval_var_export venv pos loc (venv_find_var venv pos loc v)
@@ -1671,6 +1736,8 @@ and eval_string_export_exp be_eager venv pos s =
             venv, simplify_quote_val venv pos None (List.map (eval_string_exp be_eager venv pos) el)
        | QuoteStringString (_, c, el) ->
             venv, simplify_quote_val venv pos (Some c) (List.map (eval_string_exp be_eager venv pos) el)
+       | VarString (loc, v) ->
+            venv, ValVar (loc, v)
        | ThisString _ ->
             venv, ValObject (venv_this venv)
 
@@ -1996,7 +2063,10 @@ and eval_return_object_exp venv pos names =
  *)
 and eval_include_file venv scope pos loc node =
    let ir = compile_ir venv scope pos loc node in
-      eval_exp venv ValNone ir.ir_exp
+   let venv_new = venv_add_var venv file_var (ValNode node) in
+   let venv_new, result = eval_exp venv_new ValNone ir.ir_exp in
+   let venv = add_exports venv venv_new pos ExportAll in
+      venv, result
 
 and include_file venv scope pos loc target =
    let pos = string_pos "include_file" pos in

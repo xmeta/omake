@@ -28,6 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
+open Omake_ir
 open Omake_env
 open Omake_pos
 open Omake_command_type
@@ -35,6 +36,7 @@ open Omake_command_type
 (*
  * Digests.
  *)
+val digest_of_exp      : pos -> exp -> command_digest
 val digest_of_commands : pos -> arg_command_line list -> command_digest
 
 (*!

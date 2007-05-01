@@ -144,6 +144,20 @@ let number_of_value venv pos v =
                            raise (OmakeException (pos, StringStringError ("not a number", s)))
 
 (*
+ * Variables.
+ *)
+let var_of_value venv pos v =
+   let v = eval_prim_value venv pos v in
+      match v with
+         ValVar (_, v) ->
+            v
+       | _ ->
+            raise (OmakeException (pos, StringValueError ("not a var", v)))
+
+let vars_of_value venv pos v =
+   List.map (var_of_value venv pos) (values_of_value venv pos v)
+
+(*
  * Maps.
  *)
 let map_of_value venv pos v =
@@ -167,7 +181,8 @@ let rec key_of_value venv pos v =
        | ValInt _
        | ValFloat _
        | ValOther (ValExitCode _)
-       | ValOther (ValLocation _) ->
+       | ValOther (ValLocation _)
+       | ValVar _ ->
             v
        | ValQuote _
        | ValQuoteString _
@@ -178,9 +193,9 @@ let rec key_of_value venv pos v =
             let values = values_of_value venv pos v in
             let values = List.map (key_of_value venv pos) values in
                ValArray values
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValFun _
        | ValPrim _
        | ValRules _
@@ -192,7 +207,8 @@ let rec key_of_value venv pos v =
        | ValChannel _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValStaticApply _ ->
             raise (OmakeException (pos, StringValueError ("bad map key", v)))
 
 
@@ -218,9 +234,11 @@ let dir_of_value venv pos dir =
        | ValFloat _ ->
             venv_intern_dir venv (string_of_value venv pos dir)
        | ValNone
-       | ValKey _
+       | ValVar _
+       | ValStaticApply _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValFun _
        | ValPrim _
        | ValRules _
@@ -248,11 +266,12 @@ let node_value_of_value venv pos v =
        | ValString _
        | ValSequence _
        | ValArray _
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -264,6 +283,7 @@ let node_value_of_value venv pos v =
                else
                   ValNode node
        | ValNone
+       | ValVar _
        | ValFun _
        | ValPrim _
        | ValRules _
@@ -288,17 +308,19 @@ let dir_value_of_value venv pos v =
        | ValString _
        | ValSequence _
        | ValArray _
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
             let name = string_of_value venv pos v in
                ValDir (venv_intern_dir venv name)
        | ValNone
+       | ValVar _
        | ValFun _
        | ValPrim _
        | ValRules _
@@ -368,11 +390,13 @@ let prim_channel_of_value venv pos v =
             prim_channel_of_string venv pos (string_of_value venv pos arg)
        | ValInt _
        | ValFloat _
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStaticApply _
+       | ValVar _
        | ValBody _
        | ValNone
        | ValFun _
@@ -412,11 +436,12 @@ let in_channel_of_any_value venv pos v =
        | ValQuoteString _
        | ValString _
        | ValSequence _
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -444,7 +469,8 @@ let in_channel_of_any_value venv pos v =
        | ValObject _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValVar _ ->
             raise (OmakeException (pos, StringError "not an input channel"))
 
 let out_channel_of_any_value venv pos v =
@@ -461,11 +487,12 @@ let out_channel_of_any_value venv pos v =
        | ValString _
        | ValQuoteString _
        | ValSequence _
-       | ValKey _
+       | ValKeyApply _
        | ValApply _
-       | ValImplicit _
+       | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStaticApply _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -493,7 +520,8 @@ let out_channel_of_any_value venv pos v =
        | ValObject _
        | ValClass _
        | ValCases _
-       | ValOther _ ->
+       | ValOther _
+       | ValVar _ ->
             raise (OmakeException (pos, StringError "not an output channel"))
 
 (*
@@ -512,9 +540,9 @@ let rec is_glob_value options v =
     | ValDir _
     | ValData _
     | ValQuote _
-    | ValKey _
+    | ValKeyApply _
     | ValApply _
-    | ValImplicit _
+    | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
     | ValBody _
@@ -528,7 +556,9 @@ let rec is_glob_value options v =
     | ValObject _
     | ValClass _
     | ValCases _
-    | ValOther _ ->
+    | ValOther _
+    | ValVar _
+    | ValStaticApply _ ->
          false
 
 and is_glob_value_list options vl =
