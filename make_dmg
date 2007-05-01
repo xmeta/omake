@@ -1,25 +1,23 @@
-#!/bin/sh -x
+#!/bin/sh
 #
-# NOTE: This is just a script to help me build the OS X packages for OMake.
-#   It should not be relied upon by anybody else.  If you would like this to
-#   change, let me know and maybe we can arrange something.
-#   -Nathan  <n8gray@caltech.edu>
 
 OSX_DIR="`pwd`/osx_resources"
 OSX_TMP_INSTALL="$OSX_DIR/install"
 VERSION=`cat version.txt`
+VERSION_MAJOR=`cut -f 1 -d . version.txt`
+VERSION_MINOR=`cut -f 2 -d . version.txt`
 
 OMAKE_BASE=OMake-$VERSION
 
-if [ "x$1" = "xpkg" ]; then
-    #
-    # Check out a fresh copy of omake
-    #
-    # . make_checkout
- 
-    # cd omake-$VERSION
-    # omake all || exit 1
+usage () {
+    echo "Usage: $0 ( all | install | pkg | dmg | clean )"
+    echo "   '$0 all' is equivalent to"
+    echo "   '$0 install; $0 pkg; $0 dmg'"
+    exit 1
+}
 
+mkinstall () {
+    set -x
     sudo rm -rf $OSX_TMP_INSTALL || exit 1
     INSTALL_ROOT=$OSX_TMP_INSTALL make install || exit 1
     
@@ -28,31 +26,55 @@ if [ "x$1" = "xpkg" ]; then
     cp -r doc/html/ $OSX_TMP_INSTALL/usr/local/share/doc/omake
     rm -rf `find $OSX_TMP_INSTALL/usr/local/share/doc/omake -name .svn`
     sudo chown -R root:wheel $OSX_TMP_INSTALL/usr || exit 1
+}
 
-    open $OSX_DIR/OMake.pmproj
-    echo "
-
-!!! You must now build the pkg using the PackageMaker UI, saving it as:
-!!! $OSX_DIR/$OMAKE_BASE.pkg.  
-!!! Be sure to update the version info! When that is finished, run 
-!!!     make_dmg dmg
-
-"
+pkg () {
+    set -x
+    year=`date "+%Y"`
+    cat $OSX_DIR/Info.plist.in \
+        | sed "s/##Version##/$VERSION/g" \
+        | sed "s/##Year##/$year/g" \
+        | sed "s/##MajorVersion##/$VERSION_MAJOR/g" \
+        | sed "s/##MinorVersion##/$VERSION_MINOR/g" \
+        > $OSX_DIR/Info.plist
     
-elif [ "x$1" = "xdmg" ]; then
-    cd $OSX_DIR
-    if [ ! -d "./$OMAKE_BASE.pkg" ]; then
-        echo "Error: Can't find `pwd`/$OMAKE_BASE.pkg"
-        exit 1
-    fi
+    packagemaker -build -p $OMAKE_BASE.pkg \
+        -f $OSX_TMP_INSTALL/usr/local \
+        -i $OSX_DIR/Info.plist \
+        -d $OSX_DIR/Description.plist \
+        -r $OSX_DIR/installer_files
+}
+
+dmg () {
+    set -x
     rm -f $OMAKE_BASE.dmg
     hdiutil create -srcfolder ./$OMAKE_BASE.pkg $OMAKE_BASE.dmg
+}
 
-elif [ "x$1" = "xclean" ]; then
+clean () {
     cd $OSX_DIR
-    sudo rm -rf $OMAKE_BASE.pkg $OMAKE_BASE.dmg install || exit 1
+    sudo rm -rf Info.plist $OMAKE_BASE.pkg $OMAKE_BASE.dmg install || exit 1
     
+}
+
+if [ "$#" -lt "1" ]; then
+    usage
 else
-    echo "No such target: $1"
-    exit 1
+    case $1 in
+        all)
+            mkinstall
+            pkg
+            dmg
+            ;;
+        install)
+            mkinstall
+            ;;
+        pkg|dmg|clean)
+            $1
+            ;;
+        *)
+            echo "No such target: $1"
+            usage
+            ;;
+    esac
 fi
