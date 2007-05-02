@@ -296,7 +296,7 @@ val venv_find_environment     : venv -> pos -> handle_env -> venv
  *)
 val venv_dir                  : venv -> Dir.t
 val venv_defined              : venv -> var_info -> bool
-val venv_defined_field        : obj -> var -> bool
+val venv_defined_field        : venv -> obj -> var -> bool
 
 val venv_get_var              : venv -> pos -> var_info -> value
 
@@ -355,9 +355,9 @@ val venv_define_object   : venv -> venv
 val venv_with_object     : venv -> obj -> venv
 val venv_include_object  : venv -> obj -> venv
 val venv_flatten_object  : venv -> obj -> venv
-val venv_find_super      : venv -> pos -> loc -> symbol -> obj
+val venv_find_super_field : venv -> pos -> loc -> symbol -> symbol -> value
 
-(* ZZZ: don't exist in 0.9.9 *)
+(* ZZZ: this doesn't exist in 0.9.9 *)
 val venv_current_objects : venv -> var_info -> value list
 
 val venv_add_field       : obj -> var -> value -> obj
@@ -368,6 +368,12 @@ val venv_object_length   : obj -> int
 val venv_object_fold     : ('a -> var -> value -> 'a) -> 'a -> obj -> 'a
 val venv_instanceof      : obj -> symbol -> bool
 val venv_add_class       : obj -> symbol -> obj
+
+val venv_eval_field_path_exn  : venv -> path -> obj -> pos -> var -> path * value
+val venv_eval_field_path      : venv -> path -> obj -> pos -> var -> path * value
+val venv_eval_field_exn       : venv -> obj -> pos -> var -> value
+val venv_eval_field           : venv -> obj -> pos -> var -> value
+val venv_defined_field        : venv -> obj -> var -> bool
 
 val venv_add_included_file    : venv -> Node.t -> venv
 val venv_is_included_file     : venv -> Node.t -> bool
@@ -420,6 +426,8 @@ val venv_get_ordering_deps : venv -> ordering_info -> NodeSet.t -> NodeSet.t
  * Update the environment with a result.
  *)
 val add_exports      : venv -> venv -> pos -> export -> venv
+val add_path_exports : venv -> venv -> pos -> path -> export -> venv
+val hoist_this       : venv -> venv -> path -> venv
 
 (*
  * In case a value is an export, return the given variables in that

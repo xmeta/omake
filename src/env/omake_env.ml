@@ -1239,9 +1239,6 @@ let venv_defined venv v =
        | VarGlobal (_, v) ->
             SymbolTable.mem this v || SymbolTable.mem dynamic v || SymbolTable.mem static v
 
-let venv_defined_field obj v =
-   SymbolTable.mem obj v
-
 (*
  * Adding to variable environment.
  * Add to the current object and the static scope.
@@ -1445,6 +1442,52 @@ let venv_find_field obj pos v =
             raise (OmakeException (pos, UnboundVar v))
 
 (*
+ * Create a path when fetching fields, so that we
+ * can hoist the exports from a method call.
+ *)
+let raise_field_error mode pos loc v =
+   let print_error buf =
+      fprintf buf "@[<v 3>Accessing %s field: %a@ The variable was defined at the following location@ %a@]" (**)
+         mode
+         pp_print_symbol v
+         pp_print_location loc
+   in
+      raise (OmakeException (pos, LazyError print_error))
+
+let rec squash_path_info path info =
+   match path with
+      PathVar (_, env) ->
+         PathVar (info, env)
+    | PathField (path, _, _) ->
+         squash_path_info path info
+
+let venv_eval_field_path_exn venv path obj pos v =
+   PathField (path, obj, v), SymbolTable.find obj v
+
+let venv_eval_field_path venv path obj pos v =
+   try venv_eval_field_path_exn venv path obj pos v with
+      Not_found ->
+         let pos = string_pos "venv_eval_field_path" pos in
+            raise (OmakeException (pos, UnboundFieldVar (obj, v)))
+
+let venv_eval_field_exn venv obj pos v =
+   SymbolTable.find obj v
+
+let venv_eval_field venv obj pos v =
+   try venv_eval_field_exn venv obj pos v with
+      Not_found ->
+         let pos = string_pos "venv_eval_field" pos in
+            raise (OmakeException (pos, UnboundFieldVar (obj, v)))
+
+let venv_defined_field_exn venv obj v =
+   SymbolTable.mem obj v
+
+let venv_defined_field venv obj v =
+   try venv_defined_field_exn venv obj v with
+      Not_found ->
+         false
+
+(*
  * Add a class to an object.
  *)
 let venv_add_class obj v =
@@ -1500,6 +1543,16 @@ let venv_find_super venv pos loc v =
          Not_found ->
             let pos = string_pos "venv_find_super" (loc_pos loc pos) in
                raise (OmakeException (pos, StringVarError ("not a super-class", v)))
+
+let venv_find_super_field venv pos loc v1 v2 =
+   let table = venv_get_class venv.venv_this in
+      try
+         let obj = SymbolTable.find table v1 in
+            venv_find_field_exn obj v2
+      with
+         Not_found ->
+            let pos = string_pos "venv_find_super_field" (loc_pos loc pos) in
+               raise (OmakeException (pos, StringVarError ("unbound super var", v2)))
 
 (*
  * Function scoping.
@@ -2794,6 +2847,33 @@ let add_exports venv_dst venv_src pos = function
       venv_export_venv venv_dst venv_src
  | ExportList vars ->
       export_list pos venv_dst venv_src vars
+
+(*
+ * Add the exports along a path.
+ *)
+let rec hoist_path venv path obj =
+   match path with
+      PathVar (v, env) ->
+         let venv = venv_with_env venv env in
+            venv_add_var venv v (ValObject obj)
+    | PathField (path, parent_obj, v) ->
+         let obj = venv_add_field parent_obj v (ValObject obj) in
+            hoist_path venv path obj
+
+let hoist_this venv_dst venv_src path =
+   hoist_path venv_dst path venv_src.venv_this
+
+let add_path_exports venv_dst venv_src pos path = function
+   ExportNone ->
+      venv_dst
+ | ExportAll ->
+      let venv = venv_export_venv venv_dst venv_src in
+         hoist_path venv path venv.venv_this
+ | ExportList vars ->
+      (* XXX: the rules and phonies are not exported correctly *)
+      let venv = { venv_dst with venv_this = venv_src.venv_this } in
+      let venv = export_list pos venv venv_src vars in
+         hoist_path venv path venv.venv_this
 
 (************************************************************************
  * Squashing.

@@ -107,7 +107,7 @@ val eval_body_exp   : venv -> pos -> value -> value -> venv * value
  * Get the object for the value.
  *)
 val eval_object : venv -> pos -> value -> obj
-val eval_find_method_var : venv -> pos -> loc -> var_info -> var list -> obj * value
+val eval_find_method_var : venv -> pos -> loc -> var_info -> var list -> venv * value
 val eval_defined_method_var : venv -> pos -> loc -> var_info -> var list -> bool
 
 (*

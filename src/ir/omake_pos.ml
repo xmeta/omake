@@ -121,6 +121,11 @@ and pp_print_exn buf = function
       fprintf buf "unbound function: %a" pp_print_symbol v
  | UnboundMethod vl ->
       fprintf buf "unbound method: %a" pp_print_method_name vl
+ | UnboundFieldVar (obj, v) ->
+      fprintf buf "@[<v 3>unbound method '%a', object classes:@ @[<b 3>" pp_print_symbol v;
+      SymbolTable.iter (fun v _ ->
+            fprintf buf "@ %a" pp_print_symbol v) (venv_get_class obj);
+      fprintf buf "@]@]"
  | ArityMismatch (len1, len2) ->
       fprintf buf "arity mismatch: expected %a args, got %d" pp_print_arity len1 len2
  | NotImplemented s ->

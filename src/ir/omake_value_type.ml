@@ -144,6 +144,13 @@ and map = (value, value) Lm_map.tree
  *)
 
 (*
+ * A method path.
+ *)
+type path =
+   PathVar   of var_info * env
+ | PathField of path * obj * var
+
+(*
  * Command lists are used for rule bodies.
  * They have their environment, a list of sources,
  * and the actual body.  The body is polymorphic
@@ -201,25 +208,26 @@ type item =
 and pos = item Lm_position.pos
 
 and omake_error =
-   SyntaxError       of string
- | StringError       of string
- | StringStringError of string * string
- | StringDirError    of string * Dir.t
- | StringNodeError   of string * Node.t
- | StringVarError    of string * var
- | StringIntError    of string * int
- | StringMethodError of string * var list
- | StringValueError  of string * value
- | StringTargetError of string * target
- | LazyError         of (formatter -> unit)
- | UnboundVar        of var
- | UnboundVarInfo    of var_info
- | UnboundFun        of var
- | UnboundMethod     of var list
- | ArityMismatch     of arity * int
- | NotImplemented    of string
- | UnboundKey        of string
- | UnboundValue      of value
+   SyntaxError        of string
+ | StringError        of string
+ | StringStringError  of string * string
+ | StringDirError     of string * Dir.t
+ | StringNodeError    of string * Node.t
+ | StringVarError     of string * var
+ | StringIntError     of string * int
+ | StringMethodError  of string * var list
+ | StringValueError   of string * value
+ | StringTargetError  of string * target
+ | LazyError          of (formatter -> unit)
+ | UnboundVar         of var
+ | UnboundVarInfo     of var_info
+ | UnboundFun         of var
+ | UnboundMethod      of var list
+ | UnboundFieldVar    of obj * var
+ | ArityMismatch      of arity * int
+ | NotImplemented     of string
+ | UnboundKey         of string
+ | UnboundValue       of value
  | NullCommand
 
 (*
