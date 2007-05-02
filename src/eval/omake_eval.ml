@@ -1746,18 +1746,18 @@ and eval_apply_string_export_exp venv venv_new pos loc v args =
             in
                raise (OmakeException (pos, LazyError print_error))
 
-and eval_apply_method_export_exp venv venv_new pos loc path v args =
+and eval_apply_method_export_exp venv venv_obj pos loc path v args =
    let pos = string_pos "eval_apply_string_export_exp" pos in
    match eval_value venv pos v with
       ValFun (_, env, params, body, export) ->
          let args = List.map (eval_string_exp true venv pos) args in
-         let venv_new = venv_add_args venv_new pos loc env params args in
+         let venv_new = venv_add_args venv_obj pos loc env params args in
          let venv_new, result = eval_sequence_exp venv_new pos body in
-         let venv = add_path_exports venv venv_new pos path export in
+         let venv = add_path_exports venv_obj venv_new pos path export in
             venv, result
     | ValPrim (_, be_eager, f) ->
          let args = List.map (eval_string_exp be_eager venv pos) args in
-         let venv_new, result = venv_apply_prim_fun f venv_new pos loc args in
+         let venv_new, result = venv_apply_prim_fun f venv_obj pos loc args in
          let venv = hoist_this venv venv_new path in
             venv, result
     | v ->

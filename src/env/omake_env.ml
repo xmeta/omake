@@ -2868,12 +2868,10 @@ let add_path_exports venv_dst venv_src pos path = function
       venv_dst
  | ExportAll ->
       let venv = venv_export_venv venv_dst venv_src in
-         hoist_path venv path venv.venv_this
+         hoist_this venv venv path
  | ExportList vars ->
-      (* XXX: the rules and phonies are not exported correctly *)
-      let venv = { venv_dst with venv_this = venv_src.venv_this } in
-      let venv = export_list pos venv venv_src vars in
-         hoist_path venv path venv.venv_this
+      let venv = export_list pos venv_dst venv_src vars in
+         hoist_this venv venv path
 
 (************************************************************************
  * Squashing.
