@@ -215,7 +215,7 @@ and build_string_list env sl =
  *)
 and build_exp env e =
    match e with
-      LetFunExp (loc, v, vars, el, export) ->
+      LetFunExp (loc, v, vl, vars, el, export) ->
          let renv, el = build_sequence_exp env_fun el in
          let el =
             if renv.renv_has_return then
@@ -223,12 +223,12 @@ and build_exp env e =
             else
                el
          in
-         let e = LetFunExp (loc, v, vars, el, export) in
+         let e = LetFunExp (loc, v, vl, vars, el, export) in
             renv_empty, e
-    | LetObjectExp (loc, v, s, el, export) ->
+    | LetObjectExp (loc, v, vl, s, el, export) ->
          let el = build_object_exp el in
          let has_return, s = build_string env s in
-         let e = LetObjectExp (loc, v, s, el, export) in
+         let e = LetObjectExp (loc, v, vl, s, el, export) in
             update_return renv_empty has_return, e
     | StaticExp (loc, node, v, el) ->
          let el = build_object_exp el in
@@ -251,9 +251,9 @@ and build_exp env e =
          let renv, el = build_sequence_exp env el in
          let el = ReturnBodyExp (loc, el) in
             renv, el
-    | LetVarExp (loc, v, kind, s) ->
+    | LetVarExp (loc, v, vl, kind, s) ->
          let has_return, s = build_string env s in
-         let e = LetVarExp (loc, v, kind, s) in
+         let e = LetVarExp (loc, v, vl, kind, s) in
             update_return renv_empty has_return, e
     | IncludeExp (loc, s, sl) ->
          let has_return1, s = build_string env s in

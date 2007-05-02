@@ -406,9 +406,11 @@ and squash_exp pos buf e =
    Hash.add_code buf CodeBegin;
    begin
       match e with
-         LetVarExp (_, v, def, s) ->
+         LetVarExp (_, v, vl, def, s) ->
             Hash.add_code buf CodeLetVarExp;
             squash_var_info buf v;
+            Hash.add_code buf CodeSpace;
+            squash_vars buf vl;
             Hash.add_code buf CodeSpace;
             squash_def_kind buf def;
             Hash.add_code buf CodeSpace;
@@ -423,18 +425,22 @@ and squash_exp pos buf e =
             squash_def_kind buf def;
             Hash.add_code buf CodeSpace;
             squash_string_exp pos buf s
-       | LetFunExp (_, v, params, s, export) ->
+       | LetFunExp (_, v, vl, params, s, export) ->
             Hash.add_code buf CodeLetFunExp;
             squash_var_info buf v;
+            Hash.add_code buf CodeSpace;
+            squash_vars buf vl;
             Hash.add_code buf CodeSpace;
             squash_vars buf params;
             Hash.add_code buf CodeSpace;
             squash_exp_list pos buf s;
             Hash.add_code buf CodeSpace;
             squash_export_info buf export
-       | LetObjectExp (_, v, s, el, export) ->
+       | LetObjectExp (_, v, vl, s, el, export) ->
             Hash.add_code buf CodeLetObjectExp;
             squash_var_info buf v;
+            Hash.add_code buf CodeSpace;
+            squash_vars buf vl;
             Hash.add_code buf CodeSpace;
             squash_string_exp pos buf s;
             Hash.add_code buf CodeSpace;

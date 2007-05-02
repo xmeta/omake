@@ -138,10 +138,9 @@ and rule_command =
 
 and exp =
    (* Definitions *)
-   LetVarExp        of loc * var_info * var_def_kind * string_exp
- | LetFunExp        of loc * var_info * var list * exp list * export
-   (* ZZZ: LetMethodExp *)
- | LetObjectExp     of loc * var_info * string_exp * exp list * export
+   LetVarExp        of loc * var_info * var list * var_def_kind * string_exp
+ | LetFunExp        of loc * var_info * var list * var list * exp list * export
+ | LetObjectExp     of loc * var_info * var list * string_exp * exp list * export
  | LetThisExp       of loc * string_exp
  | LetKeyExp        of loc * string * var_def_kind * string_exp
 

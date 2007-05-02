@@ -1874,7 +1874,7 @@ let parse_rule venv pos loc args =
       match body with
          _ :: _ ->
             let body =
-               LetVarExp (loc, VarThis (loc, val_sym), VarDefNormal, ConstString (loc, "")) :: body
+               LetVarExp (loc, VarThis (loc, val_sym), [], VarDefNormal, ConstString (loc, "")) :: body
             in
                venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, [], body, export))
        | [] ->

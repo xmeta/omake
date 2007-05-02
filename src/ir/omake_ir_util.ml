@@ -32,11 +32,11 @@ open Omake_ir
 
 let loc_of_exp e =
    match e with
-      LetVarExp (loc, _, _, _)
+      LetVarExp (loc, _, _, _, _)
     | KeyExp (loc, _)
     | LetKeyExp (loc, _, _, _)
-    | LetFunExp (loc, _, _, _, _)
-    | LetObjectExp (loc, _, _, _, _)
+    | LetFunExp (loc, _, _, _, _, _)
+    | LetObjectExp (loc, _, _, _, _, _)
     | LetThisExp (loc, _)
     | ShellExp (loc, _)
     | IfExp (loc, _)

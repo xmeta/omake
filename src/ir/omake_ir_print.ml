@@ -270,20 +270,23 @@ and pp_print_exp complete buf e =
    if complete && !print_location then
       fprintf buf "<%a>" pp_print_location (loc_of_exp e);
    match e with
-      LetVarExp (_, v, kind, s) ->
-         fprintf buf "@[<hv 3>%a %a@ %a@]" (**)
+      LetVarExp (_, v, vl, kind, s) ->
+         fprintf buf "@[<hv 3>%a%a %a@ %a@]" (**)
             pp_print_var_info v
+            pp_print_method_name vl
             pp_print_var_def_kind kind
             (pp_print_string_exp complete) s
-    | LetFunExp (_, v, params, el, export) ->
-         fprintf buf "@[<hv 3>%a(%a) =@ %a%a@]" (**)
+    | LetFunExp (_, v, vl, params, el, export) ->
+         fprintf buf "@[<hv 3>%a%a(%a) =@ %a%a@]" (**)
             pp_print_var_info v
+            pp_print_method_name vl
             pp_print_symbol_list params
             (string_override "<...>" pp_print_exp_list complete) el
             pp_print_export_info export
-    | LetObjectExp (_, v, s, el, export) ->
-         fprintf buf "@[<v 3>%a. =@ extends %a@ %a%a@]" (**)
+    | LetObjectExp (_, v, vl, s, el, export) ->
+         fprintf buf "@[<v 3>%a%a. =@ extends %a@ %a%a@]" (**)
             pp_print_var_info v
+            pp_print_method_name vl
             (pp_print_string_exp complete) s
             (string_override "<...>" pp_print_exp_list complete) el
             pp_print_export_info export

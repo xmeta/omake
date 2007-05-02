@@ -150,17 +150,17 @@ and free_vars_exp_list fv el =
 
 and free_vars_exp fv e =
    match e with
-      LetVarExp (_, v, _, s) ->
+      LetVarExp (_, v, _, _, s) ->
          let fv = free_vars_remove fv v in
             free_vars_string_exp fv s
-    | LetFunExp (_, v, vars, el, export) ->
+    | LetFunExp (_, v, _, vars, el, export) ->
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body el in
          let fv_body = free_vars_remove_params fv_body vars in
          let fv = free_vars_union fv fv_body in
          let fv = free_vars_remove fv v in
             fv
-    | LetObjectExp (_, v, s, el, export) ->
+    | LetObjectExp (_, v, _, s, el, export) ->
          let fv = free_vars_export_info fv export in
          let fv = free_vars_exp_list fv el in
          let fv = free_vars_remove fv v in

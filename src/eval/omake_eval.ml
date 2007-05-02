@@ -964,6 +964,27 @@ and file_of_value venv pos file =
        | ValOther _ ->
             raise (OmakeException (pos, StringError "illegal value"))
 
+(*
+ * Be lazy about concatenating arrays, to
+ * avoid quadratic behavior.
+ *)
+and append_arrays venv pos a1 a2 =
+   if is_array_value a1 then
+      if is_array_value a2 then
+         ValArray [a1; a2]
+      else
+         let al = values_of_value venv pos a2 in
+            ValArray (a1 :: al)
+   else if is_array_value a2 then
+      let al = values_of_value venv pos a1 in
+         ValArray [ValArray al; a2]
+   else if is_empty_value a1 then
+      a2
+   else if is_empty_value a2 then
+      a1
+   else
+      ValSequence [a1; ValString " "; a2]
+
 (************************************************************************
  * Evaluation.
  *)
@@ -1450,6 +1471,42 @@ and create_map venv x v =
             raise Not_found
 
 (*
+ * Field operations.
+ *)
+and eval_find_field_var_exn venv path obj pos vl =
+   match vl with
+      [v] ->
+         path, obj, v
+    | v :: vl ->
+         let path, v = venv_eval_field_path_exn venv path obj pos v in
+         let obj = eval_object_exn venv pos v in
+            eval_find_field_var_exn venv path obj pos vl
+    | [] ->
+         raise (OmakeException (pos, StringError "empty method name"))
+
+and eval_find_field_var_aux venv envl pos v vl =
+   match envl with
+      [env] ->
+         let env = eval_object_exn venv pos env in
+         let path = PathVar (v, env) in
+            eval_find_field_var_exn venv path env pos vl
+    | env :: envl ->
+         let env = eval_object_exn venv pos env in
+         let path = PathVar (v, env) in
+            (try eval_find_field_var_exn venv path env pos vl with
+                Not_found ->
+                   eval_find_field_var_aux venv envl pos v vl)
+    | [] ->
+         raise Not_found
+
+and eval_find_field_var venv pos loc v vl =
+   let envl = venv_current_objects venv v in
+      try eval_find_field_var_aux venv envl pos v vl with
+         Not_found ->
+            let pos = string_pos "eval_find_field_var" (loc_pos loc pos) in
+               raise (OmakeException (pos, UnboundMethod vl))
+
+(*
  * Method paths.
  *)
 and eval_with_method_var_exn venv path obj pos vl =
@@ -1844,14 +1901,20 @@ and eval_string_export_exp be_eager venv pos s =
 and eval_exp venv result e =
    let pos = string_pos "eval_exp" (ir_exp_pos e) in
       match e with
-         LetVarExp (_, v, flag, s) ->
+         LetVarExp (_, v, [], flag, s) ->
             eval_let_var_exp venv pos v flag s
+       | LetVarExp (loc, v, vl, flag, s) ->
+            eval_let_var_field_exp venv pos loc v vl flag s
        | LetKeyExp (_, v, flag, s) ->
             eval_let_key_exp venv pos v flag s
-       | LetFunExp (loc, v, params, body, export) ->
+       | LetFunExp (loc, v, [], params, body, export) ->
             eval_let_fun_exp venv pos loc v params body export
-       | LetObjectExp (_, v, s, e, export) ->
+       | LetFunExp (loc, v, vl, params, body, export) ->
+            eval_let_fun_field_exp venv pos loc v vl params body export
+       | LetObjectExp (_, v, [], s, e, export) ->
             eval_let_object_exp venv pos v s e export
+       | LetObjectExp (loc, v, vl, s, e, export) ->
+            eval_let_object_field_exp venv pos loc v vl s e export
        | LetThisExp (_, e) ->
             eval_let_this_exp venv pos e
        | ShellExp (loc, e) ->
@@ -1898,26 +1961,25 @@ and eval_let_var_exp venv pos v flag s =
          VarDefNormal ->
             s
        | VarDefAppend ->
-            let v = venv_get_var venv pos v in
-               (* Be lazy about concatenating arrays to avoid quadratic behavior *)
-               if is_array_value v then
-                  if is_array_value s then
-                     ValArray [v; s]
-                  else
-                     let sl = values_of_value venv pos s in
-                        ValArray (v :: sl)
-               else if is_array_value s then
-                  let vl = values_of_value venv pos v in
-                     ValArray [ValArray vl; s]
-               else if is_empty_value v then
-                  s
-               else if is_empty_value s then
-                  v
-               else
-                  ValSequence [v; ValString " "; s]
+            append_arrays venv pos (venv_get_var venv pos v) s
    in
    let venv = venv_add_var venv v s in
       venv, s
+
+and eval_let_var_field_exp venv pos loc v vl flag s =
+   let pos = string_pos "eval_var_field_exp" pos in
+   let venv, e = eval_string_export_exp true venv pos s in
+   let path, obj, v = eval_find_field_var venv pos loc v vl in
+   let e =
+      match flag with
+         VarDefNormal ->
+            e
+       | VarDefAppend ->
+            append_arrays venv pos (venv_eval_field venv obj pos v) e
+   in
+   let obj = venv_add_field obj v e in
+   let venv = hoist_path venv path obj in
+      venv, e
 
 (*
  * Key (property) definitions.
@@ -1941,13 +2003,7 @@ and eval_let_key_exp venv pos v flag s =
          VarDefNormal ->
             s
        | VarDefAppend ->
-            let v = venv_map_find map pos v in
-               if is_array_value v || is_array_value s then
-                  let vl = values_of_value venv pos v in
-                  let sl = values_of_value venv pos s in
-                     ValArray (vl @ sl)
-               else
-                  ValSequence [v; ValString " "; s]
+            append_arrays venv pos (venv_map_find map pos v) s
    in
    let map = venv_map_add map pos v s in
    let venv = venv_add_var venv map_field_var (ValMap map) in
@@ -1960,6 +2016,14 @@ and eval_let_fun_exp venv pos loc v params body export =
    let env = venv_get_env venv in
    let e = ValFun (ArityExact (List.length params), env, params, body, export) in
    let venv = venv_add_var venv v e in
+      venv, e
+
+and eval_let_fun_field_exp venv pos loc v vl params body export =
+   let env = venv_get_env venv in
+   let e = ValFun (ArityExact (List.length params), env, params, body, export) in
+   let path, obj, v = eval_find_field_var venv pos loc v vl in
+   let obj = venv_add_field obj v e in
+   let venv = hoist_path venv path obj in
       venv, e
 
 (*
@@ -2053,6 +2117,19 @@ and eval_let_object_exp venv pos v s el export =
    let venv = venv_add_var venv v result in
    let venv = add_exports venv venv_obj pos export in
       venv, result
+
+and eval_let_object_field_exp venv pos loc v vl s el export =
+   let pos = string_pos "eval_let_object_field_exp" pos in
+   let parent = eval_string_exp true venv pos s in
+   let obj = eval_object venv pos parent in
+   let venv_obj = venv_define_object venv in
+   let venv_obj = venv_include_object venv_obj obj in
+   let venv_obj, e = eval_sequence venv_obj pos ValNone el in
+   let path, obj, v = eval_find_field_var venv pos loc v vl in
+   let obj = venv_add_field obj v e in
+   let venv = hoist_path venv path obj in
+   let venv = add_exports venv venv_obj pos export in
+      venv, e
 
 (*
  * This.

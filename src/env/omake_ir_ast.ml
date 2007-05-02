@@ -990,11 +990,9 @@ let senv_add_method_def_var genv oenv senv cenv pos loc vl =
       NameEmpty _ ->
          raise (OmakeException (pos, StringError "empty method name"))
 
-    | NameMethod (info, v, []) ->
-         senv_add_scoped_var genv oenv senv cenv pos loc info v
-
-    | NameMethod (_, _, _ :: _) ->
-         raise (OmakeException (pos, StringError "too many components in the name"))
+    | NameMethod (info, v, vl) ->
+         let genv, oenv, senv, info = senv_add_scoped_var genv oenv senv cenv pos loc info v in
+            genv, oenv, senv, info, vl
 
 let senv_add_method_var genv oenv senv cenv pos loc kind vl =
    match kind with
@@ -1005,9 +1003,7 @@ let senv_add_method_var genv oenv senv cenv pos loc kind vl =
           * However, 0.9.8 chooses the forced mode over the
           * previous mode. *)
          let oenv, info, vl = senv_find_method_var genv oenv senv cenv pos loc vl in
-            if vl <> [] then
-               raise (OmakeException (pos, StringError "too many components in the name"));
-            genv, oenv, senv, info
+            genv, oenv, senv, info, vl
 
 (************************************************************************
  * Declarations.
@@ -1712,11 +1708,8 @@ and build_object_def_exp genv oenv senv cenv vl flag body pos loc =
 
     | NameMethod ({ name_static = true }, _, _) ->
          raise (OmakeException (loc_pos loc pos, StringError "static named objects are not allowed"))
-    | NameMethod (info, v, []) ->
-         build_normal_object_exp genv oenv senv cenv info v flag body pos loc
-
-    | NameMethod (_, _, _ :: _) ->
-         raise (OmakeException (loc_pos loc pos, StringError "name has too many components"))
+    | NameMethod (info, v, vl) ->
+         build_normal_object_exp genv oenv senv cenv info v vl flag body pos loc
 
 (*
  * Qualified definitions, but not a new scope in the
@@ -1762,18 +1755,22 @@ and build_static_object_exp genv oenv senv cenv el pos loc =
 (*
  * An object is a collection of definitions.
  *)
-and build_normal_object_exp genv oenv senv cenv info v flag body pos loc =
+and build_normal_object_exp genv oenv senv cenv info v vl flag body pos loc =
    let pos = string_pos "build_normal_object_exp" pos in
    let genv, oenv, senv, parent_string, info =
       match flag with
          Omake_ast.DefineNormal ->
             let genv, oenv, senv, info = senv_add_scoped_var genv oenv senv cenv pos loc info v in
-            let oenv, v = senv_find_var genv oenv senv cenv pos loc object_sym in
-            let parent_string = ApplyString (loc, EagerApply, v, []) in
+            let oenv, parent_var = senv_find_var genv oenv senv cenv pos loc object_sym in
+            let parent_string = ApplyString (loc, EagerApply, parent_var, []) in
                genv, oenv, senv, parent_string, info
        | Omake_ast.DefineAppend ->
-            let oenv, var_info = senv_find_scoped_var genv oenv senv cenv pos loc info v in
-            let parent_string = ApplyString (loc, EagerApply, var_info, []) in
+            let oenv, parent_var = senv_find_scoped_var genv oenv senv cenv pos loc info v in
+            let parent_string =
+               match vl with
+                  [] -> ApplyString (loc, EagerApply, parent_var, [])
+                | _ -> MethodApplyString (loc, EagerApply, parent_var, vl, [])
+            in
 
             (* ZZZ: We should just use the previous info.
              * However, in 0.9.8 the current forced mode overrides
@@ -1796,7 +1793,7 @@ and build_normal_object_exp genv oenv senv cenv info v flag body pos loc =
    let export, _ = senv_add_exports senv_body result in
 
    (* Add the extends directive to the object body *)
-   let e = LetObjectExp (loc, info, parent_string, body, export) in
+   let e = LetObjectExp (loc, info, vl, parent_string, body, export) in
       genv, oenv, senv, e, ValValue
 
 (*
@@ -1827,8 +1824,8 @@ and build_var_def_exp genv oenv senv cenv v kind flag e pos loc =
          [v] when Lm_symbol.eq v this_sym ->
             genv, oenv, senv, LetThisExp (loc, s), ValValue
        | _ ->
-            let genv, oenv, senv, v = senv_add_method_var genv oenv senv cenv pos loc kind v in
-               genv, oenv, senv, LetVarExp (loc, v, kind, s), ValValue
+            let genv, oenv, senv, v, vl = senv_add_method_var genv oenv senv cenv pos loc kind v in
+               genv, oenv, senv, LetVarExp (loc, v, vl, kind, s), ValValue
 
 and build_var_def_body_exp genv oenv senv cenv v kind flag body pos loc =
    let pos = string_pos "build_var_def_body_exp" pos in
@@ -1842,8 +1839,8 @@ and build_var_def_body_exp genv oenv senv cenv v kind flag body pos loc =
                genv, oenv, ArrayString (loc, sl)
    in
    let kind = build_var_def_kind flag in
-   let genv, oenv, senv, v = senv_add_method_var genv oenv senv cenv pos loc kind v in
-      genv, oenv, senv, LetVarExp (loc, v, kind, e), ValValue
+   let genv, oenv, senv, v, vl = senv_add_method_var genv oenv senv cenv pos loc kind v in
+      genv, oenv, senv, LetVarExp (loc, v, vl, kind, e), ValValue
 
 (*
  * Key definitions (for object properties.
@@ -1883,8 +1880,8 @@ and build_fun_def_exp genv oenv senv cenv v params el pos loc =
    let cenv_body = cenv_fun_scope cenv in
    let senv_body = senv_add_params genv oenv senv cenv_body pos loc params in
    let genv, oenv, body, export, _ = build_body genv oenv senv_body cenv_body el pos loc in
-   let genv, oenv, senv, v = senv_add_method_def_var genv oenv senv cenv pos loc v in
-      genv, oenv, senv, LetFunExp (loc, v, params, body, export), ValValue
+   let genv, oenv, senv, v, vl = senv_add_method_def_var genv oenv senv cenv pos loc v in
+      genv, oenv, senv, LetFunExp (loc, v, vl, params, body, export), ValValue
 
 (*
  * Special rule expressions.
