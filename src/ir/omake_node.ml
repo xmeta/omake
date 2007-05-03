@@ -35,6 +35,7 @@
 open Lm_hash
 open Lm_printf
 open Lm_symbol
+open Lm_hash_sig
 open Lm_location
 open Lm_string_util
 open Lm_filename_util
@@ -362,7 +363,11 @@ struct
 end
 
 (* %%MAGICBEGIN%% *)
-and DirHash : HashMarshalSig with type elt = DirElt.t =
+and DirHash :
+   HashMarshalSig
+      with type elt = DirElt.t
+      with type t = DirElt.t hash_marshal_item
+=
    MakeHashMarshal (DirCompare)
 
 and DirSet   : Lm_set_sig.LmSet with type elt = DirHash.t = Lm_set.LmMake (DirHash)
@@ -622,7 +627,11 @@ struct
 end
 
 (* %%MAGICBEGIN%% *)
-and NodeHash : HashMarshalSig with type elt = node_elt =
+and NodeHash :
+   HashMarshalSig
+      with type elt = node_elt
+      with type t = node_elt hash_marshal_item
+=
    MakeHashMarshal (NodeCompare);;
 
 type node = NodeHash.t

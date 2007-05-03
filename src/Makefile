@@ -235,6 +235,9 @@ lm_thread_pool.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-ex
 lm_arg.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_arg.ml
 	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_arg.ml lm_arg.ml
 
+lm_hash_sig.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash_sig.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash_sig.ml lm_hash_sig.ml
+
 lm_hash.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash.ml
 	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_hash.ml lm_hash.ml
 
@@ -348,7 +351,7 @@ lm_thread_core.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-ext
 
 SRC_libmojave = ..$(slash)src$(slash)libmojave
 
-ALLFILES_libmojave =  lm_printf.ml lm_debug.ml lm_heap.ml lm_list_util.ml lm_array_util.ml lm_set_sig.ml lm_set.ml lm_map_sig.ml lm_map.ml lm_int_set.ml lm_index.ml lm_thread_sig.ml lm_thread.ml lm_string_util.ml lm_string_set.ml lm_printf.mli lm_debug.mli lm_list_util.mli lm_array_util.mli lm_set.mli lm_map.mli lm_int_set.mli lm_index.mli lm_thread_core.mli lm_thread.mli lm_string_util.mli lm_string_set.mli lm_thread_pool.mli lm_arg.ml lm_hash.ml lm_location.ml lm_position.ml lm_channel.ml lm_lexer.ml lm_parser.ml lm_glob.ml lm_db.ml lm_arg.mli lm_hash.mli lm_location.mli lm_position.mli lm_channel.mli lm_lexer.mli lm_parser.mli lm_glob.mli lm_db.mli lm_termsize.ml lm_termsize.mli lm_terminfo.ml lm_terminfo.mli lm_filename_util.ml lm_filename_util.mli lm_uname.ml lm_unix_util.ml lm_uname.mli lm_unix_util.mli lm_notify.ml lm_notify.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_symbol.ml lm_symbol.mli lm_thread_pool.ml lm_thread_core.ml
+ALLFILES_libmojave =  lm_printf.ml lm_debug.ml lm_heap.ml lm_list_util.ml lm_array_util.ml lm_set_sig.ml lm_set.ml lm_map_sig.ml lm_map.ml lm_int_set.ml lm_index.ml lm_thread_sig.ml lm_thread.ml lm_string_util.ml lm_string_set.ml lm_printf.mli lm_debug.mli lm_list_util.mli lm_array_util.mli lm_set.mli lm_map.mli lm_int_set.mli lm_index.mli lm_thread_core.mli lm_thread.mli lm_string_util.mli lm_string_set.mli lm_thread_pool.mli lm_arg.ml lm_hash_sig.ml lm_hash.ml lm_location.ml lm_position.ml lm_channel.ml lm_lexer.ml lm_parser.ml lm_glob.ml lm_db.ml lm_arg.mli lm_hash.mli lm_location.mli lm_position.mli lm_channel.mli lm_lexer.mli lm_parser.mli lm_glob.mli lm_db.mli lm_termsize.ml lm_termsize.mli lm_terminfo.ml lm_terminfo.mli lm_filename_util.ml lm_filename_util.mli lm_uname.ml lm_unix_util.ml lm_uname.mli lm_unix_util.mli lm_notify.ml lm_notify.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_symbol.ml lm_symbol.mli lm_thread_pool.ml lm_thread_core.ml
 
 
 CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo

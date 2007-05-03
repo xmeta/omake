@@ -36,6 +36,7 @@
 open Lm_printf
 open Lm_symbol
 open Lm_string_set
+open Lm_hash_sig
 open Lm_hash
 
 open Omake_ir
@@ -177,7 +178,7 @@ type code =
 
 module type HashSig =
 sig
-   include Lm_hash.HashDigestSig
+   include Lm_hash_sig.HashDigestSig
 
    val add_code   : t -> code -> unit
 end;;
