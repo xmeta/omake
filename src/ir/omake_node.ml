@@ -291,7 +291,7 @@ end
 struct
    type t =
       DirRoot of Lm_filename_util.root
-    | DirSub of FileCase.t * string * t hash_marshal_item
+    | DirSub of FileCase.t * string * t hash_marshal_eq_item
 
    let abs_dir_name =
       let rec name buf dir =
@@ -319,14 +319,23 @@ end
 (*
  * Sets and tables.
  *)
-and DirCompare : HashMarshalArgSig with type t = DirElt.t =
+and DirCompare : HashMarshalEqArgSig with type t = DirElt.t =
 struct
    open DirElt
    type t = DirElt.t
 
    let debug = "Dir"
 
-   let hash = function
+   let fine_hash = function
+      DirRoot root ->
+         Hashtbl.hash root
+    | DirSub (_, raw_name, parent) ->
+         let buf = HashCode.create () in
+            HashCode.add_int buf (DirHash.hash parent);
+            HashCode.add_string buf raw_name;
+            HashCode.code buf
+
+   let coarse_hash = function
       DirRoot root ->
          Hashtbl.hash root
     | DirSub (name, _, parent) ->
@@ -335,7 +344,22 @@ struct
             FileCase.add_filename buf name;
             HashCode.code buf
 
-   let rec compare dir1 dir2 =
+   let rec fine_compare dir1 dir2 =
+      match dir1, dir2 with
+         DirRoot root1, DirRoot root2 ->
+            Pervasives.compare root1 root2
+       | DirSub (_, name1, parent1), DirSub (_, name2, parent2) ->
+            let cmp = Lm_string_util.string_compare name1 name2 in
+               if cmp = 0 then
+                  DirHash.fine_compare parent1 parent2
+               else
+                  cmp
+       | DirRoot _, DirSub _ ->
+            -1
+       | DirSub _, DirRoot _ ->
+            1
+
+   let rec coarse_compare dir1 dir2 =
       match dir1, dir2 with
          DirRoot root1, DirRoot root2 ->
             Pervasives.compare root1 root2
@@ -364,11 +388,11 @@ end
 
 (* %%MAGICBEGIN%% *)
 and DirHash :
-   HashMarshalSig
-      with type elt = DirElt.t
-      with type t = DirElt.t hash_marshal_item
+   HashMarshalEqSig
+   with type elt = DirElt.t
+   with type t = DirElt.t hash_marshal_eq_item
 =
-   MakeHashMarshal (DirCompare)
+   MakeHashMarshalEq (DirCompare)
 
 and DirSet   : Lm_set_sig.LmSet with type elt = DirHash.t = Lm_set.LmMake (DirHash)
 and DirTable : Lm_map_sig.LmMap with type key = DirHash.t = Lm_map.LmMake (DirHash)
@@ -379,23 +403,26 @@ type dir = DirHash.t
 (*
  * Lists of directories.
  *)
-module rec DirListCompare : HashMarshalArgSig with type t = dir list =
+module rec DirListCompare : HashMarshalEqArgSig with type t = dir list =
 struct
    type t = dir list
 
    let debug = "DirList"
 
-   let hash l =
+   let hash f l =
       let buf = HashCode.create () in
-         List.iter (fun dir -> HashCode.add_int buf (DirHash.hash dir)) l;
+         List.iter (fun dir -> HashCode.add_int buf (f dir)) l;
          HashCode.code buf
 
-   let rec compare l1 l2 =
+   let fine_hash = hash DirHash.fine_hash
+   let coarse_hash = hash DirHash.hash
+
+   let rec compare f l1 l2 =
       match l1, l2 with
          d1 :: l1, d2 :: l2 ->
-            let cmp = DirHash.compare d1 d2 in
+            let cmp = f d1 d2 in
                if cmp = 0 then
-                  compare l1 l2
+                  compare f l1 l2
                else
                   cmp
        | [], [] ->
@@ -405,12 +432,15 @@ struct
        | _ :: _, [] ->
             1
 
+   let fine_compare = compare DirHash.fine_compare
+   let coarse_compare = compare DirHash.compare
+
    let reintern l =
       Lm_list_util.smap DirHash.reintern l
 end
 
-and DirListHash : HashMarshalSig with type elt = dir list =
-   MakeHashMarshal (DirListCompare);;
+and DirListHash : HashMarshalEqSig with type elt = dir list =
+   MakeHashMarshalEq (DirListCompare);;
 
 module DirListSet = Lm_set.LmMake (DirListHash);;
 module DirListTable = Lm_map.LmMake (DirListHash);;
@@ -439,10 +469,16 @@ type node_elt =
  | NodePhonyGlobal of string
  | NodePhonyDir    of dir * FileCase.t * string
  | NodePhonyFile   of dir * FileCase.t * string * string
- | NodeFlagged     of node_flag * node_elt hash_marshal_item
+ | NodeFlagged     of node_flag * node_elt hash_marshal_eq_item
 (* %%MAGICEND%% *)
 
-module rec NodeCompare : HashMarshalArgSig with type t = node_elt =
+module rec NodeCompare :
+sig
+   include HashMarshalEqArgSig with type t = node_elt
+   (* Include the default "compare" for the PreNodeSet *)
+   val compare : t -> t -> int
+end
+=
 struct
    type t = node_elt;;
 
@@ -481,34 +517,38 @@ struct
    let add_dir buf dir =
       HashCode.add_int buf (DirHash.hash dir)
 
-   let add_node buf node =
-      HashCode.add_int buf (NodeHash.hash node)
+   let add_node fine buf node =
+      HashCode.add_int buf (if fine then NodeHash.hash node else NodeHash.fine_hash node)
 
-   let add_filename = FileCase.add_filename
+   let add_filename fine buf name raw_name =
+      if fine then
+         FileCase.add_filename buf name
+      else
+         HashCode.add_string buf raw_name
 
-   let add_node buf node =
+   let add_node fine buf node =
       match node with
-         NodeFile (dir, name, _) ->
+         NodeFile (dir, name, raw_name) ->
             add_code buf CodeNodeFile;
             add_dir buf dir;
             add_code buf CodeSpace;
-            add_filename buf name;
+            add_filename fine buf name raw_name;
             add_code buf CodeEnd
        | NodePhonyGlobal name ->
             add_code buf CodeNodePhonyGlobal;
             HashCode.add_string buf name;
             add_code buf CodeEnd
-       | NodePhonyDir (dir, name, _) ->
+       | NodePhonyDir (dir, name, raw_name) ->
             add_code buf CodeNodePhonyDir;
             add_dir buf dir;
             add_code buf CodeSpace;
-            add_filename buf name;
+            add_filename fine buf name raw_name;
             add_code buf CodeEnd
-       | NodePhonyFile (dir, key, _, name) ->
+       | NodePhonyFile (dir, key, raw_name, name) ->
             add_code buf CodeNodePhonyFile;
             add_dir buf dir;
             add_code buf CodeSpace;
-            add_filename buf key;
+            add_filename fine buf key raw_name;
             add_code buf CodeSpace;
             HashCode.add_string buf name;
             add_code buf CodeEnd
@@ -516,13 +556,16 @@ struct
             add_code buf CodeNodeFlagged;
             add_flag_code buf flag;
             add_code buf CodeSpace;
-            add_node buf node;
+            add_node fine buf node;
             add_code buf CodeEnd
 
-   let hash node =
+   let hash fine node =
       let buf = HashCode.create () in
-         add_node buf node;
+         add_node fine buf node;
          HashCode.code buf
+
+   let fine_hash = hash true
+   let coarse_hash = hash false
 
    let compare_flags flag1 flag2 =
       match flag1, flag2 with
@@ -546,31 +589,45 @@ struct
        | NodeIsScanner,  NodeIsSquashed ->
             1
 
-   let rec compare node1 node2 =
+   let compare_aux weak node1 node2 =
       match node1, node2 with
-         NodeFile (dir1, key1, _), NodeFile (dir2, key2, _)
-       | NodePhonyDir (dir1, key1, _), NodePhonyDir (dir2, key2, _) ->
-            let cmp = DirHash.compare dir1 dir2 in
-               if cmp = 0 then
-                  FileCase.compare key1 key2
-               else
-                  cmp
+         NodeFile (dir1, key1, name1), NodeFile (dir2, key2, name2)
+       | NodePhonyDir (dir1, key1, name1), NodePhonyDir (dir2, key2, name2) ->
+            if weak then
+               let cmp = FileCase.compare key1 key2 in
+                  if cmp = 0 then
+                     DirHash.compare dir1 dir2
+                  else
+                     cmp
+            else
+               let cmp = Lm_string_util.string_compare name1 name2 in
+                  if cmp = 0 then
+                     DirHash.fine_compare dir1 dir2
+                  else
+                     cmp
        | NodePhonyGlobal name1, NodePhonyGlobal name2 ->
-            String.compare name1 name2
-       | NodePhonyFile (dir1, key1, _, name1), NodePhonyFile (dir2, key2, _, name2) ->
-            let cmp = DirHash.compare dir1 dir2 in
+            Lm_string_util.string_compare name1 name2
+       | NodePhonyFile (dir1, key1, name1, exname1), NodePhonyFile (dir2, key2, name2, exname2) ->
+            let cmp = Lm_string_util.string_compare exname1 exname2 in
                if cmp = 0 then
-                  let cmp = FileCase.compare key1 key2 in
-                     if cmp = 0 then
-                        String.compare name1 name2
-                     else
-                        cmp
+                  if weak then
+                     let cmp = FileCase.compare key1 key2 in
+                        if cmp = 0 then
+                           DirHash.compare dir1 dir2
+                        else
+                           cmp
+                  else
+                     let cmp = Lm_string_util.string_compare name1 name2 in
+                        if cmp = 0 then
+                           DirHash.fine_compare dir1 dir2
+                        else
+                           cmp
                else
                   cmp
        | NodeFlagged (flag1, node1), NodeFlagged (flag2, node2) ->
             let cmp = compare_flags flag1 flag2 in
                if cmp = 0 then
-                  NodeHash.compare node1 node2
+                  (if weak then NodeHash.compare else NodeHash.fine_compare) node1 node2
                else
                   cmp
        | NodeFile _,        NodePhonyGlobal _
@@ -595,6 +652,11 @@ struct
        | NodePhonyFile _,    NodePhonyDir _
        | NodeFlagged _,      NodePhonyFile _ ->
             1
+
+   let fine_compare = compare_aux false
+   let coarse_compare = compare_aux true
+
+   let compare = coarse_compare (* for the PreNodeSet *)
 
    let reintern node =
       match node with
@@ -628,11 +690,11 @@ end
 
 (* %%MAGICBEGIN%% *)
 and NodeHash :
-   HashMarshalSig
-      with type elt = node_elt
-      with type t = node_elt hash_marshal_item
+   HashMarshalEqSig
+   with type elt = node_elt
+   with type t = node_elt hash_marshal_eq_item
 =
-   MakeHashMarshal (NodeCompare);;
+   MakeHashMarshalEq (NodeCompare);;
 
 type node = NodeHash.t
 (* %%MAGICEND%% *)
