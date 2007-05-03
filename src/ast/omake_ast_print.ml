@@ -97,6 +97,11 @@ let rec pp_print_exp buf e =
          List.iter (fun e ->
                fprintf buf "@ %a" pp_print_exp e) el;
          fprintf buf ")@]"
+    | ArrayExp (el, _) ->
+         fprintf buf "@[<hv 3>(array";
+         List.iter (fun e ->
+               fprintf buf "@ %a" pp_print_exp e) el;
+         fprintf buf ")@]"
     | ApplyExp (LazyApply, v, [], _) ->
          fprintf buf "$%a" pp_print_symbol v
     | ApplyExp (s, v, el, _) ->

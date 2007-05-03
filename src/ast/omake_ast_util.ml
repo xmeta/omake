@@ -38,6 +38,7 @@ let loc_of_exp = function
  | QuoteExp (_, loc)
  | QuoteStringExp (_, _, loc)
  | SequenceExp (_, loc)
+ | ArrayExp (_, loc)
  | ApplyExp (_, _, _, loc)
  | SuperApplyExp (_, _, _, _, loc)
  | MethodApplyExp (_, _, _, loc)
@@ -74,7 +75,8 @@ let key_of_exp = function
  | StringExp _
  | QuoteExp _
  | QuoteStringExp _
- | SequenceExp _ ->
+ | SequenceExp _
+ | ArrayExp _ ->
      "string"
  | ApplyExp (_, v, _, _)
  | CommandExp (v, _, _, _)
@@ -102,45 +104,121 @@ let key_of_exp = function
      "class"
 
 (*
- * Update the body of the expression.
+ * In an argument list, each ... is replaced by the body.
+ * If there is no elision, then the body is added as the
+ * first argument.
  *)
-let update_body e body =
-   if body = [] then
-      e
-   else
-      match e with
-         NullExp _
-       | StringExp _
-       | QuoteExp _
-       | QuoteStringExp _
-       | SequenceExp _
-       | VarDefExp _
-       | KeyExp _
-       | KeyDefExp _
-       | BodyExp _
-       | ShellExp _
-       | ClassExp _ ->
-            raise (Invalid_argument "update_body")
-       | ApplyExp (strategy, v, args, loc) ->
-            ApplyExp (strategy, v, BodyExp (body, loc) :: args, loc)
-       | SuperApplyExp (strategy, super, v, args, loc) ->
-            SuperApplyExp (strategy, super, v, BodyExp (body, loc) :: args, loc)
-       | MethodApplyExp (strategy, vl, args, loc) ->
-            MethodApplyExp (strategy, vl, BodyExp (body, loc) :: args, loc)
-       | CommandExp (v, e, _, loc) ->
-            CommandExp (v, e, body, loc)
-       | VarDefBodyExp (v, kind, flag, _, loc) ->
-            VarDefBodyExp (v, kind, flag, body, loc)
-       | KeyDefBodyExp (v, kind, flag, _, loc) ->
-            KeyDefBodyExp (v, kind, flag, body, loc)
-       | ObjectDefExp (v, flag, _, loc) ->
-            ObjectDefExp (v, flag, body, loc)
-       | FunDefExp (v, params, _, loc) ->
-            FunDefExp (v, params, body, loc)
-       | RuleExp (flag, target, pattern, sources, _, loc) ->
-            RuleExp (flag, target, pattern, sources, body, loc)
-       | CatchExp (name, v, _, loc) ->
-            CatchExp (name, v, body, loc)
+let is_elide_exp = function
+   SequenceExp ([StringExp (".", _); StringExp (".", _); StringExp (".", _)], _)
+ | SequenceExp ([StringExp ("[", _); StringExp (".", _); StringExp (".", _); StringExp (".", _); StringExp ("]", _)], _) ->
+      true
+ | _ ->
+      false
+
+let add_elide_code loc code1 code2 =
+   match code1, code2 with
+      NoBody, code
+    | code, NoBody ->
+         code
+    | OptBody, code
+    | code, OptBody ->
+         code
+    | _ ->
+         if code1 = code2 then
+            code1
+         else
+            raise (Invalid_argument "conflicting elisions")
+
+let scan_elide_args code args =
+   List.fold_left (fun code arg ->
+         match arg with
+            SequenceExp ([StringExp (".", _); StringExp (".", _); StringExp (".", _)], loc) ->
+               add_elide_code loc code ColonBody
+          | SequenceExp ([StringExp ("[", _); StringExp (".", _); StringExp (".", _); StringExp (".", _); StringExp ("]", _)], loc) ->
+               add_elide_code loc code StringBody
+          | _ ->
+               code) code args
+
+let scan_body_flag code e =
+   match e with
+      ApplyExp (_, _, args, _)
+    | SuperApplyExp (_, _, _, args, _)
+    | MethodApplyExp (_, _, args, _) ->
+         scan_elide_args code args
+    | _ ->
+         code
+
+(*
+ * Update the body of an expression.
+ *)
+let update_body_args loc code body args =
+   let body =
+      match code with
+         NoBody
+       | OptBody
+       | ColonBody ->
+            BodyExp (body, loc)
+       | StringBody ->
+            ArrayExp (body, loc)
+   in
+   let rev_args, found =
+      List.fold_left (fun (args, found) arg ->
+            if is_elide_exp arg then
+               body :: args, true
+            else
+               arg :: args, found) ([], false) args
+   in
+   let args = List.rev rev_args in
+      if found then
+         args
+      else
+         body :: args
+
+let update_body_exp e code body =
+   match e with
+      NullExp _
+    | StringExp _
+    | QuoteExp _
+    | QuoteStringExp _
+    | SequenceExp _
+    | ArrayExp _
+    | VarDefExp _
+    | KeyExp _
+    | KeyDefExp _
+    | BodyExp _
+    | ShellExp _
+    | ClassExp _ ->
+         raise (Invalid_argument "update_body")
+    | ApplyExp (strategy, v, args, loc) ->
+         ApplyExp (strategy, v, update_body_args loc code body args, loc)
+    | SuperApplyExp (strategy, super, v, args, loc) ->
+         SuperApplyExp (strategy, super, v, update_body_args loc code body args, loc)
+    | MethodApplyExp (strategy, vl, args, loc) ->
+         MethodApplyExp (strategy, vl, update_body_args loc code body args, loc)
+    | CommandExp (v, e, _, loc) ->
+         CommandExp (v, e, body, loc)
+    | VarDefBodyExp (v, kind, flag, _, loc) ->
+         VarDefBodyExp (v, kind, flag, body, loc)
+    | KeyDefBodyExp (v, kind, flag, _, loc) ->
+         KeyDefBodyExp (v, kind, flag, body, loc)
+    | ObjectDefExp (v, flag, _, loc) ->
+         ObjectDefExp (v, flag, body, loc)
+    | FunDefExp (v, params, _, loc) ->
+         FunDefExp (v, params, body, loc)
+    | RuleExp (flag, target, pattern, sources, _, loc) ->
+         RuleExp (flag, target, pattern, sources, body, loc)
+    | CatchExp (name, v, _, loc) ->
+         CatchExp (name, v, body, loc)
+
+let update_body e code body =
+   match code, body with
+      NoBody, []
+    | OptBody, []
+    | ColonBody, [] ->
+         e
+    | StringBody, _
+    | _, _ :: _ ->
+         update_body_exp e code body
 
 (*
  * Indicate whether the command may have remaining parts.
@@ -167,6 +245,7 @@ let can_continue e =
     | QuoteExp _
     | QuoteStringExp _
     | SequenceExp _
+    | ArrayExp _
     | ApplyExp _
     | SuperApplyExp _
     | MethodApplyExp _

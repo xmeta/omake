@@ -242,14 +242,6 @@ shell_line:
                body, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
 
-          /* Builtin functions with array bodies */
-        | TokKeyword opt_white TokArray opt_white TokEol
-          { let id, loc1 = $1 in
-            let loc = union_loc loc1 $5 in
-            let arg = NullExp loc in
-               OptStringBody, CommandExp (Lm_symbol.add id, arg, [], loc)
-          }
-
           /* Keyword applications */
         | TokKeyword opt_white TokLeftParen opt_params TokRightParen opt_colon TokEol
           { let id, loc1 = $1 in
@@ -333,7 +325,7 @@ shell_line:
             let id = method_id_intern id in
             let loc = union_loc loc1 loc2 in
             let add_flag = define_flag $4 in
-               OptStringBody, VarDefBodyExp (id, DefineArray, add_flag, [], loc)
+               StringBody, VarDefBodyExp (id, DefineArray, add_flag, [], loc)
           }
 
           /* Array definition on one line */
@@ -886,51 +878,38 @@ rev_target:
 keyword_text_optcolon:
           /* empty */
           { None }
-        | rev_keyword_text_noncolon
-          { let w, l, loc = $1 in
-               Some (OptBody, sequence_exp (List.rev (w @ l)) loc)
-          }
-        | rev_keyword_text_colon
-          { let l, loc = $1 in
-               Some (ColonBody, sequence_exp (List.rev (List.tl l)) loc)
+        | rev_keyword_text
+          { let code, _, el, loc = $1 in
+               Some (code, sequence_exp (List.rev el) loc)
           }
         ;
 
-rev_keyword_text_opt_colon:
-          rev_keyword_text_noncolon
-          { $1 }
-        | rev_keyword_text_colon
-          { let l, loc = $1 in
-               [], l, loc
-          }
-        ;
-
-rev_keyword_text_noncolon:
+rev_keyword_text:
           keyword_target_start
           { let e, loc = $1 in
-               [], [e], loc
+               OptBody, [], [e], loc
           }
-        | rev_keyword_text_opt_colon target_start
-          { let w, l, loc1 = $1 in
-            let e, loc2 = $2 in
-               [], e :: (w @ l), union_loc loc1 loc2
-          }
-        | rev_keyword_text_opt_colon white
-          { let w, l, loc1 = $1 in
-            let e, loc2 = $2 in
-               e :: w, l, union_loc loc1 loc2
-          }
-        ;
-
-rev_keyword_text_colon:
-          colon
+        | colon
           { let e, loc = $1 in
-               [e], loc
+               ColonBody, [e], [], loc
           }
-        | rev_keyword_text_opt_colon colon
-          { let w, l, loc1 = $1 in
+        | rev_keyword_text white
+          { let code, final, prefix, loc1 = $1 in
             let e, loc2 = $2 in
-               e :: (w @ l), union_loc loc1 loc2
+            let loc = union_loc loc1 loc2 in
+               code, e :: final, prefix, loc
+          }
+        | rev_keyword_text target_start
+          { let _, final, prefix, loc1 = $1 in
+            let e, loc2 = $2 in
+            let loc = union_loc loc1 loc2 in
+               OptBody, [], e :: (final @ prefix), loc
+          }
+        | rev_keyword_text colon
+          { let _, final, prefix, loc1 = $1 in
+            let e, loc2 = $2 in
+            let loc = union_loc loc1 loc2 in
+               ColonBody, [e], final @ prefix, loc
           }
         ;
 

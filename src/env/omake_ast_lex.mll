@@ -953,7 +953,7 @@ let body_parser state body =
             Some Omake_ast_parse.shell
     | ColonBody ->
          Some Omake_ast_parse.shell
-    | OptStringBody ->
+    | StringBody ->
          Some Omake_ast_parse.string
 
 (************************************************************************
@@ -1090,17 +1090,18 @@ let rec parse_exp state parse prompt root nest =
          parse_exp_indent state parse prompt root nest
 
 and parse_exp_indent state parse prompt root nest =
-   let body, e =
+   let code, e =
       try parse (lex_line state) state.current_lexbuf with
          Parsing.Parse_error ->
             parse_error state
    in
-   let parse = body_parser state body in
+   let code = scan_body_flag code e in
+   let parse = body_parser state code in
       match parse with
          Some parse ->
             let prompt = prompt_string state root nest e in
             let body = parse_body state parse prompt nest in
-            let e = update_body e body in
+            let e = update_body e code body in
                (match can_continue e with
                    Some prompt ->
                       (try e :: parse_exp state parse (prompt_ext prompt) false nest with

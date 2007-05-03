@@ -40,7 +40,7 @@ type body_flag =
    NoBody
  | OptBody
  | ColonBody
- | OptStringBody
+ | StringBody
 
 (*
  * Function applications can be tagged as Lazy or Eager.
@@ -71,6 +71,7 @@ type exp =
  | QuoteExp        of exp list * loc
  | QuoteStringExp  of char * exp list * loc
  | SequenceExp     of exp list * loc
+ | ArrayExp        of exp list * loc
  | ApplyExp        of apply_strategy * var * exp list * loc
  | SuperApplyExp   of apply_strategy * var * var * exp list * loc
  | MethodApplyExp  of apply_strategy * var list * exp list * loc

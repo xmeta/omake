@@ -1055,6 +1055,7 @@ let build_literal_string e =
        | Omake_ast.QuoteStringExp (_, el, _)
        | Omake_ast.SequenceExp (el, _) ->
             collect_exp_list el
+       | Omake_ast.ArrayExp (_, loc)
        | Omake_ast.ApplyExp (_, _, _, loc)
        | Omake_ast.SuperApplyExp (_, _, _, _, loc)
        | Omake_ast.MethodApplyExp (_, _, _, loc)
@@ -1116,6 +1117,8 @@ let rec build_string genv oenv senv cenv e pos =
             build_string genv oenv senv cenv e pos
        | Omake_ast.SequenceExp (el, loc) ->
             build_sequence_string genv oenv senv cenv el pos loc
+       | Omake_ast.ArrayExp (e, loc) ->
+            build_array_string genv oenv senv cenv e pos loc
        | Omake_ast.ApplyExp (strategy, v, args, loc) ->
             build_apply_string genv oenv senv cenv strategy v args pos loc
        | Omake_ast.SuperApplyExp (strategy, super, v, args, loc) ->
@@ -1235,6 +1238,14 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
       collect genv oenv None [] el
 
 (*
+ * Build an array of strings.
+ *)
+and build_array_string genv oenv senv cenv args pos loc =
+   let pos = string_pos "build_array_string" pos in
+   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
+      genv, oenv, ArrayString (loc, args)
+
+(*
  * Build an application.
  *)
 and build_apply_string genv oenv senv cenv strategy v args pos loc =
@@ -1304,7 +1315,8 @@ and build_exp genv oenv senv cenv result e =
        | Omake_ast.BodyExp ([e], _) ->
             build_exp genv oenv senv cenv result e
        | Omake_ast.SequenceExp (el, loc)
-       | Omake_ast.BodyExp (el, loc) ->
+       | Omake_ast.BodyExp (el, loc)
+       | Omake_ast.ArrayExp (el, loc) ->
             build_sequence_exp genv oenv senv cenv result el pos loc
        | Omake_ast.ApplyExp (_, v, args, loc) ->
             build_apply_exp genv oenv senv cenv v args pos loc

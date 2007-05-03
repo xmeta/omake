@@ -106,7 +106,7 @@ let target_start =
    subtract target_next white
 
 let keyword_target_start =
-   subtract target_start ["TokLeftParen"; "TokArray"]
+   subtract target_start ["TokLeftParen"]
 
 let arg_next =
    subtract tokens parens
