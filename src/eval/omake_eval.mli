@@ -107,8 +107,9 @@ val eval_body_exp   : venv -> pos -> value -> value -> venv * value
  * Get the object for the value.
  *)
 val eval_object : venv -> pos -> value -> obj
-val eval_find_method_var : venv -> pos -> loc -> var_info -> var list -> venv * value
-val eval_defined_method_var : venv -> pos -> loc -> var_info -> var list -> bool
+val eval_find_field : venv -> pos -> loc -> var_info -> var list -> path * obj * var
+val eval_find_method : venv -> pos -> loc -> var_info -> var list -> venv * value
+val eval_defined_field : venv -> pos -> loc -> var_info -> var list -> bool
 
 (*
  * Evaluate a value that should be a function.

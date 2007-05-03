@@ -1089,13 +1089,13 @@ and eval_value_core venv pos v =
             eval_value_core venv pos v
     | ValMethodApply (loc, v, vl, []) ->
          let v =
-            let venv, v = eval_find_method_var venv pos loc v vl in
+            let venv, v = eval_find_method venv pos loc v vl in
                eval_var venv pos loc v
          in
             eval_value_core venv pos v
     | ValMethodApply (loc, v, vl, args) ->
          let v =
-            let venv, v = eval_find_method_var venv pos loc v vl in
+            let venv, v = eval_find_method venv pos loc v vl in
                eval_apply venv pos loc v args
          in
             eval_value_core venv pos v
@@ -1471,43 +1471,43 @@ and create_map venv x v =
 (*
  * Field operations.
  *)
-and eval_find_field_var_exn venv path obj pos vl =
+and eval_find_field_exn venv path obj pos vl =
    match vl with
       [v] ->
          path, obj, v
     | v :: vl ->
          let path, v = venv_find_field_path_exn venv path obj pos v in
          let obj = eval_object_exn venv pos v in
-            eval_find_field_var_exn venv path obj pos vl
+            eval_find_field_exn venv path obj pos vl
     | [] ->
          raise (OmakeException (pos, StringError "empty method name"))
 
-and eval_find_field_var_aux venv envl pos v vl =
+and eval_find_field_aux venv envl pos v vl =
    match envl with
       [env] ->
          let env = eval_object_exn venv pos env in
          let path = PathVar (v, env) in
-            eval_find_field_var_exn venv path env pos vl
+            eval_find_field_exn venv path env pos vl
     | env :: envl ->
          let env = eval_object_exn venv pos env in
          let path = PathVar (v, env) in
-            (try eval_find_field_var_exn venv path env pos vl with
+            (try eval_find_field_exn venv path env pos vl with
                 Not_found ->
-                   eval_find_field_var_aux venv envl pos v vl)
+                   eval_find_field_aux venv envl pos v vl)
     | [] ->
          raise Not_found
 
-and eval_find_field_var venv pos loc v vl =
+and eval_find_field venv pos loc v vl =
    let envl = venv_current_objects venv pos v in
-      try eval_find_field_var_aux venv envl pos v vl with
+      try eval_find_field_aux venv envl pos v vl with
          Not_found ->
-            let pos = string_pos "eval_find_field_var" (loc_pos loc pos) in
+            let pos = string_pos "eval_find_field" (loc_pos loc pos) in
                raise (OmakeException (pos, UnboundMethod vl))
 
 (*
  * Method paths.
  *)
-and eval_with_method_var_exn venv path obj pos vl =
+and eval_with_method_exn venv path obj pos vl =
    match vl with
       [v] ->
          let v = venv_find_field_exn venv obj pos v in
@@ -1516,36 +1516,36 @@ and eval_with_method_var_exn venv path obj pos vl =
     | v :: vl ->
          let path, v = venv_find_field_path_exn venv path obj pos v in
          let obj = eval_object_exn venv pos v in
-            eval_with_method_var_exn venv path obj pos vl
+            eval_with_method_exn venv path obj pos vl
     | [] ->
          raise (OmakeException (pos, StringError "empty method name"))
 
-and eval_with_method_var_aux venv envl pos v vl =
+and eval_with_method_aux venv envl pos v vl =
    match envl with
       [env] ->
          let env = eval_object_exn venv pos env in
          let path = PathVar (v, env) in
-            eval_with_method_var_exn venv path env pos vl
+            eval_with_method_exn venv path env pos vl
     | env :: envl ->
          let env = eval_object_exn venv pos env in
          let path = PathVar (v, env) in
-            (try eval_with_method_var_exn venv path env pos vl with
+            (try eval_with_method_exn venv path env pos vl with
                 Not_found ->
-                   eval_with_method_var_aux venv envl pos v vl)
+                   eval_with_method_aux venv envl pos v vl)
     | [] ->
          raise Not_found
 
-and eval_with_method_var venv pos loc v vl =
+and eval_with_method venv pos loc v vl =
    let envl = venv_current_objects venv pos v in
-      try eval_with_method_var_aux venv envl pos v vl with
+      try eval_with_method_aux venv envl pos v vl with
          Not_found ->
-            let pos = string_pos "eval_with_method_var" (loc_pos loc pos) in
+            let pos = string_pos "eval_with_method" (loc_pos loc pos) in
                raise (OmakeException (pos, UnboundMethod vl))
 
 (*
  * Method paths.
  *)
-and eval_find_method_var_exn venv obj pos vl =
+and eval_find_method_exn venv obj pos vl =
    match vl with
       [v] ->
          let v = venv_find_field_exn venv obj pos v in
@@ -1554,60 +1554,60 @@ and eval_find_method_var_exn venv obj pos vl =
     | v :: vl ->
          let v = venv_find_field_exn venv obj pos v in
          let obj = eval_object_exn venv pos v in
-            eval_find_method_var_exn venv obj pos vl
+            eval_find_method_exn venv obj pos vl
     | [] ->
          raise (OmakeException (pos, StringError "empty method name"))
 
-and eval_find_method_var_aux venv envl pos vl =
+and eval_find_method_aux venv envl pos vl =
    match envl with
       [env] ->
          let env = eval_object_exn venv pos env in
-            eval_find_method_var_exn venv env pos vl
+            eval_find_method_exn venv env pos vl
     | env :: envl ->
          let env = eval_object_exn venv pos env in
-            (try eval_find_method_var_exn venv env pos vl with
+            (try eval_find_method_exn venv env pos vl with
                 Not_found ->
-                   eval_find_method_var_aux venv envl pos vl)
+                   eval_find_method_aux venv envl pos vl)
     | [] ->
          raise Not_found
 
-and eval_find_method_var venv pos loc v vl =
+and eval_find_method venv pos loc v vl =
    let envl = venv_current_objects venv pos v in
-      try eval_find_method_var_aux venv envl pos vl with
+      try eval_find_method_aux venv envl pos vl with
          Not_found ->
-            let pos = string_pos "eval_find_method_var" (loc_pos loc pos) in
+            let pos = string_pos "eval_find_method" (loc_pos loc pos) in
                raise (OmakeException (pos, UnboundMethod vl))
 
 (*
  * Check whether a field is defined.
  *)
-and eval_defined_method_var_exn venv env pos vl =
+and eval_defined_field_exn venv env pos vl =
    match vl with
       [v] ->
          venv_defined_field venv env v
     | v :: vl ->
          let v = venv_find_field_exn venv env pos v in
          let obj = eval_object_exn venv pos v in
-            eval_defined_method_var_exn venv obj pos vl
+            eval_defined_field_exn venv obj pos vl
     | [] ->
          raise (OmakeException (pos, StringError "empty method name"))
 
-and eval_defined_method_var_aux venv envl pos vl =
+and eval_defined_field_aux venv envl pos vl =
    match envl with
       [env] ->
          let env = eval_object_exn venv pos env in
-            eval_defined_method_var_exn venv env pos vl
+            eval_defined_field_exn venv env pos vl
     | env :: envl ->
          let env = eval_object_exn venv pos env in
-            (try eval_defined_method_var_exn venv env pos vl with
+            (try eval_defined_field_exn venv env pos vl with
                 Not_found ->
-                   eval_defined_method_var_aux venv envl pos vl)
+                   eval_defined_field_aux venv envl pos vl)
     | [] ->
          raise Not_found
 
-and eval_defined_method_var venv pos loc v vl =
+and eval_defined_field venv pos loc v vl =
    let envl = venv_current_objects venv pos v in
-      try eval_defined_method_var_aux venv envl pos vl with
+      try eval_defined_field_aux venv envl pos vl with
          Not_found ->
             false
 
@@ -1693,7 +1693,7 @@ and eval_string_exp be_eager venv pos s =
                   ValSuperApply (loc, super, v, args)
        | MethodApplyString (loc, strategy, v, vl, args) ->
             if strategy_is_eager be_eager strategy v then
-               let venv_obj, v = eval_find_method_var venv pos loc v vl in
+               let venv_obj, v = eval_find_method venv pos loc v vl in
                   eval_apply_string_exp venv venv_obj pos loc v args
             else
                let args = List.map (eval_string_exp false venv pos) args in
@@ -1862,7 +1862,7 @@ and eval_string_export_exp be_eager venv pos s =
                   venv, ValSuperApply (loc, super, v, args)
        | MethodApplyString (loc, strategy, v, vl, args) ->
             if strategy_is_eager be_eager strategy v then
-               let venv_obj, path, v = eval_with_method_var venv pos loc v vl in
+               let venv_obj, path, v = eval_with_method venv pos loc v vl in
                   eval_apply_method_export_exp venv venv_obj pos loc path v args
             else
                let args = List.map (eval_string_exp false venv pos) args in
@@ -1967,7 +1967,7 @@ and eval_let_var_exp venv pos v flag s =
 and eval_let_var_field_exp venv pos loc v vl flag s =
    let pos = string_pos "eval_var_field_exp" pos in
    let venv, e = eval_string_export_exp true venv pos s in
-   let path, obj, v = eval_find_field_var venv pos loc v vl in
+   let path, obj, v = eval_find_field venv pos loc v vl in
    let e =
       match flag with
          VarDefNormal ->
@@ -2019,7 +2019,7 @@ and eval_let_fun_exp venv pos loc v params body export =
 and eval_let_fun_field_exp venv pos loc v vl params body export =
    let env = venv_get_env venv in
    let e = ValFun (ArityExact (List.length params), env, params, body, export) in
-   let path, obj, v = eval_find_field_var venv pos loc v vl in
+   let path, obj, v = eval_find_field venv pos loc v vl in
    let venv, obj = venv_add_field venv obj pos v e in
    let venv = hoist_path venv path obj in
       venv, e
@@ -2123,7 +2123,7 @@ and eval_let_object_field_exp venv pos loc v vl s el export =
    let venv_obj = venv_define_object venv in
    let venv_obj = venv_include_object venv_obj obj in
    let venv_obj, e = eval_sequence venv_obj pos ValNone el in
-   let path, obj, v = eval_find_field_var venv pos loc v vl in
+   let path, obj, v = eval_find_field venv pos loc v vl in
    let venv, obj = venv_add_field venv obj pos v e in
    let venv = hoist_path venv path obj in
    let venv = add_exports venv venv_obj pos export in
@@ -2198,7 +2198,7 @@ and eval_super_apply_exp venv pos loc super v args =
 
 and eval_method_apply_exp venv pos loc v vl args =
    let pos = string_pos "eval_method_apply_exp" pos in
-   let venv_obj, path, v = eval_with_method_var venv pos loc v vl in
+   let venv_obj, path, v = eval_with_method venv pos loc v vl in
       eval_apply_method_export_exp venv venv_obj pos loc path v args
 
 (*

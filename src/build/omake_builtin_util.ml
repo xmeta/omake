@@ -100,7 +100,7 @@ let defined_sym venv pos loc s =
          [] ->
             venv_defined venv v
        | _ ->
-            eval_defined_method_var venv pos loc v vl
+            eval_defined_field venv pos loc v vl
 
 let get_sym venv pos loc s =
    let pos = string_pos "get_sym" pos in
@@ -109,7 +109,7 @@ let get_sym venv pos loc s =
          [] ->
             venv_find_var venv pos loc v
        | _ ->
-            snd (eval_find_method_var venv pos loc v vl)
+            snd (eval_find_method venv pos loc v vl)
 
 let add_sym venv pos loc s x =
    let pos = string_pos "add_sym" pos in
