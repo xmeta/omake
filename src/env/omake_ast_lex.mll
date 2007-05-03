@@ -953,7 +953,7 @@ let body_parser state body =
             Some Omake_ast_parse.shell
     | ColonBody ->
          Some Omake_ast_parse.shell
-    | StringBody ->
+    | ArrayBody ->
          Some Omake_ast_parse.string
 
 (************************************************************************

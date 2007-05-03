@@ -40,7 +40,7 @@ type body_flag =
    NoBody
  | OptBody
  | ColonBody
- | StringBody
+ | ArrayBody
 
 (*
  * Function applications can be tagged as Lazy or Eager.

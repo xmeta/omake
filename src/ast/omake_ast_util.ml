@@ -135,7 +135,7 @@ let scan_elide_args code args =
             SequenceExp ([StringExp (".", _); StringExp (".", _); StringExp (".", _)], loc) ->
                add_elide_code loc code ColonBody
           | SequenceExp ([StringExp ("[", _); StringExp (".", _); StringExp (".", _); StringExp (".", _); StringExp ("]", _)], loc) ->
-               add_elide_code loc code StringBody
+               add_elide_code loc code ArrayBody
           | _ ->
                code) code args
 
@@ -158,7 +158,7 @@ let update_body_args loc code body args =
        | OptBody
        | ColonBody ->
             BodyExp (body, loc)
-       | StringBody ->
+       | ArrayBody ->
             ArrayExp (body, loc)
    in
    let rev_args, found =
@@ -216,7 +216,7 @@ let update_body e code body =
     | OptBody, []
     | ColonBody, [] ->
          e
-    | StringBody, _
+    | ArrayBody, _
     | _, _ :: _ ->
          update_body_exp e code body
 
