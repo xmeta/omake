@@ -102,7 +102,7 @@ let object_mem venv pos loc args =
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
             let v = Lm_symbol.add s in
-               val_of_bool (venv_object_mem obj v)
+               val_of_bool (venv_defined_field venv obj v)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -113,7 +113,7 @@ let object_find venv pos loc args =
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
             let v = Lm_symbol.add s in
-               venv_find_field obj pos v
+               venv_find_field venv obj pos v
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -127,7 +127,8 @@ let object_add venv pos loc args =
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
             let v = Lm_symbol.add s in
-               ValObject (venv_add_field obj v x)
+            let venv, obj = venv_add_field venv obj pos v x in
+               venv, ValObject obj
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -173,9 +174,9 @@ let object_map venv pos loc args =
 
    (* If the body exports the environment, preserve it across calls *)
    let venv', obj =
-      venv_object_fold (fun (venv, obj) v x ->
+      venv_object_fold_internal (fun (venv, obj) v x ->
             let venv, result = f venv pos loc [ValString (Lm_symbol.to_string v); x] in
-            let obj = venv_add_field obj v result in
+            let obj = venv_add_field_internal obj v result in
                venv, obj) (venv, obj) obj
    in
       venv, ValObject obj
@@ -208,7 +209,7 @@ let object_instanceof venv pos loc args =
  *)
 let map_of_object venv pos obj =
    try
-      match venv_find_field_exn obj map_sym with
+      match venv_find_field_internal_exn obj map_sym with
          ValMap map ->
             map
        | _ ->
@@ -222,7 +223,7 @@ let map_of_value venv pos arg =
       map_of_object venv pos obj
 
 let wrap_map obj map =
-   ValObject (venv_add_field obj map_sym (ValMap map))
+   ValObject (venv_add_field_internal obj map_sym (ValMap map))
 
 (*
  * Field membership.
@@ -795,7 +796,6 @@ let exists_fun venv pos loc args =
 let () =
    let builtin_funs =
       [true, "object",               object_fun,          ArityExact 1;
-       true, "obj-add",              object_add,          ArityExact 3;
        true, "obj-find",             object_find,         ArityExact 2;
        true, "obj-mem",              object_mem,          ArityExact 2;
        true, "obj-length",           object_length,       ArityExact 1;
@@ -814,7 +814,8 @@ let () =
        false, "create-lazy-map",     create_map,          ArityAny]
    in
    let builtin_kfuns =
-      [true, "extends",              extends_fun,         ArityAny;
+      [true, "obj-add",              object_add,          ArityExact 3;
+       true, "extends",              extends_fun,         ArityAny;
        true, "foreach",              foreach_fun,         ArityExact 2;
        true, "obj-map",              object_map,          ArityRange (3, 4);
        true, "map-map",              map_map,             ArityRange (3, 4);

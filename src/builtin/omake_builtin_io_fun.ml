@@ -1772,7 +1772,7 @@ let parse_prec venv pos loc args assoc =
             let parse, level = Parser.create_prec_lt parse level assoc in
                parse, level, args
        | [args] ->
-            let current_prec = Lm_symbol.add (string_of_value venv pos (venv_find_field this pos current_prec_sym)) in
+            let current_prec = Lm_symbol.add (string_of_value venv pos (venv_find_field_internal this pos current_prec_sym)) in
             let level =
                try Parser.find_prec parse current_prec with
                   Not_found ->
@@ -1892,7 +1892,7 @@ let parser_add_matches par args =
    let par, _ =
       List.fold_left (fun (par, i) arg ->
             let v = Lm_symbol.add (string_of_int i) in
-            let par = venv_add_field par v arg in
+            let par = venv_add_field_internal par v arg in
                par, succ i) (par, 1) args
    in
       par
@@ -1907,16 +1907,16 @@ let parse_engine venv pos loc args =
             let lexer = eval_object venv pos lexer in
             let parser_obj = venv_this venv in
             let lex (venv, parser_obj, lexer) =
-               let lex = venv_find_field lexer pos lex_sym in
+               let lex = venv_find_field_internal lexer pos lex_sym in
                let venv = venv_with_object venv lexer in
                let venv, result = eval_apply venv pos loc lex [] in
                let obj = eval_object venv pos result in
                   try
-                     let lex_loc = venv_find_field_exn obj loc_sym in
+                     let lex_loc = venv_find_field_internal_exn obj loc_sym in
                      let lex_loc = loc_of_value venv pos lex_loc in
-                     let name = venv_find_field_exn obj name_sym in
+                     let name = venv_find_field_internal_exn obj name_sym in
                      let name = Lm_symbol.add (string_of_value venv pos name) in
-                     let value = venv_find_field_exn obj val_sym in
+                     let value = venv_find_field_internal_exn obj val_sym in
                         name, lex_loc, (venv, parser_obj, lexer), value
                   with
                      Not_found ->
@@ -1935,7 +1935,7 @@ let parse_engine venv pos loc args =
             let eval (venv, parser_obj, lexer) action loc args =
                let pos = loc_pos loc pos in
                let parser_obj = parser_add_matches parser_obj args in
-               let action = venv_find_field parser_obj pos action in
+               let action = venv_find_field_internal parser_obj pos action in
                let venv = venv_with_object venv parser_obj in
                let venv = venv_add_var venv loc_var (ValOther (ValLocation loc)) in
                let venv, result = eval_apply venv pos loc action [] in

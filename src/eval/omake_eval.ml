@@ -127,7 +127,7 @@ let rec is_empty_value v =
     | ValSequence vl ->
          List.for_all is_empty_value vl
     | ValObject obj ->
-         (try is_empty_value (venv_find_field_exn obj builtin_sym) with
+         (try is_empty_value (venv_find_field_internal_exn obj builtin_sym) with
              Not_found ->
                 false)
     | ValInt _
@@ -169,11 +169,9 @@ let rec is_array_value v =
          is_array_value v
     | ValObject obj ->
          (try
-             match venv_find_field_exn obj builtin_sym with
-                ValArray _ ->
-                   true
-              | _ ->
-                   false
+             match venv_find_field_internal_exn obj builtin_sym with
+                ValArray _ -> true
+              | _ -> false
           with
              Not_found ->
                 false)
@@ -1022,7 +1020,7 @@ and eval_value_static venv pos key v =
                         venv_set_static_info venv key (StaticValue obj);
                         obj
    in
-      venv_find_field obj pos v
+      venv_find_field_internal obj pos v
 
 and eval_value_delayed venv pos p =
    match !p with
@@ -1127,7 +1125,7 @@ and eval_prim_value venv pos v =
          ValArray [v] ->
             eval_prim_value venv pos v
        | ValObject obj ->
-            (try venv_find_field_exn obj builtin_sym with
+            (try venv_find_field_internal_exn obj builtin_sym with
                 Not_found ->
                    v)
        | _ ->
@@ -1142,7 +1140,7 @@ and eval_catenable_value venv pos v =
       match v with
          ValObject obj ->
             (try
-                match venv_find_field_exn obj builtin_sym with
+                match venv_find_field_internal_exn obj builtin_sym with
                    ValNone
                  | ValString _
                  | ValSequence _
@@ -1458,7 +1456,7 @@ and create_object venv x v =
    let obj = venv_find_var_exn venv v in
       match obj with
          ValObject env ->
-            venv_add_field env builtin_sym x
+            venv_add_field_internal env builtin_sym x
        | _ ->
             raise Not_found
 
@@ -1466,7 +1464,7 @@ and create_map venv x v =
    let obj = venv_find_var_exn venv v in
       match obj with
          ValObject env ->
-            venv_add_field env map_sym x
+            venv_add_field_internal env map_sym x
        | _ ->
             raise Not_found
 
@@ -1478,7 +1476,7 @@ and eval_find_field_var_exn venv path obj pos vl =
       [v] ->
          path, obj, v
     | v :: vl ->
-         let path, v = venv_eval_field_path_exn venv path obj pos v in
+         let path, v = venv_find_field_path_exn venv path obj pos v in
          let obj = eval_object_exn venv pos v in
             eval_find_field_var_exn venv path obj pos vl
     | [] ->
@@ -1500,7 +1498,7 @@ and eval_find_field_var_aux venv envl pos v vl =
          raise Not_found
 
 and eval_find_field_var venv pos loc v vl =
-   let envl = venv_current_objects venv v in
+   let envl = venv_current_objects venv pos v in
       try eval_find_field_var_aux venv envl pos v vl with
          Not_found ->
             let pos = string_pos "eval_find_field_var" (loc_pos loc pos) in
@@ -1512,11 +1510,11 @@ and eval_find_field_var venv pos loc v vl =
 and eval_with_method_var_exn venv path obj pos vl =
    match vl with
       [v] ->
-         let v = venv_eval_field_exn venv obj pos v in
+         let v = venv_find_field_exn venv obj pos v in
          let venv = venv_with_object venv obj in
             venv, path, v
     | v :: vl ->
-         let path, v = venv_eval_field_path_exn venv path obj pos v in
+         let path, v = venv_find_field_path_exn venv path obj pos v in
          let obj = eval_object_exn venv pos v in
             eval_with_method_var_exn venv path obj pos vl
     | [] ->
@@ -1538,7 +1536,7 @@ and eval_with_method_var_aux venv envl pos v vl =
          raise Not_found
 
 and eval_with_method_var venv pos loc v vl =
-   let envl = venv_current_objects venv v in
+   let envl = venv_current_objects venv pos v in
       try eval_with_method_var_aux venv envl pos v vl with
          Not_found ->
             let pos = string_pos "eval_with_method_var" (loc_pos loc pos) in
@@ -1550,11 +1548,11 @@ and eval_with_method_var venv pos loc v vl =
 and eval_find_method_var_exn venv obj pos vl =
    match vl with
       [v] ->
-         let v = venv_eval_field_exn venv obj pos v in
+         let v = venv_find_field_exn venv obj pos v in
          let venv = venv_with_object venv obj in
             venv, v
     | v :: vl ->
-         let v = venv_eval_field_exn venv obj pos v in
+         let v = venv_find_field_exn venv obj pos v in
          let obj = eval_object_exn venv pos v in
             eval_find_method_var_exn venv obj pos vl
     | [] ->
@@ -1574,7 +1572,7 @@ and eval_find_method_var_aux venv envl pos vl =
          raise Not_found
 
 and eval_find_method_var venv pos loc v vl =
-   let envl = venv_current_objects venv v in
+   let envl = venv_current_objects venv pos v in
       try eval_find_method_var_aux venv envl pos vl with
          Not_found ->
             let pos = string_pos "eval_find_method_var" (loc_pos loc pos) in
@@ -1588,7 +1586,7 @@ and eval_defined_method_var_exn venv env pos vl =
       [v] ->
          venv_defined_field venv env v
     | v :: vl ->
-         let v = venv_find_field_exn env v in
+         let v = venv_find_field_exn venv env pos v in
          let obj = eval_object_exn venv pos v in
             eval_defined_method_var_exn venv obj pos vl
     | [] ->
@@ -1608,7 +1606,7 @@ and eval_defined_method_var_aux venv envl pos vl =
          raise Not_found
 
 and eval_defined_method_var venv pos loc v vl =
-   let envl = venv_current_objects venv v in
+   let envl = venv_current_objects venv pos v in
       try eval_defined_method_var_aux venv envl pos vl with
          Not_found ->
             false
@@ -1975,9 +1973,9 @@ and eval_let_var_field_exp venv pos loc v vl flag s =
          VarDefNormal ->
             e
        | VarDefAppend ->
-            append_arrays venv pos (venv_eval_field venv obj pos v) e
+            append_arrays venv pos (venv_find_field venv obj pos v) e
    in
-   let obj = venv_add_field obj v e in
+   let venv, obj = venv_add_field venv obj pos v e in
    let venv = hoist_path venv path obj in
       venv, e
 
@@ -2022,7 +2020,7 @@ and eval_let_fun_field_exp venv pos loc v vl params body export =
    let env = venv_get_env venv in
    let e = ValFun (ArityExact (List.length params), env, params, body, export) in
    let path, obj, v = eval_find_field_var venv pos loc v vl in
-   let obj = venv_add_field obj v e in
+   let venv, obj = venv_add_field venv obj pos v e in
    let venv = hoist_path venv path obj in
       venv, e
 
@@ -2126,7 +2124,7 @@ and eval_let_object_field_exp venv pos loc v vl s el export =
    let venv_obj = venv_include_object venv_obj obj in
    let venv_obj, e = eval_sequence venv_obj pos ValNone el in
    let path, obj, v = eval_find_field_var venv pos loc v vl in
-   let obj = venv_add_field obj v e in
+   let venv, obj = venv_add_field venv obj pos v e in
    let venv = hoist_path venv path obj in
    let venv = add_exports venv venv_obj pos export in
       venv, e

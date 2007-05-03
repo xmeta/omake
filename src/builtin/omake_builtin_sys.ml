@@ -97,13 +97,13 @@ open Pos
  *)
 
 let create_passwd_obj obj passwd =
-   let obj = venv_add_field obj pw_name_sym   (ValString passwd.Unix.pw_name) in
-   let obj = venv_add_field obj pw_passwd_sym (ValString passwd.Unix.pw_passwd) in
-   let obj = venv_add_field obj pw_uid_sym    (ValInt    passwd.Unix.pw_uid) in
-   let obj = venv_add_field obj pw_gid_sym    (ValInt    passwd.Unix.pw_gid) in
-   let obj = venv_add_field obj pw_gecos_sym  (ValString passwd.Unix.pw_gecos) in
-   let obj = venv_add_field obj pw_dir_sym    (ValString passwd.Unix.pw_dir) in
-   let obj = venv_add_field obj pw_shell_sym  (ValString passwd.Unix.pw_shell) in
+   let obj = venv_add_field_internal obj pw_name_sym   (ValString passwd.Unix.pw_name) in
+   let obj = venv_add_field_internal obj pw_passwd_sym (ValString passwd.Unix.pw_passwd) in
+   let obj = venv_add_field_internal obj pw_uid_sym    (ValInt    passwd.Unix.pw_uid) in
+   let obj = venv_add_field_internal obj pw_gid_sym    (ValInt    passwd.Unix.pw_gid) in
+   let obj = venv_add_field_internal obj pw_gecos_sym  (ValString passwd.Unix.pw_gecos) in
+   let obj = venv_add_field_internal obj pw_dir_sym    (ValString passwd.Unix.pw_dir) in
+   let obj = venv_add_field_internal obj pw_shell_sym  (ValString passwd.Unix.pw_shell) in
       ValObject obj
 
 let getpwnam venv pos loc args =
@@ -181,10 +181,10 @@ let getpwents venv _pos _loc _args =
  *)
 let create_group_obj obj group =
    let gr_mem = Array.fold_right (fun s x -> ValString s::x) group.Unix.gr_mem [] in
-   let obj = venv_add_field obj gr_name_sym   (ValString group.Unix.gr_name) in
-   let obj = venv_add_field obj gr_passwd_sym (ValString group.Unix.gr_passwd) in
-   let obj = venv_add_field obj gr_gid_sym    (ValInt    group.Unix.gr_gid) in
-   let obj = venv_add_field obj gr_mem_sym    (ValArray  gr_mem) in
+   let obj = venv_add_field_internal obj gr_name_sym   (ValString group.Unix.gr_name) in
+   let obj = venv_add_field_internal obj gr_passwd_sym (ValString group.Unix.gr_passwd) in
+   let obj = venv_add_field_internal obj gr_gid_sym    (ValInt    group.Unix.gr_gid) in
+   let obj = venv_add_field_internal obj gr_mem_sym    (ValArray  gr_mem) in
       ValObject obj
 
 let getgrnam venv pos loc args =

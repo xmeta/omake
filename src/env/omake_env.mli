@@ -358,22 +358,25 @@ val venv_flatten_object  : venv -> obj -> venv
 val venv_find_super_field : venv -> pos -> loc -> symbol -> symbol -> value
 
 (* ZZZ: this doesn't exist in 0.9.9 *)
-val venv_current_objects : venv -> var_info -> value list
+val venv_current_objects : venv -> pos -> var_info -> value list
 
-val venv_add_field       : obj -> var -> value -> obj
-val venv_find_field_exn  : obj -> var -> value
-val venv_find_field      : obj -> pos -> var -> value
-val venv_object_mem      : obj -> var -> bool
-val venv_object_length   : obj -> int
-val venv_object_fold     : ('a -> var -> value -> 'a) -> 'a -> obj -> 'a
-val venv_instanceof      : obj -> symbol -> bool
 val venv_add_class       : obj -> symbol -> obj
+val venv_instanceof      : obj -> symbol -> bool
 
-val venv_eval_field_path_exn  : venv -> path -> obj -> pos -> var -> path * value
-val venv_eval_field_path      : venv -> path -> obj -> pos -> var -> path * value
-val venv_eval_field_exn       : venv -> obj -> pos -> var -> value
-val venv_eval_field           : venv -> obj -> pos -> var -> value
+val venv_find_field_path_exn  : venv -> path -> obj -> pos -> var -> path * value
+val venv_find_field_path      : venv -> path -> obj -> pos -> var -> path * value
+val venv_find_field_exn       : venv -> obj -> pos -> var -> value
+val venv_find_field           : venv -> obj -> pos -> var -> value
+val venv_add_field            : venv -> obj -> pos -> var -> value -> venv * obj
 val venv_defined_field        : venv -> obj -> var -> bool
+val venv_object_length        : obj -> int
+
+(* Internal hacks when we don't care about checking *)
+val venv_add_field_internal       : obj -> var -> value -> obj
+val venv_find_field_internal      : obj -> pos -> var -> value
+val venv_find_field_internal_exn  : obj -> var -> value
+val venv_defined_field_internal   : obj -> var -> bool
+val venv_object_fold_internal     : ('a -> var -> value -> 'a) -> 'a -> obj -> 'a
 
 val venv_add_included_file    : venv -> Node.t -> venv
 val venv_is_included_file     : venv -> Node.t -> bool

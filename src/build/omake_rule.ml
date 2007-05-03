@@ -601,7 +601,7 @@ let string_of_env env =
 let find_alias_exn shell_obj venv pos loc exe =
    (* If this is an internal command, create the PipeApply *)
    let name = Lm_symbol.add exe in
-   let v = venv_find_field_exn shell_obj name in
+   let v = venv_find_field_internal_exn shell_obj name in
    let _, _, f = eval_fun venv pos v in
 
    (* Found the function, no exceptions now *)

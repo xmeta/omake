@@ -68,12 +68,12 @@ let bool_of_value     = Omake_eval.bool_of_value
  *)
 let eval_object_value venv pos obj =
    let pos = string_pos "eval_object_value" pos in
-      try venv_find_field_exn obj builtin_sym with
+      try venv_find_field_internal_exn obj builtin_sym with
          Not_found ->
             raise (OmakeException (pos, StringError "not a primitive object"))
 
 let add_object_value obj x =
-   venv_add_field obj builtin_sym x
+   venv_add_field_internal obj builtin_sym x
 
 (*
  * Concatenate.

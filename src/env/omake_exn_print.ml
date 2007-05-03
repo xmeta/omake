@@ -62,8 +62,8 @@ let pp_print_other_exn buf exn =
             (Printexc.to_string exn)
 
 let pp_print_obj_err buf obj =
-   if venv_object_mem obj message_sym then
-      match venv_find_field_exn obj message_sym with
+   if venv_defined_field_internal obj message_sym then
+      match venv_find_field_internal_exn obj message_sym with
          ValString s
        | ValData s ->
             begin match Lm_string_util.split "\n" s with
@@ -76,6 +76,7 @@ let pp_print_obj_err buf obj =
             pp_print_value buf v
    else
       pp_print_value buf (ValObject obj)
+
 (*
  * Exception printer.
  *)

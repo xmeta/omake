@@ -545,7 +545,7 @@ let where venv pos loc args =
                          let obj = venv_find_var_exn venv shell_object_var in
                             match eval_single_value venv pos obj with
                                ValObject obj ->
-                                  let v = venv_find_field_exn obj (Lm_symbol.add arg) in
+                                  let v = venv_find_field_internal_exn obj (Lm_symbol.add arg) in
                                   let kind =
                                      match eval_value venv pos v with
                                         ValPrim _ ->
@@ -1761,8 +1761,8 @@ let clip_size i =
       ValInt (Int64.to_int i)
 
 let create_stat_obj obj stat =
-   let obj = venv_add_field obj st_dev_sym (ValInt stat.Unix.LargeFile.st_dev) in
-   let obj = venv_add_field obj st_ino_sym (ValInt stat.Unix.LargeFile.st_ino) in
+   let obj = venv_add_field_internal obj st_dev_sym (ValInt stat.Unix.LargeFile.st_dev) in
+   let obj = venv_add_field_internal obj st_ino_sym (ValInt stat.Unix.LargeFile.st_ino) in
    let kind =
       match stat.Unix.LargeFile.st_kind with
          Unix.S_REG -> "REG"
@@ -1773,16 +1773,16 @@ let create_stat_obj obj stat =
        | Unix.S_FIFO -> "FIFO"
        | Unix.S_SOCK -> "SOCK"
    in
-   let obj = venv_add_field obj st_kind_sym (ValString kind) in
-   let obj = venv_add_field obj st_perm_sym (ValInt stat.Unix.LargeFile.st_perm) in
-   let obj = venv_add_field obj st_nlink_sym (ValInt stat.Unix.LargeFile.st_nlink) in
-   let obj = venv_add_field obj st_uid_sym   (ValInt stat.Unix.LargeFile.st_uid) in
-   let obj = venv_add_field obj st_gid_sym   (ValInt stat.Unix.LargeFile.st_gid) in
-   let obj = venv_add_field obj st_rdev_sym  (ValInt stat.Unix.LargeFile.st_rdev) in
-   let obj = venv_add_field obj st_size_sym  (clip_size stat.Unix.LargeFile.st_size) in
-   let obj = venv_add_field obj st_atime_sym (ValFloat stat.Unix.LargeFile.st_atime) in
-   let obj = venv_add_field obj st_mtime_sym (ValFloat stat.Unix.LargeFile.st_mtime) in
-   let obj = venv_add_field obj st_ctime_sym (ValFloat stat.Unix.LargeFile.st_ctime) in
+   let obj = venv_add_field_internal obj st_kind_sym (ValString kind) in
+   let obj = venv_add_field_internal obj st_perm_sym (ValInt stat.Unix.LargeFile.st_perm) in
+   let obj = venv_add_field_internal obj st_nlink_sym (ValInt stat.Unix.LargeFile.st_nlink) in
+   let obj = venv_add_field_internal obj st_uid_sym   (ValInt stat.Unix.LargeFile.st_uid) in
+   let obj = venv_add_field_internal obj st_gid_sym   (ValInt stat.Unix.LargeFile.st_gid) in
+   let obj = venv_add_field_internal obj st_rdev_sym  (ValInt stat.Unix.LargeFile.st_rdev) in
+   let obj = venv_add_field_internal obj st_size_sym  (clip_size stat.Unix.LargeFile.st_size) in
+   let obj = venv_add_field_internal obj st_atime_sym (ValFloat stat.Unix.LargeFile.st_atime) in
+   let obj = venv_add_field_internal obj st_mtime_sym (ValFloat stat.Unix.LargeFile.st_mtime) in
+   let obj = venv_add_field_internal obj st_ctime_sym (ValFloat stat.Unix.LargeFile.st_ctime) in
       ValObject obj
 
 let stat_aux stat_fun venv pos loc args =

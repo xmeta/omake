@@ -1427,21 +1427,6 @@ let venv_save_static_values venv =
  *)
 
 (*
- * Object field lookup.
- *)
-let venv_find_field_exn = SymbolTable.find
-let venv_add_field      = SymbolTable.add
-let venv_object_mem     = SymbolTable.mem
-let venv_object_length  = SymbolTable.cardinal
-let venv_object_fold    = SymbolTable.fold
-
-let venv_find_field obj pos v =
-   try SymbolTable.find obj v with
-      Not_found ->
-         let pos = string_pos "venv_find_field" pos in
-            raise (OmakeException (pos, UnboundVar v))
-
-(*
  * Create a path when fetching fields, so that we
  * can hoist the exports from a method call.
  *)
@@ -1461,24 +1446,69 @@ let rec squash_path_info path info =
     | PathField (path, _, _) ->
          squash_path_info path info
 
-let venv_eval_field_path_exn venv path obj pos v =
+(*
+ * When finding a value, also construct the path to
+ * the value.
+ *)
+let venv_find_field_path_exn venv path obj pos v =
    PathField (path, obj, v), SymbolTable.find obj v
 
-let venv_eval_field_path venv path obj pos v =
-   try venv_eval_field_path_exn venv path obj pos v with
+let venv_find_field_path venv path obj pos v =
+   try venv_find_field_path_exn venv path obj pos v with
       Not_found ->
-         let pos = string_pos "venv_eval_field_path" pos in
+         let pos = string_pos "venv_find_field_path" pos in
             raise (OmakeException (pos, UnboundFieldVar (obj, v)))
 
-let venv_eval_field_exn venv obj pos v =
+(*
+ * Simple finding.
+ *)
+let venv_find_field_exn venv obj pos v =
    SymbolTable.find obj v
 
-let venv_eval_field venv obj pos v =
-   try venv_eval_field_exn venv obj pos v with
+let venv_find_field venv obj pos v =
+   try venv_find_field_exn venv obj pos v with
       Not_found ->
-         let pos = string_pos "venv_eval_field" pos in
+         let pos = string_pos "venv_find_field" pos in
             raise (OmakeException (pos, UnboundFieldVar (obj, v)))
 
+(*
+ * Super fields come from the class.
+ *)
+let venv_find_super_field venv pos loc v1 v2 =
+   let table = venv_get_class venv.venv_this in
+      try
+         let obj = SymbolTable.find table v1 in
+            venv_find_field_exn venv obj pos v2
+      with
+         Not_found ->
+            let pos = string_pos "venv_find_super_field" (loc_pos loc pos) in
+               raise (OmakeException (pos, StringVarError ("unbound super var", v2)))
+
+(*
+ * Add a field.
+ *)
+let venv_add_field venv obj pos v e =
+   venv, SymbolTable.add obj v e
+
+(*
+ * Hacked versions bypass translation.
+ *)
+let venv_add_field_internal = SymbolTable.add
+let venv_defined_field_internal = SymbolTable.mem
+let venv_find_field_internal_exn = SymbolTable.find
+let venv_find_field_internal obj pos v =
+   try SymbolTable.find obj v with
+      Not_found ->
+         let pos = string_pos "venv_find_field_internal" pos in
+            raise (OmakeException (pos, UnboundFieldVar (obj, v)))
+
+let venv_object_fold_internal = SymbolTable.fold
+
+let venv_object_length = SymbolTable.cardinal
+
+(*
+ * Test whether a field is defined.
+ *)
 let venv_defined_field_exn venv obj v =
    SymbolTable.mem obj v
 
@@ -1535,26 +1565,6 @@ let venv_flatten_object venv obj2 =
       { venv with venv_dynamic = obj }
 
 (*
- * Get a parent class.
- *)
-let venv_find_super venv pos loc v =
-   let table = venv_get_class venv.venv_this in
-      try SymbolTable.find table v with
-         Not_found ->
-            let pos = string_pos "venv_find_super" (loc_pos loc pos) in
-               raise (OmakeException (pos, StringVarError ("not a super-class", v)))
-
-let venv_find_super_field venv pos loc v1 v2 =
-   let table = venv_get_class venv.venv_this in
-      try
-         let obj = SymbolTable.find table v1 in
-            venv_find_field_exn obj v2
-      with
-         Not_found ->
-            let pos = string_pos "venv_find_super_field" (loc_pos loc pos) in
-               raise (OmakeException (pos, StringVarError ("unbound super var", v2)))
-
-(*
  * Function scoping.
  *)
 let venv_empty_env =
@@ -1584,32 +1594,35 @@ let venv_current_object venv classnames =
 (*
  * ZZZ: this will go away in 0.9.9.
  *)
-let rec filter_objects v objl = function
+let rec filter_objects venv pos v objl = function
       obj :: rev_objl ->
          let objl =
-            try venv_find_field_exn obj v :: objl with
+            try venv_find_field_exn venv obj pos v :: objl with
                Not_found ->
                   objl
          in
-            filter_objects v objl rev_objl
+            filter_objects venv pos v objl rev_objl
     | [] ->
          objl
 
-let venv_current_objects venv v =
+let venv_current_objects venv pos v =
    let { venv_this = this;
          venv_dynamic = dynamic;
          venv_static = static
        } = venv
    in
+   let v, objl =
       match v with
          VarPrivate (_, v) ->
-            filter_objects v [] [static]
+            v, [static]
        | VarThis (_, v) ->
-            filter_objects v [] [static; dynamic; this]
+            v, [static; dynamic; this]
        | VarVirtual (_, v) ->
-            filter_objects v [] [dynamic]
+            v, [dynamic]
        | VarGlobal (_, v) ->
-            filter_objects v [] [static; this; dynamic]
+            v, [static; this; dynamic]
+   in
+      filter_objects venv pos v [] objl
 
 (************************************************************************
  * Environment.
@@ -2857,7 +2870,7 @@ let rec hoist_path venv path obj =
          let venv = venv_with_env venv env in
             venv_add_var venv v (ValObject obj)
     | PathField (path, parent_obj, v) ->
-         let obj = venv_add_field parent_obj v (ValObject obj) in
+         let obj = SymbolTable.add parent_obj v (ValObject obj) in
             hoist_path venv path obj
 
 let hoist_this venv_dst venv_src path =

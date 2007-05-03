@@ -725,8 +725,8 @@ let pipe venv pos loc args =
             let fd_read = ValChannel (InChannel, venv_add_channel venv read) in
             let fd_write = ValChannel (OutChannel, venv_add_channel venv write) in
             let obj = venv_find_object_or_empty venv pipe_object_var in
-            let obj = venv_add_field obj read_sym fd_read in
-            let obj = venv_add_field obj write_sym fd_write in
+            let obj = venv_add_field_internal obj read_sym fd_read in
+            let obj = venv_add_field_internal obj write_sym fd_write in
                ValObject obj
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
@@ -818,9 +818,9 @@ let select venv pos loc args =
             let wfd = reintern_channel wfd in
             let efd = reintern_channel efd in
             let obj = venv_find_object_or_empty venv select_object_var in
-            let obj = venv_add_field obj read_sym  (ValArray rfd) in
-            let obj = venv_add_field obj write_sym (ValArray wfd) in
-            let obj = venv_add_field obj error_sym (ValArray efd) in
+            let obj = venv_add_field_internal obj read_sym  (ValArray rfd) in
+            let obj = venv_add_field_internal obj write_sym (ValArray wfd) in
+            let obj = venv_add_field_internal obj error_sym (ValArray efd) in
                ValObject obj
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 4, List.length args)))

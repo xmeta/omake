@@ -153,7 +153,7 @@ let venv_add_builtins venv =
    (* Add values to each of the primitive objects *)
    let venv =
       List.fold_left (fun venv (s, v, x) ->
-            let obj = venv_add_field obj v x in
+            let obj = venv_add_field_internal obj v x in
             let v = VarGlobal (loc, Lm_symbol.add s) in
                venv_add_var venv v (ValObject obj)) venv builtin_objects
    in

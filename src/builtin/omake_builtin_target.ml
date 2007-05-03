@@ -268,20 +268,20 @@ let target_of_command venv pos loc command =
    in
 
    (* Add the fields *)
-   let obj = venv_add_field obj target_sym (ValNode target) in
-   let obj = venv_add_field obj target_effects_sym effects in
-   let obj = venv_add_field obj scanner_deps_sym scanner_deps in
-   let obj = venv_add_field obj static_deps_sym static_deps in
-   let obj = venv_add_field obj build_deps_sym build_deps in
-   let obj = venv_add_field obj build_values_sym (ValArray command_values) in
-   let obj = venv_add_field obj build_commands_sym (ValArray command_lines) in
+   let obj = venv_add_field_internal obj target_sym (ValNode target) in
+   let obj = venv_add_field_internal obj target_effects_sym effects in
+   let obj = venv_add_field_internal obj scanner_deps_sym scanner_deps in
+   let obj = venv_add_field_internal obj static_deps_sym static_deps in
+   let obj = venv_add_field_internal obj build_deps_sym build_deps in
+   let obj = venv_add_field_internal obj build_values_sym (ValArray command_values) in
+   let obj = venv_add_field_internal obj build_commands_sym (ValArray command_lines) in
 
    (* Add the tee *)
    let obj =
       match tee_file tee with
          Some name ->
             let node = venv_intern venv PhonyProhibited name in
-               venv_add_field obj output_file_sym (ValNode node)
+               venv_add_field_internal obj output_file_sym (ValNode node)
        | None ->
             obj
    in

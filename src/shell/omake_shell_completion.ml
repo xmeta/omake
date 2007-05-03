@@ -168,7 +168,7 @@ let command_completion_exn venv pos loc s =
    let items1 =
       match eval_single_value venv pos shell_obj with
          ValObject obj ->
-            venv_object_fold (fun items v _ ->
+            venv_object_fold_internal (fun items v _ ->
                   let s2 = Lm_symbol.to_string v in
                      if Lm_string_util.is_string_prefix s s2 then
                         StringSet.add items s2

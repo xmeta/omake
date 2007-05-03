@@ -531,8 +531,8 @@ let object_of_omake_exception venv pos exp =
       flush_stdstr ()
    in
    let obj = venv_find_object_or_empty venv runtime_exception_var in
-   let obj = venv_add_field obj pos_sym (ValString pos) in
-   let obj = venv_add_field obj message_sym (ValString exp) in
+   let obj = venv_add_field_internal obj pos_sym (ValString pos) in
+   let obj = venv_add_field_internal obj message_sym (ValString exp) in
    let obj = venv_add_class obj runtime_exception_sym in
       obj
 
@@ -546,8 +546,8 @@ let object_of_uncaught_exception venv pos exn =
       flush_stdstr ()
    in
    let obj = venv_find_object_or_empty venv runtime_exception_var in
-   let obj = venv_add_field obj pos_sym (ValString pos) in
-   let obj = venv_add_field obj message_sym (ValString (Printexc.to_string exn)) in
+   let obj = venv_add_field_internal obj pos_sym (ValString pos) in
+   let obj = venv_add_field_internal obj message_sym (ValString (Printexc.to_string exn)) in
    let obj = venv_add_class obj runtime_exception_sym in
       obj
 
