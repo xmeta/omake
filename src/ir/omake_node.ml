@@ -514,149 +514,177 @@ struct
       in
          add_code buf code
 
-   let add_dir fine buf dir =
-      HashCode.add_int buf (if fine then DirHash.fine_hash dir else DirHash.hash dir)
+   module MakeNodeOps (Arg : sig
+      val add_dir : HashCode.t -> DirHash.t -> unit
+      val add_node : HashCode.t -> NodeHash.t -> unit
+      val add_filename : HashCode.t -> FileCase.t -> string -> unit
+      val filename_compare : FileCase.t -> string -> FileCase.t -> string -> int
+      val node_compare : NodeHash.t -> NodeHash.t -> int
+      val dir_compare : DirHash.t -> DirHash.t -> int
+   end) = struct
+      open Arg
 
-   let add_node fine buf node =
-      HashCode.add_int buf (if fine then NodeHash.fine_hash node else NodeHash.hash node)
+      let add_node buf node =
+         match node with
+            NodeFile (dir, name, raw_name) ->
+               add_code buf CodeNodeFile;
+               add_dir buf dir;
+               add_code buf CodeSpace;
+               add_filename buf name raw_name;
+               add_code buf CodeEnd
+          | NodePhonyGlobal name ->
+               add_code buf CodeNodePhonyGlobal;
+               HashCode.add_string buf name;
+               add_code buf CodeEnd
+          | NodePhonyDir (dir, name, raw_name) ->
+               add_code buf CodeNodePhonyDir;
+               add_dir buf dir;
+               add_code buf CodeSpace;
+               add_filename buf name raw_name;
+               add_code buf CodeEnd
+          | NodePhonyFile (dir, key, raw_name, name) ->
+               add_code buf CodeNodePhonyFile;
+               add_dir buf dir;
+               add_code buf CodeSpace;
+               add_filename buf key raw_name;
+               add_code buf CodeSpace;
+               HashCode.add_string buf name;
+               add_code buf CodeEnd
+          | NodeFlagged (flag, node) ->
+               add_code buf CodeNodeFlagged;
+               add_flag_code buf flag;
+               add_code buf CodeSpace;
+               add_node buf node;
+               add_code buf CodeEnd
 
-   let add_filename fine buf name raw_name =
-      if fine then
-         HashCode.add_string buf raw_name
-      else
-         FileCase.add_filename buf name
+      let hash node =
+         let buf = HashCode.create () in
+            add_node buf node;
+            HashCode.code buf
 
-   let add_node fine buf node =
-      match node with
-         NodeFile (dir, name, raw_name) ->
-            add_code buf CodeNodeFile;
-            add_dir fine buf dir;
-            add_code buf CodeSpace;
-            add_filename fine buf name raw_name;
-            add_code buf CodeEnd
-       | NodePhonyGlobal name ->
-            add_code buf CodeNodePhonyGlobal;
-            HashCode.add_string buf name;
-            add_code buf CodeEnd
-       | NodePhonyDir (dir, name, raw_name) ->
-            add_code buf CodeNodePhonyDir;
-            add_dir fine buf dir;
-            add_code buf CodeSpace;
-            add_filename fine buf name raw_name;
-            add_code buf CodeEnd
-       | NodePhonyFile (dir, key, raw_name, name) ->
-            add_code buf CodeNodePhonyFile;
-            add_dir fine buf dir;
-            add_code buf CodeSpace;
-            add_filename fine buf key raw_name;
-            add_code buf CodeSpace;
-            HashCode.add_string buf name;
-            add_code buf CodeEnd
-       | NodeFlagged (flag, node) ->
-            add_code buf CodeNodeFlagged;
-            add_flag_code buf flag;
-            add_code buf CodeSpace;
-            add_node fine buf node;
-            add_code buf CodeEnd
+      let compare_flags flag1 flag2 =
+         match flag1, flag2 with
+            NodeIsOptional, NodeIsOptional
+          | NodeIsExisting, NodeIsExisting
+          | NodeIsSquashed, NodeIsSquashed
+          | NodeIsScanner,  NodeIsScanner ->
+               0
+          | NodeIsOptional, NodeIsExisting
+          | NodeIsOptional, NodeIsSquashed
+          | NodeIsOptional, NodeIsScanner
+          | NodeIsExisting, NodeIsSquashed
+          | NodeIsExisting, NodeIsScanner
+          | NodeIsSquashed, NodeIsScanner ->
+               -1
+          | NodeIsExisting, NodeIsOptional
+          | NodeIsSquashed, NodeIsOptional
+          | NodeIsScanner,  NodeIsOptional
+          | NodeIsSquashed, NodeIsExisting
+          | NodeIsScanner,  NodeIsExisting
+          | NodeIsScanner,  NodeIsSquashed ->
+               1
 
-   let hash fine node =
-      let buf = HashCode.create () in
-         add_node fine buf node;
-         HashCode.code buf
-
-   let fine_hash = hash true
-   let coarse_hash = hash false
-
-   let compare_flags flag1 flag2 =
-      match flag1, flag2 with
-         NodeIsOptional, NodeIsOptional
-       | NodeIsExisting, NodeIsExisting
-       | NodeIsSquashed, NodeIsSquashed
-       | NodeIsScanner,  NodeIsScanner ->
-            0
-       | NodeIsOptional, NodeIsExisting
-       | NodeIsOptional, NodeIsSquashed
-       | NodeIsOptional, NodeIsScanner
-       | NodeIsExisting, NodeIsSquashed
-       | NodeIsExisting, NodeIsScanner
-       | NodeIsSquashed, NodeIsScanner ->
-            -1
-       | NodeIsExisting, NodeIsOptional
-       | NodeIsSquashed, NodeIsOptional
-       | NodeIsScanner,  NodeIsOptional
-       | NodeIsSquashed, NodeIsExisting
-       | NodeIsScanner,  NodeIsExisting
-       | NodeIsScanner,  NodeIsSquashed ->
-            1
-
-   let compare_aux weak node1 node2 =
-      match node1, node2 with
-         NodeFile (dir1, key1, name1), NodeFile (dir2, key2, name2)
-       | NodePhonyDir (dir1, key1, name1), NodePhonyDir (dir2, key2, name2) ->
-            if weak then
-               let cmp = FileCase.compare key1 key2 in
+      let compare node1 node2 =
+         match node1, node2 with
+            NodeFile (dir1, key1, name1), NodeFile (dir2, key2, name2)
+          | NodePhonyDir (dir1, key1, name1), NodePhonyDir (dir2, key2, name2) ->
+               let cmp = filename_compare key1 name1 key2 name2 in
                   if cmp = 0 then
-                     DirHash.compare dir1 dir2
+                     dir_compare dir1 dir2
                   else
                      cmp
-            else
-               let cmp = Lm_string_util.string_compare name1 name2 in
+          | NodePhonyGlobal name1, NodePhonyGlobal name2 ->
+               Lm_string_util.string_compare name1 name2
+          | NodePhonyFile (dir1, key1, name1, exname1), NodePhonyFile (dir2, key2, name2, exname2) ->
+               let cmp = Lm_string_util.string_compare exname1 exname2 in
                   if cmp = 0 then
-                     DirHash.fine_compare dir1 dir2
-                  else
-                     cmp
-       | NodePhonyGlobal name1, NodePhonyGlobal name2 ->
-            Lm_string_util.string_compare name1 name2
-       | NodePhonyFile (dir1, key1, name1, exname1), NodePhonyFile (dir2, key2, name2, exname2) ->
-            let cmp = Lm_string_util.string_compare exname1 exname2 in
-               if cmp = 0 then
-                  if weak then
-                     let cmp = FileCase.compare key1 key2 in
+                     let cmp = filename_compare key1 name1 key2 name2 in
                         if cmp = 0 then
-                           DirHash.compare dir1 dir2
+                           dir_compare dir1 dir2
                         else
                            cmp
                   else
-                     let cmp = Lm_string_util.string_compare name1 name2 in
-                        if cmp = 0 then
-                           DirHash.fine_compare dir1 dir2
-                        else
-                           cmp
-               else
-                  cmp
-       | NodeFlagged (flag1, node1), NodeFlagged (flag2, node2) ->
-            let cmp = compare_flags flag1 flag2 in
-               if cmp = 0 then
-                  (if weak then NodeHash.compare else NodeHash.fine_compare) node1 node2
-               else
-                  cmp
-       | NodeFile _,        NodePhonyGlobal _
-       | NodeFile _,        NodePhonyDir _
-       | NodeFile _,        NodePhonyFile _
-       | NodeFile _,        NodeFlagged _
-       | NodePhonyGlobal _, NodePhonyDir _
-       | NodePhonyGlobal _, NodePhonyFile _
-       | NodePhonyGlobal _, NodeFlagged _
-       | NodePhonyDir _,    NodePhonyFile _
-       | NodePhonyDir _,    NodeFlagged _
-       | NodePhonyFile _,   NodeFlagged _ ->
-            -1
-       | NodeFlagged _,      NodeFile _
-       | NodePhonyGlobal _,  NodeFile _
-       | NodePhonyDir _,     NodeFile _
-       | NodePhonyFile _,    NodeFile _
-       | NodeFlagged _,      NodePhonyGlobal _
-       | NodePhonyDir _,     NodePhonyGlobal _
-       | NodePhonyFile _,    NodePhonyGlobal _
-       | NodeFlagged _,      NodePhonyDir _
-       | NodePhonyFile _,    NodePhonyDir _
-       | NodeFlagged _,      NodePhonyFile _ ->
-            1
+                     cmp
+          | NodeFlagged (flag1, node1), NodeFlagged (flag2, node2) ->
+               let cmp = compare_flags flag1 flag2 in
+                  if cmp = 0 then
+                     node_compare node1 node1
+                  else
+                     cmp
+          | NodeFile _,        NodePhonyGlobal _
+          | NodeFile _,        NodePhonyDir _
+          | NodeFile _,        NodePhonyFile _
+          | NodeFile _,        NodeFlagged _
+          | NodePhonyGlobal _, NodePhonyDir _
+          | NodePhonyGlobal _, NodePhonyFile _
+          | NodePhonyGlobal _, NodeFlagged _
+          | NodePhonyDir _,    NodePhonyFile _
+          | NodePhonyDir _,    NodeFlagged _
+          | NodePhonyFile _,   NodeFlagged _ ->
+               -1
+          | NodeFlagged _,      NodeFile _
+          | NodePhonyGlobal _,  NodeFile _
+          | NodePhonyDir _,     NodeFile _
+          | NodePhonyFile _,    NodeFile _
+          | NodeFlagged _,      NodePhonyGlobal _
+          | NodePhonyDir _,     NodePhonyGlobal _
+          | NodePhonyFile _,    NodePhonyGlobal _
+          | NodeFlagged _,      NodePhonyDir _
+          | NodePhonyFile _,    NodePhonyDir _
+          | NodeFlagged _,      NodePhonyFile _ ->
+               1
+   end;;
 
-   let fine_compare = compare_aux false
-   let coarse_compare = compare_aux true
+   (*
+    * These operations are case insensitive on case-insensitive
+    * filesystems.  They use the canonical FileCase.t name.
+    *)
+   module Ops =
+      MakeNodeOps (struct
+         let add_dir buf dir =
+            HashCode.add_int buf (DirHash.hash dir )
 
-   let compare = coarse_compare (* for the PreNodeSet *)
+         let add_node buf node =
+            HashCode.add_int buf (NodeHash.hash node)
+
+         let add_filename buf name raw_name =
+            FileCase.add_filename buf name
+
+         let filename_compare name1 _raw_name1 name2 _raw_name2 =
+            FileCase.compare name1 name2
+
+         let node_compare = NodeHash.compare
+
+         let dir_compare = DirHash.compare
+      end);;
+
+   (*
+    * These operations are always case-sensitive.
+    *)
+   module FineOps =
+      MakeNodeOps (struct
+         let add_dir buf dir =
+            HashCode.add_int buf (DirHash.fine_hash dir )
+
+         let add_node buf node =
+            HashCode.add_int buf (NodeHash.fine_hash node)
+
+         let add_filename buf name raw_name =
+            HashCode.add_string buf raw_name
+
+         let filename_compare _name1 raw_name1 _name2 raw_name2 =
+            String.compare raw_name1 raw_name2
+
+         let node_compare = NodeHash.fine_compare
+
+         let dir_compare = DirHash.fine_compare
+      end);;
+
+   let coarse_compare = Ops.compare
+   let coarse_hash = Ops.hash
+   let fine_compare = FineOps.compare
+   let fine_hash = FineOps.hash
+   let compare = Ops.compare (* for the PreNodeSet *)
 
    let reintern node =
       match node with
