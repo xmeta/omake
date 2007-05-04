@@ -38,6 +38,10 @@ val target_is_buildable : Omake_cache.t -> venv -> pos -> Node.t -> bool
 val target_is_buildable_proper : Omake_cache.t -> venv -> pos -> Node.t -> bool
 val venv_find_buildable_implicit_rule : Omake_cache.t -> venv -> pos -> Node.t -> erule option
 
+(* The strict form requires that the case match *)
+val target_is_buildable_strict : Omake_cache.t -> venv -> pos -> Node.t -> bool
+val target_is_buildable_proper_strict : Omake_cache.t -> venv -> pos -> Node.t -> bool
+
 (*!
  * @docoff
  *

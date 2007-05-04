@@ -405,8 +405,10 @@ val venv_files : venv -> NodeSet.t
 
 (*
  * Get the explicit rules.
+ * The strict form requires that the filename case matches.
  *)
 val venv_explicit_exists : venv -> Node.t -> bool
+val venv_explicit_exists_strict : venv -> Node.t -> bool
 val venv_explicit_rules  : venv -> erule_info
 
 (*

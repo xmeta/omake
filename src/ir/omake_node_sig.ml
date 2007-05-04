@@ -244,6 +244,13 @@ sig
    val tail : t -> string
 
    (*
+    * The real tail.  This may differ from the tail name
+    * if the filesystem is case insensitive.
+    *)
+   val real_tail : t -> string
+   val tail_is_realname : t -> bool
+
+   (*
     * Directory of the node.
     *)
    val dir : t -> dir

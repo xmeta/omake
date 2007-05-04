@@ -37,6 +37,7 @@ open Lm_printf
 open Lm_symbol
 open Lm_hash_sig
 open Lm_location
+open Lm_string_set
 open Lm_string_util
 open Lm_filename_util
 
@@ -61,6 +62,7 @@ sig
    val equal               : t -> t -> bool
    val add_filename        : HashCode.t -> t -> unit
    val add_filename_string : Buffer.t -> t -> unit
+   val dir_is_sensitive    : dir -> string -> bool
    val marshal             : t -> msg
    val unmarshal           : msg -> t
 end;;
@@ -1580,6 +1582,43 @@ struct
 
    let absname node =
       name Dir.root node
+
+   (************************************************************************
+    * Realnames.
+    *)
+   let dir_listings : string StringTable.t DirTable.t ref = ref DirTable.empty
+
+   let real_entries dir =
+       try DirTable.find !dir_listings dir with
+          Not_found ->
+             let entries =
+                try lsdir (Dir.fullname dir) with
+                   Not_found ->
+                      []
+             in
+             let entries =
+                List.fold_left (fun entries name ->
+                      StringTable.add entries (String.lowercase name) name) StringTable.empty entries
+             in
+                dir_listings := DirTable.add !dir_listings dir entries;
+                entries
+
+   let real_name dir name =
+      if FileCase.dir_is_sensitive dir name then
+         name
+      else
+         let table = real_entries dir in
+            try StringTable.find table (String.lowercase name) with
+               Not_found ->
+                  name
+
+   let real_tail node =
+      let dir = dir node in
+      let name = tail node in
+         real_name dir name
+
+   let tail_is_realname node =
+      tail node = real_tail node
 
    (************************************************************************
     * Mount point handling.
