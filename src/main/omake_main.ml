@@ -45,8 +45,17 @@ open Omake_value_type
 open Omake_options
 open Omake_var
 
-module Pos = MakePos (struct let name = "Omake_main" end)
+module Pos = MakePos (struct let name = "Omake_main" end);;
 open Pos
+
+(*
+ * Print the hash stats?
+ *)
+let debug_hash = ref false
+
+let print_hash_stats () =
+   if !debug_hash then
+      eprintf "@[<v 3>Hash statistics:@ %t@]@." Lm_hash.pp_print_hash_stats
 
 (*
  * List of targets to build.
@@ -190,6 +199,8 @@ let spec =
               "Debug the FAM (-p filesystem watch) operations";
            "-debug-db", Lm_arg.Set Omake_env.debug_db, (**)
               "Debug the file database";
+           "-debug-hash", Lm_arg.Set debug_hash, (**)
+              "Show Lm_hash statistics";
            "-allow-exceptions", Lm_arg.SetFold set_allow_exceptions_opt, (**)
               "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)"];
        "Internal flags", (**)
@@ -280,7 +291,8 @@ let main options =
          [] -> [".DEFAULT"]
        | l -> List.rev l
    in
-      Omake_build.build options path targets
+      Omake_build.build options path targets;
+      print_hash_stats ()
 
 (*
  * Main for remote execution.

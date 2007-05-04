@@ -518,13 +518,13 @@ struct
       HashCode.add_int buf (DirHash.hash dir)
 
    let add_node fine buf node =
-      HashCode.add_int buf (if fine then NodeHash.hash node else NodeHash.fine_hash node)
+      HashCode.add_int buf (if fine then NodeHash.fine_hash node else NodeHash.hash node)
 
    let add_filename fine buf name raw_name =
       if fine then
-         FileCase.add_filename buf name
-      else
          HashCode.add_string buf raw_name
+      else
+         FileCase.add_filename buf name
 
    let add_node fine buf node =
       match node with
