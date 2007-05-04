@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT type="Advanced Installer" CreateVersion="3.2" version="4.8.1" modules="freeware" RootPath="." Language="en">
+<DOCUMENT type="Advanced Installer" CreateVersion="3.2" version="4.9.2" modules="freeware" RootPath="." Language="en">
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="ALLUSERS" Value="2"/>
     <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install the OMake Build Tool." ValueLocId="*"/>
@@ -10,10 +10,10 @@
     <ROW Property="BannerBitmap" Value="default_banner.bmp" Type="1"/>
     <ROW Property="DialogBitmap" Value="default_dialog.bmp" Type="1"/>
     <ROW Property="Manufacturer" Value="MetaPRL"/>
-    <ROW Property="ProductCode" Value="1033:{F4833E8E-C211-45A9-815D-92AB24522D16} "/>
+    <ROW Property="ProductCode" Value="1033:{8A58A3AD-6002-4F3C-9962-609743EFEB93} "/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="OMake"/>
-    <ROW Property="ProductVersion" Value="0.9.8.1"/>
+    <ROW Property="ProductVersion" Value="0.9.8.2"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND"/>
     <ROW Property="UpgradeCode" Value="{6E99FD67-3799-4721-834C-762F9EAFFEEA}"/>
     <ROW Property="WindowsFamily9X" Value="Windows 9x/ME"/>
@@ -61,8 +61,10 @@
     <ROW File="OMakeroot.om" Component_="OMakefile.default" FileName="OMaker~1.om|OMakeroot.om" Attributes="1" SourcePath="..\omake-install\lib\omake\OMakeroot.om" SelfReg="false" Sequence="14"/>
     <ROW File="Parse.om" Component_="Lex.om" FileName="Parse.om" Attributes="1" SourcePath="..\omake-install\lib\omake\parse\C\Parse.om" SelfReg="false" Sequence="17"/>
     <ROW File="Pervasives.om" Component_="OMakefile.default" FileName="Pervas~1.om|Pervasives.om" Attributes="1" SourcePath="..\omake-install\lib\omake\Pervasives.om" SelfReg="false" Sequence="15"/>
+    <ROW File="X.om" Component_="Configure.om" FileName="X.om" Attributes="1" SourcePath="..\omake-install\lib\omake\configure\X.om" SelfReg="false" Sequence="22"/>
     <ROW File="cvs_realclean.exe" Component_="cvs_realclean.exe" FileName="cvs_re~1.exe|cvs_realclean.exe" Attributes="1" SourcePath="..\omake-install\bin\cvs_realclean.exe" SelfReg="false" Sequence="1"/>
     <ROW File="fam.om" Component_="Configure.om" FileName="fam.om" Attributes="1" SourcePath="..\omake-install\lib\omake\configure\fam.om" SelfReg="false" Sequence="9"/>
+    <ROW File="fs_case_sensitive.om" Component_="Configure.om" FileName="fs_cas~1.om|fs_case_sensitive.om" Attributes="1" SourcePath="..\omake-install\lib\omake\configure\fs_case_sensitive.om" SelfReg="false" Sequence="21"/>
     <ROW File="ncurses.om" Component_="Configure.om" FileName="ncurses.om" Attributes="1" SourcePath="..\omake-install\lib\omake\configure\ncurses.om" SelfReg="false" Sequence="10"/>
     <ROW File="ocamldep_omake" Component_="ocamldep_omake" FileName="ocamld~1|ocamldep-omake" Attributes="1" SourcePath="..\omake-install\bin\ocamldep-omake" SelfReg="false" Sequence="20"/>
     <ROW File="omake.exe" Component_="omake.exe" FileName="omake.exe" Attributes="1" SourcePath="..\omake-install\bin\omake.exe" SelfReg="false" Sequence="2"/>
@@ -140,7 +142,7 @@
     <ROW Registry="OMAKELIB" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="OMAKELIB" Value="[omake_DIR]" Component_="OMAKELIB"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiUpgradeComponent">
-    <ROW UpgradeCode="UpgradeCode" VersionMax="ProductVersion" Attributes="1025"/>
-    <ROW UpgradeCode="UpgradeCode" VersionMin="ProductVersion" Attributes="2"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMax="[|ProductVersion]" Attributes="1025" ActionProperty="OLDPRODUCTS"/>
+    <ROW UpgradeCode="[|UpgradeCode]" VersionMin="[|ProductVersion]" Attributes="2" ActionProperty="AI_NEWERPRODUCTFOUND"/>
   </COMPONENT>
 </DOCUMENT>
