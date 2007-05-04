@@ -514,8 +514,8 @@ struct
       in
          add_code buf code
 
-   let add_dir buf dir =
-      HashCode.add_int buf (DirHash.hash dir)
+   let add_dir fine buf dir =
+      HashCode.add_int buf (if fine then DirHash.fine_hash dir else DirHash.hash dir)
 
    let add_node fine buf node =
       HashCode.add_int buf (if fine then NodeHash.fine_hash node else NodeHash.hash node)
@@ -530,7 +530,7 @@ struct
       match node with
          NodeFile (dir, name, raw_name) ->
             add_code buf CodeNodeFile;
-            add_dir buf dir;
+            add_dir fine buf dir;
             add_code buf CodeSpace;
             add_filename fine buf name raw_name;
             add_code buf CodeEnd
@@ -540,13 +540,13 @@ struct
             add_code buf CodeEnd
        | NodePhonyDir (dir, name, raw_name) ->
             add_code buf CodeNodePhonyDir;
-            add_dir buf dir;
+            add_dir fine buf dir;
             add_code buf CodeSpace;
             add_filename fine buf name raw_name;
             add_code buf CodeEnd
        | NodePhonyFile (dir, key, raw_name, name) ->
             add_code buf CodeNodePhonyFile;
-            add_dir buf dir;
+            add_dir fine buf dir;
             add_code buf CodeSpace;
             add_filename fine buf key raw_name;
             add_code buf CodeSpace;
