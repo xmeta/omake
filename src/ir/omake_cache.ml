@@ -779,6 +779,18 @@ let exists cache node =
 let exists_dir cache dir =
    exists cache (Node.node_of_dir dir)
 
+(*
+ * Name translations.
+ *)
+let real_dir cache dir =
+   Omake_cache_stat.real_dir cache.cache_stat_info dir
+
+(*
+ * XXX: need to handle the various cases (like phony nodes).
+ *)
+let real_node cache node =
+   Omake_cache_stat.real_node cache.cache_stat_info node
+
 (************************************************************************
  * Adding to the cache.
  *)

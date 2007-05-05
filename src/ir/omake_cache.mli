@@ -93,6 +93,9 @@ val force_stat_table : t -> 'b NodeTable.t -> digest NodeTable.t
 
 val stat_changed     : t -> Node.t -> bool
 
+val real_dir         : t -> Dir.t -> Dir.t
+val real_node        : t -> Node.t -> Node.t
+
 (*
  * Check if a file exists.
  *)
