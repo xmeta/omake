@@ -82,6 +82,13 @@ sig
     *)
    val marshal : t -> msg
    val unmarshal : msg -> t
+
+   (*
+    * Is the directory case-sensitive?
+    * This requires a directory entry, hopefully
+    * with a name containing alphabetic characters.
+    *)
+   val is_case_sensitive : t -> string -> bool
 end
 
 (*

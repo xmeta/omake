@@ -78,6 +78,16 @@ type dir_listing_item = dir_entry_core ref StringTable.t
 type dir_listing = dir_listing_item list
 
 (*
+ * For directories, keep track of case-sensitivity.
+ *)
+type dir_info =
+   { dir_items        : dir_listing_item;
+
+     (* The option is None iff the dir is case-sensitive *)
+     dir_names        : string StringTable.t option
+   }
+
+(*
  * Executable listing.
  *)
 type exe_entry_core =
@@ -160,7 +170,7 @@ type cache =
      mutable cache_digest_count      : int;
 
      (* Path lookups *)
-     mutable cache_dirs         : (stat option * dir_listing_item) DirTable.t;
+     mutable cache_dirs         : (stat option * dir_info) DirTable.t;
      mutable cache_path         : (stat option list * dir_listing_item) DirListTable.t;
      mutable cache_exe_path     : (stat option list * exe_listing_item) DirListTable.t
    }
@@ -381,7 +391,7 @@ let to_channel outx cache =
    Marshal.to_channel outx (save_of_cache cache) []
 
 (************************************************************************
- * Stat.
+ * Raw stats.
  *)
 
 (*
@@ -502,6 +512,170 @@ let digest_file name file_size =
       Digest.file name
 
 (*
+ * When auto-rehash is in effect, we need to stat the directories
+ * on every lookup.
+ *)
+let stat_dir cache dir =
+   let name = Dir.fullname dir in
+      try
+         let stat = Unix.LargeFile.stat name in
+            cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
+            Some stat
+      with
+         Unix.Unix_error _ ->
+            None
+
+let stat_dirs cache dirs =
+   List.map (stat_dir cache) dirs
+
+let stats_equal_opt stat1 stat2 =
+   match stat1, stat2 with
+      Some stat1, Some stat2 ->
+         stats_equal stat1 stat2
+    | None, None ->
+         true
+    | None, Some _
+    | Some _, None ->
+         false
+
+let rec stats_equal_opt_list stats1 stats2 =
+   match stats1, stats2 with
+      stat1 :: stats1, stat2 :: stats2 ->
+         stats_equal_opt stat1 stat2 && stats_equal_opt_list stats1 stats2
+    | [], [] ->
+         true
+    | _ :: _, []
+    | [], _ :: _ ->
+         false
+
+let check_stat auto_rehash (stat_old, entries) stat_new =
+   if auto_rehash && not (stats_equal_opt stat_old (Lazy.force stat_new)) then
+      raise Not_found
+   else
+      entries
+
+let check_stats auto_rehash (stats_old, entries) stats_new =
+   if auto_rehash && not (stats_equal_opt_list stats_old (Lazy.force stats_new)) then
+      raise Not_found
+   else
+      entries
+
+(************************************************************************
+ * Cached stat.
+ *
+ * Our implementation of stat is forced to be case-sensitive.
+ * For this, we use directory listings to determine the real
+ * path name.
+ *)
+
+(*
+ * Get the directory listing, and whether the directory is
+ * case-sensitive.
+ *)
+let is_alphabetic_string name =
+   let len = String.length name in
+   let rec loop i =
+      if i = len then
+         false
+      else
+         match String.unsafe_get name i with
+            'a'..'z'
+          | 'A'..'Z' ->
+               true
+          | _ ->
+               loop (i + 1)
+   in
+      loop 0
+
+let rec find_alphabetic_entry names =
+   match names with
+      [] ->
+         "."
+    | name :: names ->
+         if is_alphabetic_string name then
+            name
+         else
+            find_alphabetic_entry names
+
+let ls_dir_info cache auto_rehash dir =
+   let stat = lazy (stat_dir cache dir) in
+      try check_stat auto_rehash (DirTable.find cache.cache_dirs dir) stat with
+         Not_found ->
+            let names =
+               try Lm_filename_util.lsdir (Dir.fullname dir) with
+                  Unix.Unix_error _ ->
+                     raise Not_found
+            in
+            let items =
+               List.fold_left (fun items name ->
+                     StringTable.add items name (ref (LazyEntryCore (dir, name)))) StringTable.empty names
+            in
+            let name = find_alphabetic_entry names in
+            let names =
+               if Dir.is_case_sensitive dir name then
+                  None
+               else
+                  let names =
+                     List.fold_left (fun names name ->
+                           StringTable.add names (String.lowercase name) name) StringTable.empty names
+                  in
+                     Some names
+            in
+            let info =
+               { dir_items   = items;
+                 dir_names   = names
+               }
+            in
+            let stat = Lazy.force stat in
+               cache.cache_dirs <- DirTable.add cache.cache_dirs dir (stat, info);
+               info
+
+(*
+ * Fetch the real tail name of a file.
+ * If the entry does not exist, the name is unchanged.
+ *)
+let get_real_tail cache node =
+   let dir = Node.dir node in
+   let tail = Node.tail node in
+   let info = ls_dir_info cache false dir in
+      match info.dir_names with
+         None ->
+            tail
+       | Some table ->
+            try StringTable.find table (String.lowercase tail) with
+               Not_found ->
+                  tail
+
+(*
+ * Check that the node's real name and the actual name
+ * match.  In this case, the entry must exist, becase we
+ * Unix.LargeFile.stat said so.
+ *)
+let real_tail_matches cache node =
+   let dir = Node.dir node in
+   let info = ls_dir_info cache false dir in
+      match info.dir_names with
+         None ->
+            true
+       | Some table ->
+            let tail = Node.tail node in
+               try StringTable.find table (String.lowercase tail) = tail with
+                  Not_found ->
+                     (* The entry is supposed to exist, force the directory rescan *)
+                     cache.cache_dirs <- DirTable.remove cache.cache_dirs dir;
+                     get_real_tail cache node = tail
+
+(*
+ * Wrap Unix.LargeFile.stat.
+ *)
+let stat_largefile cache node name =
+   let stats = Unix.LargeFile.stat name in
+      if real_tail_matches cache node then
+         stats
+      else
+         raise (Sys_error "case_mismatch")
+
+(*
  * Stat a file.
  *)
 let stat_file cache node =
@@ -531,7 +705,7 @@ let stat_file cache node =
             let name = Node.fullname node in
             let nmemo =
                try
-                  let stats' = Unix.LargeFile.stat name in
+                  let stats' = stat_largefile cache node name in
                      if stats'.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats';
                           nmemo_digest = squash_stat
@@ -593,7 +767,7 @@ let stat_file cache node =
             let name = Node.fullname node in
             let nmemo =
                try
-                  let stats = Unix.LargeFile.stat name in
+                  let stats = stat_largefile cache node name in
                      if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats;
                           nmemo_digest = squash_stat
@@ -647,7 +821,7 @@ let stat_unix cache node =
             let name = Node.fullname node in
             let nmemo =
                try
-                  let new_stats = Unix.LargeFile.stat name in
+                  let new_stats = stat_largefile cache node name in
                      if new_stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats new_stats;
                           nmemo_digest = squash_stat
@@ -672,7 +846,7 @@ let stat_unix cache node =
             let name = Node.fullname node in
             let nmemo =
                try
-                  let stats = Unix.LargeFile.stat name in
+                  let stats = stat_largefile cache node name in
                      if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats;
                           nmemo_digest = squash_stat
@@ -1003,100 +1177,11 @@ let add_value cache key deps commands result =
       cache.cache_values <- ValueTable.add cache.cache_values key memo
 
 (************************************************************************
- * Directory listings.
+ * More directory listings.
  *)
 
-(*
- * When auto-rehash is in effect, we need to stat the directories
- * on every lookup.
- *)
-let stat_dir cache dir =
-   let name = Dir.fullname dir in
-      try
-         let stat = Unix.LargeFile.stat name in
-            cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-            Some stat
-      with
-         Unix.Unix_error _ ->
-            None
-
-let stat_dirs cache dirs =
-   List.map (stat_dir cache) dirs
-
-let stats_equal_opt stat1 stat2 =
-   match stat1, stat2 with
-      Some stat1, Some stat2 ->
-         stats_equal stat1 stat2
-    | None, None ->
-         true
-    | None, Some _
-    | Some _, None ->
-         false
-
-let rec stats_equal_opt_list stats1 stats2 =
-   match stats1, stats2 with
-      stat1 :: stats1, stat2 :: stats2 ->
-         stats_equal_opt stat1 stat2 && stats_equal_opt_list stats1 stats2
-    | [], [] ->
-         true
-    | _ :: _, []
-    | [], _ :: _ ->
-         false
-
-let check_stat auto_rehash (stat_old, entries) stat_new =
-   if auto_rehash && not (stats_equal_opt stat_old (Lazy.force stat_new)) then
-      raise Not_found
-   else
-      entries
-
-let check_stats auto_rehash (stats_old, entries) stats_new =
-   if auto_rehash && not (stats_equal_opt_list stats_old (Lazy.force stats_new)) then
-      raise Not_found
-   else
-      entries
-
-(*
- * List a directory.
- *)
-let rec list_directory cache dir =
-   let dirx =
-      try Unix.opendir (Dir.fullname dir) with
-         Unix.Unix_error _ ->
-            raise Not_found
-   in
-   let rec list entries =
-      let name =
-         try Some (Unix.readdir dirx) with
-            Unix.Unix_error _
-          | End_of_file ->
-               None
-      in
-         match name with
-            Some "."
-          | Some ".." ->
-               list entries
-          | Some name ->
-               let entry = ref (LazyEntryCore (dir, name)) in
-               let entries = StringTable.add entries name entry in
-                  list entries
-          | None ->
-               entries
-   in
-   let entries = list StringTable.empty in
-      Unix.closedir dirx;
-      entries
-
-(*
- * Get the directory listing as a StringTable.
- *)
 let ls_dir cache auto_rehash dir =
-   let stat = lazy (stat_dir cache dir) in
-      try check_stat auto_rehash (DirTable.find cache.cache_dirs dir) stat with
-         Not_found ->
-            let entries = list_directory cache dir in
-            let stat = Lazy.force stat in
-               cache.cache_dirs <- DirTable.add cache.cache_dirs dir (stat, entries);
-               entries
+   (ls_dir_info cache auto_rehash dir).dir_items
 
 (*
  * Path version.

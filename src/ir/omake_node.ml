@@ -63,6 +63,7 @@ sig
    val add_filename_string : Buffer.t -> t -> unit
    val marshal             : t -> msg
    val unmarshal           : msg -> t
+   val dir_is_sensitive    : dir -> string -> bool
 end;;
 
 module rec FileCase : FileCaseSig with type dir = DirHash.t =
@@ -680,11 +681,11 @@ struct
          let dir_compare = DirHash.fine_compare
       end);;
 
-   let coarse_compare = Ops.compare
-   let coarse_hash = Ops.hash
+   let coarse_compare = FineOps.compare
+   let coarse_hash = FineOps.hash
    let fine_compare = FineOps.compare
    let fine_hash = FineOps.hash
-   let compare = Ops.compare (* for the PreNodeSet *)
+   let compare = FineOps.compare (* for the PreNodeSet *)
 
    let reintern node =
       match node with
@@ -1229,6 +1230,11 @@ struct
                raise MarshalError
       in
          DirHash.create dir
+
+   (*
+    * Sensitivity.
+    *)
+   let is_case_sensitive = FileCase.dir_is_sensitive
 end;;
 
 (*
