@@ -162,7 +162,7 @@ type cache =
      (* Path lookups *)
      mutable cache_dirs         : (stat option * dir_listing_item) DirTable.t;
      mutable cache_path         : (stat option list * dir_listing_item) DirListTable.t;
-     mutable cache_exe_path     : (stat option list * exe_listing_item) DirListTable.t;
+     mutable cache_exe_path     : (stat option list * exe_listing_item) DirListTable.t
    }
 
 (*
@@ -777,11 +777,6 @@ let stat_changed cache node =
 let exists cache node =
    match stat cache node with
       Some _ -> true
-    | None -> Node.always_exists node
-
-let exists_realname cache node =
-   match stat cache node with
-      Some _ -> Node.tail_is_realname node
     | None -> Node.always_exists node
 
 let exists_dir cache dir =

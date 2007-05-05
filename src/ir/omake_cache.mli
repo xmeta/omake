@@ -97,7 +97,6 @@ val stat_changed     : t -> Node.t -> bool
  * Check if a file exists.
  *)
 val exists           : t -> Node.t -> bool
-val exists_realname  : t -> Node.t -> bool
 val exists_dir       : t -> Dir.t -> bool
 
 (*

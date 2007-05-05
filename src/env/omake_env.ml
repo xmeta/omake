@@ -2373,12 +2373,6 @@ let venv_explicit_exists venv target =
    venv_explicit_flush venv;
    NodeTable.mem venv.venv_inner.venv_globals.venv_explicit_targets target
 
-let venv_explicit_exists_strict venv target =
-   venv_explicit_flush venv;
-   match NodeTable.find_key venv.venv_inner.venv_globals.venv_explicit_targets target with
-      Some target' -> Node.tail target = Node.tail target
-    | None -> false
-
 let multiple_add_error errors target loc1 loc2 =
    let table = !errors in
    let table =

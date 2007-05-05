@@ -944,16 +944,16 @@ let filter_exists venv pos loc args =
 (* Catch UnbuildableException *)
 let target_is_buildable cache venv pos node =
    try
-      target_is_buildable_strict cache venv pos node
+      target_is_buildable cache venv pos node
    with
-      RaiseException (_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+      RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
          false
 
 let target_is_buildable_proper cache venv pos node =
    try
-      target_is_buildable_proper_strict cache venv pos node
+      target_is_buildable_proper cache venv pos node
    with
-      RaiseException (_, obj) when venv_instanceof obj unbuildable_exception_sym ->
+      RaiseException(_, obj) when venv_instanceof obj unbuildable_exception_sym ->
          false
 
 let target_exists venv pos loc args =
@@ -1014,7 +1014,7 @@ let rec search_target_in_path_aux venv cache pos path name =
    match path with
       dir :: path ->
          let node = venv_intern_cd venv PhonyOK dir name in
-            if target_is_buildable_strict cache venv pos node then
+            if target_is_buildable cache venv pos node then
                ValNode node
             else
                search_target_in_path_aux venv cache pos path name
