@@ -45,6 +45,7 @@ open Omake_node
 open Omake_command
 open Omake_node_sig
 open Omake_cache_type
+open Omake_cache_stat
 open Omake_value_type
 
 let debug_cache =
@@ -76,16 +77,6 @@ type dir_entry_core =
 type dir_listing_item = dir_entry_core ref StringTable.t
 
 type dir_listing = dir_listing_item list
-
-(*
- * For directories, keep track of case-sensitivity.
- *)
-type dir_info =
-   { dir_items        : dir_listing_item;
-
-     (* The option is None iff the dir is case-sensitive *)
-     dir_names        : string StringTable.t option
-   }
 
 (*
  * Executable listing.
@@ -166,11 +157,13 @@ type cache =
      mutable cache_nodes             : node_memo NodeTable.t;
      mutable cache_info              : memo_deps cache_info array;
      mutable cache_values            : obj memo ValueTable.t;
-     mutable cache_file_stat_count   : int;  (* only succeessful stats are counted *)
      mutable cache_digest_count      : int;
 
+     (* Stat service *)
+     cache_stat_info            : Omake_cache_stat.t;
+
      (* Path lookups *)
-     mutable cache_dirs         : (stat option * dir_info) DirTable.t;
+     mutable cache_dirs         : (stat option * dir_listing_item) DirTable.t;
      mutable cache_path         : (stat option list * dir_listing_item) DirListTable.t;
      mutable cache_exe_path     : (stat option list * exe_listing_item) DirListTable.t
    }
@@ -279,8 +272,8 @@ let create () =
    { cache_nodes           = NodeTable.empty;
      cache_info            = [||];
      cache_values          = ValueTable.empty;
-     cache_file_stat_count = 0;
      cache_digest_count    = 0;
+     cache_stat_info       = Omake_cache_stat.create ();
      cache_dirs            = DirTable.empty;
      cache_path            = DirListTable.empty;
      cache_exe_path        = DirListTable.empty
@@ -291,10 +284,10 @@ let rehash cache =
    cache.cache_path <- DirListTable.empty;
    cache.cache_exe_path <- DirListTable.empty
 
-let stats { cache_file_stat_count = stat_count;
-            cache_digest_count = digest_count
-    } =
-   stat_count, digest_count
+let stats cache =
+   let stat_count = Omake_cache_stat.stat_count cache.cache_stat_info in
+   let digest_count = cache.cache_digest_count in
+      stat_count, digest_count
 
 (*
  * Clear one of the tables.
@@ -391,7 +384,7 @@ let to_channel outx cache =
    Marshal.to_channel outx (save_of_cache cache) []
 
 (************************************************************************
- * Raw stats.
+ * Stat.
  *)
 
 (*
@@ -512,170 +505,6 @@ let digest_file name file_size =
       Digest.file name
 
 (*
- * When auto-rehash is in effect, we need to stat the directories
- * on every lookup.
- *)
-let stat_dir cache dir =
-   let name = Dir.fullname dir in
-      try
-         let stat = Unix.LargeFile.stat name in
-            cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-            Some stat
-      with
-         Unix.Unix_error _ ->
-            None
-
-let stat_dirs cache dirs =
-   List.map (stat_dir cache) dirs
-
-let stats_equal_opt stat1 stat2 =
-   match stat1, stat2 with
-      Some stat1, Some stat2 ->
-         stats_equal stat1 stat2
-    | None, None ->
-         true
-    | None, Some _
-    | Some _, None ->
-         false
-
-let rec stats_equal_opt_list stats1 stats2 =
-   match stats1, stats2 with
-      stat1 :: stats1, stat2 :: stats2 ->
-         stats_equal_opt stat1 stat2 && stats_equal_opt_list stats1 stats2
-    | [], [] ->
-         true
-    | _ :: _, []
-    | [], _ :: _ ->
-         false
-
-let check_stat auto_rehash (stat_old, entries) stat_new =
-   if auto_rehash && not (stats_equal_opt stat_old (Lazy.force stat_new)) then
-      raise Not_found
-   else
-      entries
-
-let check_stats auto_rehash (stats_old, entries) stats_new =
-   if auto_rehash && not (stats_equal_opt_list stats_old (Lazy.force stats_new)) then
-      raise Not_found
-   else
-      entries
-
-(************************************************************************
- * Cached stat.
- *
- * Our implementation of stat is forced to be case-sensitive.
- * For this, we use directory listings to determine the real
- * path name.
- *)
-
-(*
- * Get the directory listing, and whether the directory is
- * case-sensitive.
- *)
-let is_alphabetic_string name =
-   let len = String.length name in
-   let rec loop i =
-      if i = len then
-         false
-      else
-         match String.unsafe_get name i with
-            'a'..'z'
-          | 'A'..'Z' ->
-               true
-          | _ ->
-               loop (i + 1)
-   in
-      loop 0
-
-let rec find_alphabetic_entry names =
-   match names with
-      [] ->
-         "."
-    | name :: names ->
-         if is_alphabetic_string name then
-            name
-         else
-            find_alphabetic_entry names
-
-let ls_dir_info cache auto_rehash dir =
-   let stat = lazy (stat_dir cache dir) in
-      try check_stat auto_rehash (DirTable.find cache.cache_dirs dir) stat with
-         Not_found ->
-            let names =
-               try Lm_filename_util.lsdir (Dir.fullname dir) with
-                  Unix.Unix_error _ ->
-                     raise Not_found
-            in
-            let items =
-               List.fold_left (fun items name ->
-                     StringTable.add items name (ref (LazyEntryCore (dir, name)))) StringTable.empty names
-            in
-            let name = find_alphabetic_entry names in
-            let names =
-               if Dir.is_case_sensitive dir name then
-                  None
-               else
-                  let names =
-                     List.fold_left (fun names name ->
-                           StringTable.add names (String.lowercase name) name) StringTable.empty names
-                  in
-                     Some names
-            in
-            let info =
-               { dir_items   = items;
-                 dir_names   = names
-               }
-            in
-            let stat = Lazy.force stat in
-               cache.cache_dirs <- DirTable.add cache.cache_dirs dir (stat, info);
-               info
-
-(*
- * Fetch the real tail name of a file.
- * If the entry does not exist, the name is unchanged.
- *)
-let get_real_tail cache node =
-   let dir = Node.dir node in
-   let tail = Node.tail node in
-   let info = ls_dir_info cache false dir in
-      match info.dir_names with
-         None ->
-            tail
-       | Some table ->
-            try StringTable.find table (String.lowercase tail) with
-               Not_found ->
-                  tail
-
-(*
- * Check that the node's real name and the actual name
- * match.  In this case, the entry must exist, becase we
- * Unix.LargeFile.stat said so.
- *)
-let real_tail_matches cache node =
-   let dir = Node.dir node in
-   let info = ls_dir_info cache false dir in
-      match info.dir_names with
-         None ->
-            true
-       | Some table ->
-            let tail = Node.tail node in
-               try StringTable.find table (String.lowercase tail) = tail with
-                  Not_found ->
-                     (* The entry is supposed to exist, force the directory rescan *)
-                     cache.cache_dirs <- DirTable.remove cache.cache_dirs dir;
-                     get_real_tail cache node = tail
-
-(*
- * Wrap Unix.LargeFile.stat.
- *)
-let stat_largefile cache node name =
-   let stats = Unix.LargeFile.stat name in
-      if real_tail_matches cache node then
-         stats
-      else
-         raise (Sys_error "case_mismatch")
-
-(*
  * Stat a file.
  *)
 let stat_file cache node =
@@ -702,19 +531,18 @@ let stat_file cache node =
              * Get current stats.  If they match, then
              * use current digest; otherwise recompute.
              *)
-            let name = Node.fullname node in
             let nmemo =
                try
-                  let stats' = stat_largefile cache node name in
+                  let stats' = Omake_cache_stat.stat cache.cache_stat_info node in
                      if stats'.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats';
                           nmemo_digest = squash_stat
                         }
                      else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         if stats_equal stats' stats then
                            { nmemo with nmemo_stats = FreshStats stats' }
                         else
+                           let name = Node.fullname node in
                            let digest = digest_file name stats'.Unix.LargeFile.st_size in
                               cache.cache_digest_count <- succ cache.cache_digest_count;
                               { nmemo_stats = FreshStats stats';
@@ -764,16 +592,15 @@ let stat_file cache node =
              * We've never seen this file before.
              * Get complete stats, including a digest.
              *)
-            let name = Node.fullname node in
             let nmemo =
                try
-                  let stats = stat_largefile cache node name in
+                  let stats = Omake_cache_stat.stat cache.cache_stat_info node in
                      if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats;
                           nmemo_digest = squash_stat
                         }
                      else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
+                        let name = Node.fullname node in
                         let digest = digest_file name stats.Unix.LargeFile.st_size in
                            cache.cache_digest_count <- succ cache.cache_digest_count;
                            { nmemo_stats = FreshStats stats;
@@ -818,16 +645,14 @@ let stat_unix cache node =
        | Some { nmemo_stats = NoStats } ->
             raise Not_found
        | Some ({ nmemo_stats = OldStats old_stats } as nmemo) ->
-            let name = Node.fullname node in
             let nmemo =
                try
-                  let new_stats = stat_largefile cache node name in
+                  let new_stats = Omake_cache_stat.stat cache.cache_stat_info node in
                      if new_stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats new_stats;
                           nmemo_digest = squash_stat
                         }
                      else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         if stats_equal new_stats old_stats then
                            { nmemo with nmemo_stats = FreshStats new_stats }
                         else
@@ -843,16 +668,14 @@ let stat_unix cache node =
                cache.cache_nodes <- NodeTable.add nodes node nmemo;
                stat_unix_simple nmemo.nmemo_stats
        | None ->
-            let name = Node.fullname node in
             let nmemo =
                try
-                  let stats = stat_largefile cache node name in
+                  let stats = Omake_cache_stat.stat cache.cache_stat_info node in
                      if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats;
                           nmemo_digest = squash_stat
                         }
                      else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         { nmemo_stats = PartialStats stats;
                           nmemo_digest = None
                         }
@@ -1177,11 +1000,95 @@ let add_value cache key deps commands result =
       cache.cache_values <- ValueTable.add cache.cache_values key memo
 
 (************************************************************************
- * More directory listings.
+ * Directory listings.
  *)
 
+(*
+ * When auto-rehash is in effect, we need to stat the directories
+ * on every lookup.
+ *)
+let stat_dir cache dir =
+   try Some (Omake_cache_stat.stat_dir_nocheck cache.cache_stat_info dir) with
+      Unix.Unix_error _ ->
+         None
+
+let stat_dirs cache dirs =
+   List.map (stat_dir cache) dirs
+
+let stats_equal_opt stat1 stat2 =
+   match stat1, stat2 with
+      Some stat1, Some stat2 ->
+         stats_equal stat1 stat2
+    | None, None ->
+         true
+    | None, Some _
+    | Some _, None ->
+         false
+
+let rec stats_equal_opt_list stats1 stats2 =
+   match stats1, stats2 with
+      stat1 :: stats1, stat2 :: stats2 ->
+         stats_equal_opt stat1 stat2 && stats_equal_opt_list stats1 stats2
+    | [], [] ->
+         true
+    | _ :: _, []
+    | [], _ :: _ ->
+         false
+
+let check_stat auto_rehash (stat_old, entries) stat_new =
+   if auto_rehash && not (stats_equal_opt stat_old (Lazy.force stat_new)) then
+      raise Not_found
+   else
+      entries
+
+let check_stats auto_rehash (stats_old, entries) stats_new =
+   if auto_rehash && not (stats_equal_opt_list stats_old (Lazy.force stats_new)) then
+      raise Not_found
+   else
+      entries
+
+(*
+ * List a directory.
+ *)
+let rec list_directory cache dir =
+   let dirx =
+      try Unix.opendir (Dir.fullname dir) with
+         Unix.Unix_error _ ->
+            raise Not_found
+   in
+   let rec list entries =
+      let name =
+         try Some (Unix.readdir dirx) with
+            Unix.Unix_error _
+          | End_of_file ->
+               None
+      in
+         match name with
+            Some "."
+          | Some ".." ->
+               list entries
+          | Some name ->
+               let entry = ref (LazyEntryCore (dir, name)) in
+               let entries = StringTable.add entries name entry in
+                  list entries
+          | None ->
+               entries
+   in
+   let entries = list StringTable.empty in
+      Unix.closedir dirx;
+      entries
+
+(*
+ * Get the directory listing as a StringTable.
+ *)
 let ls_dir cache auto_rehash dir =
-   (ls_dir_info cache auto_rehash dir).dir_items
+   let stat = lazy (stat_dir cache dir) in
+      try check_stat auto_rehash (DirTable.find cache.cache_dirs dir) stat with
+         Not_found ->
+            let entries = list_directory cache dir in
+            let stat = Lazy.force stat in
+               cache.cache_dirs <- DirTable.add cache.cache_dirs dir (stat, entries);
+               entries
 
 (*
  * Path version.
@@ -1228,6 +1135,8 @@ let listing_find_item cache listing s =
  * The execution path is a little harder, and it is quite different
  * on Win32 and Unix.
  *
+ * The path is allowed to be case-insentive.
+ *
  * On Win32:
  *    - File permission doesn't matter
  *    - Files without suffix, and with .com, .exe, .bat and .cmd suffixes are executable
@@ -1243,6 +1152,7 @@ let listing_find_item cache listing s =
 let win32_suffixes = [".com"; ".exe"; ".bat"; ".cmd"]
 
 let ls_exe_path_win32 cache auto_rehash dirs =
+   let dirs = List.map (Omake_cache_stat.real_dir cache.cache_stat_info) dirs in
    let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_exe_path key) stats with

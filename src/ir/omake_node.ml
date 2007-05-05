@@ -1166,6 +1166,18 @@ struct
       name root dir
 
    (*
+    * Directory representation.
+    *)
+   type dir_info =
+      DirInfoRoot of Lm_filename_util.root
+    | DirInfoSub of string * t
+
+   let dest dir =
+      match DirHash.get dir with
+         DirRoot root -> DirInfoRoot root
+       | DirSub (_, raw_name, dir) -> DirInfoSub (raw_name, dir)
+
+   (*
     * Library directory is relative to the root.
     *)
    let lib =
@@ -1307,6 +1319,12 @@ struct
             relocate_file dir1 dir2 name
        | NodeFlagged (_, node) ->
             name dir1 node
+
+   (*
+    * A normal node, ignoring mounts.
+    *)
+   let create_normal dir name =
+      NodeHash.create (NodeFile (dir, FileCase.create dir name, name))
 
    (*
     * Create a phony name.

@@ -118,7 +118,11 @@ let spec =
            "--force-dotomake", Lm_arg.Set Omake_state.always_use_dotomake, (**)
               "Always use $HOME/.omake for .omc cache files";
            "--dotomake", Lm_arg.String (fun s -> Omake_state.set_omake_dir s), (**)
-              "Use the specified directory in place of $HOME/.omake"];
+              "Use the specified directory in place of $HOME/.omake";
+           "-Wcase", Lm_arg.Set Omake_cache_stat.warn_case_mismatch, (**)
+              "File case mismatches should be warnings, not errors";
+           "-check-case", Lm_arg.Set Omake_cache_stat.check_case, (**)
+              "Check file case (default)"];
        "Helper flags", (**)
           ["--install", Lm_arg.Set install_flag, (**)
               "Install an OMake project into the current directory";
