@@ -323,7 +323,7 @@ let dir_listing cache dir =
  * When a directory is listed, recursively list all the
  * ancestors.
  *)
-let rec ls_dir_path cache dir =
+let rec ls_dir_path cache ?(force = false) dir =
    try DirTable.find cache.cache_dirs dir with
       Not_found ->
          (*
@@ -336,7 +336,7 @@ let rec ls_dir_path cache dir =
                dir_listing cache dir
           | Dir.DirInfoSub (name, parent) ->
                (* Note: get_real_tail will list the parent by side-effect *)
-               let name' = get_real_tail cache parent name in
+               let name' = get_real_tail cache ~force parent name in
                   if name' = name then
                      dir_listing cache dir
                   else
@@ -346,13 +346,23 @@ let rec ls_dir_path cache dir =
  * Fetch the real tail name of a file.
  * If the entry does not exist, the name is unchanged.
  *)
-and get_real_tail cache dir tail =
-   let info = ls_dir_path cache dir in
-      match info.dir_names with
-         None ->
-            tail
-       | Some table ->
-            StringTable.find table (String.lowercase tail)
+and get_real_tail cache ?(force = false) dir tail =
+   match (ls_dir_path cache dir).dir_names with
+      None ->
+         tail
+    | Some table ->
+         let lower_tail = String.lowercase tail in
+            if force then
+               try StringTable.find table lower_tail with
+                  Not_found ->
+                     (* The entry is supposed to exist, so rescan the directory *)
+                     match (dir_listing cache dir).dir_names with
+                        None ->
+                           tail
+                      | Some table ->
+                           StringTable.find table lower_tail
+            else
+               StringTable.find table lower_tail
 
 (*
  * Get the earliest prefix that is cached.
@@ -425,7 +435,7 @@ let real_node cache node =
  * Check the path (by performing the listing).
  *)
 let check_real_dir cache dir =
-   try ignore (ls_dir_path cache dir) with
+   try ignore (ls_dir_path cache ~force:true dir) with
       Not_found ->
          if !warn_case_mismatch then
             eprintf "Case mismatch: %s; realname %s@." (Dir.absname dir) (Dir.absname (real_dir cache dir))
@@ -434,7 +444,7 @@ let check_real_dir cache dir =
 
 let check_real_tail cache node dir tail =
    let mismatch =
-      try get_real_tail cache dir tail <> tail with
+      try get_real_tail cache ~force:true dir tail <> tail with
          Not_found ->
             true
    in
