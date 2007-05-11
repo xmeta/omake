@@ -160,15 +160,15 @@ let do_create absname =
  * a stat on the first file before and after.
  * Raise Not_found if a race condition is detected.
  *)
-let stats_are_equal cache name1 name2 =
+let stats_not_equal cache name1 name2 =
    let stat1 = do_stat cache name1 in
    let stat2 = do_stat cache name2 in
    let stat3 = do_stat cache name1 in
       match stat1, stat3 with
          Some s1, Some s3 when case_stats_equal s1 s3 ->
             (match stat2 with
-                Some s2 when case_stats_equal s2 s1 -> true
-              | _ -> false)
+                Some s2 when case_stats_equal s2 s1 -> false
+              | _ -> true)
        | _ ->
             raise Not_found
 
@@ -177,7 +177,7 @@ let stats_are_equal cache name1 name2 =
  *)
 let stat_with_toggle_case cache absdir name =
    let alternate_name = toggle_name_case name (String.length name) 0 in
-      stats_are_equal cache (Filename.concat absdir name) (Filename.concat absdir alternate_name)
+      stats_not_equal cache (Filename.concat absdir name) (Filename.concat absdir alternate_name)
 
 (*
  * Look through the entire directory for a name with alphabetic characters.

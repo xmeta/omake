@@ -679,8 +679,9 @@ let relocate_dir dir1 dir2 =
  * File version.
  *)
 let file_contents name buf =
+   let len = Buffer.length buf in
    let buf =
-      if Buffer.length buf = 0 then
+      if len = 0 || Buffer.nth buf (len - 1) = Lm_filename_util.separator_char then
          buf
       else
          dir_add_string buf Lm_filename_util.separator_string
