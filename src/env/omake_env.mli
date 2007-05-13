@@ -214,6 +214,7 @@ val venv_fork       : venv -> venv
  *)
 val venv_exec       : venv -> exec
 val venv_cache      : venv -> Omake_cache.t
+val venv_add_cache  : venv -> Omake_cache.t -> venv
 
 (*
  * Add values to environment.

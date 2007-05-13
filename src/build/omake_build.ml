@@ -72,7 +72,9 @@ open Omake_options
 open Omake_var
 
 module Pos = MakePos (struct let name = "Omake_build" end);;
-open Pos
+open Pos;;
+
+exception BuildExit of int
 
 type prompt_state = {
    ps_count : int; (* success count *)
@@ -2475,7 +2477,7 @@ let create_env exec options cache targets =
          printf "make[0]: Entering directory `%s'@." (Dir.absname cwd);
       if opt_print_status options then begin
          printf "*** omake: THIS VERSION OF OMAKE IS UNDERGOING CHANGES!
-*** omake: It may act differently than you expect.
+*** omake: It may act differently from what you expect.
 *** omake: If you encounter problems,
 *** omake: consider using a released version,
 *** omake: or the 0.9.8.2 branch in preparation.
@@ -2515,17 +2517,16 @@ let create_env exec options cache targets =
       env
 
 let rec create_env_loop exec options cache targets =
-   try
-      create_env exec options cache targets
-   with Restart reason ->
-      print_restart options reason;
-      create_env_loop exec options cache targets
+   try create_env exec options cache targets with
+      Restart reason ->
+         print_restart options reason;
+         create_env_loop exec options cache targets
 
 (*
  * Load the environment if possible.
  * If not, create a new one.
  *)
-let load options targets =
+let load_omake options targets =
    let cwd  = Dir.cwd () in
    let exec = Exec.create cwd options in
    let cache =
@@ -2557,6 +2558,68 @@ let load options targets =
        | Some cache -> cache
    in
       create_env_loop exec options cache targets
+
+(*
+ * Special version for use by osh.
+ * We assume the starting directory for osh is the project root.
+ *)
+let load_osh venv options targets =
+   (* Replace the cache *)
+   let cache =
+      match
+         if opt_flush_cache options then
+            None
+         else
+            (* Load cache from the db file *)
+            try
+               let inx = open_in_bin db_name in
+               let cache =
+                  try Omake_cache.from_channel inx with
+                     exn ->
+                        close_in inx;
+                        raise exn
+               in
+                  if opt_flush_dependencies options then
+                     Omake_cache.clear cache scanner_fun;
+                  close_in inx;
+                  Some cache
+            with
+               Unix.Unix_error _
+             | End_of_file
+             | Sys_error _
+             | Failure _ ->
+                  None
+      with
+         None -> Omake_cache.create ()
+       | Some cache -> cache
+   in
+   let venv = venv_add_cache venv cache in
+
+   (* Add the targets *)
+   let targets_value = ValArray (List.map (fun v -> ValData v) targets) in
+   let venv = Omake_env.venv_add_var venv targets_var targets_value in
+
+   (* Add the summary file *)
+   let summary =
+      let summary, outx = Filename.open_temp_file ~mode:[Open_binary] "omake" ".error" in
+         Pervasives.close_out outx;
+         summary
+   in
+   let summary_value = ValNode (venv_intern venv PhonyProhibited summary) in
+   let venv = venv_add_var venv build_summary_var summary_value in
+
+   (* Create the environment *)
+   let exec = venv_exec venv in
+   let env = create exec venv cache summary in
+      Omake_builtin_util.set_env env;
+      env
+
+let load venv_opt options targets =
+   match venv_opt with
+      Some venv ->
+         load_osh venv options targets
+    | None ->
+         load_omake options targets
 
 (************************************************************************
  * Main build command.
@@ -2878,10 +2941,13 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                   unlink_file env.env_summary;
                   let reason = notify_wait_omakefile env in
                      raise (Restart reason)
-               end else begin
+               end
+               else if opt_osh options then
+                  env.env_error_code <- exn_error_code
+               else begin
                   save env;
                   close env;
-                  exit exn_error_code
+                  raise (BuildExit exn_error_code)
                end
    in
       (* Save database before exiting *)
@@ -2900,7 +2966,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
 
 and build_on_error env save_flag start_time parallel print targets options error_code =
    if not (opt_poll options) then
-      exit error_code
+      raise (BuildExit error_code)
    else begin
       notify_wait env;
       build_targets env save_flag (Unix.gettimeofday ()) parallel print targets
@@ -2958,8 +3024,8 @@ let build_core env dir_name dir start_time options targets =
 (*
  * Main builder.
  *)
-let rec build_time start_time options dir_name targets =
-   let env = load options targets in
+let rec build_time start_time venv_opt options dir_name targets =
+   let env = load venv_opt options targets in
    let dir_name =
       if opt_project options then
          "."
@@ -2978,19 +3044,23 @@ let rec build_time start_time options dir_name targets =
                   ()
    in
 
-   (* Check that this directory is actually a .SUBDIR *)
+   (*
+    * Check that this directory is actually a .SUBDIR.
+    * Don't do the check in osh mode; we assume the script knows
+    * what it is doing.
+    *)
    let () =
-      if not (opt_project options || DirTable.mem env.env_explicit_directories dir) then begin
+      if venv_opt = None && not (opt_project options || DirTable.mem env.env_explicit_directories dir) then begin
          eprintf "*** omake: the current directory %s@." (Dir.absname dir);
          eprintf "*** omake: is not part of the root project in %s@." (Dir.absname env.env_cwd);
-         exit 1
+         raise (BuildExit 1)
       end
    in
    let restart reason =
       print_restart options reason;
       close env;
       save env;
-      build_time start_time options dir_name targets
+      build_time start_time venv_opt options dir_name targets
    in
       try build_core env dir_name dir start_time options targets with
          Restart reason ->
@@ -3004,9 +3074,26 @@ let rec build_time start_time options dir_name targets =
                restart reason
 
 let build options dir_name targets =
-   Omake_shell_sys.set_interactive false;
-   wait_for_lock ();
-   build_time (Unix.gettimeofday ()) options dir_name targets
+   try
+      Omake_shell_sys.set_interactive false;
+      wait_for_lock ();
+      build_time (Unix.gettimeofday ()) None options dir_name targets
+   with
+      BuildExit code ->
+         exit code
+
+let build_fun venv targets =
+   let options = venv_options venv in
+   let dir = Dir.absname (venv_dir venv) in
+      Unix.chdir dir;
+      Omake_node.Dir.reset_cwd ();
+      try
+         wait_for_lock ();
+         build_time (Unix.gettimeofday ()) (Some venv) options "." targets;
+         true
+      with
+         BuildExit _ ->
+            false
 
 (*
  * -*-

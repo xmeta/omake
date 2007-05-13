@@ -81,6 +81,7 @@ type omake_options =
      opt_cd_root              : bool;
      opt_project              : bool;
      opt_poll                 : bool setting;
+     opt_osh                  : bool;
      opt_poll_on_done         : bool;
      opt_flush_include        : bool;
      opt_flush_static         : bool;
@@ -271,6 +272,12 @@ let opt_poll opts =
 let set_poll_opt opts b =
    { opts with opt_poll = Set b }
 
+let opt_osh opts =
+   opts.opt_osh
+
+let set_osh_opt opts =
+   { opts with opt_osh = true }
+
 let opt_terminate_on_error opts =
    match opts.opt_terminate_on_error with
       Set v  -> v
@@ -426,6 +433,7 @@ let default_options =
      opt_project              = false;
      opt_poll                 = Default;
      opt_poll_on_done         = false;
+     opt_osh                  = false;
      opt_flush_include        = false;
      opt_flush_static         = false;
      opt_allow_exceptions     = false;

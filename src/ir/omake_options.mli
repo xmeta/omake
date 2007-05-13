@@ -72,6 +72,8 @@ val opt_remote_servers : omake_options -> (string * int) list
 val opt_terminate_on_error : omake_options -> bool
 val opt_poll : omake_options -> bool
 val opt_poll_on_done : omake_options -> bool
+val opt_osh : omake_options -> bool
+val set_osh_opt : omake_options -> omake_options
 
 val opt_dry_run : omake_options -> bool
 val opt_print_command : omake_options -> eval_flag

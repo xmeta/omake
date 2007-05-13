@@ -473,6 +473,34 @@ let static_rule_fun venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 8, List.length args)))
 
+(*
+ * \begin{doc}
+ * \fun{build}
+ *
+ * \begin{verbatim}
+ *     build(targets : File Array) : bool
+ * \end{verbatim}
+ *
+ * Build the given targets.  The value is true iff the build was successful.
+ * This function can be used only in \verb+osh+.
+ * \end{doc}
+ *)
+let build venv pos loc args =
+   let pos = string_pos "build" pos in
+      if not (Omake_options.opt_osh (venv_options venv)) then
+         raise (OmakeException (pos, StringError "build can be called only from osh"));
+      match args with
+         [arg] ->
+            let targets = strings_of_value venv pos arg in
+            let b =
+               try Omake_build.build_fun venv targets with
+                  exn ->
+                     raise (UncaughtException (pos, exn))
+            in
+               if b then val_true else val_false
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
 (************************************************************************
  * Hooks.
  *)
@@ -486,6 +514,7 @@ let () =
        true,  "dependencies-proper",  dependencies_proper, ArityExact 1;
        true,  "project-directories",  project_directories, ArityExact 0;
        true,  "find-build-targets",   find_build_targets,  ArityExact 1;
+       true,  "build",                build,               ArityExact 1;
       ]
    in
    let builtin_kfuns =

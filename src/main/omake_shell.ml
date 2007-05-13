@@ -395,6 +395,7 @@ let create_venv options targets =
  * Run the shell.
  *)
 let shell options command targets =
+   let options = set_osh_opt options in
    let venv =
       try create_venv options targets with
          exn when not (opt_allow_exceptions options) ->

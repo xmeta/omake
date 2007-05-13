@@ -2080,6 +2080,13 @@ let venv_exec venv =
 let venv_cache venv =
    venv.venv_inner.venv_globals.venv_cache
 
+let venv_add_cache venv cache =
+   let inner = venv.venv_inner in
+   let globals = inner.venv_globals in
+   let globals = { globals with venv_cache = cache } in
+   let inner = { inner with venv_globals = globals } in
+      { venv with venv_inner = inner }
+
 (*
  * Change directories.  Update the CWD var, and all a default
  * rule for all the phonies.
