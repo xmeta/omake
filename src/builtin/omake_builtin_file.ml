@@ -615,7 +615,7 @@ let exists_in_path venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{digest}
+ * \twofuns{digest}{digest-optional}
  *
  * \begin{verbatim}
  *      $(digest files) : String Array
@@ -665,7 +665,7 @@ let digest_optional = digest_aux false
 
 (*
  * \begin{doc}
- * \fun{find-in-path}
+ * \twofuns{find-in-path}{find-in-path-optional}
  *
  * \begin{verbatim}
  *     $(find-in-path path, files) : File Array
@@ -723,7 +723,7 @@ let find_in_path_optional = search_path_aux false
 
 (*
  * \begin{doc}
- * \fun{digest-path}
+ * \twofuns{digest-in-path}{digest-in-path-optional}
  *
  * \begin{verbatim}
  *     $(digest-in-path path, files) : String/File Array
