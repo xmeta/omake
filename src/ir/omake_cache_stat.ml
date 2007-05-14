@@ -256,7 +256,7 @@ let dir_is_sensitive =
    match Sys.os_type with
       "Win32"
     | "Cygwin" ->
-         (fun _ _ _ -> true)
+         (fun _ _ _ -> false)
     | _ ->
          dir_is_sensitive
 
