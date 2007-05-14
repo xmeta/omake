@@ -10,7 +10,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology,
+ * and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +32,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_arg
@@ -1008,20 +1009,16 @@ let filter_proper_targets venv pos loc args =
  *     # Evaluates to
  *     src/fee.o src/foo.o
  * \end{verbatim}
+ *
+ * \fun{find-ocaml-targets-in-path-optional}
+ * The \verb+find-ocaml-targets-in-path-optional+ function is very similar to the
+ * \hyperfunn{find-targets-in-path-optional} one, except the \OCaml{}-like logic
+ * is used, where for every element of the search path and for every name being
+ * searched for, first the uncapitalized version is tried and if it is not buildable,
+ * then the capitalized version is tried next.
  * \end{doc}
  *)
-let rec search_target_in_path_aux venv cache pos path name =
-   match path with
-      dir :: path ->
-         let node = venv_intern_cd venv PhonyOK dir name in
-            if target_is_buildable cache venv pos node then
-               ValNode node
-            else
-               search_target_in_path_aux venv cache pos path name
-    | [] ->
-         raise Not_found
-
-let search_target_path_aux fail venv pos loc args =
+let search_target_path_aux search venv pos loc args =
    let pos = string_pos "search-target-path" pos in
       match args with
          [dirs; arg] ->
@@ -1033,21 +1030,46 @@ let search_target_path_aux fail venv pos loc args =
 
             (* Find each file *)
             let files = strings_of_value venv pos arg in
-            let files =
-               List.fold_left (fun files name ->
-                     try search_target_in_path_aux venv cache pos path name :: files with
-                        Not_found ->
-                           if fail then
-                              raise (OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
-                           else
-                              files) [] files
-            in
+            let files = List.fold_left (search venv cache pos loc path) [] files in
                concat_array (List.rev files)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
-let find_targets_in_path = search_target_path_aux true
-let find_targets_in_path_optional = search_target_path_aux false
+let rec search_target_in_path_aux fail venv cache pos loc path files name =
+   match path with
+      dir :: path ->
+         let node = venv_intern_cd venv PhonyOK dir name in
+            if target_is_buildable cache venv pos node then
+               ValNode node :: files
+            else
+               search_target_in_path_aux fail venv cache pos loc path files name
+    | [] ->
+         if fail then
+            raise (OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
+         else
+            files
+            
+let rec search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2 =
+   match path with
+      dir :: path ->
+         let node1 = venv_intern_cd venv PhonyProhibited dir name1 in
+            if target_is_buildable cache venv pos node1 then
+               ValNode node1 :: files
+            else
+               let node2 = venv_intern_cd venv PhonyProhibited dir name2 in
+                  if target_is_buildable cache venv pos node2 then
+                     ValNode node2 :: files
+                  else
+                     search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2
+    | [] ->
+         files
+
+let search_ocaml_target_in_path_aux venv cache pos loc path files name =
+   search_ocaml_target_in_path_aux venv cache pos loc path files (String.uncapitalize name) (String.capitalize name)
+
+let find_targets_in_path = search_target_path_aux (search_target_in_path_aux true)
+let find_targets_in_path_optional = search_target_path_aux (search_target_in_path_aux false)
+let find_ocaml_targets_in_path_optional = search_target_path_aux search_ocaml_target_in_path_aux
 
 (*
  * Get the file from a string.
@@ -2811,6 +2833,7 @@ let () =
        true, "rehash",                  rehash,                   ArityExact 0;
        true, "find-targets-in-path",     find_targets_in_path,      ArityExact 2;
        true, "find-targets-in-path-optional", find_targets_in_path_optional, ArityExact 2;
+       true, "find-ocaml-targets-in-path-optional", find_ocaml_targets_in_path_optional, ArityExact 2;
 
        true, "add-project-directories", add_project_directories,  ArityExact 1;
        true, "remove-project-directories", remove_project_directories,  ArityExact 1]

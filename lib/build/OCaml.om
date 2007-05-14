@@ -385,15 +385,9 @@ public.PrintFileDependencies(filename, cmideps) =
 public.PrintDependencies(filename, modules) =
     if $(filename)
         #
-        # The module Foo can come from both foo.mli and Foo.mli
-        #
-        private.all_modules = $(set $(uncapitalize $(modules)) $(modules))
-
-        #
         # Find the .cmi files that can be built
         #
-        private.cmideps = $(addsuffix .cmi, $(all_modules))
-        cmideps = $(set $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmideps)))
+        private.cmideps = $(find-ocaml-targets-in-path-optional $(OCAMLINCLUDES), $(addsuffix .cmi, $(modules)))
 
         # Now produce the dependencies
         if $(OCAMLDEP_PRESERVE_TARGETS)
@@ -403,8 +397,7 @@ public.PrintDependencies(filename, modules) =
             case .ml
                 protected.cmxdeps[] =
                 if $(NATIVE_ENABLED)
-                    cmxdeps = $(addsuffix .cmx, $(all_modules))
-                    cmxdeps = $(set $(find-targets-in-path-optional $(OCAMLINCLUDES), $(cmxdeps)))
+                    cmxdeps = $(find-ocaml-targets-in-path-optional $(OCAMLINCLUDES), $(addsuffix .cmx, $(modules)))
                     export
                 PrintMLDependencies($(filename), $(cmideps), $(cmxdeps))
             case .mli
