@@ -129,7 +129,7 @@ let create_thread info =
                try
                   f stdin stdout stderr pid
                with
-                  Omake_env.ExitException (_, code) ->
+                  Omake_value_type.ExitException (_, code) ->
                      cleanup ();
                      code
                 | exn ->
