@@ -45,7 +45,6 @@ open Omake_node
 open Omake_command
 open Omake_node_sig
 open Omake_cache_type
-open Omake_cache_stat
 open Omake_value_type
 
 let debug_cache =
@@ -157,10 +156,8 @@ type cache =
      mutable cache_nodes             : node_memo NodeTable.t;
      mutable cache_info              : memo_deps cache_info array;
      mutable cache_values            : obj memo ValueTable.t;
+     mutable cache_file_stat_count   : int;  (* only succeessful stats are counted *)
      mutable cache_digest_count      : int;
-
-     (* Stat service *)
-     cache_stat_info            : Omake_cache_stat.t;
 
      (* Path lookups *)
      mutable cache_dirs         : (stat option * dir_listing_item) DirTable.t;
@@ -272,8 +269,8 @@ let create () =
    { cache_nodes           = NodeTable.empty;
      cache_info            = [||];
      cache_values          = ValueTable.empty;
+     cache_file_stat_count = 0;
      cache_digest_count    = 0;
-     cache_stat_info       = Omake_cache_stat.create ();
      cache_dirs            = DirTable.empty;
      cache_path            = DirListTable.empty;
      cache_exe_path        = DirListTable.empty
@@ -284,10 +281,10 @@ let rehash cache =
    cache.cache_path <- DirListTable.empty;
    cache.cache_exe_path <- DirListTable.empty
 
-let stats cache =
-   let stat_count = Omake_cache_stat.stat_count cache.cache_stat_info in
-   let digest_count = cache.cache_digest_count in
-      stat_count, digest_count
+let stats { cache_file_stat_count = stat_count;
+            cache_digest_count = digest_count
+    } =
+   stat_count, digest_count
 
 (*
  * Clear one of the tables.
@@ -531,18 +528,19 @@ let stat_file cache node =
              * Get current stats.  If they match, then
              * use current digest; otherwise recompute.
              *)
+            let name = Node.fullname node in
             let nmemo =
                try
-                  let stats' = Omake_cache_stat.stat cache.cache_stat_info node in
+                  let stats' = Unix.LargeFile.stat name in
                      if stats'.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats';
                           nmemo_digest = squash_stat
                         }
                      else begin
+                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         if stats_equal stats' stats then
                            { nmemo with nmemo_stats = FreshStats stats' }
                         else
-                           let name = Node.fullname node in
                            let digest = digest_file name stats'.Unix.LargeFile.st_size in
                               cache.cache_digest_count <- succ cache.cache_digest_count;
                               { nmemo_stats = FreshStats stats';
@@ -592,15 +590,16 @@ let stat_file cache node =
              * We've never seen this file before.
              * Get complete stats, including a digest.
              *)
+            let name = Node.fullname node in
             let nmemo =
                try
-                  let stats = Omake_cache_stat.stat cache.cache_stat_info node in
+                  let stats = Unix.LargeFile.stat name in
                      if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats;
                           nmemo_digest = squash_stat
                         }
                      else begin
-                        let name = Node.fullname node in
+                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         let digest = digest_file name stats.Unix.LargeFile.st_size in
                            cache.cache_digest_count <- succ cache.cache_digest_count;
                            { nmemo_stats = FreshStats stats;
@@ -645,14 +644,16 @@ let stat_unix cache node =
        | Some { nmemo_stats = NoStats } ->
             raise Not_found
        | Some ({ nmemo_stats = OldStats old_stats } as nmemo) ->
+            let name = Node.fullname node in
             let nmemo =
                try
-                  let new_stats = Omake_cache_stat.stat cache.cache_stat_info node in
+                  let new_stats = Unix.LargeFile.stat name in
                      if new_stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats new_stats;
                           nmemo_digest = squash_stat
                         }
                      else begin
+                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         if stats_equal new_stats old_stats then
                            { nmemo with nmemo_stats = FreshStats new_stats }
                         else
@@ -668,14 +669,16 @@ let stat_unix cache node =
                cache.cache_nodes <- NodeTable.add nodes node nmemo;
                stat_unix_simple nmemo.nmemo_stats
        | None ->
+            let name = Node.fullname node in
             let nmemo =
                try
-                  let stats = Omake_cache_stat.stat cache.cache_stat_info node in
+                  let stats = Unix.LargeFile.stat name in
                      if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
                         { nmemo_stats = FreshStats stats;
                           nmemo_digest = squash_stat
                         }
                      else begin
+                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
                         { nmemo_stats = PartialStats stats;
                           nmemo_digest = None
                         }
@@ -778,18 +781,6 @@ let exists cache node =
 
 let exists_dir cache dir =
    exists cache (Node.node_of_dir dir)
-
-(*
- * Name translations.
- *)
-let real_dir cache dir =
-   Omake_cache_stat.real_dir cache.cache_stat_info dir
-
-(*
- * XXX: need to handle the various cases (like phony nodes).
- *)
-let real_node cache node =
-   Omake_cache_stat.real_node cache.cache_stat_info node
 
 (************************************************************************
  * Adding to the cache.
@@ -1020,9 +1011,14 @@ let add_value cache key deps commands result =
  * on every lookup.
  *)
 let stat_dir cache dir =
-   try Some (Omake_cache_stat.stat_dir_nocheck cache.cache_stat_info dir) with
-      Unix.Unix_error _ ->
-         None
+   let name = Dir.fullname dir in
+      try
+         let stat = Unix.LargeFile.stat name in
+            cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
+            Some stat
+      with
+         Unix.Unix_error _ ->
+            None
 
 let stat_dirs cache dirs =
    List.map (stat_dir cache) dirs
@@ -1147,8 +1143,6 @@ let listing_find_item cache listing s =
  * The execution path is a little harder, and it is quite different
  * on Win32 and Unix.
  *
- * The path is allowed to be case-insentive.
- *
  * On Win32:
  *    - File permission doesn't matter
  *    - Files without suffix, and with .com, .exe, .bat and .cmd suffixes are executable
@@ -1164,7 +1158,6 @@ let listing_find_item cache listing s =
 let win32_suffixes = [".com"; ".exe"; ".bat"; ".cmd"]
 
 let ls_exe_path_win32 cache auto_rehash dirs =
-   let dirs = List.map (Omake_cache_stat.real_dir cache.cache_stat_info) dirs in
    let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_exe_path key) stats with
@@ -1195,7 +1188,6 @@ let ls_exe_path_win32 cache auto_rehash dirs =
                entries
 
 let ls_exe_path_unix cache auto_rehash dirs =
-   let dirs = List.map (Omake_cache_stat.real_dir cache.cache_stat_info) dirs in
    let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_exe_path key) stats with

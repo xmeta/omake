@@ -139,45 +139,6 @@ let dir venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{realpath}
- *
- * \begin{verbatim}
- *    $(realpath files) : File Array
- *        files : File Array
- * \end{verbatim}
- *
- * The \verb+realpath+ function has an effect only when the filesystem
- * is case-insensitive.  In this case, if a file with the same
- * case-insensitive name exists, the real name is returned.  If
- * the file does not exist, the maximal existing prefix of the name is
- * translated, and the case of the remainder is unchanged.
- *
- * If the filesystem is case-sensitive, the files are returned
- * without translation.
- * \end{doc}
- *)
-let realpath venv pos loc args =
-   let pos = string_pos "dir" pos in
-      match args with
-         [arg] ->
-            let values = values_of_value venv pos arg in
-            let cache = venv_cache venv in
-            let values =
-               List.map (fun v ->
-                     match node_value_of_value venv pos v with
-                        ValNode node ->
-                           ValNode (Omake_cache.real_node cache node)
-                      | ValDir dir ->
-                           ValDir (Omake_cache.real_dir cache dir)
-                      | v ->
-                           v) values
-            in
-               concat_array values
-       | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
-
-(*
- * \begin{doc}
  * \fun{tmpfile}
  *
  * \begin{verbatim}
@@ -2812,7 +2773,6 @@ let () =
        true, "tmpfile",                 tmpfile,                  ArityRange (1, 2);
        true, "file",                    file,                     ArityExact 1;
        true, "dir",                     dir,                      ArityExact 1;
-       true, "realpath",                realpath,                 ArityExact 1;
        true, "which",                   which,                    ArityExact 1;
        true, "where",                   where,                    ArityExact 1;
        true, "exists-in-path",          exists_in_path,           ArityExact 1;

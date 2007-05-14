@@ -38,24 +38,11 @@ sig
    type t
 
    (*
-    * Directory representation.
-    *)
-   type dir_info =
-      DirInfoRoot of Lm_filename_util.root
-    | DirInfoSub of string * t
-
-   (*
     * Some standard directories.
     *)
    val lib  : t
    val home : t
    val root : t
-
-   (*
-    * Is this a root directory (either /
-    * or a drive letter)?
-    *)
-   val dest : t -> dir_info
 
    (*
     * Current working directory.
@@ -175,11 +162,6 @@ sig
     * It is legal for the string to contain / chars.
     *)
    val create_node : t poly_mount_info -> mount -> dir -> string -> t
-
-   (*
-    * Create a normal node, without mounts.
-    *)
-   val create_normal : dir -> string -> t
 
    (*
     * A phony node does not correspond to a file.
