@@ -1195,6 +1195,7 @@ let ls_exe_path_win32 cache auto_rehash dirs =
                entries
 
 let ls_exe_path_unix cache auto_rehash dirs =
+   let dirs = List.map (Omake_cache_stat.real_dir cache.cache_stat_info) dirs in
    let key = DirListHash.create dirs in
    let stats = lazy (stat_dirs cache dirs) in
       try check_stats auto_rehash (DirListTable.find cache.cache_exe_path key) stats with

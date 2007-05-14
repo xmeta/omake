@@ -47,25 +47,10 @@ let warn_case_mismatch = ref false
 let check_case = ref true
 
 (*
- * Directory entry is a directory or node.
- *)
-type dir_entry_core =
-   LazyEntryCore of Dir.t * string
- | DirEntryCore  of dir_entry
-
-type dir_listing_item = dir_entry_core ref StringTable.t
-
-type dir_listing = dir_listing_item list
-
-(*
  * For directories, keep track of case-sensitivity.
+ * The option is None iff the dir is case-sensitive
  *)
-type dir_info =
-   { dir_items        : dir_listing_item;
-
-     (* The option is None iff the dir is case-sensitive *)
-     dir_names        : string StringTable.t option
-   }
+type dir_info = string StringTable.t option
 
 (*
  * Our sub-cache.
@@ -297,10 +282,6 @@ let dir_listing cache dir =
          Unix.Unix_error _ ->
             raise Not_found
    in
-   let items =
-      List.fold_left (fun items name ->
-            StringTable.add items name (ref (LazyEntryCore (dir, name)))) StringTable.empty names
-   in
    let names =
       if dir_is_sensitive cache dir names then
          None
@@ -311,13 +292,8 @@ let dir_listing cache dir =
          in
             Some names
    in
-   let info =
-      { dir_items   = items;
-        dir_names   = names
-      }
-   in
-      cache.cache_dirs <- DirTable.add cache.cache_dirs dir info;
-      info
+      cache.cache_dirs <- DirTable.add cache.cache_dirs dir names;
+      names
 
 (*
  * When a directory is listed, recursively list all the
@@ -347,7 +323,7 @@ let rec ls_dir_path cache ?(force = false) dir =
  * If the entry does not exist, the name is unchanged.
  *)
 and get_real_tail cache ?(force = false) dir tail =
-   match (ls_dir_path cache dir).dir_names with
+   match ls_dir_path cache dir with
       None ->
          tail
     | Some table ->
@@ -356,7 +332,7 @@ and get_real_tail cache ?(force = false) dir tail =
                try StringTable.find table lower_tail with
                   Not_found ->
                      (* The entry is supposed to exist, so rescan the directory *)
-                     match (dir_listing cache dir).dir_names with
+                     match dir_listing cache dir with
                         None ->
                            tail
                       | Some table ->
