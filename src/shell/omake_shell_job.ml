@@ -528,7 +528,10 @@ let find_executable venv pos loc exe =
        | ExeString exe ->
             find_executable_string venv pos loc exe
        | ExeNode node ->
-            node
+            if Omake_cache.exe_suffixes = ["."] then
+               node
+            else
+               find_executable_string venv pos loc (Node.absname node)
    in
       Node.absname node
 

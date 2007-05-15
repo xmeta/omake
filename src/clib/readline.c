@@ -53,7 +53,7 @@
 #  include <caml/signals.h>
 #  include <windows.h>
    /* Disable some of the warnings */
-#  pragma warning( disable : 4100 4127 4505 4996 4189)
+#  pragma warning( disable : 4100 4127 4505 4702 4996 4189)
 #else
 #  include <unistd.h>
 #  include <string.h>

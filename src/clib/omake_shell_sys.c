@@ -993,12 +993,34 @@ value omake_shell_sys_create_process(value v_info)
                            &startup,                       // Startup info
                            &process);                      // Process info
     if(status == FALSE) {
-#ifdef OSH_DEBUG
-        print_error("CreateProcess");
-        fprintf(stderr, "Command: %s\n", command);
-        fflush(stderr);
-#endif
-        failwith("omake_shell_sys_create_process: process creation failed");
+        char * lpMsgBuf = NULL;
+        int bufLen = FormatMessageA( 
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+            FORMAT_MESSAGE_FROM_SYSTEM | 
+            FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL,
+            GetLastError(),
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+            (LPTSTR) &lpMsgBuf,
+            0,
+            NULL );
+
+        #ifdef OSH_DEBUG
+            print_error("CreateProcess");
+            fprintf(stderr, "Command: %s\n", command);
+            fflush(stderr);
+        #endif
+        if ((bufLen < 1) || (bufLen > 1024)) {
+            if (lpMsgBuf != NULL) 
+                LocalFree( lpMsgBuf );
+            failwith("omake_shell_sys_create_process: process creation failed");
+        } else {
+            char err[2048];
+            sprintf(err, "omake_shell_sys_create_process: process creation failed: %s", (char *)lpMsgBuf);
+            if (lpMsgBuf != NULL) 
+                LocalFree( lpMsgBuf );
+            failwith(err);
+        }
     }
     CloseHandle(process.hThread);
 
