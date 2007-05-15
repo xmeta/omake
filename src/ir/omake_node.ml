@@ -805,6 +805,12 @@ let null_root =
    make_dir null_root []
 
 (*
+ * Fake root for "absname" computations
+ *)
+let impossible_root =
+   make_dir (DriveRoot '$') []
+
+(*
  * Split the directory name into a path.
  *)
 let rec path_simplify dir = function
@@ -1163,7 +1169,7 @@ struct
    let root = null_root
 
    let absname dir =
-      name root dir
+      name impossible_root dir
 
    (*
     * Library directory is relative to the root.
@@ -1580,7 +1586,7 @@ struct
       name (Dir.cwd ()) node
 
    let absname node =
-      name Dir.root node
+      name impossible_root node
 
    (************************************************************************
     * Mount point handling.
