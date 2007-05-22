@@ -1012,7 +1012,7 @@ let filter_proper_targets venv pos loc args =
  *
  * \fun{find-ocaml-targets-in-path-optional}
  * The \verb+find-ocaml-targets-in-path-optional+ function is very similar to the
- * \hyperfunn{find-targets-in-path-optional} one, except the \OCaml{}-like logic
+ * \hyperfunn{find-targets-in-path-optional} one, except an OCaml-style search
  * is used, where for every element of the search path and for every name being
  * searched for, first the uncapitalized version is tried and if it is not buildable,
  * then the capitalized version is tried next.

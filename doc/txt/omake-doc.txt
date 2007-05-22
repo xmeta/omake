@@ -1,12 +1,12 @@
-     
+   
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                            30^thApril, 2007
-                            ================
+                             22^ndMay, 2007
+                             ==============
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -295,9 +295,9 @@ Contents
        - 9.2.2  where 
        - 9.2.3  rehash 
        - 9.2.4  exists-in-path 
-       - 9.2.5  digest 
-       - 9.2.6  find-in-path 
-       - 9.2.7  digest-path 
+       - 9.2.5  digest, digest-optional 
+       - 9.2.6  find-in-path, find-in-path-optional 
+       - 9.2.7  digest-in-path, digest-in-path-optional 
      
     - 9.3  File stats 
         
@@ -305,11 +305,12 @@ Contents
        - 9.3.2  stat-reset 
        - 9.3.3  filter-exists, filter-targets, filter-proper-targets 
        - 9.3.4  find-targets-in-path, find-targets-in-path-optional 
-       - 9.3.5  file-sort 
+       - 9.3.5  find-ocaml-targets-in-path-optional 
+       - 9.3.6  file-sort 
            
-          - 9.3.5.1  sort rule 
+          - 9.3.6.1  sort rule 
         
-       - 9.3.6  file-check-sort 
+       - 9.3.7  file-check-sort 
      
     - 9.4  Globbing and file listings 
         
@@ -6019,8 +6020,8 @@ will describe the command as a built-in function.
   The `exists-in-path' function tests whether all executables are
 present in the current search path.
 
-9.2.5  digest
-=============
+9.2.5  digest, digest-optional
+==============================
   
 <<     $(digest files) : String Array
           file : File Array
@@ -6035,8 +6036,8 @@ files. The `digest' function raises an exception if a file does no
 exist. The `digest-optional' returns `false' if a file does no exist.
 MD5 digests are cached.
 
-9.2.6  find-in-path
-===================
+9.2.6  find-in-path, find-in-path-optional
+==========================================
   
 <<    $(find-in-path path, files) : File Array
          path : Dir Array
@@ -6052,8 +6053,8 @@ function raises an exception if the file can't be found. The
 `find-in-path-optional' function silently removes files that can't be
 found.
 
-9.2.7  digest-path
-==================
+9.2.7  digest-in-path, digest-in-path-optional
+==============================================
   
 <<    $(digest-in-path path, files) : String/File Array
          path : Dir Array
@@ -6198,8 +6199,17 @@ removes targets that can't be found.
       src/fee.o src/foo.o
 >>
   
+  
 
-9.3.5  file-sort
+9.3.5  find-ocaml-targets-in-path-optional
+==========================================
+   The `find-ocaml-targets-in-path-optional' function is very similar to
+the 'find-targets-in-path-optional' one, except an OCaml-style search is
+used, where for every element of the search path and for every name
+being searched for, first the uncapitalized version is tried and if it
+is not buildable, then the capitalized version is tried next.
+
+9.3.6  file-sort
 ================
     
 <<   $(file-sort order, files) : File Sequence
@@ -6234,7 +6244,7 @@ where this matters).
   
   
 
-9.3.5.1  sort rule
+9.3.6.1  sort rule
 ------------------
   
   It is possible to further constrain the sorter through the use of sort
@@ -6256,7 +6266,7 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'.
 
-9.3.6  file-check-sort
+9.3.7  file-check-sort
 ======================
   
 <<   file-check-sort(files)
@@ -9074,7 +9084,7 @@ Chapter 12    Build functions and utilities
  .SUBDIRS  Include a directory as part of the project (Section 7.8). 
  .SCANNER  Define a dependency scanner (Section 7.8). 
  .INCLUDE  Include a file (Section 7.9). 
- .ORDER  Define a file-dependency ordering rule (Section 9.3.5). 
+ .ORDER  Define a file-dependency ordering rule (Section 9.3.6). 
  .BUILD_BEGIN  Commands to be executed at the beginning of a build. 
  .BUILD_SUCCESS  Commands to be executed if the build is successful. 
  .BUILD_FAILURE  Commands to be executed if the build fails. 
@@ -11662,10 +11672,10 @@ Index
  - .BUILD_BEGIN, 12.1 
  - .BUILD_FAILURE, 12.1 
  - .BUILD_SUCCESS, 12.1 
- - .BUILDORDER, 9.3.5 
+ - .BUILDORDER, 9.3.6 
  - .DEFAULT, 7.7, 7.12.1 
  - .INCLUDE, 7.9 
- - .ORDER, 9.3.5 
+ - .ORDER, 9.3.6 
  - .omakerc, A.8 
  - .PHONY, 5.3, 7.10, 7.11.3, 7.12.1, 7.12.2 
  - .RULE, 5.3 
@@ -11784,7 +11794,9 @@ Index
  - dependencies-all, 12.3.1 
  - dependencies-proper, 12.3.1 
  - digest, 9.2.5 
- - digest-path, 9.2.7 
+ - digest-in-path, 9.2.7 
+ - digest-in-path-optional, 9.2.7 
+ - digest-optional, 9.2.5 
  - dir, 9.1.1 
  - dirname, 9.1.5 
  - dirof, 9.1.7 
@@ -11819,9 +11831,9 @@ Index
  - fg, 10.10.3 
  - fgets, 9.8.34 
  - file, 9.1.1 
- - file-check-sort, 9.3.6 
+ - file-check-sort, 9.3.7 
  - file-exists, 9.3.1 
- - file-sort, 9.3.5 
+ - file-sort, 9.3.6 
  - filter, 8.3.31 
  - filter-exists, 9.3.3 
  - filter-out, 8.3.32 
@@ -11830,6 +11842,8 @@ Index
  - find, 9.7.2 
  - find-build-targets, 12.3.3 
  - find-in-path, 9.2.6 
+ - find-in-path-optional, 9.2.6 
+ - find-ocaml-targets-in-path-optional, 9.3.5 
  - find-targets-in-path, 9.3.4 
  - find-targets-in-path-optional, 9.3.4 
  - float, 8.4.2 
@@ -11922,7 +11936,7 @@ Index
  - lex, 9.11.7 
  - lex-search, 9.11.8 
  - link, 9.5.6 
- - link-order sorting, 9.3.5 
+ - link-order sorting, 9.3.6 
  - listen, 9.8.29 
  - lnot, 8.4.3 
  - lockf, 9.8.19 
@@ -12120,7 +12134,7 @@ Index
  - setvar, 8.2.17 
  - shell, 8.3.38 
  - socket, 9.8.27 
- - sorting (link-order), 9.3.5 
+ - sorting (link-order), 9.3.6 
  - split, 8.3.2 
  - stat, 9.5.3 
  - stat-reset, 9.3.2 
@@ -12402,7 +12416,9 @@ Index of functions and special forms
  - dependencies-all, 12.3.1 
  - dependencies-proper, 12.3.1 
  - digest, 9.2.5 
- - digest-path, 9.2.7 
+ - digest-in-path, 9.2.7 
+ - digest-in-path-optional, 9.2.7 
+ - digest-optional, 9.2.5 
  - dir, 9.1.1 
  - dirname, 9.1.5 
  - dirof, 9.1.7 
@@ -12425,9 +12441,9 @@ Index of functions and special forms
  - fg, 10.10.3 
  - fgets, 9.8.34 
  - file, 9.1.1 
- - file-check-sort, 9.3.6 
+ - file-check-sort, 9.3.7 
  - file-exists, 9.3.1 
- - file-sort, 9.3.5 
+ - file-sort, 9.3.6 
  - filter, 8.3.31 
  - filter-exists, 9.3.3 
  - filter-out, 8.3.32 
@@ -12436,6 +12452,8 @@ Index of functions and special forms
  - find, 9.7.2 
  - find-build-targets, 12.3.3 
  - find-in-path, 9.2.6 
+ - find-in-path-optional, 9.2.6 
+ - find-ocaml-targets-in-path-optional, 9.3.5 
  - find-targets-in-path, 9.3.4 
  - find-targets-in-path-optional, 9.3.4 
  - float, 8.4.2 
@@ -12710,10 +12728,10 @@ Index of special targets
  - .BUILD_BEGIN, 12.1 
  - .BUILD_FAILURE, 12.1 
  - .BUILD_SUCCESS, 12.1 
- - .BUILDORDER, 9.3.5 
+ - .BUILDORDER, 9.3.6 
  - .DEFAULT, 7.7, 7.12.1 
  - .INCLUDE, 7.9 
- - .ORDER, 9.3.5 
+ - .ORDER, 9.3.6 
  - .PHONY, 7.10, 7.11.3, 7.12.1, 7.12.2 
  - .SCANNER, 7.6, 7.11.2 
  - .SUBDIRS, 7.8 
@@ -12776,7 +12794,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.1 of 30^thApril, 2007.
+  Version: 0.9.8.1 of 22^ndMay, 2007.
   
 
 C.3  License and Copyright

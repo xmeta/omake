@@ -1,5 +1,86 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-11-4,	Next: Subsection 9-11-5,	Prev: Subsection 9-11-3,	Up: Section 9-11
+  
+
+9.11.4   scan
+=============
+
+<<   scan(input-files)
+     case string1
+        body1
+     case string2
+        body2
+     ...
+     default
+        bodyd
+>>
+  
+  The `scan' function provides input processing in command-line form.
+The function takes file/filename arguments. If called with no arguments,
+the input is taken from `stdin'. If arguments are provided, each
+specifies an `InChannel', or the name of a file for input. Output is
+always to `stdout'.
+  The `scan' function operates by reading the input one line at a time,
+and processing it according to the following algorithm.
+  For each line, the record is first split into fields, and the fields
+are bound to the variables `$1, $2, ...'. The variable `$0' is defined
+to be the entire line, and `$*' is an array of all the field values. The
+`$(NF)' variable is defined to be the number of fields.
+  Next, a case expression is selected. If `string_i' matches the token
+`$1', then `body_i' is evaluated. If the body ends in an `export', the
+state is passed to the next clause. Otherwise the value is discarded.
+  For example, here is an `scan' function that acts as a simple command
+processor.
+<<    calc() =
+         i = 0
+         scan(script.in)
+         case print
+            println($i)
+         case inc
+            i = $(add $i, 1)
+            export
+         case dec
+            i = $(sub $i, 1)
+            export
+         case addconst
+            i = $(add $i, $2)
+            export
+         default
+            eprintln($"Unknown command: $1")
+>>
+  
+  The `scan' function also supports several options.
+<<    scan(options, files)
+      ...
+>>
+  
+  
+  
+ A  Parse each line as an argument list, where arguments may be quoted.
+   For example, the following line has three words, "`ls'", "`-l'",
+   "`Program Files'".
+   <<       ls -l "Program Files"
+        >>
+ 
+ O  Parse each line using white space as the separator, using the usual
+   OMake algorithm for string parsing. This is the default. 
+ x  Once each line is split, reduce each word using the hex
+   representation. This is the usual hex representation used in URL
+   specifiers, so the string "Program Files" may be alternately
+   represented in the form ProgramProgram+Files. 
+  
+  Note, if you want to redirect the output to a file, the easiest way is
+to redefine the `stdout' variable. The `stdout' variable is scoped the
+same way as other variables, so this definition does not affect the
+meaning of `stdout' outside the `calc' function.
+<<    calc() =
+          stdout = $(fopen script.out, w)
+          scan(script.in)
+             ...
+          close(stdout)
+>>
+
 Node: Subsection 9-11-5,	Next: Subsection 9-11-6,	Prev: Subsection 9-11-4,	Up: Section 9-11
   
 

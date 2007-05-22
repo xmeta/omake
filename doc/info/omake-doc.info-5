@@ -34,11 +34,24 @@ removes targets that can't be found.
       # Evaluates to
       src/fee.o src/foo.o
 >>
+  
 
 Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
   
 
-9.3.5   file-sort
+9.3.5   find-ocaml-targets-in-path-optional
+===========================================
+ The
+`find-ocaml-targets-in-path-optional' function is very similar to the
+'find-targets-in-path-optional' one, except an OCaml-style search is
+used, where for every element of the search path and for every name
+being searched for, first the uncapitalized version is tried and if it
+is not buildable, then the capitalized version is tried next. 
+
+Node: Subsection 9-3-6,	Next: Subsection 9-3-7,	Prev: Subsection 9-3-5,	Up: Section 9-3
+  
+
+9.3.6   file-sort
 =================
  
 
@@ -75,7 +88,7 @@ where this matters).
   
   
 
-9.3.5.1   sort rule
+9.3.6.1   sort rule
 -------------------
   
   It is possible to further constrain the sorter through the use of sort
@@ -97,10 +110,10 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
 
-Node: Subsection 9-3-6,	Next: Section 9-4,	Prev: Subsection 9-3-5,	Up: Section 9-3
+Node: Subsection 9-3-7,	Next: Section 9-4,	Prev: Subsection 9-3-6,	Up: Section 9-3
   
 
-9.3.6   file-check-sort
+9.3.7   file-check-sort
 =======================
 
 <<   file-check-sort(files)
@@ -1658,84 +1671,3 @@ highly-simplified version of grep(1).
   The `pattern' is a regular expression.
   If successful (`grep' found a match), the function returns `true'.
 Otherwise, it returns `false'. 
-
-Node: Subsection 9-11-4,	Next: Subsection 9-11-5,	Prev: Subsection 9-11-3,	Up: Section 9-11
-  
-
-9.11.4   scan
-=============
-
-<<   scan(input-files)
-     case string1
-        body1
-     case string2
-        body2
-     ...
-     default
-        bodyd
->>
-  
-  The `scan' function provides input processing in command-line form.
-The function takes file/filename arguments. If called with no arguments,
-the input is taken from `stdin'. If arguments are provided, each
-specifies an `InChannel', or the name of a file for input. Output is
-always to `stdout'.
-  The `scan' function operates by reading the input one line at a time,
-and processing it according to the following algorithm.
-  For each line, the record is first split into fields, and the fields
-are bound to the variables `$1, $2, ...'. The variable `$0' is defined
-to be the entire line, and `$*' is an array of all the field values. The
-`$(NF)' variable is defined to be the number of fields.
-  Next, a case expression is selected. If `string_i' matches the token
-`$1', then `body_i' is evaluated. If the body ends in an `export', the
-state is passed to the next clause. Otherwise the value is discarded.
-  For example, here is an `scan' function that acts as a simple command
-processor.
-<<    calc() =
-         i = 0
-         scan(script.in)
-         case print
-            println($i)
-         case inc
-            i = $(add $i, 1)
-            export
-         case dec
-            i = $(sub $i, 1)
-            export
-         case addconst
-            i = $(add $i, $2)
-            export
-         default
-            eprintln($"Unknown command: $1")
->>
-  
-  The `scan' function also supports several options.
-<<    scan(options, files)
-      ...
->>
-  
-  
-  
- A  Parse each line as an argument list, where arguments may be quoted.
-   For example, the following line has three words, "`ls'", "`-l'",
-   "`Program Files'".
-   <<       ls -l "Program Files"
-        >>
- 
- O  Parse each line using white space as the separator, using the usual
-   OMake algorithm for string parsing. This is the default. 
- x  Once each line is split, reduce each word using the hex
-   representation. This is the usual hex representation used in URL
-   specifiers, so the string "Program Files" may be alternately
-   represented in the form ProgramProgram+Files. 
-  
-  Note, if you want to redirect the output to a file, the easiest way is
-to redefine the `stdout' variable. The `stdout' variable is scoped the
-same way as other variables, so this definition does not affect the
-meaning of `stdout' outside the `calc' function.
-<<    calc() =
-          stdout = $(fopen script.out, w)
-          scan(script.in)
-             ...
-          close(stdout)
->>
