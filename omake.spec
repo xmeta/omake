@@ -8,7 +8,7 @@ Source0: %{name}-%{version}-%{index}.tar.gz
 License: GPL
 Group: Development/Tools
 BuildRoot: %{_tmppath}/%{name}-root
-BuildRequires: ocaml, make, fam-devel, readline-devel, ncurses-devel
+BuildRequires: ocaml >= 3.09.2, make, fam-devel, readline-devel, ncurses-devel
 
 %define debug_package %{nil}
 
