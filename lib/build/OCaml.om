@@ -421,7 +421,7 @@ public.OCamlScannerPostproc() =
     case $'^\(.*\):[[:space:]]*\(.*\)$'
         PrintDependencies($(filename), $(modules))
         filename = $1
-        modules[] = $2
+        modules[] = $(split $' ', $2)
         export
     case $'^	\(.*\)'
         # Add the dependency
