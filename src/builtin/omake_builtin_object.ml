@@ -785,6 +785,67 @@ let exists_fun venv pos loc args =
    in
       venv, x
 
+(*
+ * \begin{doc}
+ * \fun{sort}
+ *
+ * The \verb+sort+ function sorts the elements in an array,
+ * given a comparison function.  Given two elements (x, y),
+ * the comparison should return a negative number if x < y;
+ * a positive number if x > y; and 0 if x = y.
+ *
+ * \begin{verbatim}
+ *     $(sort <fun>, <args>)
+ *
+ *     sort(<var> => <args>)
+ *        <body>
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let sort_fun venv pos loc args =
+   let pos = string_pos "sort" pos in
+   let f, args =
+      match args with
+         [fun_val; arg] ->
+            let args = values_of_value venv pos arg in
+            let _, _, f = eval_fun venv pos fun_val in
+               f, args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+
+   (* If the body exports the environment, preserve it across calls *)
+   let compare v1 v2 =
+      let _, x = f venv pos loc [v1; v2] in
+         int_of_value venv pos x
+   in
+   let args = List.sort compare args in
+      venv, ValArray args
+
+(*
+ * \begin{doc}
+ * \fun{compare}
+ *
+ * The \verb+compare+ function compares two values (x, y) generically
+ * returning a negative number if x < y;
+ * a positive number if x > y; and 0 if x = y.
+ *
+ * \begin{verbatim}
+ *     $(compare x, y) : Int
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let compare_fun venv pos loc args =
+   let pos = string_pos "compare" pos in
+   let x, y =
+      match args with
+         [x; y] ->
+            x, y
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+   in
+      ValInt (ValueCompare.compare x y)
+
 (************************************************************************
  * Define the functions.
  *)
@@ -811,7 +872,9 @@ let () =
        true, "sequence-nth",         sequence_nth,        ArityExact 1;
        true, "sequence-rev",         sequence_rev,        ArityExact 1;
        true,  "create-map",          create_map,          ArityAny;
-       false, "create-lazy-map",     create_map,          ArityAny]
+       false, "create-lazy-map",     create_map,          ArityAny;
+       true, "compare",              compare_fun,         ArityExact 2;
+      ]
    in
    let builtin_kfuns =
       [true, "obj-add",              object_add,          ArityExact 3;
@@ -822,6 +885,7 @@ let () =
        true, "sequence-map",         foreach_fun,         ArityRange (2, 3);
        true, "sequence-forall",      forall_fun,          ArityExact 2;
        true, "sequence-exists",      exists_fun,          ArityExact 2;
+       true, "sequence-sort",        sort_fun,            ArityExact 2;
       ]
    in
    let builtin_vars =
