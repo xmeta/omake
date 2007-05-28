@@ -1244,6 +1244,21 @@ let length_fun venv pos loc args =
  * a list. Counting starts at 0. An exception is raised if the index is not in bounds.
  *
  * For example, the expression \verb+$(nth 1, a "b c" d)+ evaluates to \verb+"b c"+.
+ *
+ * \fun{replace-nth}
+ *
+ * \begin{verbatim}
+ *    $(replace-nth i, sequence, x) : value
+ *       i : Int
+ *       sequence : Sequence
+ *       x : value
+ *    raises RuntimeException
+ * \end{verbatim}
+ *
+ * The \verb+replace-nth+ function replaces the nth element of its argument with a new
+ * value \verb+x+.  Counting starts at 0. An exception is raised if the index is not in bounds.
+ *
+ * For example, the expression \verb+$(replace-nth 1, a "b c" d, x)+ evaluates to \verb+a x d+.
  * \end{doc}
  *)
 let nth_fun venv pos loc args =
@@ -1256,6 +1271,19 @@ let nth_fun venv pos loc args =
                if i < 0 || i >= len then
                   raise (OmakeException (loc_pos loc pos, StringIntError ("index is out of bounds", i)));
                List.nth args i
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let replace_nth_fun venv pos loc args =
+   let pos = string_pos "replace-nth" pos in
+      match args with
+         [i; arg; x] ->
+            let i = int_of_value venv pos i in
+            let args = values_of_value venv pos arg in
+            let len = List.length args in
+               if i < 0 || i >= len then
+                  raise (OmakeException (loc_pos loc pos, StringIntError ("index is out of bounds", i)));
+               concat_array (Lm_list_util.replace_nth i x args)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
@@ -2752,6 +2780,7 @@ let () =
        true,  "nth",                   nth_fun,             ArityExact 2;
        true,  "nth-hd",                nth_hd_fun,          ArityExact 2;
        true,  "nth-tl",                nth_tl_fun,          ArityExact 2;
+       true,  "replace-nth",           replace_nth_fun,     ArityExact 3;
        true,  "subrange",              subrange_fun,        ArityExact 3;
        true,  "length",                length_fun,          ArityExact 1;
        true,  "rev",                   rev_fun,             ArityExact 1;
