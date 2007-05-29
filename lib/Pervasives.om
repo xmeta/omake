@@ -384,6 +384,26 @@ Float. +=
 #          export
 #       return $(count)
 #    \end{verbatim}
+#
+# \item \verb+$(s.forall <fun>)+: tests whether each element of the sequence
+#   satifies a predicate.
+# \item \verb+$(s.exists <fun>)+: tests whether the sequence contains an element
+#   that satisfies a predicate.
+# \item \verb+$(s.sort <fun>)+: sorts a sequence.  The \verb+<fun>+ is a comparison
+#   function.  It takes two elements \verb+(x, y)+ of the sequence, compares them, and returns
+#   a negative number if $x < y$, a positive number if $x > y$, and zero if the two elements
+#   are equal.
+#
+#   \begin{verbatim}
+#   osh> items = $(int 0 3 -2)
+#   osh> items.forall(x => $(gt $x, 0))
+#   - : bool = false
+#   osh> items.exists(x => $(gt $x, 0))
+#   - : bool = true
+#   osh> items.sort($(compare))
+#   - : Array = -2 3 0
+#   \end{verbatim}
+#
 # \end{itemize}
 # \end{doc}
 #
@@ -392,19 +412,28 @@ Sequence. +=
    extends $(Object)
 
    length() =
-      return $(sequence-length $(this))
+      sequence-length($(this))
 
    nth(i) =
-      return $(sequence-nth $(this), $(i))
+      sequence-nth($(this), $(i))
 
    rev() =
-      return $(sequence-rev $(this))
+      sequence-rev($(this))
 
    map(f) =
-      return $(sequence-map $(f), $(this))
+      sequence-map($(f), $(this))
 
    foreach(body, v) =
-      return $(sequence-map $(body), $(v), $(this))
+      sequence-map($(body), $(v), $(this))
+
+   forall(f) =
+      sequence-forall($f, $(this))
+
+   exists(f) =
+      sequence-exists($f, $(this))
+
+   sort(f) =
+      sequence-sort($f, $(this))
 
 #
 # \begin{doc}

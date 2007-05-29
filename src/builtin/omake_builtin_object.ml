@@ -693,21 +693,21 @@ let foreach_fun venv pos loc args =
  * \begin{doc}
  * \section{Boolean tests}
  *
- * \subsection{forall}
+ * \fun{sequence-forall}
  *
  * The \verb+forall+ function tests whether a predicate halds for each
  * element of a sequence.
  *
  * \begin{verbatim}
- *     $(forall <fun>, <args>)
+ *     $(sequence-forall <fun>, <args>)
  *
- *     forall(<var> => <args>)
+ *     sequence-forall(<var> => ..., <args>)
  *        <body>
  * \end{verbatim}
  * \end{doc}
  *)
 let forall_fun venv pos loc args =
-   let pos = string_pos "forall" pos in
+   let pos = string_pos "sequence-forall" pos in
    let f, args =
       match args with
          [fun_val; arg] ->
@@ -739,21 +739,21 @@ let forall_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{exists}
+ * \subsection{sequence-exists}
  *
  * The \verb+exists+ function tests whether a predicate holds for
  * some element of a sequence.
  *
  * \begin{verbatim}
- *     $(exists <fun>, <args>)
+ *     $(sequence-exists <fun>, <args>)
  *
- *     exists(<var> => <args>)
+ *     sequence-exists(<var> => ..., <args>)
  *        <body>
  * \end{verbatim}
  * \end{doc}
  *)
 let exists_fun venv pos loc args =
-   let pos = string_pos "exists" pos in
+   let pos = string_pos "sequence-exists" pos in
    let f, args =
       match args with
          [fun_val; arg] ->
@@ -787,7 +787,7 @@ let exists_fun venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{sort}
+ * \fun{sequence-sort}
  *
  * The \verb+sort+ function sorts the elements in an array,
  * given a comparison function.  Given two elements (x, y),
@@ -795,15 +795,15 @@ let exists_fun venv pos loc args =
  * a positive number if x > y; and 0 if x = y.
  *
  * \begin{verbatim}
- *     $(sort <fun>, <args>)
+ *     $(sequence-sort <fun>, <args>)
  *
- *     sort(<var> => <args>)
+ *     sort(<var>, <var> => ..., <args>)
  *        <body>
  * \end{verbatim}
  * \end{doc}
  *)
 let sort_fun venv pos loc args =
-   let pos = string_pos "sort" pos in
+   let pos = string_pos "sequence-sort" pos in
    let f, args =
       match args with
          [fun_val; arg] ->
