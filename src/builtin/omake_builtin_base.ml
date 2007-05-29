@@ -1269,7 +1269,7 @@ let nth_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let len = List.length args in
                if i < 0 || i >= len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("index is out of bounds", i)));
+                  raise (OmakeException (loc_pos loc pos, StringIntError ("nth: index is out of bounds", i)));
                List.nth args i
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -1282,7 +1282,7 @@ let replace_nth_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let len = List.length args in
                if i < 0 || i >= len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("index is out of bounds", i)));
+                  raise (OmakeException (loc_pos loc pos, StringIntError ("replace-nth: index is out of bounds", i)));
                concat_array (Lm_list_util.replace_nth i x args)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -1369,7 +1369,7 @@ let nth_hd_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let len = List.length args in
                if i < 0 || i > len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("index is out of bounds", i)));
+                  raise (OmakeException (loc_pos loc pos, StringIntError ("nth-hd: index is out of bounds", i)));
                ValArray (nth_hd [] args i)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -1382,7 +1382,7 @@ let nth_tl_fun venv pos loc args =
             let args = values_of_value venv pos arg in
             let len = List.length args in
                if i < 0 || i > len then
-                  raise (OmakeException (loc_pos loc pos, StringIntError ("index is out of bounds", i)));
+                  raise (OmakeException (loc_pos loc pos, StringIntError ("nth-tl: index is out of bounds", i)));
                ValArray (nth_tl args i)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
