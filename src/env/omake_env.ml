@@ -83,12 +83,7 @@ let debug_implicit =
 (*
  * Debug file database (.omc files).
  *)
-let debug_db =
-   create_debug (**)
-      { debug_name = "debug-db";
-        debug_description = "Debug the files";
-        debug_value = false
-      }
+let debug_db = Lm_db.debug_db
 
 (*
  * Command lists have source arguments.
