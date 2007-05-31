@@ -77,8 +77,8 @@ open configure/Configure
 #    in a traditional \verb+make+-style fashion, run \verb+$(OCAMLDEP_MODULES) -modules+ and then
 #    postprocess the output internally to discover all the relevant generated \verb+.ml+ and
 #    \verb+.mli+ files. See Section~\ref{section:ocaml-generated-files} for more information on
-#    interactions between \OMake, \verb+OCAMLDEP+ and generated files. This feature is currently
-#    considered highly experimental and is disabled by default.
+#    interactions between \OMake, \verb+OCAMLDEP+ and generated files. Set to
+#    \verb+$(OCAMLDEP_MODULES_AVAILABLE)+ by default.
 # \var{OCAMLMKTOP} The OCaml toploop compiler (default \verb+ocamlmktop+).
 # \var{OCAMLLINK} The OCaml bytecode linker (default \verb+$(OCAMLC)+).
 # \var{OCAMLOPTLINK} The OCaml native-code linker (default \verb+$(OCAMLOPT)+).
@@ -257,20 +257,18 @@ public.OCAML_LIB_FLAGS =
 #
 # \subsubsection{Automatic discovery of generated files during dependency analysis}
 # Having to specify the generated files manualy when \OMake{} could discover them automatically is
-# obviously suboptimal.  To address this, we try to use a custom \verb+ocamldep+ that \emph{only}
-# finds the free module names in a file. 
+# obviously suboptimal.  To address this, we tell \verb+ocamldep+ that \emph{only}
+# finds the free module names in a file and then post-process the results internally.
 #
-# This functionality is experimental and is disabled by default for now.
-# Set the \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} to \verb+true+ (or
-# to \verb+$(OCAMLDEP_MODULES_AVAILABLE)+) in your project to enable it.
-#
-# Note that the experimental \verb+ocamldep+ functionality this relies upon is not yet included in
-# the standard OCaml (it is expected to be a part of the upcoming OCaml 3.10 ---
-# see \url{http://caml.inria.fr/mantis/view.php?id=4047}). Temporarily, we
+# Note that the experimental \verb+ocamldep+ functionality this relies upon is only included in
+# the OCaml version 3.10 and higher. Temporarily, we
 # distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
 # modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
 # and the \hypervarxn{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} and
 # \hypervarxn{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} variables will be set accordingly.
+#
+# By default, \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} will be set to
+# \verb+$(OCAMLDEP_MODULES_AVAILABLE)+.
 # \end{doc}
 #
 .STATIC:
@@ -295,8 +293,7 @@ public.OCAML_LIB_FLAGS =
             ConfMsgResult(NOT FOUND)
         export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
 
-public.OCAMLDEP_MODULES_ENABLED = false
-# public.OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
+public.OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
 .PHONY: OCamlGeneratedFilesTarget
 
@@ -591,7 +588,7 @@ public.MenhirOCamlcCommand() =
     private.ocamlc[] =\
        $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS)\
            $(OCAMLCFLAGS) $(OCAMLPPFLAGS) $(PREFIXED_OCAMLINCLUDES)
-    value --ocamlc $"$(ocamlc)"
+    value --ocamlc $(quote-argv $(ocamlc))
 
 public.MenhirOCamldepCommand(raw) =
     ocamldep =
@@ -599,7 +596,7 @@ public.MenhirOCamldepCommand(raw) =
            value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS) -modules
        else
            value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS)
-    value --ocamldep $"$(ocamldep)"
+    value --ocamldep $(quote-argv $(ocamldep))
 
 # Compute the Mendir dependency scanner command
 public.MenhirScannerCommand(base, src) =
