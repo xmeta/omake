@@ -184,7 +184,7 @@ Node: Subsection 12-3-1,	Next: Subsection 12-3-2,	Prev: Section 12-3,	Up: Sectio
 12.3.1   dependencies, dependencies-all, dependencies-proper
 ============================================================
 \@na
-me{@default360}
+me{@default361}
 <<   $(dependencies targets) : File Array
      $(dependencies-all targets) : File Array
      $(dependencies-proper targets) : File Array
@@ -616,7 +616,7 @@ the target directory.
 12.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@na
-me{@default407}
+me{@default408}
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
@@ -680,7 +680,7 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 StaticCXXLibraryInstall
 -----------------------
 \@na
-me{@default415}
+me{@default416}
   Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
 `StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
 `StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
@@ -780,8 +780,8 @@ traditional `make'-style fashion, run `$(OCAMLDEP_MODULES) -modules' and
 then postprocess the output internally to discover all the relevant
 generated `.ml' and `.mli' files. See Section
 12.6.5*Note Subsection 12-6-5:: for more information on
-interactions between OMake, `OCAMLDEP' and generated files. This feature
-is currently considered highly experimental and is disabled by default. 
+interactions between OMake, `OCAMLDEP' and generated files. Set to
+`$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
  OCAMLMKTOP
  The OCaml toploop compiler (default
 `ocamlmktop'). 
@@ -932,19 +932,16 @@ analysis
 --------
    Having to specify the generated files manualy when OMake could
 discover them automatically is obviously suboptimal. To address this, we
-try to use a custom `ocamldep' that only finds the free module names in
-a file. 
-  This functionality is experimental and is disabled by default for now.
-Set the 'OCAMLDEP_MODULES_ENABLED' variable to `true' (or to
-`$(OCAMLDEP_MODULES_AVAILABLE)') in your project to enable it.
+tell `ocamldep' that only finds the free module names in a file and then
+post-process the results internally.
   Note that the experimental `ocamldep' functionality this relies upon
-is not yet included in the standard OCaml (it is expected to be a part
-of the upcoming OCaml 3.10 --- see
-http://caml.inria.fr/mantis/view.php?id=4047). Temporarily, we
+is only included in the OCaml version 3.10 and higher. Temporarily, we
 distribute a bytecode version `ocamldep-omake' of the
 appropriately modified `ocamldep'. The appropriate `ocamldep' will be
 discovered automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE'
-and 'OCAMLDEP_MODULES' variables will be set accordingly. 
+and 'OCAMLDEP_MODULES' variables will be set accordingly.
+  By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
+`$(OCAMLDEP_MODULES_AVAILABLE)'. 
 
 Node: Subsection 12-6-6,	Next: Section 12-7,	Prev: Subsection 12-6-5,	Up: Section 12-6
   
@@ -1321,7 +1318,7 @@ Node: Subsection 13-1-4,	Next: Subsection 13-1-5,	Prev: Subsection 13-1-3,	Up: S
 13.1.4   TryCompileC, TryLinkC, TryRunC
 =======================================
 \@na
-me{@default493} 
+me{@default494} 
 <<success = $(TryCompileC <prog_text>)
   success = $(TryLinkC <prog_text>)
   success = $(TryRunC <prog_text>)

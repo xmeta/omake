@@ -318,20 +318,26 @@ defined to be the string <CODE>foo_x_bar_x_baz</CODE>.</P><PRE CLASS="verbatim">
       sequence : Sequence
    raises RuntimeException
 </PRE><P>The <CODE>nth</CODE> function returns the nth element of its argument, treated as
-a list. Counting starts at 0. An exception is raised if the index is not in bounds.</P><P>For example, the expression <CODE>$(nth 1, a "b c" d)</CODE> evaluates to <CODE>"b c"</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc120">8.3.6</A>&#XA0;&#XA0;nth-hd</H3><P><A NAME="fun:nth-hd"></A><A NAME="@default100"></A><A NAME="@fun28"></A></P><PRE CLASS="verbatim">   $(nth-hd i, sequence) : value
+a list. Counting starts at 0. An exception is raised if the index is not in bounds.</P><P>For example, the expression <CODE>$(nth 1, a "b c" d)</CODE> evaluates to <CODE>"b c"</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc120">8.3.6</A>&#XA0;&#XA0;replace-nth</H3><P><A NAME="fun:replace-nth"></A><A NAME="@default100"></A><A NAME="@fun28"></A></P><PRE CLASS="verbatim">   $(replace-nth i, sequence, x) : value
+      i : Int
+      sequence : Sequence
+      x : value
+   raises RuntimeException
+</PRE><P>The <CODE>replace-nth</CODE> function replaces the nth element of its argument with a new
+value <CODE>x</CODE>. Counting starts at 0. An exception is raised if the index is not in bounds.</P><P>For example, the expression <CODE>$(replace-nth 1, a "b c" d, x)</CODE> evaluates to <CODE>a x d</CODE>.
+</P><H3 CLASS="subsection"><A NAME="htoc121">8.3.7</A>&#XA0;&#XA0;nth-hd</H3><P><A NAME="fun:nth-hd"></A><A NAME="@default101"></A><A NAME="@fun29"></A></P><PRE CLASS="verbatim">   $(nth-hd i, sequence) : value
       i : Int
       sequence : Sequence
    raises RuntimeException
 </PRE><P>The <CODE>nth-hd</CODE> function returns the first <CODE>i</CODE> elements of
 the sequence. An exception is raised if the sequence is not
-at least <CODE>i</CODE> elements long.</P><P>For example, the expression <CODE>$(nth-hd 2, a "b c" d)</CODE> evaluates to <CODE>a "b c"</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc121">8.3.7</A>&#XA0;&#XA0;nth-tl</H3><P><A NAME="fun:nth-tl"></A><A NAME="@default101"></A><A NAME="@fun29"></A></P><PRE CLASS="verbatim">   $(nth-tl i, sequence) : value
+at least <CODE>i</CODE> elements long.</P><P>For example, the expression <CODE>$(nth-hd 2, a "b c" d)</CODE> evaluates to <CODE>a "b c"</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc122">8.3.8</A>&#XA0;&#XA0;nth-tl</H3><P><A NAME="fun:nth-tl"></A><A NAME="@default102"></A><A NAME="@fun30"></A></P><PRE CLASS="verbatim">   $(nth-tl i, sequence) : value
       i : Int
       sequence : Sequence
    raises RuntimeException
 </PRE><P>The <CODE>nth-tl</CODE> function skips <CODE>i</CODE> elements of the sequence
 and returns the rest. An exception is raised if the sequence is not
-at least <CODE>i</CODE> elements long.</P><P>For example, the expression <CODE>$(nth-tl 1, a "b c" d)</CODE> evaluates to <CODE>"b c" d</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc122">8.3.8</A>&#XA0;&#XA0;subrange</H3><P><A NAME="fun:subrange"></A><A NAME="@default102"></A><A NAME="@fun30"></A></P><PRE CLASS="verbatim">   $(subrange off, len, sequent) : value
+at least <CODE>i</CODE> elements long.</P><P>For example, the expression <CODE>$(nth-tl 1, a "b c" d)</CODE> evaluates to <CODE>"b c" d</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc123">8.3.9</A>&#XA0;&#XA0;subrange</H3><P><A NAME="fun:subrange"></A><A NAME="@default103"></A><A NAME="@fun31"></A></P><PRE CLASS="verbatim">   $(subrange off, len, sequent) : value
       off : Int
       len : Int
       sequence : Sequence
@@ -339,24 +345,24 @@ at least <CODE>i</CODE> elements long.</P><P>For example, the expression <CODE>$
 </PRE><P>The <CODE>subrange</CODE> function returns a subrange of the sequence.
 Counting starts at 0. An exception is raised if the specified
 range is not in bounds.</P><P>For example, the expression <CODE>$(subrange 1, 2, a "b c" d e)</CODE> evaluates to <CODE>"b c" d</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc123">8.3.9</A>&#XA0;&#XA0;rev</H3><P><A NAME="fun:rev"></A><A NAME="@default103"></A><A NAME="@fun31"></A></P><PRE CLASS="verbatim">    $(rev sequence) : Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc124">8.3.10</A>&#XA0;&#XA0;rev</H3><P><A NAME="fun:rev"></A><A NAME="@default104"></A><A NAME="@fun32"></A></P><PRE CLASS="verbatim">    $(rev sequence) : Sequence
        sequence : Sequence
 </PRE><P>The <CODE>rev</CODE> function returns the elements of a sequence in reverse order.
 For example, the expression <CODE>$(rev a "b c" d)</CODE> evaluates to <CODE>d "b c" a</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc124">8.3.10</A>&#XA0;&#XA0;join</H3><P><A NAME="fun:join"></A><A NAME="@default104"></A><A NAME="@fun32"></A></P><PRE CLASS="verbatim">   $(join sequence1, sequence2) : Sequence
+</P><H3 CLASS="subsection"><A NAME="htoc125">8.3.11</A>&#XA0;&#XA0;join</H3><P><A NAME="fun:join"></A><A NAME="@default105"></A><A NAME="@fun33"></A></P><PRE CLASS="verbatim">   $(join sequence1, sequence2) : Sequence
       sequence1 : Sequence
       sequence2 : Sequence
 </PRE><P>The <CODE>join</CODE> function joins together the elements of the two sequences. For example,
 <CODE>$(join a b c, .c .cpp .h)</CODE> evaluates to <CODE>a.c b.cpp c.h</CODE>. If the two input
 sequences have different lengths, the remainder of the longer sequence is copied at the end
 of the output unmodified.
-</P><H3 CLASS="subsection"><A NAME="htoc125">8.3.11</A>&#XA0;&#XA0;string</H3><P><A NAME="fun:string"></A><A NAME="@default105"></A><A NAME="@fun33"></A></P><PRE CLASS="verbatim">   $(string sequence) : String
+</P><H3 CLASS="subsection"><A NAME="htoc126">8.3.12</A>&#XA0;&#XA0;string</H3><P><A NAME="fun:string"></A><A NAME="@default106"></A><A NAME="@fun34"></A></P><PRE CLASS="verbatim">   $(string sequence) : String
       sequence : Sequence
 </PRE><P>The <CODE>string</CODE> function flattens a sequence into a single string.
 This is similar to the <CODE>concat</CODE> function, but the elements are
 separated by whitespace. The result is treated as a unit; whitespace
 is significant.
-</P><H3 CLASS="subsection"><A NAME="htoc126">8.3.12</A>&#XA0;&#XA0;string-escaped, ocaml-escaped, html-escaped, html-pre-escaped, c-escaped, id-escaped</H3><P><A NAME="fun:string-escaped"></A><A NAME="@default106"></A><A NAME="@fun34"></A><A NAME="fun:ocaml-escaped"></A><A NAME="@default107"></A><A NAME="@fun35"></A><A NAME="fun:html-escaped"></A><A NAME="@default108"></A><A NAME="@fun36"></A><A NAME="fun:html-pre-escaped"></A><A NAME="@default109"></A><A NAME="@fun37"></A><A NAME="fun:c-escaped"></A><A NAME="@default110"></A><A NAME="@fun38"></A><A NAME="fun:id-escaped"></A><A NAME="@default111"></A><A NAME="@fun39"></A></P><PRE CLASS="verbatim">   $(string-escaped sequence) : String Array
+</P><H3 CLASS="subsection"><A NAME="htoc127">8.3.13</A>&#XA0;&#XA0;string-escaped, ocaml-escaped, html-escaped, html-pre-escaped, c-escaped, id-escaped</H3><P><A NAME="fun:string-escaped"></A><A NAME="@default107"></A><A NAME="@fun35"></A><A NAME="fun:ocaml-escaped"></A><A NAME="@default108"></A><A NAME="@fun36"></A><A NAME="fun:html-escaped"></A><A NAME="@default109"></A><A NAME="@fun37"></A><A NAME="fun:html-pre-escaped"></A><A NAME="@default110"></A><A NAME="@fun38"></A><A NAME="fun:c-escaped"></A><A NAME="@default111"></A><A NAME="@fun39"></A><A NAME="fun:id-escaped"></A><A NAME="@default112"></A><A NAME="@fun40"></A></P><PRE CLASS="verbatim">   $(string-escaped sequence) : String Array
    $(ocaml-escaped sequence) : String Array
    $(html-escaped sequence) : String Array
    $(html-pre-escaped sequence) : String Array
@@ -375,82 +381,82 @@ may be used in OMake.</P><P>The <CODE>html-escaped</CODE> function turns a liter
 as HTML. The <CODE>html-pre-escaped</CODE> function is similar, but it does not
 translate newlines into <CODE>&lt;br&gt;</CODE>.</P><PRE CLASS="verbatim">    println($(string $(string-escaped $"a b" $"y:z")))
     a\ b y\:z
-</PRE><H3 CLASS="subsection"><A NAME="htoc127">8.3.13</A>&#XA0;&#XA0;decode-uri, encode-uri</H3><P><A NAME="fun:decode-uri"></A><A NAME="@default112"></A><A NAME="@fun40"></A><A NAME="fun:encode-uri"></A><A NAME="@default113"></A><A NAME="@fun41"></A></P><PRE CLASS="verbatim">    $(decode-uri sequence) : sequence
+</PRE><H3 CLASS="subsection"><A NAME="htoc128">8.3.14</A>&#XA0;&#XA0;decode-uri, encode-uri</H3><P><A NAME="fun:decode-uri"></A><A NAME="@default113"></A><A NAME="@fun41"></A><A NAME="fun:encode-uri"></A><A NAME="@default114"></A><A NAME="@fun42"></A></P><PRE CLASS="verbatim">    $(decode-uri sequence) : sequence
         sequence : Sequence
 </PRE><P>These two functions perform URI encoding, where special characters
 are represented by hexadecimal characters.</P><PRE CLASS="verbatim">    osh&gt; s = $(encode-uri $'a b~c')
     "a+b%7ec"
     osh&gt; decode-uri($s)
     "a b~c"
-</PRE><H3 CLASS="subsection"><A NAME="htoc128">8.3.14</A>&#XA0;&#XA0;quote</H3><P><A NAME="fun:quote"></A><A NAME="@default114"></A><A NAME="@fun42"></A></P><PRE CLASS="verbatim">   $(quote sequence) : String
+</PRE><H3 CLASS="subsection"><A NAME="htoc129">8.3.15</A>&#XA0;&#XA0;quote</H3><P><A NAME="fun:quote"></A><A NAME="@default115"></A><A NAME="@fun43"></A></P><PRE CLASS="verbatim">   $(quote sequence) : String
       sequence : Sequence
 </PRE><P>The <CODE>quote</CODE> function flattens a sequence into a single string
 and adds quotes around the string. Inner quotation symbols are
 escaped.</P><P>For example, the expression <CODE>$(quote a "b c" d)</CODE> evaluates
 to <CODE>"a \"b c\" d"</CODE>, and <CODE>$(quote abc)</CODE> evaluates to
 <CODE>"abc"</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc129">8.3.15</A>&#XA0;&#XA0;quote-argv</H3><P><A NAME="fun:quote-argv"></A><A NAME="@default115"></A><A NAME="@fun43"></A></P><PRE CLASS="verbatim">   $(quote-argv sequence) : String
+</P><H3 CLASS="subsection"><A NAME="htoc130">8.3.16</A>&#XA0;&#XA0;quote-argv</H3><P><A NAME="fun:quote-argv"></A><A NAME="@default116"></A><A NAME="@fun44"></A></P><PRE CLASS="verbatim">   $(quote-argv sequence) : String
       sequence : Sequence
 </PRE><P>The <CODE>quote-argv</CODE> function flattens a sequence into a single string,
 and adds quotes around the string. The quotation is formed so that
 a command-line parse can separate the string back into its components.
-</P><H3 CLASS="subsection"><A NAME="htoc130">8.3.16</A>&#XA0;&#XA0;html-string</H3><P><A NAME="fun:html-string"></A><A NAME="@default116"></A><A NAME="@fun44"></A></P><PRE CLASS="verbatim">   $(html-string sequence) : String
+</P><H3 CLASS="subsection"><A NAME="htoc131">8.3.17</A>&#XA0;&#XA0;html-string</H3><P><A NAME="fun:html-string"></A><A NAME="@default117"></A><A NAME="@fun45"></A></P><PRE CLASS="verbatim">   $(html-string sequence) : String
       sequence : Sequence
 </PRE><P>The <CODE>html-string</CODE> function flattens a sequence into a single string,
 and escaped special HTML characters.
 This is similar to the <CODE>concat</CODE> function, but the elements are
 separated by whitespace. The result is treated as a unit; whitespace
 is significant.
-</P><H3 CLASS="subsection"><A NAME="htoc131">8.3.17</A>&#XA0;&#XA0;addsuffix</H3><P><A NAME="fun:addsuffix"></A><A NAME="@default117"></A><A NAME="@fun45"></A></P><PRE CLASS="verbatim">   $(addsuffix suffix, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc132">8.3.18</A>&#XA0;&#XA0;addsuffix</H3><P><A NAME="fun:addsuffix"></A><A NAME="@default118"></A><A NAME="@fun46"></A></P><PRE CLASS="verbatim">   $(addsuffix suffix, sequence) : Array
       suffix : String
       sequence : Sequence
 </PRE><P>The <CODE>addsuffix</CODE> function adds a suffix to each component of sequence.
 The number of elements in the array is exactly the same as the number of
 elements in the sequence.</P><P>For example, <CODE>$(addsuffix .c, a b "c d")</CODE> evaluates to <CODE>a.c b.c "c d".c</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc132">8.3.18</A>&#XA0;&#XA0;mapsuffix</H3><P><A NAME="fun:mapsuffix"></A><A NAME="@default118"></A><A NAME="@fun46"></A></P><PRE CLASS="verbatim">   $(mapsuffix suffix, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc133">8.3.19</A>&#XA0;&#XA0;mapsuffix</H3><P><A NAME="fun:mapsuffix"></A><A NAME="@default119"></A><A NAME="@fun47"></A></P><PRE CLASS="verbatim">   $(mapsuffix suffix, sequence) : Array
       suffix : value
       sequence : Sequence
 </PRE><P>The <CODE>mapsuffix</CODE> function adds a suffix to each component of sequence.
 It is similar to <CODE>addsuffix</CODE>, but uses array concatenation instead
 of string concatenation. The number of elements in the array is
 twice the number of elements in the sequence.</P><P>For example, <CODE>$(mapsuffix .c, a b "c d")</CODE> evaluates to <CODE>a .c b .c "c d" .c</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc133">8.3.19</A>&#XA0;&#XA0;addsuffixes</H3><P><A NAME="fun:addsuffixes"></A><A NAME="@default119"></A><A NAME="@fun47"></A></P><PRE CLASS="verbatim">   $(addsuffixes suffixes, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc134">8.3.20</A>&#XA0;&#XA0;addsuffixes</H3><P><A NAME="fun:addsuffixes"></A><A NAME="@default120"></A><A NAME="@fun48"></A></P><PRE CLASS="verbatim">   $(addsuffixes suffixes, sequence) : Array
       suffixes : Sequence
       sequence : Sequence
 </PRE><P>The <CODE>addsuffixes</CODE> function adds all suffixes in its first argument
 to each component of a sequence. If <CODE>suffixes</CODE> has <CODE>n</CODE> elements,
 and <CODE>sequence</CODE> has <CODE>m</CODE> elements, the the result has <CODE>n * m</CODE> elements.</P><P>For example, the <CODE>$(addsuffixes .c .o, a b c)</CODE> expressions evaluates to
 <CODE>a.c a.o b.c b.o c.o c.a</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc134">8.3.20</A>&#XA0;&#XA0;removeprefix</H3><P><A NAME="fun:removeprefix"></A><A NAME="@default120"></A><A NAME="@fun48"></A></P><PRE CLASS="verbatim">   $(removeprefix prefix, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc135">8.3.21</A>&#XA0;&#XA0;removeprefix</H3><P><A NAME="fun:removeprefix"></A><A NAME="@default121"></A><A NAME="@fun49"></A></P><PRE CLASS="verbatim">   $(removeprefix prefix, sequence) : Array
       prefix : String
       sequence : Array
 </PRE><P>The <CODE>removeprefix</CODE> function removes a prefix from each component
 of a sequence.
-</P><H3 CLASS="subsection"><A NAME="htoc135">8.3.21</A>&#XA0;&#XA0;removesuffix</H3><P><A NAME="fun:removesuffix"></A><A NAME="@default121"></A><A NAME="@fun49"></A></P><PRE CLASS="verbatim">   $(removesuffix sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc136">8.3.22</A>&#XA0;&#XA0;removesuffix</H3><P><A NAME="fun:removesuffix"></A><A NAME="@default122"></A><A NAME="@fun50"></A></P><PRE CLASS="verbatim">   $(removesuffix sequence) : Array
       sequence : String
 </PRE><P>The <CODE>removesuffix</CODE> function removes the suffixes from each component
 of a sequence.</P><P>For example, <CODE>$(removesuffix a.c b.foo "c d")</CODE> expands to <CODE>a b "c d"</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc136">8.3.22</A>&#XA0;&#XA0;replacesuffixes</H3><P><A NAME="fun:replacesuffixes"></A><A NAME="@default122"></A><A NAME="@fun50"></A></P><PRE CLASS="verbatim">   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc137">8.3.23</A>&#XA0;&#XA0;replacesuffixes</H3><P><A NAME="fun:replacesuffixes"></A><A NAME="@default123"></A><A NAME="@fun51"></A></P><PRE CLASS="verbatim">   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
       old-suffixes : Sequence
       new-suffixes : Sequence
       sequence : Sequence
 </PRE><P>The <CODE>replacesuffixes</CODE> function modifies the suffix of each component
 in sequence. The <CODE>old-suffixes</CODE> and <CODE>new-suffixes</CODE> sequences
 should have the same length.</P><P>For example, <CODE>$(replacesuffixes .h .c, .o .o, a.c b.h c.z)</CODE> expands to <CODE>a.o b.o c.z</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc137">8.3.23</A>&#XA0;&#XA0;addprefix</H3><P><A NAME="fun:addprefix"></A><A NAME="@default123"></A><A NAME="@fun51"></A></P><PRE CLASS="verbatim">   $(addprefix prefix, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc138">8.3.24</A>&#XA0;&#XA0;addprefix</H3><P><A NAME="fun:addprefix"></A><A NAME="@default124"></A><A NAME="@fun52"></A></P><PRE CLASS="verbatim">   $(addprefix prefix, sequence) : Array
       prefix : String
       sequence : Sequence
 </PRE><P>The <CODE>addprefix</CODE> function adds a prefix to each component of a sequence.
 The number of element in the result array is exactly the same as the number
 of elements in the argument sequence.</P><P>For example, <CODE>$(addprefix foo/, a b "c d")</CODE> evaluates to <CODE>foo/a foo/b foo/"c d"</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc138">8.3.24</A>&#XA0;&#XA0;mapprefix</H3><P><A NAME="fun:mapprefix"></A><A NAME="@default124"></A><A NAME="@fun52"></A></P><PRE CLASS="verbatim">   $(mapprefix prefix, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc139">8.3.25</A>&#XA0;&#XA0;mapprefix</H3><P><A NAME="fun:mapprefix"></A><A NAME="@default125"></A><A NAME="@fun53"></A></P><PRE CLASS="verbatim">   $(mapprefix prefix, sequence) : Array
       prefix : String
       sequence : Sequence
 </PRE><P>The <CODE>mapprefix</CODE> function adds a prefix to each component of a sequence.
 It is similar to <CODE>addprefix</CODE>, but array concatenation is used instead of
 string concatenation. The result array contains twice as many elements
 as the argument sequence.</P><P>For example, <CODE>$(mapprefix foo, a b "c d")</CODE> expands to <CODE>foo a foo b foo "c d"</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc139">8.3.25</A>&#XA0;&#XA0;add-wrapper</H3><P><A NAME="fun:add-wrapper"></A><A NAME="@default125"></A><A NAME="@fun53"></A></P><PRE CLASS="verbatim">   $(add-wrapper prefix, suffix, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc140">8.3.26</A>&#XA0;&#XA0;add-wrapper</H3><P><A NAME="fun:add-wrapper"></A><A NAME="@default126"></A><A NAME="@fun54"></A></P><PRE CLASS="verbatim">   $(add-wrapper prefix, suffix, sequence) : Array
       prefix : String
       suffix : String
       sequence : Sequence
@@ -458,15 +464,15 @@ as the argument sequence.</P><P>For example, <CODE>$(mapprefix foo, a b "c d")</
 For example, the expression <CODE>$(add-wrapper dir/, .c, a b)</CODE> evaluates to
 <CODE>dir/a.c dir/b.c</CODE>. String concatenation is used. The array result
 has the same number of elements as the argument sequence.
-</P><H3 CLASS="subsection"><A NAME="htoc140">8.3.26</A>&#XA0;&#XA0;set</H3><P><A NAME="fun:set"></A><A NAME="@default126"></A><A NAME="@fun54"></A></P><PRE CLASS="verbatim">   $(set sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc141">8.3.27</A>&#XA0;&#XA0;set</H3><P><A NAME="fun:set"></A><A NAME="@default127"></A><A NAME="@fun55"></A></P><PRE CLASS="verbatim">   $(set sequence) : Array
       sequence : Sequence
 </PRE><P>The <CODE>set</CODE> function sorts a set of string components, eliminating duplicates.</P><P>For example, <CODE>$(set z y z "m n" w a)</CODE> expands to <CODE>"m n" a w y z</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc141">8.3.27</A>&#XA0;&#XA0;mem</H3><P><A NAME="fun:mem"></A><A NAME="@default127"></A><A NAME="@fun55"></A></P><PRE CLASS="verbatim">   $(mem elem, sequence) : Boolean
+</P><H3 CLASS="subsection"><A NAME="htoc142">8.3.28</A>&#XA0;&#XA0;mem</H3><P><A NAME="fun:mem"></A><A NAME="@default128"></A><A NAME="@fun56"></A></P><PRE CLASS="verbatim">   $(mem elem, sequence) : Boolean
       elem : String
       sequence : Sequence
 </PRE><P>The <CODE>mem</CODE> function tests for membership in a sequence.</P><P>For example, <CODE>$(mem "m n", y z "m n" w a)</CODE> evaluates to <CODE>true</CODE>,
 while <CODE>$(mem m n, y z "m n" w a)</CODE> evaluates to <CODE>false</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc142">8.3.28</A>&#XA0;&#XA0;intersection</H3><P><A NAME="fun:intersection"></A><A NAME="@default128"></A><A NAME="@fun56"></A></P><PRE CLASS="verbatim">   $(intersection sequence1, sequence2) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc143">8.3.29</A>&#XA0;&#XA0;intersection</H3><P><A NAME="fun:intersection"></A><A NAME="@default129"></A><A NAME="@fun57"></A></P><PRE CLASS="verbatim">   $(intersection sequence1, sequence2) : Array
       sequence1 : Sequence
       sequence2 : Sequence
 </PRE><P>The <CODE>intersection</CODE> function takes two arguments, treats them
@@ -475,14 +481,14 @@ is undefined, and it may contain duplicates. Use the <CODE>set</CODE>
 function to sort the result and eliminate duplicates in the result
 if desired.</P><P>For example, the expression <CODE>$(intersection c a b a, b a)</CODE> evaluates to
 <CODE>a b a</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc143">8.3.29</A>&#XA0;&#XA0;intersects</H3><P><A NAME="fun:intersects"></A><A NAME="@default129"></A><A NAME="@fun57"></A></P><PRE CLASS="verbatim">   $(intersects sequence1, sequence2) : Boolean
+</P><H3 CLASS="subsection"><A NAME="htoc144">8.3.30</A>&#XA0;&#XA0;intersects</H3><P><A NAME="fun:intersects"></A><A NAME="@default130"></A><A NAME="@fun58"></A></P><PRE CLASS="verbatim">   $(intersects sequence1, sequence2) : Boolean
       sequence1 : Sequence
       sequence2 : Sequence
 </PRE><P>The <CODE>intersects</CODE> function tests whether two sets have a non-empty intersection.
 This is slightly more efficient than computing the intersection and testing whether
 it is empty.</P><P>For example, the expression <CODE>$(intersects a b c, d c e)</CODE> evaluates to <CODE>true</CODE>,
 and <CODE>$(intersects a b c a, d e f)</CODE> evaluates to <CODE>false</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc144">8.3.30</A>&#XA0;&#XA0;set-diff</H3><P><A NAME="fun:set-diff"></A><A NAME="@default130"></A><A NAME="@fun58"></A></P><PRE CLASS="verbatim">   $(set-diff sequence1, sequence2) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc145">8.3.31</A>&#XA0;&#XA0;set-diff</H3><P><A NAME="fun:set-diff"></A><A NAME="@default131"></A><A NAME="@fun59"></A></P><PRE CLASS="verbatim">   $(set-diff sequence1, sequence2) : Array
       sequence1 : Sequence
       sequence2 : Sequence
 </PRE><P>The <CODE>set-diff</CODE> function takes two arguments, treats them
@@ -492,43 +498,43 @@ is undefined and it may contain duplicates. Use the <CODE>set</CODE>
 function to sort the result and eliminate duplicates in the result
 if desired.</P><P>For example, the expression <CODE>$(set-diff c a b a e, b a)</CODE> evaluates to
 <CODE>c e</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc145">8.3.31</A>&#XA0;&#XA0;filter</H3><P><A NAME="fun:filter"></A><A NAME="@default131"></A><A NAME="@fun59"></A></P><PRE CLASS="verbatim">   $(filter patterns, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc146">8.3.32</A>&#XA0;&#XA0;filter</H3><P><A NAME="fun:filter"></A><A NAME="@default132"></A><A NAME="@fun60"></A></P><PRE CLASS="verbatim">   $(filter patterns, sequence) : Array
       patterns : Sequence
       sequence : Sequence
 </PRE><P>The <CODE>filter</CODE> function picks elements from a sequence.
 The patterns is a non-empty sequence of patterns, each may contain one occurrence of the wildcard
 <CODE>%</CODE> character.</P><P>For example <CODE>$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)</CODE> evaluates to <CODE>x.o b.h y.o</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc146">8.3.32</A>&#XA0;&#XA0;filter-out</H3><P><A NAME="fun:filter-out"></A><A NAME="@default132"></A><A NAME="@fun60"></A></P><PRE CLASS="verbatim">   $(filter-out patterns, sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc147">8.3.33</A>&#XA0;&#XA0;filter-out</H3><P><A NAME="fun:filter-out"></A><A NAME="@default133"></A><A NAME="@fun61"></A></P><PRE CLASS="verbatim">   $(filter-out patterns, sequence) : Array
       patterns : Sequence
       sequence : Sequence
 </PRE><P>The <CODE>filter-out</CODE> function removes elements from a sequence.
 The patterns is a non-empty sequence of patterns, each may contain one occurrence of the wildcard
 <CODE>%</CODE> character.</P><P>For example <CODE>$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)</CODE> evaluates to <CODE>x.o y.o</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc147">8.3.33</A>&#XA0;&#XA0;capitalize</H3><P><A NAME="fun:capitalize"></A><A NAME="@default133"></A><A NAME="@fun61"></A></P><PRE CLASS="verbatim">   $(capitalize sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc148">8.3.34</A>&#XA0;&#XA0;capitalize</H3><P><A NAME="fun:capitalize"></A><A NAME="@default134"></A><A NAME="@fun62"></A></P><PRE CLASS="verbatim">   $(capitalize sequence) : Array
       sequence : Sequence
 </PRE><P>The <CODE>capitalize</CODE> function capitalizes each word in a sequence.
 For example, <CODE>$(capitalize through the looking Glass)</CODE> evaluates to
 <CODE>Through The Looking Glass</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc148">8.3.34</A>&#XA0;&#XA0;uncapitalize</H3><P><A NAME="fun:uncapitalize"></A><A NAME="@default134"></A><A NAME="@fun62"></A></P><PRE CLASS="verbatim">   $(uncapitalize sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc149">8.3.35</A>&#XA0;&#XA0;uncapitalize</H3><P><A NAME="fun:uncapitalize"></A><A NAME="@default135"></A><A NAME="@fun63"></A></P><PRE CLASS="verbatim">   $(uncapitalize sequence) : Array
       sequence : Sequence
 </PRE><P>The <CODE>uncapitalize</CODE> function uncapitalizes each word in its argument.</P><P>For example, <CODE>$(uncapitalize through the looking Glass)</CODE> evaluates to
 <CODE>through the looking glass</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc149">8.3.35</A>&#XA0;&#XA0;uppercase</H3><P><A NAME="fun:uppercase"></A><A NAME="@default135"></A><A NAME="@fun63"></A></P><PRE CLASS="verbatim">   $(uppercase sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc150">8.3.36</A>&#XA0;&#XA0;uppercase</H3><P><A NAME="fun:uppercase"></A><A NAME="@default136"></A><A NAME="@fun64"></A></P><PRE CLASS="verbatim">   $(uppercase sequence) : Array
       sequence : Sequence
 </PRE><P>The <CODE>uppercase</CODE> function converts each word in a sequence to uppercase.
 For example, <CODE>$(uppercase through the looking Glass)</CODE> evaluates to
 <CODE>THROUGH THE LOOKING GLASS</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc150">8.3.36</A>&#XA0;&#XA0;lowercase</H3><P><A NAME="fun:lowercase"></A><A NAME="@default136"></A><A NAME="@fun64"></A></P><PRE CLASS="verbatim">   $(lowercase sequence) : Array
+</P><H3 CLASS="subsection"><A NAME="htoc151">8.3.37</A>&#XA0;&#XA0;lowercase</H3><P><A NAME="fun:lowercase"></A><A NAME="@default137"></A><A NAME="@fun65"></A></P><PRE CLASS="verbatim">   $(lowercase sequence) : Array
       sequence : Sequence
 </PRE><P>The <CODE>lowercase</CODE> function reduces each word in its argument to lowercase.</P><P>For example, <CODE>$(lowercase through tHe looking Glass)</CODE> evaluates to
 <CODE>through the looking glass</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc151">8.3.37</A>&#XA0;&#XA0;system</H3><P><A NAME="fun:system"></A><A NAME="@default137"></A><A NAME="@fun65"></A></P><PRE CLASS="verbatim">   system(s)
+</P><H3 CLASS="subsection"><A NAME="htoc152">8.3.38</A>&#XA0;&#XA0;system</H3><P><A NAME="fun:system"></A><A NAME="@default138"></A><A NAME="@fun66"></A></P><PRE CLASS="verbatim">   system(s)
       s : Sequence
 </PRE><P>The <CODE>system</CODE> function is used to evaluate a shell expression.
 This function is used internally by <TT>omake</TT> to evaluate
 shell commands.</P><P>For example, the following program is equivalent to the
 expression <CODE>system(ls foo)</CODE>.</P><PRE CLASS="verbatim">   ls foo
-</PRE><H3 CLASS="subsection"><A NAME="htoc152">8.3.38</A>&#XA0;&#XA0;shell</H3><P><A NAME="fun:shell"></A><A NAME="@default138"></A><A NAME="@fun66"></A></P><PRE CLASS="verbatim">   $(shell command) : Array
+</PRE><H3 CLASS="subsection"><A NAME="htoc153">8.3.39</A>&#XA0;&#XA0;shell</H3><P><A NAME="fun:shell"></A><A NAME="@default139"></A><A NAME="@fun67"></A></P><PRE CLASS="verbatim">   $(shell command) : Array
    $(shella command) : Array
    $(shell-code command) : Int
       command : Sequence
@@ -538,7 +544,7 @@ as separate items in the array.</P><P>The <CODE>shell-code</CODE> function retur
 diverted.</P><P>For example, if the current directory contains the files <CODE>OMakeroot</CODE>,
 <CODE>OMakefile</CODE>, and <CODE>hello.c</CODE>, then <CODE>$(shell ls)</CODE> evaluates to
 <CODE>hello.c OMakefile OMakeroot</CODE> (on a Unix system).
-</P><H3 CLASS="subsection"><A NAME="htoc153">8.3.39</A>&#XA0;&#XA0;export</H3><P><A NAME="fun:export"></A><A NAME="@default139"></A><A NAME="@fun67"></A>
+</P><H3 CLASS="subsection"><A NAME="htoc154">8.3.40</A>&#XA0;&#XA0;export</H3><P><A NAME="fun:export"></A><A NAME="@default140"></A><A NAME="@fun68"></A>
 The <CODE>export</CODE> function allows one to capture the current environment in a variable.</P><P>For example, the following code:
 </P><PRE CLASS="verbatim">A = 1
 B = 1
@@ -552,7 +558,7 @@ println($A $B $C)
 </PRE><P>will print <CODE>1 1 2</CODE>.</P><P>The arguments to this function are interpreted the exact same way as the arguments to the <CODE>export</CODE>
 special form (see Section&#XA0;<A HREF="omake-detail.html#section:export">5.3</A>).
 <A NAME="while"></A>
-</P><H3 CLASS="subsection"><A NAME="htoc154">8.3.40</A>&#XA0;&#XA0;while</H3><P><A NAME="fun:while"></A><A NAME="@default140"></A><A NAME="@fun68"></A></P><PRE CLASS="verbatim">   while &lt;test&gt;
+</P><H3 CLASS="subsection"><A NAME="htoc155">8.3.41</A>&#XA0;&#XA0;while</H3><P><A NAME="fun:while"></A><A NAME="@default141"></A><A NAME="@fun69"></A></P><PRE CLASS="verbatim">   while &lt;test&gt;
       &lt;body&gt;
 </PRE><P>&#X2013;or&#X2013;</P><PRE CLASS="verbatim">    while &lt;test&gt;
     case &lt;test1&gt;
@@ -588,9 +594,9 @@ value is printed.</P><PRE CLASS="verbatim">    i = 0
 </PRE><P>The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to break out of the <CODE>while</CODE> loop
 early.
 <A NAME="break"></A>
-</P><H3 CLASS="subsection"><A NAME="htoc155">8.3.41</A>&#XA0;&#XA0;break</H3><P><A NAME="fun:break"></A><A NAME="@default141"></A><A NAME="@fun69"></A></P><PRE CLASS="verbatim">   break
+</P><H3 CLASS="subsection"><A NAME="htoc156">8.3.42</A>&#XA0;&#XA0;break</H3><P><A NAME="fun:break"></A><A NAME="@default142"></A><A NAME="@fun70"></A></P><PRE CLASS="verbatim">   break
 </PRE><P>Terminate execution of the innermost loop, returning the current state.
-</P><H3 CLASS="subsection"><A NAME="htoc156">8.3.42</A>&#XA0;&#XA0;random, random-init</H3><P><A NAME="fun:random"></A><A NAME="@default142"></A><A NAME="@fun70"></A><A NAME="fun:random-init"></A><A NAME="@default143"></A><A NAME="@fun71"></A></P><PRE CLASS="verbatim">    random-init(i)
+</P><H3 CLASS="subsection"><A NAME="htoc157">8.3.43</A>&#XA0;&#XA0;random, random-init</H3><P><A NAME="fun:random"></A><A NAME="@default143"></A><A NAME="@fun71"></A><A NAME="fun:random-init"></A><A NAME="@default144"></A><A NAME="@fun72"></A></P><PRE CLASS="verbatim">    random-init(i)
         i : Int
     random() : Int
 </PRE><P>Produce a random number. The numbers are pseudo-random,
@@ -598,26 +604,26 @@ and are not cryptographically secure.</P><P>The generator is initialized form se
 Subsequent runs should produce different results.
 The <CODE>rando-init</CODE> function can be used to return
 the generator to a known state.
-</P><H2 CLASS="section"><A NAME="toc68"></A><A NAME="htoc157">8.4</A>&#XA0;&#XA0;Arithmetic</H2><H3 CLASS="subsection"><A NAME="htoc158">8.4.1</A>&#XA0;&#XA0;int</H3><P><A NAME="fun:int"></A><A NAME="@default144"></A><A NAME="@fun72"></A></P><P>The <CODE>int</CODE> function can be used to create integers.
-It returns an <CODE>Int</CODE> object.</P><P><CODE>$(int 17)</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc159">8.4.2</A>&#XA0;&#XA0;float</H3><P><A NAME="fun:float"></A><A NAME="@default145"></A><A NAME="@fun73"></A>
+</P><H2 CLASS="section"><A NAME="toc68"></A><A NAME="htoc158">8.4</A>&#XA0;&#XA0;Arithmetic</H2><H3 CLASS="subsection"><A NAME="htoc159">8.4.1</A>&#XA0;&#XA0;int</H3><P><A NAME="fun:int"></A><A NAME="@default145"></A><A NAME="@fun73"></A></P><P>The <CODE>int</CODE> function can be used to create integers.
+It returns an <CODE>Int</CODE> object.</P><P><CODE>$(int 17)</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc160">8.4.2</A>&#XA0;&#XA0;float</H3><P><A NAME="fun:float"></A><A NAME="@default146"></A><A NAME="@fun74"></A>
 The <CODE>float</CODE> function can be used to create floating-point numbers.
 It returns a <CODE>Float</CODE> object.</P><P><CODE>$(float 3.1415926)</CODE>.
-</P><H3 CLASS="subsection"><A NAME="htoc160">8.4.3</A>&#XA0;&#XA0;Basic arithmetic</H3><P>
-<A NAME="fun:neg"></A><A NAME="@default146"></A><A NAME="@fun74"></A>
-<A NAME="fun:add"></A><A NAME="@default147"></A><A NAME="@fun75"></A>
-<A NAME="fun:sub"></A><A NAME="@default148"></A><A NAME="@fun76"></A>
-<A NAME="fun:mul"></A><A NAME="@default149"></A><A NAME="@fun77"></A>
-<A NAME="fun:div"></A><A NAME="@default150"></A><A NAME="@fun78"></A>
-<A NAME="fun:mod"></A><A NAME="@default151"></A><A NAME="@fun79"></A>
-<A NAME="fun:lnot"></A><A NAME="@default152"></A><A NAME="@fun80"></A>
-<A NAME="fun:land"></A><A NAME="@default153"></A><A NAME="@fun81"></A>
-<A NAME="fun:lor"></A><A NAME="@default154"></A><A NAME="@fun82"></A>
-<A NAME="fun:lxor"></A><A NAME="@default155"></A><A NAME="@fun83"></A>
-<A NAME="fun:lsl"></A><A NAME="@default156"></A><A NAME="@fun84"></A>
-<A NAME="fun:lsr"></A><A NAME="@default157"></A><A NAME="@fun85"></A>
-<A NAME="fun:asr"></A><A NAME="@default158"></A><A NAME="@fun86"></A>
-<A NAME="fun:min"></A><A NAME="@default159"></A><A NAME="@fun87"></A>
-<A NAME="fun:max"></A><A NAME="@default160"></A><A NAME="@fun88"></A></P><P>The following functions can be used to perform basic arithmetic.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</P><H3 CLASS="subsection"><A NAME="htoc161">8.4.3</A>&#XA0;&#XA0;Basic arithmetic</H3><P>
+<A NAME="fun:neg"></A><A NAME="@default147"></A><A NAME="@fun75"></A>
+<A NAME="fun:add"></A><A NAME="@default148"></A><A NAME="@fun76"></A>
+<A NAME="fun:sub"></A><A NAME="@default149"></A><A NAME="@fun77"></A>
+<A NAME="fun:mul"></A><A NAME="@default150"></A><A NAME="@fun78"></A>
+<A NAME="fun:div"></A><A NAME="@default151"></A><A NAME="@fun79"></A>
+<A NAME="fun:mod"></A><A NAME="@default152"></A><A NAME="@fun80"></A>
+<A NAME="fun:lnot"></A><A NAME="@default153"></A><A NAME="@fun81"></A>
+<A NAME="fun:land"></A><A NAME="@default154"></A><A NAME="@fun82"></A>
+<A NAME="fun:lor"></A><A NAME="@default155"></A><A NAME="@fun83"></A>
+<A NAME="fun:lxor"></A><A NAME="@default156"></A><A NAME="@fun84"></A>
+<A NAME="fun:lsl"></A><A NAME="@default157"></A><A NAME="@fun85"></A>
+<A NAME="fun:lsr"></A><A NAME="@default158"></A><A NAME="@fun86"></A>
+<A NAME="fun:asr"></A><A NAME="@default159"></A><A NAME="@fun87"></A>
+<A NAME="fun:min"></A><A NAME="@default160"></A><A NAME="@fun88"></A>
+<A NAME="fun:max"></A><A NAME="@default161"></A><A NAME="@fun89"></A></P><P>The following functions can be used to perform basic arithmetic.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(neg &lt;numbers&gt;)</CODE>: arithmetic inverse
 </LI><LI CLASS="li-itemize"><CODE>$(add &lt;numbers&gt;)</CODE>: addition.
 </LI><LI CLASS="li-itemize"><CODE>$(sub &lt;numbers&gt;)</CODE>: subtraction.
@@ -633,16 +639,16 @@ It returns a <CODE>Float</CODE> object.</P><P><CODE>$(float 3.1415926)</CODE>.
 </LI><LI CLASS="li-itemize"><CODE>$(asr &lt;numbers&gt;)</CODE>: arithmetic shift right.
 </LI><LI CLASS="li-itemize"><CODE>$(min &lt;numbers&gt;)</CODE>: smallest element.
 </LI><LI CLASS="li-itemize"><CODE>$(max &lt;numbers&gt;)</CODE>: largest element.
-</LI></UL><H3 CLASS="subsection"><A NAME="htoc161">8.4.4</A>&#XA0;&#XA0;Comparisons</H3><P>
-<A NAME="fun:lt"></A><A NAME="@default161"></A><A NAME="@fun89"></A>
-<A NAME="fun:le"></A><A NAME="@default162"></A><A NAME="@fun90"></A>
-<A NAME="fun:eq"></A><A NAME="@default163"></A><A NAME="@fun91"></A>
-<A NAME="fun:ge"></A><A NAME="@default164"></A><A NAME="@fun92"></A>
-<A NAME="fun:gt"></A><A NAME="@default165"></A><A NAME="@fun93"></A>
-<A NAME="fun:ult"></A><A NAME="@default166"></A><A NAME="@fun94"></A>
-<A NAME="fun:ule"></A><A NAME="@default167"></A><A NAME="@fun95"></A>
-<A NAME="fun:uge"></A><A NAME="@default168"></A><A NAME="@fun96"></A>
-<A NAME="fun:ugt"></A><A NAME="@default169"></A><A NAME="@fun97"></A></P><P>The following functions can be used to perform numerical comparisons.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</LI></UL><H3 CLASS="subsection"><A NAME="htoc162">8.4.4</A>&#XA0;&#XA0;Comparisons</H3><P>
+<A NAME="fun:lt"></A><A NAME="@default162"></A><A NAME="@fun90"></A>
+<A NAME="fun:le"></A><A NAME="@default163"></A><A NAME="@fun91"></A>
+<A NAME="fun:eq"></A><A NAME="@default164"></A><A NAME="@fun92"></A>
+<A NAME="fun:ge"></A><A NAME="@default165"></A><A NAME="@fun93"></A>
+<A NAME="fun:gt"></A><A NAME="@default166"></A><A NAME="@fun94"></A>
+<A NAME="fun:ult"></A><A NAME="@default167"></A><A NAME="@fun95"></A>
+<A NAME="fun:ule"></A><A NAME="@default168"></A><A NAME="@fun96"></A>
+<A NAME="fun:uge"></A><A NAME="@default169"></A><A NAME="@fun97"></A>
+<A NAME="fun:ugt"></A><A NAME="@default170"></A><A NAME="@fun98"></A></P><P>The following functions can be used to perform numerical comparisons.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 <CODE>$(lt &lt;numbers&gt;)</CODE>: less then.
 </LI><LI CLASS="li-itemize"><CODE>$(le &lt;numbers&gt;)</CODE>: no more than.
 </LI><LI CLASS="li-itemize"><CODE>$(eq &lt;numbers&gt;)</CODE>: equal.
@@ -652,7 +658,7 @@ It returns a <CODE>Float</CODE> object.</P><P><CODE>$(float 3.1415926)</CODE>.
 </LI><LI CLASS="li-itemize"><CODE>$(ule &lt;numbers&gt;)</CODE>: unsigned greater than.
 </LI><LI CLASS="li-itemize"><CODE>$(uge &lt;numbers&gt;)</CODE>: unsigned greater than or equal.
 </LI><LI CLASS="li-itemize"><CODE>$(ugt &lt;numbers&gt;)</CODE>: unsigned greater than.
-</LI></UL><H2 CLASS="section"><A NAME="toc69"></A><A NAME="htoc162">8.5</A>&#XA0;&#XA0;First-class functions</H2><H3 CLASS="subsection"><A NAME="htoc163">8.5.1</A>&#XA0;&#XA0;fun</H3><P><A NAME="fun:fun"></A><A NAME="@default170"></A><A NAME="@fun98"></A></P><P>The <CODE>fun</CODE> form introduces anonymous functions.</P><P><CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</CODE></P><P>The last argument is the body of the function.
+</LI></UL><H2 CLASS="section"><A NAME="toc69"></A><A NAME="htoc163">8.5</A>&#XA0;&#XA0;First-class functions</H2><H3 CLASS="subsection"><A NAME="htoc164">8.5.1</A>&#XA0;&#XA0;fun</H3><P><A NAME="fun:fun"></A><A NAME="@default171"></A><A NAME="@fun99"></A></P><P>The <CODE>fun</CODE> form introduces anonymous functions.</P><P><CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</CODE></P><P>The last argument is the body of the function.
 The other arguments are the parameter names.</P><P>The three following definitions are equivalent.</P><PRE CLASS="verbatim">    F(X, Y) =
        return($(addsuffix $(Y), $(X)))
 
@@ -661,11 +667,11 @@ The other arguments are the parameter names.</P><P>The three following definitio
     F =
        fun(X, Y)
           value $(addsuffix $(Y), $(X))
-</PRE><H3 CLASS="subsection"><A NAME="htoc164">8.5.2</A>&#XA0;&#XA0;apply</H3><P><A NAME="fun:apply"></A><A NAME="@default171"></A><A NAME="@fun99"></A></P><P>The <CODE>apply</CODE> operator is used to apply a function.</P><P><CODE>$(apply &lt;fun&gt;, &lt;args&gt;)</CODE></P><P>Suppose we have the following function definition.</P><PRE CLASS="verbatim">    F(X, Y) =
+</PRE><H3 CLASS="subsection"><A NAME="htoc165">8.5.2</A>&#XA0;&#XA0;apply</H3><P><A NAME="fun:apply"></A><A NAME="@default172"></A><A NAME="@fun100"></A></P><P>The <CODE>apply</CODE> operator is used to apply a function.</P><P><CODE>$(apply &lt;fun&gt;, &lt;args&gt;)</CODE></P><P>Suppose we have the following function definition.</P><PRE CLASS="verbatim">    F(X, Y) =
        return($(addsuffix $(Y), $(X)))
 </PRE><P>The the two expressions below are equivalent.</P><PRE CLASS="verbatim">    X = F(a b c, .c)
     X = $(apply $(F), a b c, .c)
-</PRE><H3 CLASS="subsection"><A NAME="htoc165">8.5.3</A>&#XA0;&#XA0;applya</H3><P><A NAME="fun:applya"></A><A NAME="@default172"></A><A NAME="@fun100"></A></P><P>The <CODE>applya</CODE> operator is used to apply a function to
+</PRE><H3 CLASS="subsection"><A NAME="htoc166">8.5.3</A>&#XA0;&#XA0;applya</H3><P><A NAME="fun:applya"></A><A NAME="@default173"></A><A NAME="@fun101"></A></P><P>The <CODE>applya</CODE> operator is used to apply a function to
 an array of arguments.</P><P><CODE>$(applya &lt;fun&gt;, &lt;args&gt;)</CODE></P><P>For example, in the following program, the value
 of <CODE>Z</CODE> is <CODE>file.c</CODE>.</P><PRE CLASS="verbatim">    F(X, Y) =
        return($(addsuffix $(Y), $(X)))
@@ -673,7 +679,7 @@ of <CODE>Z</CODE> is <CODE>file.c</CODE>.</P><PRE CLASS="verbatim">    F(X, Y) =
        file
        .c
     Z = $(applya $(F), $(args))
-</PRE><H3 CLASS="subsection"><A NAME="htoc166">8.5.4</A>&#XA0;&#XA0;create-map, create-lazy-map</H3><P><A NAME="fun:create-map"></A><A NAME="@default173"></A><A NAME="@fun101"></A><A NAME="fun:create-lazy-map"></A><A NAME="@default174"></A><A NAME="@fun102"></A></P><P>The <CODE>create-map</CODE> is a simplified form for creating <CODE>Map</CODE> objects.
+</PRE><H3 CLASS="subsection"><A NAME="htoc167">8.5.4</A>&#XA0;&#XA0;create-map, create-lazy-map</H3><P><A NAME="fun:create-map"></A><A NAME="@default174"></A><A NAME="@fun102"></A><A NAME="fun:create-lazy-map"></A><A NAME="@default175"></A><A NAME="@fun103"></A></P><P>The <CODE>create-map</CODE> is a simplified form for creating <CODE>Map</CODE> objects.
 The <CODE>create-map</CODE> function takes an even number of arguments that specify
 key/value pairs. For example, the following values are equivalent.</P><PRE CLASS="verbatim">    X = $(create-map name1, xxx, name2, yyy)
 
@@ -689,7 +695,7 @@ lazily. The following two definitions are equivalent.</P><PRE CLASS="verbatim"> 
         $|name1| = $`(xxx)
         $|name2| = $`(yyy)
 </PRE><P>The <A HREF="#fun:create-lazy-map"><CODE>create-lazy-map</CODE> function</A> is used in rule construction.
-</P><H2 CLASS="section"><A NAME="toc70"></A><A NAME="htoc167">8.6</A>&#XA0;&#XA0;Iteration and mapping</H2><H3 CLASS="subsection"><A NAME="htoc168">8.6.1</A>&#XA0;&#XA0;foreach</H3><P><A NAME="fun:foreach"></A><A NAME="@default175"></A><A NAME="@fun103"></A></P><P>The <CODE>foreach</CODE> function maps a function over a sequence.</P><PRE CLASS="verbatim">    $(foreach &lt;fun&gt;, &lt;args&gt;)
+</P><H2 CLASS="section"><A NAME="toc70"></A><A NAME="htoc168">8.6</A>&#XA0;&#XA0;Iteration and mapping</H2><H3 CLASS="subsection"><A NAME="htoc169">8.6.1</A>&#XA0;&#XA0;foreach</H3><P><A NAME="fun:foreach"></A><A NAME="@default176"></A><A NAME="@fun104"></A></P><P>The <CODE>foreach</CODE> function maps a function over a sequence.</P><PRE CLASS="verbatim">    $(foreach &lt;fun&gt;, &lt;args&gt;)
 
     foreach(&lt;var&gt;, &lt;args&gt;)
        &lt;body&gt;

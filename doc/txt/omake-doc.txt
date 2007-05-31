@@ -5,7 +5,7 @@
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                             22^ndMay, 2007
+                             31^stMay, 2007
                              ==============
   
    All the documentation on a single page (23)
@@ -215,44 +215,45 @@ Contents
        - 8.3.3  concat 
        - 8.3.4  length 
        - 8.3.5  nth 
-       - 8.3.6  nth-hd 
-       - 8.3.7  nth-tl 
-       - 8.3.8  subrange 
-       - 8.3.9  rev 
-       - 8.3.10  join 
-       - 8.3.11  string 
-       - 8.3.12  string-escaped, ocaml-escaped, html-escaped,
+       - 8.3.6  replace-nth 
+       - 8.3.7  nth-hd 
+       - 8.3.8  nth-tl 
+       - 8.3.9  subrange 
+       - 8.3.10  rev 
+       - 8.3.11  join 
+       - 8.3.12  string 
+       - 8.3.13  string-escaped, ocaml-escaped, html-escaped,
          html-pre-escaped, c-escaped, id-escaped 
-       - 8.3.13  decode-uri, encode-uri 
-       - 8.3.14  quote 
-       - 8.3.15  quote-argv 
-       - 8.3.16  html-string 
-       - 8.3.17  addsuffix 
-       - 8.3.18  mapsuffix 
-       - 8.3.19  addsuffixes 
-       - 8.3.20  removeprefix 
-       - 8.3.21  removesuffix 
-       - 8.3.22  replacesuffixes 
-       - 8.3.23  addprefix 
-       - 8.3.24  mapprefix 
-       - 8.3.25  add-wrapper 
-       - 8.3.26  set 
-       - 8.3.27  mem 
-       - 8.3.28  intersection 
-       - 8.3.29  intersects 
-       - 8.3.30  set-diff 
-       - 8.3.31  filter 
-       - 8.3.32  filter-out 
-       - 8.3.33  capitalize 
-       - 8.3.34  uncapitalize 
-       - 8.3.35  uppercase 
-       - 8.3.36  lowercase 
-       - 8.3.37  system 
-       - 8.3.38  shell 
-       - 8.3.39  export 
-       - 8.3.40  while 
-       - 8.3.41  break 
-       - 8.3.42  random, random-init 
+       - 8.3.14  decode-uri, encode-uri 
+       - 8.3.15  quote 
+       - 8.3.16  quote-argv 
+       - 8.3.17  html-string 
+       - 8.3.18  addsuffix 
+       - 8.3.19  mapsuffix 
+       - 8.3.20  addsuffixes 
+       - 8.3.21  removeprefix 
+       - 8.3.22  removesuffix 
+       - 8.3.23  replacesuffixes 
+       - 8.3.24  addprefix 
+       - 8.3.25  mapprefix 
+       - 8.3.26  add-wrapper 
+       - 8.3.27  set 
+       - 8.3.28  mem 
+       - 8.3.29  intersection 
+       - 8.3.30  intersects 
+       - 8.3.31  set-diff 
+       - 8.3.32  filter 
+       - 8.3.33  filter-out 
+       - 8.3.34  capitalize 
+       - 8.3.35  uncapitalize 
+       - 8.3.36  uppercase 
+       - 8.3.37  lowercase 
+       - 8.3.38  system 
+       - 8.3.39  shell 
+       - 8.3.40  export 
+       - 8.3.41  while 
+       - 8.3.42  break 
+       - 8.3.43  random, random-init 
      
     - 8.4  Arithmetic 
         
@@ -5048,8 +5049,25 @@ a list. Counting starts at 0. An exception is raised if the index is not
 in bounds.
   For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
 c"'.
+  
 
-8.3.6  nth-hd
+8.3.6  replace-nth
+==================
+  
+<<   $(replace-nth i, sequence, x) : value
+        i : Int
+        sequence : Sequence
+        x : value
+     raises RuntimeException
+>>
+  
+  The `replace-nth' function replaces the nth element of its argument
+with a new value `x'. Counting starts at 0. An exception is raised if
+the index is not in bounds.
+  For example, the expression `$(replace-nth 1, a "b c" d, x)' evaluates
+to `a x d'.
+
+8.3.7  nth-hd
 =============
   
 <<   $(nth-hd i, sequence) : value
@@ -5065,7 +5083,7 @@ long.
 "b c"'.
   
 
-8.3.7  nth-tl
+8.3.8  nth-tl
 =============
   
 <<   $(nth-tl i, sequence) : value
@@ -5081,7 +5099,7 @@ elements long.
 c" d'.
   
 
-8.3.8  subrange
+8.3.9  subrange
 ===============
   
 <<   $(subrange off, len, sequent) : value
@@ -5097,8 +5115,8 @@ bounds.
   For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
 to `"b c" d'.
 
-8.3.9  rev
-==========
+8.3.10  rev
+===========
   
 <<    $(rev sequence) : Sequence
          sequence : Sequence
@@ -5108,7 +5126,7 @@ to `"b c" d'.
 order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
 c" a'.
 
-8.3.10  join
+8.3.11  join
 ============
   
 <<   $(join sequence1, sequence2) : Sequence
@@ -5121,7 +5139,7 @@ For example, `$(join a b c, .c .cpp .h)' evaluates to `a.c b.cpp c.h'.
 If the two input sequences have different lengths, the remainder of the
 longer sequence is copied at the end of the output unmodified.
 
-8.3.11  string
+8.3.12  string
 ==============
   
 <<   $(string sequence) : String
@@ -5132,7 +5150,7 @@ longer sequence is copied at the end of the output unmodified.
 is similar to the `concat' function, but the elements are separated by
 whitespace. The result is treated as a unit; whitespace is significant.
 
-8.3.12  string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
+8.3.13  string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
 ======================================================================
 c-escaped, id-escaped
 =====================
@@ -5165,7 +5183,7 @@ does not translate newlines into `<br>'.
 >>
   
 
-8.3.13  decode-uri, encode-uri
+8.3.14  decode-uri, encode-uri
 ==============================
   
 <<    $(decode-uri sequence) : sequence
@@ -5181,7 +5199,7 @@ represented by hexadecimal characters.
 >>
   
 
-8.3.14  quote
+8.3.15  quote
 =============
   
 <<   $(quote sequence) : String
@@ -5193,7 +5211,7 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-8.3.15  quote-argv
+8.3.16  quote-argv
 ==================
   
 <<   $(quote-argv sequence) : String
@@ -5204,7 +5222,7 @@ c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-8.3.16  html-string
+8.3.17  html-string
 ===================
   
 <<   $(html-string sequence) : String
@@ -5216,7 +5234,7 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-8.3.17  addsuffix
+8.3.18  addsuffix
 =================
   
 <<   $(addsuffix suffix, sequence) : Array
@@ -5230,7 +5248,7 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'.
 
-8.3.18  mapsuffix
+8.3.19  mapsuffix
 =================
   
 <<   $(mapsuffix suffix, sequence) : Array
@@ -5245,7 +5263,7 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'.
 
-8.3.19  addsuffixes
+8.3.20  addsuffixes
 ===================
   
 <<   $(addsuffixes suffixes, sequence) : Array
@@ -5259,7 +5277,7 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-8.3.20  removeprefix
+8.3.21  removeprefix
 ====================
   
 <<   $(removeprefix prefix, sequence) : Array
@@ -5270,7 +5288,7 @@ to `a.c a.o b.c b.o c.o c.a'.
   The `removeprefix' function removes a prefix from each component of a
 sequence.
 
-8.3.21  removesuffix
+8.3.22  removesuffix
 ====================
   
 <<   $(removesuffix sequence) : Array
@@ -5282,7 +5300,7 @@ of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
 
-8.3.22  replacesuffixes
+8.3.23  replacesuffixes
 =======================
   
 <<   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
@@ -5297,7 +5315,7 @@ the same length.
   For example, `$(replacesuffixes .h .c, .o .o, a.c b.h c.z)' expands to
 `a.o b.o c.z'.
 
-8.3.23  addprefix
+8.3.24  addprefix
 =================
   
 <<   $(addprefix prefix, sequence) : Array
@@ -5311,7 +5329,7 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'.
 
-8.3.24  mapprefix
+8.3.25  mapprefix
 =================
   
 <<   $(mapprefix prefix, sequence) : Array
@@ -5326,7 +5344,7 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'.
 
-8.3.25  add-wrapper
+8.3.26  add-wrapper
 ===================
   
 <<   $(add-wrapper prefix, suffix, sequence) : Array
@@ -5341,7 +5359,7 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence.
 
-8.3.26  set
+8.3.27  set
 ===========
   
 <<   $(set sequence) : Array
@@ -5352,7 +5370,7 @@ sequence.
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-8.3.27  mem
+8.3.28  mem
 ===========
   
 <<   $(mem elem, sequence) : Boolean
@@ -5364,7 +5382,7 @@ duplicates.
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-8.3.28  intersection
+8.3.29  intersection
 ====================
   
 <<   $(intersection sequence1, sequence2) : Array
@@ -5379,7 +5397,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'.
 
-8.3.29  intersects
+8.3.30  intersects
 ==================
   
 <<   $(intersects sequence1, sequence2) : Boolean
@@ -5393,7 +5411,7 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-8.3.30  set-diff
+8.3.31  set-diff
 ================
   
 <<   $(set-diff sequence1, sequence2) : Array
@@ -5409,7 +5427,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'.
 
-8.3.31  filter
+8.3.32  filter
 ==============
   
 <<   $(filter patterns, sequence) : Array
@@ -5423,7 +5441,7 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-8.3.32  filter-out
+8.3.33  filter-out
 ==================
   
 <<   $(filter-out patterns, sequence) : Array
@@ -5437,7 +5455,7 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-8.3.33  capitalize
+8.3.34  capitalize
 ==================
   
 <<   $(capitalize sequence) : Array
@@ -5448,7 +5466,7 @@ evaluates to `x.o y.o'.
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-8.3.34  uncapitalize
+8.3.35  uncapitalize
 ====================
   
 <<   $(uncapitalize sequence) : Array
@@ -5459,7 +5477,7 @@ The Looking Glass'.
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-8.3.35  uppercase
+8.3.36  uppercase
 =================
   
 <<   $(uppercase sequence) : Array
@@ -5470,7 +5488,7 @@ The Looking Glass'.
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-8.3.36  lowercase
+8.3.37  lowercase
 =================
   
 <<   $(lowercase sequence) : Array
@@ -5482,7 +5500,7 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-8.3.37  system
+8.3.38  system
 ==============
   
 <<   system(s)
@@ -5497,7 +5515,7 @@ function is used internally by omake to evaluate shell commands.
 >>
   
 
-8.3.38  shell
+8.3.39  shell
 =============
   
 <<   $(shell command) : Array
@@ -5517,7 +5535,7 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-8.3.39  export
+8.3.40  export
 ==============
    The `export' function allows one to capture the current environment
 in a variable.
@@ -5536,7 +5554,7 @@ in a variable.
   The arguments to this function are interpreted the exact same way as
 the arguments to the `export' special form (see Section 5.3).
 
-8.3.40  while
+8.3.41  while
 =============
   
 <<   while <test>
@@ -5591,7 +5609,7 @@ value is printed.
   The 'break' function can be used to break out of the `while' loop
 early.
 
-8.3.41  break
+8.3.42  break
 =============
   
 <<   break
@@ -5600,7 +5618,7 @@ early.
   Terminate execution of the innermost loop, returning the current
 state.
 
-8.3.42  random, random-init
+8.3.43  random, random-init
 ===========================
   
 <<    random-init(i)
@@ -9703,8 +9721,8 @@ OCAMLDEP_MODULES_ENABLED
 run `$(OCAMLDEP_MODULES) -modules' and then postprocess the output
 internally to discover all the relevant generated `.ml' and `.mli'
 files. See Section 12.6.5 for more information on interactions between
-OMake, `OCAMLDEP' and generated files. This feature is currently
-considered highly experimental and is disabled by default. 
+OMake, `OCAMLDEP' and generated files. Set to
+`$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
 OCAMLMKTOP
    The OCaml toploop compiler (default `ocamlmktop'). 
 OCAMLLINK
@@ -9834,19 +9852,16 @@ analysis
 --------
    Having to specify the generated files manualy when OMake could
 discover them automatically is obviously suboptimal. To address this, we
-try to use a custom `ocamldep' that only finds the free module names in
-a file. 
-  This functionality is experimental and is disabled by default for now.
-Set the 'OCAMLDEP_MODULES_ENABLED' variable to `true' (or to
-`$(OCAMLDEP_MODULES_AVAILABLE)') in your project to enable it.
+tell `ocamldep' that only finds the free module names in a file and then
+post-process the results internally.
   Note that the experimental `ocamldep' functionality this relies upon
-is not yet included in the standard OCaml (it is expected to be a part
-of the upcoming OCaml 3.10 --- see
-http://caml.inria.fr/mantis/view.php?id=4047). Temporarily, we
+is only included in the OCaml version 3.10 and higher. Temporarily, we
 distribute a bytecode version `ocamldep-omake' of the appropriately
 modified `ocamldep'. The appropriate `ocamldep' will be discovered
 automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE' and
 'OCAMLDEP_MODULES' variables will be set accordingly.
+  By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
+`$(OCAMLDEP_MODULES_AVAILABLE)'.
 
 12.6.6  Using the Menhir parser generator
 =========================================
@@ -11714,10 +11729,10 @@ Index
  - accept, 9.8.30 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
- - add-wrapper, 8.3.25 
- - addprefix, 8.3.23 
- - addsuffix, 8.3.17 
- - addsuffixes, 8.3.19 
+ - add-wrapper, 8.3.26 
+ - addprefix, 8.3.24 
+ - addsuffix, 8.3.18 
+ - addsuffixes, 8.3.20 
  - aliases, 14.2 
  - and, 8.2.3 
  - apply, 8.5.2 
@@ -11733,7 +11748,7 @@ Index
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.28 
- - break, 8.3.41 
+ - break, 8.3.42 
  - build model, 3 
  
  - CAMLP4, 12.6.2 
@@ -11761,8 +11776,8 @@ Index
  - CXXFLAGS, 12.5.2 
  - CXXProgram, 12.5.4.8 
  - CXXProgramInstall, 12.5.4.8 
- - c-escaped, 8.3.12 
- - capitalize, 8.3.33 
+ - c-escaped, 8.3.13 
+ - capitalize, 8.3.34 
  - case, 8.2.6 
  - cat, 9.11.2 
  - cats and dogs, 3.4 
@@ -11786,7 +11801,7 @@ Index
  - DVIPDFMFLAGS, 12.7.1 
  - DVIPS, 12.7.1 
  - DVIPSFLAGS, 12.7.1 
- - decode-uri, 8.3.13 
+ - decode-uri, 8.3.14 
  - default, 8.2.6 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
@@ -11813,7 +11828,7 @@ Index
  - echo, 10.9.1 
  - else, 8.2.5, B.2.2.1 
  - elseif, 8.2.5, B.2.2.1 
- - encode-uri, 8.3.13 
+ - encode-uri, 8.3.14 
  - eprint, 9.9 
  - eprintln, 9.9 
  - eprintv, 9.10 
@@ -11822,7 +11837,7 @@ Index
  - equal, 8.2.2 
  - exists-in-path, 9.2.4 
  - exit, 8.2.9 
- - export, 5.3, 8.3.39, B.2.2.1 
+ - export, 5.3, 8.3.40, B.2.2.1 
  - extends, B.2.2.1 
  
  - File, 11.1.13 
@@ -11834,9 +11849,9 @@ Index
  - file-check-sort, 9.3.7 
  - file-exists, 9.3.1 
  - file-sort, 9.3.6 
- - filter, 8.3.31 
+ - filter, 8.3.32 
  - filter-exists, 9.3.3 
- - filter-out, 8.3.32 
+ - filter-out, 8.3.33 
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
@@ -11890,27 +11905,27 @@ Index
  - Host, 9.8.21 
  - history, 10.11.1 
  - homename, 9.1.10 
- - html-escaped, 8.3.12 
- - html-pre-escaped, 8.3.12 
- - html-string, 8.3.16 
+ - html-escaped, 8.3.13 
+ - html-pre-escaped, 8.3.13 
+ - html-string, 8.3.17 
  
  - INCLUDES, 12.5.2 
  - INSTALL, 12.4.2 
  - InChannel, 11.1.16 
  - InetAddr, 9.8.20 
  - Int, 11.1.4 
- - id-escaped, 8.3.12 
+ - id-escaped, 8.3.13 
  - if, 4.9, 8.2.5, B.2.2.1 
  - ignoreeof, 14.1 
  - in, 9.1.3 
  - include, 4.7, B.2.2.1 
  - inheritance, 4.13 
  - int, 8.4.1 
- - intersection, 8.3.28 
- - intersects, 8.3.29 
+ - intersection, 8.3.29 
+ - intersects, 8.3.30 
  
  - jobs, 10.10.1 
- - join, 8.3.10 
+ - join, 8.3.11 
  
  - kill, 10.10.6 
  
@@ -11941,7 +11956,7 @@ Index
  - lnot, 8.4.3 
  - lockf, 9.8.19 
  - lor, 8.4.3 
- - lowercase, 8.3.36 
+ - lowercase, 8.3.37 
  - ls, 9.4.2 
  - lseek, 9.8.8 
  - lsl, 8.4.3 
@@ -11956,11 +11971,11 @@ Index
  - MENHIR_AVAILABLE, 12.6.1 
  - MENHIR_ENABLED, 12.6.2 
  - MENHIR_FLAGS, 12.6.3 
- - mapprefix, 8.3.24 
- - mapsuffix, 8.3.18 
+ - mapprefix, 8.3.25 
+ - mapsuffix, 8.3.19 
  - match, 4.10, 8.2.6, B.2.2.1 
  - max, 8.4.3 
- - mem, 8.3.27 
+ - mem, 8.3.28 
  - min, 8.4.3 
  - mkdir, 9.5.1 
  - mkfifo, 9.8.17 
@@ -11978,8 +11993,8 @@ Index
  - neg, 8.4.3 
  - not, 8.2.1 
  - nth, 8.3.5 
- - nth-hd, 8.3.6 
- - nth-tl, 8.3.7 
+ - nth-hd, 8.3.7 
+ - nth-tl, 8.3.8 
  
  - Object, 11.1.1 
  - OCAML_BYTE_LINK_FLAGS, 12.6.3 
@@ -12033,7 +12048,7 @@ Index
  - OSTYPE, 8.1 
  - OutChannel, 11.1.17 
  - objects, 4.11 
- - ocaml-escaped, 8.3.12 
+ - ocaml-escaped, 8.3.13 
  - ocamldep-omake, 12.6.5.2 
  - open, 4.7, B.2.2.1 
  - open-in-string, 9.8.2 
@@ -12070,8 +12085,8 @@ Index
  - pw_uid, 9.11.17 
  
  - quotations, 4.4 
- - quote, 8.3.14 
- - quote-argv, 8.3.15 
+ - quote, 8.3.15 
+ - quote-argv, 8.3.16 
  
  - READLINE_AVAILABLE, 13.3.2 
  - READLINE_CFLAGS, 13.3.2 
@@ -12082,19 +12097,20 @@ Index
  - RunCProg, 13.1.5 
  - RuntimeException, 11.1.21 
  - raise, 8.2.8 
- - random, 8.3.42 
- - random-init, 8.3.42 
+ - random, 8.3.43 
+ - random-init, 8.3.43 
  - read, 9.8.6 
  - readlink, 9.5.8 
  - regular expressions, 9.11.1 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
- - removeprefix, 8.3.20 
- - removesuffix, 8.3.21 
+ - removeprefix, 8.3.21 
+ - removesuffix, 8.3.22 
  - rename, 9.5.5 
- - replacesuffixes, 8.3.22 
+ - replace-nth, 8.3.6 
+ - replacesuffixes, 8.3.23 
  - return, 4.5, B.2.2.1 
- - rev, 8.3.9 
+ - rev, 8.3.10 
  - rewind, 9.8.9 
  - rootname, 9.1.6 
  - rule, 12.3.5 
@@ -12126,13 +12142,13 @@ Index
  - section, 4.8, 7.3, B.2.2.1 
  - section rule, 7.4 
  - select, 9.8.18 
- - set, 8.3.26 
+ - set, 8.3.27 
  - set-close-on-exec-mode, 9.8.15 
- - set-diff, 8.3.30 
+ - set-diff, 8.3.31 
  - set-nonblock, 9.8.14 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
- - shell, 8.3.38 
+ - shell, 8.3.39 
  - socket, 9.8.27 
  - sorting (link-order), 9.3.6 
  - split, 8.3.2 
@@ -12143,15 +12159,15 @@ Index
  - stdin, 9.8.1 
  - stdout, 9.8.1 
  - stop, 10.10.4 
- - string, 8.3.11 
- - string-escaped, 8.3.12 
+ - string, 8.3.12 
+ - string-escaped, 8.3.13 
  - sub, 8.4.3 
  - subdirs, 9.4.3 
- - subrange, 8.3.8 
+ - subrange, 8.3.9 
  - suffix, 9.1.11 
  - switch, 4.10, 8.2.6 
  - symlink, 9.5.7 
- - system, 8.3.37 
+ - system, 8.3.38 
  
  - TARGETS, 8.1 
  - Target, 11.1.11 
@@ -12182,10 +12198,10 @@ Index
  - ule, 8.4.4 
  - ult, 8.4.4 
  - umask, 9.5.12 
- - uncapitalize, 8.3.34 
+ - uncapitalize, 8.3.35 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
- - uppercase, 8.3.35 
+ - uppercase, 8.3.36 
  
  - VERBOSE, 8.1 
  - VerboseCheckCHeader, 13.1.6 
@@ -12197,7 +12213,7 @@ Index
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.40, B.2.2.1 
+ - while, 8.3.41, B.2.2.1 
  - write, 9.8.7 
  
  - xterm-escape, 9.11.24 
@@ -12364,10 +12380,10 @@ Index of functions and special forms
  - accept, 9.8.30 
  - add, 8.4.3 
  - add-project-directories, 9.6.2 
- - add-wrapper, 8.3.25 
- - addprefix, 8.3.23 
- - addsuffix, 8.3.17 
- - addsuffixes, 8.3.19 
+ - add-wrapper, 8.3.26 
+ - addprefix, 8.3.24 
+ - addsuffix, 8.3.18 
+ - addsuffixes, 8.3.20 
  - and, 8.2.3 
  - apply, 8.5.2 
  - applya, 8.5.3 
@@ -12378,7 +12394,7 @@ Index of functions and special forms
  - basename, 9.1.4 
  - bg, 10.10.2 
  - bind, 9.8.28 
- - break, 8.3.41 
+ - break, 8.3.42 
  
  - CGeneratedFiles, 12.5.3.1 
  - CheckCHeader, 13.1.6 
@@ -12395,8 +12411,8 @@ Index of functions and special forms
  - CProgramInstall, 12.5.4.7 
  - CXXProgram, 12.5.4.8 
  - CXXProgramInstall, 12.5.4.8 
- - c-escaped, 8.3.12 
- - capitalize, 8.3.33 
+ - c-escaped, 8.3.13 
+ - capitalize, 8.3.34 
  - cat, 9.11.2 
  - cd, 10.9.2 
  - chmod, 9.5.9 
@@ -12409,7 +12425,7 @@ Index of functions and special forms
  - create-map, 8.5.4 
  
  - DefineCommandVars, 12.2.4 
- - decode-uri, 8.3.13 
+ - decode-uri, 8.3.14 
  - defined, 8.2.10 
  - defined-env, 8.2.11 
  - dependencies, 12.3.1 
@@ -12427,7 +12443,7 @@ Index of functions and special forms
  - dup2, 9.8.13 
  
  - echo, 10.9.1 
- - encode-uri, 8.3.13 
+ - encode-uri, 8.3.14 
  - eprint, 9.9 
  - eprintln, 9.9 
  - eprintv, 9.10 
@@ -12436,7 +12452,7 @@ Index of functions and special forms
  - equal, 8.2.2 
  - exists-in-path, 9.2.4 
  - exit, 8.2.9 
- - export, 8.3.39 
+ - export, 8.3.40 
  
  - fg, 10.10.3 
  - fgets, 9.8.34 
@@ -12444,9 +12460,9 @@ Index of functions and special forms
  - file-check-sort, 9.3.7 
  - file-exists, 9.3.1 
  - file-sort, 9.3.6 
- - filter, 8.3.31 
+ - filter, 8.3.32 
  - filter-exists, 9.3.3 
- - filter-out, 8.3.32 
+ - filter-out, 8.3.33 
  - filter-proper-targets, 9.3.3 
  - filter-targets, 9.3.3 
  - find, 9.7.2 
@@ -12489,20 +12505,20 @@ Index of functions and special forms
  
  - history, 10.11.1 
  - homename, 9.1.10 
- - html-escaped, 8.3.12 
- - html-pre-escaped, 8.3.12 
- - html-string, 8.3.16 
+ - html-escaped, 8.3.13 
+ - html-pre-escaped, 8.3.13 
+ - html-string, 8.3.17 
  
- - id-escaped, 8.3.12 
+ - id-escaped, 8.3.13 
  - if, 8.2.5 
  - in, 9.1.3 
  - include, 4.7 
  - int, 8.4.1 
- - intersection, 8.3.28 
- - intersects, 8.3.29 
+ - intersection, 8.3.29 
+ - intersects, 8.3.30 
  
  - jobs, 10.10.1 
- - join, 8.3.10 
+ - join, 8.3.11 
  
  - kill, 10.10.6 
  
@@ -12522,7 +12538,7 @@ Index of functions and special forms
  - lnot, 8.4.3 
  - lockf, 9.8.19 
  - lor, 8.4.3 
- - lowercase, 8.3.36 
+ - lowercase, 8.3.37 
  - ls, 9.4.2 
  - lseek, 9.8.8 
  - lsl, 8.4.3 
@@ -12531,11 +12547,11 @@ Index of functions and special forms
  - lt, 8.4.4 
  - lxor, 8.4.3 
  
- - mapprefix, 8.3.24 
- - mapsuffix, 8.3.18 
+ - mapprefix, 8.3.25 
+ - mapsuffix, 8.3.19 
  - match, 4.10, 8.2.6 
  - max, 8.4.3 
- - mem, 8.3.27 
+ - mem, 8.3.28 
  - min, 8.4.3 
  - mkdir, 9.5.1 
  - mkfifo, 9.8.17 
@@ -12545,8 +12561,8 @@ Index of functions and special forms
  - neg, 8.4.3 
  - not, 8.2.1 
  - nth, 8.3.5 
- - nth-hd, 8.3.6 
- - nth-tl, 8.3.7 
+ - nth-hd, 8.3.7 
+ - nth-tl, 8.3.8 
  
  - OCamlGeneratedFiles, 12.6.5.1 
  - OCamlLibrary, 12.6.6.1 
@@ -12558,7 +12574,7 @@ Index of functions and special forms
  - OCamlProgramInstall, 12.6.6.7 
  - OMakeFlags, 12.2.1 
  - OMakeVersion, 12.2.2 
- - ocaml-escaped, 8.3.12 
+ - ocaml-escaped, 8.3.13 
  - open-in-string, 9.8.2 
  - open-out-string, 9.8.3 
  - or, 8.2.4 
@@ -12574,22 +12590,23 @@ Index of functions and special forms
  - prompt-invisible-begin, 9.11.25 
  - prompt-invisible-end, 9.11.25 
  
- - quote, 8.3.14 
- - quote-argv, 8.3.15 
+ - quote, 8.3.15 
+ - quote-argv, 8.3.16 
  
  - RunCProg, 13.1.5 
  - raise, 8.2.8 
- - random, 8.3.42 
- - random-init, 8.3.42 
+ - random, 8.3.43 
+ - random-init, 8.3.43 
  - read, 9.8.6 
  - readlink, 9.5.8 
  - rehash, 9.2.3 
  - remove-project-directories, 9.6.3 
- - removeprefix, 8.3.20 
- - removesuffix, 8.3.21 
+ - removeprefix, 8.3.21 
+ - removesuffix, 8.3.22 
  - rename, 9.5.5 
- - replacesuffixes, 8.3.22 
- - rev, 8.3.9 
+ - replace-nth, 8.3.6 
+ - replacesuffixes, 8.3.23 
+ - rev, 8.3.10 
  - rewind, 9.8.9 
  - rootname, 9.1.6 
  - rule, 12.3.5 
@@ -12607,27 +12624,27 @@ Index of functions and special forms
  - section, 7.3 
  - section rule, 7.4 
  - select, 9.8.18 
- - set, 8.3.26 
+ - set, 8.3.27 
  - set-close-on-exec-mode, 9.8.15 
- - set-diff, 8.3.30 
+ - set-diff, 8.3.31 
  - set-nonblock, 9.8.14 
  - setenv, 8.2.13 
  - setvar, 8.2.17 
- - shell, 8.3.38 
+ - shell, 8.3.39 
  - socket, 9.8.27 
  - split, 8.3.2 
  - stat, 9.5.3 
  - stat-reset, 9.3.2 
  - stop, 10.10.4 
- - string, 8.3.11 
- - string-escaped, 8.3.12 
+ - string, 8.3.12 
+ - string-escaped, 8.3.13 
  - sub, 8.4.3 
  - subdirs, 9.4.3 
- - subrange, 8.3.8 
+ - subrange, 8.3.9 
  - suffix, 9.1.11 
  - switch, 4.10, 8.2.6 
  - symlink, 9.5.7 
- - system, 8.3.37 
+ - system, 8.3.38 
  
  - TeXGeneratedFiles, 12.7.2.2 
  - TryCompileC, 13.1.4 
@@ -12648,10 +12665,10 @@ Index of functions and special forms
  - ule, 8.4.4 
  - ult, 8.4.4 
  - umask, 9.5.12 
- - uncapitalize, 8.3.34 
+ - uncapitalize, 8.3.35 
  - unlink, 9.5.4 
  - unsetenv, 8.2.14 
- - uppercase, 8.3.35 
+ - uppercase, 8.3.36 
  
  - VerboseCheckCHeader, 13.1.6 
  - VerboseCheckCLib, 13.1.7 
@@ -12660,7 +12677,7 @@ Index of functions and special forms
  - wait, 10.10.5 
  - where, 9.2.2 
  - which, 9.2.1 
- - while, 8.3.40 
+ - while, 8.3.41 
  - write, 9.8.7 
  
  - xterm-escape, 9.11.24 
@@ -12794,7 +12811,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.1 of 22^ndMay, 2007.
+  Version: 0.9.8.3 of 31^stMay, 2007.
   
 
 C.3  License and Copyright

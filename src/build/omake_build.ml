@@ -2480,7 +2480,6 @@ let create_env exec options cache targets =
 *** omake: It may act differently from what you expect.
 *** omake: If you encounter problems,
 *** omake: consider using a released version,
-*** omake: or the 0.9.8.2 branch in preparation.
 *** omake: ---@.";
          printf "*** omake: reading %ss@." makefile_name
       end
