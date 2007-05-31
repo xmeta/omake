@@ -50,6 +50,7 @@ open Omake_ir_print
 open Omake_node_sig
 open Omake_exec_type
 open Omake_exec_util
+open Omake_shell_type
 open Omake_cache_type
 open Omake_value_type
 open Omake_value_print
@@ -2029,6 +2030,11 @@ and eval_let_fun_field_exp venv pos loc v vl params body export =
  *)
 and eval_shell_exp venv pos loc e =
    let pos = string_pos "eval_shell_exp" pos in
+   let () =
+      if !debug_shell then
+         eprintf "@[<v 3>eval_shell_exp:@ %a@]@." (**)
+            pp_print_string_exp e
+   in
    let v = venv_find_var venv pos loc system_var in
    let venv, s = eval_string_export_exp true venv pos e in
       eval_apply_export venv pos loc v [s]

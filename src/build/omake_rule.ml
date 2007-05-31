@@ -1221,7 +1221,7 @@ and eval_shell_exp venv pos loc e =
    let stdin  = Lm_channel.descr stdin in
    let stdout = Lm_channel.descr stdout in
    let stderr = Lm_channel.descr stderr in
-   let _, result = Omake_shell_job.create_job venv pipe stdin stdout stderr in
+   let venv, result = Omake_shell_job.create_job venv pipe stdin stdout stderr in
 
    (* Get the exit code *)
    let code =

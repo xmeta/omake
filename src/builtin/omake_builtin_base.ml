@@ -2408,8 +2408,7 @@ let system venv pos loc args =
    let pos = string_pos "system" pos in
       match args with
          [arg] ->
-            let _, result = eval_shell_exp venv pos loc arg in
-               result
+            eval_shell_exp venv pos loc arg
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -2793,7 +2792,6 @@ let () =
        true,  "set-diff",              set_diff,            ArityExact 2;
 
        (* Shell command *)
-       true,  "system",                system,              ArityExact 1;
        true,  "shell",                 shell,               ArityExact 1;
        true,  "shella",                shella,              ArityExact 1;
        true,  "shell-code",            shell_code,          ArityExact 1;
@@ -2811,6 +2809,7 @@ let () =
        false, "match",                 match_fun,           ArityAny;
        false, "while",                 while_fun,           ArityExact 2;
        true,  "export",                export,              ArityExact 0;
+       true,  "system",                system,              ArityExact 1;
      ]
    in
    let builtin_info =

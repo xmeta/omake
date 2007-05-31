@@ -429,20 +429,20 @@ let create_apply_top venv stdin stdout stderr apply =
       (* The function will close its files on its own *)
       try
          if !debug_shell then
-            eprintf "create_apply_top: %i duplicating channels@." (Unix.getpid ());
+            eprintf "create_apply_top pid=%i: duplicating channels@." (Unix.getpid ());
          let stdin  = Unix.dup stdin in
          let stdout = Unix.dup stdout in
          let stderr = Unix.dup stderr in
          let code, venv_new, v = f venv stdin stdout stderr env args in
          let venv = unexport venv venv_new restore_vars in
             if !debug_shell then
-               eprintf "create_apply_top %i: done@." (Unix.getpid ());
+               eprintf "create_apply_top pid=%i: done@." (Unix.getpid ());
             cleanup ();
             code, venv, v
       with
          exn ->
             if !debug_shell then
-               eprintf "create_apply_top %i: error: %a@." (Unix.getpid ()) Omake_exn_print.pp_print_exn exn;
+               eprintf "create_apply_top pid=%i: error: %a@." (Unix.getpid ()) Omake_exn_print.pp_print_exn exn;
             cleanup ();
             raise exn
 
@@ -775,7 +775,7 @@ and create_thread venv f stdin stdout stderr =
    let pgrp = create_top_thread venv f stdin stdout stderr in
    let job  = new_job pgrp None in
       if !debug_shell then
-         eprintf "Started thread with pgrg %i, internal id %i@." job.job_pgrp job.job_id;
+         eprintf "Started thread with pgrp %i, internal id %i@." job.job_pgrp job.job_id;
       job.job_state <- JobBackground;
       InternalPid job.job_id
 
