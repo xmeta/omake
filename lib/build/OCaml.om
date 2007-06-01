@@ -157,7 +157,7 @@ public.PREFIXED_OCAMLPACKS =\
 #
 # The following variables specify \emph{additional} options to be passed to
 # the OCaml tools.
-# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+ (but not to \verb+OCAMLDEP_MODULES+).
+# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+ and \verb+OCAMLDEP_MODULES+.
 # \var{OCAMLPPFLAGS} Flags to pass to \verb+CAMLP4+.
 # \var{OCAMLCFLAGS} Flags to pass to the byte-code compiler (default \verb+-g+).
 # \var{OCAMLOPTFLAGS} Flags to pass to the native-code compiler (default empty).
@@ -168,7 +168,7 @@ public.PREFIXED_OCAMLPACKS =\
 # \varlabel{MENHIR_FLAGS}{MENHIR\_FLAGS} Additional flags to pass to \verb+menhir+.
 # \end{doc}
 #
-public.OCAMLDEPFLAGS = $`(if $(NATIVE_ENABLED), -native, $(EMPTY))
+declare OCAMLDEPFLAGS
 public.OCAMLPPFLAGS  =
 public.OCAMLFLAGS    = -warn-error A
 public.OCAMLCFLAGS   = -g
@@ -294,6 +294,8 @@ public.OCAML_LIB_FLAGS =
         export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
 
     OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
+
+public.OCAMLDEPFLAGS = $`(if $(and $(NATIVE_ENABLED), $(not $(OCAMLDEP_MODULES_ENABLED))), -native, $(EMPTY))
 
 .PHONY: OCamlGeneratedFilesTarget
 
@@ -593,7 +595,7 @@ public.MenhirOCamlcCommand() =
 public.MenhirOCamldepCommand(raw) =
     ocamldep =
        if $(raw)
-           value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS) -modules
+           value $(OCAMLDEP_MODULES) -modules $(OCAMLDEPFLAGS)
        else
            value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS)
     value --ocamldep $(quote-argv $(ocamldep))
