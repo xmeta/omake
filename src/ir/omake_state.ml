@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified by: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -63,6 +64,15 @@ let set_omake_dir dir =
       try Unix.mkdir dir 0o777 with
          Unix.Unix_error _ ->
             ()
+   in
+   let dir =
+      if Filename.is_relative dir then
+         try
+            Filename.concat (Unix.getcwd ()) dir
+         with Unix.Unix_error _ ->
+            dir
+      else
+         dir
    in
       omake_dir_ref := Some dir;
       cache_dir_ref := None

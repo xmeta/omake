@@ -430,7 +430,7 @@ let history venv pos loc args =
 
 let () =
    let builtin_vars =
-      ["history-file",   (fun _ -> ValNode (Node.create_node no_mount_info Mount.empty Dir.root (Omake_state.history_file ())));
+      ["history-file",   (fun _ -> ValNode (Node.create_node no_mount_info Mount.empty (Dir.cwd ()) (Omake_state.history_file ())));
        "history-length", (fun _ -> ValInt 100);
        "CDPATH",         (fun _ -> ValArray [ValString "."])]
    in
@@ -460,12 +460,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
