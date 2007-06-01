@@ -122,8 +122,12 @@ let wild_of_core s =
 (*
  * Perform a substitution.
  *)
-let wild_subst_in (_, s) (_, prefix, _, suffix) =
-   prefix ^ s ^ suffix
+let wild_subst_in (slen, s) (plen, prefix, sflen, suffix) =
+   let res = String.create (slen + plen + sflen) in
+      String.blit prefix 0 res 0 plen;
+      String.blit s 0 res plen slen;
+      String.blit suffix 0 res (plen + slen) sflen;
+      res
 
 let wild_subst (_, s) strs =
    String.concat s strs
