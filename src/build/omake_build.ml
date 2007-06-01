@@ -2646,7 +2646,14 @@ let wait_for_lock, unlock_db =
          None ->
             ()
        | Some fd ->
-            let () = try Unix.close fd with _ -> () in
+            let () =
+               (* XXX: JYH: this is bad style.
+                * Under what circumstances will this fail?
+                * BTW, don't use wildcard exception patterns please:/ *)
+               try Omake_shell_sys.close_fd fd with
+                  Unix.Unix_error _ ->
+                     ()
+            in
                save_fd := None
    in
    let wait_for_lock () =
@@ -3006,6 +3013,7 @@ let build_core env dir_name dir start_time options targets =
    in
 
    let venv = env.env_venv in
+   let venv = venv_chdir_tmp venv dir in
    let targets = List.map (venv_intern venv PhonyOK) targets in
    let () = List.iter (fun s -> print_node_dependencies env (venv_intern venv PhonyOK s)) (opt_show_dependencies options) in
    let options = env_options env in
