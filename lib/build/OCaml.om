@@ -97,6 +97,8 @@ open configure/Configure
 #    \verb+menhir+ instead of \verb+ocamlyacc+ (default \verb+false+).
 # \end{doc}
 #
+public.USE_OCAMLFIND = false
+
 .STATIC:
     OCAMLFIND_EXISTS = $(CheckProg ocamlfind)
     OCAMLC_OPT_EXISTS = $(CheckProg ocamlc.opt)
@@ -110,13 +112,17 @@ open configure/Configure
         else
             ConfMsgResult($"FAILED - ocamlc not found")
             value false
+    OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
+    OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
+    #
+    # Compile native or byte code?
+    #
+    NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
+    BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 
-public.USE_OCAMLFIND = false
 public.OCAMLFIND = $`(if $(USE_OCAMLFIND), ocamlfind)
 public.OCAMLFINDFLAGS =
 public.LAZY_OCAMLFINDFLAGS = $`(if $(USE_OCAMLFIND), $(OCAMLFINDFLAGS))
-public.OCAMLC = $(if $(OCAMLC_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlc, ocamlc.opt), ocamlc)
-public.OCAMLOPT = $(if $(OCAMLOPT_OPT_EXISTS), $`(if $(USE_OCAMLFIND), ocamlopt, ocamlopt.opt), ocamlopt)
 
 public.OCAMLDEP = ocamldep
 public.CAMLP4 = camlp4
@@ -142,12 +148,6 @@ public.PREFIXED_OCAMLPACKS =\
    $`(if $(and $(USE_OCAMLFIND) $(gt $(length $(OCAMLPACKS)), 0)),\
          -package $(string $(concat \,, $(OCAMLPACKS))),\
          $(EMPTY))
-
-#
-# Compile native or byte code?
-#
-public.NATIVE_ENABLED = $(OCAMLOPT_EXISTS)
-public.BYTE_ENABLED = $(not $(OCAMLOPT_EXISTS))
 
 #
 # Various options
@@ -293,7 +293,7 @@ public.OCAML_LIB_FLAGS =
             ConfMsgResult(NOT FOUND)
         export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
 
-public.OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
+    OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
 .PHONY: OCamlGeneratedFilesTarget
 

@@ -163,14 +163,14 @@ FILE_LINE_ERROR =
         rm $(TETEX_CONFIG_TMP)
         export FILE_LINE_ERROR TETEX2_ENABLED OUTPUT_COMMENT_SUPPORTED
 
-    export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE OUTPUT_COMMENT_SUPPORTED
+    #
+    # Compute the default flags
+    #
+    LATEXFLAGS =
+        protected.BASE = $(if $(OUTPUT_COMMENT_SUPPORTED), $"-output-comment=LaTeX Output (built with OMake)")
+        value $`(if $(TETEX2_ENABLED), $,(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
 
-#
-# Compute the default flags
-#
-public.LATEXFLAGS =
-    protected.BASE = $(if $(OUTPUT_COMMENT_SUPPORTED), $"-output-comment=LaTeX Output (built with OMake)")
-    value $`(if $(TETEX2_ENABLED), $,(FILE_LINE_ERROR) $,(BASE), -interaction=errorstopmode $,(BASE))
+    export TETEX2_ENABLED FILE_LINE_ERROR LATEX_USABLE OUTPUT_COMMENT_SUPPORTED LATEXFLAGS
 
 #
 # Dynamically defined list of files that the TeX source depends on.

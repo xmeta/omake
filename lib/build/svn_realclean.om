@@ -36,9 +36,9 @@ open configure/Configure
 .STATIC:
     SVN_AVAILABLE = $(CheckProg svn)
 
-if $(SVN_AVAILABLE)
-    Shell. +=
-        svn_realclean(argv) =
+Shell. +=
+    svn_realclean(argv) =
+        if $(SVN_AVAILABLE)
             usage(msg,err) =
                 println($"""$(msg)
 
@@ -96,12 +96,8 @@ If no directories are given, . is used.
                         # println($"Removing $f...")
                         rm -ri $f
                 rm -rf $(tmp)
-    export
-else
-    Shell. +=
-        svn_realclean(argv) =
+        else
             eprintln($"svn_realclean requires the svn binary, but svn is missing")
             exit(1)
-    export
 
 # vim:tw=80:ts=4:et
