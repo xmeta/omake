@@ -202,22 +202,30 @@ struct
     * stopping when one is successful.
     *    1. Try the name being created itself.
     *    2. Try looking at the directory entries.
-    *    3. Create a dummy file, and test.
+    *    3. Create a dummy file, and test (unless the attept to do step 2 made
+    *       us realize there is no such directory).
     *    4. Test the parent.
     *)
+   exception Not_a_usable_directory
    let rec dir_test_sensitivity dir absdir name =
       try stat_with_toggle_case absdir name
       with Not_found ->
-         try dir_test_all_entries_exn absdir (Unix.opendir absdir)
-         with Unix.Unix_error _ | Not_found | End_of_file ->
-            try dir_test_new_entry_exn absdir
-            with Unix.Unix_error _ | Not_found | End_of_file ->
-               match DirHash.get dir with
-                  DirRoot _ ->
-                     (* Nothing else we can do, assume sensitive *)
-                     true
-                | DirSub (_, name, parent) ->
-                     dir_is_sensitive parent name
+         try
+            let dir_handle =
+               try Unix.opendir absdir with
+                  Unix.Unix_error ((Unix.ENOENT | Unix.ENOTDIR | Unix.ELOOP | Unix.ENAMETOOLONG), _, _) ->
+                     raise Not_a_usable_directory
+            in
+               try dir_test_all_entries_exn absdir dir_handle
+               with Unix.Unix_error _ | Not_found | End_of_file ->
+                     dir_test_new_entry_exn absdir
+         with Unix.Unix_error _ | Not_found | End_of_file | Not_a_usable_directory ->
+            match DirHash.get dir with
+               DirRoot _ ->
+                  (* Nothing else we can do, assume sensitive *)
+                  true
+             | DirSub (_, name, parent) ->
+                  dir_is_sensitive parent name
 
    (*
     * This is the caching version of the case-sensitivity test.
