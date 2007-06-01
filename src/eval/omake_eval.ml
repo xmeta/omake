@@ -1026,11 +1026,11 @@ and eval_value_static venv pos key v =
 and eval_value_delayed venv pos p =
    match !p with
       ValValue v ->
-         v
+         eval_value_core venv pos v
     | ValStaticApply (key, v) ->
          let v = eval_value_static venv pos key v in
             p := ValValue v;
-            v
+            eval_value_core venv pos v
 
 (*
  * Unfold the outermost application to get a real value.
