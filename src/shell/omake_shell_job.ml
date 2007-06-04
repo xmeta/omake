@@ -528,7 +528,7 @@ let find_executable venv pos loc exe =
        | ExeString exe ->
             find_executable_string venv pos loc exe
        | ExeNode node ->
-            if Omake_cache.exe_suffixes = ["."] then
+            if Omake_cache.exe_suffixes = [""] || Omake_cache.exists (venv_cache venv) ~force:true node then
                node
             else
                find_executable_string venv pos loc (Node.absname node)

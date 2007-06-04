@@ -630,7 +630,44 @@ let stat_unix_simple stats =
     | OldStats _ ->
          raise (Invalid_argument "Omake_cache.stat_unix_simple")
 
-let stat_unix cache node =
+let do_stat_unix cache node =
+   let name = Node.fullname node in
+   let nmemo =
+      try
+         let stats = Unix.LargeFile.stat name in
+            if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
+               { nmemo_stats = FreshStats stats;
+                 nmemo_digest = squash_stat
+               }
+            else begin
+               cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
+               { nmemo_stats = PartialStats stats;
+                 nmemo_digest = None
+               }
+            end
+      with
+         Unix.Unix_error _
+       | Sys_error _ ->
+            { nmemo_stats  = NoStats;
+              nmemo_digest = None
+            }
+   in
+      cache.cache_nodes <- NodeTable.add cache.cache_nodes node nmemo;
+      stat_unix_simple nmemo.nmemo_stats
+
+let stat_unix cache ?(force=false) node =
+   let node =
+      match Node.kind node with
+         NodePhony
+       | NodeScanner ->
+            raise Not_found
+       | NodeNormal ->
+            node
+       | NodeOptional
+       | NodeSquashed
+       | NodeExists ->
+            Node.core node
+   in
    let nodes = cache.cache_nodes in
    let stats =
       try Some (NodeTable.find nodes node) with
@@ -642,7 +679,10 @@ let stat_unix cache node =
        | Some { nmemo_stats = PartialStats stats } ->
             stats
        | Some { nmemo_stats = NoStats } ->
-            raise Not_found
+            if force then
+               do_stat_unix cache node
+            else
+               raise Not_found
        | Some ({ nmemo_stats = OldStats old_stats } as nmemo) ->
             let name = Node.fullname node in
             let nmemo =
@@ -669,35 +709,13 @@ let stat_unix cache node =
                cache.cache_nodes <- NodeTable.add nodes node nmemo;
                stat_unix_simple nmemo.nmemo_stats
        | None ->
-            let name = Node.fullname node in
-            let nmemo =
-               try
-                  let stats = Unix.LargeFile.stat name in
-                     if stats.Unix.LargeFile.st_kind = Unix.S_DIR then
-                        { nmemo_stats = FreshStats stats;
-                          nmemo_digest = squash_stat
-                        }
-                     else begin
-                        cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
-                        { nmemo_stats = PartialStats stats;
-                          nmemo_digest = None
-                        }
-                     end
-               with
-                  Unix.Unix_error _
-                | Sys_error _ ->
-                     { nmemo_stats  = NoStats;
-                       nmemo_digest = None
-                     }
-            in
-               cache.cache_nodes <- NodeTable.add nodes node nmemo;
-               stat_unix_simple nmemo.nmemo_stats
+            do_stat_unix cache node
 
 (*
  * Check if a file is a directory.
  *)
-let is_dir cache node =
-   try (stat_unix cache node).Unix.LargeFile.st_kind = Unix.S_DIR with
+let is_dir cache ?(force=false) node =
+   try (stat_unix cache ~force node).Unix.LargeFile.st_kind = Unix.S_DIR with
       Not_found ->
          false
 
@@ -774,13 +792,14 @@ let stat_changed cache node =
 (*
  * Check if a file exists.
  *)
-let exists cache node =
-   match stat cache node with
-      Some _ -> true
-    | None -> Node.always_exists node
+let exists cache ?(force=false) node =
+   try 
+      ignore (stat_unix cache ~force node); true
+   with
+      Not_found -> Node.always_exists node
 
-let exists_dir cache dir =
-   exists cache (Node.node_of_dir dir)
+let exists_dir cache ?(force=false) dir =
+   exists cache ~force (Node.node_of_dir dir)
 
 (************************************************************************
  * Adding to the cache.

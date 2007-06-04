@@ -76,12 +76,14 @@ val clear : t -> key -> unit
  * File digest information.
  * The reset functions indicate that stat info may need to be recomputed.
  * The stat functions get the digest.
+ * The ?force flag, if set, forces the restat in case we cached a _negative_
+ * information on the file (file did not exist before).
  *)
 val stat             : t -> Node.t -> digest
 val stat_set         : t -> NodeSet.t -> digest NodeTable.t
 val stat_table       : t -> 'b NodeTable.t -> digest NodeTable.t
-val stat_unix        : t -> Node.t -> Unix.LargeFile.stats
-val is_dir           : t -> Node.t -> bool
+val stat_unix        : t -> ?force:bool -> Node.t -> Unix.LargeFile.stats
+val is_dir           : t -> ?force:bool -> Node.t -> bool
 
 val reset            : t -> Node.t -> unit
 val reset_set        : t -> NodeSet.t -> unit
@@ -96,8 +98,8 @@ val stat_changed     : t -> Node.t -> bool
 (*
  * Check if a file exists.
  *)
-val exists           : t -> Node.t -> bool
-val exists_dir       : t -> Dir.t -> bool
+val exists           : t -> ?force:bool -> Node.t -> bool
+val exists_dir       : t -> ?force:bool -> Dir.t -> bool
 
 (*
  * Directory listings.  The Boolean in ls_path and ls_exe_path should
