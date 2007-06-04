@@ -178,7 +178,10 @@ struct
           | ".." ->
                dir_test_all_entries_exn absdir dir_handle
           | _ ->
-               try stat_with_toggle_case absdir name
+               try 
+                  let result = stat_with_toggle_case absdir name in
+                     Unix.closedir dir_handle;
+                     result
                with Not_found ->
                      dir_test_all_entries_exn absdir dir_handle
 
