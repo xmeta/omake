@@ -159,9 +159,9 @@ propagate information back to the outer scope.
 \section{Exporting the environment}
 \label{section:export}\index{export}
 The \verb+export+ directive can be used to propagate all or part of an inner scope back to its
-parent.  The \verb+export+ directive should be the last statement in a block.  If used without
+parent.  If used without
 arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
-part of the environment to propagate.  The most common usage is to export the definitions in a
+part of the environment to propagate.  The most common usage is to export some or all of the definitions in a
 conditional block.  In the following example, the variable \verb+B+ is bound to 2 after the
 conditional.  The \verb+A+ variable is not redefined.
 
@@ -208,7 +208,6 @@ will be exported, and the implicit rule will remain in the environment after the
 the variable \verb+TMP+ and the target \verb+tmp_phony+ will remain unchanged.
 
 \begin{verbatim}
-WANT_TO_EXPORT[] = A B .RULE
 section
    A = 1
    B = 2
@@ -221,10 +220,61 @@ section
 
    %.foo: %.bar tmp_phony
       compute_foo $(TMP) $< $@
-   export $(WANT_TO_EXPORT)
+   export A B .RULE
 \end{verbatim}
 
-\section{Eager evaluation}
+\subsection{Export regions}
+
+\textit{This feature was introduced in version 0.9.8.5.}
+
+The \verb+export+ directive does not need to occur at the end of a block.  An export is valid from
+the point where it is specified to the end of the block in which it is contained.  In other words,
+the export is used in the program that follows it.  This can be especially useful for reducing the
+amount of code you have to write.  In the following example, the variable \verb+CFLAGS+ is exported
+from the both branches of the conditional.
+
+\begin{verbatim}
+    export CFLAGS
+    if $(equal $(OSTYPE), Win32)
+        CFLAGS += /DWIN32
+    else
+        CFLAGS += -UWIN32
+\end{verbatim}
+
+\subsection{Returning values from exported regions}
+
+\textit{This feature was introduced in version 0.9.8.5.}
+
+The use of export does not affect the value returned by a block.  The value is computed as usual, as
+the value of the last statement in the block, ignoring the export.  For example, suppose we wish to
+implement a table that maps strings to unique integers.  Consider the following program.
+
+\begin{verbatim}
+    # Empty map
+    table = $(Map)
+
+    # Add an entry to the table
+    intern(s) =
+        export
+        if $(table.mem $s)
+            table.find($s)
+        else
+            private.i = $(table.length)
+            table = $(table.add $s, $i)
+            value $i
+
+    intern(foo)
+    intern(boo)
+    intern(moo)
+    # Prints "boo = 1"
+    println($"boo = $(intern boo)")
+\end{verbatim}
+%
+Given a string \verb+s+, the function \verb+intern+ returns either the value already associated with
+\verb+s+, or assigns a new value.  In the latter case, the table is updated with the new value.  The
+\verb+export+ at the beginning of the function means that the variable \verb+table+ is to be
+exported.  The bindings for \verb+s+ and \verb+i+ are not exported, because they are private.
+
 \label{section:eager}
 
 Evaluation in \Prog{omake} is eager.  That is, expressions are evaluated as soon as they are
