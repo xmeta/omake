@@ -6,8 +6,14 @@ OSX_TMP_INSTALL="$OSX_DIR/install"
 VERSION=`cat version.txt`
 VERSION_MAJOR=`cut -f 1 -d . version.txt`
 VERSION_MINOR=`cut -f 2 -d . version.txt`
+case `uname -p` in
+    powerpc)
+        ARCH=ppc;;
+    *)
+        ARCH=x86;;
+esac
 
-OMAKE_BASE=OMake-$VERSION
+OMAKE_BASE=OMake-$VERSION-$ARCH
 
 usage () {
     echo "Usage: $0 ( all | install | pkg | dmg | clean )"
