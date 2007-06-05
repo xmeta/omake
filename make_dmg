@@ -16,7 +16,7 @@ esac
 OMAKE_BASE=OMake-$VERSION-$ARCH
 
 usage () {
-    echo "Usage: $0 ( all | install | pkg | dmg | clean )"
+    echo "Usage: $0 ( all | install | pkg | dmg | clean | upload )"
     echo "   '$0 all' is equivalent to"
     echo "   '$0 install; $0 pkg; $0 dmg'"
     exit 1
@@ -63,6 +63,11 @@ clean () {
     
 }
 
+upload () {
+    set -x
+    scp $OMAKE_BASE.dmg mojave.caltech.edu:~mojave/public_html/download/omake/
+}
+
 if [ "$#" -lt "1" ]; then
     usage
 else
@@ -75,7 +80,7 @@ else
         install)
             mkinstall
             ;;
-        pkg|dmg|clean)
+        pkg|dmg|clean|upload)
             $1
             ;;
         *)
