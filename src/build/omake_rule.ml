@@ -939,6 +939,7 @@ and eval_subdir venv loc (kind, dir) commands export =
             else
                raise (OmakeException (pos, StringDirError ("directory does not exist", dir)))
    in
+   let cwd = venv_dir venv in
    let venv_body = venv_chdir_dir venv loc dir in
    let node = venv_intern venv_body PhonyProhibited makefile_name in
    let venv_body, result =
@@ -978,6 +979,7 @@ and eval_subdir venv loc (kind, dir) commands export =
       venv_add_dir venv_body;
       add_exports venv venv_body pos export
    in
+   let venv = venv_chdir_dir venv loc cwd in
       if debug print_rules then
          eprintf "@[<hv 3>Rules:%a@]@." pp_print_explicit_rules venv;
       venv
