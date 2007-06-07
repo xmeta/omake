@@ -1,26 +1,428 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Chapter 12,	Next: Section 12-1,	Prev: Section 11-1,	Up: Top
+Node: Subsection 12-1-7,	Next: Subsection 12-1-8,	Prev: Subsection 12-1-6,	Up: Section 12-1
   
 
-Chapter 12     Build functions and utilities
+12.1.7   Array
+==============
+
+  Parent objects: `Sequence'.
+  The `Array' is a random-access sequence. It provides the following
+additional methods.
+  
+  
+ - `$(s.nth <i>)': returns element `i' of the sequence. 
+ - `$(s.rev <i>)': returns the reversed sequence. 
+  
+
+Node: Subsection 12-1-8,	Next: Subsection 12-1-9,	Prev: Subsection 12-1-7,	Up: Section 12-1
+  
+
+12.1.8   String
+===============
+
+  Parent objects: `Array'. 
+
+Node: Subsection 12-1-9,	Next: Subsection 12-1-10,	Prev: Subsection 12-1-8,	Up: Section 12-1
+  
+
+12.1.9   Fun
+============
+
+  Parent objects: `Object'.
+  The `Fun' object provides the following methods. 
+  
+ - `$(f.arity)': the arity if the function. 
+   
+
+Node: Subsection 12-1-10,	Next: Subsection 12-1-11,	Prev: Subsection 12-1-9,	Up: Section 12-1
+  
+
+12.1.10   Rule
+==============
+
+  Parent objects: `Object'.
+  The `Rule' object represents a build rule. It does not currently have
+any methods. 
+
+Node: Subsection 12-1-11,	Next: Subsection 12-1-12,	Prev: Subsection 12-1-10,	Up: Section 12-1
+  
+
+12.1.11   Target
+================
+
+  Parent object: `Object'.
+  The `Target' object contains information collected for a specific
+target file.
+  
+  
+ - `target': the target file. 
+ - `effects': the files that may be modified by a side-effect when this
+   target is built. 
+ - `scanner_deps': static dependencies that must be built before this
+   target can be scanned. 
+ - `static-deps': statically-defined build dependencies of this target. 
+ - `build-deps': all the build dependencies for the target, including
+   static and scanned dependencies. 
+ - `build-values': all the value dependencies associated with the build.
+   
+ - `build-commands': the commands to build the target. 
+ - `output-file': if output was diverted to a file, with one of the
+   `--output-*' options A*Note Appendix A::, this field names
+   that file. Otherwise it is `false'. 
+  
+  The object supports the following methods.
+  
+  
+ - `find(file)': returns a Target object for the given file. Raises a
+   `RuntimeException' if the specified target is not part of the
+   project. 
+ - `find-optional(file)': returns a `Target' object for the given file,
+   or `false' if the file is not part of the project. 
+  
+  NOTE: the information for a target is constructed dynamically, so it
+is possible that the `Target' object for a node will contain different
+values in different contexts. The easiest way to make sure that the
+`Target' information is complete is to compute it within a rule body,
+where the rule depends on the target file, or the dependencies of the
+target file. 
+
+Node: Subsection 12-1-12,	Next: Subsection 12-1-13,	Prev: Subsection 12-1-11,	Up: Section 12-1
+  
+
+12.1.12   Node
+==============
+
+  Parent objects: `Object'.
+  The `Node' object is the parent object for files and directories. It
+supports the following operations. 
+  
+ - `$(node.stat)': returns a `stat' object for the file. If the file is
+   a symbolic link, the `stat' information is for the destination of the
+   link, not the link itself.
+ 
+ - `$(node.lstat)': returns a `stat' object for the file or symbolic
+   link. 
+ - `$(node.unlink)': removes the file. 
+ - `$(node.rename <file>)': renames the file. 
+ - `$(node.link <file>)': creates a hard link `<dst>' to this file. 
+ - `$(node.symlink <file>)': create a symbolic link `<dst>' to this
+   file. 
+ - `$(node.chmod <perm>)': change the permission of this file. 
+ - `$(node.chown <uid>, <gid>)': change the owner and group id of this
+   file. 
+   
+
+Node: Subsection 12-1-13,	Next: Subsection 12-1-14,	Prev: Subsection 12-1-12,	Up: Section 12-1
+  
+
+12.1.13   File
+==============
+
+  Parent objects: `Node'.
+  The file object represents the name of a file. 
+
+Node: Subsection 12-1-14,	Next: Subsection 12-1-15,	Prev: Subsection 12-1-13,	Up: Section 12-1
+  
+
+12.1.14   Dir
+=============
+
+  Parent objects: `Node'.
+  The `Dir' object represents the name of a directory. 
+
+Node: Subsection 12-1-15,	Next: Subsection 12-1-16,	Prev: Subsection 12-1-14,	Up: Section 12-1
+  
+
+12.1.15   Channel
+=================
+
+  Parent objects: `Object'.
+  A `Channel' is a generic IO channel. It provides the following
+methods. 
+  
+ - `$(o.close)': close the channel. 
+   
+
+Node: Subsection 12-1-16,	Next: Subsection 12-1-17,	Prev: Subsection 12-1-15,	Up: Section 12-1
+  
+
+12.1.16   InChannel
+===================
+
+  Parent objects: `Channel'.
+  A `InChannel' is an input channel. The variable `stdin' is the
+standard input channel.
+  It provides the following methods. 
+  
+ - `$(InChannel.fopen <file>)': open a new input channel. 
+ - `$(InChannel.of-string <string>)': open a new input channel, using a
+   string as input. 
+   
+
+Node: Subsection 12-1-17,	Next: Subsection 12-1-18,	Prev: Subsection 12-1-16,	Up: Section 12-1
+  
+
+12.1.17   OutChannel
+====================
+
+  Parent object: `Channel'.
+  A `OutChannel' is an output channel. The variables `stdout' and
+`stderr' are the standard output and error channels.
+  It provides the following methods. 
+  
+ - `$(OutChannel.fopen <file>)': open a new output channel. 
+ - `$(OutChannel.string)': open a new output channel, writing to a
+   string. 
+ - `$(OutChannel.to-string)': get the current string of output, for an
+   output channel created as `OutChannel.open-string'. 
+ - `$(OutChannel.append <file>)': opens a new output channel, appending
+   to the file. 
+ - `$(c.flush)': flush the output channel. 
+ - `$(c.print <string>)': print a string to the channel. 
+ - `$(c.println <string>)': print a string to the channel, followed by a
+   line terminator. 
+   
+
+Node: Subsection 12-1-18,	Next: Subsection 12-1-19,	Prev: Subsection 12-1-17,	Up: Section 12-1
+  
+
+12.1.18   Location
+==================
+
+  Parent objects: `Location'.
+  The `Location' object represents a location in a file. 
+
+Node: Subsection 12-1-19,	Next: Subsection 12-1-20,	Prev: Subsection 12-1-18,	Up: Section 12-1
+  
+
+12.1.19   Exception
+===================
+
+  Parent objects: `Object'.
+  The `Exception' object is used as the base object for exceptions. It
+has no fields. 
+
+Node: Subsection 12-1-20,	Next: Subsection 12-1-21,	Prev: Subsection 12-1-19,	Up: Section 12-1
+  
+
+12.1.20   RuntimeException
+==========================
+
+  Parent objects: `Exception'.
+  The `RuntimeException' object represents an exception from the runtime
+system. It has the following fields.
+  
+  
+ - `position': a string representing the location where the exception
+   was raised. 
+ - `message': a string containing the exception message. 
+   
+
+Node: Subsection 12-1-21,	Next: Subsection 12-1-22,	Prev: Subsection 12-1-20,	Up: Section 12-1
+  
+
+12.1.21   UnbuildableException
+==============================
+
+  Parent objects: `Exception'.
+  The `UnbuildableException' object should be used to signal that a
+target is not buildable. It will be caught by functions such as
+'target-exists'. This exception has the following fields:
+  
+  
+ - `target': indicates which target is not buildable. 
+ - `message': a string containing the exception message. 
+   
+
+Node: Subsection 12-1-22,	Next: Chapter 13,	Prev: Subsection 12-1-21,	Up: Section 12-1
+  
+
+12.1.22   Shell
+===============
+
+  Parent objects: `Object'.
+  The `Shell' object contains the collection of builtin functions
+available as shell commands.
+  You can define aliases by extending this object with additional
+methods. All methods in this class are called with one argument: a
+single array containing an argument list.
+  
+  
+ - `echo'
+ The `echo' function prints its arguments to the standard output
+   channel. 
+ - `jobs'
+ The `jobs' method prints the status of currently running commands. 
+ - `cd'
+ The `cd' function changes the current directory. Note that the current
+   directory follows the usual scoping rules. For example, the following
+   program lists the files in the `foo' directory, but the current
+   directory is not changed.
+   <<   section
+           echo Listing files in the foo directory...
+           cd foo
+           ls
+     
+        echo Listing files in the current directory...
+        ls
+   >>
+ 
+ - `bg'
+ The `bg' method places a job in the background. The job is resumed if
+   it has been suspended. 
+ - `fg'
+ The `fg' method brings a job to the foreground. The job is resumed if
+   it has been suspended. 
+ - `stop'
+ The `stop' method suspends a running job. 
+ - `wait'
+ The `wait' function waits for a running job to terminate. It is not
+   possible to wait for a suspended job.
+ The job is not brought to the foreground. If the `wait' is interrupted,
+   the job continues to run in the background. 
+ - `kill'
+ The `kill' function signal a job.
+ `kill [signal] <pid...>'.
+ The signals are either numeric, or symbolic. The symbolic signals are
+   named as follows.
+ ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1, USR2, CHLD, STOP,
+   TSTP, TTIN, TTOU, VTALRM, PROF. 
+ - `exit'
+ The `exit' function terminates the current session. 
+ - `which', `where'
+ See the documentation for the corresponding functions. 
+ - `rehash'
+ Reset the search path. 
+ - `ln-or-cp' src dst
+ Links or copies src to dst, overwriting dst. Namely, `ln-or-cp' would
+   first delete the dst file (unless it is a directory), if it exists.
+   Next it would try to create a symbolic link dst poiting to src (it
+   will make all the necessary adjustmnents of relative paths). If
+   symbolic link can not be created (e.g. the OS or the filesystem does
+   not support symbolic links), it will try to create a hard link. If
+   that fails too, it will try to forcibly copy src to dst. 
+ - `history'
+ Print the current command-line history. 
+ - `digest'
+ Print the digests of the given files. 
+ - Win32 functions.
+ Win32 doesn't provide very many programs for scripting, except for the
+   functions that are builtin to the DOS `cmd.exe'. The following
+   functions are defined on Win32 and only on Win32. On other systems,
+   it is expected that these programs already exist.
+ 
+     
+    - `grep'
+      <<   grep [-q] [-n] pattern files...
+      >>
+    
+    The `grep' function calls the omake `grep' function. 
+  
+ - Internal versions of standard system commands.
+ By default, omake uses internal versions of the following commands:
+   `cp', `mv', `cat', `rm', `mkdir', `chmod', `test', `find'. If you
+   really want to use the standard system versions of these commands,
+   set the `USE_SYSTEM_COMMANDS' as one of the first definitions in your
+   `OMakeroot' file.
+ 
+     
+    - `mkdir'
+      <<    mkdir [-m <mode>] [-p] files
+      >>
+    
+    The `mkdir' function is used to create directories. The -verb+-m+
+      option can be used to specify the permission mode of the created
+      directory. If the `-p' option is specified, the full path is
+      created. 
+    - `cp' 
+    - `mv'
+      <<    cp [-f] [-i] [-v] src dst
+            cp [-f] [-i] [-v] files dst
+            mv [-f] [-i] [-v] src dst
+            mv [-f] [-i] [-v] files dst
+      >>
+    
+    The `cp' function copies a `src' file to a `dst' file, overwriting
+      it if it already exists. If more than one source file is
+      specified, the final file must be a directory, and the source
+      files are copied into the directory.
+    
+        
+       -f  Copy files forcibly, do not prompt. 
+       -i  Prompt before removing destination files. 
+       -v  Explain what is happening. 
+     
+    - `rm'
+      <<   rm [-f] [-i] [-v] [-r] files
+           rmdir [-f] [-i] [-v] [-r] dirs
+      >>
+    
+    The `rm' function removes a set of files. No warnings are issued if
+      the files do not exist, or if they cannot be removed.
+    Options: 
+        
+       -f  Forcibly remove files, do not prompt. 
+       -i  Prompt before removal. 
+       -v  Explain what is happening. 
+       -r  Remove contents of directories recursively. 
+     
+    - `chmod'
+      <<    chmod [-r] [-v] [-f] mode files
+      >>
+    
+    The `chmod' function changes the permissions on a set of files or
+      directories. This function does nothing on Win32. The `mode' may
+      be specified as an octal number, or in symbolic form
+      `[ugoa]*['-=][rwxXstugo]+. See the man page for `chmod' for
+      details.
+    Options: 
+        
+       -r  Change permissions of all files in a directory recursively. 
+       -v  Explain what is happening. 
+       -f  Continue on errors. 
+     
+    - `cat'
+      <<   cat files...
+      >>
+    
+    The `cat' function prints the contents of the files to stdout 
+    - `test'
+    `test' expression
+     `[' expression +]+
+     `[ --help'
+     `[ --version'
+     See the documentation for the 'test' function.
+    
+    - `find'
+      <<   find \emph{expression}
+      >>
+    
+    See the documentation for the 'find' function.
+  
+   
+
+Node: Chapter 13,	Next: Section 13-1,	Prev: Section 12-1,	Up: Top
+  
+
+Chapter 13     Build functions and utilities
 ********************************************
      
 * Menu:
 
-* Section 12-1::	Builtin .PHONY targets
-* Section 12-2::	Options and versioning
-* Section 12-3::	Examining the dependency graph
-* Section 12-4::	The OMakeroot file
-* Section 12-5::	Building C and C++ code
-* Section 12-6::	Building OCaml code
-* Section 12-7::	Building LaTeX files
+* Section 13-1::	Builtin .PHONY targets
+* Section 13-2::	Options and versioning
+* Section 13-3::	Examining the dependency graph
+* Section 13-4::	The OMakeroot file
+* Section 13-5::	Building C and C++ code
+* Section 13-6::	Building OCaml code
+* Section 13-7::	Building LaTeX files
 
 
-Node: Section 12-1,	Next: Section 12-2,	Prev: Chapter 12,	Up: Chapter 12
+Node: Section 13-1,	Next: Section 13-2,	Prev: Chapter 13,	Up: Chapter 13
   
 
-12.1   Builtin .PHONY targets
+13.1   Builtin .PHONY targets
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -28,16 +430,16 @@ Node: Section 12-1,	Next: Section 12-2,	Prev: Chapter 12,	Up: Chapter 12
   
   
  .PHONY  Declares new phony targets (Section
-   7.10*Note Section 7-10::). 
+   8.10*Note Section 8-10::). 
  .DEFAULT  Declare the default build targets (Section
-   7.7*Note Section 7-7::). 
+   8.7*Note Section 8-7::). 
  .SUBDIRS  Include a directory as part of the project (Section
-   7.8*Note Section 7-8::). 
+   8.8*Note Section 8-8::). 
  .SCANNER  Define a dependency scanner (Section
-   7.8*Note Section 7-8::). 
- .INCLUDE  Include a file (Section 7.9*Note Section 7-9::). 
+   8.8*Note Section 8-8::). 
+ .INCLUDE  Include a file (Section 8.9*Note Section 8-9::). 
  .ORDER  Define a file-dependency ordering rule (Section
-   9.3.6*Note Subsection 9-3-6::). 
+   10.3.6*Note Subsection 10-3-6::). 
  .BUILD_BEGIN  Commands to be executed at the beginning of a build. 
  .BUILD_SUCCESS  Commands to be executed if the build is successful. 
  .BUILD_FAILURE  Commands to be executed if the build fails. 
@@ -81,25 +483,25 @@ copied to a file. The name of the file is specified by the `output-file'
 field of the 'Target' object. You may find this useful in defining
 custom build summaries. 
 
-Node: Section 12-2,	Next: Subsection 12-2-1,	Prev: Section 12-1,	Up: Chapter 12
+Node: Section 13-2,	Next: Subsection 13-2-1,	Prev: Section 13-1,	Up: Chapter 13
   
 
-12.2   Options and versioning
+13.2   Options and versioning
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 12-2-1::	OMakeFlags
-* Subsection 12-2-2::	OMakeVersion
-* Subsection 12-2-3::	cmp-versions
-* Subsection 12-2-4::	DefineCommandVars
+* Subsection 13-2-1::	OMakeFlags
+* Subsection 13-2-2::	OMakeVersion
+* Subsection 13-2-3::	cmp-versions
+* Subsection 13-2-4::	DefineCommandVars
 
 
-Node: Subsection 12-2-1,	Next: Subsection 12-2-2,	Prev: Section 12-2,	Up: Section 12-2
+Node: Subsection 13-2-1,	Next: Subsection 13-2-2,	Prev: Section 13-2,	Up: Section 13-2
   
 
-12.2.1   OMakeFlags
+13.2.1   OMakeFlags
 ===================
 
 <<   OMakeFlags(options)
@@ -116,10 +518,10 @@ command line.
           export
 >>
 
-Node: Subsection 12-2-2,	Next: Subsection 12-2-3,	Prev: Subsection 12-2-1,	Up: Section 12-2
+Node: Subsection 13-2-2,	Next: Subsection 13-2-3,	Prev: Subsection 13-2-1,	Up: Section 13-2
   
 
-12.2.2   OMakeVersion
+13.2.2   OMakeVersion
 =====================
 
 <<   OMakeVersion(version1)
@@ -133,10 +535,10 @@ OMakefiles. It takes one or two arguments.
 `<version1>', then an exception is raised. In the two argument form, the
 version must lie between `version1' and `version2'.
 
-Node: Subsection 12-2-3,	Next: Subsection 12-2-4,	Prev: Subsection 12-2-2,	Up: Section 12-2
+Node: Subsection 13-2-3,	Next: Subsection 13-2-4,	Prev: Subsection 13-2-2,	Up: Section 13-2
   
 
-12.2.3   cmp-versions
+13.2.3   cmp-versions
 =====================
  
 <<   $(cmp-versions version1, version2)
@@ -148,10 +550,10 @@ strings. It returns 0 when the two version strings are equal, a negative
 number when the first string represents an earlier version, and a
 positive number otherwise. 
 
-Node: Subsection 12-2-4,	Next: Section 12-3,	Prev: Subsection 12-2-3,	Up: Section 12-2
+Node: Subsection 13-2-4,	Next: Section 13-3,	Prev: Subsection 13-2-3,	Up: Section 13-2
   
 
-12.2.4   DefineCommandVars
+13.2.4   DefineCommandVars
 ==========================
 
 <<   DefineCommandVars()
@@ -162,29 +564,30 @@ commandline. Variables definitions are passed on the command line in the
 form `name=value'. This function is primarily for internal use by omake
 to define these variables for the first time. 
 
-Node: Section 12-3,	Next: Subsection 12-3-1,	Prev: Section 12-2,	Up: Chapter 12
+Node: Section 13-3,	Next: Subsection 13-3-1,	Prev: Section 13-2,	Up: Chapter 13
   
 
-12.3   Examining the dependency graph
+13.3   Examining the dependency graph
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 12-3-1::	dependencies, dependencies-all, dependencies-proper
-* Subsection 12-3-2::	target
-* Subsection 12-3-3::	find-build-targets
-* Subsection 12-3-4::	project-directories
-* Subsection 12-3-5::	rule
+* Subsection 13-3-1::	dependencies, dependencies-all, dependencies-proper
+* Subsection 13-3-2::	target
+* Subsection 13-3-3::	find-build-targets
+* Subsection 13-3-4::	project-directories
+* Subsection 13-3-5::	rule
+* Subsection 13-3-6::	build
 
 
-Node: Subsection 12-3-1,	Next: Subsection 12-3-2,	Prev: Section 12-3,	Up: Section 12-3
+Node: Subsection 13-3-1,	Next: Subsection 13-3-2,	Prev: Section 13-3,	Up: Section 13-3
   
 
-12.3.1   dependencies, dependencies-all, dependencies-proper
+13.3.1   dependencies, dependencies-all, dependencies-proper
 ============================================================
 \@na
-me{@default361}
+me{@default365}
 <<   $(dependencies targets) : File Array
      $(dependencies-all targets) : File Array
      $(dependencies-proper targets) : File Array
@@ -206,7 +609,7 @@ that has no dependencies and no build commands; a leaf target
 corresponds to a source file in the current project.
   In all three functions, files that are not part of the current project
 are silently discarded. All three functions will return phony and
-scanner targets along with the  "real" ones.
+scanner targets along with the "real" ones.
   One purpose of the `dependencies-proper' function is for "clean"
 targets. For example, one way to delete all intermediate files in a
 build is with a rule that uses the `dependencies-proper'. Note however,
@@ -221,13 +624,13 @@ that the rule requires building the project before it can be deleted.
   Also note that the `dependencies-proper' function will return the
 phony and scanner targets in addition to real one.
   For other (possibly better) alternatives, see Section
-9.3.3*Note Subsection 9-3-3:: and 'filter-proper-targets'
+10.3.3*Note Subsection 10-3-3:: and 'filter-proper-targets'
 function. 
 
-Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: Section 12-3
+Node: Subsection 13-3-2,	Next: Subsection 13-3-3,	Prev: Subsection 13-3-1,	Up: Section 13-3
   
 
-12.3.2   target
+13.3.2   target
 ===============
  
 <<   $(target targets) : Target Array
@@ -238,10 +641,10 @@ Node: Subsection 12-3-2,	Next: Subsection 12-3-3,	Prev: Subsection 12-3-1,	Up: S
   The `target' function returns the Target object associated with each
 of the targets. See the `Target' object for more information. 
 
-Node: Subsection 12-3-3,	Next: Subsection 12-3-4,	Prev: Subsection 12-3-2,	Up: Section 12-3
+Node: Subsection 13-3-3,	Next: Subsection 13-3-4,	Prev: Subsection 13-3-2,	Up: Section 13-3
   
 
-12.3.3   find-build-targets
+13.3.3   find-build-targets
 ===========================
 
 <<    $(find-build-targets tag) : Target Array
@@ -257,8 +660,8 @@ comparison is case-insensitive.
  Failed  The list of targets that could not be built. 
   
   These are used mainly in conjuction with the `.BUILD_SUCCESS' (Section
-12.1*Note Section 12-1::) and `.BUILD_FAILURE' (Section
-12.1*Note Section 12-1::) phony targets. For example,
+13.1*Note Section 13-1::) and `.BUILD_FAILURE' (Section
+13.1*Note Section 13-1::) phony targets. For example,
 adding the following to your project `OMakefile' will print the number
 of targets that failed (if the build failed).
 <<    .BUILD_FAILURE:
@@ -266,10 +669,10 @@ of targets that failed (if the build failed).
 Failed))"
 >>
 
-Node: Subsection 12-3-4,	Next: Subsection 12-3-5,	Prev: Subsection 12-3-3,	Up: Section 12-3
+Node: Subsection 13-3-4,	Next: Subsection 13-3-5,	Prev: Subsection 13-3-3,	Up: Section 13-3
   
 
-12.3.4   project-directories
+13.3.4   project-directories
 ============================
 
 <<   $(project-directories) : Dir Array
@@ -280,10 +683,10 @@ that are considered to be part of the project.
   To get the complete directory list, this function should be called
 from within a rule body. 
 
-Node: Subsection 12-3-5,	Next: Section 12-4,	Prev: Subsection 12-3-4,	Up: Section 12-3
+Node: Subsection 13-3-5,	Next: Subsection 13-3-6,	Prev: Subsection 13-3-4,	Up: Section 13-3
   
 
-12.3.5   rule
+13.3.5   rule
 =============
 
   The `rule' function is called whenever a build rule is defined. It is
@@ -324,12 +727,23 @@ brackets are used to indicate arrays, and the curly brackets represent a
           { $|:name1:| = option1; $|:name2:| = option2 }
           [expr1; expr2])
 >>
-   
 
-Node: Section 12-4,	Next: Subsection 12-4-1,	Prev: Section 12-3,	Up: Chapter 12
+Node: Subsection 13-3-6,	Next: Section 13-4,	Prev: Subsection 13-3-5,	Up: Section 13-3
   
 
-12.4   The OMakeroot file
+13.3.6   build
+==============
+
+<<    build(targets : File Array) : bool
+>>
+  
+  Build the given targets. The value is true iff the build was
+successful. This function can be used only in `osh'.  
+
+Node: Section 13-4,	Next: Subsection 13-4-1,	Prev: Section 13-3,	Up: Chapter 13
+  
+
+13.4   The OMakeroot file
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
    
@@ -337,14 +751,14 @@ Node: Section 12-4,	Next: Subsection 12-4-1,	Prev: Section 12-3,	Up: Chapter 12
 building standard projects.
 * Menu:
 
-* Subsection 12-4-1::	Variables
-* Subsection 12-4-2::	System variables
+* Subsection 13-4-1::	Variables
+* Subsection 13-4-2::	System variables
 
 
-Node: Subsection 12-4-1,	Next: Subsection 12-4-2,	Prev: Section 12-4,	Up: Section 12-4
+Node: Subsection 13-4-1,	Next: Subsection 13-4-2,	Prev: Section 13-4,	Up: Section 13-4
   
 
-12.4.1   Variables
+13.4.1   Variables
 ==================
    
  ROOT
@@ -377,10 +791,10 @@ of four values (defaults to `enabled').
    `.SCANNER' rule, the build will terminate abnormally. 
    
 
-Node: Subsection 12-4-2,	Next: Section 12-5,	Prev: Subsection 12-4-1,	Up: Section 12-4
+Node: Subsection 13-4-2,	Next: Section 13-5,	Prev: Subsection 13-4-1,	Up: Section 13-4
   
 
-12.4.2   System variables
+13.4.2   System variables
 =========================
   
  INSTALL
@@ -405,10 +819,10 @@ Node: Subsection 12-4-2,	Next: Section 12-5,	Prev: Subsection 12-4-1,	Up: Sectio
  File suffix for executables (default
 is empty for `Unix', and `.exe' on `Win32' and `Cygwin'). 
 
-Node: Section 12-5,	Next: Subsection 12-5-1,	Prev: Section 12-4,	Up: Chapter 12
+Node: Section 13-5,	Next: Subsection 13-5-1,	Prev: Section 13-4,	Up: Chapter 13
   
 
-12.5   Building C and C++ code
+13.5   Building C and C++ code
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -420,16 +834,16 @@ sure the line
   is present in your `OMakeroot' file.
 * Menu:
 
-* Subsection 12-5-1::	Autoconfiguration variables
-* Subsection 12-5-2::	C and C++ configuration variables
-* Subsection 12-5-3::	Generated C files
-* Subsection 12-5-4::	Building C programs and Libraries
+* Subsection 13-5-1::	Autoconfiguration variables
+* Subsection 13-5-2::	C and C++ configuration variables
+* Subsection 13-5-3::	Generated C files
+* Subsection 13-5-4::	Building C programs and Libraries
 
 
-Node: Subsection 12-5-1,	Next: Subsection 12-5-2,	Prev: Section 12-5,	Up: Section 12-5
+Node: Subsection 13-5-1,	Next: Subsection 13-5-2,	Prev: Section 13-5,	Up: Section 13-5
   
 
-12.5.1   Autoconfiguration variables
+13.5.1   Autoconfiguration variables
 ====================================
    These variables will get defined based on the "autoconf-style"
 `static.' tests executed when you run OMake for the first time. You can
@@ -444,7 +858,7 @@ in a `Win32' environment, and another --- in a Unix-like environment
 (including Linux, OS X and Cygwin).
   
 
-12.5.1.1   Unix-like systems
+13.5.1.1   Unix-like systems
 ----------------------------
    
  GCC_FOUND
@@ -455,7 +869,7 @@ in a `Win32' environment, and another --- in a Unix-like environment
 `g++' binary was found in your path.
   
 
-12.5.1.2   Win32
+13.5.1.2   Win32
 ----------------
    
  CL_FOUND
@@ -465,10 +879,10 @@ in a `Win32' environment, and another --- in a Unix-like environment
  A boolean flag specifying whether the
 `lib' binary was found in your path.
 
-Node: Subsection 12-5-2,	Next: Subsection 12-5-3,	Prev: Subsection 12-5-1,	Up: Section 12-5
+Node: Subsection 13-5-2,	Next: Subsection 13-5-3,	Prev: Subsection 13-5-1,	Up: Section 13-5
   
 
-12.5.2   C and C++ configuration variables
+13.5.2   C and C++ configuration variables
 ==========================================
   
   The following variables can be redefined in your project.
@@ -531,16 +945,16 @@ generator (default is `yacc' on `Unix', empty on `Win32').
  The name of the `lex' lexer generator
 (default is `lex' on `Unix', empty on `Win32'). 
 
-Node: Subsection 12-5-3,	Next: Subsection 12-5-4,	Prev: Subsection 12-5-2,	Up: Section 12-5
+Node: Subsection 13-5-3,	Next: Subsection 13-5-4,	Prev: Subsection 13-5-2,	Up: Section 13-5
   
 
-12.5.3   Generated C files
+13.5.3   Generated C files
 ==========================
    Because the C scanners do not normally know anything about generated
 source files (such as generated header files), these files may need to
 be created before running the scanner.
 
-12.5.3.1   CGeneratedFiles, LocalCGeneratedFiles
+13.5.3.1   CGeneratedFiles, LocalCGeneratedFiles
 ------------------------------------------------
  
 <<CGeneratedFiles(files)
@@ -559,14 +973,14 @@ generated before any C files anywhere in the project are scanned for
 dependencies. The `LocalCGeneratedFiles' function follows the normal
 scoping rules of OMake.
 
-Node: Subsection 12-5-4,	Next: Section 12-6,	Prev: Subsection 12-5-3,	Up: Section 12-5
+Node: Subsection 13-5-4,	Next: Section 13-6,	Prev: Subsection 13-5-3,	Up: Section 13-5
   
 
-12.5.4   Building C programs and Libraries
+13.5.4   Building C programs and Libraries
 ==========================================
 
 
-12.5.4.1   StaticCLibrary
+13.5.4.1   StaticCLibrary
 -------------------------
 
   The `StaticCLibrary' builds a static library.
@@ -583,7 +997,7 @@ list does not include the object suffix. These are obtained from the
 >>
   
 
-12.5.4.2   StaticCLibraryCopy
+13.5.4.2   StaticCLibraryCopy
 -----------------------------
 
   The `StaticCLibraryCopy' function copies the static library to an
@@ -602,7 +1016,7 @@ directory.
 >>
   
 
-12.5.4.3   StaticCLibraryInstall
+13.5.4.3   StaticCLibraryInstall
 --------------------------------
 
   The `StaticCLibraryInstall' function builds a library, and sets the
@@ -613,15 +1027,15 @@ the target directory.
 >>
   
 
-12.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
+13.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
 \@na
-me{@default408}
+me{@default413}
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
 
-12.5.4.5   CProgram
+13.5.4.5   CProgram
 -------------------
 
   The `CProgram' function builds a C program from a set of object files
@@ -646,7 +1060,7 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 >>
   
 
-12.5.4.6   CProgramCopy
+13.5.4.6   CProgramCopy
 -----------------------
 
   The `CProgramCopy' function copies a file to an install location.
@@ -655,7 +1069,7 @@ be produced by linking the files `bar.o' and `baz.o' and libraries
 >>
   
 
-12.5.4.7   CProgramInstall
+13.5.4.7   CProgramInstall
 --------------------------
 
   The `CProgramInstall' function specifies a program to build, and a
@@ -668,27 +1082,27 @@ location to install, simultaneously.
 >>
   
 
-12.5.4.8   CXXProgram, CXXProgramInstall
+13.5.4.8   CXXProgram, CXXProgramInstall
 ----------------------------------------
 
   The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
 their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
 for linking instead of `$(CC)' and `$(CFLAGS)'.
 
-12.5.4.9   StaticCXXLibrary, StaticCXXLibraryCopy,
+13.5.4.9   StaticCXXLibrary, StaticCXXLibraryCopy,
 --------------------------------------------------
 StaticCXXLibraryInstall
 -----------------------
 \@na
-me{@default416}
+me{@default421}
   Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
 `StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
 `StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
 
-Node: Section 12-6,	Next: Subsection 12-6-1,	Prev: Section 12-5,	Up: Chapter 12
+Node: Section 13-6,	Next: Subsection 13-6-1,	Prev: Section 13-5,	Up: Chapter 13
   
 
-12.6   Building OCaml code
+13.6   Building OCaml code
 *=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -701,18 +1115,18 @@ line
   is present in your `OMakeroot' file.
 * Menu:
 
-* Subsection 12-6-1::	Autoconfiguration variables for OCaml compilation
-* Subsection 12-6-2::	Configuration variables for OCaml compilation
-* Subsection 12-6-3::	OCaml command flags
-* Subsection 12-6-4::	Library variables
-* Subsection 12-6-5::	Generated OCaml Files
-* Subsection 12-6-6::	Using the Menhir parser generator
+* Subsection 13-6-1::	Autoconfiguration variables for OCaml compilation
+* Subsection 13-6-2::	Configuration variables for OCaml compilation
+* Subsection 13-6-3::	OCaml command flags
+* Subsection 13-6-4::	Library variables
+* Subsection 13-6-5::	Generated OCaml Files
+* Subsection 13-6-6::	Using the Menhir parser generator
 
 
-Node: Subsection 12-6-1,	Next: Subsection 12-6-2,	Prev: Section 12-6,	Up: Section 12-6
+Node: Subsection 13-6-1,	Next: Subsection 13-6-2,	Prev: Section 13-6,	Up: Section 13-6
   
 
-12.6.1   Autoconfiguration variables for OCaml compilation
+13.6.1   Autoconfiguration variables for OCaml compilation
 ==========================================================
    These variables will get defined based on the "autoconf-style" tests
 executed when you run OMake for the first time. You can use them to
@@ -733,10 +1147,10 @@ understands the `-modules' option is available on your machine.
  True when the Menhir parser-generator
 is available on your machine.
 
-Node: Subsection 12-6-2,	Next: Subsection 12-6-3,	Prev: Subsection 12-6-1,	Up: Section 12-6
+Node: Subsection 13-6-2,	Next: Subsection 13-6-3,	Prev: Subsection 13-6-1,	Up: Section 13-6
   
 
-12.6.2   Configuration variables for OCaml compilation
+13.6.2   Configuration variables for OCaml compilation
 ======================================================
   
   The following variables can be redefined in your project. 
@@ -779,7 +1193,7 @@ ocamldep-omake -modules' works, and empty when neither works).
 traditional `make'-style fashion, run `$(OCAMLDEP_MODULES) -modules' and
 then postprocess the output internally to discover all the relevant
 generated `.ml' and `.mli' files. See Section
-12.6.5*Note Subsection 12-6-5:: for more information on
+13.6.5*Note Subsection 13-6-5:: for more information on
 interactions between OMake, `OCAMLDEP' and generated files. Set to
 `$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
  OCAMLMKTOP
@@ -817,10 +1231,10 @@ at least one should be set to true.
  Define this as `true' if you wish to
 use `menhir' instead of `ocamlyacc' (default `false'). 
 
-Node: Subsection 12-6-3,	Next: Subsection 12-6-4,	Prev: Subsection 12-6-2,	Up: Section 12-6
+Node: Subsection 13-6-3,	Next: Subsection 13-6-4,	Prev: Subsection 13-6-2,	Up: Section 13-6
   
 
-12.6.3   OCaml command flags
+13.6.3   OCaml command flags
 ============================
   
   The following variables specify additional options to be passed to the
@@ -850,10 +1264,10 @@ linker (default empty).
  MENHIR_FLAGS
  Additional flags to pass to `menhir'. 
 
-Node: Subsection 12-6-4,	Next: Subsection 12-6-5,	Prev: Subsection 12-6-3,	Up: Section 12-6
+Node: Subsection 13-6-4,	Next: Subsection 13-6-5,	Prev: Subsection 13-6-3,	Up: Section 13-6
   
 
-12.6.4   Library variables
+13.6.4   Library variables
 ==========================
   
   The following variables are used during linking.
@@ -877,10 +1291,10 @@ in as the `<files>' argument. However, this variable is set to `true',
 the order of the files passed into these function will be left as is,
 but OMake will abort with an error message if the order is illegal.
 
-Node: Subsection 12-6-5,	Next: Subsection 12-6-6,	Prev: Subsection 12-6-4,	Up: Section 12-6
+Node: Subsection 13-6-5,	Next: Subsection 13-6-6,	Prev: Subsection 13-6-4,	Up: Section 13-6
   
 
-12.6.5   Generated OCaml Files
+13.6.5   Generated OCaml Files
 ==============================
     As of OCaml version 3.09.2, the
 standard `ocamldep' scanner is "broken". The main issue is that it finds
@@ -903,7 +1317,7 @@ specifications are expected and when it is true, the automated discovery
 will be attempted.
   
 
-12.6.5.1   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
+13.6.5.1   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
 --------------------------------------------------------
  
 <<OCamlGeneratedFiles(files)
@@ -926,7 +1340,7 @@ scoping rules of OMake.
 variable is true.
   
 
-12.6.5.2   Automatic discovery of generated files during dependency
+13.6.5.2   Automatic discovery of generated files during dependency
 -------------------------------------------------------------------
 analysis
 --------
@@ -943,10 +1357,10 @@ and 'OCAMLDEP_MODULES' variables will be set accordingly.
   By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
 `$(OCAMLDEP_MODULES_AVAILABLE)'. 
 
-Node: Subsection 12-6-6,	Next: Section 12-7,	Prev: Subsection 12-6-5,	Up: Section 12-6
+Node: Subsection 13-6-6,	Next: Section 13-7,	Prev: Subsection 13-6-5,	Up: Section 13-6
   
 
-12.6.6   Using the Menhir parser generator
+13.6.6   Using the Menhir parser generator
 ==========================================
   
   Menhir is a parser generator that is mostly compatible with
@@ -994,7 +1408,7 @@ you would use the following.
 >>
   
 
-12.6.6.1   OCamlLibrary
+13.6.6.1   OCamlLibrary
 -----------------------
 
   The `OCamlLibrary' function builds an OCaml library.
@@ -1010,7 +1424,7 @@ from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
 >>
   
 
-12.6.6.2   OCamlPackage
+13.6.6.2   OCamlPackage
 -----------------------
 
   The `OCamlPackage' function builds an OCaml package.
@@ -1028,7 +1442,7 @@ is set).
 >>
   
 
-12.6.6.3   OCamlLibraryCopy
+13.6.6.3   OCamlLibraryCopy
 ---------------------------
 
   The `OCamlLibraryCopy' function copies a library to an install
@@ -1037,14 +1451,14 @@ location.
   The `<interface-files>' specify additional interface files to be
 copied if the `INSTALL_INTERFACES' variable is true.
 
-12.6.6.4   OCamlLibraryInstall
+13.6.6.4   OCamlLibraryInstall
 ------------------------------
 
   The `OCamlLibraryInstall' function builds a library and copies it to
 an install location in one step.
   `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
 
-12.6.6.5   OCamlProgram
+13.6.6.5   OCamlProgram
 -----------------------
 
   The `OCamlProgram' function builds an OCaml program. It returns the
@@ -1065,7 +1479,7 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
  'OCAML_LINK_FLAGS'  Flags to pass to both linkers. 
 
 
-12.6.6.6   OCamlProgramCopy
+13.6.6.6   OCamlProgramCopy
 ---------------------------
 
   The `OCamlProgramCopy' function copies an OCaml program to an install
@@ -1078,17 +1492,17 @@ location.
    is copied. 
 
 
-12.6.6.7   OCamlProgramInstall
+13.6.6.7   OCamlProgramInstall
 ------------------------------
 
   The `OCamlProgramInstall' function builds a programs and copies it to
 an install location in one step.
   `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
 
-Node: Section 12-7,	Next: Subsection 12-7-1,	Prev: Section 12-6,	Up: Chapter 12
+Node: Section 13-7,	Next: Subsection 13-7-1,	Prev: Section 13-6,	Up: Chapter 13
   
 
-12.7   Building LaTeX files
+13.7   Building LaTeX files
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1101,400 +1515,6 @@ to make sure the line
   is present in your `OMakeroot' file.
 * Menu:
 
-* Subsection 12-7-1::	Configuration variables
-* Subsection 12-7-2::	Building LaTeX documents
+* Subsection 13-7-1::	Configuration variables
+* Subsection 13-7-2::	Building LaTeX documents
 
-
-Node: Subsection 12-7-1,	Next: Subsection 12-7-2,	Prev: Section 12-7,	Up: Section 12-7
-  
-
-12.7.1   Configuration variables
-================================
-  
-  The following variables can be modified in your project. 
- LATEX
- The LaTeX command (default `latex'). 
- TETEX2_ENABLED
- Flag indicating whether to use
-advanced LaTeX options present in TeTeX v.2 (default value is determined
-the first time omake reads `LaTeX.src' and depends on the version of
-LaTeX you have installed). 
- LATEXFLAGS
- The LaTeX flags (defaults depend on
-the `TETEX2_ENABLED' variable) 
- BIBTEX
- The BibTeX command (default `bibtex').
- MAKEINDEX
- The command to build an index
-(default `makeindex'). 
- DVIPS
- The `.dvi' to PostScript converter
-(default `dvips'). 
- DVIPSFLAGS
- Flags to pass to `dvips' (default `-t
-letter'). 
- DVIPDFM
- The `.dvi' to `.pdf' converter
-(default `dvipdfm'). 
- DVIPDFMFLAGS
- Flags to pass to `dvipdfm' (default
-`-p letter'). 
- PDFLATEX
- The `.latex' to `.pdf' converter
-(default `pdflatex'). 
- PDFLATEXFLAGS
- Flags to pass to pdflatex (default is
-`$`(LATEXFLAGS)'). 
- USEPDFLATEX
- Flag indicating whether to use
-pdflatex instead of dvipdfm to generate the `.pdf' document (default
-`false'). 
-
-Node: Subsection 12-7-2,	Next: Chapter 13,	Prev: Subsection 12-7-1,	Up: Section 12-7
-  
-
-12.7.2   Building LaTeX documents
-=================================
-
-
-12.7.2.1   LaTeXDocument
-------------------------
-
-  The `LaTeXDocument' produces a LaTeX document.
-  `LaTeXDocument(<name>, <texfiles>)'
-  The document `<name>' and `<texfiles>' are listed without suffixes.
-This function returns the filenames for the generated `.ps' and `.pdf'
-files.
-  Additional variables used: 
- TEXINPUTS
- The LaTeX search path (an array of
-directories, default is taken from the `TEXINPUTS' environment
-variable). 
- TEXDEPS
- Additional files this document
-depends on. 
- TEXVARS
- An array of names of the environment
-variables that are to be updated based on the value of OMake's
-`TEXINPUTS' variable. Defaults to `TEXINPUTS' `BIBINPUTS' `BSTINPUTS'.
-
-12.7.2.2   TeXGeneratedFiles, LocalTeXGeneratedFiles
-----------------------------------------------------
- 
-<<TeXGeneratedFiles(files)
-  LocalTeXGeneratedFiles(files)
->>
-  
-  The `TeXGeneratedFiles' and `LocalTeXGeneratedFiles' functions specify
-files that need to be generated before any LaTeXfiles are scanned for
-dependencies. For example, if `config.tex' and `inputs.tex' are both
-generated files, specify: 
-<<    TeXGeneratedFiles(config.tex inputs.tex)
->>
-  
-  The `TeXGeneratedFiles' function is global --- its arguments will be
-generated before any TeX files anywhere in the project are scanned for
-dependencies. The `LocalTeXGeneratedFiles' function follows the normal
-scoping rules of OMake.
-  
-
-12.7.2.3   LaTeXDocumentCopy
-----------------------------
-
-  The `LaTeXDocumentCopy' copies the document to an install location.
-  `LaTeXDocumentCopy(<tag>, <libdir>, <installname>, <docname>)'
-  This function copies just the `.pdf' and `.ps' files.
-
-12.7.2.4   LaTeXDocumentInstall
--------------------------------
-
-  The `LaTeXDocumentInstall' builds a document and copies it to an
-install location in one step.
-  `LaTeXDocumentInstall(<tag>, <libdir>, <installname>, <docname>,
-<files>)'  
-
-Node: Chapter 13,	Next: Section 13-1,	Prev: Section 12-7,	Up: Top
-  
-
-Chapter 13     Autoconfiguration functions and variables
-********************************************************
-     OMake standard library provides a number of
-functions and variables intended to help one write build specifications
-that need to be capable of autoconfiguring itself to adjust to different
-build environments.
-* Menu:
-
-* Section 13-1::	General-purpose autoconfiguration functions
-* Section 13-2::	Translating 'autoconf' scripts
-* Section 13-3::	Predefined configuration tests
-
-
-Node: Section 13-1,	Next: Subsection 13-1-1,	Prev: Chapter 13,	Up: Chapter 13
-  
-
-13.1   General-purpose autoconfiguration functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-   The following general-purpose functions can be used to discover the
-properties of your build environment in a fashion similar to the one
-used by GNU autoconf tool you may be familiar with. It is recommended
-that these function be used from an appropriate `static.' block (see
-Section 4.18*Note Section 4-18:: for more information).
-  In order to use the following general-purpose functions, you need to
-have the line 
-<<open configure/Configure
->>
-  included in your `OMakefile' or `OMakeroot'. 
-* Menu:
-
-* Subsection 13-1-1::	ConfMsgChecking, ConfMsgResult
-* Subsection 13-1-2::	ConfMsgWarn, ConfMsgError
-* Subsection 13-1-3::	ConfMsgYesNo, ConfMsgFound
-* Subsection 13-1-4::	TryCompileC, TryLinkC, TryRunC
-* Subsection 13-1-5::	RunCProg
-* Subsection 13-1-6::	CheckCHeader, VerboseCheckCHeader
-* Subsection 13-1-7::	CheckCLib, VerboseCheckCLib
-* Subsection 13-1-8::	CheckProg
-
-
-Node: Subsection 13-1-1,	Next: Subsection 13-1-2,	Prev: Section 13-1,	Up: Section 13-1
-  
-
-13.1.1   ConfMsgChecking, ConfMsgResult
-=======================================
- 
-<<ConfMsgChecking(<msg>)
-  ...
-  ConfMsgResult(<msg>)
->>
-  The `ConfMsgChecking' function output message of the form `---
-Checking <msg>... ' without any trailing newline. After the test
-advertized by `ConfMsgChecking' is performed, the `ConfMsgResult'
-function should be used to output the result.
-  In certain cases users may want to redefine these function --- for
-example, to use a different output formatting and/or to copy the
-messages to a log file.
-  Example: 
-<<static. =
-     ConfMsgChecking(which foo to use)
-     foo = ...
-     ConfMsgResult($(foo))
->>
-
-Node: Subsection 13-1-2,	Next: Subsection 13-1-3,	Prev: Subsection 13-1-1,	Up: Section 13-1
-  
-
-13.1.2   ConfMsgWarn, ConfMsgError
-==================================
- 
-<<ConfMsgWarn(<msg>)
-  ConfMsgError(<msg>)
->>
-  
-  Print a warning or an error message respectively. `ConfMsgError' would
-then abort OMake. 
-
-Node: Subsection 13-1-3,	Next: Subsection 13-1-4,	Prev: Subsection 13-1-2,	Up: Section 13-1
-  
-
-13.1.3   ConfMsgYesNo, ConfMsgFound
-===================================
- 
-<<flag = $(ConfMsgYesNo <bool expr>
-  flag = $(ConfMsgFound <bool expr>
->>
-  
-  The `ConfMsgFound' function expects to receive a boolean flag
-describing whether a test previously announced using the
-'ConfMsgChecking' function found what it was looking for. `ConfMsgFound'
-will output the appropriate result ("found" or "NOT found") using the
-'ConfMsgResult' function and return its argument back.
-  The `ConfMsgYesNo' function is similar, outputting a simple ("yes" or
-"NO"). 
-
-Node: Subsection 13-1-4,	Next: Subsection 13-1-5,	Prev: Subsection 13-1-3,	Up: Section 13-1
-  
-
-13.1.4   TryCompileC, TryLinkC, TryRunC
-=======================================
-\@na
-me{@default494} 
-<<success = $(TryCompileC <prog_text>)
-  success = $(TryLinkC <prog_text>)
-  success = $(TryRunC <prog_text>)
->>
-  
-  Given the text of a C program, the `TryCompileC', `TryLinkC', and
-`TryRunC' functions would try to compile / compile and link / compile,
-link, and run, the given program and return a boolean flag indicating
-whether the attempt was successful.
-  `TryCompileC' will use the 'CC', 'CFLAGS' and 'INCLUDES' variables  to
-run the C compiler. `TryLinkC' and `TryRunC' will also use the 'LDFLAGS'
-variable to run the C compiler and linker. However, the flags like
-`/WX', `-Werror' and `-warn-error' will be not be passed to the
-compiler, even if they occur in `CFLAGS'.
-  These functions are silent and should normally be used with an
-appropriate 'ConfMsgChecking' ... 'ConfMsgResult'. 
-
-Node: Subsection 13-1-5,	Next: Subsection 13-1-6,	Prev: Subsection 13-1-4,	Up: Section 13-1
-  
-
-13.1.5   RunCProg
-=================
- 
-<<output = $(RunCProg <prog>)
->>
-  
-  `RunCProg' is similar to the 'RunCProg' function, except that it
-returns the output of the function (will return `false' if the program
-fails to compile or run). 
-
-Node: Subsection 13-1-6,	Next: Subsection 13-1-7,	Prev: Subsection 13-1-5,	Up: Section 13-1
-  
-
-13.1.6   CheckCHeader, VerboseCheckCHeader
-==========================================
- 
-<<success = $(CheckCHeader <files>)
-  success = $(VerboseCheckCHeader <files>)
->>
-  
-  Use the 'TryCompileC' function to check whether your C compiler can
-locate and process the specified headers files. Will incude `<stdio.h>'
-before including the header files.
-  Both functions return a boolean value. The `CheckCHeader' function is
-silent; the `VerboseCheckCHeader' function will use the
-'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
-the outcome.
-  Example: 
-<<static. =
-     NCURSES_H_AVAILABLE = $(VerboseCheckCHeader ncurses.h)
->>
-
-Node: Subsection 13-1-7,	Next: Subsection 13-1-8,	Prev: Subsection 13-1-6,	Up: Section 13-1
-  
-
-13.1.7   CheckCLib, VerboseCheckCLib
-====================================
- 
-<<success = $(CheckCLib <libs>, <functions>)
-  success = $(VerboseCheckCLib <libs>, <functions>)
->>
-  
-  Use the 'TryLinkC' function to check whether your C compiler and
-linker can find the named functions when linking with the named
-libraries. Will pass the `<libs>' to the compiler using the `-l' flag.
-  Both functions return a boolean value. The `CheckCLib' function is
-silent; the `VerboseCheckCHeader' function will use the
-'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
-the outcome.
-  Example: 
-<<static. =
-      NCURSES_LIB_AVAILABLE = $(VerboseCheckCLib ncurses, initscr
-setupterm tigetstr)
->>
-
-Node: Subsection 13-1-8,	Next: Section 13-2,	Prev: Subsection 13-1-7,	Up: Section 13-1
-  
-
-13.1.8   CheckProg
-==================
- `success = $(CheckProg <prog>)'
-  Checks whether the program `<prog>' exists in your path. Will use the
-'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
-the outcome.
-
-Node: Section 13-2,	Next: Section 13-3,	Prev: Section 13-1,	Up: Chapter 13
-  
-
-13.2   Translating 'autoconf' scripts
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   Some of the functions described above are very similar to the ones
-present in `autoconf'. Below is a brief translation table for such
-functions. 
-  
-  'AC_MSG_CHECKING' is very similar to
-   'ConfMsgChecking' function. 
-  'AC_MSG_RESULT' is very similar to 'ConfMsgResult'
-   function. 
-  'AC_MSG_WARN' is very similar to 'ConfMsgWarn'
-   function. 
-  'AC_MSG_ERROR' is very similar to 'ConfMsgError'
-   function. 
-  'AC_TRY_COMPILE' is somewhat similar to
-   'TryCompileC' function, except the 'TryCompileC' function returns a
-   boolean value and only works for `C'. Similarly, 
-  'AC_TRY_LINK' is approximated by 'TryLinkC'
-   function, and 
-  'AC_TRY_RUN' is approximated by 'TryRunC' function.
-   
-  
-
-Node: Section 13-3,	Next: Subsection 13-3-1,	Prev: Section 13-2,	Up: Chapter 13
-  
-
-13.3   Predefined configuration tests
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   A number of configuration tests are already included in the standard
-library. In order to use them in your project, simply `open' (see
-Section 4.7*Note Section 4-7::) the corresponding build file in
-your `OMakefile' and the tests will run the first time OMake is
-executed. Note that it is not a problem to `open' these files from more
-than one place in your project --- if you do that, the test will still
-run only once. 
-* Menu:
-
-* Subsection 13-3-1::	NCurses library configuration
-* Subsection 13-3-2::	ReadLine library configuration
-* Subsection 13-3-3::	Snprintf configuration
-
-
-Node: Subsection 13-3-1,	Next: Subsection 13-3-2,	Prev: Section 13-3,	Up: Section 13-3
-  
-
-13.3.1   NCurses library configuration
-======================================
-   Add `open configure/ncurses' line to your `OMakefile' to get access
-to the following autoconfiguration variables. 
- NCURSES_AVAILABLE
- A boolean flag that would be set when
-both the `curses.h' header, the `term.h' header, and the `ncurses'
-library very found.
- NCURSES_TERMH_IN_NCURSES
- A boolean flag that would be set when
-`term.h' has to be included as `<ncurses/term.h>' instead of `<term.h>'.
- NCURSES_CFLAGS
- The `CFLAGS' to use when compiling
-ncurses code. Will include `-DNCURSES' and `-DTERMH_IN_NCURSES',
-respectively when `NCURSES_AVAILABLE' and `NCURSES_TERMH_IN_NCURSES' are
-true.
- NCURSES_CLIBS
- The `LDFLAGS' to use when linking
-ncurses code. Will normally contain `-lncurses' when ncurses is found
-and remain empty otherwise. 
-
-Node: Subsection 13-3-2,	Next: Subsection 13-3-3,	Prev: Subsection 13-3-1,	Up: Section 13-3
-  
-
-13.3.2   ReadLine library configuration
-=======================================
-   Add `open configure/readline' line to your `OMakefile' to get access
-to the following autoconfiguration variables. 
- READLINE_AVAILABLE
- A boolean flag that would be set when
-both the `readline/readline.h' header, the `readline/history.h' header,
-and the `readline' library very found.
- READLINE_GNU
- A boolean flag that would be set when
-the GNU version of the readline library is found (as opposed to the BSD
-one).
- READLINE_CFLAGS
- The `CFLAGS' to use when compiling
-readline code. Will include `-DREADLINE_ENABLED' and `-DREADLINE_GNU',
-respectively when `READLINE_AVAILABLE' and `READLINE_GNU' are true.
- READLINE_CLIBS
- The `LDFLAGS' to use when linking
-readline code. Will normally contain `-lncurses -lreadline' when
-readline is found and remain empty otherwise. 

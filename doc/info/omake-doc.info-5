@@ -1,10 +1,277 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Section 9-3
+Node: Subsection 10-1-11,	Next: Section 10-2,	Prev: Subsection 10-1-10,	Up: Section 10-1
   
 
-9.3.4   find-targets-in-path, find-targets-in-path-optional
-===========================================================
+10.1.11   suffix
+================
+
+<<   $(suffix files) : String Sequence
+        files : StringSequence
+>>
+  
+  The `suffix' function returns the suffixes for a list of files. If a
+file has no suffix, the function returns the empty string.
+  For example, the expression `$(suffix dir1/dir2/a.out /etc/a /foo.ml)'
+evaluates to `.out .ml'. 
+
+Node: Section 10-2,	Next: Subsection 10-2-1,	Prev: Section 10-1,	Up: Chapter 10
+  
+
+10.2   Path search
+*=*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 10-2-1::	which
+* Subsection 10-2-2::	where
+* Subsection 10-2-3::	rehash
+* Subsection 10-2-4::	exists-in-path
+* Subsection 10-2-5::	digest, digest-optional
+* Subsection 10-2-6::	find-in-path, find-in-path-optional
+* Subsection 10-2-7::	digest-in-path, digest-in-path-optional
+
+
+Node: Subsection 10-2-1,	Next: Subsection 10-2-2,	Prev: Section 10-2,	Up: Section 10-2
+  
+
+10.2.1   which
+==============
+
+<<   $(which files) : File Sequence
+        files : String Sequence
+>>
+  
+  The `which' function searches for executables in the current command
+search path, and returns `file' values for each of the commands. It is
+an error if a command is not found. 
+
+Node: Subsection 10-2-2,	Next: Subsection 10-2-3,	Prev: Subsection 10-2-1,	Up: Section 10-2
+  
+
+10.2.2   where
+==============
+
+  The `where' function is similar to which, except it returns the list
+of all the locations of the given executable (in the order in which the
+corresponding directories appear in `$PATH'). In case a command is
+handled internally by the `Shell' object, the first string in the output
+will describe the command as a built-in function.
+<<    % where echo
+      echo is a Shell object method (a built-in function)
+      /bin/echo
+>>
+
+Node: Subsection 10-2-3,	Next: Subsection 10-2-4,	Prev: Subsection 10-2-2,	Up: Section 10-2
+  
+
+10.2.3   rehash
+===============
+
+<<    rehash()
+>>
+  
+  The `rehash' function resets all search paths. 
+
+Node: Subsection 10-2-4,	Next: Subsection 10-2-5,	Prev: Subsection 10-2-3,	Up: Section 10-2
+  
+
+10.2.4   exists-in-path
+=======================
+
+<<   $(exists-in-path files) : String
+        files : String Sequence
+>>
+  
+  The `exists-in-path' function tests whether all executables are
+present in the current search path. 
+
+Node: Subsection 10-2-5,	Next: Subsection 10-2-6,	Prev: Subsection 10-2-4,	Up: Section 10-2
+  
+
+10.2.5   digest, digest-optional
+================================
+
+<<     $(digest files) : String Array
+          file : File Array
+       raises RuntimeException
+  
+       $(digest-optional files) : String Array
+          file : File Array
+>>
+  
+  The `digest' and `digest-optional' functions compute MD5 digests of
+files. The `digest' function raises an exception if a file does no
+exist. The `digest-optional' returns `false' if a file does no exist.
+MD5 digests are cached. 
+
+Node: Subsection 10-2-6,	Next: Subsection 10-2-7,	Prev: Subsection 10-2-5,	Up: Section 10-2
+  
+
+10.2.6   find-in-path, find-in-path-optional
+============================================
+
+<<    $(find-in-path path, files) : File Array
+         path : Dir Array
+         files : String Array
+      raises RuntimeException
+  
+      $(find-in-path-optional path, files) : File Array
+>>
+  
+  The `find-in-path' function searches for the files in a search path.
+Only the tail of the filename is significant. The `find-in-path'
+function raises an exception if the file can't be found. The
+`find-in-path-optional' function silently removes files that can't be
+found. 
+
+Node: Subsection 10-2-7,	Next: Section 10-3,	Prev: Subsection 10-2-6,	Up: Section 10-2
+  
+
+10.2.7   digest-in-path, digest-in-path-optional
+================================================
+
+<<    $(digest-in-path path, files) : String/File Array
+         path : Dir Array
+         files : String Array
+      raises RuntimeException
+  
+      $(digest-in-path-optional path, files) : String/File Array
+>>
+  
+  The `digest-in-path' function searches for the files in a search path
+and returns the file and digest for each file. Only the tail of the
+filename is significant. The `digest-in-path' function raises an
+exception if the file can't be found. The `digest-in-path-optional'
+function silently removes elements that can't be found. 
+
+Node: Section 10-3,	Next: Subsection 10-3-1,	Prev: Section 10-2,	Up: Chapter 10
+  
+
+10.3   File stats
+*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 10-3-1::	file-exists, target-exists, target-is-proper
+* Subsection 10-3-2::	stat-reset
+* Subsection 10-3-3::	filter-exists, filter-targets, filter-proper-targets
+* Subsection 10-3-4::	find-targets-in-path, find-targets-in-path-optional
+* Subsection 10-3-5::	find-ocaml-targets-in-path-optional
+* Subsection 10-3-6::	file-sort
+* Subsection 10-3-7::	file-check-sort
+
+
+Node: Subsection 10-3-1,	Next: Subsection 10-3-2,	Prev: Section 10-3,	Up: Section 10-3
+  
+
+10.3.1   file-exists, target-exists, target-is-proper
+=====================================================
+\@na
+me{@default206}
+<<   $(file-exists files) : String
+     $(target-exists files) : String
+     $(target-is-proper files) : String
+         files : File Sequence
+>>
+  
+  The `file-exists' function checks whether the files listed exist. The
+`target-exists' function is similar to the `file-exists' function.
+However, it returns true if the file exists or if it can be built by the
+current project. The `target-is-proper' returns true only if the file
+can be generated in the current project. 
+
+Node: Subsection 10-3-2,	Next: Subsection 10-3-3,	Prev: Subsection 10-3-1,	Up: Section 10-3
+  
+
+10.3.2   stat-reset
+===================
+
+<<   $(stat-reset files) : String
+         files : File Sequence
+>>
+  
+  OMake uses a stat-cache. The `stat-reset' function reset the `stat'
+information for the given files, forcing the `stat' information to be
+recomputed the next time it is requested. 
+
+Node: Subsection 10-3-3,	Next: Subsection 10-3-4,	Prev: Subsection 10-3-2,	Up: Section 10-3
+  
+
+10.3.3   filter-exists, filter-targets, filter-proper-targets
+=============================================================
+\@na
+me{@default210}
+<<   $(filter-exists files) : File Sequence
+     $(filter-targets files) : File Sequence
+     $(filter-proper-targets) : File Sequence
+        files : File Sequence
+>>
+  
+  The `filter-exists', `filter-targets', and `filter-proper-targets'
+functions remove files from a list of files. 
+  
+ - `filter-exists': the result is the list of files that exist. 
+ - `filter-targets': the result is the list of files either exist, or
+   can be built by the current project. 
+ - `filter-proper-targets': the result is the list of files that can be
+   built in the current project. 
+  
+ Creating a "distclean" target
+   
+  One way to create a simple "`distclean'" rule that removes generated
+files from the project is by removing all files that can be built in the
+current project.
+  CAUTION: you should be careful before you do this. The rule removes
+any file that can potentially be reconstructed. There is no check to
+make sure that the commands to rebuild the file would actually succeed.
+Also, note that no file outside the current project will be deleted.
+<<    .PHONY: distclean
+  
+      distclean:
+          rm $(filter-proper-targets $(ls R, .))
+>>
+  
+  If you use CVS, you may wish to utilize the `cvs_realclean' program
+that is distributed with OMake in order to create a "`distclean'" rule
+that would delete all the files thare are not known to CVS. For example,
+if you already have a more traditional "`clean'" target defined in your
+project, and if you want the "`distclean'" rule to be interactive by
+default, you can write the following:
+<<    if $(not $(defined FORCE_REALCLEAN))
+          FORCE_REALCLEAN = false
+          export
+  
+      distclean: clean
+          cvs_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i
+.omakedb.lock
+>>
+  
+  You can add more files that you want to always keep (such as
+configuration files) with the -i option.
+  Similarly, if you use Subversion, you utilize the
+`build/svn_realclean.om' script that comes with OMake:
+<<    if $(not $(defined FORCE_REALCLEAN))
+          FORCE_REALCLEAN = false
+          export
+  
+      open build/svn_realclean
+  
+      distclean: clean
+          svn_realclean $(if $(FORCE_REALCLEAN), -f) -i .omakedb -i
+.omakedb.lock
+>>
+  
+  See also the 'dependencies-proper' function for an alternate method
+for removing intermediate files. 
+
+Node: Subsection 10-3-4,	Next: Subsection 10-3-5,	Prev: Subsection 10-3-3,	Up: Section 10-3
+  
+
+10.3.4   find-targets-in-path, find-targets-in-path-optional
+============================================================
 
 <<    $(find-targets-in-path path files) : File Array
       $(find-targets-in-path-optional path, files) : File Array
@@ -36,11 +303,11 @@ removes targets that can't be found.
 >>
   
 
-Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
+Node: Subsection 10-3-5,	Next: Subsection 10-3-6,	Prev: Subsection 10-3-4,	Up: Section 10-3
   
 
-9.3.5   find-ocaml-targets-in-path-optional
-===========================================
+10.3.5   find-ocaml-targets-in-path-optional
+============================================
  The
 `find-ocaml-targets-in-path-optional' function is very similar to the
 'find-targets-in-path-optional' one, except an OCaml-style search is
@@ -48,11 +315,11 @@ used, where for every element of the search path and for every name
 being searched for, first the uncapitalized version is tried and if it
 is not buildable, then the capitalized version is tried next. 
 
-Node: Subsection 9-3-6,	Next: Subsection 9-3-7,	Prev: Subsection 9-3-5,	Up: Section 9-3
+Node: Subsection 10-3-6,	Next: Subsection 10-3-7,	Prev: Subsection 10-3-5,	Up: Section 10-3
   
 
-9.3.6   file-sort
-=================
+10.3.6   file-sort
+==================
  
 
 <<   $(file-sort order, files) : File Sequence
@@ -88,8 +355,8 @@ where this matters).
   
   
 
-9.3.6.1   sort rule
--------------------
+10.3.6.1   sort rule
+--------------------
   
   It is possible to further constrain the sorter through the use of sort
 rules. A sort rule is declared in two steps. The target must be listed
@@ -110,11 +377,11 @@ any file with suffix `.bar' should be placed after a file with suffix
 `.baz'.
   In this example, the result of the sort is `d.baz c.baz b.bar a.foo'. 
 
-Node: Subsection 9-3-7,	Next: Section 9-4,	Prev: Subsection 9-3-6,	Up: Section 9-3
+Node: Subsection 10-3-7,	Next: Section 10-4,	Prev: Subsection 10-3-6,	Up: Section 10-3
   
 
-9.3.7   file-check-sort
-=======================
+10.3.7   file-check-sort
+========================
 
 <<   file-check-sort(files)
         files : File Sequence
@@ -126,11 +393,11 @@ sort order. If so, the list is returned unchanged. If not, the function
 raises an exception.
   `$(file-check-sort <order>, <files>)' 
 
-Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
+Node: Section 10-4,	Next: Subsection 10-4-1,	Prev: Section 10-3,	Up: Chapter 10
   
 
-9.4   Globbing and file listings
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+10.4   Globbing and file listings
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    
   OMake commands are "glob-expanded" before being executed. That is,
@@ -231,16 +498,16 @@ syntax, with the following rules.
   
 * Menu:
 
-* Subsection 9-4-1::	glob
-* Subsection 9-4-2::	ls
-* Subsection 9-4-3::	subdirs
+* Subsection 10-4-1::	glob
+* Subsection 10-4-2::	ls
+* Subsection 10-4-3::	subdirs
 
 
-Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9-4
+Node: Subsection 10-4-1,	Next: Subsection 10-4-2,	Prev: Section 10-4,	Up: Section 10-4
   
 
-9.4.1   glob
-============
+10.4.1   glob
+=============
 
 <<   $(glob strings) : Node Array
         strings : String Sequence
@@ -277,11 +544,11 @@ behavior of `glob'.
   
   The returned files are sorted by name. 
 
-Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
+Node: Subsection 10-4-2,	Next: Subsection 10-4-3,	Prev: Subsection 10-4-1,	Up: Section 10-4
   
 
-9.4.2   ls
-==========
+10.4.2   ls
+===========
 
 <<   $(ls files) : Node Array
         files : String Sequence
@@ -301,11 +568,11 @@ the following.
   The `GLOB_ALLOW' and `GLOB_IGNORE' variables can be defined to control
 the globbing behavior. The returned files are sorted by name. 
 
-Node: Subsection 9-4-3,	Next: Section 9-5,	Prev: Subsection 9-4-2,	Up: Section 9-4
+Node: Subsection 10-4-3,	Next: Section 10-5,	Prev: Subsection 10-4-2,	Up: Section 10-4
   
 
-9.4.3   subdirs
-===============
+10.4.3   subdirs
+================
 
 <<   $(subdirs dirs) : Dir Array
         dirs : String Sequence
@@ -323,34 +590,34 @@ directories, recursively.
  P  Include only proper subdirectories. 
    
 
-Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
+Node: Section 10-5,	Next: Subsection 10-5-1,	Prev: Section 10-4,	Up: Chapter 10
   
 
-9.5   Filesystem operations
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
+10.5   Filesystem operations
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
 * Menu:
 
-* Subsection 9-5-1::	mkdir
-* Subsection 9-5-2::	Stat
-* Subsection 9-5-3::	stat, lstat
-* Subsection 9-5-4::	unlink
-* Subsection 9-5-5::	rename
-* Subsection 9-5-6::	link
-* Subsection 9-5-7::	symlink
-* Subsection 9-5-8::	readlink
-* Subsection 9-5-9::	chmod
-* Subsection 9-5-10::	chown
-* Subsection 9-5-11::	truncate
-* Subsection 9-5-12::	umask
+* Subsection 10-5-1::	mkdir
+* Subsection 10-5-2::	Stat
+* Subsection 10-5-3::	stat, lstat
+* Subsection 10-5-4::	unlink
+* Subsection 10-5-5::	rename
+* Subsection 10-5-6::	link
+* Subsection 10-5-7::	symlink
+* Subsection 10-5-8::	readlink
+* Subsection 10-5-9::	chmod
+* Subsection 10-5-10::	chown
+* Subsection 10-5-11::	truncate
+* Subsection 10-5-12::	umask
 
 
-Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9-5
+Node: Subsection 10-5-1,	Next: Subsection 10-5-2,	Prev: Section 10-5,	Up: Section 10-5
   
 
-9.5.1   mkdir
-=============
+10.5.1   mkdir
+==============
 
 <<   mkdir(mode, node...)
         mode : Int
@@ -370,14 +637,14 @@ following options are supported.
  --  Interpret the remaining names literally. 
    
 
-Node: Subsection 9-5-2,	Next: Subsection 9-5-3,	Prev: Subsection 9-5-1,	Up: Section 9-5
+Node: Subsection 10-5-2,	Next: Subsection 10-5-3,	Prev: Subsection 10-5-1,	Up: Section 10-5
   
 
-9.5.2   Stat
-============
+10.5.2   Stat
+=============
 
   The `Stat' object represents an information about a filesystem node,
-as returned by the `stat' and `lstat' functions.  It contains the
+as returned by the `stat' and `lstat' functions. It contains the
 following fields.
   
   
@@ -399,11 +666,11 @@ following fields.
   
   Not all of the fields will have meaning on all operating systems.
 
-Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Section 9-5
+Node: Subsection 10-5-3,	Next: Subsection 10-5-4,	Prev: Subsection 10-5-2,	Up: Section 10-5
   
 
-9.5.3   stat, lstat
-===================
+10.5.3   stat, lstat
+====================
 
 <<    $(stat node...) : Stat
          node : Node or Channel
@@ -416,11 +683,11 @@ Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Sect
 symbolic link, the `stat' function refers to the destination of the
 link; the `lstat' function refers to the link itself. 
 
-Node: Subsection 9-5-4,	Next: Subsection 9-5-5,	Prev: Subsection 9-5-3,	Up: Section 9-5
+Node: Subsection 10-5-4,	Next: Subsection 10-5-5,	Prev: Subsection 10-5-3,	Up: Section 10-5
   
 
-9.5.4   unlink
-==============
+10.5.4   unlink
+===============
 
 <<   $(unlink file...)
         file : File
@@ -442,11 +709,11 @@ removes a directory.
  --  the rest of the values are interpreted literally. 
    
 
-Node: Subsection 9-5-5,	Next: Subsection 9-5-6,	Prev: Subsection 9-5-4,	Up: Section 9-5
+Node: Subsection 10-5-5,	Next: Subsection 10-5-6,	Prev: Subsection 10-5-4,	Up: Section 10-5
   
 
-9.5.5   rename
-==============
+10.5.5   rename
+===============
 
 <<    rename(old, new)
          old : Node
@@ -475,11 +742,11 @@ directory. If not, the behavior of `mv' is identical to `rename'. The
  --  Interpret the remaining arguments literally. 
    
 
-Node: Subsection 9-5-6,	Next: Subsection 9-5-7,	Prev: Subsection 9-5-5,	Up: Section 9-5
+Node: Subsection 10-5-6,	Next: Subsection 10-5-7,	Prev: Subsection 10-5-5,	Up: Section 10-5
   
 
-9.5.6   link
-============
+10.5.6   link
+=============
 
 <<   link(src, dst)
         src : Node
@@ -492,11 +759,11 @@ directory `src'.
   Hard links may work under Win32 when NTFS is used.
   Normally, only the superuser can create hard links to directories. 
 
-Node: Subsection 9-5-7,	Next: Subsection 9-5-8,	Prev: Subsection 9-5-6,	Up: Section 9-5
+Node: Subsection 10-5-7,	Next: Subsection 10-5-8,	Prev: Subsection 10-5-6,	Up: Section 10-5
   
 
-9.5.7   symlink
-===============
+10.5.7   symlink
+================
 
 <<   symlink(src, dst)
         src : Node
@@ -512,11 +779,11 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
   Symbolic links are not supported in Win32. Consider using the
 `ln-or-cp' `Shell' alias for cross-platform portable linking/copying. 
 
-Node: Subsection 9-5-8,	Next: Subsection 9-5-9,	Prev: Subsection 9-5-7,	Up: Section 9-5
+Node: Subsection 10-5-8,	Next: Subsection 10-5-9,	Prev: Subsection 10-5-7,	Up: Section 10-5
   
 
-9.5.8   readlink
-================
+10.5.8   readlink
+=================
 
 <<   $(readlink node...) : Node
         node : Node
@@ -524,11 +791,11 @@ Node: Subsection 9-5-8,	Next: Subsection 9-5-9,	Prev: Subsection 9-5-7,	Up: Sect
   
   The `readlink' function reads the value of a symbolic link. 
 
-Node: Subsection 9-5-9,	Next: Subsection 9-5-10,	Prev: Subsection 9-5-8,	Up: Section 9-5
+Node: Subsection 10-5-9,	Next: Subsection 10-5-10,	Prev: Subsection 10-5-8,	Up: Section 10-5
   
 
-9.5.9   chmod
-=============
+10.5.9   chmod
+==============
 
 <<   chmod(mode, dst...)
         mode : Int
@@ -548,11 +815,11 @@ Node: Subsection 9-5-9,	Next: Subsection 9-5-10,	Prev: Subsection 9-5-8,	Up: Sec
  --  Interpret the remaining argument literally. 
    
 
-Node: Subsection 9-5-10,	Next: Subsection 9-5-11,	Prev: Subsection 9-5-9,	Up: Section 9-5
+Node: Subsection 10-5-10,	Next: Subsection 10-5-11,	Prev: Subsection 10-5-9,	Up: Section 10-5
   
 
-9.5.10   chown
-==============
+10.5.10   chown
+===============
 
 <<   chown(uid, gid, node...)
         uid : Int
@@ -568,11 +835,11 @@ Node: Subsection 9-5-10,	Next: Subsection 9-5-11,	Prev: Subsection 9-5-9,	Up: Se
 `gid' is not specified, it is not changed. If either id is -1, that id
 is not changed. 
 
-Node: Subsection 9-5-11,	Next: Subsection 9-5-12,	Prev: Subsection 9-5-10,	Up: Section 9-5
+Node: Subsection 10-5-11,	Next: Subsection 10-5-12,	Prev: Subsection 10-5-10,	Up: Section 10-5
   
 
-9.5.11   truncate
-=================
+10.5.11   truncate
+==================
 
 <<   truncate(length, node...)
          length : Int
@@ -582,11 +849,11 @@ Node: Subsection 9-5-11,	Next: Subsection 9-5-12,	Prev: Subsection 9-5-10,	Up: S
   
   The `truncate' function truncates a file to the given length. 
 
-Node: Subsection 9-5-12,	Next: Section 9-6,	Prev: Subsection 9-5-11,	Up: Section 9-5
+Node: Subsection 10-5-12,	Next: Section 10-6,	Prev: Subsection 10-5-11,	Up: Section 10-5
   
 
-9.5.12   umask
-==============
+10.5.12   umask
+===============
 
 <<    $(umask mode) : Int
          mode : Int
@@ -596,25 +863,25 @@ Node: Subsection 9-5-12,	Next: Section 9-6,	Prev: Subsection 9-5-11,	Up: Section
   Sets the file mode creation mask. The previous mask is returned. This
 value is not scoped, changes have global effect. 
 
-Node: Section 9-6,	Next: Subsection 9-6-1,	Prev: Section 9-5,	Up: Chapter 9
+Node: Section 10-6,	Next: Subsection 10-6-1,	Prev: Section 10-5,	Up: Chapter 10
   
 
-9.6   vmount
-*=*=*=*=*=*=
+10.6   vmount
+*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 9-6-1::	vmount
-* Subsection 9-6-2::	add-project-directories
-* Subsection 9-6-3::	remove-project-directories
+* Subsection 10-6-1::	vmount
+* Subsection 10-6-2::	add-project-directories
+* Subsection 10-6-3::	remove-project-directories
 
 
-Node: Subsection 9-6-1,	Next: Subsection 9-6-2,	Prev: Section 9-6,	Up: Section 9-6
+Node: Subsection 10-6-1,	Next: Subsection 10-6-2,	Prev: Section 10-6,	Up: Section 10-6
   
 
-9.6.1   vmount
-==============
+10.6.1   vmount
+===============
 
 <<    vmount(src, dst)
          src, dst : Dir
@@ -637,11 +904,11 @@ builds with separate configurations or architectures.
   
   Mount operations are scoped. 
 
-Node: Subsection 9-6-2,	Next: Subsection 9-6-3,	Prev: Subsection 9-6-1,	Up: Section 9-6
+Node: Subsection 10-6-2,	Next: Subsection 10-6-3,	Prev: Subsection 10-6-1,	Up: Section 10-6
   
 
-9.6.2   add-project-directories
-===============================
+10.6.2   add-project-directories
+================================
 
 <<    add-project-directories(dirs)
          dirs : Dir Array
@@ -651,11 +918,11 @@ Node: Subsection 9-6-2,	Next: Subsection 9-6-3,	Prev: Subsection 9-6-1,	Up: Sect
 be part of the project. This is mainly used to avoid omake complaining
 that the current directory is not part of the project. 
 
-Node: Subsection 9-6-3,	Next: Section 9-7,	Prev: Subsection 9-6-2,	Up: Section 9-6
+Node: Subsection 10-6-3,	Next: Section 10-7,	Prev: Subsection 10-6-2,	Up: Section 10-6
   
 
-9.6.3   remove-project-directories
-==================================
+10.6.3   remove-project-directories
+===================================
 
 <<    remove-project-directories(dirs)
          dirs : Dir Array
@@ -666,24 +933,24 @@ considers to be part of the project. This is mainly used to cancel a
 `.SUBDIRS' from including a directory if it is determined that the
 directory does not need to be compiled. 
 
-Node: Section 9-7,	Next: Subsection 9-7-1,	Prev: Section 9-6,	Up: Chapter 9
+Node: Section 10-7,	Next: Subsection 10-7-1,	Prev: Section 10-6,	Up: Chapter 10
   
 
-9.7   File predicates
-*=*=*=*=*=*=*=*=*=*=*
+10.7   File predicates
+*=*=*=*=*=*=*=*=*=*=*=
 
    
 * Menu:
 
-* Subsection 9-7-1::	test
-* Subsection 9-7-2::	find
+* Subsection 10-7-1::	test
+* Subsection 10-7-2::	find
 
 
-Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9-7
+Node: Subsection 10-7-1,	Next: Subsection 10-7-2,	Prev: Section 10-7,	Up: Section 10-7
   
 
-9.7.1   test
-============
+10.7.1   test
+=============
 
 <<   test(exp) : Bool
         exp : String Sequence
@@ -765,11 +1032,11 @@ system, the man page explains more. Here are some examples.
       - : true
 >>
 
-Node: Subsection 9-7-2,	Next: Section 9-8,	Prev: Subsection 9-7-1,	Up: Section 9-7
+Node: Subsection 10-7-2,	Next: Section 10-8,	Prev: Subsection 10-7-1,	Up: Section 10-7
   
 
-9.7.2   find
-============
+10.7.2   find
+=============
 
 <<   find(exp) : Node Array
         exp : String Sequence
@@ -790,7 +1057,7 @@ additions.
   
   
  - `-name' string : The current file matches the glob expression (see
-   Section 9.4*Note Section 9-4::). 
+   Section 10.4*Note Section 10-4::). 
   
   The `find' function performs a recursive scan of all subdirectories.
 The following call is being run from the root of the `omake' source
@@ -816,56 +1083,56 @@ symbolic links.
 >>
    
 
-Node: Section 9-8,	Next: Subsection 9-8-1,	Prev: Section 9-7,	Up: Chapter 9
+Node: Section 10-8,	Next: Subsection 10-8-1,	Prev: Section 10-7,	Up: Chapter 10
   
 
-9.8   IO functions
-*=*=*=*=*=*=*=*=*=
+10.8   IO functions
+*=*=*=*=*=*=*=*=*=*
 
    
 * Menu:
 
-* Subsection 9-8-1::	Standard channels
-* Subsection 9-8-2::	open-in-string
-* Subsection 9-8-3::	open-out-string, out-string
-* Subsection 9-8-4::	fopen
-* Subsection 9-8-5::	close
-* Subsection 9-8-6::	read
-* Subsection 9-8-7::	write
-* Subsection 9-8-8::	lseek
-* Subsection 9-8-9::	rewind
-* Subsection 9-8-10::	tell
-* Subsection 9-8-11::	flush
-* Subsection 9-8-12::	dup
-* Subsection 9-8-13::	dup2
-* Subsection 9-8-14::	set-nonblock
-* Subsection 9-8-15::	set-close-on-exec-mode
-* Subsection 9-8-16::	pipe
-* Subsection 9-8-17::	mkfifo
-* Subsection 9-8-18::	select
-* Subsection 9-8-19::	lockf
-* Subsection 9-8-20::	InetAddr
-* Subsection 9-8-21::	Host
-* Subsection 9-8-22::	gethostbyname
-* Subsection 9-8-23::	Protocol
-* Subsection 9-8-24::	getprotobyname
-* Subsection 9-8-25::	Service
-* Subsection 9-8-26::	getservbyname
-* Subsection 9-8-27::	socket
-* Subsection 9-8-28::	bind
-* Subsection 9-8-29::	listen
-* Subsection 9-8-30::	accept
-* Subsection 9-8-31::	connect
-* Subsection 9-8-32::	getchar
-* Subsection 9-8-33::	gets
-* Subsection 9-8-34::	fgets
+* Subsection 10-8-1::	Standard channels
+* Subsection 10-8-2::	open-in-string
+* Subsection 10-8-3::	open-out-string, out-string
+* Subsection 10-8-4::	fopen
+* Subsection 10-8-5::	close
+* Subsection 10-8-6::	read
+* Subsection 10-8-7::	write
+* Subsection 10-8-8::	lseek
+* Subsection 10-8-9::	rewind
+* Subsection 10-8-10::	tell
+* Subsection 10-8-11::	flush
+* Subsection 10-8-12::	dup
+* Subsection 10-8-13::	dup2
+* Subsection 10-8-14::	set-nonblock
+* Subsection 10-8-15::	set-close-on-exec-mode
+* Subsection 10-8-16::	pipe
+* Subsection 10-8-17::	mkfifo
+* Subsection 10-8-18::	select
+* Subsection 10-8-19::	lockf
+* Subsection 10-8-20::	InetAddr
+* Subsection 10-8-21::	Host
+* Subsection 10-8-22::	gethostbyname
+* Subsection 10-8-23::	Protocol
+* Subsection 10-8-24::	getprotobyname
+* Subsection 10-8-25::	Service
+* Subsection 10-8-26::	getservbyname
+* Subsection 10-8-27::	socket
+* Subsection 10-8-28::	bind
+* Subsection 10-8-29::	listen
+* Subsection 10-8-30::	accept
+* Subsection 10-8-31::	connect
+* Subsection 10-8-32::	getchar
+* Subsection 10-8-33::	gets
+* Subsection 10-8-34::	fgets
 
 
-Node: Subsection 9-8-1,	Next: Subsection 9-8-2,	Prev: Section 9-8,	Up: Section 9-8
+Node: Subsection 10-8-1,	Next: Subsection 10-8-2,	Prev: Section 10-8,	Up: Section 10-8
   
 
-9.8.1   Standard channels
-=========================
+10.8.1   Standard channels
+==========================
   
   The following variables define the standard channels.
  stdin
@@ -887,22 +1154,22 @@ Node: Subsection 9-8-1,	Next: Subsection 9-8-2,	Prev: Section 9-8,	Up: Section 9
   
   The standard error channel, open for writing. 
 
-Node: Subsection 9-8-2,	Next: Subsection 9-8-3,	Prev: Subsection 9-8-1,	Up: Section 9-8
+Node: Subsection 10-8-2,	Next: Subsection 10-8-3,	Prev: Subsection 10-8-1,	Up: Section 10-8
   
 
-9.8.2   open-in-string
-======================
+10.8.2   open-in-string
+=======================
  The `open-in-string' treats a string
 as if it were a file and returns a channel for reading.
 <<   $(open-in-string s) : Channel
          s : String
 >>
 
-Node: Subsection 9-8-3,	Next: Subsection 9-8-4,	Prev: Subsection 9-8-2,	Up: Section 9-8
+Node: Subsection 10-8-3,	Next: Subsection 10-8-4,	Prev: Subsection 10-8-2,	Up: Section 10-8
   
 
-9.8.3   open-out-string, out-string
-===================================
+10.8.3   open-out-string, out-string
+====================================
  The
 `open-out-string' creates a channel that writes to a string instead of a
 file. The string may be retrieved with the `out-string' function.
@@ -911,11 +1178,11 @@ file. The string may be retrieved with the `out-string' function.
          chan : OutChannel
 >>
 
-Node: Subsection 9-8-4,	Next: Subsection 9-8-5,	Prev: Subsection 9-8-3,	Up: Section 9-8
+Node: Subsection 10-8-4,	Next: Subsection 10-8-5,	Prev: Subsection 10-8-3,	Up: Section 10-8
   
 
-9.8.4   fopen
-=============
+10.8.4   fopen
+==============
 
   The `fopen' function opens a file for reading or writing.
 <<   $(fopen file, mode) : Channel
@@ -941,11 +1208,11 @@ combination of the following characters.
   Binary mode is not significant on Unix systems, where text and binary
 modes are equivalent. 
 
-Node: Subsection 9-8-5,	Next: Subsection 9-8-6,	Prev: Subsection 9-8-4,	Up: Section 9-8
+Node: Subsection 10-8-5,	Next: Subsection 10-8-6,	Prev: Subsection 10-8-4,	Up: Section 10-8
   
 
-9.8.5   close
-=============
+10.8.5   close
+==============
 
 <<    $(close channel...)
          channel : Channel
@@ -954,11 +1221,11 @@ Node: Subsection 9-8-5,	Next: Subsection 9-8-6,	Prev: Subsection 9-8-4,	Up: Sect
   The `close' function closes a file that was previously opened with
 `fopen'. 
 
-Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Section 9-8
+Node: Subsection 10-8-6,	Next: Subsection 10-8-7,	Prev: Subsection 10-8-5,	Up: Section 10-8
   
 
-9.8.6   read
-============
+10.8.6   read
+=============
 
 <<   $(read channel, amount) : String
         channel : InChannel
@@ -970,11 +1237,11 @@ Node: Subsection 9-8-6,	Next: Subsection 9-8-7,	Prev: Subsection 9-8-5,	Up: Sect
 and returns the data that was read. If an end-of-file condition is
 reached, the function raises a `RuntimeException' exception. 
 
-Node: Subsection 9-8-7,	Next: Subsection 9-8-8,	Prev: Subsection 9-8-6,	Up: Section 9-8
+Node: Subsection 10-8-7,	Next: Subsection 10-8-8,	Prev: Subsection 10-8-6,	Up: Section 10-8
   
 
-9.8.7   write
-=============
+10.8.7   write
+==============
 
 <<   $(write channel, buffer, offset, amount) : String
         channel : OutChannel
@@ -997,11 +1264,11 @@ length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception. 
 
-Node: Subsection 9-8-8,	Next: Subsection 9-8-9,	Prev: Subsection 9-8-7,	Up: Section 9-8
+Node: Subsection 10-8-8,	Next: Subsection 10-8-9,	Prev: Subsection 10-8-7,	Up: Section 10-8
   
 
-9.8.8   lseek
-=============
+10.8.8   lseek
+==============
 
 <<    $(lseek channel, offset, whence) : Int
          channel : Channel
@@ -1022,11 +1289,11 @@ according to the `whence' directive, as follows:
   
   The `lseek' function returns the new position in the file. 
 
-Node: Subsection 9-8-9,	Next: Subsection 9-8-10,	Prev: Subsection 9-8-8,	Up: Section 9-8
+Node: Subsection 10-8-9,	Next: Subsection 10-8-10,	Prev: Subsection 10-8-8,	Up: Section 10-8
   
 
-9.8.9   rewind
-==============
+10.8.9   rewind
+===============
 
 <<   rewind(channel...)
         channel : Channel
@@ -1035,11 +1302,11 @@ Node: Subsection 9-8-9,	Next: Subsection 9-8-10,	Prev: Subsection 9-8-8,	Up: Sec
   The `rewind' function set the current file position to the beginning
 of the file. 
 
-Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Section 9-8
+Node: Subsection 10-8-10,	Next: Subsection 10-8-11,	Prev: Subsection 10-8-9,	Up: Section 10-8
   
 
-9.8.10   tell
-=============
+10.8.10   tell
+==============
 
 <<    $(tell channel...) : Int...
          channel : Channel
@@ -1048,11 +1315,11 @@ Node: Subsection 9-8-10,	Next: Subsection 9-8-11,	Prev: Subsection 9-8-9,	Up: Se
   
   The `tell' function returns the current position of the `channel'. 
 
-Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: Section 9-8
+Node: Subsection 10-8-11,	Next: Subsection 10-8-12,	Prev: Subsection 10-8-10,	Up: Section 10-8
   
 
-9.8.11   flush
-==============
+10.8.11   flush
+===============
 
 <<   $(flush channel...)
         channel : OutChannel
@@ -1061,11 +1328,11 @@ Node: Subsection 9-8-11,	Next: Subsection 9-8-12,	Prev: Subsection 9-8-10,	Up: S
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file. 
 
-Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: Section 9-8
+Node: Subsection 10-8-12,	Next: Subsection 10-8-13,	Prev: Subsection 10-8-11,	Up: Section 10-8
   
 
-9.8.12   dup
-============
+10.8.12   dup
+=============
 
 <<    $(dup channel) : Channel
          channel : Channel
@@ -1075,11 +1342,11 @@ Node: Subsection 9-8-12,	Next: Subsection 9-8-13,	Prev: Subsection 9-8-11,	Up: S
   The `dup' function returns a new channel referencing the same file as
 the argument. 
 
-Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: Section 9-8
+Node: Subsection 10-8-13,	Next: Subsection 10-8-14,	Prev: Subsection 10-8-12,	Up: Section 10-8
   
 
-9.8.13   dup2
-=============
+10.8.13   dup2
+==============
 
 <<   dup2(channel1, channel2)
         channel1 : Channel
@@ -1090,11 +1357,11 @@ Node: Subsection 9-8-13,	Next: Subsection 9-8-14,	Prev: Subsection 9-8-12,	Up: S
   The `dup2' function causes `channel2' to refer to the same file as
 `channel1'. 
 
-Node: Subsection 9-8-14,	Next: Subsection 9-8-15,	Prev: Subsection 9-8-13,	Up: Section 9-8
+Node: Subsection 10-8-14,	Next: Subsection 10-8-15,	Prev: Subsection 10-8-13,	Up: Section 10-8
   
 
-9.8.14   set-nonblock
-=====================
+10.8.14   set-nonblock
+======================
 
 <<   set-nonblock-mode(mode, channel...)
         channel : Channel
@@ -1106,11 +1373,11 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'. 
 
-Node: Subsection 9-8-15,	Next: Subsection 9-8-16,	Prev: Subsection 9-8-14,	Up: Section 9-8
+Node: Subsection 10-8-15,	Next: Subsection 10-8-16,	Prev: Subsection 10-8-14,	Up: Section 10-8
   
 
-9.8.15   set-close-on-exec-mode
-===============================
+10.8.15   set-close-on-exec-mode
+================================
 
 <<   set-close-on-exec-mode(mode, channel...)
         channel : Channel
@@ -1122,11 +1389,11 @@ Node: Subsection 9-8-15,	Next: Subsection 9-8-16,	Prev: Subsection 9-8-14,	Up: S
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is. 
 
-Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: Section 9-8
+Node: Subsection 10-8-16,	Next: Subsection 10-8-17,	Prev: Subsection 10-8-15,	Up: Section 10-8
   
 
-9.8.16   pipe
-=============
+10.8.16   pipe
+==============
 
 <<   $(pipe) : Pipe
      raises RuntimeException
@@ -1136,11 +1403,11 @@ Node: Subsection 9-8-16,	Next: Subsection 9-8-17,	Prev: Subsection 9-8-15,	Up: S
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing. 
 
-Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: Section 9-8
+Node: Subsection 10-8-17,	Next: Subsection 10-8-18,	Prev: Subsection 10-8-16,	Up: Section 10-8
   
 
-9.8.17   mkfifo
-===============
+10.8.17   mkfifo
+================
 
 <<   mkfifo(mode, node...)
         mode : Int
@@ -1149,11 +1416,11 @@ Node: Subsection 9-8-17,	Next: Subsection 9-8-18,	Prev: Subsection 9-8-16,	Up: S
   
   The `mkfifo' function creates a named pipe. 
 
-Node: Subsection 9-8-18,	Next: Subsection 9-8-19,	Prev: Subsection 9-8-17,	Up: Section 9-8
+Node: Subsection 10-8-18,	Next: Subsection 10-8-19,	Prev: Subsection 10-8-17,	Up: Section 10-8
   
 
-9.8.18   select
-===============
+10.8.18   select
+================
 
 <<   $(select rfd..., wfd..., wfd..., timeout) : Select
         rfd : InChannel
@@ -1176,11 +1443,11 @@ the following fields:
  error  An array of channels on which an error has occurred. 
    
 
-Node: Subsection 9-8-19,	Next: Subsection 9-8-20,	Prev: Subsection 9-8-18,	Up: Section 9-8
+Node: Subsection 10-8-19,	Next: Subsection 10-8-20,	Prev: Subsection 10-8-18,	Up: Section 10-8
   
 
-9.8.19   lockf
-==============
+10.8.19   lockf
+===============
 
 <<    lockf(channel, command, len)
          channel : Channel
@@ -1201,11 +1468,11 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
    
 
-Node: Subsection 9-8-20,	Next: Subsection 9-8-21,	Prev: Subsection 9-8-19,	Up: Section 9-8
+Node: Subsection 10-8-20,	Next: Subsection 10-8-21,	Prev: Subsection 10-8-19,	Up: Section 10-8
   
 
-9.8.20   InetAddr
-=================
+10.8.20   InetAddr
+==================
 
   The `InetAddr' object describes an Internet address. It contains the
 following fields.
@@ -1215,11 +1482,11 @@ following fields.
  port  `Int': the port number. 
   
 
-Node: Subsection 9-8-21,	Next: Subsection 9-8-22,	Prev: Subsection 9-8-20,	Up: Section 9-8
+Node: Subsection 10-8-21,	Next: Subsection 10-8-22,	Prev: Subsection 10-8-20,	Up: Section 10-8
   
 
-9.8.21   Host
-=============
+10.8.21   Host
+==============
 
   A `Host' object contains the following fields.
   
@@ -1231,11 +1498,11 @@ Node: Subsection 9-8-21,	Next: Subsection 9-8-22,	Prev: Subsection 9-8-20,	Up: S
    the host. 
   
 
-Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: Section 9-8
+Node: Subsection 10-8-22,	Next: Subsection 10-8-23,	Prev: Subsection 10-8-21,	Up: Section 10-8
   
 
-9.8.22   gethostbyname
-======================
+10.8.22   gethostbyname
+=======================
 
 <<   $(gethostbyname host...) : Host...
         host : String
@@ -1245,11 +1512,11 @@ Node: Subsection 9-8-22,	Next: Subsection 9-8-23,	Prev: Subsection 9-8-21,	Up: S
   The `gethostbyname' function returns a `Host' object for the specified
 host. The `host' may specify a domain name or an Internet address.
 
-Node: Subsection 9-8-23,	Next: Subsection 9-8-24,	Prev: Subsection 9-8-22,	Up: Section 9-8
+Node: Subsection 10-8-23,	Next: Subsection 10-8-24,	Prev: Subsection 10-8-22,	Up: Section 10-8
   
 
-9.8.23   Protocol
-=================
+10.8.23   Protocol
+==================
 
   The `Protocol' object represents a protocol entry. It has the
 following fields.
@@ -1260,11 +1527,11 @@ following fields.
  proto  `Int': the protocol number. 
   
 
-Node: Subsection 9-8-24,	Next: Subsection 9-8-25,	Prev: Subsection 9-8-23,	Up: Section 9-8
+Node: Subsection 10-8-24,	Next: Subsection 10-8-25,	Prev: Subsection 10-8-23,	Up: Section 10-8
   
 
-9.8.24   getprotobyname
-=======================
+10.8.24   getprotobyname
+========================
 
 <<   $(getprotobyname name...) : Protocol...
         name : Int or String
@@ -1275,11 +1542,11 @@ Node: Subsection 9-8-24,	Next: Subsection 9-8-25,	Prev: Subsection 9-8-23,	Up: S
 specified protocol. The `name' may be a protocol name, or a protocol
 number. 
 
-Node: Subsection 9-8-25,	Next: Subsection 9-8-26,	Prev: Subsection 9-8-24,	Up: Section 9-8
+Node: Subsection 10-8-25,	Next: Subsection 10-8-26,	Prev: Subsection 10-8-24,	Up: Section 10-8
   
 
-9.8.25   Service
-================
+10.8.25   Service
+=================
 
   The `Service' object represents a network service. It has the
 following fields.
@@ -1291,11 +1558,11 @@ following fields.
  proto  `Protocol': the protocol for the service. 
   
 
-Node: Subsection 9-8-26,	Next: Subsection 9-8-27,	Prev: Subsection 9-8-25,	Up: Section 9-8
+Node: Subsection 10-8-26,	Next: Subsection 10-8-27,	Prev: Subsection 10-8-25,	Up: Section 10-8
   
 
-9.8.26   getservbyname
-======================
+10.8.26   getservbyname
+=======================
 
 <<   $(getservbyname service...) : Service...
         service : String or Int
@@ -1305,11 +1572,11 @@ Node: Subsection 9-8-26,	Next: Subsection 9-8-27,	Prev: Subsection 9-8-25,	Up: S
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number. 
 
-Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: Section 9-8
+Node: Subsection 10-8-27,	Next: Subsection 10-8-28,	Prev: Subsection 10-8-26,	Up: Section 10-8
   
 
-9.8.27   socket
-===============
+10.8.27   socket
+================
 
 <<   $(socket domain, type, protocol) : Channel
         domain : String
@@ -1336,11 +1603,11 @@ Node: Subsection 9-8-27,	Next: Subsection 9-8-28,	Prev: Subsection 9-8-26,	Up: S
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database. 
 
-Node: Subsection 9-8-28,	Next: Subsection 9-8-29,	Prev: Subsection 9-8-27,	Up: Section 9-8
+Node: Subsection 10-8-28,	Next: Subsection 10-8-29,	Prev: Subsection 10-8-27,	Up: Section 10-8
   
 
-9.8.28   bind
-=============
+10.8.28   bind
+==============
 
 <<   bind(socket, host, port)
         socket : InOutChannel
@@ -1358,11 +1625,11 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address. 
 
-Node: Subsection 9-8-29,	Next: Subsection 9-8-30,	Prev: Subsection 9-8-28,	Up: Section 9-8
+Node: Subsection 10-8-29,	Next: Subsection 10-8-30,	Prev: Subsection 10-8-28,	Up: Section 10-8
   
 
-9.8.29   listen
-===============
+10.8.29   listen
+================
 
 <<   listen(socket, requests)
         socket : InOutChannel
@@ -1373,11 +1640,11 @@ Node: Subsection 9-8-29,	Next: Subsection 9-8-30,	Prev: Subsection 9-8-28,	Up: S
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests. 
 
-Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: Section 9-8
+Node: Subsection 10-8-30,	Next: Subsection 10-8-31,	Prev: Subsection 10-8-29,	Up: Section 10-8
   
 
-9.8.30   accept
-===============
+10.8.30   accept
+================
 
 <<   $(accept socket) : InOutChannel
         socket : InOutChannel
@@ -1386,11 +1653,11 @@ Node: Subsection 9-8-30,	Next: Subsection 9-8-31,	Prev: Subsection 9-8-29,	Up: S
   
   The `accept' function accepts a connection on a socket. 
 
-Node: Subsection 9-8-31,	Next: Subsection 9-8-32,	Prev: Subsection 9-8-30,	Up: Section 9-8
+Node: Subsection 10-8-31,	Next: Subsection 10-8-32,	Prev: Subsection 10-8-30,	Up: Section 10-8
   
 
-9.8.31   connect
-================
+10.8.31   connect
+=================
 
 <<    connect(socket, addr, port)
          socket : InOutChannel
@@ -1408,266 +1675,3 @@ argument is the Internet address of the remote host, specified as a
 domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket. 
-
-Node: Subsection 9-8-32,	Next: Subsection 9-8-33,	Prev: Subsection 9-8-31,	Up: Section 9-8
-  
-
-9.8.32   getchar
-================
-
-<<    $(getc) : String
-      $(getc file) : String
-         file : InChannel or File
-      raises RuntimeException
->>
-  
-  The `getc' function returns the next character of a file. If the
-argument is not specified, `stdin' is used as input. If the end of file
-has been reached, the function returns `false'. 
-
-Node: Subsection 9-8-33,	Next: Subsection 9-8-34,	Prev: Subsection 9-8-32,	Up: Section 9-8
-  
-
-9.8.33   gets
-=============
-
-<<   $(gets) : String
-     $(gets channel) : String
-        channel : InChannel or File
-     raises RuntimeException
->>
-  
-  The `gets' function returns the next line from a file. The function
-returns the empty string if the end of file has been reached. The line
-terminator is removed. 
-
-Node: Subsection 9-8-34,	Next: Section 9-9,	Prev: Subsection 9-8-33,	Up: Section 9-8
-  
-
-9.8.34   fgets
-==============
-
-<<   $(fgets) : String
-     $(fgets channel) : String
-        channel : InChannel or File
-     raises RuntimeException
->>
-  
-  The `fgets' function returns the next line from a file that has been
-opened for reading with `fopen'. The function returns the empty string
-if the end of file has been reached. The returned string is returned as
-literal data. The line terminator is not removed. 
-
-Node: Section 9-9,	Next: Section 9-10,	Prev: Section 9-8,	Up: Chapter 9
-  
-
-9.9   Printing functions
-*=*=*=*=*=*=*=*=*=*=*=*=
-
-    
- 
- 
-  Output is printed with the `print' and `println' functions. The
-`println' function adds a terminating newline to the value being
-printed, the `print' function does not.
-<<    fprint(<file>, <string>)
-      print(<string>)
-      eprint(<string>)
-      fprintln(<file>, <string>)
-      println(<string>)
-      eprintln(<string>)
->>
-  
-  The `fprint' functions print to a file that has been previously opened
-with `fopen'. The `print' functions print to the standard output
-channel, and the `eprint' functions print to the standard error channel.
-
-Node: Section 9-10,	Next: Section 9-11,	Prev: Section 9-9,	Up: Chapter 9
-  
-
-9.10   Value printing functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-    
- 
- 
-  Values can be printed with the `printv' and `printvln' functions. The
-`printvln' function adds a terminating newline to the value being
-printed, the `printv' function does not.
-<<    fprintv(<file>, <string>)
-      printv(<string>)
-      eprintv(<string>)
-      fprintvln(<file>, <string>)
-      printvln(<string>)
-      eprintvln(<string>)
->>
-  
-  The `fprintv' functions print to a file that has been previously
-opened with `fopen'. The `printv' functions print to the standard output
-channel, and the `eprintv' functions print to the standard error
-channel. 
-
-Node: Section 9-11,	Next: Subsection 9-11-1,	Prev: Section 9-10,	Up: Chapter 9
-  
-
-9.11   Higher-level IO functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-* Menu:
-
-* Subsection 9-11-1::	Regular expressions
-* Subsection 9-11-2::	cat
-* Subsection 9-11-3::	grep
-* Subsection 9-11-4::	scan
-* Subsection 9-11-5::	awk
-* Subsection 9-11-6::	fsubst
-* Subsection 9-11-7::	lex
-* Subsection 9-11-8::	lex-search
-* Subsection 9-11-9::	Lexer
-* Subsection 9-11-10::	Lexer matching
-* Subsection 9-11-11::	Extending lexer definitions
-* Subsection 9-11-12::	Threading the lexer object
-* Subsection 9-11-13::	Parser
-* Subsection 9-11-14::	Calling the parser
-* Subsection 9-11-15::	Parsing control
-* Subsection 9-11-16::	Extending parsers
-* Subsection 9-11-17::	Passwd
-* Subsection 9-11-18::	getpwnam, getpwuid
-* Subsection 9-11-19::	getpwents
-* Subsection 9-11-20::	Group
-* Subsection 9-11-21::	getgrnam, getgrgid
-* Subsection 9-11-22::	tgetstr
-* Subsection 9-11-23::	xterm-escape-begin, xterm-escape-end
-* Subsection 9-11-24::	xterm-escape
-* Subsection 9-11-25::	prompt-invisible-begin, prompt-invisible-end
-* Subsection 9-11-26::	prompt-invisible
-* Subsection 9-11-27::	gettimeofday
-
-
-Node: Subsection 9-11-1,	Next: Subsection 9-11-2,	Prev: Section 9-11,	Up: Section 9-11
-  
-
-9.11.1   Regular expressions
-============================
-   
-  Many of the higher-level functions use regular expressions. Regular
-expressions are defined by strings with syntax nearly identical to
-awk(1).
-  Strings may contain the following character constants.
-  
-  
- - `\\' : a literal backslash. 
- - `\a' : the alert character `^G'. 
- - `\b' : the backspace character `^H'. 
- - `\f' : the formfeed character `^L'. 
- - `\n' : the newline character `^J'. 
- - `\r' : the carriage return character `^M'. 
- - `\t' : the tab character `^I'. 
- - `\v' : the vertical tab character. 
- - `\xhh...' : the character represented by the string of hexadecimal
-   digits `h'. All valid hexadecimal digits following the sequence are
-   considered to be part of the sequence. 
- - `\ddd' : the character represented by 1, 2, or 3 octal digits. 
-  
-  Regular expressions are defined using the special characters
-`.\^$[(){}*?'+.
-  
-  
- - `c' : matches the literal character `c' if `c' is not a special
-   character. 
- - `\c' : matches the literal character `c', even if `c' is a special
-   character. 
- - `.' : matches any character, including newline. 
- - `^' : matches the beginning of a line. 
- - `$' : matches the end of line. 
- - `[abc...]' : matches any of the characters `abc...' 
- - `[^abc...]' : matches any character except `abc...' 
- - `r1|r2' : matches either `r1' or `r2'. 
- - `r1r2' : matches `r1' and then `r2'. 
- - `r'+ : matches one or more occurrences of `r'. 
- - `r*' : matches zero or more occurrences of `r'. 
- - `r?' : matches zero or one occurrence of `r'. 
- - `(r)' : parentheses are used for grouping; matches `r'. 
- - `\(r\)' : also defines grouping, but the expression matched within
-   the parentheses is available to the output processor through one of
-   the variables `$1', `$2', ... 
- - `r{n}' : matches exactly `n' occurrences of `r'. 
- - `r{n,}' : matches `n' or more occurrences of `r'. 
- - `r{n,m}' : matches at least `n' occurrences of `r', and no more than
-   `m' occurrences. 
- - `\y': matches the empty string at either the beginning or end of a
-   word. 
- - `\B': matches the empty string within a word. 
- - `\<': matches the empty string at the beginning of a word. 
- - `\>': matches the empty string at the end of a word. 
- - `\w': matches any character in a word. 
- - `\W': matches any character that does not occur within a word. 
- - `\`': matches the empty string at the beginning of a file. 
- - `\'': matches the empty string at the end of a file. 
-  
-  Character classes can be used to specify character sequences
-abstractly. Some of these sequences can change depending on your LOCALE.
-  
-  
- - `[:alnum:]' Alphanumeric characters. 
- - `[:alpha:]' Alphabetic characters. 
- - `[:lower:]' Lowercase alphabetic characters. 
- - `[:upper:]' Uppercase alphabetic characters. 
- - `[:cntrl:]' Control characters. 
- - `[:digit:]' Numeric characters. 
- - `[:xdigit:]' Numeric and hexadecimal characters. 
- - `[:graph:]' Characters that are printable and visible. 
- - `[:print:]' Characters that are printable, whether they are visible
-   or not. 
- - `[:punct:]' Punctuation characters. 
- - `[:blank:]' Space or tab characters. 
- - `[:space:]' Whitespace characters. 
-   
-
-Node: Subsection 9-11-2,	Next: Subsection 9-11-3,	Prev: Subsection 9-11-1,	Up: Section 9-11
-  
-
-9.11.2   cat
-============
-
-<<    cat(files) : Sequence
-         files : File or InChannel Sequence
->>
-  
-  The `cat' function concatenates the output from multiple files and
-returns it as a string. 
-
-Node: Subsection 9-11-3,	Next: Subsection 9-11-4,	Prev: Subsection 9-11-2,	Up: Section 9-11
-  
-
-9.11.3   grep
-=============
-
-<<   grep(pattern) : String  # input from stdin, default options
-        pattern : String
-     grep(pattern, files) : String  # default options
-        pattern : String
-        files   : File Sequence
-     grep(options, pattern, files) : String
-       options : String
-       pattern : String
-       files   : File Sequence
->>
-  
-  The `grep' function searches for occurrences of a regular expression
-`pattern' in a set of files, and prints lines that match. This is like a
-highly-simplified version of grep(1).
-  The options are: 
-  
- q  If specified, the output from `grep' is not displayed. 
- h  If specified, output lines will not include the filename (default,
-   when only one input file is given). 
- n  If specified, output lines include the filename (default, when more
-   than one input file is given). 
- v  If specified, search for lines without a match instead of lines with
-   a match, 
-  
-  The `pattern' is a regular expression.
-  If successful (`grep' found a match), the function returns `true'.
-Otherwise, it returns `false'. 

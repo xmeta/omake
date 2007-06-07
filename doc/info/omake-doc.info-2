@@ -227,13 +227,7 @@ definitions.
 * Section 4-11::	Objects
 * Section 4-12::	Classes
 * Section 4-13::	Inheritance
-* Section 4-14::	Special objects/sections
-* Section 4-15::	private.
-* Section 4-16::	protected.
-* Section 4-17::	public.
-* Section 4-18::	static.
-* Section 4-19::	Short syntax for scoping objects
-* Section 4-20::	Modular programming
+* Section 4-14::	static.
 
 
 Node: Section 4-1,	Next: Section 4-2,	Prev: Chapter 4,	Up: Chapter 4
@@ -474,11 +468,11 @@ line `X = 1'.
   This result may seem surprising--the variable definition within the
 `section' is not visible outside the scope of the `section'.
   The `export' form, which will be described in detail in Section
-5.3*Note Section 5-3::, can be used to circumvent this
-restriction by exporting variable values from an inner scope. It must be
-the final expression in a scope. For example, if we modify the previous
-example by adding an `export' expression, the new value for the `X'
-variable is retained, and the code prints the line `X = 2' twice.
+6.3*Note Section 6-3::, can be used to circumvent this
+restriction by exporting variable values from an inner scope. For
+example, if we modify the previous example by adding an `export'
+expression, the new value for the `X' variable is retained, and the code
+prints the line `X = 2' twice.
 <<    X = 1
       section
           X = 2
@@ -529,7 +523,7 @@ Node: Section 4-9,	Next: Section 4-10,	Prev: Section 4-8,	Up: Chapter 4
 >>
   
   The `<test>' expression is evaluated, and if it evaluates to a true
-value (see Section 8.2*Note Section 8-2:: for more information on
+value (see Section 9.2*Note Section 9-2:: for more information on
 logical values, and Boolean functions), the code for the `<true-clause>'
 is evaluated; otherwise the remaining clauses are evaluated. There may
 be multiple `elseif' clauses; both the `elseif' and `else' clauses are
@@ -724,33 +718,156 @@ inherits all of the methods and fields of the parent classes/objects.
 >>
   
 
-Node: Section 4-14,	Next: Section 4-15,	Prev: Section 4-13,	Up: Chapter 4
+Node: Section 4-14,	Next: Subsection 4-14-1,	Prev: Section 4-13,	Up: Chapter 4
   
 
-4.14   Special objects/sections
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+4.14   static.
+*=*=*=*=*=*=*=
 
+    
+  The `static.' object is used to specify values that are persistent
+across runs of OMake. They are frequently used for configuring a
+project. Configuring a project can be expensive, so the `static.' object
+ensure that the configuration is performed just once. In the following
+(somewhat trivial) example, a `static' section is used to determine if
+the LaTeX command is available. The `$(where latex)' function returns
+the full pathname for `latex', or `false' if the command is not found.
+<<   static. =
+        LATEX_ENABLED = false
+        print(--- Determining if LaTeX is installed )
+        if $(where latex)
+            LATEX_ENABLED = true
+            export
   
-  Objects provide one way to manage the OMake namespace. There are also
-four special objects that are further used to control the namespace.
+        if $(LATEX_ENABLED)
+           println($'(enabled)')
+        else
+           println($'(disabled)')
+>>
+  
+  The OMake standard library provides a number of useful functions for
+programming the `static.' tests, as described in Chapter
+14*Note Chapter 14::. Using the standard library, the above
+can be rewritten as
+<<   open configure/Configure
+     static. =
+        LATEX_ENABLED = $(CheckProg latex)
+>>
+  
+  As a matter of style, a `static.' section that is used for
+configuration should print what it is doing using the 'ConfMsgChecking'
+and 'ConfMsgResult' functions (of couse, most of helper functions in the
+standard library would do that automatically).
+* Menu:
+
+* Subsection 4-14-1::	.STATIC
+
 
-Node: Section 4-15,	Next: Section 4-16,	Prev: Section 4-14,	Up: Chapter 4
+Node: Subsection 4-14-1,	Next: Chapter 5,	Prev: Section 4-14,	Up: Section 4-14
   
 
-4.15   private.
-*=*=*=*=*=*=*=*
+4.14.1   .STATIC
+================
+     
+  There is also a rule-form of static section. The syntax can be any of
+the following three forms.
+<<    # Export all variables defined by the body
+      .STATIC:
+          <body>
+  
+      # Specify file-dependencies
+      .STATIC: <dependencies>
+          <body>
+  
+      # Specify which variables to export, as well as file dependencies
+      .STATIC: <vars>: <dependencies>
+          <body>
+>>
+  
+  The `<vars>' are the variable names to be defined, the
+`<dependencies>' are file dependencies---the rule is re-evaluated if one
+of the dependencies is changed. The `<vars>' and `<dependencies>' can be
+omitted; if so, all variables defined in the `<body>' are exported.
+  For example, the final example of the previous section can also be
+implemented as follows.
+<<    open configure/Configure
+      .STATIC:
+          LATEX_ENABLED = $(CheckProg latex)
+>>
+  The effect is much the same as using `static.' (instead of `.STATIC').
+However, in most cases `.STATIC' is preferred, for two reasons.
+  First, a `.STATIC' section is lazy, meaning that it is not evaluated
+until one of its variables is resolved. In this example, if
+`$(LATEX_ENABLED)' is never evaluated, the section need never be
+evaluated either. This is in contrast to the `static.' section, which
+always evaluates its body at least once.
+  A second reason is that a `.STATIC' section allows for file
+dependencies, which are useful when the `.STATIC' section is used for
+memoization. For example, suppose we wish to create a dictionary from a
+table that has key-value pairs. By using a `.STATIC' section, we can
+perform this computation only when the input file changes (not on every
+fun of `omake'). In the following example the function `awk'
+?? is used to parse the file `table-file'. When a
+line is encountered with the form key` = 'value, the key/value pair is
+added the the `TABLE'.
+<<    .STATIC: table-file
+          TABLE = $(Map)
+          awk(table-file)
+          case $'^\([[:alnum:]]+\) *= *\(.*\)'
+              TABLE = $(TABLE.add $1, $2)
+              export
+>>
+  
+  It is appropriate to think of a `.STATIC' section as a rule that must
+be recomputed whenever the dependencies of the rule change. The targets
+of the rule are the variables it exports (in this case, the `TABLE'
+variable).
+   
+
+Node: Chapter 5,	Next: Section 5-1,	Prev: Section 4-14,	Up: Top
+  
+
+Chapter 5     Variables and Naming
+**********************************
+    
+  During evaluation, there are three different kinds of namespaces.
+Variables can be private, or they may refer to fields in the current
+this object, or they can be part of the global public namespace. The
+namespace can be specified directly by including an explicit qualifier
+before the variable name. The three namespaces are separate; a variable
+can be bound in one or more simultaneously.
+<<    # private namespace
+      private.X = 1
+      # current object
+      this.X = 2
+      # public, globally defined
+      public.X = 3
+>>
+  
+* Menu:
+
+* Section 5-1::	private.
+* Section 5-2::	this.
+* Section 5-3::	public.
+* Section 5-4::	Qualified blocks
+* Section 5-5::	declare
+
+
+Node: Section 5-1,	Next: Section 5-2,	Prev: Chapter 5,	Up: Chapter 5
+  
+
+5.1   private.
+*=*=*=*=*=*=*=
 
    
-  The `private.' section is used to define variables that are private to
-the current file/scope. The values are not accessible outside the scope.
-Variables defined in a `private.' object can be accessed only from
-within the section where they are defined.
+  The `private.' qualifier is used to define variables that are private
+to the current file/scope. The values are not accessible outside the
+scope. Private variables are statically (lexically) scoped.
 <<    Obj. =
-         private. =
-            X = 1
+         private.X = 1
   
          print() =
-            println(The value of X is: $(X))
+            println(The value of X is: $X)
   
       # Prints:
       #    The private value of X is: 1
@@ -764,17 +881,15 @@ within the section where they are defined.
 variable.
 <<   # The public value of x is 1
      x = 1
-     f() =
-         println(The public value of x is: $(x))
   
      # This object uses a private value of x
      Obj. =
-         private. =
-            x = 2
+         private.x = 2
   
          print() =
             x = 3
-            println(The private value of x is: $(x))
+            println(The private value of x is: $x)
+            println(The public value of x is: $(public.x))
             f()
   
      # Prints:
@@ -805,18 +920,15 @@ variable.
        >>
   
 
-Node: Section 4-16,	Next: Section 4-17,	Prev: Section 4-15,	Up: Chapter 4
+Node: Section 5-2,	Next: Section 5-3,	Prev: Section 5-1,	Up: Chapter 5
   
 
-4.16   protected.
-*=*=*=*=*=*=*=*=*
+5.2   this.
+*=*=*=*=*=*
 
    
-  The `protected.' object is used to define fields that are local to an
-object. They can be accessed as fields, but they are not passed
-dynamically to other functions. The purpose of a protected variable is
-to prevent a variable definition within the object from affecting other
-parts of the project.
+  The `this.' qualifier is used to define fields that are local to an
+object. Object variables are dynamically scoped.
 <<    X = 1
       f() =
          println(The public value of X is: $(X))
@@ -829,15 +941,14 @@ parts of the project.
   
       # X is a protected field in the object
       Obj. =
-         protected. =
-            X = 3
+         this.X = 3
   
          print() =
-            println(The protected value of X is: $(X))
+            println(The value of this.X is: $(X))
             f()
   
       # Prints:
-      #    The protected value of X is: 3
+      #    The value of this.X is: 3
       #    The public value of X is: 1
       Obj.print()
   
@@ -850,17 +961,17 @@ The resulting code is more modular because variables in your object will
 not produce unexpected clashes with variables defined in other parts of
 the project.
 
-Node: Section 4-17,	Next: Section 4-18,	Prev: Section 4-16,	Up: Chapter 4
+Node: Section 5-3,	Next: Section 5-4,	Prev: Section 5-2,	Up: Chapter 5
   
 
-4.17   public.
-*=*=*=*=*=*=*=
+5.3   public.
+*=*=*=*=*=*=*
 
    
-  The `public.' object is used to specify public dynamically-scoped
-variables. In the following example, the `public.' object specifies that
-the value `X = 4' is to be dynamically scoped. Public variables are not
-defined as fields of an object.
+  The `public.' qualifier is used to specify public dynamically-scoped
+variables. In the following example, the `public.' definition specifies
+that the binding `X = 4' is to be dynamically scoped. Public variables
+are not defined as fields of an object.
 <<    X = 1
       f() =
          println(The public value of X is: $(X))
@@ -872,13 +983,11 @@ defined as fields of an object.
          f()
   
       Obj. =
-         protected. =
-            X = 3
+         protected.X = 3
   
          print() =
             println(The protected value of X is: $(X))
-            public. =
-               X = 4
+            public.X = 4
             f()
   
       # Prints:
@@ -888,102 +997,84 @@ defined as fields of an object.
 >>
   
 
-Node: Section 4-18,	Next: Section 4-19,	Prev: Section 4-17,	Up: Chapter 4
+Node: Section 5-4,	Next: Section 5-5,	Prev: Section 5-3,	Up: Chapter 5
   
 
-4.18   static.
-*=*=*=*=*=*=*=
+5.4   Qualified blocks
+*=*=*=*=*=*=*=*=*=*=*=
 
-    
-  The `static.' object is used to specify values that are persistent
-across runs of OMake. They are frequently used for configuring a
-project. Configuring a project can be expensive, so the `static.' object
-ensure that the configuration is performed just once. In the following
-(somewhat trivial) example, a `static' section is used to determine if
-the LaTeX command is available. The `$(where latex)' function returns
-the full pathname for `latex', or `false' if the command is not found.
-<<   static. =
-        LATEX_ENABLED = false
-        print(--- Determining if LaTeX is installed )
-        if $(where latex)
-            LATEX_ENABLED = true
-            export
   
-        if $(LATEX_ENABLED)
-           println($'(enabled)')
-        else
-           println($'(disabled)')
+  If several qualified variables are defined simultaneously, a block
+form of qualifier can be defined. The syntax is similar to an object
+definition, where the name of the object is the qualifier itself. For
+example, the following program defines two private variables `X' and
+`Y'.
+<<    private. =
+          X = 1
+          Y = 2
 >>
-  
-  The OMake standard library provides a number of useful functions for
-programming the `static.' tests, as described in Chapter
-13*Note Chapter 13::. Using the standard library, the above
-can be rewritten as
-<<   open configure/Configure
-     static. =
-        LATEX_ENABLED = $(CheckProg latex)
->>
-  
-  As a matter of style, a `static.' section that is used for
-configuration should print what it is doing using the 'ConfMsgChecking'
-and 'ConfMsgResult' functions (of couse, most of helper functions in the
-standard library would do that automatically).
-
-Node: Section 4-19,	Next: Section 4-20,	Prev: Section 4-18,	Up: Chapter 4
-  
-
-4.19   Short syntax for scoping objects
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The usual dot-notation can be used for private, protected, and public
-variables (but not static variables).
-<<    # Public definition of X
-      public.X = 1
-  
-      # Private definition of X
-      private.X = 2
-  
-      # Prints:
-      #    The public value of X is: 1
-      #    The private value of X is: 2
-      println(The public value of X is: $(public.X))
-      println(The private value of X is: $(private.X))
+  The qualifier specifies a default namespace for new definitions in the
+block. The contents of the block is otherwise completely general.
+<<    private. =
+          X = 1
+          Y = 2
+          public.Z = $(add $X, $Y)
+          # Prints "The value of Z is 3"
+          echo The value of Z is $Z
 >>
   
 
-Node: Section 4-20,	Next: Chapter 5,	Prev: Section 4-19,	Up: Chapter 4
+Node: Section 5-5,	Next: Chapter 6,	Prev: Section 5-4,	Up: Chapter 5
   
 
-4.20   Modular programming
-*=*=*=*=*=*=*=*=*=*=*=*=*=
+5.5   declare
+*=*=*=*=*=*=*
 
-  
-  The scoping objects help provide a form of modularity. When you write
-a new file or program, explicit scoping declarations can be used to
-define an explicit interface for your code, and help avoid name clashes
-with other parts of the project. Variable definitions are public by
-default, but you can control this with private definitions.
-<<    # These variables are private to this file
-      private. =
-         FILES = foo1 foo2 foo3
-         SUFFIX = .o
-         OFILES = $(addsuffix $(SUFFIX), $(FILES))
-  
-      # These variables are public
-      public. =
-         CFLAGS += -g
-  
-      # Build the files with the -g option
-      $(OFILES):
+   
+  When a variable name is unqualified, its namespace is determined by
+the most recent definition or declaration that is in scope for that
+variable. We have already seen this in the examples, where a variable
+definition is qualified, but the subsequent uses are not qualified
+explicitly. In the following example, the first occurrence of `$X'
+refers to the private definition, because that is the most recent. The
+public definition of `X' is still `0', but the variable must be
+qualified explicitly.
+<<    public.X = 0
+      private.X = 1
+      
+      public.print() =
+          println(The value of private.X is: $X)
+          println(The value of public.X is: $(public.X))
 >>
+  Sometimes it can be useful to declare a variable without defining it.
+For example, we might have a function that uses a variable `X' that is
+to be defined later in the program. The `declare' directive can be used
+for this.
+<<    declare public.X
+  
+      public.print() =
+          println(The value of X is $X)
+  
+      # Prints "The value of X is 2"
+      X = 2
+      print()
+>>
+  
+  Finally, what about variables that are used but not explicitly
+qualified? In this case, the following rules are used.
+  
+  
+ - If the variable is a function parameter, it is private. 
+ - If the variable is defined in an object, it is qualified with
+   `this.'. 
+ - Otherwise, the variable is public. 
   
    
 
-Node: Chapter 5,	Next: Section 5-1,	Prev: Chapter 4,	Up: Top
+Node: Chapter 6,	Next: Section 6-1,	Prev: Chapter 5,	Up: Top
   
 
-Chapter 5     Expressions and values
+Chapter 6     Expressions and values
 ************************************
     
   omake provides a full programming-language including many system and
@@ -1015,20 +1106,19 @@ the `value' form to evaluate an expression directly.
   
 * Menu:
 
-* Section 5-1::	Dynamic scoping
-* Section 5-2::	Functional evaluation
-* Section 5-3::	Exporting the environment
-* Section 5-4::	Eager evaluation
-* Section 5-5::	Objects
-* Section 5-6::	Field and method calls
-* Section 5-7::	Method override
-* Section 5-8::	Super calls
+* Section 6-1::	Dynamic scoping
+* Section 6-2::	Functional evaluation
+* Section 6-3::	Exporting the environment
+* Section 6-4::	Objects
+* Section 6-5::	Field and method calls
+* Section 6-6::	Method override
+* Section 6-7::	Super calls
 
 
-Node: Section 5-1,	Next: Section 5-2,	Prev: Chapter 5,	Up: Chapter 5
+Node: Section 6-1,	Next: Section 6-2,	Prev: Chapter 6,	Up: Chapter 6
   
 
-5.1   Dynamic scoping
+6.1   Dynamic scoping
 *=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1104,10 +1194,10 @@ source text.
 >>
   
 
-Node: Section 5-2,	Next: Section 5-3,	Prev: Section 5-1,	Up: Chapter 5
+Node: Section 6-2,	Next: Section 6-3,	Prev: Section 6-1,	Up: Chapter 6
   
 
-5.2   Functional evaluation
+6.2   Functional evaluation
 *=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1141,20 +1231,20 @@ subprojects do not interfere with one another.
 information back to its parent object, or when an inner scope needs to
 propagate information back to the outer scope.
 
-Node: Section 5-3,	Next: Section 5-4,	Prev: Section 5-2,	Up: Chapter 5
+Node: Section 6-3,	Next: Subsection 6-3-1,	Prev: Section 6-2,	Up: Chapter 6
   
 
-5.3   Exporting the environment
+6.3   Exporting the environment
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
     The `export' directive can
 be used to propagate all or part of an inner scope back to its parent.
-The `export' directive should be the last statement in a block. If used
-without arguments, the entire scope is propagated back to the parent;
-otherwise the arguments specify which part of the environment to
-propagate. The most common usage is to export the definitions in a
-conditional block. In the following example, the variable `B' is bound
-to 2 after the conditional. The `A' variable is not redefined.
+If used without arguments, the entire scope is propagated back to the
+parent; otherwise the arguments specify which part of the environment to
+propagate. The most common usage is to export some or all of the
+definitions in a conditional block. In the following example, the
+variable `B' is bound to 2 after the conditional. The `A' variable is
+not redefined.
 <<    if $(test)
          A = 1
          B = $(add $(A), 1)
@@ -1168,14 +1258,14 @@ to 2 after the conditional. The `A' variable is not redefined.
 following is exported: 
   
  - The values of all the dynamically scoped variables (as described in
-   Section 4.17*Note Section 4-17::). 
+   Section 5.3*Note Section 5-3::). 
  - The current working directory. 
  - The current Unix environment. 
  - The current implicit rules and implicit dependencies (see also
-   Section 7.11.1*Note Subsection 7-11-1::). 
+   Section 8.11.1*Note Subsection 8-11-1::). 
  - The current set of "phony" target declarations (see Sections
-   7.10*Note Section 7-10:: and
-   7.11.3*Note Subsection 7-11-3::). 
+   8.10*Note Section 8-10:: and
+   8.11.3*Note Subsection 8-11-3::). 
   
   If the `export' directive is used with an argument, the argument
 expression is evaluated and the resulting value is interpreted as
@@ -1200,8 +1290,7 @@ follows:
 variables `A' and `B' will be exported, and the implicit rule will
 remain in the environment after the section ends, but the variable `TMP'
 and the target `tmp_phony' will remain unchanged.
-<<WANT_TO_EXPORT[] = A B .RULE
-  section
+<<section
      A = 1
      B = 2
      TMP = $(add $(A), $(B))
@@ -1213,17 +1302,74 @@ and the target `tmp_phony' will remain unchanged.
   
      %.foo: %.bar tmp_phony
         compute_foo $(TMP) $< $@
-     export $(WANT_TO_EXPORT)
+     export A B .RULE
+>>
+  
+* Menu:
+
+* Subsection 6-3-1::	Export regions
+* Subsection 6-3-2::	Returning values from exported regions
+
+
+Node: Subsection 6-3-1,	Next: Subsection 6-3-2,	Prev: Section 6-3,	Up: Section 6-3
+  
+
+6.3.1   Export regions
+======================
+  
+  This feature was introduced in version 0.9.8.5.
+  The `export' directive does not need to occur at the end of a block.
+An export is valid from the point where it is specified to the end of
+the block in which it is contained. In other words, the export is used
+in the program that follows it. This can be especially useful for
+reducing the amount of code you have to write. In the following example,
+the variable `CFLAGS' is exported from the both branches of the
+conditional.
+<<    export CFLAGS
+      if $(equal $(OSTYPE), Win32)
+          CFLAGS += /DWIN32
+      else
+          CFLAGS += -UWIN32
 >>
   
 
-Node: Section 5-4,	Next: Section 5-5,	Prev: Section 5-3,	Up: Chapter 5
+Node: Subsection 6-3-2,	Next: Section 6-4,	Prev: Subsection 6-3-1,	Up: Section 6-3
   
 
-5.4   Eager evaluation
-*=*=*=*=*=*=*=*=*=*=*=
+6.3.2   Returning values from exported regions
+==============================================
+  
+  This feature was introduced in version 0.9.8.5.
+  The use of export does not affect the value returned by a block. The
+value is computed as usual, as the value of the last statement in the
+block, ignoring the export. For example, suppose we wish to implement a
+table that maps strings to unique integers. Consider the following
+program.
+<<    # Empty map
+      table = $(Map)
+  
+      # Add an entry to the table
+      intern(s) =
+          export
+          if $(table.mem $s)
+              table.find($s)
+          else
+              private.i = $(table.length)
+              table = $(table.add $s, $i)
+              value $i
+  
+      intern(foo)
+      intern(boo)
+      intern(moo)
+      # Prints "boo = 1"
+      println($"boo = $(intern boo)")
+>>
+  Given a string `s', the function `intern' returns either the value
+already associated with `s', or assigns a new value. In the latter case,
+the table is updated with the new value. The `export' at the beginning
+of the function means that the variable `table' is to be exported. The
+bindings for `s' and `i' are not exported, because they are private.
 
-   
   Evaluation in omake is eager. That is, expressions are evaluated as
 soon as they are encountered by the evaluator. One effect of this is
 that the right-hand-side of a variable definition is expanded when the
@@ -1267,13 +1413,13 @@ prints the original value, `1'.
       1
 >>
   
-  See also Section 6.5*Note Section 6-5:: for further ways to
+  See also Section 7.5*Note Section 7-5:: for further ways to
 control the evaluation order through the use of "lazy" expressions.
 
-Node: Section 5-5,	Next: Section 5-6,	Prev: Section 5-4,	Up: Chapter 5
+Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
   
 
-5.5   Objects
+6.4   Objects
 *=*=*=*=*=*=*
 
   
@@ -1313,10 +1459,10 @@ scoping directives discussed below.
 defined in the body of the object become its fields, and the functions
 defined in the body become its methods.
 
-Node: Section 5-6,	Next: Section 5-7,	Prev: Section 5-5,	Up: Chapter 5
+Node: Section 6-5,	Next: Section 6-6,	Prev: Section 6-4,	Up: Chapter 6
   
 
-5.6   Field and method calls
+6.5   Field and method calls
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -1357,10 +1503,10 @@ which returns a new object at position 16.
 fields or methods of an existing object in place. Thus, the `new' and
 `move' methods return new objects.
 
-Node: Section 5-7,	Next: Section 5-8,	Prev: Section 5-6,	Up: Chapter 5
+Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
   
 
-5.7   Method override
+6.6   Method override
 *=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1383,10 +1529,10 @@ of just 1. We can do it by overriding the `move' method.
   However, by doing this, we have completely replaced the old `move'
 method.
 
-Node: Section 5-8,	Next: Chapter 6,	Prev: Section 5-7,	Up: Chapter 5
+Node: Section 6-7,	Next: Chapter 7,	Prev: Section 6-6,	Up: Chapter 6
   
 
-5.8   Super calls
+6.7   Super calls
 *=*=*=*=*=*=*=*=*
 
   
@@ -1410,10 +1556,10 @@ object (the `this' variable). This is because the method returns a new
 object, which is re-used for the second call.
    
 
-Node: Chapter 6,	Next: Section 6-1,	Prev: Chapter 5,	Up: Top
+Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
   
 
-Chapter 6     Additional language examples
+Chapter 7     Additional language examples
 ******************************************
     
   In this section, we'll explore the core language through a series of
@@ -1423,20 +1569,20 @@ examples (examples of the build system are the topic of the Chapter
 For simplicity, the values printed by `osh' have been abbreviated.
 * Menu:
 
-* Section 6-1::	Strings and arrays
-* Section 6-2::	Quoted strings
-* Section 6-3::	Files and directories
-* Section 6-4::	Iteration, mapping, and foreach
-* Section 6-5::	Lazy expressions
-* Section 6-6::	Scoping and exports
-* Section 6-7::	Shell aliases
-* Section 6-8::	Input/output redirection on the cheap
+* Section 7-1::	Strings and arrays
+* Section 7-2::	Quoted strings
+* Section 7-3::	Files and directories
+* Section 7-4::	Iteration, mapping, and foreach
+* Section 7-5::	Lazy expressions
+* Section 7-6::	Scoping and exports
+* Section 7-7::	Shell aliases
+* Section 7-8::	Input/output redirection on the cheap
 
 
-Node: Section 6-1,	Next: Section 6-2,	Prev: Chapter 6,	Up: Chapter 6
+Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
   
 
-6.1   Strings and arrays
+7.1   Strings and arrays
 *=*=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -1470,133 +1616,5 @@ whitespace.
       osh> touch $(NAME)
       osh> ls -Q
       "fee"  "fi"  "foo"  "fum"  "Hello world"
->>
-  
-
-Node: Section 6-2,	Next: Section 6-3,	Prev: Section 6-1,	Up: Chapter 6
-  
-
-6.2   Quoted strings
-*=*=*=*=*=*=*=*=*=*=
-
-   
-  A `String' is a single value; whitespace is significant in a string.
-Strings are introduced with quotes. There are four kinds of quoted
-elements; the kind is determined by the opening quote. The symbols `''
-(single-quote) and `"' (double-quote) introduce the normal shell-style
-quoted elements. The quotation symbols are included in the result
-string. Variables are always expanded within a quote of this kind. Note
-that the osh(1) (Chapter 14*Note Chapter 14::) printer escapes
-double-quotes within the string; these are only for printing, they are
-not part of the string itself.
-<<    osh> A = 'Hello "world"'
-      - : "'Hello \"world\"'" : String
-      osh> B = "$(A)"
-      - : "\"'Hello \"world\"'\"" : String
-      osh> C = 'Hello \'world\''
-      - : "'Hello 'world''" : String
->>
-  
-  A second kind of quote is introduced with the `$'' and `$"' quotes.
-The number of opening and closing quote symbols is arbitrary. These
-quotations have several properties: 
-  
- - The quote delimiters are not part of the string. 
- - Backslash `\' symbols within the string are treated as normal
-   characters. 
- - The strings may span several lines. 
- - Variables are expanded within `$"' sequences, but not within `$''
-   sequences. 
-  
-<<    osh> A = $'''Here $(IS) an '''' \(example\) string['''
-      - : "Here $(IS) an '''' \\(example\\) string[" : String
-      osh> B = $""""A is "$(A)" """"
-      - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
-      osh> value $(A.length)
-      - : 38 : Int
-      osh> value $(A.nth 5)
-      - : "$" : String
-      osh> value $(A.rev)
-      - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
->>
-  
-  Strings and sequences both have the property that they can be merged
-with adjacent non-whitespace text.
-<<    osh> A = a b c
-      - : "a b c" : Sequence
-      osh> B = $(A).c
-      - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
-      osh> value $(nth 2, $(B))
-      - : "c.c" : String
-      osh> value $(length $(B))
-      - : 3 : Int
->>
-  
-  Arrays are different. The elements of an array are never merged with
-adjacent text of any kind. Arrays are defined by adding square brackets
-`[]' after a variable name and defining the elements with an indented
-body. The elements may include whitespace.
-<<    osh> A[] =
-              a b
-              foo bar
-      - : <array
-             "a b" : Sequence
-             "foo bar" : Sequence>
-             : Array
-      osh> echo $(A).c
-      a b foo bar .c
-      osh> value $(A.length)
-      - : 2 : Int
-      osh> value $(A.nth 1)
-      - : "foo bar" : Sequence
->>
-  
-  Arrays are quite helpful on systems where filenames often contain
-whitespace.
-<<    osh> FILES[] =
-               c:\Documents and Settings\jyh\one file
-               c:\Program Files\omake\second file
-  
-      osh> CFILES = $(addsuffix .c, $(FILES))
-      osh> echo $(CFILES)
-      c:\Documents and Settings\jyh\one file.c c:\Program
-Files\omake\second file.c
->>
-  
-
-Node: Section 6-3,	Next: Section 6-4,	Prev: Section 6-2,	Up: Chapter 6
-  
-
-6.3   Files and directories
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  OMake projects usually span multiple directories, and different parts
-of the project execute commands in different directories. There is a
-need to define a location-independent name for a file or directory.
-  This is done with the `$(file <names>)' and `$(dir <names>)'
-functions.
-<<   osh> mkdir tmp
-     osh> F = $(file fee)
-     osh> section:
-              cd tmp
-              echo $F
-     ../fee
-     osh> echo $F
-     fee
->>
-  
-  Note the use of a `section:' to limit the scope of the `cd' command.
-The section temporarily changes to the `tmp' directory where the name of
-the file is `../fee'. Once the section completes, we are still in the
-current directory, where the name of the file is `fee'.
-  One common way to use the file functions is to define proper file
-names in your project `OMakefile', so that references within the various
-parts of the project will refer to the same file.
-<<    osh> cat OMakefile
-      ROOT = $(dir .)
-      TMP  = $(dir tmp)
-      BIN  = $(dir bin)
-      ...
 >>
   

@@ -1,11 +1,11 @@
-     
+   
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                             4^thJune, 2007
+                             7^thJune, 2007
                              ==============
   
    All the documentation on a single page (23)
@@ -119,8 +119,9 @@ Contents
     - 4.12  Classes 
     - 4.13  Inheritance 
     - 4.14  static. 
-    - 4.15  Short syntax for scoping objects 
-    - 4.16  Modular programming 
+        
+       - 4.14.1  .STATIC 
+     
   
  - Chapter 5  Variables and Naming 
      
@@ -2665,50 +2666,61 @@ and 'ConfMsgResult' functions (of couse, most of helper functions in the
 standard library would do that automatically).
   
 
-4.15  Short syntax for scoping objects
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
+4.14.1  .STATIC
+===============
+     
+  There is also a rule-form of static section. The syntax can be any of
+the following three forms.
+<<    # Export all variables defined by the body
+      .STATIC:
+          <body>
   
-  The usual dot-notation can be used for private, protected, and public
-variables (but not static variables).
-<<    # Public definition of X
-      public.X = 1
+      # Specify file-dependencies
+      .STATIC: <dependencies>
+          <body>
   
-      # Private definition of X
-      private.X = 2
-  
-      # Prints:
-      #    The public value of X is: 1
-      #    The private value of X is: 2
-      println(The public value of X is: $(public.X))
-      println(The private value of X is: $(private.X))
+      # Specify which variables to export, as well as file dependencies
+      .STATIC: <vars>: <dependencies>
+          <body>
 >>
   
-  
-
-4.16  Modular programming
-*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  The scoping objects help provide a form of modularity. When you write
-a new file or program, explicit scoping declarations can be used to
-define an explicit interface for your code, and help avoid name clashes
-with other parts of the project. Variable definitions are public by
-default, but you can control this with private definitions.
-<<    # These variables are private to this file
-      private. =
-         FILES = foo1 foo2 foo3
-         SUFFIX = .o
-         OFILES = $(addsuffix $(SUFFIX), $(FILES))
-  
-      # These variables are public
-      public. =
-         CFLAGS += -g
-  
-      # Build the files with the -g option
-      $(OFILES):
+  The `<vars>' are the variable names to be defined, the
+`<dependencies>' are file dependencies---the rule is re-evaluated if one
+of the dependencies is changed. The `<vars>' and `<dependencies>' can be
+omitted; if so, all variables defined in the `<body>' are exported.
+  For example, the final example of the previous section can also be
+implemented as follows.
+<<    open configure/Configure
+      .STATIC:
+          LATEX_ENABLED = $(CheckProg latex)
+>>
+  The effect is much the same as using `static.' (instead of `.STATIC').
+However, in most cases `.STATIC' is preferred, for two reasons.
+  First, a `.STATIC' section is lazy, meaning that it is not evaluated
+until one of its variables is resolved. In this example, if
+`$(LATEX_ENABLED)' is never evaluated, the section need never be
+evaluated either. This is in contrast to the `static.' section, which
+always evaluates its body at least once.
+  A second reason is that a `.STATIC' section allows for file
+dependencies, which are useful when the `.STATIC' section is used for
+memoization. For example, suppose we wish to create a dictionary from a
+table that has key-value pairs. By using a `.STATIC' section, we can
+perform this computation only when the input file changes (not on every
+fun of `omake'). In the following example the function `awk' ?? is used
+to parse the file `table-file'. When a line is encountered with the form
+key` = 'value, the key/value pair is added the the `TABLE'.
+<<    .STATIC: table-file
+          TABLE = $(Map)
+          awk(table-file)
+          case $'^\([[:alnum:]]+\) *= *\(.*\)'
+              TABLE = $(TABLE.add $1, $2)
+              export
 >>
   
+  It is appropriate to think of a `.STATIC' section as a rule that must
+be recomputed whenever the dependencies of the rule change. The targets
+of the rule are the variables it exports (in this case, the `TABLE'
+variable).
 
 
 Chapter 5    Variables and Naming
@@ -2736,7 +2748,7 @@ can be bound in one or more simultaneously.
    
   The `private.' qualifier is used to define variables that are private
 to the current file/scope. The values are not accessible outside the
-scope.
+scope. Private variables are statically (lexically) scoped.
 <<    Obj. =
          private.X = 1
   
@@ -2800,7 +2812,7 @@ variable.
 
    
   The `this.' qualifier is used to define fields that are local to an
-object.
+object. Object variables are dynamically scoped.
 <<    X = 1
       f() =
          println(The public value of X is: $(X))
@@ -2928,11 +2940,12 @@ for this.
   
   Finally, what about variables that are used but not explicitly
 qualified? In this case, the following rules are used.
-<<\item If the variable is a function parameter, it is private.
-  \item If the variable is defined in an object, it is qualified with
-\verb+this.+.
-  \item Otherwise, the variable is public.
->>
+  
+  
+ - If the variable is a function parameter, it is private. 
+ - If the variable is defined in an object, it is qualified with
+   `this.'. 
+ - Otherwise, the variable is public. 
   
 
 
@@ -11935,6 +11948,7 @@ Index
  - .PHONY, 6.3, 8.10, 8.11.3, 8.12.1, 8.12.2 
  - .RULE, 6.3 
  - .SCANNER, 3.4.3, 8.6, 8.11.2 
+ - .STATIC, 4.14.1 
  - .SUBDIRS, 3, 8.8 
  - .SUBDIRS bodies, 3.5 
  
@@ -12998,6 +13012,7 @@ Index of special targets
  - .ORDER, 10.3.6 
  - .PHONY, 8.10, 8.11.3, 8.12.1, 8.12.2 
  - .SCANNER, 8.6, 8.11.2 
+ - .STATIC, 4.14.1 
  - .SUBDIRS, 8.8 
 
 
@@ -13058,7 +13073,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.4 of 4^thJune, 2007.
+  Version: 0.9.8.4 of 7^thJune, 2007.
   
 
 C.3  License and Copyright

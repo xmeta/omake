@@ -9,7 +9,7 @@ Node: Top,	Next: Chapter 1,	Up: (dir)
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                             4^thJune, 2007
+                             7^thJune, 2007
                              ==============
   
    All the documentation on a single page (23*Note Notes 0::)
@@ -24,16 +24,17 @@ Contents
 * Chapter 2::	OMake quickstart guide
 * Chapter 3::	Additional build examples
 * Chapter 4::	OMake concepts and syntax
-* Chapter 5::	Expressions and values
-* Chapter 6::	Additional language examples
-* Chapter 7::	Rules
-* Chapter 8::	Base library
-* Chapter 9::	File, I/O and system operations
-* Chapter 10::	Shell commands
-* Chapter 11::	The standard objects
-* Chapter 12::	Build functions and utilities
-* Chapter 13::	Autoconfiguration functions and variables
-* Chapter 14::	The OSH shell
+* Chapter 5::	Variables and Naming
+* Chapter 6::	Expressions and values
+* Chapter 7::	Additional language examples
+* Chapter 8::	Rules
+* Chapter 9::	Base library
+* Chapter 10::	File, I/O and system operations
+* Chapter 11::	Shell commands
+* Chapter 12::	The standard objects
+* Chapter 13::	Build functions and utilities
+* Chapter 14::	Autoconfiguration functions and variables
+* Chapter 15::	The OSH shell
 * Appendix A::	Synopsis
 * Appendix B::	OMake grammar
 * Appendix C::	Index
@@ -118,27 +119,29 @@ gives larger examples of build projects, and omake-language-examples
    examples. 
  The OMake language 4*Note Chapter 4::  The omake language,
    including a description of objects, expressions, and values. 
- Language discussion 5*Note Chapter 5::  Further discussion on
+ Variables and naming 5*Note Chapter 5::  Variables, names,
+   and environments. 
+ Language discussion 6*Note Chapter 6::  Further discussion on
    the language, including scoping, evaluation, and objects. 
- Language examples 6*Note Chapter 6::  Additional
+ Language examples 7*Note Chapter 7::  Additional
    language examples. 
- Build rules 7*Note Chapter 7::  Defining and using rules to
+ Build rules 8*Note Chapter 8::  Defining and using rules to
    build programs. 
- Base builtin functions 8*Note Chapter 8::  Functions and
+ Base builtin functions 9*Note Chapter 9::  Functions and
    variables in the core standard library. 
- System functions 9*Note Chapter 9::  Functions on files,
+ System functions 10*Note Chapter 10::  Functions on files,
    input/output, and system commands. 
- Shell commands 10*Note Chapter 10::  Using the omake shell for
+ Shell commands 11*Note Chapter 11::  Using the omake shell for
    command-line interpretation. 
- The standard objects 11*Note Chapter 11::  Pervasives
+ The standard objects 12*Note Chapter 12::  Pervasives
    defines the built-in objects. 
- Standard build definitions 12*Note Chapter 12::  The build
+ Standard build definitions 13*Note Chapter 13::  The build
    specifications for programming languages in the OMake standard
    library. 
  Standard autoconfiguration functions and variables
-   13*Note Chapter 13::  The utilities provoded by the OMake
+   14*Note Chapter 14::  The utilities provoded by the OMake
    standard library to simplify programming of autoconfiguration tests. 
- The interactive command interpreter 14*Note Chapter 14::  The osh
+ The interactive command interpreter 15*Note Chapter 15::  The osh
    command-line interpreter. 
  Appendices  
      
@@ -253,16 +256,16 @@ differences to keep in mind when using omake.
   
  - In omake, you are much less likely to define build rules of your own.
    The system provides many standard functions (like 'StaticCLibrary'
-   and 'CProgram'), described in Chapter 12*Note Chapter 12::,
+   and 'CProgram'), described in Chapter 13*Note Chapter 13::,
    to specify these builds more simply. 
  - Implicit rules using `.SUFFIXES' and the `.suf1.suf2:' are not
    supported. You should use wildcard patterns instead `%.suf2: %.suf1'.
    
  - Scoping is significant: you should define variables and `.PHONY'
-   targets (see Section 7.10*Note Section 7-10::) before they are
+   targets (see Section 8.10*Note Section 8-10::) before they are
    used. 
  - Subdirectories are incorporated into a project using the `.SUBDIRS:'
-   target (see Section 7.8*Note Section 7-8::). 
+   target (see Section 8.8*Note Section 8-8::). 
   
 
 Node: Section 2-3,	Next: Section 2-4,	Prev: Section 2-2,	Up: Chapter 2
@@ -1174,7 +1177,7 @@ Node: Subsection 3-4-1,	Next: Subsection 3-4-2,	Prev: Section 3-4,	Up: Section 3
 define the build rule as an implicit rule. To handle the include path,
 we'll define a variable `CAT_INCLUDES' that specifies the include path.
 This will be an array of directories. To define the options, we'll use a
-lazy variable (Section 6.5*Note Section 6-5::). In case there are
+lazy variable (Section 7.5*Note Section 7-5::). In case there are
 any other standard flags, we'll define a `CAT_FLAGS' variable.
 <<   # Define the catc command, in case we ever want to override it
      CATC = catc

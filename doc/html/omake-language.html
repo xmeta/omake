@@ -38,13 +38,7 @@
 <LI><A HREF="omake-language.html#toc26">Objects</A></LI>
 <LI><A HREF="omake-language.html#toc27">Classes</A></LI>
 <LI><A HREF="omake-language.html#toc28">Inheritance</A></LI>
-<LI><A HREF="omake-language.html#toc29">Special objects/sections</A></LI>
-<LI><A HREF="omake-language.html#toc30">private.</A></LI>
-<LI><A HREF="omake-language.html#toc31">protected.</A></LI>
-<LI><A HREF="omake-language.html#toc32">public.</A></LI>
-<LI><A HREF="omake-language.html#toc33">static.</A></LI>
-<LI><A HREF="omake-language.html#toc34">Short syntax for scoping objects</A></LI>
-<LI><A HREF="omake-language.html#toc35">Modular programming</A></LI>
+<LI><A HREF="omake-language.html#toc29">static.</A></LI>
 </UL>
 <P>
 <A NAME="chapter:language"></A>
@@ -160,9 +154,9 @@ prints the line <CODE>X = 2</CODE>, followed by the line <CODE>X = 1</CODE>.</P>
     println(X = $(X))
 </PRE><P>This result may seem surprising&#X2013;the variable definition within the
 <CODE>section</CODE> is not visible outside the scope of the <CODE>section</CODE>.</P><P>The <CODE>export</CODE> form, which will be described in detail in
-Section&#XA0;<A HREF="omake-detail.html#section:export">5.3</A>, can be used to circumvent this restriction by
-exporting variable values from an inner scope. It must be the final
-expression in a scope. For example, if we modify the previous example
+Section&#XA0;<A HREF="omake-detail.html#section:export">6.3</A>, can be used to circumvent this restriction by
+exporting variable values from an inner scope.
+For example, if we modify the previous example
 by adding an <CODE>export</CODE> expression, the new value for the <CODE>X</CODE>
 variable is retained, and the code prints the line <CODE>X = 2</CODE> twice.</P><PRE CLASS="verbatim">    X = 1
     section
@@ -199,7 +193,7 @@ this implicit rule will not be in scope in the current directory.</P><H2 CLASS="
     else
        &lt;else-clause&gt;
 </PRE><P>The <CODE>&lt;test&gt;</CODE> expression is evaluated, and if it evaluates to a <EM>true</EM> value (see
-Section&#XA0;<A HREF="omake-base.html#section:logic">8.2</A> for more information on logical values, and Boolean functions), the code
+Section&#XA0;<A HREF="omake-base.html#section:logic">9.2</A> for more information on logical values, and Boolean functions), the code
 for the <CODE>&lt;true-clause&gt;</CODE> is evaluated; otherwise the remaining clauses are evaluated. There may
 be multiple <CODE>elseif</CODE> clauses; both the <CODE>elseif</CODE> and <CODE>else</CODE> clauses are optional.
 Note that the clauses are indented, so they introduce new scopes.</P><P>When viewed as a predicate, a value corresponds to the Boolean <EM>false</EM>, if its string
@@ -331,120 +325,9 @@ directive. The following definition of <CODE>Point3D</CODE> defines a point with
     # The "new" method was not redefined, so this
     # defines a new point (1, 5, 0).
     p = $(Point3D.new 1, 5)
-</PRE><H2 CLASS="section"><A NAME="toc29"></A><A NAME="htoc44">4.14</A>&#XA0;&#XA0;Special objects/sections</H2><P>Objects provide one way to manage the OMake namespace. There are also four special objects that are
-further used to control the namespace.</P><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc45">4.15</A>&#XA0;&#XA0;private.</H2><P>
-<A NAME="section:private"></A><A NAME="@default26"></A></P><P>The <CODE>private.</CODE> section is used to define variables that are private to the current file/scope.
-The values are not accessible outside the scope. Variables defined in a <CODE>private.</CODE> object can
-be accessed only from within the section where they are defined.</P><PRE CLASS="verbatim">    Obj. =
-       private. =
-          X = 1
-
-       print() =
-          println(The value of X is: $(X))
-
-    # Prints:
-    #    The private value of X is: 1
-    Obj.print()
-
-    # This is an error--X is private in Obj
-    y = $(Obj.X)
-</PRE><P>In addition, private definitions do not affect the global value of a variable.</P><PRE CLASS="verbatim">   # The public value of x is 1
-   x = 1
-   f() =
-       println(The public value of x is: $(x))
-
-   # This object uses a private value of x
-   Obj. =
-       private. =
-          x = 2
-
-       print() =
-          x = 3
-          println(The private value of x is: $(x))
-          f()
-
-   # Prints:
-   #    The private value of x is: 3
-   #    The public value of x is: 1
-   Obj.print()
-</PRE><P>Private variables have two additional properties.</P><OL CLASS="enumerate" type=1><LI CLASS="li-enumerate">
-Private variables are local to the file in which they are defined.
-</LI><LI CLASS="li-enumerate">Private variables are not exported by the <CODE>export</CODE> directive, unless they are
-mentioned explicitly.<PRE CLASS="verbatim">       private. =
-          FLAG = true
-
-       section
-          FLAG = false
-          export
-
-       # FLAG is still true
-       section
-          FLAG = false
-          export FLAG
-
-       # FLAG is now false
-  </PRE></LI></OL><H2 CLASS="section"><A NAME="toc31"></A><A NAME="htoc46">4.16</A>&#XA0;&#XA0;protected.</H2><P>
-<A NAME="@default27"></A></P><P>The <CODE>protected.</CODE> object is used to define fields that are local to an object. They can
-be accessed as fields, but they are not passed dynamically to other functions. The purpose of a
-protected variable is to prevent a variable definition within the object from affecting other parts
-of the project.</P><PRE CLASS="verbatim">    X = 1
-    f() =
-       println(The public value of X is: $(X))
-
-    # Prints:
-    #    The public value of X is: 2
-    section
-       X = 2
-       f()
-
-    # X is a protected field in the object
-    Obj. =
-       protected. =
-          X = 3
-
-       print() =
-          println(The protected value of X is: $(X))
-          f()
-
-    # Prints:
-    #    The protected value of X is: 3
-    #    The public value of X is: 1
-    Obj.print()
-
-    # This is legal, it defines Y as 3
-    Y = $(Obj.X)
-</PRE><P>In general, it is a good idea to define object variables as protected. The resulting code is more
-modular because variables in your object will not produce unexpected clashes with variables defined
-in other parts of the project.</P><H2 CLASS="section"><A NAME="toc32"></A><A NAME="htoc47">4.17</A>&#XA0;&#XA0;public.</H2><P>
-<A NAME="section:public"></A><A NAME="@default28"></A></P><P>The <CODE>public.</CODE> object is used to specify public dynamically-scoped variables. In the following
-example, the <CODE>public.</CODE> object specifies that the value <CODE>X = 4</CODE> is to be dynamically
-scoped. Public variables <EM>are not</EM> defined as fields of an object.</P><PRE CLASS="verbatim">    X = 1
-    f() =
-       println(The public value of X is: $(X))
-
-    # Prints:
-    #    The public value of X is: 2
-    section
-       X = 2
-       f()
-
-    Obj. =
-       protected. =
-          X = 3
-
-       print() =
-          println(The protected value of X is: $(X))
-          public. =
-             X = 4
-          f()
-
-    # Prints:
-    #    The protected value of X is: 3
-    #    The public value of X is: 4
-    Obj.print()
-</PRE><H2 CLASS="section"><A NAME="toc33"></A><A NAME="htoc48">4.18</A>&#XA0;&#XA0;static.</H2><P>
+</PRE><H2 CLASS="section"><A NAME="toc29"></A><A NAME="htoc44">4.14</A>&#XA0;&#XA0;static.</H2><P>
 <A NAME="section:static."></A>
-<A NAME="@default29"></A></P><P>The <CODE>static.</CODE> object is used to specify values that are persistent across runs of OMake. They
+<A NAME="@default26"></A></P><P>The <CODE>static.</CODE> object is used to specify values that are persistent across runs of OMake. They
 are frequently used for configuring a project. Configuring a project can be expensive, so the
 <CODE>static.</CODE> object ensure that the configuration is performed just once. In the following
 (somewhat trivial) example, a <CODE>static</CODE> section is used to determine if the L<sup>A</sup>T<sub>E</sub>X command is
@@ -462,41 +345,52 @@ available. The <CODE>$(where latex)</CODE> function returns the full pathname fo
          println($'(disabled)')
 </PRE><P>The OMake standard library provides a number of useful functions for
 programming the <CODE>static.</CODE> tests, as described in
-Chapter&#XA0;<A HREF="omake-autoconf.html#chapter:autoconf">13</A>. Using the standard library, the above can
+Chapter&#XA0;<A HREF="omake-autoconf.html#chapter:autoconf">14</A>. Using the standard library, the above can
 be rewritten as</P><PRE CLASS="verbatim">   open configure/Configure
    static. =
       LATEX_ENABLED = $(CheckProg latex)
 </PRE><P>As a matter of style, a <CODE>static.</CODE> section that is used for configuration should print what it
 is doing using the <CODE><A HREF="omake-autoconf.html#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> and
 <CODE><A HREF="omake-autoconf.html#fun:ConfMsgResult">ConfMsgResult</A></CODE> functions (of couse, most of helper functions in
-the standard library would do that automatically).</P><H2 CLASS="section"><A NAME="toc34"></A><A NAME="htoc49">4.19</A>&#XA0;&#XA0;Short syntax for scoping objects</H2><P>The usual dot-notation can be used for private, protected, and public variables (but not
-static variables).</P><PRE CLASS="verbatim">    # Public definition of X
-    public.X = 1
+the standard library would do that automatically).</P><H3 CLASS="subsection"><A NAME="htoc45">4.14.1</A>&#XA0;&#XA0;.STATIC</H3><P>
+<A NAME="section:.STATIC"></A>
+<A NAME="@default27"></A>
+<A NAME="@target0"></A></P><P>There is also a rule-form of static section. The syntax can be any of the following three forms.</P><PRE CLASS="verbatim">    # Export all variables defined by the body
+    .STATIC:
+        &lt;body&gt;
 
-    # Private definition of X
-    private.X = 2
+    # Specify file-dependencies
+    .STATIC: &lt;dependencies&gt;
+        &lt;body&gt;
 
-    # Prints:
-    #    The public value of X is: 1
-    #    The private value of X is: 2
-    println(The public value of X is: $(public.X))
-    println(The private value of X is: $(private.X))
-</PRE><H2 CLASS="section"><A NAME="toc35"></A><A NAME="htoc50">4.20</A>&#XA0;&#XA0;Modular programming</H2><P>The scoping objects help provide a form of modularity. When you write a new file or program,
-explicit scoping declarations can be used to define an explicit interface for your code, and help
-avoid name clashes with other parts of the project. Variable definitions are public by default, but
-you can control this with private definitions.</P><PRE CLASS="verbatim">    # These variables are private to this file
-    private. =
-       FILES = foo1 foo2 foo3
-       SUFFIX = .o
-       OFILES = $(addsuffix $(SUFFIX), $(FILES))
-
-    # These variables are public
-    public. =
-       CFLAGS += -g
-
-    # Build the files with the -g option
-    $(OFILES):
-</PRE>
+    # Specify which variables to export, as well as file dependencies
+    .STATIC: &lt;vars&gt;: &lt;dependencies&gt;
+        &lt;body&gt;
+</PRE><P>The <CODE>&lt;vars&gt;</CODE> are the variable names to be defined, the <CODE>&lt;dependencies&gt;</CODE> are file
+dependencies&#X2014;the rule is re-evaluated if one of the dependencies is changed. The <CODE>&lt;vars&gt;</CODE>
+and <CODE>&lt;dependencies&gt;</CODE> can be omitted; if so, all variables defined in the <CODE>&lt;body&gt;</CODE> are
+exported.</P><P>For example, the final example of the previous section can also be implemented as follows.</P><PRE CLASS="verbatim">    open configure/Configure
+    .STATIC:
+        LATEX_ENABLED = $(CheckProg latex)
+</PRE><P>The effect is much the same as using <CODE>static.</CODE> (instead of <CODE>.STATIC</CODE>). However, in most
+cases <CODE>.STATIC</CODE> is preferred, for two reasons.</P><P>First, a <CODE>.STATIC</CODE> section is lazy, meaning that it is not evaluated until one of its variables
+is resolved. In this example, if <CODE>$(LATEX_ENABLED)</CODE> is never evaluated, the section need never
+be evaluated either. This is in contrast to the <CODE>static.</CODE> section, which always evaluates its
+body at least once.</P><P>A second reason is that a <CODE>.STATIC</CODE> section allows for file dependencies, which are useful when
+the <CODE>.STATIC</CODE> section is used for memoization. For example, suppose we wish to create a
+dictionary from a table that has key-value pairs. By using a <CODE>.STATIC</CODE> section, we can perform
+this computation only when the input file changes (not on every fun of <CODE>omake</CODE>). In the
+following example the function <CODE>awk</CODE>&#XA0;<A HREF="omake-system.html#fun:awk">??</A> is used to parse the file <CODE>table-file</CODE>.
+When a line is encountered with the form <I>key</I><CODE> = </CODE><I>value</I>, the key/value pair is
+added the the <CODE>TABLE</CODE>.</P><PRE CLASS="verbatim">    .STATIC: table-file
+        TABLE = $(Map)
+        awk(table-file)
+        case $'^\([[:alnum:]]+\) *= *\(.*\)'
+            TABLE = $(TABLE.add $1, $2)
+            export
+</PRE><P>It is appropriate to think of a <CODE>.STATIC</CODE> section as a rule that must be recomputed whenever
+the dependencies of the rule change. The targets of the rule are the variables it exports (in this
+case, the <CODE>TABLE</CODE> variable).</P>
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>

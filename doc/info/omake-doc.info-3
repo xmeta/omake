@@ -1,9 +1,137 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
+Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
   
 
-6.4   Iteration, mapping, and foreach
+7.2   Quoted strings
+*=*=*=*=*=*=*=*=*=*=
+
+   
+  A `String' is a single value; whitespace is significant in a string.
+Strings are introduced with quotes. There are four kinds of quoted
+elements; the kind is determined by the opening quote. The symbols `''
+(single-quote) and `"' (double-quote) introduce the normal shell-style
+quoted elements. The quotation symbols are included in the result
+string. Variables are always expanded within a quote of this kind. Note
+that the osh(1) (Chapter 15*Note Chapter 15::) printer escapes
+double-quotes within the string; these are only for printing, they are
+not part of the string itself.
+<<    osh> A = 'Hello "world"'
+      - : "'Hello \"world\"'" : String
+      osh> B = "$(A)"
+      - : "\"'Hello \"world\"'\"" : String
+      osh> C = 'Hello \'world\''
+      - : "'Hello 'world''" : String
+>>
+  
+  A second kind of quote is introduced with the `$'' and `$"' quotes.
+The number of opening and closing quote symbols is arbitrary. These
+quotations have several properties: 
+  
+ - The quote delimiters are not part of the string. 
+ - Backslash `\' symbols within the string are treated as normal
+   characters. 
+ - The strings may span several lines. 
+ - Variables are expanded within `$"' sequences, but not within `$''
+   sequences. 
+  
+<<    osh> A = $'''Here $(IS) an '''' \(example\) string['''
+      - : "Here $(IS) an '''' \\(example\\) string[" : String
+      osh> B = $""""A is "$(A)" """"
+      - : "A is \"Here $(IS) an '''' \\(example\\) string[\" " : String
+      osh> value $(A.length)
+      - : 38 : Int
+      osh> value $(A.nth 5)
+      - : "$" : String
+      osh> value $(A.rev)
+      - : "[gnirts )\\elpmaxe(\\ '''' na )SI($ ereH" : String
+>>
+  
+  Strings and sequences both have the property that they can be merged
+with adjacent non-whitespace text.
+<<    osh> A = a b c
+      - : "a b c" : Sequence
+      osh> B = $(A).c
+      - : <sequence "a b c" : Sequence ".c" : Sequence> : Sequence
+      osh> value $(nth 2, $(B))
+      - : "c.c" : String
+      osh> value $(length $(B))
+      - : 3 : Int
+>>
+  
+  Arrays are different. The elements of an array are never merged with
+adjacent text of any kind. Arrays are defined by adding square brackets
+`[]' after a variable name and defining the elements with an indented
+body. The elements may include whitespace.
+<<    osh> A[] =
+              a b
+              foo bar
+      - : <array
+             "a b" : Sequence
+             "foo bar" : Sequence>
+             : Array
+      osh> echo $(A).c
+      a b foo bar .c
+      osh> value $(A.length)
+      - : 2 : Int
+      osh> value $(A.nth 1)
+      - : "foo bar" : Sequence
+>>
+  
+  Arrays are quite helpful on systems where filenames often contain
+whitespace.
+<<    osh> FILES[] =
+               c:\Documents and Settings\jyh\one file
+               c:\Program Files\omake\second file
+  
+      osh> CFILES = $(addsuffix .c, $(FILES))
+      osh> echo $(CFILES)
+      c:\Documents and Settings\jyh\one file.c c:\Program
+Files\omake\second file.c
+>>
+  
+
+Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
+  
+
+7.3   Files and directories
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  OMake projects usually span multiple directories, and different parts
+of the project execute commands in different directories. There is a
+need to define a location-independent name for a file or directory.
+  This is done with the `$(file <names>)' and `$(dir <names>)'
+functions.
+<<   osh> mkdir tmp
+     osh> F = $(file fee)
+     osh> section:
+              cd tmp
+              echo $F
+     ../fee
+     osh> echo $F
+     fee
+>>
+  
+  Note the use of a `section:' to limit the scope of the `cd' command.
+The section temporarily changes to the `tmp' directory where the name of
+the file is `../fee'. Once the section completes, we are still in the
+current directory, where the name of the file is `fee'.
+  One common way to use the file functions is to define proper file
+names in your project `OMakefile', so that references within the various
+parts of the project will refer to the same file.
+<<    osh> cat OMakefile
+      ROOT = $(dir .)
+      TMP  = $(dir tmp)
+      BIN  = $(dir bin)
+      ...
+>>
+  
+
+Node: Section 7-4,	Next: Section 7-5,	Prev: Section 7-3,	Up: Chapter 7
+  
+
+7.4   Iteration, mapping, and foreach
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -77,10 +205,10 @@ location (the `my-special-rule' function) that defines the build rule.
 Later, if we want to modify/update the rule, we need do so in only one
 location.
 
-Node: Section 6-5,	Next: Subsection 6-5-1,	Prev: Section 6-4,	Up: Chapter 6
+Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
   
 
-6.5   Lazy expressions
+7.5   Lazy expressions
 *=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -118,13 +246,13 @@ expression.
 has no effect, since it was evaluated at definition time.
 * Menu:
 
-* Subsection 6-5-1::	A larger example of lazy expressions
+* Subsection 7-5-1::	A larger example of lazy expressions
 
 
-Node: Subsection 6-5-1,	Next: Section 6-6,	Prev: Section 6-5,	Up: Section 6-5
+Node: Subsection 7-5-1,	Next: Section 7-6,	Prev: Section 7-5,	Up: Section 7-5
   
 
-6.5.1   A larger example of lazy expressions
+7.5.1   A larger example of lazy expressions
 ============================================
   
   Lazy expressions are not evaluated until their result is needed. Some
@@ -191,10 +319,10 @@ functions. In the example above, we could equivalently define
 >>
   
 
-Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
+Node: Section 7-6,	Next: Section 7-7,	Prev: Section 7-5,	Up: Chapter 7
   
 
-6.6   Scoping and exports
+7.6   Scoping and exports
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -263,10 +391,10 @@ iteration of a loop to the next.
 >>
   
 
-Node: Section 6-7,	Next: Section 6-8,	Prev: Section 6-6,	Up: Chapter 6
+Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
   
 
-6.7   Shell aliases
+7.7   Shell aliases
 *=*=*=*=*=*=*=*=*=*
 
   
@@ -302,10 +430,10 @@ existing entries in the Shell).
   A shell command is passed an array of arguments `argv'. This does not
 include the name of the alias.
 
-Node: Section 6-8,	Next: Chapter 7,	Prev: Section 6-7,	Up: Chapter 6
+Node: Section 7-8,	Next: Chapter 8,	Prev: Section 7-7,	Up: Chapter 7
   
 
-6.8   Input/output redirection on the cheap
+7.8   Input/output redirection on the cheap
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -350,10 +478,10 @@ the following example.
   
    
 
-Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
+Node: Chapter 8,	Next: Section 8-1,	Prev: Chapter 7,	Up: Top
   
 
-Chapter 7     Rules
+Chapter 8     Rules
 *******************
     
   Rules are used by OMake to specify how to build files. At its
@@ -416,25 +544,25 @@ is called, and the value of the variable `AR' is taken from the caller's
 scope (see also the section on Scoping).
 * Menu:
 
-* Section 7-1::	Implicit rules
-* Section 7-2::	Bounded implicit rules
-* Section 7-3::	section
-* Section 7-4::	section rule
-* Section 7-5::	Special dependencies
-* Section 7-6::	'.SCANNER' rules
-* Section 7-7::	.DEFAULT
-* Section 7-8::	.SUBDIRS
-* Section 7-9::	.INCLUDE
-* Section 7-10::	.PHONY
-* Section 7-11::	Rule scoping
-* Section 7-12::	Running OMake from a subdirectory
-* Section 7-13::	Pathnames in rules
+* Section 8-1::	Implicit rules
+* Section 8-2::	Bounded implicit rules
+* Section 8-3::	section
+* Section 8-4::	section rule
+* Section 8-5::	Special dependencies
+* Section 8-6::	'.SCANNER' rules
+* Section 8-7::	.DEFAULT
+* Section 8-8::	.SUBDIRS
+* Section 8-9::	.INCLUDE
+* Section 8-10::	.PHONY
+* Section 8-11::	Rule scoping
+* Section 8-12::	Running OMake from a subdirectory
+* Section 8-13::	Pathnames in rules
 
 
-Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
+Node: Section 8-1,	Next: Section 8-2,	Prev: Chapter 8,	Up: Chapter 8
   
 
-7.1   Implicit rules
+8.1   Implicit rules
 *=*=*=*=*=*=*=*=*=*=
 
    
@@ -452,10 +580,10 @@ current directory. However subdirectories included via the `.SUBDIRS'
 rules inherit all the implicit rules that are in scope (see also the
 section on Scoping).
 
-Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
+Node: Section 8-2,	Next: Section 8-3,	Prev: Section 8-1,	Up: Chapter 8
   
 
-7.2   Bounded implicit rules
+8.2   Bounded implicit rules
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -472,10 +600,10 @@ following syntax is used.
 >>
   
 
-Node: Section 7-3,	Next: Section 7-4,	Prev: Section 7-2,	Up: Chapter 7
+Node: Section 8-3,	Next: Section 8-4,	Prev: Section 8-2,	Up: Chapter 8
   
 
-7.3   section
+8.3   section
 *=*=*=*=*=*=*
 
    
@@ -506,10 +634,10 @@ world\n"); }"")
 >>
   
 
-Node: Section 7-4,	Next: Section 7-5,	Prev: Section 7-3,	Up: Chapter 7
+Node: Section 8-4,	Next: Section 8-5,	Prev: Section 8-3,	Up: Chapter 8
   
 
-7.4   section rule
+8.4   section rule
 *=*=*=*=*=*=*=*=*=
 
    
@@ -528,24 +656,24 @@ file `a.c' is copied onto the `hello.c' file if it exists, otherwise
 >>
   
 
-Node: Section 7-5,	Next: Subsection 7-5-1,	Prev: Section 7-4,	Up: Chapter 7
+Node: Section 8-5,	Next: Subsection 8-5-1,	Prev: Section 8-4,	Up: Chapter 8
   
 
-7.5   Special dependencies
+8.5   Special dependencies
 *=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
 * Menu:
 
-* Subsection 7-5-1::	:exists:
-* Subsection 7-5-2::	:effects:
-* Subsection 7-5-3::	:value:
+* Subsection 8-5-1::	:exists:
+* Subsection 8-5-2::	:effects:
+* Subsection 8-5-3::	:value:
 
 
-Node: Subsection 7-5-1,	Next: Subsection 7-5-2,	Prev: Section 7-5,	Up: Section 7-5
+Node: Subsection 8-5-1,	Next: Subsection 8-5-2,	Prev: Section 8-5,	Up: Section 8-5
   
 
-7.5.1   :exists:
+8.5.1   :exists:
 ================
    
   In some cases, the contents of a dependency do not matter, only
@@ -557,10 +685,10 @@ can be used for the dependency.
 >>
   
 
-Node: Subsection 7-5-2,	Next: Subsection 7-5-3,	Prev: Subsection 7-5-1,	Up: Section 7-5
+Node: Subsection 8-5-2,	Next: Subsection 8-5-3,	Prev: Subsection 8-5-1,	Up: Section 8-5
   
 
-7.5.2   :effects:
+8.5.2   :effects:
 =================
    
   Some commands produce files by side-effect. For example, the latex(1)
@@ -573,10 +701,10 @@ programs that have overlapping side-effects.
 >>
   
 
-Node: Subsection 7-5-3,	Next: Section 7-6,	Prev: Subsection 7-5-2,	Up: Section 7-5
+Node: Subsection 8-5-3,	Next: Section 8-6,	Prev: Subsection 8-5-2,	Up: Section 8-5
   
 
-7.5.3   :value:
+8.5.3   :value:
 ===============
    
   The `:value:' dependency is used to specify that the rule execution
@@ -606,10 +734,10 @@ For example, the following rule:
    containing variables like `$@', `$^', etc are legal. 
   
 
-Node: Section 7-6,	Next: Subsection 7-6-1,	Prev: Section 7-5,	Up: Chapter 7
+Node: Section 8-6,	Next: Subsection 8-6-1,	Prev: Section 8-5,	Up: Chapter 8
   
 
-7.6   '.SCANNER' rules
+8.6   '.SCANNER' rules
 *=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -683,14 +811,14 @@ enabled).
 3.4.3*Note Subsection 3-4-3::.
 * Menu:
 
-* Subsection 7-6-1::	Named scanners, and the ':scanner:' dependencies
-* Subsection 7-6-2::	Notes
+* Subsection 8-6-1::	Named scanners, and the ':scanner:' dependencies
+* Subsection 8-6-2::	Notes
 
 
-Node: Subsection 7-6-1,	Next: Subsection 7-6-2,	Prev: Section 7-6,	Up: Section 7-6
+Node: Subsection 8-6-1,	Next: Subsection 8-6-2,	Prev: Section 8-6,	Up: Section 8-6
   
 
-7.6.1   Named scanners, and the ':scanner:' dependencies
+8.6.1   Named scanners, and the ':scanner:' dependencies
 ========================================================
    
   Sometimes it may be useful to specify explicitly which scanner should
@@ -734,10 +862,10 @@ $(digest-in-path-optional $(INCLUDES), $&)
 disadvantage that when a single source file changes, all the files will
 end up being re-scanned.
 
-Node: Subsection 7-6-2,	Next: Section 7-7,	Prev: Subsection 7-6-1,	Up: Section 7-6
+Node: Subsection 8-6-2,	Next: Section 8-7,	Prev: Subsection 8-6-1,	Up: Section 8-6
   
 
-7.6.2   Notes
+8.6.2   Notes
 =============
   
   In most cases, you won't need to define scanners of your own. The
@@ -750,10 +878,10 @@ mis-specifications. In large complicated projects it might be a good
 idea to set `SCANNER_MODE' to `error' and use only the named `.SCANNER'
 rules and explicit `:scanner:' specifications.
 
-Node: Section 7-7,	Next: Section 7-8,	Prev: Section 7-6,	Up: Chapter 7
+Node: Section 8-7,	Next: Section 8-8,	Prev: Section 8-6,	Up: Chapter 8
   
 
-7.7   .DEFAULT
+8.7   .DEFAULT
 *=*=*=*=*=*=*=
 
    
@@ -764,10 +892,10 @@ omake to build the program `hello' by default
 >>
   
 
-Node: Section 7-8,	Next: Section 7-9,	Prev: Section 7-7,	Up: Chapter 7
+Node: Section 8-8,	Next: Section 8-9,	Prev: Section 8-7,	Up: Chapter 8
   
 
-7.8   .SUBDIRS
+8.8   .SUBDIRS
 *=*=*=*=*=*=*=
 
    
@@ -798,10 +926,10 @@ includes the file if it exists.
 >>
   
 
-Node: Section 7-9,	Next: Section 7-10,	Prev: Section 7-8,	Up: Chapter 7
+Node: Section 8-9,	Next: Section 8-10,	Prev: Section 8-8,	Up: Chapter 8
   
 
-7.9   .INCLUDE
+8.9   .INCLUDE
 *=*=*=*=*=*=*=
 
    
@@ -845,10 +973,10 @@ already exists.
 >>
   
 
-Node: Section 7-10,	Next: Section 7-11,	Prev: Section 7-9,	Up: Chapter 7
+Node: Section 8-10,	Next: Section 8-11,	Prev: Section 8-9,	Up: Chapter 8
   
 
-7.10   .PHONY
+8.10   .PHONY
 *=*=*=*=*=*=*
 
    
@@ -865,10 +993,10 @@ run whenever the `install' target is built (for example, by running
 >>
   
 
-Node: Section 7-11,	Next: Subsection 7-11-1,	Prev: Section 7-10,	Up: Chapter 7
+Node: Section 8-11,	Next: Subsection 8-11-1,	Prev: Section 8-10,	Up: Chapter 8
   
 
-7.11   Rule scoping
+8.11   Rule scoping
 *=*=*=*=*=*=*=*=*=*
 
    
@@ -933,15 +1061,15 @@ it is compiled using the usual implicit rule for building `.o' files (in
 a context where `CFLAGS=-g -DLIBRARY').
 * Menu:
 
-* Subsection 7-11-1::	Scoping of implicit rules
-* Subsection 7-11-2::	Scoping of '.SCANNER' rules
-* Subsection 7-11-3::	Scoping for '.PHONY' targets
+* Subsection 8-11-1::	Scoping of implicit rules
+* Subsection 8-11-2::	Scoping of '.SCANNER' rules
+* Subsection 8-11-3::	Scoping for '.PHONY' targets
 
 
-Node: Subsection 7-11-1,	Next: Subsection 7-11-2,	Prev: Section 7-11,	Up: Section 7-11
+Node: Subsection 8-11-1,	Next: Subsection 8-11-2,	Prev: Section 8-11,	Up: Section 8-11
   
 
-7.11.1   Scoping of implicit rules
+8.11.1   Scoping of implicit rules
 ==================================
    
   Implicit rules (rules containing wildcard patterns) are not global,
@@ -969,10 +1097,10 @@ implicit rule for building `%.o' files. The implicit rule adds the
 `-DLIBRARY' option. This implicit rule is defined only for the target
 `hello_lib.o'; the target `hello_code.o' is built as normal.
 
-Node: Subsection 7-11-2,	Next: Subsection 7-11-3,	Prev: Subsection 7-11-1,	Up: Section 7-11
+Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: Section 8-11
   
 
-7.11.2   Scoping of '.SCANNER' rules
+8.11.2   Scoping of '.SCANNER' rules
 ====================================
    
   Scanner rules are scoped the same way as normal rules. If the
@@ -1009,10 +1137,10 @@ write a complicated configuration like this! In this case, the
 scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
 is called with `CFLAGS=-g -O3'.
 
-Node: Subsection 7-11-3,	Next: Section 7-12,	Prev: Subsection 7-11-2,	Up: Section 7-11
+Node: Subsection 8-11-3,	Next: Section 8-12,	Prev: Subsection 8-11-2,	Up: Section 8-11
   
 
-7.11.3   Scoping for '.PHONY' targets
+8.11.3   Scoping for '.PHONY' targets
 =====================================
    
   Phony targets (targets that do not correspond to files) are defined
@@ -1053,12 +1181,12 @@ the project root.
   Note that when a `.PHONY' target is inherited by a subdirectory via a
 `.SUBDIRS', a whole hierarchy of `.PHONY' target (that are a part of the
 global one) is created, as described in Section
-7.12.2*Note Subsection 7-12-2:: below.
+8.12.2*Note Subsection 8-12-2:: below.
 
-Node: Section 7-12,	Next: Subsection 7-12-1,	Prev: Section 7-11,	Up: Chapter 7
+Node: Section 8-12,	Next: Subsection 8-12-1,	Prev: Section 8-11,	Up: Chapter 8
   
 
-7.12   Running OMake from a subdirectory
+8.12   Running OMake from a subdirectory
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
     Running `omake foo' asks OMake to
@@ -1077,17 +1205,17 @@ target (not a `.PHONY' one), then running `omake bar/baz' and running
   
 * Menu:
 
-* Subsection 7-12-1::	Phony targets in a subdirectory
-* Subsection 7-12-2::	Hierarchy of '.PHONY' targets
+* Subsection 8-12-1::	Phony targets in a subdirectory
+* Subsection 8-12-2::	Hierarchy of '.PHONY' targets
 
 
-Node: Subsection 7-12-1,	Next: Subsection 7-12-2,	Prev: Section 7-12,	Up: Section 7-12
+Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Section 8-12
   
 
-7.12.1   Phony targets in a subdirectory
+8.12.1   Phony targets in a subdirectory
 ========================================
    \@n
-ame{@default56}
+ame{@default58}
   Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
 and both the root `OMakefile' and the `OMakefile' in some of the
 subdirectories contain `clean:' rules. In this case 
@@ -1107,10 +1235,10 @@ subdirectory will be built.
   The following Section explains the underlying semantics that gives
 rise to the above behavior.
 
-Node: Subsection 7-12-2,	Next: Section 7-13,	Prev: Subsection 7-12-1,	Up: Section 7-12
+Node: Subsection 8-12-2,	Next: Section 8-13,	Prev: Subsection 8-12-1,	Up: Section 8-12
   
 
-7.12.2   Hierarchy of '.PHONY' targets
+8.12.2   Hierarchy of '.PHONY' targets
 ======================================
    
   When the the root `OMakefile' contains a `.PHONY: clean' directive, it
@@ -1144,10 +1272,10 @@ executed and the rules for its dependency  `.PHONY/foo/clean'. Running
 `omake .PHONY/foo/clean' and only those rules that apply to
 `.PHONY/foo/clean' will be executed.
 
-Node: Section 7-13,	Next: Chapter 8,	Prev: Section 7-12,	Up: Chapter 7
+Node: Section 8-13,	Next: Chapter 9,	Prev: Section 8-12,	Up: Chapter 8
   
 
-7.13   Pathnames in rules
+8.13   Pathnames in rules
 *=*=*=*=*=*=*=*=*=*=*=*=*
 
   
@@ -1213,26 +1341,27 @@ how it is applied.
   N.B. The `--absname' option is currently an experimental feature.
    
 
-Node: Chapter 8,	Next: Section 8-1,	Prev: Chapter 7,	Up: Top
+Node: Chapter 9,	Next: Section 9-1,	Prev: Chapter 8,	Up: Top
   
 
-Chapter 8     Base library
+Chapter 9     Base library
 **************************
      
 * Menu:
 
-* Section 8-1::	Builtin variables
-* Section 8-2::	Logic, Boolean functions, and control flow
-* Section 8-3::	Arrays and sequences
-* Section 8-4::	Arithmetic
-* Section 8-5::	First-class functions
-* Section 8-6::	Iteration and mapping
+* Section 9-1::	Builtin variables
+* Section 9-2::	Logic, Boolean functions, and control flow
+* Section 9-3::	Arrays and sequences
+* Section 9-4::	Arithmetic
+* Section 9-5::	First-class functions
+* Section 9-6::	Iteration and mapping
+* Section 9-7::	Boolean tests
 
 
-Node: Section 8-1,	Next: Section 8-2,	Prev: Chapter 8,	Up: Chapter 8
+Node: Section 9-1,	Next: Section 9-2,	Prev: Chapter 9,	Up: Chapter 9
   
 
-8.1   Builtin variables
+9.1   Builtin variables
 *=*=*=*=*=*=*=*=*=*=*=*
 
    
@@ -1307,10 +1436,10 @@ can append a message to the build summary.
 verbose. A boolean flag that is `false' by default and is set to `true'
 when OMake is invoked with the `--verbose' option. 
 
-Node: Section 8-2,	Next: Subsection 8-2-1,	Prev: Section 8-1,	Up: Chapter 8
+Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
   
 
-8.2   Logic, Boolean functions, and control flow
+9.2   Logic, Boolean functions, and control flow
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
    
@@ -1319,29 +1448,29 @@ The false value can be represented by the strings `false', `no', `nil',
 `undefined' or `0', and everything else is true.
 * Menu:
 
-* Subsection 8-2-1::	not
-* Subsection 8-2-2::	equal
-* Subsection 8-2-3::	and
-* Subsection 8-2-4::	or
-* Subsection 8-2-5::	if
-* Subsection 8-2-6::	switch, match
-* Subsection 8-2-7::	try
-* Subsection 8-2-8::	raise
-* Subsection 8-2-9::	exit
-* Subsection 8-2-10::	defined
-* Subsection 8-2-11::	defined-env
-* Subsection 8-2-12::	getenv
-* Subsection 8-2-13::	setenv
-* Subsection 8-2-14::	unsetenv
-* Subsection 8-2-15::	get-registry
-* Subsection 8-2-16::	getvar
-* Subsection 8-2-17::	setvar
+* Subsection 9-2-1::	not
+* Subsection 9-2-2::	equal
+* Subsection 9-2-3::	and
+* Subsection 9-2-4::	or
+* Subsection 9-2-5::	if
+* Subsection 9-2-6::	switch, match
+* Subsection 9-2-7::	try
+* Subsection 9-2-8::	raise
+* Subsection 9-2-9::	exit
+* Subsection 9-2-10::	defined
+* Subsection 9-2-11::	defined-env
+* Subsection 9-2-12::	getenv
+* Subsection 9-2-13::	setenv
+* Subsection 9-2-14::	unsetenv
+* Subsection 9-2-15::	get-registry
+* Subsection 9-2-16::	getvar
+* Subsection 9-2-17::	setvar
 
 
-Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8-2
+Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9-2
   
 
-8.2.1   not
+9.2.1   not
 ===========
 
 <<   $(not e) : String
@@ -1351,154 +1480,3 @@ Node: Subsection 8-2-1,	Next: Subsection 8-2-2,	Prev: Section 8-2,	Up: Section 8
   The `not' function negates a Boolean value.
   For example, `$(not false)' expands to the string `true', and `$(not
 hello world)' expands to `false'. 
-
-Node: Subsection 8-2-2,	Next: Subsection 8-2-3,	Prev: Subsection 8-2-1,	Up: Section 8-2
-  
-
-8.2.2   equal
-=============
-
-<<   $(equal e1, e2) : String
-        e1 : String
-        e2 : String
->>
-  
-  The `equal' function tests for equality of two values.
-  For example `$(equal a, b)' expands to `false', and `$(equal hello
-world, hello world)' expands to `true'. 
-
-Node: Subsection 8-2-3,	Next: Subsection 8-2-4,	Prev: Subsection 8-2-2,	Up: Section 8-2
-  
-
-8.2.3   and
-===========
-
-<<    $(and e1, ..., en) : String
-         e1, ..., en: Sequence
->>
-  
-  The `and' function evaluates to the conjunction of its arguments.
-  For example, in the following code, `X' is true, and `Y' is false.
-<<    A = a
-      B = b
-      X = $(and $(equal $(A), a) true $(equal $(B), b))
-      Y = $(and $(equal $(A), a) true $(equal $(A), $(B)))
->>
-
-Node: Subsection 8-2-4,	Next: Subsection 8-2-5,	Prev: Subsection 8-2-3,	Up: Section 8-2
-  
-
-8.2.4   or
-==========
-
-<<   $(or e1, ..., en) : String
-        e1, ..., en: String Sequence
->>
-  
-  The `or' function evaluates to the disjunction of its arguments.
-  For example, in the following code, `X' is true, and `Y' is false.
-<<    A = a
-      B = b
-      X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
-      Y = $(or $(equal $(A), $(B)) $(equal $(A), b))
->>
-
-Node: Subsection 8-2-5,	Next: Subsection 8-2-6,	Prev: Subsection 8-2-4,	Up: Section 8-2
-  
-
-8.2.5   if
-==========
-
-<<    $(if e1, e2[, e3]) : value
-         e1 : String
-         e2, e3 : value
->>
-  
-  The `if' function represents a conditional based on a Boolean value.
-For example `$(if $(equal a, b), c, d)' evaluates to `d'.
-  Conditionals may also be declared with an alternate syntax.
-<<   if e1
-        body1
-     elseif e2
-        body2
-     ...
-     else
-        bodyn
->>
-  
-  If the expression `e1' is not false, then the expressions in `body1'
-are evaluated and the result is returned as the value of the
-conditional. Otherwise, if `e1' evaluates to false, the evaluation
-continues with the `e2' expression. If none of the conditional
-expressions is true, then the expressions in `bodyn' are evaluated and
-the result is returned as the value of the conditional.
-  There can be any number of `elseif' clauses; the `else' clause is
-optional.
-  Note that each branch of the conditional defines its own scope, so
-variables defined in the branches are normally not visible outside the
-conditional. The `export' command may be used to export the variables
-defined in a scope. For example, the following expression represents a
-common idiom for defining the C compiler configuration.
-<<   if $(equal $(OSTYPE), Win32)
-        CC = cl
-        CFLAGS += /DWIN32
-        export
-     else
-        CC = gcc
-        CFLAGS += -g -O2
-        export
->>
-
-Node: Subsection 8-2-6,	Next: Subsection 8-2-7,	Prev: Subsection 8-2-5,	Up: Section 8-2
-  
-
-8.2.6   switch, match
-=====================
-
-  The `switch' and `match' functions perform pattern matching.
-  `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
-`$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
-  The number of `<pattern>/<value>' pairs is arbitrary. They strictly
-alternate; the total number of arguments to `<match>' must be odd.
-  The `<arg>' is evaluated to a string, and compared with `<pattern_1>'.
-If it matches, the result of the expression is `<value_1>'. Otherwise
-evaluation continues with the remaining patterns until a match is found.
-If no pattern matches, the value is the empty string.
-  The `switch' function uses string comparison to compare the argument
-with the patterns. For example, the following expression defines the
-`FILE' variable to be either `foo', `bar', or the empty string,
-depending on the value of the `OSTYPE' variable.
-<<    FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
->>
-  
-  The `match' function uses regular expression patterns (see the `grep'
-function). If a match is found, the variables `$1, $2, ...' are bound to
-the substrings matched between `\(' and `\)' delimiters. The `$0'
-variable contains the entire match, and `$*' is an array of the matched
-substrings. to the matched substrings.
-<<    FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a,
-foo_$2/$1.o)
->>
-  
-  The `switch' and `match' functions also have an alternate (more
-usable) form.
-<<   match e
-     case pattern1
-        body1
-     case pattern2
-        body2
-     ...
-     default
-        bodyd
->>
-  
-  If the value of expression `e' matches `pattern_i' and no previous
-pattern, then `body_i' is evaluated and returned as the result of the
-`match'. The `switch' function uses string comparison; the `match'
-function uses regular expression matching.
-<<   match $(FILE)
-     case $".*\(\.[^\/.]*\)"
-        println(The string $(FILE) has suffix $1)
-     default
-        println(The string $(FILE) has no suffix)
->>
