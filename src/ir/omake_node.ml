@@ -106,9 +106,16 @@ struct
          raise Not_found
       else
          match name.[i] with
-            'A'..'Z' -> String.lowercase name
-          | 'a'..'z' -> String.uppercase name
-          | _ -> toggle_name_case name len (succ i)
+            'A'..'Z'
+          | '\192' .. '\214'
+          | '\216' .. '\222' ->
+               String.lowercase name
+          | 'a'..'z'
+          | '\224' .. '\246'
+          | '\248' .. '\254' ->
+               String.uppercase name
+          | _ ->
+               toggle_name_case name len (succ i)
 
    (*
     * Stat, does not fail.
@@ -189,6 +196,7 @@ struct
     * Check for sensativity by creating a dummy file.
     *)
    let dir_test_new_entry_exn absdir =
+      Unix.access absdir [Unix.W_OK];
       let name = sprintf "OM%06x.tmp" (Random.State.bits fs_random land 0xFFFFFF) in
       let absname = Filename.concat absdir name in
       let () = do_create absname in
@@ -208,11 +216,28 @@ struct
     *    3. Create a dummy file, and test (unless the attept to do step 2 made
     *       us realize there is no such directory).
     *    4. Test the parent.
+    *
+    * Steps 2-4 will only be performed when we really need them (the name contains
+    * uppercase letters),
     *)
    exception Not_a_usable_directory
-   let rec dir_test_sensitivity dir absdir name =
+   exception Already_lowercase
+
+   let rec check_already_lowercase name len i =
+      if i = len then
+         raise Already_lowercase
+      else
+         match name.[i] with
+            'A'..'Z'
+          | '\192' .. '\214'
+          | '\216' .. '\222' -> ()
+          | _ -> check_already_lowercase name len (i+1)
+
+   let rec dir_test_sensitivity shortcircuit dir absdir name =
       try stat_with_toggle_case absdir name
       with Not_found ->
+         if shortcircuit then
+            check_already_lowercase name (String.length name) 0;
          try
             let dir_handle =
                try Unix.opendir absdir with
@@ -228,12 +253,12 @@ struct
                   (* Nothing else we can do, assume sensitive *)
                   true
              | DirSub (_, name, parent) ->
-                  dir_is_sensitive parent name
+                  dir_is_sensitive false parent name
 
    (*
     * This is the caching version of the case-sensitivity test.
     *)
-   and dir_is_sensitive dir name =
+   and dir_is_sensitive shortcircuit dir name =
       try DirTable.find !case_table dir with
          Not_found ->
             let absdir = abs_dir_name dir in
@@ -243,9 +268,9 @@ struct
                      Lm_fs_case_sensitive.case_sensitive absdir
                   with
                      Failure _ ->
-                        dir_test_sensitivity dir absdir name
+                        dir_test_sensitivity shortcircuit dir absdir name
                else
-                  dir_test_sensitivity dir absdir name
+                  dir_test_sensitivity shortcircuit dir absdir name
             in
                case_table := DirTable.add !case_table dir sensitive;
                sensitive
@@ -261,7 +286,11 @@ struct
        | "Cygwin" ->
             (fun _ name -> String.lowercase name)
        | _ ->
-            (fun dir name -> if dir_is_sensitive dir name then name else String.lowercase name)
+            (fun dir name ->
+               try
+                  if dir_is_sensitive true dir name then name else String.lowercase name
+               with Already_lowercase ->
+                  name)
 
    let compare = Lm_string_util.string_compare
    let equal (s1: string) s2 = (s1 = s2)
