@@ -439,7 +439,8 @@ Shell. +=
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
-        value $(OCAMLDEP_MODULES) -modules $(src_file) | ocamldep-postproc
+        # XXX: JYH: do we need ocamlfind in this case?
+        value $(OCAMLFIND) $(OCAMLDEP_MODULES) $(LAZY_OCAMLFINDFLAGS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
     else
         value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
 
