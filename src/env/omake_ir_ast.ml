@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +25,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -1986,19 +1987,20 @@ and build_static_rule_exp genv oenv senv cenv multiple names sources body pos lo
          (* Export only the ones that are named *)
          List.fold_left (fun (senv, vars) name ->
                let v = Lm_symbol.add name in
-               let v =
+               let info = 
                   try
-                     match SymbolTable.find senv_body.senv_object_senv v with
-                        VarThis (loc, v) ->
-                           v
-                      | VarPrivate _
-                      | VarVirtual _
-                      | VarGlobal _ as info ->
-                           eprintf "not found: %a@." pp_print_var_info info;
-                           raise Not_found
-                  with
-                     Not_found ->
-                        raise (OmakeException (pos, UnboundVar v))
+                     SymbolTable.find senv_body.senv_object_senv v
+                  with Not_found ->
+                     raise (OmakeException (pos, UnboundVar v))
+               in
+               let v =
+                  match info with
+                     VarThis (loc, v) ->
+                        v
+                   | VarPrivate _
+                   | VarVirtual _
+                   | VarGlobal _ ->
+                        raise (OmakeException (pos, UnboundVarInfo info))
                in
                let senv, info = senv_declare_static_var genv oenv senv cenv pos loc v in
                   senv, info :: vars) (senv, []) names
