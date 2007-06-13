@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2007 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -206,8 +207,7 @@ struct
          CommandPipe argv ->
             pp_print_argv buf argv
        | CommandEval exp ->
-            (* ZZZ: this used to be a "simple" printer *)
-            pp_print_exp_list buf exp
+            pp_print_exp_list_simple buf exp
        | CommandValues values ->
             fprintf buf "<compute %i value dependencies>" (List.length values)
 

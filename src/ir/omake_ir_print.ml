@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 MetaPRL Group, Caltech
+ * Copyright (C) 2003-2007 MetaPRL Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -378,7 +379,7 @@ and pp_print_commands complete buf el =
 (*
  * Print simple parts, abbreviating others as "<exp>"
  *)
-let pp_print_exp_simple = pp_print_exp false
+let pp_print_exp_list_simple = pp_print_exp_list false
 
 (*
  * The complete printers.

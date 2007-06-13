@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -38,8 +39,8 @@ val pp_print_arity           : formatter -> arity -> unit
 val pp_print_string_exp      : formatter -> string_exp -> unit
 val pp_print_string_exp_list : formatter -> string_exp list -> unit
 val pp_print_exp             : formatter -> exp -> unit
-val pp_print_exp_simple      : formatter -> exp -> unit
 val pp_print_exp_list        : formatter -> exp list -> unit
+val pp_print_exp_list_simple : formatter -> exp list -> unit
 val pp_print_export_info     : formatter -> export -> unit
 
 (*
