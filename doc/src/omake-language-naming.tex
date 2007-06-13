@@ -125,6 +125,21 @@ In general, it is a good idea to define object variables as protected.  The resu
 modular because variables in your object will not produce unexpected clashes with variables defined
 in other parts of the project.
 
+\section{protected.}
+\label{section:protected}\index{protected.}
+
+In OMake 0.9.8, \verb+protected+ is a synonym for \verb+this+.
+
+\begin{verbatim}
+    osh>protected.x = 1
+    - : "1" : Sequence
+    osh>value $(this.x)
+    - : "1" : Sequence
+\end{verbatim}
+%
+In 0.9.9, this will change, so that the qualifier \verb+protected+ means (in 0.9.9) that a variable
+is local to the current object or file, and may not be accessed outside it.
+
 \section{public.}
 \label{section:public}\index{public.}
 
@@ -180,6 +195,13 @@ block is otherwise completely general.
         # Prints "The value of Z is 3"
         echo The value of Z is $Z
 \end{verbatim}
+
+\section{global.}
+\label{section:global}\index{global.}
+
+\newinreorg
+
+The qualifier \verb+global+ is a synonym for \verb+public+.
 
 \section{declare}
 \label{section:declare}\index{declare}

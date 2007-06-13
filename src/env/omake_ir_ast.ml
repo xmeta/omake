@@ -795,7 +795,7 @@ let parse_declaration senv pos loc vl =
                parse (make_forced_scope info VarScopePrivate) vl
             else if Lm_symbol.eq scope_var this_sym || Lm_symbol.eq scope_var protected_sym then
                parse (make_forced_scope info VarScopeThis) vl
-            else if Lm_symbol.eq scope_var public_sym then
+            else if Lm_symbol.eq scope_var public_sym || Lm_symbol.eq scope_var global_sym then
                parse (make_forced_scope info VarScopeVirtual) vl
             else if Lm_symbol.eq scope_var static_sym then
                parse { info with name_static = true } vl
