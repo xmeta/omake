@@ -1577,7 +1577,7 @@ let lex_engine venv pos loc args =
 
 (*
  * \begin{doc}
- * \subsection{Parser}
+ * \obj{Parser}
  *
  * The \verb+Parser+ object provides a facility for syntactic analysis based
  * on context-free grammars.

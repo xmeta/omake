@@ -31,7 +31,7 @@ variable in the current environment.  Some examples are shown below.
 
 In this example, the value of the \verb+COMMAND+ variable is the string \verb+gcc -Wall -g -O2+.
 
-Unlike \Cmd{make}{1}, variable expansion is \emph{eager} and \emph{functional} (see also the section
+Unlike \Cmd{make}{1}, variable expansion is \emph{eager} and \emph{pure} (see also the section
 on Scoping).  That is, variable values are expanded immediately and new variable definitions do not
 affect old ones.  For example, suppose we extend the previous example with following variable
 definitions.
@@ -595,6 +595,177 @@ added the the \verb+TABLE+.
 It is appropriate to think of a \verb+.STATIC+ section as a rule that must be recomputed whenever
 the dependencies of the rule change.  The targets of the rule are the variables it exports (in this
 case, the \verb+TABLE+ variable).
+
+\section{Constants}
+\index{constants}
+
+Internally, OMake represents values in several forms, which we list here.
+
+\begin{itemize}
+\item int
+
+\begin{itemize}
+\item Constructor: \verb+$(int <i>)+~\ref{function:int}.
+\item Object: \verb+Int+~\ref{object:Int}.
+\item An integer is a represented with finite precision using the OCaml representation (31 bits on a
+  32 platform, and 63 bits on a 64 bit platform).
+\item See also: arithmetic~\ref{function:add}.
+\end{itemize}
+
+\item float
+
+\begin{itemize}
+\item Constructor: \verb+$(float <x>)+~\ref{function:float}.
+\item Object: \verb+Float+~\ref{object:Float}.
+\item A float is a floating-point value, represented in IEEE 64-bit format.
+\item See also: arithmetic~\ref{function:add}.
+\end{itemize}
+
+\item array
+
+\begin{itemize}
+\item Constructor: \verb+$(array <v1>, ..., <vn>)+~\ref{function:array}.
+\item Object: \verb+Array+~\ref{object:Array}.
+\item An array is a finite list of values.
+  Arrays are also defined with an array definition
+\begin{verbatim}
+    X[] =
+        <v1>
+        ...
+        <vn>
+\end{verbatim}
+\item See also: \verb+nth+~\ref{function:nth}, \verb+nth-tl+~\ref{function:nth-tl},
+  \verb+length+~\ref{function:length}, $\ldots$
+\end{itemize}
+
+\item string
+
+\begin{itemize}
+\item Object: \verb+String+~\ref{object:String}.
+\item By default, all constant character sequences represent strings, so the simple way to construct
+  a string is to write it down.  Internally, the string may be parsed as several pieces.
+  A string often represents an array of values separated by whitespace.
+\begin{verbatim}
+    osh>S = This is a string
+    - : <sequence
+       "This" : Sequence
+       ' ' : White
+       "is" : Sequence
+       ' ' : White
+       "a" : Sequence
+       ' ' : White
+       "string" : Sequence>
+       : Sequence
+    osh>length($S)
+    - : 4 : Int
+\end{verbatim}
+
+\item A \emph{data} string is a string where whitespace is significant.  It represents a single value,
+  not an array.  The constructors are the quotations \verb+$"..."+ and \verb+$'...'+.
+
+\begin{verbatim}
+    osh>S = $'''This is a string'''
+    - : <data "This is a string"> : String
+\end{verbatim}
+
+\item See also: Quoted strings~\ref{section:quoted-strings}.
+\end{itemize}
+
+\item file
+
+\begin{itemize}
+\item Constructor: \verb+$(file <names>)+~\ref{function:file}.
+\item Object: \verb+File+~\ref{object:File}.
+\item A file object represents the abstract name for a file.  The file object can be viewed as an
+  absolute name; the string representation depends on the current directory.
+
+\begin{verbatim}
+    osh>name = $(file foo)
+    - : /Users/jyh/projects/omake/0.9.8.x/foo : File
+    osh>echo $(name)
+    foo
+    osh>cd ..
+    - : /Users/jyh/projects/omake : Dir
+    osh>echo $(name)
+    0.9.8.x/foo
+\end{verbatim}
+
+\item See also: \verb+vmount+~\ref{function:vmount}.
+\end{itemize}
+
+\item directory
+
+\begin{itemize}
+\item Constructor: \verb+$(dir <names>)+~\ref{function:dir}.
+\item Object: \verb+Dir+~\ref{object:Dir}.
+\item A directory object is like a file object, but it represents a directory.
+\end{itemize}
+
+\item map (dictionary)
+\begin{itemize}
+\item Object: \verb+Map+~\ref{object:Map}.
+\item A map/dictionary is a table that maps values to values.  The \verb+Map+ object is the empty
+  map.  The data structure is persistent, and all operations are pure and functional.  The special syntax
+  \verb+$|key|+ can be used for keys that are strings.
+
+\begin{verbatim}
+    osh>table = $(Map)
+    osh>table = $(table.add x, int)
+    osh>table. +=
+            $|y| = int
+    osh>table.find(y)
+    - : "int" : Sequence
+\end{verbatim}
+\end{itemize}
+
+\item channel
+
+\begin{itemize}
+\item Constructor: \verb+$(fopen <filename>, <mode>)+~\ref{function:fopen}.
+\item Objects: \verb+InChannel+~\ref{object:InChannel}, \verb+OutChannel+~\ref{object:OutChannel}.
+\item Channels are used for buffered input/output.
+\end{itemize}
+
+\item function
+
+\begin{itemize}
+\item Constructor: \verb+$(fun <params>, <body>)+~\ref{function:fun}.
+\item Object: \verb+Fun+~\ref{object:Fun}.
+\item Functions can be defined in several ways.
+\begin{itemize}
+\item As an anonymous function,
+\begin{verbatim}
+    $(fun i, j, $(add $i, $j))
+\end{verbatim}
+\item As a named function,
+\begin{verbatim}
+    f(i, j) =
+        add($i, $j)
+\end{verbatim}
+\item
+\newinkeyword
+As an anonymous function argument.
+\begin{verbatim}
+    osh>foreach(i => $(add $i, 1), 1 2 3)
+    - : <array 2 3 4> : Array
+\end{verbatim}
+\end{itemize}
+\end{itemize}
+
+\item lexer
+
+\begin{itemize}
+\item Object: \verb+Lexer+~\ref{object:Lexer}.
+\item This object represents a lexer.
+\end{itemize}
+
+\item parser
+
+\begin{itemize}
+\item Object: \verb+Parser+~\ref{object:Parser}.
+\item This object represents a parser.
+\end{itemize}
+\end{itemize}
 
 % -*-
 % Local Variables:

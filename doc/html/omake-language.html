@@ -39,6 +39,7 @@
 <LI><A HREF="omake-language.html#toc27">Classes</A></LI>
 <LI><A HREF="omake-language.html#toc28">Inheritance</A></LI>
 <LI><A HREF="omake-language.html#toc29">static.</A></LI>
+<LI><A HREF="omake-language.html#toc30">Constants</A></LI>
 </UL>
 <P>
 <A NAME="chapter:language"></A>
@@ -52,7 +53,7 @@ expansion has the form <CODE>$(&lt;name&gt;)</CODE>, which represents the value 
 variable in the current environment. Some examples are shown below.</P><PRE CLASS="verbatim">   CC = gcc
    CFLAGS = -Wall -g
    COMMAND = $(CC) $(CFLAGS) -O2
-</PRE><P>In this example, the value of the <CODE>COMMAND</CODE> variable is the string <CODE>gcc -Wall -g -O2</CODE>.</P><P>Unlike <TT>make</TT>(1), variable expansion is <EM>eager</EM> and <EM>functional</EM> (see also the section
+</PRE><P>In this example, the value of the <CODE>COMMAND</CODE> variable is the string <CODE>gcc -Wall -g -O2</CODE>.</P><P>Unlike <TT>make</TT>(1), variable expansion is <EM>eager</EM> and <EM>pure</EM> (see also the section
 on Scoping). That is, variable values are expanded immediately and new variable definitions do not
 affect old ones. For example, suppose we extend the previous example with following variable
 definitions.</P><PRE CLASS="verbatim">   X = $(COMMAND)
@@ -390,7 +391,104 @@ added the the <CODE>TABLE</CODE>.</P><PRE CLASS="verbatim">    .STATIC: table-fi
             export
 </PRE><P>It is appropriate to think of a <CODE>.STATIC</CODE> section as a rule that must be recomputed whenever
 the dependencies of the rule change. The targets of the rule are the variables it exports (in this
-case, the <CODE>TABLE</CODE> variable).</P>
+case, the <CODE>TABLE</CODE> variable).</P><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc46">4.15</A>&#XA0;&#XA0;Constants</H2><P>
+<A NAME="@default28"></A></P><P>Internally, OMake represents values in several forms, which we list here.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+int<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(int &lt;i&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:int">9.4.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Int</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Int">12.1.4</A>.
+</LI><LI CLASS="li-itemize">An integer is a represented with finite precision using the OCaml representation (31 bits on a
+32 platform, and 63 bits on a 64 bit platform).
+</LI><LI CLASS="li-itemize">See also: arithmetic&#XA0;<A HREF="omake-base.html#function:add">9.4.3</A>.
+</LI></UL></LI><LI CLASS="li-itemize">float<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(float &lt;x&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:float">9.4.2</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Float</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Float">12.1.5</A>.
+</LI><LI CLASS="li-itemize">A float is a floating-point value, represented in IEEE 64-bit format.
+</LI><LI CLASS="li-itemize">See also: arithmetic&#XA0;<A HREF="omake-base.html#function:add">9.4.3</A>.
+</LI></UL></LI><LI CLASS="li-itemize">array<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(array &lt;v1&gt;, ..., &lt;vn&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:array">9.3.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Array</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Array">12.1.7</A>.
+</LI><LI CLASS="li-itemize">An array is a finite list of values.
+Arrays are also defined with an array definition
+<PRE CLASS="verbatim">    X[] =
+        &lt;v1&gt;
+        ...
+        &lt;vn&gt;
+</PRE></LI><LI CLASS="li-itemize">See also: <CODE>nth</CODE>&#XA0;<A HREF="omake-base.html#function:nth">9.3.5</A>, <CODE>nth-tl</CODE>&#XA0;<A HREF="omake-base.html#function:nth-tl">9.3.8</A>,
+<CODE>length</CODE>&#XA0;<A HREF="omake-base.html#function:length">9.3.4</A>, &#X2026;
+</LI></UL></LI><LI CLASS="li-itemize">string<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>String</CODE>&#XA0;<A HREF="omake-pervasives.html#object:String">12.1.8</A>.
+</LI><LI CLASS="li-itemize">By default, all constant character sequences represent strings, so the simple way to construct
+a string is to write it down. Internally, the string may be parsed as several pieces.
+A string often represents an array of values separated by whitespace.
+<PRE CLASS="verbatim">    osh&gt;S = This is a string
+    - : &lt;sequence
+       "This" : Sequence
+       ' ' : White
+       "is" : Sequence
+       ' ' : White
+       "a" : Sequence
+       ' ' : White
+       "string" : Sequence&gt;
+       : Sequence
+    osh&gt;length($S)
+    - : 4 : Int
+</PRE></LI><LI CLASS="li-itemize">A <EM>data</EM> string is a string where whitespace is significant. It represents a single value,
+not an array. The constructors are the quotations <CODE>$"..."</CODE> and <CODE>$'...'</CODE>.<PRE CLASS="verbatim">    osh&gt;S = $'''This is a string'''
+    - : &lt;data "This is a string"&gt; : String
+</PRE></LI><LI CLASS="li-itemize">See also: Quoted strings&#XA0;<A HREF="omake-language-examples.html#section:quoted-strings">7.2</A>.
+</LI></UL></LI><LI CLASS="li-itemize">file<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(file &lt;names&gt;)</CODE>&#XA0;<A HREF="omake-system.html#function:file">10.1.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>File</CODE>&#XA0;<A HREF="omake-pervasives.html#object:File">12.1.13</A>.
+</LI><LI CLASS="li-itemize">A file object represents the abstract name for a file. The file object can be viewed as an
+absolute name; the string representation depends on the current directory.<PRE CLASS="verbatim">    osh&gt;name = $(file foo)
+    - : /Users/jyh/projects/omake/0.9.8.x/foo : File
+    osh&gt;echo $(name)
+    foo
+    osh&gt;cd ..
+    - : /Users/jyh/projects/omake : Dir
+    osh&gt;echo $(name)
+    0.9.8.x/foo
+</PRE></LI><LI CLASS="li-itemize">See also: <CODE>vmount</CODE>&#XA0;<A HREF="omake-system.html#function:vmount">10.6.1</A>.
+</LI></UL></LI><LI CLASS="li-itemize">directory<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(dir &lt;names&gt;)</CODE>&#XA0;<A HREF="omake-system.html#function:dir">10.1.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Dir</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Dir">12.1.14</A>.
+</LI><LI CLASS="li-itemize">A directory object is like a file object, but it represents a directory.
+</LI></UL></LI><LI CLASS="li-itemize">map (dictionary)
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>Map</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Map">12.1.2</A>.
+</LI><LI CLASS="li-itemize">A map/dictionary is a table that maps values to values. The <CODE>Map</CODE> object is the empty
+map. The data structure is persistent, and all operations are pure and functional. The special syntax
+<CODE>$|key|</CODE> can be used for keys that are strings.<PRE CLASS="verbatim">    osh&gt;table = $(Map)
+    osh&gt;table = $(table.add x, int)
+    osh&gt;table. +=
+            $|y| = int
+    osh&gt;table.find(y)
+    - : "int" : Sequence
+</PRE></LI></UL></LI><LI CLASS="li-itemize">channel<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(fopen &lt;filename&gt;, &lt;mode&gt;)</CODE>&#XA0;<A HREF="omake-system.html#function:fopen">10.8.4</A>.
+</LI><LI CLASS="li-itemize">Objects: <CODE>InChannel</CODE>&#XA0;<A HREF="omake-pervasives.html#object:InChannel">12.1.16</A>, <CODE>OutChannel</CODE>&#XA0;<A HREF="omake-pervasives.html#object:OutChannel">12.1.17</A>.
+</LI><LI CLASS="li-itemize">Channels are used for buffered input/output.
+</LI></UL></LI><LI CLASS="li-itemize">function<UL CLASS="itemize"><LI CLASS="li-itemize">
+Constructor: <CODE>$(fun &lt;params&gt;, &lt;body&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:fun">9.5.1</A>.
+</LI><LI CLASS="li-itemize">Object: <CODE>Fun</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Fun">12.1.9</A>.
+</LI><LI CLASS="li-itemize">Functions can be defined in several ways.
+<UL CLASS="itemize"><LI CLASS="li-itemize">
+As an anonymous function,
+<PRE CLASS="verbatim">    $(fun i, j, $(add $i, $j))
+</PRE></LI><LI CLASS="li-itemize">As a named function,
+<PRE CLASS="verbatim">    f(i, j) =
+        add($i, $j)
+</PRE></LI><LI CLASS="li-itemize"><I>This feature will be introduced in version 0.9.9.0.</I>As an anonymous function argument.
+<PRE CLASS="verbatim">    osh&gt;foreach(i =&gt; $(add $i, 1), 1 2 3)
+    - : &lt;array 2 3 4&gt; : Array
+</PRE></LI></UL>
+</LI></UL></LI><LI CLASS="li-itemize">lexer<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>Lexer</CODE>&#XA0;<A HREF="omake-system.html#object:Lexer">10.11.9</A>.
+</LI><LI CLASS="li-itemize">This object represents a lexer.
+</LI></UL></LI><LI CLASS="li-itemize">parser<UL CLASS="itemize"><LI CLASS="li-itemize">
+Object: <CODE>Parser</CODE>&#XA0;<A HREF="omake-system.html#object:Parser">10.11.13</A>.
+</LI><LI CLASS="li-itemize">This object represents a parser.
+</LI></UL></LI></UL>
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
