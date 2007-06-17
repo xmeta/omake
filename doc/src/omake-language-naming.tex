@@ -7,7 +7,7 @@
 
 During evaluation, there are three different kinds of namespaces.  Variables can be \emph{private},
 or they may refer to fields in the current \emph{this} object, or they can be part of the global
-\emph{public} namespace.  The namespace can be specified directly by including an explicit qualifier
+\emph{global} namespace.  The namespace can be specified directly by including an explicit qualifier
 before the variable name.  The three namespaces are separate; a variable can be bound in one or more
 simultaneously.
 
@@ -17,7 +17,7 @@ simultaneously.
     # current object
     this.X = 2
     # public, globally defined
-    public.X = 3
+    global.X = 3
 \end{verbatim}
 
 \section{private.}
@@ -125,6 +125,38 @@ In general, it is a good idea to define object variables as protected.  The resu
 modular because variables in your object will not produce unexpected clashes with variables defined
 in other parts of the project.
 
+\section{global.}
+\label{section:global}\index{global.}
+
+The \verb+global.+ qualifier is used to specify global dynamically-scoped variables.  In the following
+example, the \verb+global.+ definition specifies that the binding \verb+X = 4+ is to be dynamically
+scoped.  Global variables \emph{are not} defined as fields of an object.
+
+\begin{verbatim}
+    X = 1
+    f() =
+       println(The global value of X is: $(X))
+
+    # Prints:
+    #    The global value of X is: 2
+    section
+       X = 2
+       f()
+
+    Obj. =
+       protected.X = 3
+
+       print() =
+          println(The protected value of X is: $(X))
+          global.X = 4
+          f()
+
+    # Prints:
+    #    The protected value of X is: 3
+    #    The global value of X is: 4
+    Obj.print()
+\end{verbatim}
+
 \section{protected.}
 \label{section:protected}\index{protected.}
 
@@ -143,34 +175,17 @@ is local to the current object or file, and may not be accessed outside it.
 \section{public.}
 \label{section:public}\index{public.}
 
-The \verb+public.+ qualifier is used to specify public dynamically-scoped variables.  In the following
-example, the \verb+public.+ definition specifies that the binding \verb+X = 4+ is to be dynamically
-scoped.  Public variables \emph{are not} defined as fields of an object.
+In OMake 0.9.8, \verb+public+ is a synonym for \verb+global+.
 
 \begin{verbatim}
-    X = 1
-    f() =
-       println(The public value of X is: $(X))
-
-    # Prints:
-    #    The public value of X is: 2
-    section
-       X = 2
-       f()
-
-    Obj. =
-       protected.X = 3
-
-       print() =
-          println(The protected value of X is: $(X))
-          public.X = 4
-          f()
-
-    # Prints:
-    #    The protected value of X is: 3
-    #    The public value of X is: 4
-    Obj.print()
+    osh>public.x = 1
+    - : "1" : Sequence
+    osh>value $(global.x)
+    - : "1" : Sequence
 \end{verbatim}
+%
+In 0.9.9, this will change, so that the qualifier \verb+public+ means (in 0.9.9) that a variable
+is to be accessible from outside the current file or object.
 
 \section{Qualified blocks}
 
@@ -195,13 +210,6 @@ block is otherwise completely general.
         # Prints "The value of Z is 3"
         echo The value of Z is $Z
 \end{verbatim}
-
-\section{global.}
-\label{section:global}\index{global.}
-
-\newinreorg
-
-The qualifier \verb+global+ is a synonym for \verb+public+.
 
 \section{declare}
 \label{section:declare}\index{declare}
