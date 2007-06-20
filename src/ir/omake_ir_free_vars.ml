@@ -62,7 +62,7 @@ let free_vars_union fv1 fv2 =
 (*
  * Free vars of the export.
  *)
-let rec free_vars_export_info fv info =
+let free_vars_export_info fv info =
    match info with
       Omake_ir.ExportNone
     | Omake_ir.ExportAll ->
@@ -79,7 +79,7 @@ let rec free_vars_export_info fv info =
 (*
  * Free vars in optional args.
  *)
-and free_vars_opt_params fv opt_params =
+let rec free_vars_opt_params fv opt_params =
    match opt_params with
       (_, s) :: opt_params ->
          free_vars_opt_params (free_vars_string_exp fv s) opt_params
