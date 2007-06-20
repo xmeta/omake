@@ -118,14 +118,14 @@ let open_in_string venv pos loc args =
 
 (*
  * \begin{doc}
- * \twofuns{open-out-string}{out-string}
+ * \twofuns{open-out-string}{out-contents}
  * The \verb+open-out-string+ creates a channel that writes to a
  * string instead of a file.  The string may be retrieved with the
- * \verb+out-string+ function.
+ * \verb+out-contents+ function.
  *
  * \begin{verbatim}
  *    $(open-out-string) : Channel
- *    $(out-string chan) : String
+ *    $(out-contents chan) : String
  *        chan : OutChannel
  * \end{verbatim}
  * \end{doc}

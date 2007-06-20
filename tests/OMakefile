@@ -1,0 +1,61 @@
+
+TESTDIRS = $(set $(dirname $(glob */Test*)))
+
+runtest(subtest) =
+    setenv(OMAKEFLAGS, $(EMPTY))
+    setenv(OMAKEPATH, $(absname $(ROOT)/lib))
+    PATH[] = $(absname $(ROOT)/src/main) $(PATH)
+    setenv(PATH, $(concat $':', $(PATH)))
+    if $(test -f $(subtest))
+        echo "running osh $(subtest)" >>& $(resultfile)
+        res = $(shell-code osh $(subtest) >>& $(resultfile))
+        export res
+    elseif $(test -f $(subtest)/run.osh)
+        cd $(subtest)
+        echo "running osh run.osh" >>& $(resultfile)
+        res = $(shell-code osh run.osh >>& $(resultfile))
+        export res
+    elseif $(test -f $(subtest)/OMakeroot -o -f $(subtest)/Root.om)
+        cd $(subtest)
+        echo "running omake" >>& $(resultfile)
+        res = $(shell-code omake >>& $(resultfile))
+        export res
+    else
+        echo $"*** Don't know how to run tests in $(subtest)!" >>& $(resultfile)
+        eprintln($"*** Don't know how to run tests in $(subtest)!")
+        res = 1
+        export res
+    return$(equal $(res), 0)
+
+Shell. +=
+    test(argv) =
+        result = $"Tested $(in .., $(dir .)): "
+        failures = false
+        subtests = $(filter-exists Test)
+        subtests += $(set $(glob i, Test[1-9]))
+        date > $(resultfile)
+        foreach(subtest, $(subtests))
+            echo >> $(resultfile)
+            echo $"==== $(subtest)" >> $(resultfile)
+            if $(runtest $(subtest))
+                result = $(result).
+                echo "--- success" >> $(resultfile)
+                export
+            else
+                result = $(result)E
+                failures = true
+                echo "*** failure" >> $(resultfile)
+                export
+            export
+        if $(failures)
+            result += $"$(nl)    *** SOME TESTS FAILED! See $(in $(ROOT), $(resultfile)) for detail"
+            export
+        println($(result))
+
+.SUBDIRS: $(TESTDIRS)
+    resultfile = $(file result.log)
+    check: /.PHONY/all :effects: $(resultfile)
+        test $(resultfile)
+
+    clean:
+        rm -f $(resultfile) Test*/.omakedb* Test*/*.omc
