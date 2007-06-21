@@ -548,6 +548,9 @@ let senv_add_export_all pos senv1 forced_vars2 =
  * Export all the vars, but issue warnings if the exports exist in
  * some, but not the others.
  *)
+let var_union _ _ _ =
+   raise (Invalid_argument "Omake_ir_ast.senv_merge_forced_vars: internal error")
+
 let rec senv_merge_forced_vars pos export1 exports errors =
    let pos = string_pos "senv_merge_forced_vars" pos in
    match exports with
@@ -565,12 +568,8 @@ let rec senv_merge_forced_vars pos export1 exports errors =
          in
 
          (* All remaining variables in export2 are errors *)
-         let export1, errors =
-            SymbolTable.fold (fun (export1, errors) v info2 ->
-                  let export1 = SymbolTable.add export1 v info2 in
-                  let errors = SymbolTable.add errors v info2 in
-                     export1, errors) (export1, errors) export2
-         in
+         let errors = SymbolTable.union var_union errors export2 in
+         let export1 = SymbolTable.union var_union export1 export2 in
             senv_merge_forced_vars pos export1 exports errors
     | [] ->
          export1, errors
