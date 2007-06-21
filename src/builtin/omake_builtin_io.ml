@@ -171,7 +171,7 @@ let out_contents venv pos loc args =
  * \item[r] Open the file for reading; it is an error if the file does not exist.
  * \item[w] Open the file for writing; the file is created if it does not exist.
  * \item[a] Open the file in append mode; the file is created if it does not exist.
- * \item[+] Open the file for both reading an writing.
+ * \item[+] Open the file for both reading and writing.
  * \item[t] Open the file in text mode (default).
  * \item[b] Open the file in binary mode.
  * \item[n] Open the file in nonblocking mode.
