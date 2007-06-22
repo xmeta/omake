@@ -208,6 +208,7 @@ val venv_include_scope : venv -> include_scope -> senv
  * Fork, so that a thread can work on a private copy in peace.
  *)
 val venv_fork       : venv -> venv
+val venv_unfork     : venv -> venv -> venv
 
 (*
  * Global values.

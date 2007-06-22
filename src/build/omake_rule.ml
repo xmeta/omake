@@ -605,10 +605,10 @@ let find_alias_exn shell_obj venv pos loc exe =
    let _, _, f = eval_fun venv pos v in
 
    (* Found the function, no exceptions now *)
-   let f venv stdin stdout stderr env argv =
+   let f venv_orig stdin stdout stderr env argv =
       if !debug_eval || !debug_shell then
          eprintf "Running %s, stdin=%i, stdout=%i, stderr=%i@." exe (Obj.magic stdin) (Obj.magic stdout) (Obj.magic stderr);
-      let venv   = venv_fork venv in
+      let venv   = venv_fork venv_orig in
       let venv   = List.fold_left (fun venv (v, s) -> venv_setenv venv v s) venv env in
       let stdin_chan  = Lm_channel.create "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false (Some stdin) in
       let stdout_chan = Lm_channel.create "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false (Some stdout) in
@@ -649,6 +649,13 @@ let find_alias_exn shell_obj venv pos loc exe =
                eprintf "%a@." Omake_exn_print.pp_print_exn (UncaughtException (pos, exn));
                Omake_state.exn_error_code, venv, ValNone, None
       in
+
+      (*
+       * XXX: JYH: we should probably consider combining the unfork
+       * with venv_unexport.  This is the only place where we actually
+       * need the unexport.
+       *)
+      let venv = venv_unfork venv venv_orig in
          if !debug_eval then
             eprintf "normalize_apply: internal function is done: %d, %a@." code pp_print_value value;
          venv_close_channel venv pos stdin;

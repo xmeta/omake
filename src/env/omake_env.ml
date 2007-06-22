@@ -220,7 +220,9 @@ and venv_inner =
    }
 
 and venv_globals =
-   { (* Execution service *)
+   { venv_global_index                       : int;
+
+     (* Execution service *)
      venv_exec                               : exec;
 
      (* File cache *)
@@ -1919,7 +1921,8 @@ let create options dir exec cache =
       }
    in
    let globals =
-      { venv_exec                       = exec;
+      { venv_global_index               = 0;
+        venv_exec                       = exec;
         venv_cache                      = cache;
         venv_mount_info                 = mount_info;
         venv_environments               = HandleTable.create ();
@@ -2043,9 +2046,13 @@ let venv_get_pervasives venv node =
 let venv_fork venv =
    let inner = venv.venv_inner in
    let globals = inner.venv_globals in
-   let globals = { globals with venv_exec = globals.venv_exec } in
+   let globals = { globals with venv_global_index = succ globals.venv_global_index; venv_exec = globals.venv_exec } in
    let inner = { inner with venv_globals = globals } in
       { venv with venv_inner = inner }
+
+let venv_unfork venv_dst venv_src =
+   let inner = { venv_dst.venv_inner with venv_globals = venv_src.venv_inner.venv_globals } in
+      { venv_dst with venv_inner = inner }
 
 (*
  * Get the scope of all variables.
