@@ -979,7 +979,7 @@ and eval_subdir venv loc (kind, dir) commands export =
       venv_add_dir venv_body;
       add_exports venv venv_body pos export
    in
-   let venv = venv_chdir_dir venv loc cwd in
+   let venv = venv_chdir_tmp venv cwd in
       if debug print_rules then
          eprintf "@[<hv 3>Rules:%a@]@." pp_print_explicit_rules venv;
       venv
