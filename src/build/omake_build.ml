@@ -3060,8 +3060,6 @@ let rec build_time start_time venv_opt options dir_name targets =
       if venv_opt = None && not (opt_project options || DirTable.mem env.env_explicit_directories dir) then begin
          eprintf "*** omake: the current directory %s@." (Dir.absname dir);
          eprintf "*** omake: is not part of the root project in %s@." (Dir.absname env.env_cwd);
-         DirTable.iter (fun d _ ->
-               eprintf "Dir: %a@." pp_print_dir d) env.env_explicit_directories;
          raise (BuildExit 1)
       end
    in
