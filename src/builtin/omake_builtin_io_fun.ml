@@ -1180,7 +1180,7 @@ let lex venv pos loc args =
             venv
          else
             let venv_new = venv_add_match venv lexeme args in
-            let venv_new = venv_add_var venv_new loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let venv_new = venv_add_var venv_new parse_loc_var (ValOther (ValLocation lexeme_loc)) in
             let body, export =
                try SymbolTable.find cases action_sym with
                   Not_found ->
@@ -1299,7 +1299,7 @@ let lex_search venv pos loc args =
             venv
        | _, Some (body, export) ->
             let venv_new = venv_add_match venv lexeme [] in
-            let venv_new = venv_add_var venv_new loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let venv_new = venv_add_var venv_new parse_loc_var (ValOther (ValLocation lexeme_loc)) in
             let venv_new, _ = eval_sequence_exp venv_new pos body in
                add_exports venv venv_new pos export
    in
@@ -1317,7 +1317,7 @@ let lex_search venv pos loc args =
 
             (* Process the matched text *)
             let venv_new = venv_add_match venv lexeme args in
-            let venv_new = venv_add_var venv_new loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let venv_new = venv_add_var venv_new parse_loc_var (ValOther (ValLocation lexeme_loc)) in
             let body, export =
                try SymbolTable.find cases action_sym with
                   Not_found ->
@@ -1569,7 +1569,7 @@ let lex_engine venv pos loc args =
                   venv_close_channel venv pos inp
             in
             let venv = venv_add_match venv lexeme args in
-            let venv = venv_add_var venv loc_field_var (ValOther (ValLocation lexeme_loc)) in
+            let venv = venv_add_var venv parse_loc_var (ValOther (ValLocation lexeme_loc)) in
             let action = venv_find_var venv pos loc (VarThis (loc, action)) in
                eval_apply venv pos loc action []
        | _ ->
@@ -1928,7 +1928,7 @@ let parse_engine venv pos loc args =
                let venv = venv_add_match_values venv args in
                let action = venv_find_field_internal parser_obj pos action in
                let venv = venv_with_object venv parser_obj in
-               let venv = venv_add_var venv loc_var (ValOther (ValLocation loc)) in
+               let venv = venv_add_var venv parse_loc_var (ValOther (ValLocation loc)) in
                let venv, result = eval_apply venv pos loc action [] in
                   (venv, parser_obj, lexer), result
             in

@@ -100,7 +100,7 @@ let braces_var                 = create_pervasives_var braces_sym
 let fs_var                     = create_pervasives_var fs_sym
 let rs_var                     = create_pervasives_var rs_sym
 
-let loc_var                    = create_pervasives_var loc_sym
+let parse_loc_var              = create_pervasives_var parse_loc_sym
 let zero_var                   = create_pervasives_var zero_sym
 let nf_var                     = create_pervasives_var nf_sym
 

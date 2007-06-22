@@ -41,23 +41,23 @@ lexer1. =
    op: $'[-+*/()]'
       switch $0
       case +
-         Token.unit($(loc), plus)
+         Token.unit(plus)
       case -
-         Token.unit($(loc), minus)
+         Token.unit(minus)
       case *
-         Token.unit($(loc), mul)
+         Token.unit(mul)
       case /
-         Token.unit($(loc), div)
+         Token.unit(div)
       case $'('
-         Token.unit($(loc), lparen)
+         Token.unit(lparen)
       case $')'
-         Token.unit($(loc), rparen)
+         Token.unit(rparen)
 
    number: $'[[:digit:]]+'
-      Token.pair($(loc), exp, $(int $0))
+      Token.pair(exp, $(int $0))
 
    eof: $"\'"
-      Token.unit($(loc), eof)
+      Token.unit(eof)
 
 parser1. =
    extends $(Parser)
@@ -114,13 +114,13 @@ lexer2. =
    declare rule
 
    lsl: $"<<"
-      Token.unit($(loc), lsl)
+      Token.unit(lsl)
 
    lsr: $">>>"
-      Token.unit($(loc), lsr)
+      Token.unit(lsr)
 
    asr: $">>"
-      Token.unit($(loc), asr)
+      Token.unit(asr)
 
 parser2. =
    extends $(parser1)

@@ -127,6 +127,7 @@ let zero_sym                   = Lm_symbol.add "0"
 
 let runtime_exception_sym      = Lm_symbol.add "RuntimeException"
 let unbuildable_exception_sym  = Lm_symbol.add "UnbuildableException"
+let parse_loc_sym              = Lm_symbol.add "parse-loc"
 let loc_sym                    = Lm_symbol.add "loc"
 let pos_sym                    = Lm_symbol.add "position"
 let message_sym                = Lm_symbol.add "message"

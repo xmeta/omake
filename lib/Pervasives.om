@@ -1339,6 +1339,8 @@ Shell. +=
 #
 # These are all documented in Omake_builtin_io_fun.
 #
+declare parse-loc
+
 Token. =
    class Token
 
@@ -1346,13 +1348,13 @@ Token. =
    name =
    val =
 
-   unit(loc, name) =
-      this.loc = $(loc)
+   unit(name) =
+      this.loc = $(parse-loc)
       this.name = $(name)
       return $(this)
 
-   pair(loc, name, val) =
-      this.loc = $(loc)
+   pair(name, val) =
+      this.loc = $(parse-loc)
       this.name = $(name)
       this.val = $(val)
       return $(this)

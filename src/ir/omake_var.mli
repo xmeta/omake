@@ -81,7 +81,7 @@ val lt_var                     : var_info
 val amp_var                    : var_info
 val braces_var                 : var_info
 
-val loc_var                    : var_info
+val parse_loc_var              : var_info
 val zero_var                   : var_info
 val nf_var                     : var_info
 val fs_var                     : var_info
