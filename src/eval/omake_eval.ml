@@ -1809,7 +1809,7 @@ and eval_apply_method_export_exp venv venv_obj pos loc path v args =
          let args = List.map (eval_string_exp true venv pos) args in
          let venv_new = venv_add_args venv_obj pos loc env params args in
          let venv_new, result = eval_sequence_exp venv_new pos body in
-         let venv = add_path_exports venv_obj venv_new pos path export in
+         let venv = add_path_exports venv venv_obj venv_new pos path export in
             venv, result
     | ValPrim (_, be_eager, f) ->
          let args = List.map (eval_string_exp be_eager venv pos) args in

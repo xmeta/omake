@@ -1,6 +1,9 @@
 lex-comment. =
    extends $(Lexer)
 
+   declare lex
+   declare rule
+
    level = 0
 
    other: .
@@ -20,6 +23,9 @@ lex-comment. =
 
 lexer1. =
    extends $(Lexer)
+
+   declare lex
+   declare rule
 
    other: .
       eprintln(Illegal character: $0)
@@ -55,6 +61,8 @@ lexer1. =
 
 parser1. =
    extends $(Parser)
+
+   declare rule
 
    #
    # Use the main lexer
@@ -103,6 +111,8 @@ println(Parsed $(parser1.parse-file prog, Test.input1))
 lexer2. =
    extends $(lexer1)
 
+   declare rule
+
    lsl: $"<<"
       Token.unit($(loc), lsl)
 
@@ -114,6 +124,8 @@ lexer2. =
 
 parser2. =
    extends $(parser1)
+
+   declare rule
 
    left(plus, lsl lsr asr)
 

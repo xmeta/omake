@@ -1888,15 +1888,6 @@ let parse_rule venv pos loc args =
 (*
  * Perform the lexing.
  *)
-let parser_add_matches par args =
-   let par, _ =
-      List.fold_left (fun (par, i) arg ->
-            let v = Lm_symbol.add (string_of_int i) in
-            let par = venv_add_field_internal par v arg in
-               par, succ i) (par, 1) args
-   in
-      par
-
 let parse_engine venv pos loc args =
    let pos = string_pos "parse-engine" pos in
       match args with
@@ -1934,7 +1925,7 @@ let parse_engine venv pos loc args =
             in
             let eval (venv, parser_obj, lexer) action loc args =
                let pos = loc_pos loc pos in
-               let parser_obj = parser_add_matches parser_obj args in
+               let venv = venv_add_match_values venv args in
                let action = venv_find_field_internal parser_obj pos action in
                let venv = venv_with_object venv parser_obj in
                let venv = venv_add_var venv loc_var (ValOther (ValLocation loc)) in

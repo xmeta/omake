@@ -243,6 +243,7 @@ val venv_add_args    : venv -> pos -> loc -> env -> var list -> value list -> ve
 val venv_add_args_hack : venv -> pos -> loc -> env -> var list -> value list -> venv
 
 val venv_add_wild_match  : venv -> value -> venv
+val venv_add_match_values : venv -> value list -> venv
 val venv_add_match_args  : venv -> string list -> venv
 val venv_add_match       : venv -> string -> string list -> venv
 val venv_explicit_target : venv -> Node.t -> venv
@@ -430,7 +431,7 @@ val venv_get_ordering_deps : venv -> ordering_info -> NodeSet.t -> NodeSet.t
  * Update the environment with a result.
  *)
 val add_exports      : venv -> venv -> pos -> export -> venv
-val add_path_exports : venv -> venv -> pos -> path -> export -> venv
+val add_path_exports : venv -> venv -> venv -> pos -> path -> export -> venv
 val hoist_path       : venv -> path -> obj -> venv
 val hoist_this       : venv -> venv -> path -> venv
 

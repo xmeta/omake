@@ -1850,6 +1850,15 @@ let venv_add_wild_match venv v =
 (*
  * This is the standard way to add results of a pattern match.
  *)
+let venv_add_match_values venv args =
+   let venv, _ =
+      List.fold_left (fun (venv, i) arg ->
+            let v = create_numeric_var i in
+            let venv = venv_add_var venv v arg in
+               venv, succ i) (venv, 1) args
+   in
+      venv
+
 let venv_add_match_args venv args =
    let venv, _ =
       List.fold_left (fun (venv, i) arg ->
@@ -2878,9 +2887,9 @@ let rec hoist_path venv path obj =
 let hoist_this venv_dst venv_src path =
    hoist_path venv_dst path venv_src.venv_this
 
-let add_path_exports venv_dst venv_src pos path = function
+let add_path_exports venv_orig venv_dst venv_src pos path = function
    ExportNone ->
-      venv_dst
+      venv_orig
  | ExportAll ->
       let venv = venv_export_venv venv_dst venv_src in
          hoist_this venv venv path
