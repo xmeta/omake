@@ -2126,12 +2126,9 @@ let penv_of_vars open_file venv node vars =
    in
       genv, oenv, senv, cenv
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
