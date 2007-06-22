@@ -17,7 +17,7 @@ runtest(subtest) =
         export res
     elseif $(test -f $(subtest)/OMakeroot -o -f $(subtest)/Root.om)
         cd $(subtest)
-        echo "running omake" >>& $(resultfile)
+        echo "running omake in $(absname .)" >>& $(resultfile)
         res = $(shell-code omake >>& $(resultfile))
         export res
     else
@@ -27,13 +27,19 @@ runtest(subtest) =
         export res
     return$(equal $(res), 0)
 
+.STATIC:
+    HAS_DATE = $(CheckProg date)
+
 Shell. +=
     test(argv) =
         result = $"Tested $(in .., $(dir .)): "
         failures = false
         subtests = $(filter-exists Test)
         subtests += $(set $(glob i, Test[1-9]))
-        date > $(resultfile)
+        if $(public.HAS_DATE)
+            date > $(resultfile)
+        else
+            fprint($(resultfile), $"Stating tests in $(in $(ROOT), $(dir .)):")
         foreach(subtest, $(subtests))
             echo >> $(resultfile)
             echo $"==== $(subtest)" >> $(resultfile)
