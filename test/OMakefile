@@ -1,5 +1,7 @@
-
-TESTDIRS = $(set $(dirname $(glob */Test*)))
+#
+# Collect all tests.
+#
+TESTDIRS = $(dir $(set $(dirname $(find . -name Test[1-9]))))
 
 runtest(subtest) =
     setenv(OMAKEFLAGS, $(EMPTY))
