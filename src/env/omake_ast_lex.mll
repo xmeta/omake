@@ -526,7 +526,7 @@ let name            = name_suffix+ | '[' | ']'
 (*
  * Comments begin with a # symbol and continue to end-of-line
  *)
-let comment         = '#' ([^ '!' '\n'] [^ '\n']*)?
+let comment         = '#' [^ '\n']*
 let comment_nl      = comment nl
 let comment_eol     = comment eol
 
