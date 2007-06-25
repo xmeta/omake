@@ -433,12 +433,11 @@ let create_apply_top venv stdin stdout stderr apply =
          let stdin  = Unix.dup stdin in
          let stdout = Unix.dup stdout in
          let stderr = Unix.dup stderr in
-         let code, venv_new, v = f venv stdin stdout stderr env args in
-         let venv = unexport venv venv_new restore_vars in
+         let info = f venv stdin stdout stderr env args in
             if !debug_shell then
                eprintf "create_apply_top pid=%i: done@." (Unix.getpid ());
             cleanup ();
-            code, venv, v
+            info
       with
          exn ->
             if !debug_shell then

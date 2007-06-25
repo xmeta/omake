@@ -437,12 +437,6 @@ val hoist_path       : venv -> path -> obj -> venv
 val hoist_this       : venv -> venv -> path -> venv
 
 (*
- * In case a value is an export, return the given variables in that
- * export to their state in the original environment.
- *)
-val unexport : venv -> venv -> var list -> venv
-
-(*
  * Cached buildable flags.
  *)
 val venv_find_target_is_buildable_exn : venv -> Node.t -> bool

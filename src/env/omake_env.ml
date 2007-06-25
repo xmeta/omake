@@ -2050,9 +2050,33 @@ let venv_fork venv =
    let inner = { inner with venv_globals = globals } in
       { venv with venv_inner = inner }
 
+let copy_var src_dynamic dst_dynamic v =
+   try
+      SymbolTable.add dst_dynamic v (SymbolTable.find src_dynamic v)
+   with
+      Not_found ->
+         SymbolTable.remove dst_dynamic v
+
+let copy_vars dst_dynamic src_dynamic vars =
+   List.fold_left (copy_var src_dynamic) dst_dynamic vars
+
+let copy_var_list =
+   [stdin_sym; stdout_sym; stderr_sym]
+
 let venv_unfork venv_dst venv_src =
-   let inner = { venv_dst.venv_inner with venv_globals = venv_src.venv_inner.venv_globals } in
-      { venv_dst with venv_inner = inner }
+   let { venv_dynamic = dst_dynamic;
+         venv_inner = dst_inner
+       } = venv_dst
+   in
+   let { venv_dynamic = src_dynamic;
+         venv_inner = src_inner
+       } = venv_src
+   in
+   let inner = { dst_inner with venv_globals = src_inner.venv_globals } in
+   let dst_dynamic = copy_vars dst_dynamic src_dynamic copy_var_list in
+      { venv_dst with venv_dynamic = dst_dynamic;
+                      venv_inner = inner
+      }
 
 (*
  * Get the scope of all variables.
@@ -2768,18 +2792,6 @@ let venv_find_static_info venv pos key =
 (************************************************************************
  * Return values.
  *)
-
-let restore_var src dst var =
-   let dynamic =
-      if SymbolTable.mem src.venv_dynamic var then
-         SymbolTable.add dst.venv_dynamic var (SymbolTable.find src.venv_dynamic var)
-      else
-         SymbolTable.remove dst.venv_dynamic var
-   in
-      { dst with venv_dynamic = dynamic }
-
-let unexport src dst vars =
-   List.fold_left (restore_var src) dst vars
 
 (*
  * Export an item from one environment to another.
