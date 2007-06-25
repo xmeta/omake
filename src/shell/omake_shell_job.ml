@@ -943,6 +943,17 @@ let wait_pid venv job =
  * When the pipe is created:
  * If the pipe is in the background, the terminal remains attached.
  * If the pipe is not in the background, we retain control of the terminal.
+ *
+ * WARNING: this function should not be called if
+ *    1. the pipeline is an alias, and
+ *    2. the output is a pipe connected internally.
+ * The reason is that the alias is not processed in a thread.
+ * If it generates a lot of output, it will block, causing
+ * deadlock because the output processor is not being run.
+ *
+ * Remember that rules pass their output to the output
+ * processor through a pipe like this.  However, commands
+ * in rules are processed by create_process, not create_job.
  *)
 let create_job venv pipe stdin stdout stderr =
    if !debug_shell then
@@ -950,7 +961,7 @@ let create_job venv pipe stdin stdout stderr =
 
    (* Evaluate applications eagerly *)
    match pipe with
-      PipeApply (loc, apply) when stdout = Unix.stdout && stderr = Unix.stderr ->
+      PipeApply (loc, apply) ->
          let _, venv, value = create_apply_top venv stdin stdout stderr apply in
             venv, value
     | _ ->
