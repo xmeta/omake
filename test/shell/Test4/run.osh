@@ -1,0 +1,14 @@
+# The "exit" command should abort the current shell alias, but not the whole
+# execution.
+
+Shell. +=
+   true(argv) =
+      println($'Running internal "true"')
+      exit 0
+
+   false(argv) =
+      println($'Running internal "false"')
+      exit 1
+
+ABORT_ON_COMMAND_ERROR = false
+false || true
