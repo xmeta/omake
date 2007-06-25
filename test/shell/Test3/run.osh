@@ -1,0 +1,17 @@
+ABORT_ON_COMMAND_ERROR = true
+
+Shell. +=
+   run_foo(argv) =
+      ABORT_ON_COMMAND_ERROR = false
+      foo | grep 5.
+
+   test_close(argv) =
+      awk()
+      case $'close[(][)]: Bad file descriptor'
+         eprintln($"!!: $0")
+         eprintln($"Test failed!")
+         exit 1
+      default
+         eprintln($"OK: $0")
+
+( echo Starting; run_foo; echo Done  ) |& test_close
