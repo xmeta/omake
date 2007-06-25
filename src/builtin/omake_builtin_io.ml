@@ -307,10 +307,11 @@ let close venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{read}
+ * \twofuns{read}{input-line}
  *
  * \begin{verbatim}
  *    $(read channel, amount) : String
+ *    $(input-line channel) : String
  *       channel : InChannel
  *       amount  : Int
  *    raises RuntimeException
@@ -318,8 +319,9 @@ let close venv pos loc args =
  *
  * The \verb+read+ function reads up to \verb+amount+
  * bytes from an input channel, and returns
- * the data that was read.  If an end-of-file condition is reached,
- * the function raises a \verb+RuntimeException+ exception.
+ * the data that was read. The \verb+input-line+ function reads a line from the file and returns the line read, without
+ * the line terminator. If an end-of-file condition is reached, both functions raise a \verb+RuntimeException+
+ * exception.
  * \end{doc}
  *)
 let read venv pos loc args =
@@ -337,10 +339,28 @@ let read venv pos loc args =
             in
                if count = amount then
                   ValData s
-               else
+               else if count = 0 then
+                  raise (UncaughtException (pos, End_of_file))
+               else 
                   ValData (String.sub s 0 count)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let input_line venv pos loc args =
+   let pos = string_pos "input-line" pos in
+      match args with
+         [fd] ->
+            let fd = channel_of_value venv pos fd in
+            let s =
+               try Lm_channel.input_line fd with
+                  Sys_error _
+                | End_of_file
+                | Invalid_argument _ as exn ->
+                     raise (UncaughtException (pos, exn))
+            in
+                  ValData s
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
@@ -1890,6 +1910,7 @@ let () =
        true, "fopen",                 fopen,                ArityExact 2;
        true, "close",                 close,                ArityExact 1;
        true, "read",                  read,                 ArityExact 2;
+       true, "input-line",            input_line,           ArityExact 1;
        true, "write",                 write,                ArityRange (2, 4);
        true, "lseek",                 lseek,                ArityExact 3;
        true, "rewind",                rewind,               ArityExact 1;
@@ -1936,12 +1957,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
