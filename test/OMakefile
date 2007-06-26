@@ -9,7 +9,7 @@ runtest(subtest) =
     PATH[] = $(absname $(ROOT)/src/main) $(PATH)
     setenv(PATH, $(concat $':', $(PATH)))
     if $(test -f $(subtest))
-        echo "running osh $(subtest)" >>& $(resultfile)
+        echo "running osh $(subtest)" >> $(resultfile)
         res = $(shell-code osh $(subtest) >>& $(resultfile))
         export res
     elseif $(test -f $(subtest)/run.osh)
@@ -19,11 +19,11 @@ runtest(subtest) =
         export res
     elseif $(test -f $(subtest)/OMakeroot -o -f $(subtest)/Root.om)
         cd $(subtest)
-        echo "running omake in $(absname .)" >>& $(resultfile)
+        echo "running omake in $(absname .)" >> $(resultfile)
         res = $(shell-code omake >>& $(resultfile))
         export res
     else
-        echo $"*** Don't know how to run tests in $(subtest)!" >>& $(resultfile)
+        echo $"*** Don't know how to run tests in $(subtest)!" >> $(resultfile)
         eprintln($"*** Don't know how to run tests in $(subtest)!")
         res = 1
         export res

@@ -333,7 +333,7 @@ let shell_script venv scriptname args =
        | UncaughtException _
        | RaiseException _ as exn ->
             eprintf "%a@." pp_print_exn exn;
-            exit 1
+            exit exn_error_code
        | ExitException (_, code) ->
             exit code
        | exn ->
@@ -356,7 +356,7 @@ let shell_string venv s =
     | UncaughtException _
     | RaiseException _ as exn ->
          eprintf "%a@." pp_print_exn exn;
-         exit 1
+         exit exn_error_code
     | ExitException (_, code) ->
          exit code
     | exn ->

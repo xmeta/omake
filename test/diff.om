@@ -54,8 +54,8 @@ if $(not $(DIFF_AVAILABLE))
                     eprintln($"  $(if $(eof_dst), END OF FILE, $(l_dst))")
                     exit 1
                 eof = $(or $(eof_src), $(eof_dst))
-            ch_src.close() 
-            ch_dst.close() 
+            close($(ch_src)) 
+            close($(ch_dst)) 
             return true
 
     export
