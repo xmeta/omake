@@ -100,6 +100,7 @@ let pp_print_exn buf exn =
             pp_print_obj_err obj
     | OmakeFatal s ->
          fprintf buf "@[<v 3>*** omake fatal error:@ %s@]" s
+    | ExitParentException (pos, code)
     | ExitException (pos, code) ->
          fprintf buf "@[<v 3>*** omake %s:@ %a@ early exit(%i) requested by an omake file@]" (**)
             (if code = 0 then "warning" else "error")
@@ -146,6 +147,7 @@ let catch f x =
     | Return _ as exn ->
          eprintf "%a@." pp_print_exn exn;
          exit Omake_state.exn_error_code
+    | ExitParentException (_, code)
     | ExitException (_, code) as exn ->
          eprintf "%a@." pp_print_exn exn;
          exit code

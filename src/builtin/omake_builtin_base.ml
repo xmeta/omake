@@ -710,7 +710,7 @@ let raise_fun venv pos loc args =
  * Non-zero values indicate abnormal termination.
  * \end{doc}
  *)
-let exit_fun venv pos loc args =
+let exit_aux f venv pos loc args =
    let pos = string_pos "exit" pos in
    let code =
       flush stdout;
@@ -729,7 +729,13 @@ let exit_fun venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
-      raise (ExitException (loc_pos loc pos, code))
+      f loc pos code
+
+let exit_fun =
+   exit_aux (fun loc pos code -> raise (ExitException (loc_pos loc pos, code)))
+
+let exit_parent_fun =
+   exit_aux (fun loc pos code -> raise (ExitParentException (loc_pos loc pos, code)))
 
 (*
  * Check whether a variable is defined.
@@ -2755,6 +2761,7 @@ let () =
        true,  "getenv",                getenv,              ArityRange (1, 2);
        true,  "defined-env",           defined_env,         ArityExact 1;
        true,  "exit",                  exit_fun,            ArityRange (0, 1);
+       true,  "exit-parent",           exit_parent_fun,     ArityRange (0, 1);
        true,  "raise",                 raise_fun,           ArityExact 1;
        true,  "get-registry",          get_registry,        ArityRange (3, 4);
 

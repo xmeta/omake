@@ -237,6 +237,7 @@ exception OmakeException    of pos * omake_error
 exception UncaughtException of pos * exn
 exception RaiseException    of pos * obj
 exception ExitException     of pos * int
+exception ExitParentException     of pos * int
 exception Return            of loc * value
 
 (*

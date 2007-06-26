@@ -2929,6 +2929,7 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
       with
          Sys_error _
        | ExitException _
+       | ExitParentException _
        | OmakeException _
        | UncaughtException _
        | RaiseException _

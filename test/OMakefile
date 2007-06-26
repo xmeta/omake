@@ -66,4 +66,13 @@ Shell. +=
         test $(resultfile)
 
     clean:
-        rm -f $(resultfile) Test*/.omakedb* Test*/*.omc
+        rm -f $(resultfile) *.omc Test*/.omakedb* Test*/*.omc Test*/stdout
+
+CLEAN[] =
+    awk/*/Subst.out
+    shell/Test1/sub
+    vmount/Test1/build/foo*
+    vmount/Test1/src/*omc
+
+clean:
+    rm -rf *.omc $(CLEAN)

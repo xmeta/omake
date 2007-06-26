@@ -111,6 +111,13 @@ type shell =
    { mutable shell_jobs : job IntTable.t }
 
 (*
+ * A job may have failed to start.
+ *)
+type subjob_option =
+   SubjobNormal of subjob_exp
+ | SubjobExited of int
+
+(*
  * Global shell.
  *)
 let shell =
@@ -224,20 +231,6 @@ let with_pipe f =
             close_fd read;
             close_fd write;
             raise exn
-
-(*
- * Test for background jobs.
- *)
-let is_background_pipe pipe =
-   match pipe with
-      PipeBackground _ ->
-         true
-    | PipeApply _
-    | PipeCommand _
-    | PipeCond _
-    | PipeCompose _
-    | PipeGroup _ ->
-         false
 
 (*
  * Get an array representation of the environment.
@@ -439,7 +432,13 @@ let create_apply_top venv stdin stdout stderr apply =
             cleanup ();
             info
       with
-         exn ->
+         ExitException (_, code) ->
+            cleanup ();
+            code, venv, ValOther (ValExitCode code)
+       | ExitParentException (pos, code) ->
+            cleanup ();
+            raise (ExitException (pos, code))
+       | exn ->
             if !debug_shell then
                eprintf "create_apply_top pid=%i: error: %a@." (Unix.getpid ()) Omake_exn_print.pp_print_exn exn;
             cleanup ();
@@ -605,6 +604,27 @@ let create_command venv pgrp bg stdin stdout stderr command =
             end
 
 (*
+ * Evaluate a conditional, to see if the conditional operation should be performed.
+ *)
+let cond_continue op = function
+   JobExited 0 ->
+      (match op with
+          PipeAnd
+        | PipeSequence ->
+             true
+        | PipeOr ->
+             false)
+ | JobExited _ ->
+      (match op with
+          PipeOr
+        | PipeSequence ->
+             true
+        | PipeAnd ->
+             false)
+ | _ ->
+      false
+
+(*
  * Create a conditional.
  *)
 let rec create_cond venv pgrp stdin stdout stderr op pipe1 pipe2 =
@@ -646,8 +666,12 @@ and create_shell venv pgrp bg stdin stdout stderr pipe =
       eprintf "create_shell@.";
    let create_fun stdin stdout stderr pgrp =
       let exp =
-         try create_pipe_aux venv pgrp false stdin stdout stderr pipe with
-            exn ->
+         try
+            SubjobNormal (create_pipe_aux venv pgrp false stdin stdout stderr pipe)
+         with
+            ExitException (_, code) ->
+               SubjobExited code
+          | exn ->
                eprintf "@[<v 0>%a@ Process group exception.@]@." Omake_exn_print.pp_print_exn exn;
                raise exn
       in
@@ -686,8 +710,12 @@ and create_group venv pgrp stdin stdout stderr group =
    in
    let create_fun stdin stdout stderr pgrp =
       let exp =
-         try create_pipe_aux venv pgrp false stdin stdout stderr pipe with
-            exn ->
+         try 
+            SubjobNormal (create_pipe_aux venv pgrp false stdin stdout stderr pipe)
+         with
+            ExitException (_, code) ->
+               SubjobExited code
+          | exn ->
                eprintf "@[<v 0>%a@ Process group exception.@]@." Omake_exn_print.pp_print_exn exn;
                raise exn
       in
@@ -742,27 +770,6 @@ and create_pipe_aux venv pgrp fork stdin stdout stderr pipe =
          create_pipe_aux venv pgrp true stdin stdout stderr pipe
 
 (*
- * Create a pipe.
- * If this is a simple job, do not
- * monitor the pipe.
- *)
-and create_pipe_exn venv bg stdin stdout stderr pipe =
-   let rec create bg pipe =
-      match pipe with
-         PipeApply (_, apply) ->
-            create_apply venv 0 bg stdin stdout stderr apply
-       | PipeCommand (_, command) ->
-            create_command venv 0 bg stdin stdout stderr command
-       | PipeCond _
-       | PipeCompose _
-       | PipeGroup _ ->
-            create_shell venv 0 bg stdin stdout stderr pipe
-       | PipeBackground (_, pipe) ->
-            create true pipe
-   in
-      create bg pipe
-
-(*
  * Create a thread.  This may actually be a separate
  * process.
  *)
@@ -784,15 +791,19 @@ and create_thread venv f stdin stdout stderr =
  * so the appropriate thing to do when finished
  * is exit.
  *)
-and wait_exp pgrp exp =
-   match eval_exp_top pgrp exp with
-      SubjobFinished (JobExited code, _)
-    | SubjobFinished (JobSignaled code, _) ->
-         if !debug_shell then
-            eprintf "wait_exp: %i exiting %d@." (Unix.getpid()) code;
-         code
-    | exp ->
-         wait_exp2 pgrp exp
+and wait_exp pgrp = function
+   SubjobNormal exp ->
+      begin match eval_exp_top pgrp exp with
+         SubjobFinished (JobExited code, _)
+       | SubjobFinished (JobSignaled code, _) ->
+            if !debug_shell then
+               eprintf "wait_exp: %i exiting %d@." (Unix.getpid()) code;
+            code
+       | exp ->
+            wait_exp2 pgrp exp
+      end
+ | SubjobExited code ->
+      code
 
 and wait_exp2 pgrp exp =
    (* Wait for a job to complete; ignore stopped processes *)
@@ -862,26 +873,7 @@ and eval_exp pgrp e pid code =
                          cond_stderr = stderr
                        } = cond
                    in
-                   let cont =
-                      match code with
-                         JobExited 0 ->
-                            (match op with
-                                PipeAnd
-                              | PipeSequence ->
-                                   true
-                              | PipeOr ->
-                                   false)
-                       | JobExited _ ->
-                            (match op with
-                                PipeOr
-                              | PipeSequence ->
-                                   true
-                              | PipeAnd ->
-                                   false)
-                       | _ ->
-                            false
-                   in
-                      if cont then
+                      if cond_continue op code then
                          eval_exp_top pgrp (create_pipe_aux venv pgrp false stdin stdout stderr pipe)
                       else
                          SubjobFinished (code, venv)
@@ -939,6 +931,22 @@ let wait_pid venv job =
       status
 
 (*
+ * Create a pipe.
+ * If this is a simple job, do not monitor the pipe.
+ *)
+let rec create_pipe_exn venv bg stdin stdout stderr = function
+   PipeApply (_, apply) ->
+      create_apply venv 0 bg stdin stdout stderr apply
+ | PipeCommand (_, command) ->
+      create_command venv 0 bg stdin stdout stderr command
+ | PipeCond _
+ | PipeCompose _
+ | PipeGroup _ as pipe ->
+      create_shell venv 0 bg stdin stdout stderr pipe
+ | PipeBackground (_, pipe) ->
+      create_pipe_exn venv true stdin stdout stderr pipe
+
+(*
  * When the pipe is created:
  * If the pipe is in the background, the terminal remains attached.
  * If the pipe is not in the background, we retain control of the terminal.
@@ -954,45 +962,58 @@ let wait_pid venv job =
  * processor through a pipe like this.  However, commands
  * in rules are processed by create_process, not create_job.
  *)
-let create_job venv pipe stdin stdout stderr =
+let rec create_job_aux venv pipe stdin stdout stderr =
    if !debug_shell then
       eprintf "Creating pipe: %a@." pp_print_string_pipe pipe;
 
-   (* Evaluate applications eagerly *)
    match pipe with
       PipeApply (loc, apply) ->
-         let _, venv, value = create_apply_top venv stdin stdout stderr apply in
-            venv, value
-    | _ ->
-         (* Otherwise, create the pipeline *)
-         let bg   = is_background_pipe pipe in
-         let pgrp = create_pipe_exn venv bg stdin stdout stderr pipe in
+         (* Evaluate applications eagerly *)
+         create_apply_top venv stdin stdout stderr apply
+    | PipeBackground (_, pipe) ->
+         (* Create a background job *)
+         let pgrp = create_pipe_exn venv true stdin stdout stderr pipe in
          let job  = new_job pgrp (Some pipe) in
-         let v =
-            if not bg then begin
-               if !debug_shell then
-                  eprintf "Running pgrp %d (my pid = %d)@." pgrp (Unix.getpid ());
-               (*
-                * On Mac OSX this call fails with EPERM.
-                * I believe this is because the sub-process
-                * sets the controlling terminal itself (see
-                * Omake_shell_sys_unix.create_process).
-                *
-                * This means that the sub-process takes over the terminal,
-                * and we can't set it anymore.
-                *
-                * This seems like a bogus explanation, because we have
-                * to get the terminal back on suspend...
-               Omake_shell_sys.set_tty_pgrp pgrp;
-                *)
-               ValOther (ValExitCode (int_of_code (wait_top venv job)))
-            end
-            else begin
-               job.job_state <- JobBackground;
-               ValNone
-            end
-         in
-            venv, v
+            job.job_state <- JobBackground;
+            0, venv, ValNone
+    | PipeCompose _
+      (*
+       * XXX: TODO (Aleksey 2007/06/26) 
+       * PipeCompose should be handled similar to PipeCond, where only the left hand
+       * side should be forked, while the right hand side should be evaluated in the current process.
+       *)
+    | PipeGroup _
+    | PipeCommand _ ->
+         (* Otherwise, fork a foreground job *)
+         let pgrp = create_pipe_exn venv false stdin stdout stderr pipe in
+         let job  = new_job pgrp (Some pipe) in
+            if !debug_shell then
+               eprintf "Running pgrp %d (my pid = %d)@." pgrp (Unix.getpid ());
+            (*
+             * On Mac OSX this call fails with EPERM.
+             * I believe this is because the sub-process
+             * sets the controlling terminal itself (see
+             * Omake_shell_sys_unix.create_process).
+             *
+             * This means that the sub-process takes over the terminal,
+             * and we can't set it anymore.
+             *
+             * This seems like a bogus explanation, because we have
+             * to get the terminal back on suspend...
+            Omake_shell_sys.set_tty_pgrp pgrp;
+             *)
+            let code = int_of_code (wait_top venv job) in
+               code, venv, ValOther (ValExitCode code)
+    | PipeCond (_, op, pipe1, pipe2) ->
+         let (code, venv, _) as info = create_job_aux venv pipe1 stdin stdout stderr in
+            if cond_continue op (JobExited code) then
+               create_job_aux venv pipe2 stdin stdout stderr
+            else
+               info
+
+let create_job venv pipe stdin stdout stderr =
+   let _, venv, value = create_job_aux venv pipe stdin stdout stderr in
+      venv, value
 
 (*
  * This is a variation: create the process and return the pid.

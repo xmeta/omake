@@ -636,7 +636,8 @@ let find_alias_exn shell_obj venv pos loc exe =
             in
                code, venv, v, None
          with
-            ExitException (_, code) as exn ->
+            ExitException (_, code)
+          | ExitParentException (_, code) as exn ->
                code, venv, ValNone, Some exn
           | OmakeException _
           | UncaughtException _ as exn ->
@@ -1363,6 +1364,7 @@ and eval_command venv stdout stderr pos loc e =
           | UncaughtException _ as exn ->
                eprintf "%a@." Omake_exn_print.pp_print_exn exn;
                Omake_state.exn_error_code
+          | ExitParentException _
           | Unix.Unix_error _
           | Sys_error _
           | Not_found
