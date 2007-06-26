@@ -10,7 +10,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, Calufornia Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +32,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -514,7 +515,7 @@ let match_fun =
  * Temporary type for evaluating try blocks.
  *)
 type try_exp =
-   TrySuccessExp of value
+   TrySuccessExp of ( (venv * value) )
  | TryFailureExp of pos * obj * exn
 
 (*
@@ -554,36 +555,36 @@ let object_of_uncaught_exception venv pos exn =
 (*
  * Exception handling.
  *)
-let rec eval_finally_case venv pos cases =
+let rec eval_finally_case venv pos result cases =
    match cases with
-      (v, _, e, _) :: cases when Lm_symbol.eq v finally_sym ->
-         ignore (eval_sequence_exp venv pos e)
+      (v, _, e, export) :: cases when Lm_symbol.eq v finally_sym ->
+         eval_sequence_export venv pos result e export
     | _ :: cases ->
-         eval_finally_case venv pos cases
+         eval_finally_case venv pos result cases
     | [] ->
-         ()
+         venv, result
 
 (*
  * We have successfully evaluated a CatchCase.
  * Search for the following WhenCases.
  * If a WhenCase fails, go to the following catch case.
  *)
-let rec eval_catch_rest venv_orig venv pos obj result cases =
+let rec eval_catch_rest venv pos obj result cases =
    match cases with
       (v, s, e, export) :: cases when Lm_symbol.eq v when_sym ->
          let b = bool_of_value venv pos s in
             if b then
-               let venv_new, result = eval_sequence_export venv pos result e export in
-                  eval_catch_rest venv_orig venv pos obj result cases
+               let venv, result = eval_sequence_export venv pos result e export in
+                  eval_catch_rest venv pos obj result cases
             else
-               eval_exception venv_orig pos obj cases
+               eval_exception venv pos obj cases
     | _ ->
-         Some result
+         Some (venv, result)
 
-and eval_catch_case venv_orig pos v obj e cases export =
-   let venv = venv_add_var venv_orig v (ValObject obj) in
+and eval_catch_case venv pos v obj e cases export =
+   let venv = venv_add_var venv v (ValObject obj) in
    let venv, result = eval_sequence_export_exp venv pos e export in
-      eval_catch_rest venv_orig venv pos obj result cases
+      eval_catch_rest venv pos obj result cases
 
 (*
  * Find the first CatchCase that matches the object,
@@ -621,7 +622,7 @@ let try_fun venv pos loc args =
    in
    let e =
       try
-         let result = eval_body_value venv pos e in
+         let result = eval_body_value_env venv pos e in
             TrySuccessExp result
       with
          OmakeException (pos, exp) as exn ->
@@ -653,11 +654,11 @@ let try_fun venv pos loc args =
        | TrySuccessExp _ ->
             e
    in
-      eval_finally_case venv pos cases;
       match e with
-         TrySuccessExp result ->
-            result
+         TrySuccessExp ((venv, result)) ->
+            eval_finally_case venv pos result cases
        | TryFailureExp (_, _, exn) ->
+            ignore (eval_finally_case venv pos ValNone cases);
             raise exn
 
 (*
@@ -2774,7 +2775,6 @@ let () =
        false, "and",                   and_fun,             ArityAny;
        true,  "equal",                 equal,               ArityExact 2;
        true,  "if",                    if_fun,              ArityRange (2, 3);
-       false, "try",                   try_fun,             ArityExact 2;
        true,  "defined",               defined,             ArityExact 1;
 
        (* List operations *)
@@ -2815,6 +2815,7 @@ let () =
        false, "switch",                switch_fun,          ArityAny;
        false, "match",                 match_fun,           ArityAny;
        false, "while",                 while_fun,           ArityExact 2;
+       false, "try",                   try_fun,             ArityExact 2;
        true,  "export",                export,              ArityExact 0;
        true,  "system",                system,              ArityExact 1;
      ]
