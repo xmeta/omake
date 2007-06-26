@@ -10,17 +10,17 @@ if $(not $(DIFF_AVAILABLE))
                 argv = $(nth-tl 1, $(argv))
 
             if $(not $(eq $(length $(argv)), 2))
-                epritln($"Shell.diff: USAGE:")
-                epritln($"    diff file1 file2")
-                exit 1
+                eprintln($"Shell.diff: USAGE:")
+                eprintln($"    diff file1 file2")
+                exit 2
             src = $(nth 0, $(argv))
             dst = $(nth 1, $(argv))
             if $(not $(test -r $(src)))
                 eprintln($"$(src) is not readable")
-                exit 1
+                exit 2
             if $(not $(test -r $(dst)))
                 eprintln($"$(dst) is not readable")
-                exit 1
+                exit 2
             eof = false
             code = 0
             ch_src = $(fopen $(src), r)
@@ -28,6 +28,8 @@ if $(not $(DIFF_AVAILABLE))
             l_dst =
             l_src =
             line = 0
+            eof_src = false
+            eof_dst = false
             while $(not $(eof))
                 line = $(add $(line), 1)
                 eof_src = false
