@@ -2032,8 +2032,8 @@ and eval_shell_exp venv pos loc e =
    let pos = string_pos "eval_shell_exp" pos in
    let () =
       if !debug_shell then
-         eprintf "@[<v 3>eval_shell_exp:@ %a@]@." (**)
-            pp_print_string_exp e
+         eprintf "@[<v 3>eval_shell_exp (pid = %i):@ %a@]@." (**)
+            (Unix.getpid()) pp_print_string_exp e
    in
    let v = venv_find_var venv pos loc system_var in
    let venv, s = eval_string_export_exp true venv pos e in

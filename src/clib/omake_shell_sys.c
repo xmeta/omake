@@ -355,6 +355,11 @@ static int resume_process(Process *processp)
     if(processp->status != STATUS_STOPPED)
         return 0;
 
+#ifdef OSH_DEBUG
+    fprintf(stderr, "resume_process: pid %i, wid %i\n", processp->pid, processp->wid);
+    fflush(stderr);
+#endif
+
     /* If it is a thread, resume it */
     if(processp->is_thread) {
         handle = CompatOpenThread(THREAD_SUSPEND_RESUME, FALSE, processp->thread);
@@ -510,7 +515,7 @@ static value handle_wait(const char *debug, Process **processpp)
 /*
  * Terminate all jobs and exit.
  */
-static void terminate_and_exit(void)
+static void terminate_processes(void)
 {
     Process *processp;
     int wait;
@@ -519,11 +524,18 @@ static void terminate_and_exit(void)
     wait = 0;
     processp = state->processes;
     while(processp) {
-        if(processp->wid) {
-            GenerateConsoleCtrlEvent(CTRL_C_EVENT, processp->wid);
-            wait++;
+        if(processp->pid != INIT_PID) {
+            processp->killed = 1;
+            if((processp->wid) && (processp->pid != INIT_PID)) {
+#ifdef OSH_DEBUG
+                fprintf(stderr, "terminate_processes: Generating CTRL-C for process pid %i, group, status %i, is_thread %i, wid %i, \n", processp->pid, processp->pgrp, processp->status, processp->is_thread, processp->wid);
+                fflush(stderr);
+#endif
+                GenerateConsoleCtrlEvent(CTRL_C_EVENT, processp->wid);
+                wait++;
+            }
+            resume_process(processp);
         }
-        resume_process(processp);
         processp = processp->next;
     }
 
@@ -532,14 +544,16 @@ static void terminate_and_exit(void)
         Sleep(1000);
         processp = state->processes;
         while(processp) {
-            if(processp->wid)
+            if((processp->wid) && (processp->pid != INIT_PID)) {
+#ifdef OSH_DEBUG
+                fprintf(stderr, "terminate_processes: terminating process pid %i, wid %i\n", processp->pid, processp->wid);
+                fflush(stderr);
+#endif
                 TerminateProcess(processp->handle, 1);
+            }
             processp = processp->next;
         }
     }
-
-    /* Now we exit too */
-    ExitProcess(1);
 }
 
 /************************************************************************
@@ -849,7 +863,7 @@ static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_noha
     /* Get the return code */
     if(processp->is_thread == 0) {
         if(GetExitCodeProcess(handles[index], &exitcode) == FALSE)
-            exitcode = 1;
+            exitcode = 111;
         processp->code = exitcode;
     }
 
@@ -963,22 +977,29 @@ value omake_shell_sys_create_process(value v_info)
     creation_flags = CREATE_NEW_PROCESS_GROUP;
 
 #ifdef OSH_DEBUG
+    fprintf(stderr, "creating process %d:\n", pid);
+    fprintf(stderr, "\tcommand: %s\n", command);
+    fprintf(stderr, "\tcommand line: %s\n", argv);
+    /*
+     * XXX - For some reason, I get the
+     * "unresolved external symbol __imp__CommandLineToArgvW@8"
+     * here.
+     * 
+     * Aleksey
+     *
     {
-        unsigned short line[SIZEOF_COMMAND];
-        unsigned short **args;
+        LPWSTR *args;
         int argc, i;
 
-        for(i = 0; argv[i]; i++)
-            line[i] = argv[i];
-        args = CommandLineToArgvW(line, &argc);
-        fprintf(stderr, "creating process %d:\n", pid);
-        fprintf(stderr, "\tcommand: %s\n", command);
-        fprintf(stderr, "\tcommand line: %s\n", argv);
-        fprintf(stderr, "\targv:\n");
-        for(i = 0; i != argc; i++)
-            fprintf(stderr, "\t\t%ls\n", args[i]);
-        fflush(stderr);
+        args = CommandLineToArgvW((LPCWSTR) argv, &argc);
+        if (args) {
+            fprintf(stderr, "\targv:\n");
+            for(i = 0; i < argc; i++)
+               fprintf(stderr, "\t\t%ls\n", args[i]);
+        }
     }
+     */
+    fflush(stderr);
 #endif
 
     /* Create the process */
@@ -1081,7 +1102,9 @@ static BOOL WINAPI console_ctrl_handler(DWORD code)
     case CTRL_SHUTDOWN_EVENT:
         fprintf(stderr, "Exiting\n");
         fflush(stderr);
-        terminate_and_exit();
+        terminate_processes();
+        /* Now we exit too */
+        ExitProcess(1);
         break;
     default:
         fprintf(stderr, "console_ctrl_handler: unknown code: %d\n", code);
@@ -1113,6 +1136,10 @@ value omake_shell_sys_init(value v_unit)
     fprintf(stderr, "omake_shell_sys_init\n");
     fflush(stderr);
 #endif
+
+    if (state)
+      /* Init was already called before */
+      CAMLreturn(Val_unit);
 
     /* Allocate a struct for the current process */
     processp = (Process *) malloc(sizeof(Process));
@@ -1156,7 +1183,7 @@ value omake_shell_sys_init(value v_unit)
 value omake_shell_sys_close(value v_unit)
 {
     CAMLparam1(v_unit);
-    terminate_and_exit();
+    terminate_processes();
     CAMLreturn(Val_unit);
 }
 

@@ -433,9 +433,13 @@ let create_apply_top venv stdin stdout stderr apply =
             info
       with
          ExitException (_, code) ->
+            if !debug_shell then
+               eprintf "create_apply_top pid=%i: exit exception: %i@." (Unix.getpid ()) code;
             cleanup ();
             code, venv, ValOther (ValExitCode code)
        | ExitParentException (pos, code) ->
+            if !debug_shell then
+               eprintf "create_apply_top pid=%i: exit from parent exception: %i@." (Unix.getpid ()) code;
             cleanup ();
             raise (ExitException (pos, code))
        | exn ->

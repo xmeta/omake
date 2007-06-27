@@ -190,7 +190,7 @@ let set_current_directory venv =
 let exit code =
    Omake_readline.save ();
    Omake_shell_sys.close ();
-   exit code
+   Pervasives.exit code
 
 (*
  * Abort if asked.
@@ -326,15 +326,27 @@ let shell_script venv scriptname args =
                venv, succ i) (venv, 0) argv
    in
       (* Evaluate the file *)
+      if !debug_shell then
+         eprintf "@[<3>shell_script (pid=%i): running script@ %a@]@." (**)
+            (Unix.getpid()) pp_print_node node;
       try ignore (eval_include_file venv IncludeAll pos loc node) with
          End_of_file ->
+            if !debug_shell then
+               eprintf "@[<3>shell_script (pid=%i): script@ %a:@ got EOF, exiting@]@." (**)
+                  (Unix.getpid()) pp_print_node node;
             exit 0
        | OmakeException _
        | UncaughtException _
        | RaiseException _ as exn ->
+            if !debug_shell then
+               eprintf "@[<3>shell_script (pid=%i): script@ %a:@ got exception, exiting@]@." (**)
+                  (Unix.getpid()) pp_print_node node;
             eprintf "%a@." pp_print_exn exn;
             exit exn_error_code
        | ExitException (_, code) ->
+            if !debug_shell then
+               eprintf "@[<3>shell_script (pid=%i): script@ %a:@ got exit exception (code = %i), exiting@]@." (**)
+                  (Unix.getpid()) pp_print_node node code;
             exit code
        | exn ->
             eprintf "%a@." pp_print_exn (UncaughtException (pos, exn));
