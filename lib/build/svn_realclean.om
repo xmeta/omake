@@ -37,6 +37,14 @@ open configure/Configure
     SVN_AVAILABLE = $(CheckProg svn)
 
 Shell. +=
+    do_clean(IGNORES) =
+        awk()
+        case $'^[I?] '
+            f = $(file $2)
+            if $(not $(mem $f, $(IGNORES)))
+                println($"Removing $f...")
+                rm -rf $f
+
     svn_realclean(argv) =
         if $(SVN_AVAILABLE)
             usage(msg,err) =
@@ -74,15 +82,8 @@ If no directories are given, . is used.
                     usage($"Unknown option: $(nth 0, $(argv))", 1)
                 default
                     DIRS[] = $(dir $(argv)) 
+                    export
             if $(FORCE)
-                Shell. +=
-                    do_clean(IGNORES) =
-                        awk()
-                        case $'^[I?] '
-                            f = $(file $2)
-                            if $(not $(mem $f, $(IGNORES)))
-                                println($"Removing $f...")
-                                rm -rf $f
                 svn st --no-ignore $(DIRS) | do_clean $(IGNORES)
             else
                 # rm -ri will require a real stdin, so we can not use the same
@@ -95,7 +96,7 @@ If no directories are given, . is used.
                     if $(not $(mem $f, $(IGNORES)))
                         # println($"Removing $f...")
                         rm -ri $f
-                rm -rf $(tmp)
+                rm -f $(tmp)
         else
             eprintln($"svn_realclean requires the svn binary, but svn is missing")
             exit(1)
