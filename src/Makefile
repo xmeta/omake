@@ -116,9 +116,6 @@ inotify.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)
 inotify-syscalls.h: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-syscalls.h
 	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-syscalls.h inotify-syscalls.h
 
-inotify-test.c: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-test.c
-	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify-test.c inotify-test.c
-
 inotify.om: ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.om
 	$(LN) ..$(slash)src$(slash)clib$(slash)..$(slash)libmojave-external$(slash)cutil$(slash)inotify.om inotify.om
 
@@ -145,7 +142,7 @@ omake_shell_sys.c: $(SRC_clib)$(slash)omake_shell_sys.c
 readline.c: $(SRC_clib)$(slash)readline.c
 	$(LN) $(SRC_clib)$(slash)readline.c readline.c
 
-ALLFILES_clib = omake_shell_sys.c readline.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify-test.c inotify.om lm_termsize.c lm_terminfo.c lm_fs_case_sensitive.c
+ALLFILES_clib = omake_shell_sys.c readline.c lm_heap.c lm_heap.h lm_channel.c lm_compat_win32.c lm_compat_win32.h lm_ctype.c lm_printf.c lm_uname_ext.c lm_unix_cutil.c unixsupport.h fam_win32.c fam_kqueue.c fam_inotify.c fam_pseudo.h lm_notify.c inotify.h inotify-syscalls.h inotify.om lm_termsize.c lm_terminfo.c lm_fs_case_sensitive.c
 
 
 lm_printf.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)stdlib$(slash)lm_printf.ml
