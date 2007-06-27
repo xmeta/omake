@@ -20,7 +20,7 @@ runtest(subtest) =
     elseif $(test -f $(subtest)/OMakeroot -o -f $(subtest)/Root.om)
         cd $(subtest)
         echo "running omake in $(absname .)" >> $(resultfile)
-        res = $(shell-code omake >>& $(resultfile))
+        res = $(shell-code omake --no--progress >>& $(resultfile))
         export res
     else
         echo $"*** Don't know how to run tests in $(subtest)!" >> $(resultfile)
