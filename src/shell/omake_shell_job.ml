@@ -111,13 +111,6 @@ type shell =
    { mutable shell_jobs : job IntTable.t }
 
 (*
- * A job may have failed to start.
- *)
-type subjob_option =
-   SubjobNormal of subjob_exp
- | SubjobExited of int
-
-(*
  * Global shell.
  *)
 let shell =
@@ -220,17 +213,6 @@ let print_exit_code venv force pid code =
 (************************************************************************
  * Utilities
  *)
-
-(*
- * Create a pipe.
- *)
-let with_pipe f =
-   let read, write = Unix.pipe () in
-      try f read write with
-         exn ->
-            close_fd read;
-            close_fd write;
-            raise exn
 
 (*
  * Get an array representation of the environment.
@@ -647,20 +629,39 @@ let rec create_cond venv pgrp stdin stdout stderr op pipe1 pipe2 =
  * Create an actual pipe.
  *)
 and create_compose venv pgrp stdin stdout stderr divert_stderr pipe1 pipe2 =
-   with_pipe (fun stdin' stdout' ->
-         let stderr' =
-            if divert_stderr then
-               stdout'
-            else
-               stderr
-         in
-         let () = set_close_on_exec stdout' in
-         let exp2 = create_pipe_aux venv pgrp true stdin' stdout stderr pipe2 in
-         let () = close_fd stdin' in
-         let () = clear_close_on_exec stdout' in
-         let exp1 = create_pipe_aux venv pgrp true stdin stdout' stderr' pipe1 in
+   let stdin', stdout' = Unix.pipe () in
+   let stderr' =
+      if divert_stderr then
+         stdout'
+      else
+         stderr
+   in
+   let () = set_close_on_exec stdout' in
+   let exp2 = 
+      try create_pipe_aux venv pgrp true stdin' stdout stderr pipe2 with
+         exn ->
+            close_fd stdin';
             close_fd stdout';
-            SubjobPipe (exp1, exp2))
+            raise exn
+   in
+   let () = close_fd stdin' in
+   let () = clear_close_on_exec stdout' in
+   let exp1 = 
+      try
+         create_pipe_aux venv pgrp true stdin stdout' stderr' pipe1
+      with 
+         OmakeException _
+       | Unix.Unix_error _
+       | Failure _ as exn ->
+            eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+            SubjobFinished (JobExited Omake_state.exn_error_code, venv)
+       | exn ->
+            close_fd stdout';
+            ignore(wait_exp pgrp exp2);
+            raise exn
+   in
+      close_fd stdout';
+      SubjobPipe (exp1, exp2)
 
 (*
  * Create a subshell.
@@ -671,10 +672,10 @@ and create_shell venv pgrp bg stdin stdout stderr pipe =
    let create_fun stdin stdout stderr pgrp =
       let exp =
          try
-            SubjobNormal (create_pipe_aux venv pgrp false stdin stdout stderr pipe)
+            create_pipe_aux venv pgrp false stdin stdout stderr pipe
          with
             ExitException (_, code) ->
-               SubjobExited code
+               SubjobFinished (JobExited code, venv)
           | exn ->
                eprintf "@[<v 0>%a@ Process group exception.@]@." Omake_exn_print.pp_print_exn exn;
                raise exn
@@ -715,10 +716,10 @@ and create_group venv pgrp stdin stdout stderr group =
    let create_fun stdin stdout stderr pgrp =
       let exp =
          try 
-            SubjobNormal (create_pipe_aux venv pgrp false stdin stdout stderr pipe)
+            create_pipe_aux venv pgrp false stdin stdout stderr pipe
          with
             ExitException (_, code) ->
-               SubjobExited code
+               SubjobFinished (JobExited code, venv)
           | exn ->
                eprintf "@[<v 0>%a@ Process group exception.@]@." Omake_exn_print.pp_print_exn exn;
                raise exn
@@ -795,54 +796,43 @@ and create_thread venv f stdin stdout stderr =
  * so the appropriate thing to do when finished
  * is exit.
  *)
-and wait_exp pgrp = function
-   SubjobNormal exp ->
-      begin match eval_exp_top pgrp exp with
-         SubjobFinished (JobExited code, _)
-       | SubjobFinished (JobSignaled code, _) ->
-            if !debug_shell then
-               eprintf "wait_exp: %i exiting %d@." (Unix.getpid()) code;
-            code
-       | exp ->
-            wait_exp2 pgrp exp
-      end
- | SubjobExited code ->
-      code
+and wait_exp pgrp exp =
+   match eval_exp_top pgrp exp with
+      SubjobFinished (JobExited code, _)
+    | SubjobFinished (JobSignaled code, _) ->
+         if !debug_shell then
+            eprintf "wait_exp: %i exiting %d@." (Unix.getpid()) code;
+         code
+    | exp ->
+         wait_exp2 pgrp exp
 
 and wait_exp2 pgrp exp =
    (* Wait for a job to complete; ignore stopped processes *)
-   let rec wait () =
-      if !debug_shell then
-         eprintf "wait_exp2: %i waiting for pgrp %i@." (Unix.getpid()) pgrp;
-      let code =
-         try Some (Omake_shell_sys.wait pgrp false false) with
-            Unix.Unix_error (Unix.EINTR, _, _) ->
-               None
-      in
-         if !debug_shell then
-            eprintf "wait_exp: some event happened@.";
-         match code with
+   if !debug_shell then
+      eprintf "wait_exp2: %i waiting for pgrp %i@." (Unix.getpid()) pgrp;
+   let code =
+      try Some (Omake_shell_sys.wait pgrp false false) with
+         Unix.Unix_error (Unix.EINTR, _, _) ->
             None
-          | Some (_, Unix.WSTOPPED _) ->
-               wait ()
-          | Some (pid, Unix.WEXITED code) ->
-               pid, JobExited code
-          | Some (pid, Unix.WSIGNALED code) ->
-               pid, JobSignaled code
    in
-   let pid, code = wait () in
-      (* Evaluate the expression *)
       if !debug_shell then
-         eprintf "wait_exp2: %i handling event: pid=%d@." (Unix.getpid()) pid;
-      let exp = eval_exp pgrp exp pid code in
-         match exp with
-            SubjobFinished (JobExited code, _)
-          | SubjobFinished (JobSignaled code, _) ->
+         eprintf "wait_exp: some event happened@.";
+      match code with
+         None
+       | Some (_, Unix.WSTOPPED _) ->
+            wait_exp2 pgrp exp
+       | Some (pid, (Unix.WEXITED _| Unix.WSIGNALED _ as code)) ->
+            let code =
+               match code with
+                  Unix.WEXITED code -> JobExited code
+                | Unix.WSIGNALED code -> JobSignaled code
+                | Unix.WSTOPPED _ -> raise (Invalid_argument "Omake_shell_job.wait_exp2: internal error")
+            in
+               (* Evaluate the expression *)
                if !debug_shell then
-                  eprintf "wait_exp2: %i exiting %d@." (Unix.getpid()) code;
-               code
-          | exp ->
-               wait_exp2 pgrp exp
+                  eprintf "wait_exp2: %i handling event: pid=%d@." (Unix.getpid()) pid;
+               let exp = eval_exp pgrp exp pid code in
+                  wait_exp pgrp exp
 
 (*
  * Evaluate the expression.
