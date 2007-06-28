@@ -135,7 +135,8 @@ ConfCleanCFLAGS(cflags) =
 
 TryCompilingC(command, command_suffix, ext, prog, extra) =
     # The command line
-    tmp = $(file $(tmpfile omake))
+    tmp_c = $(file $(tmpfile omake, .c))
+    tmp = $(file $(replacesuffixes .c, $"$(EMPTY)", $(tmp_c)))
 
     if $(and $(not $(equal $(CCOUT), $(LDOUT))), $(equal $(ext), $(EXE)))
         command[] += $(CCOUT)$(file $(tmp)$(EXT_OBJ)) $(LDOUT)$(file $(tmp)$(ext))
@@ -144,7 +145,7 @@ TryCompilingC(command, command_suffix, ext, prog, extra) =
         command[] += $(CCOUT)$(file $(tmp)$(ext))
         export
 
-    command[] += $(file $(tmp).c) $(command_suffix)
+    command[] += $(file $(tmp_c)) $(command_suffix)
 
     # The program
     program = $"""/* Configuration file; you can remove this. */
@@ -153,7 +154,7 @@ $(prog)
 """
     
     # Compile it
-    fprint($(tmp).c, $(program))
+    fprint($(tmp_c), $(program))
     protected.result = $(shell-success-null $(command))
 
     if $(result)
@@ -171,7 +172,7 @@ $(prog)
         export
 
     # Remove temporaries
-    rm -f $(tmp).c $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
+    rm -f $(tmp_c) $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
 
     return $(result)
 
