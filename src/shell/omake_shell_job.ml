@@ -879,6 +879,20 @@ and eval_exp pgrp e pid code =
       eval e
 
 (*
+ * Utility function for wait_top_aux and cleanup_top_aux
+ *)
+let finalize_job job = function
+   Unix.WEXITED code ->
+      remove_job job;
+      JobExited code
+ | Unix.WSIGNALED code ->
+      remove_job job;
+      JobSignaled code
+ | Unix.WSTOPPED code ->
+      job.job_state <- JobSuspended;
+      JobStopped code
+
+(*
  * Wait for a job to finish.
  * This is executed in the main process.
  * Do not give away the terminal.
@@ -893,24 +907,9 @@ let rec wait_top_aux job =
       if pid <> pgrp then
          wait_top_aux job
       else
-         let code =
-            match status with
-               Unix.WEXITED code ->
-                  if !debug_shell then
-                     eprintf "wait_top_aux: exited %d@." code;
-                  remove_job job;
-                  JobExited code
-             | Unix.WSIGNALED code ->
-                  if !debug_shell then
-                     eprintf "wait_top_aux: signaled %d@." code;
-                  remove_job job;
-                  JobSignaled code
-             | Unix.WSTOPPED code ->
-                  if !debug_shell then
-                     eprintf "wait_top_aux: stopped %d@." code;
-                  job.job_state <- JobSuspended;
-                  JobStopped code
-         in
+         let code = finalize_job job status in
+            if !debug_shell then
+               eprintf "wait_top_aux: %a@." pp_print_status code;
             code, status
 
 let wait_top venv job =
@@ -1065,22 +1064,10 @@ let cleanup_top_aux () =
    let pid, status = Omake_shell_sys.wait 0 true true in
    let job = find_job_by_pgrp pid in
    let pid = job.job_id in
-      match status with
-         Unix.WEXITED code ->
-            if !debug_shell then
-               eprintf "cleanup_top_aux: exited %d@." code;
-            remove_job job;
-            pid, JobExited code
-       | Unix.WSIGNALED code ->
-            if !debug_shell then
-               eprintf "cleanup_top_aux: signaled %d@." code;
-            remove_job job;
-            pid, JobSignaled code
-       | Unix.WSTOPPED code ->
-            if !debug_shell then
-               eprintf "cleanup_top_aux: stopped %d@." code;
-            job.job_state <- JobSuspended;
-            pid, JobStopped code
+   let code = finalize_job job status in
+      if !debug_shell then
+         eprintf "cleanup_top_aux: %a@." pp_print_status code;
+      pid, code
 
 let rec cleanup venv =
    let code =
