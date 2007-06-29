@@ -1005,6 +1005,7 @@ and eval_value_static venv pos key v =
                   srule_exp  = e
                 } = srule
             in
+            let values = List.flatten (List.map (values_of_value venv pos) values) in
             let values = List.map (eval_prim_value venv pos) values in
             let digest = digest_of_exp pos values e in
             let cache = venv_cache venv in
