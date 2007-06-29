@@ -102,8 +102,8 @@ let pp_print_flag buf (shell, flag) =
          fprintf buf "@[<hv 3>Eager@ %a@]" pp_print_command_line (shell, command)
     | PrintLazy command ->
          fprintf buf "@[<hv 3>Lazy@ %a@]" pp_print_command_line (shell, command)
-    | PrintExit (command, code, _) ->
-         fprintf buf "@[<hv 3>Exit %d@ %a@]" code pp_print_command_line (shell, command)
+    | PrintExit (command, code, _, time) ->
+         fprintf buf "@[<hv 3>Exit %d,@ %.2f sec,@ %a@]" code time pp_print_command_line (shell, command)
 
 let pp_print_response buf (shell, response) =
    match response with

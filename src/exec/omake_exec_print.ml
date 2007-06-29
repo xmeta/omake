@@ -176,12 +176,12 @@ let print_status handle_out options shell remote name flag =
                         fprintf out "-%t %s %s %s@." pp_print_host name dirname (Node.name dir target);
                      if not (List.mem QuietFlag flags) then
                         fprintf out "+%t %a@." pp_print_host shell.shell_print_exp exp
-       | PrintExit (exp, code, _) ->
+       | PrintExit (exp, code, _, time) ->
             let flags, dir, target = shell.shell_info exp in
             let dirname = Dir.fullname dir in
                if should_print options flag && opt_print_file options then begin
                   print_flush ();
-                  fprintf out "-%t exit %s %s, code %d@." pp_print_host dirname (Node.name dir target) code
+                  fprintf out "-%t exit %s %s, %.2f sec, code %d@." pp_print_host dirname (Node.name dir target) time code
                end
 
 (*

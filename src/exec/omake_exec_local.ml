@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -57,7 +58,7 @@ struct
    type 'value job_state =
       JobStarted
     | JobRunning of 'value
-    | JobFinished of int * 'value
+    | JobFinished of int * 'value * float
 
    (*
     * A job has channels for communication,
@@ -69,6 +70,7 @@ struct
         job_handle_out         : output_fun;
         job_handle_err         : output_fun;
         job_handle_status      : ('exp, 'pid, 'value) status_fun;
+        job_start_time         : float;
 
         (* Evaluator *)
         job_shell              : ('exp, 'pid, 'value) shell;
@@ -142,21 +144,15 @@ struct
     * Find a finished job, or raise Not_found if there is none.
     *)
    let find_finished_job server =
-      let rec find jobs =
-         match jobs with
-            job :: jobs ->
-               let { job_state = state } = job in
-                  (match state with
-                      JobFinished (code, value) ->
-                         job, code, value, jobs
-                    | JobStarted
-                    | JobRunning _ ->
-                         let job', code, value, jobs = find jobs in
-                            job', code, value, job :: jobs)
-          | [] ->
-               raise Not_found
+      let rec find running_jobs = function
+         { job_state = JobFinished (code, value, time) } as job :: jobs ->
+            job, code, value, List.rev_append running_jobs jobs, time
+       | { job_state = JobStarted | JobRunning _ } as job :: jobs ->
+            find (job :: running_jobs) jobs
+       | [] ->
+            raise Not_found
       in
-         find server.server_jobs
+         find [] server.server_jobs
 
    (*
     * Start a command.  Takes the output channels, and returns a pid.
@@ -191,6 +187,7 @@ struct
                   Unix.set_close_on_exec out_read;
                   Unix.set_close_on_exec err_read
                in
+               let now = Unix.gettimeofday() in
                let pid = start_command server shell out_write err_write command in
                let job =
                   { job_id = id;
@@ -198,6 +195,7 @@ struct
                     job_handle_out = handle_out;
                     job_handle_err = handle_err;
                     job_handle_status = handle_status;
+                    job_start_time = now;
                     job_pid = pid;
                     job_state = JobStarted;
                     job_fd_count = 2;
@@ -284,7 +282,7 @@ struct
                      (* Close output channels *)
                      handle_out id "" 0 0;
                      handle_err id "" 0 0;
-                     job.job_state <- JobFinished (0, v)
+                     job.job_state <- JobFinished (0, v, Unix.gettimeofday() -. job.job_start_time)
                 | JobStarted
                 | JobFinished _ ->
                      raise (Invalid_argument "spawn_next_part")
@@ -295,7 +293,7 @@ struct
             let shell = job.job_shell in
                err_print_status job.job_commands job.job_handle_status job.job_id;
                handle_exn job.job_handle_err shell.shell_print_exn job.job_id exn;
-               job.job_state <- JobFinished (fork_error_code, shell.shell_error_value);
+               job.job_state <- JobFinished (fork_error_code, shell.shell_error_value, Unix.gettimeofday() -. job.job_start_time);
                if not (shell.shell_is_failure_exn exn) then
                   raise exn
 
@@ -331,7 +329,7 @@ struct
          if !debug_exec then
             eprintf "Job exited with code %d@." code;
          if code <> 0 then
-            job.job_state <- JobFinished (code, shell.shell_error_value)
+            job.job_state <- JobFinished (code, shell.shell_error_value, Unix.gettimeofday() -. job.job_start_time)
          else
             begin
                job.job_state <- JobRunning v;
@@ -415,14 +413,14 @@ struct
     *)
    let wait server options =
       try
-         let job, code, value, jobs = find_finished_job server in
+         let job, code, value, jobs, time = find_finished_job server in
          let { job_id = id;
                job_handle_status = handle_status;
                job_command = command
              } = job
          in
             server.server_jobs <- jobs;
-            handle_status id (PrintExit (command, code, value));
+            handle_status id (PrintExit (command, code, value, time));
             WaitInternalExited (id, code, value)
       with
          Not_found ->
