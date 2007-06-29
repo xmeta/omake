@@ -1701,6 +1701,7 @@ and eval_string_exp be_eager venv pos s =
                   ValMethodApply (loc, v, vl, args)
        | SequenceString (loc, sl) ->
             ValSequence (List.map (eval_string_exp be_eager venv pos) sl)
+       | ObjectString (_, e, export)
        | BodyString (_, e, export) ->
             ValBody (venv_get_env venv, e, export)
        | ArrayString (_, el) ->
@@ -1870,6 +1871,7 @@ and eval_string_export_exp be_eager venv pos s =
                   venv, ValMethodApply (loc, v, vl, args)
        | SequenceString (loc, sl) ->
             venv, ValSequence (List.map (eval_string_exp be_eager venv pos) sl)
+       | ObjectString (_, e, export)
        | BodyString (_, e, export) ->
             venv, ValBody (venv_get_env venv, e, export)
        | ArrayString (_, el) ->

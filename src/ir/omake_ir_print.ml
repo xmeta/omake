@@ -226,6 +226,13 @@ let rec pp_print_string_exp complete buf s =
     | QuoteStringString (_, c, sl) ->
          fprintf buf "@[<hv 1>(quote %c%a%c)@]" (**)
             c (pp_print_string_exp_list complete) sl c
+    | ObjectString (_, e, export) ->
+         if complete then
+            fprintf buf "@[<hv 3>object@ %a%a@]" (**)
+               (pp_print_exp_list complete) e
+               pp_print_export_info export
+         else
+            pp_print_string buf "<object...>"
     | BodyString (_, e, export) ->
          if complete then
             fprintf buf "@[<hv 3>body@ %a%a@]" (**)

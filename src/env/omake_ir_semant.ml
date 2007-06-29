@@ -185,6 +185,10 @@ let rec build_string env s =
     | QuoteStringString (loc, c, sl) ->
          let has_return, sl = build_string_list env sl in
             has_return, QuoteStringString (loc, c, sl)
+    | ObjectString (loc, el, export) ->
+         let el = build_object_exp el in
+            (* XXX: we should handle the case when an object contains a return *)
+            false, ObjectString (loc, el, export)
     | BodyString (loc, el, export) ->
          let renv, e = build_sequence_exp env el in
             renv.renv_has_return, BodyString (loc, el, export)

@@ -1222,6 +1222,7 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
                 | SuperApplyString _
                 | MethodApplyString _
                 | SequenceString _
+                | ObjectString _
                 | BodyString _
                 | ArrayString _
                 | ArrayOfString _
@@ -1966,7 +1967,7 @@ and build_static_rule_exp genv oenv senv cenv multiple names sources body pos lo
       build_sequence genv oenv senv_body cenv_body ValValue pos (fun genv oenv senv cenv _ ->
             genv, oenv, senv, [ReturnObjectExp (loc, [])], ValValue) body
    in
-   let body = BodyString (loc, el, ExportNone) in
+   let body = ObjectString (loc, el, ExportNone) in
 
    (* Add the variables to the outer environment *)
    let names = build_literal_argv names pos in
@@ -1986,7 +1987,7 @@ and build_static_rule_exp genv oenv senv cenv multiple names sources body pos lo
          (* Export only the ones that are named *)
          List.fold_left (fun (senv, vars) name ->
                let v = Lm_symbol.add name in
-               let info = 
+               let info =
                   try
                      SymbolTable.find senv_body.senv_object_senv v
                   with Not_found ->

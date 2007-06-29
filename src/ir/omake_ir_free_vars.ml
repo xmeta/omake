@@ -114,6 +114,7 @@ and free_vars_string_exp fv s =
          free_vars_string_exp_list fv sl
     | ArrayOfString (_, s) ->
          free_vars_string_exp fv s
+    | ObjectString (_, e, export)
     | BodyString (_, e, export)
     | ExpString (_, e, export) ->
          free_vars_exp_list (free_vars_export_info fv export) e

@@ -60,6 +60,7 @@ type code =
  | CodeArrayString
  | CodeArrow
  | CodeBegin
+ | CodeObjectString
  | CodeBodyString
  | CodeCase
  | CodeCaseExp
@@ -355,6 +356,11 @@ let rec squash_string_exp pos buf e =
             Hash.add_code buf CodeQuoteStringString;
             Hash.add_char buf c;
             squash_string_exp_list pos buf sl
+       | ObjectString (_, el, export) ->
+            Hash.add_code buf CodeObjectString;
+            squash_exp_list pos buf el;
+            Hash.add_code buf CodeSpace;
+            squash_export_info buf export
        | BodyString (_, el, export) ->
             Hash.add_code buf CodeBodyString;
             squash_exp_list pos buf el;

@@ -118,6 +118,7 @@ type string_exp =
  | ArrayOfString     of loc * string_exp
  | QuoteString       of loc * string_exp list
  | QuoteStringString of loc * char * string_exp list
+ | ObjectString      of loc * exp list * export
  | BodyString        of loc * exp list * export
  | ExpString         of loc * exp list * export
  | CasesString       of loc * (var * string_exp * exp list * export) list
