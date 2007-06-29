@@ -112,6 +112,7 @@ type srule =
      srule_env      : venv;
      srule_key      : value;
      srule_deps     : NodeSet.t;
+     srule_vals     : value list;
      srule_exp      : exp
    }
 

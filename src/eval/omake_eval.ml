@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_debug
@@ -1000,10 +1001,12 @@ and eval_value_static venv pos key v =
        | StaticRule srule ->
             let { srule_env  = venv;
                   srule_deps = deps;
+                  srule_vals = values;
                   srule_exp  = e
                 } = srule
             in
-            let digest = digest_of_exp pos e in
+            let values = List.map (eval_prim_value venv pos) values in
+            let digest = digest_of_exp pos values e in
             let cache = venv_cache venv in
             let obj =
                (* Try to fetch the value from the memo *)

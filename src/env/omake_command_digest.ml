@@ -9,7 +9,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2007 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, California Insitute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -904,9 +905,11 @@ let squash_commands pos buf commands =
 (*
  * Get the digest of some commands.
  *)
-let digest_of_exp pos e =
+let digest_of_exp pos values e =
    let buf = Hash.create () in
-   let () = squash_exp pos buf e in
+      squash_values pos buf values;
+      Hash.add_code buf CodeSpace;
+      squash_exp pos buf e;
       Some (Hash.digest buf)
 
 let digest_of_commands pos commands =

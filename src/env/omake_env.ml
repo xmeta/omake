@@ -182,6 +182,7 @@ and srule =
      srule_env      : venv;
      srule_key      : value;
      srule_deps     : NodeSet.t;
+     srule_vals     : value list;
      srule_exp      : exp
    }
 
@@ -2765,6 +2766,7 @@ let venv_add_static_rule venv pos loc multiple key vars sources values body =
         srule_env  = venv;
         srule_key  = key;
         srule_deps = sources;
+        srule_vals = values;
         srule_exp  = body
       }
    in
