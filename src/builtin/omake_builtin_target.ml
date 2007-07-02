@@ -8,7 +8,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,8 +29,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -466,7 +467,8 @@ let memo_rule_fun venv pos loc args =
          [multiple; is_static; node; index; key; vars; source; options; body] ->
             let multiple = bool_of_value venv pos multiple in
             let is_static = bool_of_value venv pos is_static in
-            let key  = key_of_value venv pos (ValArray [node; index; key]) in
+            let key = values_of_value venv pos key in
+            let key = key_of_value venv pos (ValArray (node :: index ::key)) in
             let vars = vars_of_value venv pos vars in
             let target = file_of_value venv pos node in
             let venv = eval_memo_rule_exp venv pos loc multiple is_static key vars target source options body in
@@ -534,12 +536,9 @@ let () =
    in
       register_builtin builtin_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
