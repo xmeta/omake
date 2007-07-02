@@ -299,6 +299,7 @@ let shell_interactive venv =
    (* Set up the environment *)
    let venv = venv_add_var venv argv_var (ValString Sys.argv.(0)) in
    let venv = venv_add_var venv star_var ValNone in
+   let venv = venv_add_var venv file_var (ValNode node_empty) in
    let senv = penv_of_vars (eval_open_file venv) venv node_empty (venv_include_scope venv IncludeAll) in
       main state senv venv ValNone
 
