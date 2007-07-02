@@ -5,7 +5,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2006 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,13 +27,13 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
-
 open Lm_debug
 
+open Omake_util
 open Omake_node
 open Omake_state
 open Omake_exec_id
@@ -103,7 +104,7 @@ let pp_print_flag buf (shell, flag) =
     | PrintLazy command ->
          fprintf buf "@[<hv 3>Lazy@ %a@]" pp_print_command_line (shell, command)
     | PrintExit (command, code, _, time) ->
-         fprintf buf "@[<hv 3>Exit %d,@ %.2f sec,@ %a@]" code time pp_print_command_line (shell, command)
+         fprintf buf "@[<hv 3>Exit %d,@ %a,@ %a@]" code pp_time time pp_print_command_line (shell, command)
 
 let pp_print_response buf (shell, response) =
    match response with

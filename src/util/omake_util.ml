@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,10 +25,11 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
+open Lm_printf
 
 (*
  * Test a string for being false.
@@ -53,12 +55,23 @@ let pathsep =
    else
       ":"
 
-(*!
- * @docoff
- *
+let pp_time buf secs =
+   if secs < 60. then
+      fprintf buf "%0.2f sec" secs
+   else
+      let subsec, sec = modf secs in
+      let sec = int_of_float sec in
+      let h = sec / 3600 in
+      let m = (sec / 60) mod 60 in
+      let s = sec mod 60 in
+         if h > 0 then
+            fprintf buf "%d hrs %02d min %05.2f sec" h m (float s +. subsec)
+         else
+            fprintf buf "%d min %05.2f sec" m (float s +. subsec)
+
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

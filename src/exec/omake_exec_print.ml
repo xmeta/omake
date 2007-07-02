@@ -29,6 +29,7 @@
  *)
 open Lm_printf
 
+open Omake_util
 open Omake_node
 open Omake_state
 open Omake_command
@@ -181,7 +182,7 @@ let print_status handle_out options shell remote name flag =
             let dirname = Dir.fullname dir in
                if should_print options flag && opt_print_file options then begin
                   print_flush ();
-                  fprintf out "-%t exit %s %s, %.2f sec, code %d@." pp_print_host dirname (Node.name dir target) time code
+                  fprintf out "-%t exit %s %s, %a, code %d@." pp_print_host dirname (Node.name dir target) pp_time time code
                end
 
 (*
