@@ -228,6 +228,7 @@ definitions.
 * Section 4-12::	Classes
 * Section 4-13::	Inheritance
 * Section 4-14::	static.
+* Section 4-15::	Constants
 
 
 Node: Section 4-1,	Next: Section 4-2,	Prev: Chapter 4,	Up: Chapter 4
@@ -253,10 +254,10 @@ environment. Some examples are shown below.
   
   In this example, the value of the `COMMAND' variable is the string
 `gcc -Wall -g -O2'.
-  Unlike make(1), variable expansion is eager and functional (see also
-the section on Scoping). That is, variable values are expanded
-immediately and new variable definitions do not affect old ones. For
-example, suppose we extend the previous example with following variable
+  Unlike make(1), variable expansion is eager and pure (see also the
+section on Scoping). That is, variable values are expanded immediately
+and new variable definitions do not affect old ones. For example,
+suppose we extend the previous example with following variable
 definitions.
 <<   X = $(COMMAND)
      COMMAND = $(COMMAND) -O3
@@ -756,14 +757,14 @@ can be rewritten as
   
   As a matter of style, a `static.' section that is used for
 configuration should print what it is doing using the 'ConfMsgChecking'
-and 'ConfMsgResult' functions (of couse, most of helper functions in the
-standard library would do that automatically).
+and 'ConfMsgResult' functions (of course, most of helper functions in
+the standard library would do that automatically).
 * Menu:
 
 * Subsection 4-14-1::	.STATIC
 
 
-Node: Subsection 4-14-1,	Next: Chapter 5,	Prev: Section 4-14,	Up: Section 4-14
+Node: Subsection 4-14-1,	Next: Section 4-15,	Prev: Section 4-14,	Up: Section 4-14
   
 
 4.14.1   .STATIC
@@ -807,10 +808,9 @@ dependencies, which are useful when the `.STATIC' section is used for
 memoization. For example, suppose we wish to create a dictionary from a
 table that has key-value pairs. By using a `.STATIC' section, we can
 perform this computation only when the input file changes (not on every
-fun of `omake'). In the following example the function `awk'
-?? is used to parse the file `table-file'. When a
-line is encountered with the form key` = 'value, the key/value pair is
-added the the `TABLE'.
+fun of `omake'). In the following example the 'awk' function is used to
+parse the file `table-file'. When a line is encountered with the form
+key` = 'value, the key/value pair is added the the `TABLE'.
 <<    .STATIC: table-file
           TABLE = $(Map)
           awk(table-file)
@@ -823,9 +823,191 @@ added the the `TABLE'.
 be recomputed whenever the dependencies of the rule change. The targets
 of the rule are the variables it exports (in this case, the `TABLE'
 variable).
+
+Node: Section 4-15,	Next: Chapter 5,	Prev: Section 4-14,	Up: Chapter 4
+  
+
+4.15   Constants
+*=*=*=*=*=*=*=*=
+
+   
+  Internally, OMake represents values in several forms, which we list
+here.
+  
+  
+ - int
+ 
+     
+    - Constructor: `$(int <i>)' 9.4.1*Note Subsection 9-4-1::. 
+    - Object: `Int' 12.1.4*Note Subsection 12-1-4::. 
+    - An integer is a represented with finite precision using the OCaml
+      representation (31 bits on a 32 platform, and 63 bits on a 64 bit
+      platform). 
+    - See also: arithmetic 9.4.3*Note Subsection 9-4-3::. 
+ 
+ 
+ - float
+ 
+     
+    - Constructor: `$(float <x>)' 9.4.2*Note Subsection 9-4-2::. 
+    - Object: `Float' 12.1.5*Note Subsection 12-1-5::. 
+    - A float is a floating-point value, represented in IEEE 64-bit
+      format. 
+    - See also: arithmetic 9.4.3*Note Subsection 9-4-3::. 
+ 
+ 
+ - array
+ 
+     
+    - Constructor: `$(array <v1>, ..., <vn>)'
+      9.3.1*Note Subsection 9-3-1::. 
+    - Object: `Array' 12.1.7*Note Subsection 12-1-7::. 
+    - An array is a finite list of values. Arrays are also defined with
+      an array definition 
+      <<    X[] =
+                <v1>
+                ...
+                <vn>
+      >>
+    
+    - See also: `nth' 9.3.5*Note Subsection 9-3-5::, `nth-tl'
+      9.3.8*Note Subsection 9-3-8::, `length'
+      9.3.4*Note Subsection 9-3-4::, ... 
+ 
+ 
+ - string
+ 
+     
+    - Object: `String' 12.1.8*Note Subsection 12-1-8::. 
+    - By default, all constant character sequences represent strings, so
+      the simple way to construct a string is to write it down.
+      Internally, the string may be parsed as several pieces. A string
+      often represents an array of values separated by whitespace. 
+      <<    osh>S = This is a string
+            - : <sequence
+               "This" : Sequence
+               ' ' : White
+               "is" : Sequence
+               ' ' : White
+               "a" : Sequence
+               ' ' : White
+               "string" : Sequence>
+               : Sequence
+            osh>length($S)
+            - : 4 : Int
+      >>
+    
+    
+    - A data string is a string where whitespace is significant. It
+      represents a single value, not an array. The constructors are the
+      quotations `$"..."' and `$'...''.
+      <<    osh>S = $'''This is a string'''
+            - : <data "This is a string"> : String
+      >>
+    
+    
+    - See also: Quoted strings 7.2*Note Section 7-2::. 
+ 
+ 
+ - file
+ 
+     
+    - Constructor: `$(file <names>)' 10.1.1*Note Subsection 10-1-1::. 
+    - Object: `File' 12.1.13*Note Subsection 12-1-13::. 
+    - A file object represents the abstract name for a file. The file
+      object can be viewed as an absolute name; the string
+      representation depends on the current directory.
+      <<    osh>name = $(file foo)
+            - : /Users/jyh/projects/omake/0.9.8.x/foo : File
+            osh>echo $(name)
+            foo
+            osh>cd ..
+            - : /Users/jyh/projects/omake : Dir
+            osh>echo $(name)
+            0.9.8.x/foo
+      >>
+    
+    
+    - See also: `vmount' 10.6.1*Note Subsection 10-6-1::. 
+ 
+ 
+ - directory
+ 
+     
+    - Constructor: `$(dir <names>)' 10.1.1*Note Subsection 10-1-1::. 
+    - Object: `Dir' 12.1.14*Note Subsection 12-1-14::. 
+    - A directory object is like a file object, but it represents a
+      directory. 
+ 
+ 
+ - map (dictionary) 
+     
+    - Object: `Map' 12.1.2*Note Subsection 12-1-2::. 
+    - A map/dictionary is a table that maps values to values. The `Map'
+      object is the empty map. The data structure is persistent, and all
+      operations are pure and functional. The special syntax `$|key|'
+      can be used for keys that are strings.
+      <<    osh>table = $(Map)
+            osh>table = $(table.add x, int)
+            osh>table. +=
+                    $|y| = int
+            osh>table.find(y)
+            - : "int" : Sequence
+      >>
+ 
+ 
+ - channel
+ 
+     
+    - Constructor: `$(fopen <filename>, <mode>)'
+      10.8.4*Note Subsection 10-8-4::. 
+    - Objects: `InChannel' 12.1.16*Note Subsection 12-1-16::,
+      `OutChannel' 12.1.17*Note Subsection 12-1-17::. 
+    - Channels are used for buffered input/output. 
+ 
+ 
+ - function
+ 
+     
+    - Constructor: `$(fun <params>, <body>)'
+      9.5.1*Note Subsection 9-5-1::. 
+    - Object: `Fun' 12.1.9*Note Subsection 12-1-9::. 
+    - Functions can be defined in several ways. 
+        
+       - As an anonymous function, 
+         <<    $(fun i, j, $(add $i, $j))
+         >>
+       
+       - As a named function, 
+         <<    f(i, j) =
+                   add($i, $j)
+         >>
+       
+       - This feature will be introduced in version 0.9.9.0.As an
+         anonymous function argument. 
+         <<    osh>foreach(i => $(add $i, 1), 1 2 3)
+               - : <array 2 3 4> : Array
+         >>
+     
+ 
+ 
+ - lexer
+ 
+     
+    - Object: `Lexer' 10.11.9*Note Subsection 10-11-9::. 
+    - This object represents a lexer. 
+ 
+ 
+ - parser
+ 
+     
+    - Object: `Parser' 10.11.13*Note Subsection 10-11-13::. 
+    - This object represents a parser. 
+  
+  
    
 
-Node: Chapter 5,	Next: Section 5-1,	Prev: Section 4-14,	Up: Top
+Node: Chapter 5,	Next: Section 5-1,	Prev: Chapter 4,	Up: Top
   
 
 Chapter 5     Variables and Naming
@@ -833,7 +1015,7 @@ Chapter 5     Variables and Naming
     
   During evaluation, there are three different kinds of namespaces.
 Variables can be private, or they may refer to fields in the current
-this object, or they can be part of the global public namespace. The
+this object, or they can be part of the global global namespace. The
 namespace can be specified directly by including an explicit qualifier
 before the variable name. The three namespaces are separate; a variable
 can be bound in one or more simultaneously.
@@ -842,16 +1024,18 @@ can be bound in one or more simultaneously.
       # current object
       this.X = 2
       # public, globally defined
-      public.X = 3
+      global.X = 3
 >>
   
 * Menu:
 
 * Section 5-1::	private.
 * Section 5-2::	this.
-* Section 5-3::	public.
-* Section 5-4::	Qualified blocks
-* Section 5-5::	declare
+* Section 5-3::	global.
+* Section 5-4::	protected.
+* Section 5-5::	public.
+* Section 5-6::	Qualified blocks
+* Section 5-7::	declare
 
 
 Node: Section 5-1,	Next: Section 5-2,	Prev: Chapter 5,	Up: Chapter 5
@@ -965,20 +1149,20 @@ the project.
 Node: Section 5-3,	Next: Section 5-4,	Prev: Section 5-2,	Up: Chapter 5
   
 
-5.3   public.
+5.3   global.
 *=*=*=*=*=*=*
 
    
-  The `public.' qualifier is used to specify public dynamically-scoped
-variables. In the following example, the `public.' definition specifies
-that the binding `X = 4' is to be dynamically scoped. Public variables
+  The `global.' qualifier is used to specify global dynamically-scoped
+variables. In the following example, the `global.' definition specifies
+that the binding `X = 4' is to be dynamically scoped. Global variables
 are not defined as fields of an object.
 <<    X = 1
       f() =
-         println(The public value of X is: $(X))
+         println(The global value of X is: $(X))
   
       # Prints:
-      #    The public value of X is: 2
+      #    The global value of X is: 2
       section
          X = 2
          f()
@@ -988,12 +1172,12 @@ are not defined as fields of an object.
   
          print() =
             println(The protected value of X is: $(X))
-            public.X = 4
+            global.X = 4
             f()
   
       # Prints:
       #    The protected value of X is: 3
-      #    The public value of X is: 4
+      #    The global value of X is: 4
       Obj.print()
 >>
   
@@ -1001,7 +1185,41 @@ are not defined as fields of an object.
 Node: Section 5-4,	Next: Section 5-5,	Prev: Section 5-3,	Up: Chapter 5
   
 
-5.4   Qualified blocks
+5.4   protected.
+*=*=*=*=*=*=*=*=
+
+   
+  In OMake 0.9.8, `protected' is a synonym for `this'.
+<<    osh>protected.x = 1
+      - : "1" : Sequence
+      osh>value $(this.x)
+      - : "1" : Sequence
+>>
+  In 0.9.9, this will change, so that the qualifier `protected' means
+(in 0.9.9) that a variable is local to the current object or file, and
+may not be accessed outside it.
+
+Node: Section 5-5,	Next: Section 5-6,	Prev: Section 5-4,	Up: Chapter 5
+  
+
+5.5   public.
+*=*=*=*=*=*=*
+
+   
+  In OMake 0.9.8, `public' is a synonym for `global'.
+<<    osh>public.x = 1
+      - : "1" : Sequence
+      osh>value $(global.x)
+      - : "1" : Sequence
+>>
+  In 0.9.9, this will change, so that the qualifier `public' means (in
+0.9.9) that a variable is to be accessible from outside the current file
+or object.
+
+Node: Section 5-6,	Next: Section 5-7,	Prev: Section 5-5,	Up: Chapter 5
+  
+
+5.6   Qualified blocks
 *=*=*=*=*=*=*=*=*=*=*=
 
   
@@ -1025,10 +1243,10 @@ block. The contents of the block is otherwise completely general.
 >>
   
 
-Node: Section 5-5,	Next: Chapter 6,	Prev: Section 5-4,	Up: Chapter 5
+Node: Section 5-7,	Next: Chapter 6,	Prev: Section 5-6,	Up: Chapter 5
   
 
-5.5   declare
+5.7   declare
 *=*=*=*=*=*=*
 
    
@@ -1259,7 +1477,7 @@ not redefined.
 following is exported: 
   
  - The values of all the dynamically scoped variables (as described in
-   Section 5.3*Note Section 5-3::). 
+   Section 5.5*Note Section 5-5::). 
  - The current working directory. 
  - The current Unix environment. 
  - The current implicit rules and implicit dependencies (see also
@@ -1416,206 +1634,3 @@ prints the original value, `1'.
   
   See also Section 7.5*Note Section 7-5:: for further ways to
 control the evaluation order through the use of "lazy" expressions.
-
-Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
-  
-
-6.4   Objects
-*=*=*=*=*=*=*
-
-  
-  omake is an object-oriented language. Everything is an object,
-including base values like numbers and strings. In many projects, this
-may not be so apparent because most evaluation occurs in the default
-toplevel object, the `Pervasives' object, and few other objects are ever
-defined.
-  However, objects provide additional means for data structuring, and in
-some cases judicious use of objects may simplify your project.
-  Objects are defined with the following syntax. This defines `name' to
-be an object with several methods an values.
-<<    name. =                     # += may be used as well
-         extends parent-object    # optional
-         class class-name         # optional
-  
-         # Fields
-         X = value
-         Y = value
-  
-         # Methods
-         f(args) =
-            body
-         g(arg) =
-            body
->>
-  
-  An `extends' directive specifies that this object inherits from the
-specified `parent-object'. The object may have any number of `extends'
-directives. If there is more than on `extends' directive, then fields
-and methods are inherited from all parent objects. If there are name
-conflicts, the later definitions override the earlier definitions.
-  The `class' directive is optional. If specified, it defines a name for
-the object that can be used in `instanceof' operations, as well as `::'
-scoping directives discussed below.
-  The body of the object is actually an arbitrary program. The variables
-defined in the body of the object become its fields, and the functions
-defined in the body become its methods.
-
-Node: Section 6-5,	Next: Section 6-6,	Prev: Section 6-4,	Up: Chapter 6
-  
-
-6.5   Field and method calls
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  The fields and methods of an object are named using `object.name'
-notation. For example, let's define a one-dimensional point value.
-<<   Point. =
-        class Point
-  
-        # Default value
-        x = $(int 0)
-  
-        # Create a new point
-        new(x) =
-           x = $(int $(x))
-           return $(this)
-  
-        # Move by one
-        move() =
-           x = $(add $(x), 1)
-           return $(this)
-  
-     osh> p1 = $(Point.new 15)
-     osh> value $(p1.x)
-     - : 15 : Int
-  
-     osh> p2 = $(p1.move)
-     osh> value $(p2.x)
-     - : 16 : Int
->>
-  
-  The `$(this)' variable always represents the current object. The
-expression `$(p1.x)' fetches the value of the `x' field in the `p1'
-object. The expression `$(Point.new 15)' represents a method call to the
-`new' method of the `Point' object, which returns a new object with 15
-as its initial value. The expression `$(p1.move)' is also a method call,
-which returns a new object at position 16.
-  Note that objects are functional --- it is not possible to modify the
-fields or methods of an existing object in place. Thus, the `new' and
-`move' methods return new objects.
-
-Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
-  
-
-6.6   Method override
-*=*=*=*=*=*=*=*=*=*=*
-
-  
-  Suppose we wish to create a new object that moves by 2 units, instead
-of just 1. We can do it by overriding the `move' method.
-<<   Point2. =
-        extends $(Point)
-  
-        # Override the move method
-        move() =
-           x = $(add $(x), 2)
-           return $(this)
-  
-     osh> p2 = $(Point2.new 15)
-     osh> p3 = $(p2.move)
-     osh> value $(p3.x)
-     - : 17 : Int
->>
-  
-  However, by doing this, we have completely replaced the old `move'
-method.
-
-Node: Section 6-7,	Next: Chapter 7,	Prev: Section 6-6,	Up: Chapter 6
-  
-
-6.7   Super calls
-*=*=*=*=*=*=*=*=*
-
-  
-  Suppose we wish to define a new `move' method that just calls the old
-one twice. We can refer to the old definition of move using a super
-call, which uses the notation `$(classname::name <args>)'. The
-`classname' should be the name of the superclass, and `name' the field
-or method to be referenced. An alternative way of defining the `Point2'
-object is then as follows.
-<<   Point2. =
-        extends $(Point)
-  
-        # Call the old method twice
-        move() =
-           this = $(Point::move)
-           return $(Point::move)
->>
-  
-  Note that the first call to `$(Point::move)' redefines the current
-object (the `this' variable). This is because the method returns a new
-object, which is re-used for the second call.
-   
-
-Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
-  
-
-Chapter 7     Additional language examples
-******************************************
-    
-  In this section, we'll explore the core language through a series of
-examples (examples of the build system are the topic of the Chapter
-3*Note Chapter 3::).
-  For most of these examples, we'll use the `osh' command interpreter.
-For simplicity, the values printed by `osh' have been abbreviated.
-* Menu:
-
-* Section 7-1::	Strings and arrays
-* Section 7-2::	Quoted strings
-* Section 7-3::	Files and directories
-* Section 7-4::	Iteration, mapping, and foreach
-* Section 7-5::	Lazy expressions
-* Section 7-6::	Scoping and exports
-* Section 7-7::	Shell aliases
-* Section 7-8::	Input/output redirection on the cheap
-
-
-Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
-  
-
-7.1   Strings and arrays
-*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  The basic OMake values are strings, sequences, and arrays of values.
-Sequences are like arrays of values separated by whitespace; the
-sequences are split on demand by functions that expect arrays.
-<<   osh> X = 1 2
-     - : "1 2" : Sequence
-     osh> addsuffix(.c, $X)
-     - : <array 1.c 2.c> : Array
->>
-  
-  Sometimes you want to define an array explicitly. For this, use the
-`[]' brackets after the variable name, and list each array entry on a
-single indented line.
-<<   osh> A[] =
-             Hello world
-             $(getenv HOME)
-     - : <array "Hello world" "/home/jyh"> : Array
->>
-  
-  One central property of arrays is that whitespace in the elements is
-significant. This can be useful, especially for filenames that contain
-whitespace. 
-<<   # List the current files in the directory
-      osh> ls -Q
-      "fee"  "fi"  "foo"  "fum"
-      osh> NAME[] = 
-              Hello world
-      - : <array "Hello world"> : Array
-      osh> touch $(NAME)
-      osh> ls -Q
-      "fee"  "fi"  "foo"  "fum"  "Hello world"
->>
-  

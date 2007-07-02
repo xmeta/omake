@@ -1,11 +1,11 @@
-   
+     
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                             8^thJune, 2007
+                             2^ndJuly, 2007
                              ==============
   
    All the documentation on a single page (23)
@@ -122,14 +122,17 @@ Contents
         
        - 4.14.1  .STATIC 
      
+    - 4.15  Constants 
   
  - Chapter 5  Variables and Naming 
      
     - 5.1  private. 
     - 5.2  this. 
-    - 5.3  public. 
-    - 5.4  Qualified blocks 
-    - 5.5  declare 
+    - 5.3  global. 
+    - 5.4  protected. 
+    - 5.5  public. 
+    - 5.6  Qualified blocks 
+    - 5.7  declare 
   
  - Chapter 6  Expressions and values 
      
@@ -364,10 +367,10 @@ Contents
         
        - 10.8.1  Standard channels 
        - 10.8.2  open-in-string 
-       - 10.8.3  open-out-string, out-string 
+       - 10.8.3  open-out-string, out-contents 
        - 10.8.4  fopen 
        - 10.8.5  close 
-       - 10.8.6  read 
+       - 10.8.6  read, input-line 
        - 10.8.7  write 
        - 10.8.8  lseek 
        - 10.8.9  rewind 
@@ -2190,10 +2193,10 @@ environment. Some examples are shown below.
   
   In this example, the value of the `COMMAND' variable is the string
 `gcc -Wall -g -O2'.
-  Unlike make(1), variable expansion is eager and functional (see also
-the section on Scoping). That is, variable values are expanded
-immediately and new variable definitions do not affect old ones. For
-example, suppose we extend the previous example with following variable
+  Unlike make(1), variable expansion is eager and pure (see also the
+section on Scoping). That is, variable values are expanded immediately
+and new variable definitions do not affect old ones. For example,
+suppose we extend the previous example with following variable
 definitions.
 <<   X = $(COMMAND)
      COMMAND = $(COMMAND) -O3
@@ -2662,8 +2665,8 @@ standard library, the above can be rewritten as
   
   As a matter of style, a `static.' section that is used for
 configuration should print what it is doing using the 'ConfMsgChecking'
-and 'ConfMsgResult' functions (of couse, most of helper functions in the
-standard library would do that automatically).
+and 'ConfMsgResult' functions (of course, most of helper functions in
+the standard library would do that automatically).
   
 
 4.14.1  .STATIC
@@ -2707,8 +2710,8 @@ dependencies, which are useful when the `.STATIC' section is used for
 memoization. For example, suppose we wish to create a dictionary from a
 table that has key-value pairs. By using a `.STATIC' section, we can
 perform this computation only when the input file changes (not on every
-fun of `omake'). In the following example the function `awk' ?? is used
-to parse the file `table-file'. When a line is encountered with the form
+fun of `omake'). In the following example the 'awk' function is used to
+parse the file `table-file'. When a line is encountered with the form
 key` = 'value, the key/value pair is added the the `TABLE'.
 <<    .STATIC: table-file
           TABLE = $(Map)
@@ -2722,6 +2725,180 @@ key` = 'value, the key/value pair is added the the `TABLE'.
 be recomputed whenever the dependencies of the rule change. The targets
 of the rule are the variables it exports (in this case, the `TABLE'
 variable).
+  
+
+4.15  Constants
+*=*=*=*=*=*=*=*
+
+   
+  Internally, OMake represents values in several forms, which we list
+here.
+  
+  
+ - int
+ 
+     
+    - Constructor: `$(int <i>)' 9.4.1. 
+    - Object: `Int' 12.1.4. 
+    - An integer is a represented with finite precision using the OCaml
+      representation (31 bits on a 32 platform, and 63 bits on a 64 bit
+      platform). 
+    - See also: arithmetic 9.4.3. 
+ 
+ 
+ - float
+ 
+     
+    - Constructor: `$(float <x>)' 9.4.2. 
+    - Object: `Float' 12.1.5. 
+    - A float is a floating-point value, represented in IEEE 64-bit
+      format. 
+    - See also: arithmetic 9.4.3. 
+ 
+ 
+ - array
+ 
+     
+    - Constructor: `$(array <v1>, ..., <vn>)' 9.3.1. 
+    - Object: `Array' 12.1.7. 
+    - An array is a finite list of values. Arrays are also defined with
+      an array definition 
+      <<    X[] =
+                <v1>
+                ...
+                <vn>
+      >>
+    
+    - See also: `nth' 9.3.5, `nth-tl' 9.3.8, `length' 9.3.4, ... 
+ 
+ 
+ - string
+ 
+     
+    - Object: `String' 12.1.8. 
+    - By default, all constant character sequences represent strings, so
+      the simple way to construct a string is to write it down.
+      Internally, the string may be parsed as several pieces. A string
+      often represents an array of values separated by whitespace. 
+      <<    osh>S = This is a string
+            - : <sequence
+               "This" : Sequence
+               ' ' : White
+               "is" : Sequence
+               ' ' : White
+               "a" : Sequence
+               ' ' : White
+               "string" : Sequence>
+               : Sequence
+            osh>length($S)
+            - : 4 : Int
+      >>
+    
+    
+    - A data string is a string where whitespace is significant. It
+      represents a single value, not an array. The constructors are the
+      quotations `$"..."' and `$'...''.
+      <<    osh>S = $'''This is a string'''
+            - : <data "This is a string"> : String
+      >>
+    
+    
+    - See also: Quoted strings 7.2. 
+ 
+ 
+ - file
+ 
+     
+    - Constructor: `$(file <names>)' 10.1.1. 
+    - Object: `File' 12.1.13. 
+    - A file object represents the abstract name for a file. The file
+      object can be viewed as an absolute name; the string
+      representation depends on the current directory.
+      <<    osh>name = $(file foo)
+            - : /Users/jyh/projects/omake/0.9.8.x/foo : File
+            osh>echo $(name)
+            foo
+            osh>cd ..
+            - : /Users/jyh/projects/omake : Dir
+            osh>echo $(name)
+            0.9.8.x/foo
+      >>
+    
+    
+    - See also: `vmount' 10.6.1. 
+ 
+ 
+ - directory
+ 
+     
+    - Constructor: `$(dir <names>)' 10.1.1. 
+    - Object: `Dir' 12.1.14. 
+    - A directory object is like a file object, but it represents a
+      directory. 
+ 
+ 
+ - map (dictionary) 
+     
+    - Object: `Map' 12.1.2. 
+    - A map/dictionary is a table that maps values to values. The `Map'
+      object is the empty map. The data structure is persistent, and all
+      operations are pure and functional. The special syntax `$|key|'
+      can be used for keys that are strings.
+      <<    osh>table = $(Map)
+            osh>table = $(table.add x, int)
+            osh>table. +=
+                    $|y| = int
+            osh>table.find(y)
+            - : "int" : Sequence
+      >>
+ 
+ 
+ - channel
+ 
+     
+    - Constructor: `$(fopen <filename>, <mode>)' 10.8.4. 
+    - Objects: `InChannel' 12.1.16, `OutChannel' 12.1.17. 
+    - Channels are used for buffered input/output. 
+ 
+ 
+ - function
+ 
+     
+    - Constructor: `$(fun <params>, <body>)' 9.5.1. 
+    - Object: `Fun' 12.1.9. 
+    - Functions can be defined in several ways. 
+        
+       - As an anonymous function, 
+         <<    $(fun i, j, $(add $i, $j))
+         >>
+       
+       - As a named function, 
+         <<    f(i, j) =
+                   add($i, $j)
+         >>
+       
+       - This feature will be introduced in version 0.9.9.0.As an
+         anonymous function argument. 
+         <<    osh>foreach(i => $(add $i, 1), 1 2 3)
+               - : <array 2 3 4> : Array
+         >>
+     
+ 
+ 
+ - lexer
+ 
+     
+    - Object: `Lexer' 10.11.9. 
+    - This object represents a lexer. 
+ 
+ 
+ - parser
+ 
+     
+    - Object: `Parser' 10.11.13. 
+    - This object represents a parser. 
+  
+  
 
 
 Chapter 5    Variables and Naming
@@ -2729,7 +2906,7 @@ Chapter 5    Variables and Naming
     
   During evaluation, there are three different kinds of namespaces.
 Variables can be private, or they may refer to fields in the current
-this object, or they can be part of the global public namespace. The
+this object, or they can be part of the global global namespace. The
 namespace can be specified directly by including an explicit qualifier
 before the variable name. The three namespaces are separate; a variable
 can be bound in one or more simultaneously.
@@ -2738,7 +2915,7 @@ can be bound in one or more simultaneously.
       # current object
       this.X = 2
       # public, globally defined
-      public.X = 3
+      global.X = 3
 >>
   
   
@@ -2847,20 +3024,20 @@ not produce unexpected clashes with variables defined in other parts of
 the project.
   
 
-5.3  public.
+5.3  global.
 *=*=*=*=*=*=
 
    
-  The `public.' qualifier is used to specify public dynamically-scoped
-variables. In the following example, the `public.' definition specifies
-that the binding `X = 4' is to be dynamically scoped. Public variables
+  The `global.' qualifier is used to specify global dynamically-scoped
+variables. In the following example, the `global.' definition specifies
+that the binding `X = 4' is to be dynamically scoped. Global variables
 are not defined as fields of an object.
 <<    X = 1
       f() =
-         println(The public value of X is: $(X))
+         println(The global value of X is: $(X))
   
       # Prints:
-      #    The public value of X is: 2
+      #    The global value of X is: 2
       section
          X = 2
          f()
@@ -2870,18 +3047,48 @@ are not defined as fields of an object.
   
          print() =
             println(The protected value of X is: $(X))
-            public.X = 4
+            global.X = 4
             f()
   
       # Prints:
       #    The protected value of X is: 3
-      #    The public value of X is: 4
+      #    The global value of X is: 4
       Obj.print()
 >>
   
   
 
-5.4  Qualified blocks
+5.4  protected.
+*=*=*=*=*=*=*=*
+
+   
+  In OMake 0.9.8, `protected' is a synonym for `this'.
+<<    osh>protected.x = 1
+      - : "1" : Sequence
+      osh>value $(this.x)
+      - : "1" : Sequence
+>>
+  In 0.9.9, this will change, so that the qualifier `protected' means
+(in 0.9.9) that a variable is local to the current object or file, and
+may not be accessed outside it.
+  
+
+5.5  public.
+*=*=*=*=*=*=
+
+   
+  In OMake 0.9.8, `public' is a synonym for `global'.
+<<    osh>public.x = 1
+      - : "1" : Sequence
+      osh>value $(global.x)
+      - : "1" : Sequence
+>>
+  In 0.9.9, this will change, so that the qualifier `public' means (in
+0.9.9) that a variable is to be accessible from outside the current file
+or object.
+  
+
+5.6  Qualified blocks
 *=*=*=*=*=*=*=*=*=*=*
 
   
@@ -2906,7 +3113,7 @@ block. The contents of the block is otherwise completely general.
   
   
 
-5.5  declare
+5.7  declare
 *=*=*=*=*=*=
 
    
@@ -3117,7 +3324,7 @@ The `A' variable is not redefined.
 following is exported: 
   
  - The values of all the dynamically scoped variables (as described in
-   Section 5.3). 
+   Section 5.5). 
  - The current working directory. 
  - The current Unix environment. 
  - The current implicit rules and implicit dependencies (see also
@@ -3445,7 +3652,7 @@ whitespace.
 7.2  Quoted strings
 *=*=*=*=*=*=*=*=*=*
 
-   
+    
   A `String' is a single value; whitespace is significant in a string.
 Strings are introduced with quotes. There are four kinds of quoted
 elements; the kind is determined by the opening quote. The symbols `''
@@ -7140,13 +7347,13 @@ a channel for reading.
 >>
   
 
-10.8.3  open-out-string, out-string
-===================================
+10.8.3  open-out-string, out-contents
+=====================================
    The `open-out-string' creates a channel that writes to a string
-instead of a file. The string may be retrieved with the `out-string'
+instead of a file. The string may be retrieved with the `out-contents'
 function.
 <<   $(open-out-string) : Channel
-     $(out-string chan) : String
+     $(out-contents chan) : String
          chan : OutChannel
 >>
   
@@ -7169,7 +7376,7 @@ combination of the following characters.
    
  a  Open the file in append mode; the file is created if it does not
    exist. 
- +  Open the file for both reading an writing. 
+ +  Open the file for both reading and writing. 
  t  Open the file in text mode (default). 
  b  Open the file in binary mode. 
  n  Open the file in nonblocking mode. 
@@ -7188,18 +7395,21 @@ modes are equivalent.
   The `close' function closes a file that was previously opened with
 `fopen'.
 
-10.8.6  read
-============
+10.8.6  read, input-line
+========================
   
 <<   $(read channel, amount) : String
+     $(input-line channel) : String
         channel : InChannel
         amount  : Int
      raises RuntimeException
 >>
   
   The `read' function reads up to `amount' bytes from an input channel,
-and returns the data that was read. If an end-of-file condition is
-reached, the function raises a `RuntimeException' exception.
+and returns the data that was read. The `input-line' function reads a
+line from the file and returns the line read, without the line
+terminator. If an end-of-file condition is reached, both functions raise
+a `RuntimeException' exception.
 
 10.8.7  write
 =============
@@ -9105,6 +9315,9 @@ standard input channel.
  - `$(InChannel.fopen <file>)': open a new input channel. 
  - `$(InChannel.of-string <string>)': open a new input channel, using a
    string as input. 
+ - `$(o.read <number>)': reads the given number of characters from the
+   channel 
+ - `$(o.readln)': reads a line from the channel 
 
 
 12.1.17  OutChannel
@@ -9256,6 +9469,11 @@ single array containing an argument list.
    `OMakeroot' file.
  
      
+    - `pwd'
+      <<    pwd
+      >>
+    
+    The `pwd' alias would print the absolute path to current directory. 
     - `mkdir'
       <<    mkdir [-m <mode>] [-p] files
       >>
@@ -12048,6 +12266,7 @@ Index
  - concat, 9.3.3 
  - conditionals, 4.9 
  - connect, 10.8.31 
+ - constants, 4.15 
  - create-lazy-map, 9.5.4 
  - create-map, 9.5.4 
  
@@ -12058,7 +12277,7 @@ Index
  - DVIPDFMFLAGS, 13.7.1 
  - DVIPS, 13.7.1 
  - DVIPSFLAGS, 13.7.1 
- - declare, 5.5 
+ - declare, 5.7 
  - decode-uri, 9.3.14 
  - default, 9.2.6 
  - defined, 9.2.10 
@@ -12151,6 +12370,7 @@ Index
  - gettimeofday, 10.11.27 
  - getvar, 9.2.16 
  - glob, 10.4.1 
+ - global., 5.3 
  - gr_gid, 10.11.20 
  - gr_group, 10.11.20 
  - gr_mem, 10.11.20 
@@ -12178,6 +12398,7 @@ Index
  - in, 10.1.3 
  - include, 4.7, B.2.2.1 
  - inheritance, 4.13 
+ - input-line, 10.8.6 
  - int, 9.4.1 
  - intersection, 9.3.29 
  - intersects, 9.3.30 
@@ -12312,9 +12533,10 @@ Index
  - open-in-string, 10.8.2 
  - open-out-string, 10.8.3 
  - or, 9.2.4 
- - out-string, 10.8.3 
+ - out-contents, 10.8.3 
  
  - PATHSEP, 13.4.2 
+ - Parser, 10.11.13 
  - Passwd, 10.11.17 
  - PDFLATEX, 13.7.1 
  - PDFLATEXFLAGS, 13.7.1 
@@ -12331,7 +12553,8 @@ Index
  - prompt-invisible, 10.11.26 
  - prompt-invisible-begin, 10.11.25 
  - prompt-invisible-end, 10.11.25 
- - public., 5.3 
+ - protected., 5.4 
+ - public., 5.5 
  - pw_dir, 10.11.17 
  - pw_gecos, 10.11.17 
  - pw_gid, 10.11.17 
@@ -12343,6 +12566,7 @@ Index
  - quotations, 4.4 
  - quote, 9.3.15 
  - quote-argv, 9.3.16 
+ - quoted strings, 7.2 
  
  - READLINE_AVAILABLE, 14.3.2 
  - READLINE_CFLAGS, 14.3.2 
@@ -12774,6 +12998,7 @@ Index of functions and special forms
  - if, 9.2.5 
  - in, 10.1.3 
  - include, 4.7 
+ - input-line, 10.8.6 
  - int, 9.4.1 
  - intersection, 9.3.29 
  - intersects, 9.3.30 
@@ -12839,7 +13064,7 @@ Index of functions and special forms
  - open-in-string, 10.8.2 
  - open-out-string, 10.8.3 
  - or, 9.2.4 
- - out-string, 10.8.3 
+ - out-contents, 10.8.3 
  
  - pipe, 10.8.16 
  - print, 10.9 
@@ -12983,6 +13208,7 @@ Index of objects
  - Object, 12.1.1 
  - OutChannel, 12.1.17 
  
+ - Parser, 10.11.13 
  - Passwd, 10.11.17 
  - Protocol, 10.8.23 
  
@@ -13074,7 +13300,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.4 of 8^thJune, 2007.
+  Version: 0.9.8.4 of 2^ndJuly, 2007.
   
 
 C.3  License and Copyright

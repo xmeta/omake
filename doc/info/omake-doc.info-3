@@ -1,12 +1,215 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
+  
+
+6.4   Objects
+*=*=*=*=*=*=*
+
+  
+  omake is an object-oriented language. Everything is an object,
+including base values like numbers and strings. In many projects, this
+may not be so apparent because most evaluation occurs in the default
+toplevel object, the `Pervasives' object, and few other objects are ever
+defined.
+  However, objects provide additional means for data structuring, and in
+some cases judicious use of objects may simplify your project.
+  Objects are defined with the following syntax. This defines `name' to
+be an object with several methods an values.
+<<    name. =                     # += may be used as well
+         extends parent-object    # optional
+         class class-name         # optional
+  
+         # Fields
+         X = value
+         Y = value
+  
+         # Methods
+         f(args) =
+            body
+         g(arg) =
+            body
+>>
+  
+  An `extends' directive specifies that this object inherits from the
+specified `parent-object'. The object may have any number of `extends'
+directives. If there is more than on `extends' directive, then fields
+and methods are inherited from all parent objects. If there are name
+conflicts, the later definitions override the earlier definitions.
+  The `class' directive is optional. If specified, it defines a name for
+the object that can be used in `instanceof' operations, as well as `::'
+scoping directives discussed below.
+  The body of the object is actually an arbitrary program. The variables
+defined in the body of the object become its fields, and the functions
+defined in the body become its methods.
+
+Node: Section 6-5,	Next: Section 6-6,	Prev: Section 6-4,	Up: Chapter 6
+  
+
+6.5   Field and method calls
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The fields and methods of an object are named using `object.name'
+notation. For example, let's define a one-dimensional point value.
+<<   Point. =
+        class Point
+  
+        # Default value
+        x = $(int 0)
+  
+        # Create a new point
+        new(x) =
+           x = $(int $(x))
+           return $(this)
+  
+        # Move by one
+        move() =
+           x = $(add $(x), 1)
+           return $(this)
+  
+     osh> p1 = $(Point.new 15)
+     osh> value $(p1.x)
+     - : 15 : Int
+  
+     osh> p2 = $(p1.move)
+     osh> value $(p2.x)
+     - : 16 : Int
+>>
+  
+  The `$(this)' variable always represents the current object. The
+expression `$(p1.x)' fetches the value of the `x' field in the `p1'
+object. The expression `$(Point.new 15)' represents a method call to the
+`new' method of the `Point' object, which returns a new object with 15
+as its initial value. The expression `$(p1.move)' is also a method call,
+which returns a new object at position 16.
+  Note that objects are functional --- it is not possible to modify the
+fields or methods of an existing object in place. Thus, the `new' and
+`move' methods return new objects.
+
+Node: Section 6-6,	Next: Section 6-7,	Prev: Section 6-5,	Up: Chapter 6
+  
+
+6.6   Method override
+*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Suppose we wish to create a new object that moves by 2 units, instead
+of just 1. We can do it by overriding the `move' method.
+<<   Point2. =
+        extends $(Point)
+  
+        # Override the move method
+        move() =
+           x = $(add $(x), 2)
+           return $(this)
+  
+     osh> p2 = $(Point2.new 15)
+     osh> p3 = $(p2.move)
+     osh> value $(p3.x)
+     - : 17 : Int
+>>
+  
+  However, by doing this, we have completely replaced the old `move'
+method.
+
+Node: Section 6-7,	Next: Chapter 7,	Prev: Section 6-6,	Up: Chapter 6
+  
+
+6.7   Super calls
+*=*=*=*=*=*=*=*=*
+
+  
+  Suppose we wish to define a new `move' method that just calls the old
+one twice. We can refer to the old definition of move using a super
+call, which uses the notation `$(classname::name <args>)'. The
+`classname' should be the name of the superclass, and `name' the field
+or method to be referenced. An alternative way of defining the `Point2'
+object is then as follows.
+<<   Point2. =
+        extends $(Point)
+  
+        # Call the old method twice
+        move() =
+           this = $(Point::move)
+           return $(Point::move)
+>>
+  
+  Note that the first call to `$(Point::move)' redefines the current
+object (the `this' variable). This is because the method returns a new
+object, which is re-used for the second call.
+   
+
+Node: Chapter 7,	Next: Section 7-1,	Prev: Chapter 6,	Up: Top
+  
+
+Chapter 7     Additional language examples
+******************************************
+    
+  In this section, we'll explore the core language through a series of
+examples (examples of the build system are the topic of the Chapter
+3*Note Chapter 3::).
+  For most of these examples, we'll use the `osh' command interpreter.
+For simplicity, the values printed by `osh' have been abbreviated.
+* Menu:
+
+* Section 7-1::	Strings and arrays
+* Section 7-2::	Quoted strings
+* Section 7-3::	Files and directories
+* Section 7-4::	Iteration, mapping, and foreach
+* Section 7-5::	Lazy expressions
+* Section 7-6::	Scoping and exports
+* Section 7-7::	Shell aliases
+* Section 7-8::	Input/output redirection on the cheap
+
+
+Node: Section 7-1,	Next: Section 7-2,	Prev: Chapter 7,	Up: Chapter 7
+  
+
+7.1   Strings and arrays
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The basic OMake values are strings, sequences, and arrays of values.
+Sequences are like arrays of values separated by whitespace; the
+sequences are split on demand by functions that expect arrays.
+<<   osh> X = 1 2
+     - : "1 2" : Sequence
+     osh> addsuffix(.c, $X)
+     - : <array 1.c 2.c> : Array
+>>
+  
+  Sometimes you want to define an array explicitly. For this, use the
+`[]' brackets after the variable name, and list each array entry on a
+single indented line.
+<<   osh> A[] =
+             Hello world
+             $(getenv HOME)
+     - : <array "Hello world" "/home/jyh"> : Array
+>>
+  
+  One central property of arrays is that whitespace in the elements is
+significant. This can be useful, especially for filenames that contain
+whitespace. 
+<<   # List the current files in the directory
+      osh> ls -Q
+      "fee"  "fi"  "foo"  "fum"
+      osh> NAME[] = 
+              Hello world
+      - : <array "Hello world"> : Array
+      osh> touch $(NAME)
+      osh> ls -Q
+      "fee"  "fi"  "foo"  "fum"  "Hello world"
+>>
+  
+
 Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
   
 
 7.2   Quoted strings
 *=*=*=*=*=*=*=*=*=*=
 
-   
+    
   A `String' is a single value; whitespace is significant in a string.
 Strings are introduced with quotes. There are four kinds of quoted
 elements; the kind is determined by the opening quote. The symbols `''
@@ -1215,7 +1418,7 @@ Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Sectio
 8.12.1   Phony targets in a subdirectory
 ========================================
    \@n
-ame{@default58}
+ame{@default62}
   Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
 and both the root `OMakefile' and the `OMakefile' in some of the
 subdirectories contain `clean:' rules. In this case 
@@ -1271,212 +1474,3 @@ executed and the rules for its dependency  `.PHONY/foo/clean'. Running
 `(cd foo; omake clean)' is, as for normal targets, equivalent to running
 `omake .PHONY/foo/clean' and only those rules that apply to
 `.PHONY/foo/clean' will be executed.
-
-Node: Section 8-13,	Next: Chapter 9,	Prev: Section 8-12,	Up: Chapter 8
-  
-
-8.13   Pathnames in rules
-*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  In rules, the targets and dependencies are first translated to file
-values (as in the 'file' function). They are then translated to strings
-for the command line. This can cause some unexpected behavior. In the
-following example, the 'absname' function is the absolute pathname for
-the file `a', but the rule still prints the relative pathname.
-<<    .PHONY: demo
-      demo: $(absname a)
-          echo $<
-  
-      # omake demo
-      a
->>
-  
-  There is arguably a good reason for this. On Win32 systems, the `/'
-character is viewed as an "option specifier." The pathname separator is
-the `\' character. OMake translates the filenames automatically so that
-things work as expected on both systems.
-<<   demo: a/b
-         echo $<
-  
-     # omake demo (on a Unix system)
-     a/b
-     # omake demo (on a Win32 system)
-     a\b
->>
-  
-  Sometimes you may wish that target strings to be passed literally to
-the commands in the rule. One way to do this is to specify them
-literally.
-<<    SRC = a/b $(absname c/d)
-      demo: $(SRC)
-          echo $(SRC)
-  
-      # omake demo (on a Win32 system)
-      a/b c:\...\c\d
->>
-  
-  Alternately, you might wish that filenames be automatically expanded
-to absolute pathnames. For example, this might be useful when parsing
-the OMake output to look for errors. For this, you can use the
-`--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
-call `omake' with the `--absname' option, all filenames will be expanded
-to absolute names.
-<<    # omake --absname demo (on a Unix system)
-      /home/.../a/b /home/.../c/d
->>
-  
-  Alternately, the `--absname' option is scoped. If you want to use it
-for only a few rules, you can use the 'OMakeFlags' function to control
-how it is applied.
-<<   section
-        OMakeFlags(--absname)
-        demo: a
-            echo $<
-  
-     # omake demo
-     /home/.../a
->>
-  
-  N.B. The `--absname' option is currently an experimental feature.
-   
-
-Node: Chapter 9,	Next: Section 9-1,	Prev: Chapter 8,	Up: Top
-  
-
-Chapter 9     Base library
-**************************
-     
-* Menu:
-
-* Section 9-1::	Builtin variables
-* Section 9-2::	Logic, Boolean functions, and control flow
-* Section 9-3::	Arrays and sequences
-* Section 9-4::	Arithmetic
-* Section 9-5::	First-class functions
-* Section 9-6::	Iteration and mapping
-* Section 9-7::	Boolean tests
-
-
-Node: Section 9-1,	Next: Section 9-2,	Prev: Chapter 9,	Up: Chapter 9
-  
-
-9.1   Builtin variables
-*=*=*=*=*=*=*=*=*=*=*=*
-
-   
- OMAKE_VERSION
- Version of OMake. 
- STDLIB
- The directory where the OMake standard
-library files reside. At startup, the default value is determined as
-follows. 
-  
- - The value of the `OMAKELIB' environment variable, if set (must
-   contain an absolute path, if set), otherwise 
- - On Windows, the registry keys
-   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and
-   `HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
-   and the value is used, if exist. 
- - Otherwise a compile-time default it used. 
-   The current default value may be accessed by running `omake
---version' 
- OMAKEPATH
- An array of directories specifying the
-lookup path for the `include' and `open' directives (see Section
-4.7*Note Section 4-7::). The default value is an array of two
-elements --- `.' and `$(STDLIB)'. 
- OSTYPE
- Set to the machine architecture omake is
-running on. Possible values are `Unix' (for all Unix versions, including
-Linux and Mac OS X), `Win32' (for MS-Windows, OMake compiled with MSVC++
-or Mingw), and `Cygwin' (for MS-Windows, OMake compiled with Cygwin). 
- SYSNAME
- The name of the operating system for the
-current machine. 
- NODENAME
- The hostname of the current machine. 
- OS_VERSION
- The operating system release. 
- MACHINE
- The machine architecture, e.g. `i386',
-`sparc', etc. 
- HOST
- Same as `NODENAME'. 
- USER
- The login name of the user executing
-the process. 
- HOME
- The home directory of the user
-executing the process. 
- PID
- The OMake process id. 
- TARGETS
- The command-line target strings. For
-example, if OMake is invoked with the following command line, 
-<<      omake CFLAGS=1 foo bar.c
->>
-  
-  then `TARGETS' is defined as `foo bar.c'.
- BUILD_SUMMARY
- The `BUILD_SUMMARY' variable refers to
-the file that `omake' uses to summarize a build (the message that is
-printed at the very end of a build). The file is empty when the build
-starts. If you wish to add additional messages to the build summary, you
-can edit/modify this file during the build.
-  For example, if you want to point out that some action was taken, you
-can append a message to the build summary.
-<<   foo: boo
-         echo "The file foo was built" >> $(BUILD_SUMMARY)
-         ...build foo...
->>
-  
- VERBOSE
- Whether certain commands should be
-verbose. A boolean flag that is `false' by default and is set to `true'
-when OMake is invoked with the `--verbose' option. 
-
-Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
-  
-
-9.2   Logic, Boolean functions, and control flow
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-   
-  Boolean values in omake are represented by case-insensitive strings.
-The false value can be represented by the strings `false', `no', `nil',
-`undefined' or `0', and everything else is true.
-* Menu:
-
-* Subsection 9-2-1::	not
-* Subsection 9-2-2::	equal
-* Subsection 9-2-3::	and
-* Subsection 9-2-4::	or
-* Subsection 9-2-5::	if
-* Subsection 9-2-6::	switch, match
-* Subsection 9-2-7::	try
-* Subsection 9-2-8::	raise
-* Subsection 9-2-9::	exit
-* Subsection 9-2-10::	defined
-* Subsection 9-2-11::	defined-env
-* Subsection 9-2-12::	getenv
-* Subsection 9-2-13::	setenv
-* Subsection 9-2-14::	unsetenv
-* Subsection 9-2-15::	get-registry
-* Subsection 9-2-16::	getvar
-* Subsection 9-2-17::	setvar
-
-
-Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9-2
-  
-
-9.2.1   not
-===========
-
-<<   $(not e) : String
-        e : String
->>
-  
-  The `not' function negates a Boolean value.
-  For example, `$(not false)' expands to the string `true', and `$(not
-hello world)' expands to `false'. 

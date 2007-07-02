@@ -1,5 +1,214 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 8-13,	Next: Chapter 9,	Prev: Section 8-12,	Up: Chapter 8
+  
+
+8.13   Pathnames in rules
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  In rules, the targets and dependencies are first translated to file
+values (as in the 'file' function). They are then translated to strings
+for the command line. This can cause some unexpected behavior. In the
+following example, the 'absname' function is the absolute pathname for
+the file `a', but the rule still prints the relative pathname.
+<<    .PHONY: demo
+      demo: $(absname a)
+          echo $<
+  
+      # omake demo
+      a
+>>
+  
+  There is arguably a good reason for this. On Win32 systems, the `/'
+character is viewed as an "option specifier." The pathname separator is
+the `\' character. OMake translates the filenames automatically so that
+things work as expected on both systems.
+<<   demo: a/b
+         echo $<
+  
+     # omake demo (on a Unix system)
+     a/b
+     # omake demo (on a Win32 system)
+     a\b
+>>
+  
+  Sometimes you may wish that target strings to be passed literally to
+the commands in the rule. One way to do this is to specify them
+literally.
+<<    SRC = a/b $(absname c/d)
+      demo: $(SRC)
+          echo $(SRC)
+  
+      # omake demo (on a Win32 system)
+      a/b c:\...\c\d
+>>
+  
+  Alternately, you might wish that filenames be automatically expanded
+to absolute pathnames. For example, this might be useful when parsing
+the OMake output to look for errors. For this, you can use the
+`--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
+call `omake' with the `--absname' option, all filenames will be expanded
+to absolute names.
+<<    # omake --absname demo (on a Unix system)
+      /home/.../a/b /home/.../c/d
+>>
+  
+  Alternately, the `--absname' option is scoped. If you want to use it
+for only a few rules, you can use the 'OMakeFlags' function to control
+how it is applied.
+<<   section
+        OMakeFlags(--absname)
+        demo: a
+            echo $<
+  
+     # omake demo
+     /home/.../a
+>>
+  
+  N.B. The `--absname' option is currently an experimental feature.
+   
+
+Node: Chapter 9,	Next: Section 9-1,	Prev: Chapter 8,	Up: Top
+  
+
+Chapter 9     Base library
+**************************
+     
+* Menu:
+
+* Section 9-1::	Builtin variables
+* Section 9-2::	Logic, Boolean functions, and control flow
+* Section 9-3::	Arrays and sequences
+* Section 9-4::	Arithmetic
+* Section 9-5::	First-class functions
+* Section 9-6::	Iteration and mapping
+* Section 9-7::	Boolean tests
+
+
+Node: Section 9-1,	Next: Section 9-2,	Prev: Chapter 9,	Up: Chapter 9
+  
+
+9.1   Builtin variables
+*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+ OMAKE_VERSION
+ Version of OMake. 
+ STDLIB
+ The directory where the OMake standard
+library files reside. At startup, the default value is determined as
+follows. 
+  
+ - The value of the `OMAKELIB' environment variable, if set (must
+   contain an absolute path, if set), otherwise 
+ - On Windows, the registry keys
+   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and
+   `HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
+   and the value is used, if exist. 
+ - Otherwise a compile-time default it used. 
+   The current default value may be accessed by running `omake
+--version' 
+ OMAKEPATH
+ An array of directories specifying the
+lookup path for the `include' and `open' directives (see Section
+4.7*Note Section 4-7::). The default value is an array of two
+elements --- `.' and `$(STDLIB)'. 
+ OSTYPE
+ Set to the machine architecture omake is
+running on. Possible values are `Unix' (for all Unix versions, including
+Linux and Mac OS X), `Win32' (for MS-Windows, OMake compiled with MSVC++
+or Mingw), and `Cygwin' (for MS-Windows, OMake compiled with Cygwin). 
+ SYSNAME
+ The name of the operating system for the
+current machine. 
+ NODENAME
+ The hostname of the current machine. 
+ OS_VERSION
+ The operating system release. 
+ MACHINE
+ The machine architecture, e.g. `i386',
+`sparc', etc. 
+ HOST
+ Same as `NODENAME'. 
+ USER
+ The login name of the user executing
+the process. 
+ HOME
+ The home directory of the user
+executing the process. 
+ PID
+ The OMake process id. 
+ TARGETS
+ The command-line target strings. For
+example, if OMake is invoked with the following command line, 
+<<      omake CFLAGS=1 foo bar.c
+>>
+  
+  then `TARGETS' is defined as `foo bar.c'.
+ BUILD_SUMMARY
+ The `BUILD_SUMMARY' variable refers to
+the file that `omake' uses to summarize a build (the message that is
+printed at the very end of a build). The file is empty when the build
+starts. If you wish to add additional messages to the build summary, you
+can edit/modify this file during the build.
+  For example, if you want to point out that some action was taken, you
+can append a message to the build summary.
+<<   foo: boo
+         echo "The file foo was built" >> $(BUILD_SUMMARY)
+         ...build foo...
+>>
+  
+ VERBOSE
+ Whether certain commands should be
+verbose. A boolean flag that is `false' by default and is set to `true'
+when OMake is invoked with the `--verbose' option. 
+
+Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
+  
+
+9.2   Logic, Boolean functions, and control flow
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+  Boolean values in omake are represented by case-insensitive strings.
+The false value can be represented by the strings `false', `no', `nil',
+`undefined' or `0', and everything else is true.
+* Menu:
+
+* Subsection 9-2-1::	not
+* Subsection 9-2-2::	equal
+* Subsection 9-2-3::	and
+* Subsection 9-2-4::	or
+* Subsection 9-2-5::	if
+* Subsection 9-2-6::	switch, match
+* Subsection 9-2-7::	try
+* Subsection 9-2-8::	raise
+* Subsection 9-2-9::	exit
+* Subsection 9-2-10::	defined
+* Subsection 9-2-11::	defined-env
+* Subsection 9-2-12::	getenv
+* Subsection 9-2-13::	setenv
+* Subsection 9-2-14::	unsetenv
+* Subsection 9-2-15::	get-registry
+* Subsection 9-2-16::	getvar
+* Subsection 9-2-17::	setvar
+
+
+Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9-2
+  
+
+9.2.1   not
+===========
+
+<<   $(not e) : String
+        e : String
+>>
+  
+  The `not' function negates a Boolean value.
+  For example, `$(not false)' expands to the string `true', and `$(not
+hello world)' expands to `false'. 
+
 Node: Subsection 9-2-2,	Next: Subsection 9-2-3,	Prev: Subsection 9-2-1,	Up: Section 9-2
   
 
@@ -56,7 +265,8 @@ Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Sect
 
 9.2.5   if
 ==========
-
+\@na
+me{@default85}
 <<    $(if e1, e2[, e3]) : value
          e1 : String
          e2, e3 : value
@@ -674,8 +884,8 @@ Node: Subsection 9-3-13,	Next: Subsection 9-3-14,	Prev: Subsection 9-3-12,	Up: S
 =======================================================================
 c-escaped, id-escaped
 =====================
-\@name
-{@default111}
+
+
 <<   $(string-escaped sequence) : String Array
      $(ocaml-escaped sequence) : String Array
      $(html-escaped sequence) : String Array
@@ -1135,8 +1345,8 @@ Node: Subsection 9-3-40,	Next: Subsection 9-3-41,	Prev: Subsection 9-3-39,	Up: S
 
 9.3.40   export
 ===============
- The `export' function allows one to
-capture the current environment in a variable.
+ The `export'
+function allows one to capture the current environment in a variable.
   For example, the following code: 
 <<A = 1
   B = 1
@@ -1270,8 +1480,9 @@ Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Sect
 
 9.4.2   float
 =============
- The `float' function can be used to
-create floating-point numbers. It returns a `Float' object.
+ The `float'
+function can be used to create floating-point numbers. It returns a
+`Float' object.
   `$(float 3.1415926)'. 
 
 Node: Subsection 9-4-3,	Next: Subsection 9-4-4,	Prev: Subsection 9-4-2,	Up: Section 9-4
@@ -1279,13 +1490,20 @@ Node: Subsection 9-4-3,	Next: Subsection 9-4-4,	Prev: Subsection 9-4-2,	Up: Sect
 
 9.4.3   Basic arithmetic
 ========================
-    
- 
- 
- 
- 
- 
- 
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   The following functions can be used to perform basic arithmetic.
   
@@ -1312,10 +1530,14 @@ Node: Subsection 9-4-4,	Next: Section 9-5,	Prev: Subsection 9-4-3,	Up: Section 9
 
 9.4.4   Comparisons
 ===================
-    
- 
- 
- 
+   
+
+
+
+
+
+
+
 
   The following functions can be used to perform numerical comparisons.
   
@@ -1568,213 +1790,3 @@ Chapter 10     File, I/O and system operations
 * Section 10-10::	Value printing functions
 * Section 10-11::	Higher-level IO functions
 
-
-Node: Section 10-1,	Next: Subsection 10-1-1,	Prev: Chapter 10,	Up: Chapter 10
-  
-
-10.1   File names
-*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 10-1-1::	file, dir
-* Subsection 10-1-2::	tmpfile
-* Subsection 10-1-3::	in
-* Subsection 10-1-4::	basename
-* Subsection 10-1-5::	dirname
-* Subsection 10-1-6::	rootname
-* Subsection 10-1-7::	dirof
-* Subsection 10-1-8::	fullname
-* Subsection 10-1-9::	absname
-* Subsection 10-1-10::	homename
-* Subsection 10-1-11::	suffix
-
-
-Node: Subsection 10-1-1,	Next: Subsection 10-1-2,	Prev: Section 10-1,	Up: Section 10-1
-  
-
-10.1.1   file, dir
-==================
-
-<<   $(file sequence) : File Sequence
-        sequence : Sequence
-     $(dir sequence) : Dir Sequence
-        sequence : Sequence
->>
-  
-  The `file' and `dir' functions define location-independent references
-to files and directories. In omake, the commands to build a target are
-executed in the target's directory. Since there may be many directories
-in an omake project, the build system provides a way to construct a
-reference to a file in one directory, and use it in another without
-explicitly modifying the file name. The functions have the following
-syntax, where the name should refer to a file or directory.
-  For example, we can construct a reference to a file `foo' in the
-current directory.
-<<   FOO = $(file foo)
-     .SUBDIRS: bar
->>
-  
-  If the `FOO' variable is expanded in the `bar' subdirectory, it will
-expand to `../foo'.
-  These commands are often used in the top-level OMakefile to provide
-location-independent references to top-level directories, so that build
-commands may refer to these directories as if they were absolute.
-<<   ROOT = $(dir .)
-     LIB  = $(dir lib)
-     BIN  = $(dir bin)
->>
-  
-  Once these variables are defined, they can be used in build commands
-in subdirectories as follows, where `$(BIN)' will expand to the location
-of the `bin' directory relative to the command being executed.
-<<   install: hello
-   cp hello $(BIN)
->>
-
-Node: Subsection 10-1-2,	Next: Subsection 10-1-3,	Prev: Subsection 10-1-1,	Up: Section 10-1
-  
-
-10.1.2   tmpfile
-================
-
-<<    $(tmpfile prefix) : File
-      $(tmpfile prefix, suffix) : File
-          prefix : String
-          suffix : String
->>
-  
-  The `tmpfile' function returns the name of a fresh temporary file in
-the temporary directory. 
-
-Node: Subsection 10-1-3,	Next: Subsection 10-1-4,	Prev: Subsection 10-1-2,	Up: Section 10-1
-  
-
-10.1.3   in
-===========
-
-<<   $(in dir, exp) : String Array
-        dir : Dir
-        exp : expression
->>
-  
-  The `in' function is closely related to the `dir' and `file'
-functions. It takes a directory and an expression, and evaluates the
-expression in that effective directory. For example, one common way to
-install a file is to define a symbol link, where the value of the link
-is relative to the directory where the link is created.
-  The following commands create links in the `$(LIB)' directory.
-<<    FOO = $(file foo)
-      install:
-         ln -s $(in $(LIB), $(FOO)) $(LIB)/foo
->>
-  
-  Note that the `in' function only affects the expansion of `Node'
-(`File' and `Dir') values. 
-
-Node: Subsection 10-1-4,	Next: Subsection 10-1-5,	Prev: Subsection 10-1-3,	Up: Section 10-1
-  
-
-10.1.4   basename
-=================
-
-<<   $(basename files) : String Sequence
-        files : String Sequence
->>
-  
-  The `basename' function returns the base names for a list of files.
-The basename is the filename with any leading directory components
-removed.
-  For example, the expression `$(basename dir1/dir2/a.out
-/etc/modules.conf /foo.ml)' evaluates to `a.out modules.conf foo.ml'. 
-
-Node: Subsection 10-1-5,	Next: Subsection 10-1-6,	Prev: Subsection 10-1-4,	Up: Section 10-1
-  
-
-10.1.5   dirname
-================
-
-<<   $(dirname files) : String Sequence
-        files : String Sequence
->>
-  
-  The `dirname' function returns the directory name for a list of files.
-The directory name is the filename with the basename removed. If a name
-does not have a directory part, the directory is "."
-  For example, the expression `$(dirname dir1\dir2\a.out
-/etc/modules.conf /foo.ml bar.ml)' evaluates to `dir1/dir2 /etc / .'.
-  Note: this function is different from the `dirof' function. The
-function `dirname' is simple a function over strings, while `dirof' is a
-function on filenames. 
-
-Node: Subsection 10-1-6,	Next: Subsection 10-1-7,	Prev: Subsection 10-1-5,	Up: Section 10-1
-  
-
-10.1.6   rootname
-=================
-
-<<   $(rootname files) : String Sequence
-        files : String Sequence
->>
-  
-  The `rootname' function returns the root name for a list of files. The
-rootname is the filename with the final suffix removed.
-  For example, the expression `$(rootname dir1/dir2/a.out /etc/a.b.c
-/foo.ml)' evaluates to `dir1/dir2/a /etc/a.b /foo'. 
-
-Node: Subsection 10-1-7,	Next: Subsection 10-1-8,	Prev: Subsection 10-1-6,	Up: Section 10-1
-  
-
-10.1.7   dirof
-==============
-
-<<   $(dirof files) : Dir Sequence
-        files : File Sequence
->>
-  
-  The `dirof' function returns the directory for each of the listed
-files.
-  For example, the expression `$(dirof dir/dir2/a.out /etc/modules.conf
-/foo.ml)' evaluates to the directories `dir1/dir2 /etc /'. 
-
-Node: Subsection 10-1-8,	Next: Subsection 10-1-9,	Prev: Subsection 10-1-7,	Up: Section 10-1
-  
-
-10.1.8   fullname
-=================
-
-<<   $(fullname files) : String Sequence
-        files : File Sequence
->>
-  
-  The `fullname' function returns the pathname relative to the project
-root for each of the files or directories. 
-
-Node: Subsection 10-1-9,	Next: Subsection 10-1-10,	Prev: Subsection 10-1-8,	Up: Section 10-1
-  
-
-10.1.9   absname
-================
-
-<<   $(absname files) : String Sequence
-        files : File Sequence
->>
-  
-  The `absname' function returns the absolute pathname for each of the
-files or directories. 
-
-Node: Subsection 10-1-10,	Next: Subsection 10-1-11,	Prev: Subsection 10-1-9,	Up: Section 10-1
-  
-
-10.1.10   homename
-==================
-
-<<   $(homename files) : String Sequence
-        files : File Sequence
->>
-  
-  The `homename' function returns the name of a file in tilde form, if
-possible. The unexpanded forms are computed lazily: the `homename'
-function will usually evaluate to an absolute pathname until the first
-tilde-expansion for the same directory. 

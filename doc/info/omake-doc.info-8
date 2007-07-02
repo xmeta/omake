@@ -1,5 +1,167 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 13-6-6,	Next: Section 13-7,	Prev: Subsection 13-6-5,	Up: Section 13-6
+  
+
+13.6.6   Using the Menhir parser generator
+==========================================
+  
+  Menhir is a parser generator that is mostly compatible with
+`ocamlyacc', but with many improvements. A few of these are listed here
+(excerpted from the Menhir home page
+http://cristal.inria.fr/~fpottier/menhir/).
+  
+  
+ - Menhir's explanations are believed to be understandable by mere
+   humans. 
+ - Menhir allows grammar specifications to be split over multiple files.
+   It also allows several grammars to share a single set of tokens. 
+ - Menhir is able to produce parsers that are parameterized by Objective
+   Caml modules. 
+ - Added by jyh With the `--infer' option, Menhir can typecheck the
+   semantic actions in your grammar at generation time. 
+  
+  What do you need to do to use Menhir instead of `ocamlyacc'? 
+  
+ 1. Place the following definition before the relevant section of your
+   project (or at the top of your project `OMakefile' if you want to use
+   Menhir everywhere).
+   <<   MENHIR_ENABLED = true
+   >>
+ 
+ 
+ 2. Optionally, add any desired Menhir options to the `MENHIR_FLAGS'
+   variable.
+   <<   MENHIR_FLAGS += --infer
+   >>
+  
+  With this setup, any file with a `.mly' suffix will be compiled with
+Menhir.
+  If your grammar is split across several files, you need to specify it
+explicitly, using the `MenhirMulti' function.
+<<    MenhirMulti(target, sources)
+          target : filename, without suffix
+          sources : the files that define the grammar, without suffixes
+>>
+  
+  For example, if you want to generate the parser files `parse.ml' and
+`parse.mli', from the grammar specified in files `a.mly' and `b.mly',
+you would use the following.
+<<    MenhirMulti(parse, a b)
+>>
+  
+
+13.6.6.1   OCamlLibrary
+-----------------------
+
+  The `OCamlLibrary' function builds an OCaml library.
+  `OCamlLibrary(<libname>, <files>)'
+  The `<libname>' and `<files>' are listed without suffixes.
+  This function returns the list of all the targets that it defines the
+rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
+is set).
+  The following code builds the `libfoo.cmxa' library from the files
+`foo.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and `libfoo.cma'
+from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
+<<OCamlLibrary(libfoo, foo bar)
+>>
+  
+
+13.6.6.2   OCamlPackage
+-----------------------
+
+  The `OCamlPackage' function builds an OCaml package.
+  `OCamlPackage(<name>, <files>)'
+  The `<name>' and `<files>' are listed without suffixes. The `<files>'
+must have been compiled with the `-for-pack <ident>' flag to the OCaml
+compiler.
+  This function returns the list of all the targets that it defines the
+rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
+is set).
+  The following code builds the `libfoo.cmx' package from the files
+`package.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and
+`package.cmo' from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
+<<OCamlPackage(package, foo bar)
+>>
+  
+
+13.6.6.3   OCamlLibraryCopy
+---------------------------
+
+  The `OCamlLibraryCopy' function copies a library to an install
+location.
+  `OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)'
+  The `<interface-files>' specify additional interface files to be
+copied if the `INSTALL_INTERFACES' variable is true.
+
+13.6.6.4   OCamlLibraryInstall
+------------------------------
+
+  The `OCamlLibraryInstall' function builds a library and copies it to
+an install location in one step.
+  `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
+
+13.6.6.5   OCamlProgram
+-----------------------
+
+  The `OCamlProgram' function builds an OCaml program. It returns the
+array with all the targets for which it has defined the rules
+(`$(name)$(EXE)' and `$(name).run' and/or `$(name).opt', depending on
+the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
+  `OCamlProgram(<name>, <files>)'
+  Additional variables used: 
+  
+ 'OCAML_LIBS'  Additional libraries passed to the linker, without
+   suffix. These files become dependencies of the target program. 
+ 'OCAML_OTHER_LIBS'  Additional libraries passed to the linker, without
+   suffix. These files do not become dependencies of the target program.
+   
+ 'OCAML_CLIBS'  C libraries to pass to the linker. 
+ 'OCAML_BYTE_LINK_FLAGS'  Flags to pass to the bytecode linker. 
+ 'OCAML_NATIVE_LINK_FLAGS'  Flags to pass to the native code linker. 
+ 'OCAML_LINK_FLAGS'  Flags to pass to both linkers. 
+
+
+13.6.6.6   OCamlProgramCopy
+---------------------------
+
+  The `OCamlProgramCopy' function copies an OCaml program to an install
+location.
+  `OCamlProgramCopy(<tag>, <bindir>, <name>)'
+  Additional variables used: 
+  
+ NATIVE_ENABLED  If the 'NATIVE_ENABLED' variable is set, the
+   native-code executable is copied; otherwise the byte-code executable
+   is copied. 
+
+
+13.6.6.7   OCamlProgramInstall
+------------------------------
+
+  The `OCamlProgramInstall' function builds a programs and copies it to
+an install location in one step.
+  `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
+
+Node: Section 13-7,	Next: Subsection 13-7-1,	Prev: Section 13-6,	Up: Chapter 13
+  
+
+13.7   Building LaTeX files
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  OMake provides support for building LaTeX documents, including support
+for automatically running BiBTex and for producing PostScript and PDF
+files. In order to use the functions defined in this section, you need
+to make sure the line 
+<<open build/LaTeX
+>>
+  is present in your `OMakeroot' file.
+* Menu:
+
+* Subsection 13-7-1::	Configuration variables
+* Subsection 13-7-2::	Building LaTeX documents
+
+
 Node: Subsection 13-7-1,	Next: Subsection 13-7-2,	Prev: Section 13-7,	Up: Section 13-7
   
 
@@ -75,7 +237,8 @@ variables that are to be updated based on the value of OMake's
 
 13.7.2.2   TeXGeneratedFiles, LocalTeXGeneratedFiles
 ----------------------------------------------------
- 
+\@na
+me{function:LocalTeXGeneratedFiles} 
 <<TeXGeneratedFiles(files)
   LocalTeXGeneratedFiles(files)
 >>
@@ -157,7 +320,8 @@ Node: Subsection 14-1-1,	Next: Subsection 14-1-2,	Prev: Section 14-1,	Up: Sectio
 
 14.1.1   ConfMsgChecking, ConfMsgResult
 =======================================
- 
+\@name
+{function:ConfMsgResult} 
 <<ConfMsgChecking(<msg>)
   ...
   ConfMsgResult(<msg>)
@@ -212,8 +376,7 @@ Node: Subsection 14-1-4,	Next: Subsection 14-1-5,	Prev: Subsection 14-1-3,	Up: S
 
 14.1.4   TryCompileC, TryLinkC, TryRunC
 =======================================
-\@na
-me{@default499} 
+ 
 <<success = $(TryCompileC <prog_text>)
   success = $(TryLinkC <prog_text>)
   success = $(TryRunC <prog_text>)
@@ -294,7 +457,8 @@ Node: Subsection 14-1-8,	Next: Section 14-2,	Prev: Subsection 14-1-7,	Up: Sectio
 
 14.1.8   CheckProg
 ==================
- `success = $(CheckProg <prog>)'
+ `success =
+$(CheckProg <prog>)'
   Checks whether the program `<prog>' exists in your path. Will use the
 'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
 the outcome.
@@ -1406,487 +1570,3 @@ expressions.
   The additional dollar sequences specify evaluation order, `$`' (lazy)
 and `$,' (eager), as discussed in the section on dollar modifiers
 (Section B.3*Note Section B-3::).
-
-Node: Subsection B-2-2,	Next: Section B-3,	Prev: Subsection B-2-1,	Up: Section B-2
-  
-
-B.2.2   Statements and programs
-===============================
-  
-  The following table lists the syntax of statements and programs.
-         params ::= (empty) | id, ..., id                               
-        
-                                                                        
-        
-         target ::= expr -- excluding special character `:'             
-        
-                                                                        
-        
-        program ::= stmt `<eol>' ... `<eol>' stmt                       
-        
-                                                                        
-        
-           stmt ::=                                                     
-        
-                    -- Special forms                                    
-        
-                 |  command expr optcolon-body                          
-        
-                 |  command ( args ) optcolon-body                      
-        
-                 |  catch id ( id ) optcolon-body                       
-        
-                 |  class id ... id                                     
-        
-                                                                        
-        
-                    -- Variable definitions                             
-        
-                 |  pathid {+}= expr                                    
-        
-                 |  pathid {+}= `<eol>' indented-body                   
-        
-                 |  pathid`[]' {+}= expr                                
-        
-                 |  pathid`[]' {+}= `<eol>' indented-exprs              
-        
-                                                                        
-        
-                    -- Functions                                        
-        
-                 |  pathid(args) optcolon-body                          
-        
-                 |  pathid(params) = `<eol>' indented-body              
-        
-                                                                        
-        
-                    -- Objects                                          
-        
-                 |  pathid `.' {+}= `<eol>' indented-body               
-        
-                                                                        
-        
-                    -- Rules                                            
-        
-                 |  target : target rule-options `<eol>' indented-body  
-        
-                 |  target :: target rule-options `<eol>' indented-body 
-        
-                 |  target : target : target rule-options `<eol>'
-indented-body  
-                 |  target :: target : target rule-options `<eol>'
-indented-body 
-                                                                        
-        
-                    -- Shell commands                                   
-        
-                 |  expr                                                
-        
-                                                                        
-        
-  indented-body ::= (empty)                                             
-        
-                 |  indented-stmt `<eol>' ... `<eol>' indented-stmt     
-        
-                                                                        
-        
- indented-exprs ::= (empty)                                             
-        
-                 |  indented-expr `<eol>' ... `<eol>' indented-expr     
-        
-                                                                        
-        
-  optcolon-body ::= (empty)                                             
-        
-                 |  `<eol>' indented-body                               
-        
-                 |  : `<eol>' indented-body                             
-        
-                                                                        
-        
-    rule-option ::= :id: target                                         
-        
-   rule-options ::= (empty)                                             
-        
-                 |  rule-options rule-option                            
-        
-  
-  
-
-B.2.2.1   Special forms
------------------------
-  
-  The special forms include the following.
-Conditionals
-(see the section on conditionals --- Section
-4.9*Note Section 4-9::). The `if' command should be
-followed by an expression that represents the condition, and an indented
-body. The conditional may be followed by `elseif' and `else' blocks.
-<<    if expr
-          indented-body
-      elseif expr
-          indented-body
-      ...
-      else
-          indented-body
->>
-  
-matching (see the section on matching --- Section
-4.10*Note Section 4-10::). The `switch' and `match' commands
-perform pattern-matching. All cases are optional. Each case may include
-`when' clauses that specify additional matching conditions.
-<<    match(expr)
-      case expr
-         indented-body
-      when expr
-         indented-body
-      ...
-      case expr
-         indented-body
-      default
-         indented-body
->>
-  
-Exceptions (see also the 'try' function
-documentation). The `try' command introduces an exception handler. Each
-`name' is the name of a class. All cases, including `catch', `default',
-and `finally' are optional. The `catch' and `default' clauses contain
-optional `when' clauses.
-<<    try
-          indented-body
-      catch name1(id1)
-          indented-body
-      when expr
-          indented-body
-      ...
-      catch nameN(idN)
-          indented-body
-      default
-          indented-body
-      finally
-          indented-body
->>
-  
-  The `raise' command is used to raise an exception.
-<<    raise expr
->>
-  
-section (see the `section' description in Section
-4.8*Note Section 4-8::). The `section' command introduces a new
-scope.
-<<    section
-          indented-body
->>
-  
-include, open (see also Section
-4.7*Note Section 4-7::). The `include' command performs file
-inclusion. The expression should evaluate to a file name.
-  The `open' form is like include, but it performs the inclusion only if
-the inclusion has not already been performed. The `open' form is usually
-used to include library files. [jyh-- this behavior will change in
-subsequent revisions.]
-<<    include expr
-      open expr
->>
-  
-return (see the description of functions in Section
-4.5*Note Section 4-5::). The `return' command terminates
-execution and returns a value from a function.
-<<    return expr
->>
-  
-value (see the description of functions in Section
-4.5*Note Section 4-5::). The `value' command is an identity.
-Syntactically, it is used to coerce a n expression to a statement.
-<<    value expr
->>
-  
-export (see the section on scoping --- Section
-6.3*Note Section 6-3::). The `export' command exports a
-environment from a nested block. If no arguments are given, the entire
-environment is exported. Otherwise, the export is limited to the
-specified identifiers.
-<<    export expr
->>
-  
-while (see also the 'while' function description).
-The `while' command introduces a `while' loop.
-<<    while expr
-          indented-body
->>
-  
-class, extends (see the section on
-objects --- Section 4.11*Note Section 4-11::). The `class'
-command specifies an identifier for an object. The `extends' command
-specifies a parent object.
-<<    class id
-      extends expr
->>
-  
-  
-
-B.2.2.2   Variable definitions
-------------------------------
-  
-  See the section on variables (Section
-4.1*Note Section 4-1::). The simplest variable definition has
-the following syntax. The `=' form is a new definition. The += form
-appends the value to an existing definition.
-<<    id = expr
-      id += expr
-  
-      osh> X = 1
-      - : "1" : Sequence
-      osh> X += 7
-      - : "1" " " "7" : Sequence
->>
-  
-  A multi-line form is allowed, where the value is computed by an
-indented body.
-<<    id {+}=
-          indented-body
-  
-      osh> X =
-               Y = HOME
-               println(Y is $Y)
-               getenv($Y)
-      Y is HOME
-      - : "/home/jyh" : Sequence
->>
-  
-  The name may be qualified qith one of the `public', `prtected', or
-`private' modifiers. Public variables are dynamically scoped. Protected
-variables are fields in the current object. Private variables are
-statically scoped.
-  [jyh: revision 0.9.9 introduces modular namespaces; the meaning of
-these qualifiers is slightly changed.]
-<<    public.X = $(addsuffix .c, 1 2 3)
-      protected.Y = $(getenv HOME)
-      private.Z = $"Hello world"
->>
-  
-  
-
-B.2.2.3   Applications and function definitions
------------------------------------------------
-  
-  See the section on functions (Section
-4.5*Note Section 4-5::). A function-application statement is
-specified as a function name, followed a parenthesized list of
-comma-separated arguments.
-<<    osh> println($"Hello world")
-  
-      osh> FILES = 1 2 3
-      - : 1 2 3
-      osh> addsuffix(.c, $(FILES))
-      - : 1.c 2.c 3.c
-  
-      # The following forms are equivalent
-      osh> value $(println $"Hello world")
-      osh> value $(addsuffix .c, $(FILES))
-      - : 1.c 2.c 3.c
->>
-  
-  If the function application has a body, the body is passed (lazily) to
-the function as its first argument. [jyh: in revision 0.9.8 support is
-incomplete.] When using `osh', the application must be followed by a
-colon `:' to indicate that the application has a body.
-<<    # In its 3-argument form, the foreach function takes
-      # a body, a variable, and an array.  The body is evaluated
-      # for each element of the array, with the variable bound to
-      # the element value.
-      #
-      # The colon is required only for interactive sessions.
-      osh> foreach(x, 1 2 3):
-              add($x, 1)
-      - : 2 3 4
->>
-  
-  Functions are defined in a similar form, where the parameter list is
-specified as a comma-separated list of identifiers, and the body of the
-function is indented.
-<<    osh> f(i, j) =
-              add($i, $j)
-      - : <fun 2>
-      osh> f(3, 7)
-      - : 10 : Int
->>
-  
-  
-
-B.2.2.4   Objects
------------------
-  
-  See the section on objects (Section 4.11*Note Section 4-11::).
-Objects are defined as an identifier with a terminal period. The body of
-the object is indented.
-<<    Obj. =
-          class Obj
-  
-          X = 1
-          Y = $(sub $X, 12)
-          new(i, j) =
-             X = $i
-             Y = $j
-             value $(this)
-          F() =
-             add($X, $Y)
-          println($Y)
->>
-  
-  The body of the object has the usual form of an indented body, but new
-variable definitions are added to the object, not the global
-environment. The object definition above defines an object with (at
-least) the fields `X' and `Y', and methods `new' and `F'. The name of
-the object is defined with the `class' command as `Obj'.
-  The `Obj' itself has fields `X = 1' and `Y = -11'. The `new' method
-has the typical form of a constructor-style method, where the fields of
-the object are initialized to new values, and the new object returned
-(`$(this)' refers to the current object).
-  The `F' method returns the sum of the two fields `X' and `Y'.
-  When used in an object definition, the += form adds the new
-definitions to an existing object.
-<<   pair. =
-        x = 1
-        y = 2
-  
-     pair. +=
-        y = $(add $y, 3)
-     # pair now has fields (x = 1, and y = 5)
->>
-  
-  The `extends' form specifies inheritance. Multiple inheritance is
-allowed. At evaluation time, the `extends' directive performs inclusion
-of the entire parent object.
-<<   pair. =
-        x = 1
-        y = 2
-  
-     depth. =
-        z = 3
-        zoom(dz) =
-           z = $(add $z, $(dz))
-           return $(this)
-  
-     triple. =
-        extends $(pair)
-        extends $(depth)
-  
-        crazy() =
-           zoom($(mul $x, $y))
->>
-  
-  In this example, the `triple' object has three fields x, y, and z; and
-two methods `zoom' and `crazy'.
-  
-
-B.2.2.5   Rules
----------------
-  
-  See the chapter on rules (Chapter 8*Note Chapter 8::). A rule
-has the following parts. 
-  
- 1. A sequence of targets; 
- 2. one or two colons; 
- 3. a sequence of dependencies and rule options; 
- 4. and an indented body. 
-  
-  The targets are the files to be built, and the dependencies are the
-files it depends on. If two colons are specified, it indicates that
-there may be multiple rules to build the given targets; otherwise only
-one rule is allowed.
-  If the target contains a `%' character, the rule is called implicit,
-and is considered whenever a file matching that pattern is to be built.
-For example, the following rule specifies a default rule for compiling
-OCaml files.
-<<    %.cmo: %.ml %.mli
-         $(OCAMLC) -c $<
->>
-  
-  This rule would be consulted as a default way of building any file
-with a `.cmo' suffix. The dependencies list is also constructed based on
-the pattern match. For example, if this rule were used to build a file
-`foo.cmo', then the dependency list would be `foo.ml foo.mli'.
-  There is also a three-part version of a rule, where the rule
-specification has three parts.
-<<    targets : patterns : dependencies rule-options
-         indented-body
->>
-  
-  In this case, the patterns must contain a single `%' character.
-Three-part rules are also considered implicit. For example, the
-following defines a default rule for the `clean' target.
-<<    .PHONY: clean
-      
-      clean: %:
-          rm -f *$(EXT_OBJ) *$(EXT_LIB)
->>
-  
-  Three-part implicit rules are inherited by the subdirectories in the
-exact same way as with the usual two-part implicit rules.
-  There are several special targets, including the following.
-  
-  
- - `.PHONY' : declare a "phony" target. That is, the target does not
-   correspond to a file. 
- - `.ORDER' : declare a rule for dependency ordering. 
- - `.INCLUDE' : define a rule to generate a file for textual inclusion. 
- - `.SUBDIRS' : specify subdirectories that are part of the project. 
- - `.SCANNER' : define a rule for dependency scanning. 
-  
-  There are several rule options.
-  
-  
- - `:optional: dependencies' the subsequent dependencies are optional,
-   it is acceptable if they do not exist. 
- - `:exists: dependencies' the subsequent dependencies must exist, but
-   changes to not affect whether this rule is considered out-of-date. 
- - `:effects: targets' the subsequent files are side-effects of the
-   rule. That is, they may be created and/or modified while the rule is
-   executing. Rules with overlapping side-effects are never executed in
-   parallel. 
- - `:scanner: name' the subsequent name is the name of the `.SCANNER'
-   rule for the target to be built. 
- - `:value: expr' the `expr' is a "value" dependency. The rule is
-   considered out-of-date whenever the value of the `expr' changes. 
-  
-  Several variables are defined during rule evaluation.
-  
-  
- - `$*' : the name of the target with
-   the outermost suffix removed. 
- - `$>' : the name of the target with
-   all suffixes removed. 
- - `$@' : the name of the target. 
- - `$^' : the explicit file
-   dependencies, sorted alphabetically, with duplicates removed. 
- - `$+' : all explicit file
-   dependencies, with order preserved. 
- - `$<' : the first explicit file
-   dependency. 
- - `$&' : the free values of the rule
-   (often used in `:value:' dependencies). 
-  
-  
-
-B.2.2.6   Shell commands
-------------------------
-  
-  See the chapter on shell commands (Chapter
-11*Note Chapter 11::).
-  While it is possible to give a precise specification of shell
-commands, the informal description is simpler. Any non-empty statement
-where each prefix is not one of the other statements, is considered to
-be a shell command. Here are some examples.
-<<    ls                                 -- shell command
-      echo Hello world > /dev/null       -- shell command
-      echo(Hello world)                  -- function application
-      echo(Hello world) > /dev/null      -- syntax error
-      echo Hello: world                  -- rule
-      X=1 getenv X                       -- variable definition
-      env X=1 getenv X                   -- shell command
-      if true                            -- special form
-      \if true                           -- shell command
-      "if" true                          -- shell command
->>
-  

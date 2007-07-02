@@ -185,7 +185,7 @@ discussed in the section on dollar modifiers (Section&#XA0;<A HREF="#section:dol
 <TR><TD ALIGN=right NOWRAP><EM>rule-option</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>:id: target</EM></TD></TR>
 <TR><TD ALIGN=right NOWRAP><EM>rule-options</EM></TD><TD ALIGN=center NOWRAP>::=</TD><TD ALIGN=left NOWRAP><EM>(empty)</EM></TD></TR>
 <TR><TD ALIGN=right NOWRAP>&nbsp;</TD><TD ALIGN=center NOWRAP>|</TD><TD ALIGN=left NOWRAP><EM>rule-options rule-option</EM></TD></TR>
-</TABLE><H4 CLASS="subsubsection"><A NAME="htoc479">B.2.2.1</A>&#XA0;&#XA0;Special forms</H4><P>The special forms include the following.</P><P><A NAME="@default566"></A><A NAME="@default567"></A><A NAME="@default568"></A><B>Conditionals</B> (see the section on conditionals &#X2014; Section&#XA0;<A HREF="omake-language.html#section:conditionals">4.9</A>). The <CODE>if</CODE> command
+</TABLE><H4 CLASS="subsubsection"><A NAME="htoc479">B.2.2.1</A>&#XA0;&#XA0;Special forms</H4><P>The special forms include the following.</P><P><A NAME="@default567"></A><A NAME="@default568"></A><A NAME="@default569"></A><B>Conditionals</B> (see the section on conditionals &#X2014; Section&#XA0;<A HREF="omake-language.html#section:conditionals">4.9</A>). The <CODE>if</CODE> command
 should be followed by an expression that represents the condition, and an indented body. The
 conditional may be followed by <CODE>elseif</CODE> and <CODE>else</CODE> blocks.</P><PRE CLASS="verbatim">    if expr
         indented-body
@@ -194,7 +194,7 @@ conditional may be followed by <CODE>elseif</CODE> and <CODE>else</CODE> blocks.
     ...
     else
         indented-body
-</PRE><P><A NAME="@default569"></A><B>matching</B> (see the section on matching &#X2014; Section&#XA0;<A HREF="omake-language.html#section:match">4.10</A>). The <CODE>switch</CODE> and
+</PRE><P><A NAME="@default570"></A><B>matching</B> (see the section on matching &#X2014; Section&#XA0;<A HREF="omake-language.html#section:match">4.10</A>). The <CODE>switch</CODE> and
 <CODE>match</CODE> commands perform pattern-matching. All cases are optional. Each case may include
 <CODE>when</CODE> clauses that specify additional matching conditions.</P><PRE CLASS="verbatim">    match(expr)
     case expr
@@ -206,7 +206,7 @@ conditional may be followed by <CODE>elseif</CODE> and <CODE>else</CODE> blocks.
        indented-body
     default
        indented-body
-</PRE><P><A NAME="@default570"></A><B>Exceptions</B> (see also the <A HREF="omake-base.html#fun:try"><CODE>try</CODE> function</A> documentation). The <CODE>try</CODE> command
+</PRE><P><A NAME="@default571"></A><B>Exceptions</B> (see also the <A HREF="omake-base.html#fun:try"><CODE>try</CODE> function</A> documentation). The <CODE>try</CODE> command
 introduces an exception handler. Each <CODE>name</CODE> is the name of a class. All cases, including
 <CODE>catch</CODE>, <CODE>default</CODE>, and <CODE>finally</CODE> are optional. The <CODE>catch</CODE> and <CODE>default</CODE>
 clauses contain optional <CODE>when</CODE> clauses.</P><PRE CLASS="verbatim">    try
@@ -223,24 +223,24 @@ clauses contain optional <CODE>when</CODE> clauses.</P><PRE CLASS="verbatim">   
     finally
         indented-body
 </PRE><P>The <CODE>raise</CODE> command is used to raise an exception.</P><PRE CLASS="verbatim">    raise expr
-</PRE><P><A NAME="@default571"></A><B>section</B> (see the <CODE>section</CODE> description in Section&#XA0;<A HREF="omake-language.html#section:section">4.8</A>). The <CODE>section</CODE> command
+</PRE><P><A NAME="@default572"></A><B>section</B> (see the <CODE>section</CODE> description in Section&#XA0;<A HREF="omake-language.html#section:section">4.8</A>). The <CODE>section</CODE> command
 introduces a new scope.</P><PRE CLASS="verbatim">    section
         indented-body
-</PRE><P><A NAME="@default572"></A><A NAME="@default573"></A><B>include, open</B> (see also Section&#XA0;<A HREF="omake-language.html#section:include">4.7</A>). The <CODE>include</CODE> command
+</PRE><P><A NAME="@default573"></A><A NAME="@default574"></A><B>include, open</B> (see also Section&#XA0;<A HREF="omake-language.html#section:include">4.7</A>). The <CODE>include</CODE> command
 performs file inclusion. The expression should evaluate to a file name.</P><P>The <CODE>open</CODE> form is like include, but it performs the inclusion only if the inclusion has not
 already been performed. The <CODE>open</CODE> form is usually used to include library files. [jyh&#X2013; this
 behavior will change in subsequent revisions.]</P><PRE CLASS="verbatim">    include expr
     open expr
-</PRE><P><A NAME="@default574"></A><B>return</B> (see the description of functions in Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). The <CODE>return</CODE> command
+</PRE><P><A NAME="@default575"></A><B>return</B> (see the description of functions in Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). The <CODE>return</CODE> command
 terminates execution and returns a value from a function.</P><PRE CLASS="verbatim">    return expr
-</PRE><P><A NAME="@default575"></A><B>value</B> (see the description of functions in Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). The <CODE>value</CODE> command is an identity.
+</PRE><P><A NAME="@default576"></A><B>value</B> (see the description of functions in Section&#XA0;<A HREF="omake-language.html#section:functions">4.5</A>). The <CODE>value</CODE> command is an identity.
 Syntactically, it is used to coerce a n expression to a statement.</P><PRE CLASS="verbatim">    value expr
-</PRE><P><A NAME="@default576"></A><B>export</B> (see the section on scoping &#X2014; Section&#XA0;<A HREF="omake-detail.html#section:export">6.3</A>). The <CODE>export</CODE> command exports
+</PRE><P><A NAME="@default577"></A><B>export</B> (see the section on scoping &#X2014; Section&#XA0;<A HREF="omake-detail.html#section:export">6.3</A>). The <CODE>export</CODE> command exports
 a environment from a nested block. If no arguments are given, the entire environment is exported.
 Otherwise, the export is limited to the specified identifiers.</P><PRE CLASS="verbatim">    export expr
-</PRE><P><A NAME="@default577"></A><B>while</B> (see also the <A HREF="omake-base.html#fun:while"><CODE>while</CODE> function</A> description). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.</P><PRE CLASS="verbatim">    while expr
+</PRE><P><A NAME="@default578"></A><B>while</B> (see also the <A HREF="omake-base.html#fun:while"><CODE>while</CODE> function</A> description). The <CODE>while</CODE> command introduces a <CODE>while</CODE> loop.</P><PRE CLASS="verbatim">    while expr
         indented-body
-</PRE><P><A NAME="@default578"></A><A NAME="@default579"></A><B>class, extends</B> (see the section on objects &#X2014; Section&#XA0;<A HREF="omake-language.html#section:objects">4.11</A>). The <CODE>class</CODE> command
+</PRE><P><A NAME="@default579"></A><A NAME="@default580"></A><B>class, extends</B> (see the section on objects &#X2014; Section&#XA0;<A HREF="omake-language.html#section:objects">4.11</A>). The <CODE>class</CODE> command
 specifies an identifier for an object. The <CODE>extends</CODE> command specifies a parent object.</P><PRE CLASS="verbatim">    class id
     extends expr
 </PRE><H4 CLASS="subsubsection"><A NAME="htoc480">B.2.2.2</A>&#XA0;&#XA0;Variable definitions</H4><P>See the section on variables (Section&#XA0;<A HREF="omake-language.html#section:variables">4.1</A>). The simplest variable definition has the
@@ -378,13 +378,13 @@ executed in parallel.
 </LI><LI CLASS="li-itemize"><CODE>:value: expr</CODE> the <CODE>expr</CODE> is a &#X201C;value&#X201D; dependency. The rule is considered
 out-of-date whenever the value of the <CODE>expr</CODE> changes.
 </LI></UL><P>Several variables are defined during rule evaluation.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>$*</CODE><A NAME="@default580"></A><A NAME="@var122"></A> : the name of the target with the outermost suffix removed.
-</LI><LI CLASS="li-itemize"><CODE>$&gt;</CODE><A NAME="@default581"></A><A NAME="@var123"></A> : the name of the target with all suffixes removed.
-</LI><LI CLASS="li-itemize"><CODE>$@</CODE><A NAME="@default582"></A><A NAME="@var124"></A> : the name of the target.
-</LI><LI CLASS="li-itemize"><CODE>$^</CODE><A NAME="@default583"></A><A NAME="@var125"></A> : the explicit file dependencies, sorted alphabetically, with duplicates removed.
-</LI><LI CLASS="li-itemize"><CODE>$+</CODE><A NAME="@default584"></A><A NAME="@var126"></A> : all explicit file dependencies, with order preserved.
-</LI><LI CLASS="li-itemize"><CODE>$&lt;</CODE><A NAME="@default585"></A><A NAME="@var127"></A> : the first explicit file dependency.
-</LI><LI CLASS="li-itemize"><CODE>$&amp;</CODE><A NAME="@default586"></A><A NAME="@var128"></A> : the free values of the rule (often used in <CODE>:value:</CODE> dependencies).
+<CODE>$*</CODE><A NAME="@default581"></A><A NAME="@var122"></A> : the name of the target with the outermost suffix removed.
+</LI><LI CLASS="li-itemize"><CODE>$&gt;</CODE><A NAME="@default582"></A><A NAME="@var123"></A> : the name of the target with all suffixes removed.
+</LI><LI CLASS="li-itemize"><CODE>$@</CODE><A NAME="@default583"></A><A NAME="@var124"></A> : the name of the target.
+</LI><LI CLASS="li-itemize"><CODE>$^</CODE><A NAME="@default584"></A><A NAME="@var125"></A> : the explicit file dependencies, sorted alphabetically, with duplicates removed.
+</LI><LI CLASS="li-itemize"><CODE>$+</CODE><A NAME="@default585"></A><A NAME="@var126"></A> : all explicit file dependencies, with order preserved.
+</LI><LI CLASS="li-itemize"><CODE>$&lt;</CODE><A NAME="@default586"></A><A NAME="@var127"></A> : the first explicit file dependency.
+</LI><LI CLASS="li-itemize"><CODE>$&amp;</CODE><A NAME="@default587"></A><A NAME="@var128"></A> : the free values of the rule (often used in <CODE>:value:</CODE> dependencies).
 </LI></UL><H4 CLASS="subsubsection"><A NAME="htoc484">B.2.2.6</A>&#XA0;&#XA0;Shell commands</H4><P>See the chapter on shell commands (Chapter&#XA0;<A HREF="omake-shell.html#chapter:shell">11</A>).</P><P>While it is possible to give a precise specification of shell commands, the informal description is
 simpler. Any non-empty statement where each prefix is <EM>not</EM> one of the other statements, is
 considered to be a shell command. Here are some examples.</P><PRE CLASS="verbatim">    ls                                 -- shell command

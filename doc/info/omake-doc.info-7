@@ -1,5 +1,251 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Chapter 12,	Next: Section 12-1,	Prev: Section 11-11,	Up: Top
+  
+
+Chapter 12     The standard objects
+***********************************
+    
+  `Pervasives' defines the objects that are defined in all programs. The
+following objects are defined.
+* Menu:
+
+* Section 12-1::	Pervasives objects
+
+
+Node: Section 12-1,	Next: Subsection 12-1-1,	Prev: Chapter 12,	Up: Chapter 12
+  
+
+12.1   Pervasives objects
+*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection 12-1-1::	Object
+* Subsection 12-1-2::	Map
+* Subsection 12-1-3::	Number
+* Subsection 12-1-4::	Int
+* Subsection 12-1-5::	Float
+* Subsection 12-1-6::	Sequence
+* Subsection 12-1-7::	Array
+* Subsection 12-1-8::	String
+* Subsection 12-1-9::	Fun
+* Subsection 12-1-10::	Rule
+* Subsection 12-1-11::	Target
+* Subsection 12-1-12::	Node
+* Subsection 12-1-13::	File
+* Subsection 12-1-14::	Dir
+* Subsection 12-1-15::	Channel
+* Subsection 12-1-16::	InChannel
+* Subsection 12-1-17::	OutChannel
+* Subsection 12-1-18::	Location
+* Subsection 12-1-19::	Exception
+* Subsection 12-1-20::	RuntimeException
+* Subsection 12-1-21::	UnbuildableException
+* Subsection 12-1-22::	Shell
+
+
+Node: Subsection 12-1-1,	Next: Subsection 12-1-2,	Prev: Section 12-1,	Up: Section 12-1
+  
+
+12.1.1   Object
+===============
+
+  Parent objects: none.
+  The `Object' object is the root object. Every class is a subclass of
+`Object'.
+  It provides the following fields:
+  
+  
+ - `$(o.object-length)': the number of fields and methods in the object.
+   
+ - `$(o.object-mem <var>)': returns `true' iff the `<var>' is a field or
+   method of the object. 
+ - `$(o.object-add <var>, <value>)': adds the field to the object,
+   returning a new object. 
+ - `$(o.object-find <var>)': fetches the field or method from the
+   object; it is equivalent to `$(o.<var>)', but the variable can be
+   non-constant. 
+ - `$(o.object-map <fun>)': maps a function over the object. The
+   function should take two arguments; the first is a field name, the
+   second is the value of that field. The result is a new object
+   constructed from the values returned by the function. 
+ - `o.object-foreach': the `object-foreach' form is equivalent to
+   `object-map', but with altered syntax.
+   <<   o.object-foreach(<var1>, <var2>)
+           <body>
+        >>
+ 
+ For example, the following function prints all the fields of an object
+   `o'.
+   <<   PrintObject(o) =
+           o.object-foreach(v, x)
+              println($(v) = $(x))
+        >>
+ 
+ The `export' form is valid in a `object-foreach' body. The following
+   function collects just the field names of an object.
+   <<   FieldNames(o) =
+           names[] =
+           o.object-foreach(v, x)
+              names[] += $(v)
+              export
+           return $(names)
+        >>
+  
+
+Node: Subsection 12-1-2,	Next: Subsection 12-1-3,	Prev: Subsection 12-1-1,	Up: Section 12-1
+  
+
+12.1.2   Map
+============
+
+  Parent objects: `Object'.
+  A `Map' object is a dictionary from values to values. The `<key>'
+values are restricted to simple values: integers, floating-point
+numbers, strings, files, directories, and arrays of simple values.
+  The Map object provides the following methods.
+  
+  
+ - `$(o.length)': the number of items in the map. 
+ - `$(o.mem <key>)': returns `true' iff the `<key>' is defined in the
+   map. 
+ - `$(o.add <key>, <value>)': adds the field to the map, returning a new
+   map. 
+ - `$(o.find <key>)': fetches the field from the map. 
+ - `$(o.keys)': fetches an array of all the keys in the map, in
+   alphabetical order. 
+ - `$(o.values)': fetches an array of all the values in the map, in the
+   alphabetical order of the corresponding keys. 
+ - `$(o.map <fun>)': maps a function over the map. The function should
+   take two arguments; the first is a field name, the second is the
+   value of that field. The result is a new object constructed from the
+   values returned by the function. 
+ - `o.foreach': the `foreach' form is equivalent to `map', but with
+   altered syntax.
+   <<   o.foreach(<var1>, <var2>)
+           <body>
+        >>
+ 
+ For example, the following function prints all the fields of an object
+   `o'.
+   <<   PrintObject(o) =
+           o.foreach(v, x)
+              println($(v) = $(x))
+        >>
+ 
+ The `export' form is valid in a `foreach' body. The following function
+   collects just the field names of the map.
+   <<   FieldNames(o) =
+           names =
+           o.foreach(v, x)
+              names += $(v)
+              export
+           return $(names)
+        >>
+  
+  There is also simpler syntax when the key is a string. The table can
+be defined using definitions with the form `$|key|' (the number of pipe
+symbols `|' is allowed to vary).
+<<    $|key 1| = value1
+      $||key1|key2|| = value2    # The key is key1|key2
+      X = $|key 1|               # Define X to be the value of field
+$|key 1|
+>>
+  
+  The usual modifiers are also allowed. The expression `$`|key|'
+represents lazy evaluation of the key, and `$,|key|' is normal
+evaluation.
+
+Node: Subsection 12-1-3,	Next: Subsection 12-1-4,	Prev: Subsection 12-1-2,	Up: Section 12-1
+  
+
+12.1.3   Number
+===============
+
+  Parent objects: `Object'.
+  The `Number' object is the parent object for integers and
+floating-point numbers. 
+
+Node: Subsection 12-1-4,	Next: Subsection 12-1-5,	Prev: Subsection 12-1-3,	Up: Section 12-1
+  
+
+12.1.4   Int
+============
+
+  Parent objects: `Number'.
+  The `Int' object represents integer values. 
+
+Node: Subsection 12-1-5,	Next: Subsection 12-1-6,	Prev: Subsection 12-1-4,	Up: Section 12-1
+  
+
+12.1.5   Float
+==============
+
+  Parent objects: `Number'.
+  The `Float' object represents floating-point numbers. 
+
+Node: Subsection 12-1-6,	Next: Subsection 12-1-7,	Prev: Subsection 12-1-5,	Up: Section 12-1
+  
+
+12.1.6   Sequence
+=================
+
+  Parent objects: `Object'.
+  The `Sequence' object represents a generic object containing
+sequential elements. It provides the following methods.
+  
+  
+ - `$(s.length)': the number of elements in the sequence. 
+ - `$(s.map <fun>)': maps a function over the fields in the sequence.
+   The function should take one argument. The result is a new sequence
+   constructed from the values returned by the function. 
+ - `s.foreach': the `foreach' form is equivalent to `map', but with
+   altered syntax.
+   <<   s.foreach(<var>)
+           <body>
+        >>
+ 
+ For example, the following function prints all the elements of the
+   sequence.
+   <<   PrintSequence(s) =
+           s.foreach(x)
+              println(Elem = $(x))
+        >>
+ 
+ The `export' form is valid in a `foreach' body. The following function
+   counts the number of zeros in the sequence.
+   <<   Zeros(s) =
+           count = $(int 0)
+           s.foreach(v)
+              if $(equal $(v), 0)
+                 count = $(add $(count), 1)
+                 export
+              export
+           return $(count)
+        >>
+ 
+ 
+ - `$(s.forall <fun>)': tests whether each element of the sequence
+   satifies a predicate. 
+ - `$(s.exists <fun>)': tests whether the sequence contains an element
+   that satisfies a predicate. 
+ - `$(s.sort <fun>)': sorts a sequence. The `<fun>' is a comparison
+   function. It takes two elements `(x, y)' of the sequence, compares
+   them, and returns a negative number if x < y, a positive number if x
+   > y, and zero if the two elements are equal.
+   <<  osh> items = $(int 0 3 -2)
+       osh> items.forall(x => $(gt $x, 0))
+       - : bool = false
+       osh> items.exists(x => $(gt $x, 0))
+       - : bool = true
+       osh> items.sort($(compare))
+       - : Array = -2 3 0
+       >>
+ 
+   
+
 Node: Subsection 12-1-7,	Next: Subsection 12-1-8,	Prev: Subsection 12-1-6,	Up: Section 12-1
   
 
@@ -158,6 +404,9 @@ standard input channel.
  - `$(InChannel.fopen <file>)': open a new input channel. 
  - `$(InChannel.of-string <string>)': open a new input channel, using a
    string as input. 
+ - `$(o.read <number>)': reads the given number of characters from the
+   channel 
+ - `$(o.readln)': reads a line from the channel 
    
 
 Node: Subsection 12-1-17,	Next: Subsection 12-1-18,	Prev: Subsection 12-1-16,	Up: Section 12-1
@@ -327,6 +576,11 @@ single array containing an argument list.
    `OMakeroot' file.
  
      
+    - `pwd'
+      <<    pwd
+      >>
+    
+    The `pwd' alias would print the absolute path to current directory. 
     - `mkdir'
       <<    mkdir [-m <mode>] [-p] files
       >>
@@ -586,8 +840,7 @@ Node: Subsection 13-3-1,	Next: Subsection 13-3-2,	Prev: Section 13-3,	Up: Sectio
 
 13.3.1   dependencies, dependencies-all, dependencies-proper
 ============================================================
-\@na
-me{@default365}
+
 <<   $(dependencies targets) : File Array
      $(dependencies-all targets) : File Array
      $(dependencies-proper targets) : File Array
@@ -956,7 +1209,8 @@ be created before running the scanner.
 
 13.5.3.1   CGeneratedFiles, LocalCGeneratedFiles
 ------------------------------------------------
- 
+\@name
+{function:LocalCGeneratedFiles} 
 <<CGeneratedFiles(files)
   LocalCGeneratedFiles(files)
 >>
@@ -1029,8 +1283,7 @@ the target directory.
 
 13.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
 -----------------------------------------------------------------
-\@na
-me{@default413}
+
   These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
 `StaticCLibraryInstall' functions, but they build an object file (a `.o'
 file on `Unix', and a `.obj' file on `Win32').
@@ -1093,8 +1346,9 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 --------------------------------------------------
 StaticCXXLibraryInstall
 -----------------------
-\@na
-me{@default421}
+\@nam
+e{function:StaticCXXLibraryCopy}\@name
+{function:StaticCXXLibraryInstall}
   Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
 `StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
 `StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
@@ -1319,7 +1573,8 @@ will be attempted.
 
 13.6.5.1   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
 --------------------------------------------------------
- 
+\@
+name{function:LocalOCamlGeneratedFiles} 
 <<OCamlGeneratedFiles(files)
   LocalOCamlGeneratedFiles(files)
 >>
@@ -1356,165 +1611,3 @@ discovered automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE'
 and 'OCAMLDEP_MODULES' variables will be set accordingly.
   By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
 `$(OCAMLDEP_MODULES_AVAILABLE)'. 
-
-Node: Subsection 13-6-6,	Next: Section 13-7,	Prev: Subsection 13-6-5,	Up: Section 13-6
-  
-
-13.6.6   Using the Menhir parser generator
-==========================================
-  
-  Menhir is a parser generator that is mostly compatible with
-`ocamlyacc', but with many improvements. A few of these are listed here
-(excerpted from the Menhir home page
-http://cristal.inria.fr/~fpottier/menhir/).
-  
-  
- - Menhir's explanations are believed to be understandable by mere
-   humans. 
- - Menhir allows grammar specifications to be split over multiple files.
-   It also allows several grammars to share a single set of tokens. 
- - Menhir is able to produce parsers that are parameterized by Objective
-   Caml modules. 
- - Added by jyh With the `--infer' option, Menhir can typecheck the
-   semantic actions in your grammar at generation time. 
-  
-  What do you need to do to use Menhir instead of `ocamlyacc'? 
-  
- 1. Place the following definition before the relevant section of your
-   project (or at the top of your project `OMakefile' if you want to use
-   Menhir everywhere).
-   <<   MENHIR_ENABLED = true
-   >>
- 
- 
- 2. Optionally, add any desired Menhir options to the `MENHIR_FLAGS'
-   variable.
-   <<   MENHIR_FLAGS += --infer
-   >>
-  
-  With this setup, any file with a `.mly' suffix will be compiled with
-Menhir.
-  If your grammar is split across several files, you need to specify it
-explicitly, using the `MenhirMulti' function.
-<<    MenhirMulti(target, sources)
-          target : filename, without suffix
-          sources : the files that define the grammar, without suffixes
->>
-  
-  For example, if you want to generate the parser files `parse.ml' and
-`parse.mli', from the grammar specified in files `a.mly' and `b.mly',
-you would use the following.
-<<    MenhirMulti(parse, a b)
->>
-  
-
-13.6.6.1   OCamlLibrary
------------------------
-
-  The `OCamlLibrary' function builds an OCaml library.
-  `OCamlLibrary(<libname>, <files>)'
-  The `<libname>' and `<files>' are listed without suffixes.
-  This function returns the list of all the targets that it defines the
-rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
-is set).
-  The following code builds the `libfoo.cmxa' library from the files
-`foo.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and `libfoo.cma'
-from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
-<<OCamlLibrary(libfoo, foo bar)
->>
-  
-
-13.6.6.2   OCamlPackage
------------------------
-
-  The `OCamlPackage' function builds an OCaml package.
-  `OCamlPackage(<name>, <files>)'
-  The `<name>' and `<files>' are listed without suffixes. The `<files>'
-must have been compiled with the `-for-pack <ident>' flag to the OCaml
-compiler.
-  This function returns the list of all the targets that it defines the
-rules for (including the `$(name)$(EXT_LIB)' file when `NATIVE_ENABLED'
-is set).
-  The following code builds the `libfoo.cmx' package from the files
-`package.cmx' and `bar.cmx' (if `NATIVE_ENABLED' is set), and
-`package.cmo' from `foo.cmo' and `bar.cmo' (if `BYTE_ENABLED' is set).
-<<OCamlPackage(package, foo bar)
->>
-  
-
-13.6.6.3   OCamlLibraryCopy
----------------------------
-
-  The `OCamlLibraryCopy' function copies a library to an install
-location.
-  `OCamlLibraryCopy(<tag>, <libdir>, <libname>, <interface-files>)'
-  The `<interface-files>' specify additional interface files to be
-copied if the `INSTALL_INTERFACES' variable is true.
-
-13.6.6.4   OCamlLibraryInstall
-------------------------------
-
-  The `OCamlLibraryInstall' function builds a library and copies it to
-an install location in one step.
-  `OCamlLibraryInstall(<tag>, <libdir>, <libname>, <files>)'
-
-13.6.6.5   OCamlProgram
------------------------
-
-  The `OCamlProgram' function builds an OCaml program. It returns the
-array with all the targets for which it has defined the rules
-(`$(name)$(EXE)' and `$(name).run' and/or `$(name).opt', depending on
-the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
-  `OCamlProgram(<name>, <files>)'
-  Additional variables used: 
-  
- 'OCAML_LIBS'  Additional libraries passed to the linker, without
-   suffix. These files become dependencies of the target program. 
- 'OCAML_OTHER_LIBS'  Additional libraries passed to the linker, without
-   suffix. These files do not become dependencies of the target program.
-   
- 'OCAML_CLIBS'  C libraries to pass to the linker. 
- 'OCAML_BYTE_LINK_FLAGS'  Flags to pass to the bytecode linker. 
- 'OCAML_NATIVE_LINK_FLAGS'  Flags to pass to the native code linker. 
- 'OCAML_LINK_FLAGS'  Flags to pass to both linkers. 
-
-
-13.6.6.6   OCamlProgramCopy
----------------------------
-
-  The `OCamlProgramCopy' function copies an OCaml program to an install
-location.
-  `OCamlProgramCopy(<tag>, <bindir>, <name>)'
-  Additional variables used: 
-  
- NATIVE_ENABLED  If the 'NATIVE_ENABLED' variable is set, the
-   native-code executable is copied; otherwise the byte-code executable
-   is copied. 
-
-
-13.6.6.7   OCamlProgramInstall
-------------------------------
-
-  The `OCamlProgramInstall' function builds a programs and copies it to
-an install location in one step.
-  `OCamlProgramInstall(<tag>, <bindir>, <name>, <files>)' 
-
-Node: Section 13-7,	Next: Subsection 13-7-1,	Prev: Section 13-6,	Up: Chapter 13
-  
-
-13.7   Building LaTeX files
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  OMake provides support for building LaTeX documents, including support
-for automatically running BiBTex and for producing PostScript and PDF
-files. In order to use the functions defined in this section, you need
-to make sure the line 
-<<open build/LaTeX
->>
-  is present in your `OMakeroot' file.
-* Menu:
-
-* Subsection 13-7-1::	Configuration variables
-* Subsection 13-7-2::	Building LaTeX documents
-
