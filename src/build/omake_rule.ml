@@ -789,8 +789,8 @@ let exp_list_of_commands venv pos commands =
 (*
  * Evaluate a .STATIC rule.
  *)
-let eval_static_rule_exp venv pos loc multiple key vars target source options body =
-   let pos = string_pos "eval_static_rule_exp" pos in
+let eval_memo_rule_exp venv pos loc multiple is_static key vars target source options body =
+   let pos = string_pos "eval_memo_rule_exp" pos in
 
    (* First, evaluate the parts *)
    let sources = targets_of_value venv pos source in
@@ -807,7 +807,7 @@ let eval_static_rule_exp venv pos loc multiple key vars target source options bo
    in
 
    (* Add the rule *)
-   let venv = venv_add_static_rule venv pos loc multiple key vars sources values e in
+   let venv = venv_add_memo_rule venv pos loc multiple is_static key vars sources values e in
       venv
 
 (*

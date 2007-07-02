@@ -156,7 +156,8 @@ type cache =
    { (* State *)
      mutable cache_nodes             : node_memo NodeTable.t;
      mutable cache_info              : memo_deps cache_info array;
-     mutable cache_values            : obj memo ValueTable.t;
+     mutable cache_static_values     : obj memo ValueTable.t;
+     mutable cache_memo_values       : obj memo ValueTable.t;
      mutable cache_file_stat_count   : int;  (* only succeessful stats are counted *)
      mutable cache_digest_count      : int;
 
@@ -269,7 +270,8 @@ let output_magic = Omake_magic.output_magic
 let create () =
    { cache_nodes           = NodeTable.empty;
      cache_info            = [||];
-     cache_values          = ValueTable.empty;
+     cache_static_values   = ValueTable.empty;
+     cache_memo_values     = ValueTable.empty;
      cache_file_stat_count = 0;
      cache_digest_count    = 0;
      cache_dirs            = DirTable.empty;
@@ -294,7 +296,7 @@ let stats { cache_file_stat_count = stat_count;
 let save_of_cache cache =
    let { cache_nodes  = cache_nodes;
          cache_info   = cache_info;
-         cache_values = cache_values
+         cache_static_values = cache_values
        } = cache
    in
    let cache_nodes =
@@ -360,7 +362,7 @@ let cache_of_save options save =
    in
       { (create ()) with cache_nodes  = cache_nodes;
                          cache_info   = cache_info;
-                         cache_values = cache_values
+                         cache_static_values = cache_values
       }
 
 (*
@@ -984,14 +986,14 @@ let find_result_sloppy cache key target =
 (*
  * Get the memo entry from the key.
  *)
-let get_value cache key =
-   ValueTable.find cache.cache_values key
+let get_value cache key is_static =
+   ValueTable.find (if is_static then cache.cache_static_values else cache.cache_memo_values) key
 
 (*
  * Find a memo from the deps and commands.
  *)
-let find_value_memo cache key deps1 commands1 =
-   let memo = get_value cache key in
+let find_value_memo cache key is_static deps1 commands1 =
+   let memo = get_value cache key is_static in
    let hash1 = hash_index deps1 commands1 in
    let { memo_index = hash2;
          memo_deps  = deps2;
@@ -1003,8 +1005,8 @@ let find_value_memo cache key deps1 commands1 =
       else
          raise Not_found
 
-let find_value cache key deps commands =
-   let memo = find_value_memo cache key deps commands in
+let find_value cache key is_static deps commands =
+   let memo = find_value_memo cache key is_static deps commands in
    let { memo_targets = targets;
          memo_result  = result
        } = memo
@@ -1014,7 +1016,7 @@ let find_value cache key deps commands =
       else
          raise Not_found
 
-let add_value cache key deps commands result =
+let add_value cache key is_static deps commands result =
    let index = hash_index deps commands in
    let memo =
       { memo_index    = index;
@@ -1024,7 +1026,10 @@ let add_value cache key deps commands result =
         memo_commands = commands
       }
    in
-      cache.cache_values <- ValueTable.add cache.cache_values key memo
+      if is_static then
+         cache.cache_static_values <- ValueTable.add cache.cache_static_values key memo
+      else
+         cache.cache_memo_values <- ValueTable.add cache.cache_memo_values key memo
 
 (************************************************************************
  * Directory listings.

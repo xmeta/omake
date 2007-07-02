@@ -109,6 +109,7 @@ and erule_info =
 
 type srule =
    { srule_loc      : loc;
+     srule_static   : bool;
      srule_env      : venv;
      srule_key      : value;
      srule_deps     : NodeSet.t;
@@ -262,8 +263,9 @@ val venv_add_rule : venv -> pos -> loc ->
    command list ->                      (* commands *)
    venv * Node.t list
 
-val venv_add_static_rule : venv -> pos -> loc ->
+val venv_add_memo_rule : venv -> pos -> loc ->
    bool ->                              (* multiple *)
+   bool ->                              (* static flag *)
    value ->                             (* key *)
    var_info list ->                     (* variables to be defined *)
    target source list ->                (* sources *)

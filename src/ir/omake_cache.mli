@@ -133,10 +133,10 @@ val find_result        : t -> key -> NodeSet.t -> command_digest -> memo_deps
 val find_result_sloppy : t -> key -> Node.t -> memo_deps
 
 (*
- * Similar functions for values.
+ * Similar functions for values. The bool flag indicates whether we want a static value.
  *)
-val find_value         : t -> value -> NodeSet.t -> command_digest -> obj
-val add_value          : t -> value -> NodeSet.t -> command_digest -> memo_obj_result -> unit
+val find_value         : t -> value -> bool -> NodeSet.t -> command_digest -> obj
+val add_value          : t -> value -> bool -> NodeSet.t -> command_digest -> memo_obj_result -> unit
 
 (*
  * Printing.

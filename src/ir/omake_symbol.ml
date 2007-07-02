@@ -197,7 +197,7 @@ let file_sym      = Lm_symbol.add "__FILE__"
 let file_id_sym   = Lm_symbol.add "__ID__"
 let set_sym       = Lm_symbol.add "set"
 
-let static_rule_sym     = Lm_symbol.add "static-rule"
+let memo_rule_sym       = Lm_symbol.add "memo-rule"
 let empty_map_sym       = Lm_symbol.add "empty-map"
 let create_map_sym      = Lm_symbol.add "create-map"
 let create_lazy_map_sym = Lm_symbol.add "create-lazy-map"

@@ -1011,14 +1011,14 @@ and eval_value_static venv pos key v =
             let cache = venv_cache venv in
             let obj =
                (* Try to fetch the value from the memo *)
-               try Omake_cache.find_value cache key deps digest with
+               try Omake_cache.find_value cache key srule.srule_static deps digest with
                   Not_found ->
                      (* Finally, if we don't have a value, evaluate the rule.
                       * Prevent recursive calls *)
                      let () = venv_set_static_info venv key (StaticValue empty_obj) in
                      let venv, v = eval_exp venv ValNone e in
                      let obj = eval_object venv pos v in
-                        Omake_cache.add_value cache key deps digest (MemoSuccess obj);
+                        Omake_cache.add_value cache key srule.srule_static deps digest (MemoSuccess obj);
                         obj
             in
                venv_set_static_info venv key (StaticValue obj);

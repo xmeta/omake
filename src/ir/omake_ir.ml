@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2005 Jason Hickey, Caltech
+ * Copyright (C) 2003-2007 Jason Hickey, California Institute of Technology
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ open Omake_node_sig
 open Omake_node
 
 (* %%MAGICBEGIN%% *)
-(* Revision 9341: changed the generated IR *)
+(* Revision 11186: replaced static-rule function with the new memo-rule *)
 type var = symbol
 
 (*
@@ -320,12 +320,9 @@ type method_name =
    NameEmpty   of name_info
  | NameMethod  of name_info * var * var list
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

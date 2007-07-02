@@ -179,6 +179,7 @@ and ordering_info = orule list
  *)
 and srule =
    { srule_loc      : loc;
+     srule_static   : bool;
      srule_env      : venv;
      srule_key      : value;
      srule_deps     : NodeSet.t;
@@ -255,7 +256,7 @@ and venv_globals =
      mutable venv_orders                     : StringSet.t;
 
      (* Static rules *)
-     mutable venv_static_rules               : static_info ValueTable.t;
+     mutable venv_memo_rules               : static_info ValueTable.t;
 
      (* Cached values for files *)
      mutable venv_ir_files                   : ir NodeTable.t;
@@ -1936,7 +1937,7 @@ let create options dir exec cache =
         venv_explicit_targets           = NodeTable.empty;
         venv_ordering_rules             = [];
         venv_orders                     = StringSet.empty;
-        venv_static_rules               = ValueTable.empty;
+        venv_memo_rules               = ValueTable.empty;
         venv_pervasives_obj             = SymbolTable.empty;
         venv_pervasives_vars            = SymbolTable.empty;
         venv_ir_files                   = NodeTable.empty;
@@ -2758,11 +2759,12 @@ let venv_get_ordering_deps venv orules deps =
 (*
  * Each of the commands evaluates to an object.
  *)
-let venv_add_static_rule venv pos loc multiple key vars sources values body =
+let venv_add_memo_rule venv pos loc multiple is_static key vars sources values body =
    let source_args = List.map (intern_source venv) sources in
    let sources = node_set_of_list source_args in
    let srule =
       { srule_loc  = loc;
+        srule_static = is_static;
         srule_env  = venv;
         srule_key  = key;
         srule_deps = sources;
@@ -2776,7 +2778,7 @@ let venv_add_static_rule venv pos loc multiple key vars sources values body =
             let _, v = var_of_var_info info in
                venv_add_var venv info (ValDelayed (ref (ValStaticApply (key, v))))) venv vars
    in
-      globals.venv_static_rules <- ValueTable.add globals.venv_static_rules key (StaticRule srule);
+      globals.venv_memo_rules <- ValueTable.add globals.venv_memo_rules key (StaticRule srule);
       venv
 
 (*
@@ -2784,12 +2786,12 @@ let venv_add_static_rule venv pos loc multiple key vars sources values body =
  *)
 let venv_set_static_info venv key v =
    let globals = venv_globals venv in
-      globals.venv_static_rules <- ValueTable.add globals.venv_static_rules key v
+      globals.venv_memo_rules <- ValueTable.add globals.venv_memo_rules key v
 
 let venv_find_static_info venv pos key =
-   try ValueTable.find venv.venv_inner.venv_globals.venv_static_rules key with
+   try ValueTable.find venv.venv_inner.venv_globals.venv_memo_rules key with
       Not_found ->
-         raise (OmakeException (pos, StringValueError ("static section not defined", key)))
+         raise (OmakeException (pos, StringValueError ("Static section not defined", key)))
 
 (************************************************************************
  * Return values.

@@ -1094,10 +1094,15 @@ let is_empty_string e =
       OmakeException _ ->
          false
 
-let is_static_target e =
-   try build_literal_string e = ".STATIC" with
-      OmakeException _ ->
-         false
+(* Some is_static - it's a memo |  None - it's not *)
+let get_memo_target e =
+   try
+      match build_literal_string e with
+         ".STATIC" -> Some true
+       | ".MEMO" -> Some false
+       | _ -> None
+   with OmakeException _ ->
+      None 
 
 (*
  * Conversion.
@@ -1921,10 +1926,12 @@ and build_options_exp genv oenv senv cenv pos loc sources =
 and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
    let pos = string_pos "build_rule_exp" pos in
    let multiple = build_bool_exp loc multiple in
-      if is_static_target target then
-         build_static_rule_exp genv oenv senv cenv multiple pattern sources body pos loc
-      else
-         build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc
+      match get_memo_target target with
+         Some is_static ->
+            let is_static = build_bool_exp loc is_static in
+               build_memo_rule_exp genv oenv senv cenv multiple is_static pattern sources body pos loc
+       | None -> 
+            build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc
 
 and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
    let pos = string_pos "build_normal_rule_exp" pos in
@@ -1951,8 +1958,8 @@ and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources bo
    let e = ApplyExp (loc, rule_var, args) in
       genv, oenv, senv, e, ValValue
 
-and build_static_rule_exp genv oenv senv cenv multiple names sources body pos loc =
-   let pos = string_pos "build_static_rule_exp" pos in
+and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources body pos loc =
+   let pos = string_pos "build_memo_rule_exp" pos in
 
    (* Extract the special keys *)
    let source, sources = extract_option loc sources normal_sym in
@@ -2011,8 +2018,8 @@ and build_static_rule_exp genv oenv senv cenv multiple names sources body pos lo
    let file = ApplyString (loc, EagerApply, file_var, []) in
    let genv, index = genv_new_index genv in
    let index = ConstString (loc, string_of_int index) in
-   let args = [multiple; file; index; key; vars; source; options; body] in
-   let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc static_rule_sym in
+   let args = [multiple; is_static; file; index; key; vars; source; options; body] in
+   let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc memo_rule_sym in
    let e = ApplyExp (loc, rule_var, args) in
       genv, oenv, senv, e, ValValue
 
