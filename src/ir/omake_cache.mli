@@ -31,6 +31,7 @@
 open Lm_printf
 open Lm_string_set
 
+open Omake_options
 open Omake_node
 open Omake_cache_type
 open Omake_value_type
@@ -59,18 +60,13 @@ val env_target  : Node.t
 
 (* Fetch the cache *)
 val create       : unit -> t
-val from_channel : in_channel -> t
+val from_channel : omake_options -> in_channel -> t
 val to_channel   : Pervasives.out_channel -> t -> unit
 
 (*
  * Stats.
  *)
 val stats : t -> int * int
-
-(*
- * Clear an entry.
- *)
-val clear : t -> key -> unit
 
 (*
  * File digest information.

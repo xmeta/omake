@@ -2530,28 +2530,23 @@ let load_omake options targets =
    let exec = Exec.create cwd options in
    let cache =
       match
-         if opt_flush_cache options then
-            None
-         else
-            (* Load cache from the db file *)
-            try
-               let inx = open_in_bin db_name in
-               let cache =
-                  try Omake_cache.from_channel inx with
-                     exn ->
-                        close_in inx;
-                        raise exn
-               in
-                  if opt_flush_dependencies options then
-                     Omake_cache.clear cache scanner_fun;
-                  close_in inx;
-                  Some cache
-            with
-               Unix.Unix_error _
-             | End_of_file
-             | Sys_error _
-             | Failure _ ->
-                  None
+         (* Load cache from the db file *)
+         try
+            let inx = open_in_bin db_name in
+            let cache =
+               try Omake_cache.from_channel options inx with
+                  exn ->
+                     close_in inx;
+                     raise exn
+            in
+               close_in inx;
+               Some cache
+         with
+            Unix.Unix_error _
+          | End_of_file
+          | Sys_error _
+          | Failure _ ->
+               None
       with
          None -> Omake_cache.create ()
        | Some cache -> cache
@@ -2566,28 +2561,23 @@ let load_osh venv options targets =
    (* Replace the cache *)
    let cache =
       match
-         if opt_flush_cache options then
-            None
-         else
-            (* Load cache from the db file *)
-            try
-               let inx = open_in_bin db_name in
-               let cache =
-                  try Omake_cache.from_channel inx with
-                     exn ->
-                        close_in inx;
-                        raise exn
-               in
-                  if opt_flush_dependencies options then
-                     Omake_cache.clear cache scanner_fun;
-                  close_in inx;
-                  Some cache
-            with
-               Unix.Unix_error _
-             | End_of_file
-             | Sys_error _
-             | Failure _ ->
-                  None
+         (* Load cache from the db file *)
+         try
+            let inx = open_in_bin db_name in
+            let cache =
+               try Omake_cache.from_channel options inx with
+                  exn ->
+                     close_in inx;
+                     raise exn
+            in
+               close_in inx;
+               Some cache
+         with
+            Unix.Unix_error _
+          | End_of_file
+          | Sys_error _
+          | Failure _ ->
+               None
       with
          None -> Omake_cache.create ()
        | Some cache -> cache

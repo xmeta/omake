@@ -41,6 +41,7 @@ open Lm_debug
 open Lm_printf
 open Lm_string_set
 
+open Omake_options
 open Omake_node
 open Omake_command
 open Omake_node_sig
@@ -287,16 +288,6 @@ let stats { cache_file_stat_count = stat_count;
    stat_count, digest_count
 
 (*
- * Clear one of the tables.
- *)
-let clear cache index =
-   let info = cache.cache_info in
-      if index < Array.length info then
-         let info = info.(index) in
-            info.cache_memos <- NodeTable.empty;
-            info.cache_index <- IndexMTable.empty
-
-(*
  * When the file is saved, remove all stat information,
  * as well as any files that don't exist.
  *)
@@ -343,18 +334,29 @@ let create_index memos =
 (*
  * Rebuild the cache from the saved version.
  *)
-let cache_of_save save =
+let cache_of_save options save =
    let { save_cache_nodes = cache_nodes;
          save_cache_info  = cache_info;
-         save_cache_value = cache_values
        } = save
    in
+   let flush_scanner = opt_flush_dependencies options in
    let cache_info =
-      Array.map (fun memos ->
-            let memos, index = create_index memos in
-               { cache_memos = memos;
-                 cache_index = index
-               }) cache_info
+      Array.mapi (fun idx memos ->
+            if flush_scanner && idx = scanner_fun then
+               { cache_memos = NodeTable.empty;
+                 cache_index = IndexMTable.empty
+               }
+            else
+               let memos, index = create_index memos in
+                  { cache_memos = memos;
+                    cache_index = index
+                  }) cache_info
+   in
+   let cache_values = 
+      if opt_flush_static options then
+         ValueTable.empty
+      else
+         save.save_cache_value
    in
       { (create ()) with cache_nodes  = cache_nodes;
                          cache_info   = cache_info;
@@ -364,14 +366,17 @@ let cache_of_save save =
 (*
  * Load the old cache from a file.
  *)
-let from_channel inx =
-   let magic = input_magic inx in
-   let _ =
-      if magic <> magic_number then
-         raise (Sys_error "bad magic number")
-   in
-   let save = Marshal.from_channel inx in
-      cache_of_save save
+let from_channel options inx =
+   if opt_flush_cache options then
+      create ()
+   else
+      let magic = input_magic inx in
+      let _ =
+         if magic <> magic_number then
+            raise (Sys_error "bad magic number")
+      in
+      let save = Marshal.from_channel inx in
+         cache_of_save options save
 
 (*
  * Save the cache to the file.

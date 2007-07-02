@@ -1011,12 +1011,7 @@ and eval_value_static venv pos key v =
             let cache = venv_cache venv in
             let obj =
                (* Try to fetch the value from the memo *)
-               try
-                  if Omake_options.opt_flush_static (venv_options venv) then
-                     raise Not_found
-                  else
-                     Omake_cache.find_value cache key deps digest
-               with
+               try Omake_cache.find_value cache key deps digest with
                   Not_found ->
                      (* Finally, if we don't have a value, evaluate the rule.
                       * Prevent recursive calls *)
