@@ -408,7 +408,7 @@ let prim_channel_of_value venv pos v =
        | ValCases _
        | ValOther _
        | ValDelayed _ ->
-            raise (OmakeException (pos, StringError "not an input channel"))
+            raise (OmakeException (pos, StringError "not a channel"))
 
 let prim_channel_of_var venv pos loc v =
    prim_channel_of_value venv pos (venv_find_var venv pos loc v)
