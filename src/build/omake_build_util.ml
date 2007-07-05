@@ -93,79 +93,63 @@ let build_subgraph env venv pos orules domain =
             Not_found ->
                raise (OmakeException (pos, StringNodeError ("file is not found", node)))) IntNodeTable.empty domain
 
-let print_cycle graph nodes buf =
-   let nodes = IntNodeTable.fold (fun nodes node _ -> IntNodeSet.add nodes node) IntNodeSet.empty nodes in
-   let rec print marked deps =
-      if IntNodeSet.is_empty deps then
+let print_cycle wl (_, node) buf =
+   let rec print = function
+      [] -> 
          raise (Invalid_argument "Omake_build_util: internal_error")
-      else begin
-         let node = IntNodeSet.choose deps in
-            fprintf buf "%a" pp_print_node (snd node);
-            if not (IntNodeSet.mem marked node) then begin
-               let marked = IntNodeSet.add marked node in
-                  fprintf buf "@ > ";
-                  print marked (IntNodeSet.inter nodes (IntNodeTable.find graph node))
-            end
-      end
+    | ((_, node'), _) :: wl ->
+         if not (Node.equal node node') then
+            print wl;
+         fprintf buf "%a@ > " pp_print_node node';
    in
       fprintf buf "@[<hv 3>Sort failed: found a cycle:@ ";
-      print IntNodeSet.empty nodes;
-      fprintf buf "@]"
-
-(*
- * Find all the roots.
- *)
-let find_roots pos graph =
-   let roots =
-      IntNodeTable.fold (fun roots _ deps ->
-            IntNodeSet.fold IntNodeTable.remove roots deps) graph graph
-   in
-   (* If the roots are empty, the entire graph is cyclic *)
-   let () =
-      if IntNodeTable.is_empty roots then
-         raise (OmakeException (pos, LazyError (print_cycle graph graph)))
-   in
-      roots
+      print wl;
+      fprintf buf "%a@]" pp_print_node node
 
 (*
  * Produce a sort in DFS order.
+ *
+ * graph - the dependencies of the nodes not touched yet
+ * marked - the nodes currently in the work list. "Touching" a marked node again means we found a loop.
+ * items - the list constructed so far
+ * in_list - the set of nodes in the items list
+ * last argument - the "backtrace" (work list).
  *)
-let rec dfs_sort_node graph marked items node =
-   if IntNodeSet.mem marked node then
-      marked, items
-   else
-      let marked = IntNodeSet.add marked node in
-      let marked, items = dfs_sort_nodes graph marked items (IntNodeTable.find graph node) in
-         marked, node :: items
-
-and dfs_sort_nodes graph marked items nodes =
-   IntNodeSet.fold (fun (marked, items) node ->
-         dfs_sort_node graph marked items node) (marked, items) nodes
-
-let dfs_check pos marked graph =
-   if IntNodeSet.cardinal marked > IntNodeTable.cardinal graph then
-      let nodes = IntNodeTable.fold (fun marked node _ -> IntNodeSet.remove marked node) marked graph in
-      let print_error buf =
-         fprintf buf "@[<v 3>sort internal error: found too many nodes";
-         IntNodeSet.iter (fun (_, node) -> fprintf buf "@ %a" pp_print_node node) nodes;
-         fprintf buf "@]"
-      in
-         raise (OmakeFatalErr (pos, LazyError print_error))
-   else if IntNodeSet.cardinal marked < IntNodeTable.cardinal graph then
-      let nodes = IntNodeSet.fold IntNodeTable.remove graph marked in
-         raise (OmakeException (pos, LazyError (print_cycle graph nodes)))
+let rec dfs_sort_aux pos graph marked items = function
+   ((node, deps) :: bt) as all_bt ->
+      if IntNodeSet.is_empty deps then
+         (* Pop the work list *)
+         dfs_sort_aux pos graph (IntNodeSet.remove marked node) (snd node :: items) bt
+      else
+         let node' = IntNodeSet.choose deps in
+            if IntNodeSet.mem marked node' then
+               raise (OmakeException (pos, LazyError (print_cycle all_bt node')))
+            else
+               let bt = (node, IntNodeSet.remove deps node') :: bt in
+                  if IntNodeTable.mem graph node' then
+                     let deps = IntNodeTable.find graph node' in
+                     let graph = IntNodeTable.remove graph node' in
+                     let marked = IntNodeSet.add marked node' in
+                        dfs_sort_aux pos graph marked items ((node', deps) :: bt)
+                  else
+                     (* node' is already in the items list *)
+                     dfs_sort_aux pos graph marked items bt
+ | [] ->
+      if IntNodeTable.is_empty graph then
+         (* We are done! *)
+         List.rev items
+      else
+         (* Pick a starting point and start adding it to the output *)
+         let node, deps = IntNodeTable.choose graph in
+         let graph = IntNodeTable.remove graph node in
+         let marked = IntNodeSet.singleton node in
+            dfs_sort_aux pos graph marked items [node, deps]
 
 let dfs_sort pos graph _ =
    if IntNodeTable.is_empty graph then
       []
    else
-      let roots = find_roots pos graph in
-      let marked, items =
-         IntNodeTable.fold (fun (marked, items) node _ ->
-               dfs_sort_node graph marked items node) (IntNodeSet.empty, []) roots
-      in
-         dfs_check pos marked graph;
-         List.rev (List.map snd items)
+      dfs_sort_aux pos graph IntNodeSet.empty [] []
 
 (*
  * Check that a list of nodes is in sorted order.
