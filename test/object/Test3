@@ -1,0 +1,12 @@
+A[] = $(set 1 2 3)
+B[] =
+
+A.foreach(v)
+   B[] +=
+      $v
+   export
+
+if $(not $(equal $(A), $(B)))
+   eprintln($"Expected: $A")
+   eprintln($"Actual: $B")
+   exit 1
