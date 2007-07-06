@@ -189,7 +189,8 @@ Object. +=
       return $(obj-map $(this), $(f))
 
    object-foreach(body, v, x) =
-      return $(obj-map $(this), $(v), $(x), $(body))
+      export
+      obj-map($(this), $(v), $(x), $(body))
 
    instanceof(v) =
       return $(obj-instanceof $(this), $(v))
@@ -292,7 +293,8 @@ Map. +=
         return $(map-map $(this), $(f))
 
     foreach(body, v, x) =
-        return $(map-map $(this), $(v), $(x), $(body))
+        export
+        map-map($(this), $(v), $(x), $(body))
 
     length() =
         return $(map-length $(this))
@@ -428,6 +430,7 @@ Sequence. +=
       sequence-map($(f), $(this))
 
    foreach(body, v) =
+      export
       sequence-map($(body), $(v), $(this))
 
    forall(f) =

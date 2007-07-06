@@ -319,7 +319,7 @@ let map_map venv pos loc args =
    in
 
    (* If the body exports the environment, preserve it across calls *)
-   let venv', map =
+   let venv, map =
       venv_map_fold (fun (venv, map) v x ->
             let venv, result = f venv pos loc [v; x] in
             let map = venv_map_add map pos v result in
