@@ -162,8 +162,8 @@ let object_map venv pos loc args =
             in
             let obj = eval_object venv pos arg in
             let f venv pos loc args =
-               let venv = venv_add_args venv pos loc env params args in
-               let venv_new, result = eval_sequence_exp venv pos body in
+               let venv_new = venv_add_args_hack venv pos loc env params args in
+               let venv_new, result = eval_sequence_exp venv_new pos body in
                let venv = add_exports venv venv_new pos export in
                   venv, result
             in
@@ -173,7 +173,7 @@ let object_map venv pos loc args =
    in
 
    (* If the body exports the environment, preserve it across calls *)
-   let venv', obj =
+   let venv, obj =
       venv_object_fold_internal (fun (venv, obj) v x ->
             let venv, result = f venv pos loc [ValString (Lm_symbol.to_string v); x] in
             let obj = venv_add_field_internal obj v result in
@@ -308,8 +308,8 @@ let map_map venv pos loc args =
             let obj = eval_object venv pos arg in
             let map = map_of_object venv pos obj in
             let f venv pos loc args =
-               let venv = venv_add_args venv pos loc env params args in
-               let venv_new, result = eval_sequence_exp venv pos body in
+               let venv_new = venv_add_args_hack venv pos loc env params args in
+               let venv_new, result = eval_sequence_exp venv_new pos body in
                let venv = add_exports venv venv_new pos export in
                   venv, result
             in
