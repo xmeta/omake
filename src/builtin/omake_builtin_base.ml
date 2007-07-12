@@ -1478,6 +1478,35 @@ let string venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{string-length}
+ *
+ * \begin{verbatim}
+ *    $(string-length sequence) : Int
+ *       sequence : Sequence
+ * \end{verbatim}
+ *
+ * The \verb+string-lenght+ returns a length (number of characters) in 
+ * its argument. If the argument is a sequence, it flattens it, so \verb+$(string-length sequence)+
+ * is equivalent to \verb+$(string-length $(string sequence))+.
+ * \end{doc}
+ *)
+let string_length venv pos loc args =
+   let pos = string_pos "string-length" pos in
+      match args with
+         [arg] ->
+            let args = strings_of_value venv pos arg in
+            let len =
+               if args = [] then
+                  0
+               else
+                  List.fold_left (fun i s -> i + 1 + String.length s) (-1) args
+            in
+               ValInt len
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
  * \sixfuns{string-escaped}{ocaml-escaped}{html-escaped}{html-pre-escaped}{c-escaped}{id-escaped}
  *
  * \begin{verbatim}
@@ -2742,6 +2771,7 @@ let () =
        (* String operations *)
        true,  "string",                string,              ArityExact 1;
        true,  "string-escaped",        string_escaped,      ArityExact 1;
+       true,  "string-length",         string_length,       ArityExact 1;
        true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
        true,  "c-escaped",             c_escaped,           ArityExact 1;
        true,  "id-escaped",            id_escaped,          ArityExact 1;
