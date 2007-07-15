@@ -24,7 +24,7 @@
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
-<H1 CLASS="chapter"><A NAME="htoc47">Chapter&#XA0;5</A>&#XA0;&#XA0;Variables and Naming</H1><UL>
+<H1 CLASS="chapter"><A NAME="htoc49">Chapter&#XA0;5</A>&#XA0;&#XA0;Variables and Naming</H1><UL>
 <LI><A HREF="omake-language-naming.html#toc31">private.</A></LI>
 <LI><A HREF="omake-language-naming.html#toc32">this.</A></LI>
 <LI><A HREF="omake-language-naming.html#toc33">global.</A></LI>
@@ -36,7 +36,7 @@
 <P>
 <A NAME="chapter:naming"></A>
 </P><P>During evaluation, there are three different kinds of namespaces. Variables can be <EM>private</EM>,
-or they may refer to fields in the current <EM>this</EM> object, or they can be part of the global
+or they may refer to fields in the current <EM>this</EM> object, or they can be part of the
 <EM>global</EM> namespace. The namespace can be specified directly by including an explicit qualifier
 before the variable name. The three namespaces are separate; a variable can be bound in one or more
 simultaneously.</P><PRE CLASS="verbatim">    # private namespace
@@ -45,8 +45,8 @@ simultaneously.</P><PRE CLASS="verbatim">    # private namespace
     this.X = 2
     # public, globally defined
     global.X = 3
-</PRE><H2 CLASS="section"><A NAME="toc31"></A><A NAME="htoc48">5.1</A>&#XA0;&#XA0;private.</H2><P>
-<A NAME="section:private"></A><A NAME="@default29"></A></P><P>The <CODE>private.</CODE> qualifier is used to define variables that are private to the current file/scope.
+</PRE><H2 CLASS="section"><A NAME="toc31"></A><A NAME="htoc50">5.1</A>&#XA0;&#XA0;private.</H2><P>
+<A NAME="section:private"></A><A NAME="@default31"></A></P><P>The <CODE>private.</CODE> qualifier is used to define variables that are private to the current file/scope.
 The values are not accessible outside the scope. Private variables are statically (lexically) scoped.</P><PRE CLASS="verbatim">    Obj. =
        private.X = 1
 
@@ -92,8 +92,8 @@ mentioned explicitly.<PRE CLASS="verbatim">       private. =
           export FLAG
 
        # FLAG is now false
-  </PRE></LI></OL><H2 CLASS="section"><A NAME="toc32"></A><A NAME="htoc49">5.2</A>&#XA0;&#XA0;this.</H2><P>
-<A NAME="@default30"></A></P><P>The <CODE>this.</CODE> qualifier is used to define fields that are local to an object.
+  </PRE></LI></OL><H2 CLASS="section"><A NAME="toc32"></A><A NAME="htoc51">5.2</A>&#XA0;&#XA0;this.</H2><P>
+<A NAME="@default32"></A></P><P>The <CODE>this.</CODE> qualifier is used to define fields that are local to an object.
 Object variables are dynamically scoped.</P><PRE CLASS="verbatim">    X = 1
     f() =
        println(The public value of X is: $(X))
@@ -121,8 +121,8 @@ Object variables are dynamically scoped.</P><PRE CLASS="verbatim">    X = 1
     Y = $(Obj.X)
 </PRE><P>In general, it is a good idea to define object variables as protected. The resulting code is more
 modular because variables in your object will not produce unexpected clashes with variables defined
-in other parts of the project.</P><H2 CLASS="section"><A NAME="toc33"></A><A NAME="htoc50">5.3</A>&#XA0;&#XA0;global.</H2><P>
-<A NAME="section:global"></A><A NAME="@default31"></A></P><P>The <CODE>global.</CODE> qualifier is used to specify global dynamically-scoped variables. In the following
+in other parts of the project.</P><H2 CLASS="section"><A NAME="toc33"></A><A NAME="htoc52">5.3</A>&#XA0;&#XA0;global.</H2><P>
+<A NAME="section:global"></A><A NAME="@default33"></A></P><P>The <CODE>global.</CODE> qualifier is used to specify global dynamically-scoped variables. In the following
 example, the <CODE>global.</CODE> definition specifies that the binding <CODE>X = 4</CODE> is to be dynamically
 scoped. Global variables <EM>are not</EM> defined as fields of an object.</P><PRE CLASS="verbatim">    X = 1
     f() =
@@ -146,19 +146,19 @@ scoped. Global variables <EM>are not</EM> defined as fields of an object.</P><PR
     #    The protected value of X is: 3
     #    The global value of X is: 4
     Obj.print()
-</PRE><H2 CLASS="section"><A NAME="toc34"></A><A NAME="htoc51">5.4</A>&#XA0;&#XA0;protected.</H2><P>
-<A NAME="section:protected"></A><A NAME="@default32"></A></P><P>In OMake 0.9.8, <CODE>protected</CODE> is a synonym for <CODE>this</CODE>.</P><PRE CLASS="verbatim">    osh&gt;protected.x = 1
+</PRE><H2 CLASS="section"><A NAME="toc34"></A><A NAME="htoc53">5.4</A>&#XA0;&#XA0;protected.</H2><P>
+<A NAME="section:protected"></A><A NAME="@default34"></A></P><P>In OMake 0.9.8, <CODE>protected</CODE> is a synonym for <CODE>this</CODE>.</P><PRE CLASS="verbatim">    osh&gt;protected.x = 1
     - : "1" : Sequence
     osh&gt;value $(this.x)
     - : "1" : Sequence
 </PRE><P>In 0.9.9, this will change, so that the qualifier <CODE>protected</CODE> means (in 0.9.9) that a variable
-is local to the current object or file, and may not be accessed outside it.</P><H2 CLASS="section"><A NAME="toc35"></A><A NAME="htoc52">5.5</A>&#XA0;&#XA0;public.</H2><P>
-<A NAME="section:public"></A><A NAME="@default33"></A></P><P>In OMake 0.9.8, <CODE>public</CODE> is a synonym for <CODE>global</CODE>.</P><PRE CLASS="verbatim">    osh&gt;public.x = 1
+is local to the current object or file, and may not be accessed outside it.</P><H2 CLASS="section"><A NAME="toc35"></A><A NAME="htoc54">5.5</A>&#XA0;&#XA0;public.</H2><P>
+<A NAME="section:public"></A><A NAME="@default35"></A></P><P>In OMake 0.9.8, <CODE>public</CODE> is a synonym for <CODE>global</CODE>.</P><PRE CLASS="verbatim">    osh&gt;public.x = 1
     - : "1" : Sequence
     osh&gt;value $(global.x)
     - : "1" : Sequence
 </PRE><P>In 0.9.9, this will change, so that the qualifier <CODE>public</CODE> means (in 0.9.9) that a variable
-is to be accessible from outside the current file or object.</P><H2 CLASS="section"><A NAME="toc36"></A><A NAME="htoc53">5.6</A>&#XA0;&#XA0;Qualified blocks</H2><P>If several qualified variables are defined simultaneously, a block form of qualifier can be defined.
+is to be accessible from outside the current file or object.</P><H2 CLASS="section"><A NAME="toc36"></A><A NAME="htoc55">5.6</A>&#XA0;&#XA0;Qualified blocks</H2><P>If several qualified variables are defined simultaneously, a block form of qualifier can be defined.
 The syntax is similar to an object definition, where the name of the object is the qualifier itself.
 For example, the following program defines two private variables <CODE>X</CODE> and <CODE>Y</CODE>.</P><PRE CLASS="verbatim">    private. =
         X = 1
@@ -170,8 +170,8 @@ block is otherwise completely general.</P><PRE CLASS="verbatim">    private. =
         public.Z = $(add $X, $Y)
         # Prints "The value of Z is 3"
         echo The value of Z is $Z
-</PRE><H2 CLASS="section"><A NAME="toc37"></A><A NAME="htoc54">5.7</A>&#XA0;&#XA0;declare</H2><P>
-<A NAME="section:declare"></A><A NAME="@default34"></A></P><P>When a variable name is unqualified, its namespace is determined by the most recent definition or
+</PRE><H2 CLASS="section"><A NAME="toc37"></A><A NAME="htoc56">5.7</A>&#XA0;&#XA0;declare</H2><P>
+<A NAME="section:declare"></A><A NAME="@default36"></A></P><P>When a variable name is unqualified, its namespace is determined by the most recent definition or
 declaration that is in scope for that variable. We have already seen this in the examples, where a
 variable definition is qualified, but the subsequent uses are not qualified explicitly. In the
 following example, the first occurrence of <CODE>$X</CODE> refers to the <EM>private</EM> definition,

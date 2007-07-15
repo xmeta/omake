@@ -596,6 +596,102 @@ It is appropriate to think of a \verb+.STATIC+ section as a rule that must be re
 the dependencies of the rule change.  The targets of the rule are the variables it exports (in this
 case, the \verb+TABLE+ variable).
 
+\subsubsection{.MEMO}
+\label{section:.MEMO}
+\index{.MEMO}
+\index[target]{.MEMO}
+
+A \verb+.MEMO+ rule is just like a \verb+.STATIC+ rule, except that the results are not saved
+between independent runs of \verb+omake+.
+
+\subsubsection{:key:}
+\index{:key:}
+
+The \verb+.STATIC+ and \verb+.MEMO+ rules also accept a \verb+:key:+ value, which specifies a
+``key'' associated with the values being computed.  It is useful to think of a \verb+.STATIC+ rule
+as a dictionary that associates keys with their values.  When a \verb+.STATIC+ rule is evaluated,
+the result is saved in the table with the \verb+:key:+ defined by the rule (if a \verb+:key:+ is not
+specified, a default key is used instead).  In other words, a rule is like a function.  The
+\verb+:key:+ specifies the function ``argument'', and the rule body computes the result.
+
+To illustrate, let's use a \verb+.MEMO+ rule to implement a Fibonacci function.
+
+\begin{verbatim}
+    fib(i) =
+        i = $(int $i)
+        .MEMO: :key: $i
+            println($"Computing fib($i)...")
+            result =
+                if $(or $(eq $i, 0), $(eq $i, 1))
+                    value $i
+                else
+                    add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+        value $(result)
+
+    println($"fib(10) = $(fib 10)")
+    println($"fib(12) = $(fib 12)")
+\end{verbatim}
+%
+When this script is run, it produces the following output.
+
+\begin{verbatim}
+    Computing fib(10)...
+    Computing fib(9)...
+    Computing fib(8)...
+    Computing fib(7)...
+    Computing fib(6)...
+    Computing fib(5)...
+    Computing fib(4)...
+    Computing fib(3)...
+    Computing fib(2)...
+    Computing fib(1)...
+    Computing fib(0)...
+    fib(10) = 55
+    Computing fib(12)...
+    Computing fib(11)...
+    fib(12) = 144
+\end{verbatim}
+%
+Note that the Fibonacci computation is performed just once for each value of the argument, rather
+than an exponential number of times.  In other words, the \verb+.MEMO+ rule has performed a
+memoization, hence the name.  Note that if \verb+.STATIC+ were used instead, the values would be
+saved across runs of \verb+omake+.
+
+As a general guideline, whenever you use a \verb+.STATIC+ or \verb+.MEMO+ rule within a function
+body, you will usually want to use a \verb+:key:+ value to index the rule by the function argument.
+However, this is not required.  In the following, the \verb+.STATIC+ rule is used to perform some
+expensive computation once.
+
+\begin{verbatim}
+    f(x) =
+        .STATIC:
+            y = $(expensive-computation)
+        add($x, $y)
+\end{verbatim}
+
+Additonal care should be taken for recursive functions, like the Fibonacci function.  If the
+\verb+:key:+ is omitted, then the rule would be defined in terms of itself, resulting in a cyclic
+dependency.  Here is the output of the Fibonacci program with an omitted \verb+:key:+.
+
+\begin{verbatim}
+    Computing fib(10)...
+    Computing fib(8)...
+    Computing fib(6)...
+    Computing fib(4)...
+    Computing fib(2)...
+    Computing fib(0)...
+    fib(10) = 0
+    fib(12) = 0
+\end{verbatim}
+%
+The reason for this behavior is that the \verb+result+ value is not saved until the base case
+\verb+i = 0 || i = 1+ is reached, so \verb+fib+ calls itself recursively until reaching
+\verb+fib(0)+, whereupon the \verb+result+ value is fixed at 0.
+
+In any case, recursive definitions are perfectly acceptable, but you will usually want a
+\verb+:key:+ argument so that each recursive call has a different \verb+:key:+.  In most cases, this
+means that the \verb+:key:+ should include all arguments to the function.
+
 \section{Constants}
 \index{constants}
 

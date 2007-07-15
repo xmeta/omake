@@ -391,8 +391,70 @@ added the the <CODE>TABLE</CODE>.</P><PRE CLASS="verbatim">    .STATIC: table-fi
             export
 </PRE><P>It is appropriate to think of a <CODE>.STATIC</CODE> section as a rule that must be recomputed whenever
 the dependencies of the rule change. The targets of the rule are the variables it exports (in this
-case, the <CODE>TABLE</CODE> variable).</P><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc46">4.15</A>&#XA0;&#XA0;Constants</H2><P>
-<A NAME="@default28"></A></P><P>Internally, OMake represents values in several forms, which we list here.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+case, the <CODE>TABLE</CODE> variable).</P><H4 CLASS="subsubsection"><A NAME="htoc46">4.14.1.1</A>&#XA0;&#XA0;.MEMO</H4><P>
+<A NAME="section:.MEMO"></A>
+<A NAME="@default28"></A>
+<A NAME="@target1"></A></P><P>A <CODE>.MEMO</CODE> rule is just like a <CODE>.STATIC</CODE> rule, except that the results are not saved
+between independent runs of <CODE>omake</CODE>.</P><H4 CLASS="subsubsection"><A NAME="htoc47">4.14.1.2</A>&#XA0;&#XA0;:key:</H4><P>
+<A NAME="@default29"></A></P><P>The <CODE>.STATIC</CODE> and <CODE>.MEMO</CODE> rules also accept a <CODE>:key:</CODE> value, which specifies a
+&#X201C;key&#X201D; associated with the values being computed. It is useful to think of a <CODE>.STATIC</CODE> rule
+as a dictionary that associates keys with their values. When a <CODE>.STATIC</CODE> rule is evaluated,
+the result is saved in the table with the <CODE>:key:</CODE> defined by the rule (if a <CODE>:key:</CODE> is not
+specified, a default key is used instead). In other words, a rule is like a function. The
+<CODE>:key:</CODE> specifies the function &#X201C;argument&#X201D;, and the rule body computes the result.</P><P>To illustrate, let's use a <CODE>.MEMO</CODE> rule to implement a Fibonacci function.</P><PRE CLASS="verbatim">    fib(i) =
+        i = $(int $i)
+        .MEMO: :key: $i
+            println($"Computing fib($i)...")
+            result =
+                if $(or $(eq $i, 0), $(eq $i, 1))
+                    value $i
+                else
+                    add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+        value $(result)
+
+    println($"fib(10) = $(fib 10)")
+    println($"fib(12) = $(fib 12)")
+</PRE><P>When this script is run, it produces the following output.</P><PRE CLASS="verbatim">    Computing fib(10)...
+    Computing fib(9)...
+    Computing fib(8)...
+    Computing fib(7)...
+    Computing fib(6)...
+    Computing fib(5)...
+    Computing fib(4)...
+    Computing fib(3)...
+    Computing fib(2)...
+    Computing fib(1)...
+    Computing fib(0)...
+    fib(10) = 55
+    Computing fib(12)...
+    Computing fib(11)...
+    fib(12) = 144
+</PRE><P>Note that the Fibonacci computation is performed just once for each value of the argument, rather
+than an exponential number of times. In other words, the <CODE>.MEMO</CODE> rule has performed a
+memoization, hence the name. Note that if <CODE>.STATIC</CODE> were used instead, the values would be
+saved across runs of <CODE>omake</CODE>.</P><P>As a general guideline, whenever you use a <CODE>.STATIC</CODE> or <CODE>.MEMO</CODE> rule within a function
+body, you will usually want to use a <CODE>:key:</CODE> value to index the rule by the function argument.
+However, this is not required. In the following, the <CODE>.STATIC</CODE> rule is used to perform some
+expensive computation once.</P><PRE CLASS="verbatim">    f(x) =
+        .STATIC:
+            y = $(expensive-computation)
+        add($x, $y)
+</PRE><P>Additonal care should be taken for recursive functions, like the Fibonacci function. If the
+<CODE>:key:</CODE> is omitted, then the rule would be defined in terms of itself, resulting in a cyclic
+dependency. Here is the output of the Fibonacci program with an omitted <CODE>:key:</CODE>.</P><PRE CLASS="verbatim">    Computing fib(10)...
+    Computing fib(8)...
+    Computing fib(6)...
+    Computing fib(4)...
+    Computing fib(2)...
+    Computing fib(0)...
+    fib(10) = 0
+    fib(12) = 0
+</PRE><P>The reason for this behavior is that the <CODE>result</CODE> value is not saved until the base case
+<CODE>i = 0 || i = 1</CODE> is reached, so <CODE>fib</CODE> calls itself recursively until reaching
+<CODE>fib(0)</CODE>, whereupon the <CODE>result</CODE> value is fixed at 0.</P><P>In any case, recursive definitions are perfectly acceptable, but you will usually want a
+<CODE>:key:</CODE> argument so that each recursive call has a different <CODE>:key:</CODE>. In most cases, this
+means that the <CODE>:key:</CODE> should include all arguments to the function.</P><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc48">4.15</A>&#XA0;&#XA0;Constants</H2><P>
+<A NAME="@default30"></A></P><P>Internally, OMake represents values in several forms, which we list here.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 int<UL CLASS="itemize"><LI CLASS="li-itemize">
 Constructor: <CODE>$(int &lt;i&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:int">9.4.1</A>.
 </LI><LI CLASS="li-itemize">Object: <CODE>Int</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Int">12.1.4</A>.
