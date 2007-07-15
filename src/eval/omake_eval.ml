@@ -1283,7 +1283,7 @@ and eval_body_exp venv pos x v =
  * But if the function has arity 0, then evaluate it.
  *)
 and eval_var venv pos loc v =
-   match eval_value venv pos v with
+   match v with
       ValFun (_, env, [], body, _) ->
          let venv = venv_with_env venv env in
          let _, result = eval_sequence venv pos ValNone body in
@@ -1747,7 +1747,9 @@ and eager_string_exp venv pos s =
  *)
 and eval_var_export venv pos loc v =
    let pos = string_pos "eval_var_export" pos in
-   match eval_value venv pos v with
+
+   (* Do not use eval_value; we don't want to force evaluation *)
+   match v with
       ValFun (_, env, [], body, export) ->
          let venv_new = venv_with_env venv env in
          let venv_new, result = eval_sequence venv_new pos ValNone body in
