@@ -341,7 +341,7 @@ let read venv pos loc args =
                   ValData s
                else if count = 0 then
                   raise (UncaughtException (pos, End_of_file))
-               else 
+               else
                   ValData (String.sub s 0 count)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
