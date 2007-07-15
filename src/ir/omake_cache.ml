@@ -65,7 +65,24 @@ struct
    let compare = (-)
 end
 
-module IndexMTable = Lm_map.LmMakeList (IndexCompare);;
+module IndexTable = Lm_map.LmMakeList (IndexCompare);;
+
+module IndexNodeTable =
+struct
+   type t = NodeSet.t IndexTable.t
+
+   let empty = IndexTable.empty
+
+   let add table i node =
+      IndexTable.filter_add table i (fun nodes ->
+            match nodes with
+               Some nodes ->
+                  NodeSet.add nodes node
+             | None ->
+                  NodeSet.singleton node)
+
+   let find = IndexTable.find
+end;;
 
 (*
  * Directory entry is a directory or node.
@@ -144,7 +161,7 @@ type key = int
 
 type 'a cache_info =
    { mutable cache_memos     : 'a memo NodeTable.t;
-     mutable cache_index     : Node.t IndexMTable.t
+     mutable cache_index     : IndexNodeTable.t
    }
 
 (*
@@ -327,11 +344,11 @@ let create_index memos =
          in
             match result with
                MemoSuccess _ ->
-                  let index = IndexMTable.add index hash target in
+                  let index = IndexNodeTable.add index hash target in
                      memos, index
              | MemoFailure _ ->
                   let memos = NodeTable.remove memos target in
-                     memos, index) (memos, IndexMTable.empty) memos
+                     memos, index) (memos, IndexNodeTable.empty) memos
 
 (*
  * Rebuild the cache from the saved version.
@@ -346,7 +363,7 @@ let cache_of_save options save =
       Array.mapi (fun idx memos ->
             if flush_scanner && idx = scanner_fun then
                { cache_memos = NodeTable.empty;
-                 cache_index = IndexMTable.empty
+                 cache_index = IndexNodeTable.empty
                }
             else
                let memos, index = create_index memos in
@@ -354,7 +371,7 @@ let cache_of_save options save =
                     cache_index = index
                   }) cache_info
    in
-   let cache_values = 
+   let cache_values =
       if opt_flush_static options then
          ValueTable.empty
       else
@@ -800,7 +817,7 @@ let stat_changed cache node =
  * Check if a file exists.
  *)
 let exists cache ?(force=false) node =
-   try 
+   try
       ignore (stat_unix cache ~force node); true
    with
       Not_found -> Node.always_exists node
@@ -836,7 +853,7 @@ let get_info cache key =
             let cache_info' =
                Array.init (succ key) (fun _ ->
                      { cache_memos = NodeTable.empty;
-                       cache_index = IndexMTable.empty
+                       cache_index = IndexNodeTable.empty
                      })
             in
                Array.blit cache_info 0 cache_info' 0 len;
@@ -863,7 +880,7 @@ let add cache key target targets deps commands result =
    in
    let info = get_info cache key in
       info.cache_memos <- NodeTable.add info.cache_memos target memo;
-      info.cache_index <- IndexMTable.add info.cache_index index target
+      info.cache_index <- IndexNodeTable.add info.cache_index index target
 
 (*
  * Check the target digest.
@@ -909,7 +926,9 @@ let find_memo cache key deps commands =
     | [] ->
          raise Not_found
    in
-      search (IndexMTable.find_all index hash)
+   let targets = NodeSet.to_list (IndexNodeTable.find index hash) in
+      (* eprintf "Targets: %d@." (List.length targets); *)
+      search targets
 
 (*
  * A memo has not changed if all the deps and the target
