@@ -909,40 +909,40 @@ sig
     * not the .omc file.  We'll figure out where the .omc file
     * goes on our own.  Raises Not_found if the source file
     * can't be found.
+    * The implementation will make sure all the locking/unlocking is done properly.
     *)
-   val create_in    : venv -> Node.t -> in_handle
-   val close_in     : in_handle -> unit
-
-   val create_out   : venv -> Node.t -> out_handle
-   val recreate_out : in_handle -> out_handle
-   val close_out    : out_handle -> unit
+   val read        : venv -> Node.t -> (in_handle -> 'a) -> 'a
+   val rewrite     : in_handle -> (out_handle -> 'a) -> 'a
 
    (*
-    * Unfortunately, the IR type is delayed because it
-    * has type (Omake_ir_ast.senv * Omake_ir.ir), and
-    * Omake_ir_ast depends on this file.
-    *)
-
-   (*
-    * Fetch the three kinds of entries.
+    * Fetch the two kinds of entries.
     *)
    val find_ir     : in_handle -> ir
    val find_object : in_handle -> obj
-   val find_values : in_handle -> obj SymbolTable.t
 
-   (*
-    * Add the three kinds of entries.
-    *)
    val get_ir      : out_handle -> ir
    val get_object  : out_handle -> obj
-   val get_values  : out_handle -> obj SymbolTable.t
 
+   (*
+    * Add the two kinds of entries.
+    *)
    val add_ir      : out_handle -> ir -> unit
    val add_object  : out_handle -> obj -> unit
-   val add_values  : out_handle -> obj SymbolTable.t -> unit
-end;;
+end
 
-module Static : StaticSig =
+(*
+ * For static values, we access the db a bit more directly
+ *)
+module type InternalStaticSig =
+sig
+   include StaticSig
+   val write       : venv -> Node.t -> (out_handle -> 'a) -> 'a
+   
+   val find_values : in_handle -> obj SymbolTable.t
+   val add_values  : out_handle -> obj SymbolTable.t -> unit
+end
+
+module Static : InternalStaticSig =
 struct
    (************************************************************************
     * Types.
@@ -1026,21 +1026,30 @@ struct
            db_flush_static = opt_flush_static venv.venv_inner.venv_options;
          }
 
-   let create_in = create_mode Unix.F_RLOCK
-   let create_out = create_mode Unix.F_LOCK
-
    (*
     * Restart with a write lock.
     *)
-   let recreate_out info =
+   let rewrite info f =
       match info.db_file with
          Some fd ->
-            let _ = Unix.lseek fd 0 Unix.SEEK_SET in
+            ignore (Unix.lseek fd 0 Unix.SEEK_SET: int);
+            Omake_state.lock_file fd Unix.F_ULOCK;
+            Omake_state.lock_file fd Unix.F_LOCK;
+            let finish () =
+               ignore (Unix.lseek fd 0 Unix.SEEK_SET: int);
                Omake_state.lock_file fd Unix.F_ULOCK;
-               Omake_state.lock_file fd Unix.F_LOCK;
-               info
+               Omake_state.lock_file fd Unix.F_RLOCK
+            in
+               begin try 
+                  let result = f info in
+                     finish ();
+                     result
+                  with exn ->
+                     finish ();
+                     raise exn
+               end
        | None ->
-            info
+            f info
 
    (*
     * Close the file.
@@ -1054,8 +1063,18 @@ struct
        | { db_file = None } ->
             ()
 
-   let close_in = close
-   let close_out = close
+   let perform mode venv source f =
+      let info = create_mode mode venv source in
+         try
+            let result = f info in
+               close info;
+               result
+         with exn ->
+            close info;
+            raise exn
+
+   let read venv source f = perform Unix.F_RLOCK venv source f
+   let write venv source f = perform Unix.F_LOCK venv source f
 
    (*
     * Add the three kinds of entries.
@@ -1133,7 +1152,6 @@ struct
 
    let get_ir     = find_ir
    let get_object = find_object
-   let get_values = find_values
 end;;
 
 (*
@@ -1361,14 +1379,7 @@ let venv_find_static_object venv node v =
       try NodeTable.find static node with
          Not_found ->
             (* Load it from the file *)
-            let fd = Static.create_in venv node in
-            let table =
-               try Static.find_values fd with
-                  Not_found ->
-                     Static.close_in fd;
-                     raise Not_found
-            in
-               Static.close_in fd;
+            let table = Static.read venv node Static.find_values in
                globals.venv_static_values <- NodeTable.add static node table;
                table
    in
@@ -1408,17 +1419,9 @@ let venv_include_static_object venv obj =
 let venv_save_static_values venv =
    let globals = venv.venv_inner.venv_globals in
       NodeTable.iter (fun node table ->
-            let fd =
-               try Some (Static.create_out venv node) with
-                  Not_found ->
-                     None
-            in
-               match fd with
-                  Some fd ->
-                     Static.add_values fd table;
-                     Static.close_out fd
-                | None ->
-                     ()) globals.venv_modified_values;
+            try Static.write venv node (fun fd -> Static.add_values fd table)
+            with Not_found ->
+               ()) globals.venv_modified_values;
       globals.venv_modified_values <- NodeTable.empty
 
 (************************************************************************

@@ -397,20 +397,19 @@ and open_ir venv filename pos loc =
  * Try to load the old entry.
  * If it fails, compile the file and save the new entry.
  *)
-and compile_add_ir_info venv scope info pos loc source =
-   let _pos = string_pos "compile_ir_info" pos in
+and compile_add_ir_info venv scope pos loc source info =
+   let _pos = string_pos "compile_add_ir_info" pos in
       try Static.get_ir info with
          Not_found ->
             let ir = parse_ir venv scope source in
                Static.add_ir info ir;
                ir
 
-and compile_ir_info venv scope info pos loc source =
+and compile_ir_info venv scope pos loc source info =
    let _pos = string_pos "compile_ir_info" pos in
       try Static.find_ir info with
          Not_found ->
-            let info = Static.recreate_out info in
-               compile_add_ir_info venv scope info pos loc source
+            Static.rewrite info (compile_add_ir_info venv scope pos loc source)
 
 and compile_ir venv scope pos loc source =
    let pos = string_pos "compile_ir" pos in
@@ -423,14 +422,9 @@ and compile_ir venv scope pos loc source =
                (*
                 * Open the database.
                 *)
-               let info =
-                  try Static.create_in venv source with
-                     Not_found ->
-                        raise (OmakeException (loc_pos loc pos, StringNodeError ("can't open IR", source)))
-               in
-               let ir = compile_ir_info venv scope info pos loc source in
-                  Static.close_in info;
-                  ir
+               try Static.read venv source (compile_ir_info venv scope pos loc source)
+               with Not_found ->
+                  raise (OmakeException (loc_pos loc pos, StringNodeError ("can't open IR", source)))
             in
                venv_add_ir_file venv source ir;
                ir
@@ -438,20 +432,23 @@ and compile_ir venv scope pos loc source =
 (*
  * The object file contains the evaluated file.
  *)
-and compile_add_object_info compile venv pos info source =
+and compile_add_object_info compile venv pos source info =
    let _pos = string_pos "compile_add_object_info_info" pos in
-   let info = Static.recreate_out info in
       try Static.get_object info with
          Not_found ->
             let obj = compile info source in
                Static.add_object info obj;
                obj
 
-and compile_object_info compile venv pos info source =
+(*
+ * Try to load the old entry.
+ * If it fails, compile the file and save the new entry.
+ *)
+and compile_object_info compile venv pos source info =
    let _pos = string_pos "compile_object_info" pos in
       try Static.find_object info with
          Not_found ->
-            compile_add_object_info compile venv pos info source
+            Static.rewrite info (compile_add_object_info compile venv pos source)
 
 and compile_object compile venv pos loc source =
    let pos = string_pos "compile_ast" pos in
@@ -465,19 +462,9 @@ and compile_object compile venv pos loc source =
                (*
                 * Open the database.
                 *)
-               let info =
-                  try Static.create_in venv source with
-                     Not_found ->
-                        raise (OmakeException (loc_pos loc pos, StringNodeError ("can't open object", source)))
-               in
-
-               (*
-                * Try to load the old entry.
-                * If it fails, compile the file and save the new entry.
-                *)
-               let obj = compile_object_info compile venv pos info source in
-                  Static.close_in info;
-                  obj
+               try Static.read venv source (compile_object_info compile venv pos source)
+               with Not_found ->
+                  raise (OmakeException (loc_pos loc pos, StringNodeError ("can't open object", source)))
             in
                venv_add_object_file venv source obj;
                obj
@@ -2262,7 +2249,7 @@ and include_file venv scope pos loc target =
  *)
 and eval_object_file venv pos loc node =
    let parse_obj info node =
-      let ir = compile_add_ir_info venv IncludePervasives info pos loc node in
+      let ir = compile_add_ir_info venv IncludePervasives pos loc node info in
       let { ir_classnames = names;
             ir_exp = e
           } = ir

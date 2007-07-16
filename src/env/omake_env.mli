@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology, and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@metaprl.org}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -497,38 +498,26 @@ sig
     * not the .omc file.  We'll figure out where the .omc file
     * goes on our own.  Raises Not_found if the source file
     * can't be found.
+    * The implementation will make sure all the locking/unlocking is done properly.
     *)
-   val create_in    : venv -> Node.t -> in_handle
-   val close_in     : in_handle -> unit
-
-   val create_out   : venv -> Node.t -> out_handle
-   val recreate_out : in_handle -> out_handle
-   val close_out    : out_handle -> unit
+   val read        : venv -> Node.t -> (in_handle -> 'a) -> 'a
+   val rewrite     : in_handle -> (out_handle -> 'a) -> 'a
 
    (*
-    * Unfortunately, the IR type is delayed because it
-    * has type (Omake_ir_ast.senv * Omake_ir.ir), and
-    * Omake_ir_ast depends on this file.
-    *)
-
-   (*
-    * Fetch the three kinds of entries.
+    * Fetch the two kinds of entries.
     *)
    val find_ir     : in_handle -> ir
    val find_object : in_handle -> obj
-   val find_values : in_handle -> obj SymbolTable.t
 
-   (*
-    * Add the three kinds of entries.
-    *)
    val get_ir      : out_handle -> ir
    val get_object  : out_handle -> obj
-   val get_values  : out_handle -> obj SymbolTable.t
 
+   (*
+    * Add the two kinds of entries.
+    *)
    val add_ir      : out_handle -> ir -> unit
    val add_object  : out_handle -> obj -> unit
-   val add_values  : out_handle -> obj SymbolTable.t -> unit
-end;;
+end
 
 module Static : StaticSig;;
 
