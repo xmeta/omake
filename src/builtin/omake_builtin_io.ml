@@ -572,6 +572,27 @@ let flush venv pos loc args =
 
 (*
  * \begin{doc}
+ * \fun{channel-name}
+ *
+ * \begin{verbatim}
+ *    $(channel-name channel...) : String
+ *       channel : Channel
+ * \end{verbatim}
+ *
+ * The \verb+channel-name+ function returns the name that is associated with the channel.
+ * \end{doc}
+ *)
+let channel_name venv pos loc args =
+   let pos = string_pos "channel-name" pos in
+      match args with
+         [arg] ->
+            let fd = channel_of_value venv pos arg in
+               ValData (Lm_channel.name fd)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
  * \fun{dup}
  *
  * \begin{verbatim}
@@ -1916,6 +1937,7 @@ let () =
        true, "rewind",                rewind,               ArityExact 1;
        true, "tell",                  tell,                 ArityExact 1;
        true, "flush",                 flush,                ArityExact 1;
+       true, "channel-name",          channel_name,         ArityExact 1;
        true, "dup",                   dup,                  ArityExact 1;
        true, "dup2",                  dup2,                 ArityExact 2;
        true, "set-nonblock-mode",     set_nonblock_mode,    ArityExact 2;

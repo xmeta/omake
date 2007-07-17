@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2007 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, California Institute of Technology, and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +25,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_hash
@@ -99,6 +100,8 @@ let amp_var                    = create_pervasives_var amp_sym
 let braces_var                 = create_pervasives_var braces_sym
 let fs_var                     = create_pervasives_var fs_sym
 let rs_var                     = create_pervasives_var rs_sym
+let filename_var               = create_pervasives_var filename_sym
+let fnr_var                    = create_pervasives_var fnr_sym
 
 let parse_loc_var              = create_pervasives_var parse_loc_sym
 let zero_var                   = create_pervasives_var zero_sym
@@ -170,12 +173,9 @@ let create_numeric_var =
    in
       get
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

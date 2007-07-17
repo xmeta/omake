@@ -860,7 +860,7 @@ let awk venv pos loc args =
    in
 
    (* Read the file a line at a time *)
-   let rec line_loop venv inx =
+   let rec line_loop venv inx lineno =
       match Lexer.searchto rs_lex inx with
          Lexer.LexEOF ->
             venv
@@ -869,16 +869,18 @@ let awk venv pos loc args =
             (* Split into words *)
             let words = collect_words line in
             let venv = venv_add_match venv line words in
+            let venv = venv_add_var venv fnr_var (ValInt lineno) in
             let venv = awk_eval_cases venv pos loc break line cases in
-               line_loop venv inx
+               line_loop venv inx (lineno + 1)
    in
    let rec file_loop venv args =
       match args with
          arg :: args ->
             let inp, close_in = in_channel_of_any_value venv pos arg in
             let inx = venv_find_channel venv pos inp in
+            let venv = venv_add_var venv filename_var (ValData (Lm_channel.name inx)) in
             let venv =
-               try line_loop venv inx with
+               try line_loop venv inx 1 with
                   exn when close_in ->
                      venv_close_channel venv pos inp;
                      raise exn

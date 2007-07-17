@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2007 Mojave Group, Caltech
+ * Copyright (C) 2007 Mojave Group, California Institute of Technology, and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +25,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -86,6 +87,8 @@ val zero_var                   : var_info
 val nf_var                     : var_info
 val fs_var                     : var_info
 val rs_var                     : var_info
+val filename_var               : var_info
+val fnr_var                    : var_info
 
 val object_var                 : var_info
 val int_object_var             : var_info
@@ -137,12 +140,9 @@ val file_id_var                : var_info
  *)
 val create_numeric_var         : int -> var_info
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
