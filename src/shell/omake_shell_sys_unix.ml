@@ -56,12 +56,6 @@ let setpgid pid1 pid2 =
       ext_setpgid pid1 pid2
 
 (*
- * Stop the shell.
- *)
-let close () =
-   ()
-
-(*
  * Close-on-exec flags.
  * We actually want a close-on-fork, so we keep track of
  * these descriptors.

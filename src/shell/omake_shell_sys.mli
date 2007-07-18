@@ -32,11 +32,6 @@ open Omake_shell_sys_type
 open Omake_shell_type
 
 (*
- * Close the session.
- *)
-val close : unit -> unit
-
-(*
  * Set whether we are in interactive mode.
  * Defaults to true.
  *)
@@ -85,12 +80,9 @@ val create_thread : create_thread -> pid
  *)
 val create_process : create_process -> pid
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2006 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, California Institute of Technology, and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -56,7 +57,13 @@ external init_shell         : unit -> unit                = "omake_shell_sys_ini
 external close              : unit -> unit                = "omake_shell_sys_close"
 
 let () =
-   init_shell ()
+   init_shell ();
+   let pid = Unix.getpid () in
+   let do_close () =
+      if pid == Unix.getpid () then
+         close ()
+   in
+      Pervasives.at_exit do_close
 
 let set_interactive _ = ()
 let set_close_on_exec = Unix.set_close_on_exec
@@ -132,6 +139,9 @@ let create_thread info =
                   Omake_value_type.ExitException (_, code) ->
                      cleanup ();
                      code
+                | Sys.Break as exn ->
+                     cleanup();
+                     raise exn
                 | exn ->
                      eprintf "@[<v 3>%a@ Thread failed with an exception, cleaning up@]@." Omake_exn_print.pp_print_exn exn;
                      cleanup ();

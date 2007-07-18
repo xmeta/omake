@@ -2943,8 +2943,8 @@ let rec build_targets env save_flag start_time parallel print ?(summary = true) 
                else if opt_osh options then
                   env.env_error_code <- exn_error_code
                else begin
-                  save env;
                   close env;
+                  save env;
                   raise (BuildExit exn_error_code)
                end
    in
@@ -3085,7 +3085,7 @@ let build options dir_name targets =
       build_time (Unix.gettimeofday ()) None options dir_name targets
    with
       BuildExit code ->
-         exit code
+         Pervasives.exit code
 
 let build_fun venv targets =
    let options = venv_options venv in
