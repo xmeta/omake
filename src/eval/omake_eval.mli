@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology, and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +26,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified by: Aleksey Nogin @email{nogin@metaprl.org}
+ * Modified by: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_glob
@@ -45,6 +46,9 @@ val print_ir    : bool ref
 val print_rules : bool ref
 val print_files : bool ref
 val debug_eval  : bool ref
+
+(* Utility *)
+val raise_uncaught_exception : pos -> exn -> 'a
 
 (*
  * Evaluate an expression.
@@ -158,12 +162,9 @@ val values_of_value  : venv -> pos -> value -> value list
 val strings_of_value : venv -> pos -> value -> string list
 val bool_of_value    : venv -> pos -> value -> bool
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)

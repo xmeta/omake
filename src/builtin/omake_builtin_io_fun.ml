@@ -85,7 +85,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2006 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, California Institute of Technology, and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -106,7 +107,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@metaprl.org}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_debug
@@ -1199,14 +1200,14 @@ let lex venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let venv =
                try input_loop venv inx with
-                  (Break _ | Return _ | UncaughtException _ ) as exn ->
+                  (Break _ | Return _ ) as exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
                      raise exn
                 | exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
-                     raise (UncaughtException (pos, exn))
+                     raise_uncaught_exception pos exn
             in
                if close_in then
                   venv_close_channel venv pos inp;
@@ -1338,14 +1339,14 @@ let lex_search venv pos loc args =
             let inx = venv_find_channel venv pos inp in
             let venv =
                try input_loop venv inx with
-                  (Break _ | Return _ | UncaughtException _ ) as exn ->
+                  (Break _ | Return _) as exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
                      raise exn
                 | exn ->
                      if close_in then
                         venv_close_channel venv pos inp;
-                     raise (UncaughtException (pos, exn))
+                     raise_uncaught_exception pos exn
             in
                if close_in then
                   venv_close_channel venv pos inp;

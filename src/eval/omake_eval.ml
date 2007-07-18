@@ -106,6 +106,15 @@ type include_flag =
 (************************************************************************
  * Utilities.
  *)
+let raise_uncaught_exception pos = function
+   Sys.Break
+ | OmakeException _
+ | OmakeFatal _
+ | OmakeFatalErr _
+ | UncaughtException _ as exn ->
+      raise exn
+ | exn ->
+      raise (UncaughtException (pos, exn))
 
 (*
  * Add an optional quote.

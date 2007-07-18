@@ -498,7 +498,7 @@ let build venv pos loc args =
             let b =
                try Omake_build.build_fun venv targets with
                   exn ->
-                     raise (UncaughtException (pos, exn))
+                     raise_uncaught_exception pos exn
             in
                if b then val_true else val_false
        | _ ->

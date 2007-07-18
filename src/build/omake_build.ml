@@ -2974,7 +2974,11 @@ and build_on_error env save_flag start_time parallel print targets options error
  * Notification loop.
  *)
 let rec notify_loop env options targets =
-   notify_wait env;
+   begin try
+      notify_wait env
+   with Sys.Break ->
+      raise (BuildExit 0)
+   end;
 
    (* Build the targets again *)
    let start_time = Unix.gettimeofday () in
@@ -3066,7 +3070,9 @@ let rec build_time start_time venv_opt options dir_name targets =
             restart reason
        | Sys.Break ->
             close env;
-            save env
+            save env;
+            eprintf "%a@." Omake_exn_print.pp_print_exn exn;
+            raise (BuildExit exn_error_code)
        | exn when opt_poll options && restartable_exn exn ->
             eprintf "%a@." Omake_exn_print.pp_print_exn exn;
             let reason = notify_wait_omakefile env in
