@@ -201,6 +201,8 @@ let spec =
               "Debug the file database";
            "-debug-hash", Lm_arg.Set debug_hash, (**)
               "Show Lm_hash statistics";
+           "-debug-thread", Lm_arg.Set Lm_thread_pool.debug_thread, (**)
+              "Show thread operations";
            "-allow-exceptions", Lm_arg.SetFold set_allow_exceptions_opt, (**)
               "Do not catch top-level exceptions (for use with OCAMLRUNPARAM=b)"];
        "Internal flags", (**)
