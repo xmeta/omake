@@ -170,7 +170,7 @@ let rec pp_print_value buf v =
     | ValDelayed { contents = ValValue v } ->
          fprintf buf "<delayed:normal %a>" pp_print_value v
     | ValDelayed { contents = ValStaticApply (key, v) } ->
-         fprintf buf "<delayed:static %a::%a>" pp_print_value key pp_print_symbol v
+         fprintf buf "<delayed:memo %a::%a>" pp_print_value key pp_print_symbol v
 
 and pp_print_value_list buf vl =
    List.iter (fun v -> fprintf buf "@ %a" pp_print_value v) vl
