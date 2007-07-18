@@ -3068,7 +3068,7 @@ let rec build_time start_time venv_opt options dir_name targets =
       try build_core env dir_name dir start_time options targets with
          Restart reason ->
             restart reason
-       | Sys.Break ->
+       | Sys.Break as exn ->
             close env;
             save env;
             eprintf "%a@." Omake_exn_print.pp_print_exn exn;
