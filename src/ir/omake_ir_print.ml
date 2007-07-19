@@ -143,9 +143,9 @@ let pp_print_var_info buf v =
 let pp_print_export_item buf item =
    match item with
       ExportRules ->
-         pp_print_string buf "<item>"
+         pp_print_string buf ".RULE"
     | ExportPhonies ->
-         pp_print_string buf "<phonies>"
+         pp_print_string buf ".PHONY"
     | ExportVar v ->
          pp_print_var_info buf v
 

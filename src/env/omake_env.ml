@@ -937,7 +937,7 @@ module type InternalStaticSig =
 sig
    include StaticSig
    val write       : venv -> Node.t -> (out_handle -> 'a) -> 'a
-   
+
    val find_values : in_handle -> obj SymbolTable.t
    val add_values  : out_handle -> obj SymbolTable.t -> unit
 end
@@ -1040,7 +1040,7 @@ struct
                Omake_state.lock_file fd Unix.F_ULOCK;
                Omake_state.lock_file fd Unix.F_RLOCK
             in
-               begin try 
+               begin try
                   let result = f info in
                      finish ();
                      result
@@ -2917,11 +2917,12 @@ let add_path_exports venv_orig venv_dst venv_src pos path = function
    ExportNone ->
       venv_orig
  | ExportAll ->
-      let venv = venv_export_venv venv_dst venv_src in
-         hoist_this venv venv path
+      let venv2 = venv_export_venv venv_dst venv_src in
+      let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
+         hoist_this venv1 venv2 path
  | ExportList vars ->
       let venv = export_list pos venv_dst venv_src vars in
-         hoist_this venv venv path
+         hoist_this venv_orig venv path
 
 (************************************************************************
  * Squashing.

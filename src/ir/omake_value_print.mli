@@ -35,6 +35,7 @@ val pp_print_source_list      : formatter -> ('a * source_core) list -> unit
 val pp_print_value            : formatter -> value -> unit
 val pp_print_simple_value     : formatter -> value -> unit
 val pp_print_value_list       : formatter -> value list -> unit
+val pp_print_path             : formatter -> path -> unit
 
 (*
  * -*-
