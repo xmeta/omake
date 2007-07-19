@@ -345,6 +345,8 @@ let _ =
             eprintf "@\n@[<hv 3>*** omake fatal error:@ %s@]@." s;
             exit 3
    in
+      Lm_thread_core.debug_mutex := !Lm_thread_pool.debug_thread;
+      Lm_thread.debug_lock := !Lm_thread_pool.debug_thread;
       (* Run it *)
       match !server_flag with
          Some cwd ->
