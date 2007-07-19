@@ -2921,8 +2921,9 @@ let add_path_exports venv_orig venv_dst venv_src pos path = function
       let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
          hoist_this venv1 venv2 path
  | ExportList vars ->
-      let venv = export_list pos venv_dst venv_src vars in
-         hoist_this venv_orig venv path
+      let venv2 = export_list pos venv_dst venv_src vars in
+      let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
+         hoist_this venv1 venv2 path
 
 (************************************************************************
  * Squashing.
