@@ -123,7 +123,13 @@ struct
          true, { notify_event = None;
                  notify_server = Some server
          } ->
-            [Lm_notify.file_descr server]
+            begin match Lm_notify.file_descr server with
+               Some fd ->
+                  [fd]
+             | None ->
+                  (* We are probabaly on Win32? *)
+                  [Unix.stdin]
+            end
        | _ ->
             []
 
