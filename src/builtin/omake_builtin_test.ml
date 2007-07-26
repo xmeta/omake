@@ -9,7 +9,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2006 Mojave Group, Caltech
+ * Copyright (C) 2005-2007 Mojave Group, California Institute of Technology and
+ * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,8 +30,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_glob
@@ -109,6 +110,7 @@ type token =
  | TokBinop of binop * string
  | TokIntop of intop * string
  | TokName of string
+ | TokRegex of string
 
 (*
  * Expressions.
@@ -191,6 +193,8 @@ let token_of_string s =
     | "-w"  -> TokUnop (IsWritableFileOp, s)
     | "-x"  -> TokUnop (IsExecutableFileOp, s)
     | "-name" -> TokName s
+    | "-regex" 
+    | "-regexp" -> TokRegex s
     | _     -> TokString s
 
 (*
@@ -209,6 +213,7 @@ let string_of_token arg =
     | TokUnop (_, s)
     | TokBinop (_, s)
     | TokIntop (_, s)
+    | TokRegex s
     | TokName s ->
          s
 
@@ -625,6 +630,8 @@ let rec parse_term venv pos tokens =
             UnopExp (op, arg), tokens
        | TokName _ :: arg :: tokens ->
             MatchExp (regex_of_shell_pattern no_glob_options (string_of_token arg)), tokens
+       | TokRegex _ :: arg :: tokens ->
+            MatchExp (LmStr.regexp (string_of_token arg)), tokens
        | arg :: tokens ->
             UnopExp (IsNonEmptyStringOp, arg), tokens
        | [] ->
@@ -841,6 +848,7 @@ let test_cmd venv pos loc argv =
  * \begin{itemize}
  * \item    \verb+-name+ \emph{string} : The current file matches the glob expression
  * (see Section~\ref{section:globbing}).
+ * \item    \verb+-regex+ \emph{string} : The current file matches the regular expression
  * \end{itemize}
  *
  * The \verb+find+ function performs a recursive scan of all subdirectories.
