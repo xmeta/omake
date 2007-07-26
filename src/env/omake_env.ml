@@ -2909,9 +2909,25 @@ let rec hoist_path venv path obj =
     | PathField (path, parent_obj, v) ->
          let obj = SymbolTable.add parent_obj v (ValObject obj) in
             hoist_path venv path obj
+(*
+ * Check that the head variable was not already shadowed.
+ *)
+let rec val_is_same_path venv1 venv2 = function
+   PathVar(v, _) ->
+      if venv_defined venv1 v && venv_defined venv2 v then
+         let obj1 = venv_find_var_exn venv1 v in
+         let obj2 = venv_find_var_exn venv2 v in
+            obj1 == obj2
+      else
+         false
+ | PathField (path, _, _) ->
+      val_is_same_path venv1 venv2 path
 
-let hoist_this venv_dst venv_src path =
-   hoist_path venv_dst path venv_src.venv_this
+let hoist_this venv_orig venv_new venv_dst venv_src path =
+   if val_is_same_path venv_orig venv_new path then
+      hoist_path venv_dst path venv_src.venv_this
+   else
+      venv_dst
 
 let add_path_exports venv_orig venv_dst venv_src pos path = function
    ExportNone ->
@@ -2919,11 +2935,11 @@ let add_path_exports venv_orig venv_dst venv_src pos path = function
  | ExportAll ->
       let venv2 = venv_export_venv venv_dst venv_src in
       let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
-         hoist_this venv1 venv2 path
+         hoist_this venv_orig venv_src venv1 venv2 path
  | ExportList vars ->
       let venv2 = export_list pos venv_dst venv_src vars in
       let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
-         hoist_this venv1 venv2 path
+         hoist_this venv_orig venv_src venv1 venv2 path
 
 (************************************************************************
  * Squashing.

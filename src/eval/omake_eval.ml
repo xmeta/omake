@@ -1816,7 +1816,7 @@ and eval_apply_method_export_exp venv venv_obj pos loc path v args =
     | ValPrim (_, be_eager, f) ->
          let args = List.map (eval_string_exp be_eager venv pos) args in
          let venv_new, result = venv_apply_prim_fun f venv_obj pos loc args in
-         let venv = hoist_this venv venv_new path in
+         let venv = hoist_this venv venv_new venv venv_new path in
             venv, result
     | v ->
          if args = [] then
