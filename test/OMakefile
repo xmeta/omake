@@ -1,7 +1,16 @@
 #
 # Collect all tests.
 #
-TESTDIRS = $(dir $(set $(dirname $(find . -name Test[1-9]))))
+TESTS = $(find . -regex $'^Test[0-9]*$')
+TestMap = $(empty-map)
+foreach(tst, $(TESTS))
+    d = $(dir $(dirname $(tst)))
+    TestMap =
+        if $(TestMap.mem $d)
+            value $(TestMap.add $d, $(array $(TestMap.find $d), $(tst)))
+        else
+            value $(TestMap.add $d, $(tst))
+    export TestMap
 
 runtest(subtest) =
     setenv(OMAKEPATH, $(absname $(ROOT)/lib))
@@ -36,8 +45,7 @@ Shell. +=
     test(argv) =
         result = $"Tested $(in .., $(dir .)): "
         failures = false
-        subtests = $(filter-exists Test)
-        subtests += $(set $(glob i, Test[1-9]))
+        subtests = $(file $(set $(TestMap.find $(dir .))))
         if $(public.HAS_DATE)
             date > $(resultfile)
         else
@@ -60,7 +68,7 @@ Shell. +=
             export
         println($(result))
 
-.SUBDIRS: $(TESTDIRS)
+.SUBDIRS: $(TestMap.keys)
     resultfile = $(file result.log)
     check: /.PHONY/all :effects: $(resultfile)
         test $(resultfile)
