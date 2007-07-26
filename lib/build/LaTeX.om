@@ -83,9 +83,6 @@ public. =
         FORCE_WIN32_LATEX = false
         export
 
-TETEX2_ENABLED = false
-FILE_LINE_ERROR =
-
 .STATIC:
     open configure/Configure
 
@@ -98,6 +95,8 @@ FILE_LINE_ERROR =
     # XXX: We should move the uname test into configure/uname.
     #
     OUTPUT_COMMENT_SUPPORTED = false
+    TETEX2_ENABLED = false
+    FILE_LINE_ERROR =
     LATEX_USABLE = $(CheckProg latex)
     if $(and $(LATEX_USABLE), $(not $(FORCE_WIN32_LATEX)), $(equal $(OSTYPE), Win32), $(CheckProg uname))
        match($(shell uname))
@@ -233,7 +232,7 @@ Shell. +=
         $(argv)
 
     protected.run-latex(argv) =
-        if $(mem $(FILE_LINE_ERROR), $(argv))
+        if $(TETEX2_ENABLED)
             if $(not $(shell-success $(argv)))
                 private.f = $(replacesuffixes .tex, $(string $(EMPTY)), $(last $(argv)))
                 eprintln(*** Errors detected while running LaTeX on $(private.f).tex:)
