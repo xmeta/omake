@@ -83,6 +83,7 @@ open configure/Configure
 #     and \verb+lib+ on \verb+Win32+).
 # \var{LD} The name of the linker (defaults to \verb+ld+ on \verb+Unix+, and \verb+cl+ on \verb+Win32+).
 # \var{LDFLAGS} Options to pass to the linker (default is empty).
+# \varlabel{LDFLAGS_DLL}{LDFLAGS\_DLL} Options to pass to the linker when compiling a shared library (defaults to \verb+-shared+ on \verb+Unix+ and \verb+/DLL+ on \verb+Win32+).
 # \var{LDOUT} The option to use for specifying the output file in C and C++ linkers
 #     (defaults to \verb+-o+ on \verb+Unix+ and \verb+/Fe+ on \verb+Win32+).
 # \var{YACC} The name of the \verb+yacc+ parser generator (default is \verb+yacc+ on \verb+Unix+, empty on \verb+Win32+).
@@ -106,6 +107,8 @@ if $(equal $(OSTYPE), Win32)
     public.LEX = echo lex
     public.LIBS =
     public.LDFLAGS =
+    public.LDFLAGS_DLL = /DLL
+    public.CDLL_IMPLIES_STATIC = true
     public.LDOUT = /Fe
 
     public.AS = ml /nologo
@@ -137,6 +140,8 @@ else
     public.LEX = lex
     public.LIBS =
     public.LDFLAGS =
+    public.LDFLAGS_DLL = -shared
+    public.CDLL_IMPLIES_STATIC = false
     public.LDOUT = $(array -o)
 
     public.AS = as
@@ -281,15 +286,20 @@ else
 #
 # \begin{doc}
 # \subsection{Building C programs and Libraries}
-# \fun{StaticCLibrary}
+# \twofuns{StaticCLibrary}{SharedCLibrary}
 #
-# The \verb+StaticCLibrary+ builds a static library.
+# The \verb+StaticCLibrary+ builds a static library and the \verb+SharedCLibrary+
+# function builds a shared library (DLL).
 #
-# \verb+StaticCLibrary(<target>, <files>)+
+# \begin{verbatim}
+# StaticCLibrary(<target>, <files>)
+# SharedCLibrary(<target>, <files>)
+# \end{verbatim}
 #
 # The \verb+<target>+ does \emph{not} include the library suffix, and
 # The \verb+<files>+ list does not include the object suffix.  These
-# are obtained from the \verb+EXT_LIB+ and \verb+EXT_OBJ+ variables.
+# are obtained from the \hypervarxn{EXT_LIB}{EXT\_LIB} (\hypervarxn{EXT_DLL}{EXT\_DLL})
+# and \hypervarxn{EXT_OBJ}{EXT\_OBJ} variables.
 #
 # This function returns the library filename.
 #
@@ -302,17 +312,14 @@ else
 # StaticCLibrary(libfoo, a b c)
 # .DEFAULT: $(StaticCLibrary libbar, a b c d)
 # \end{verbatim}
+#
+# \varlabel{CDLL_IMPLIES_STATIC}{CDLL\_IMPLIES\_STATIC} If the \verb+CDLL_IMPLIES_STATIC+
+# variable is enabled (this is default on \verb+Win32+), all the \verb+SharedC+ functions
+# would assume that creating a shared library automatically created a static one.
 # \end{doc}
 #
 public.StaticCLibrary(name, files) =
-    #
-    # Generic library that can be used on byte and native-code
-    #
     private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
-
-    #
-    # Names of libs
-    #
     private.NORMALLIB = $(file $(name)$(EXT_LIB))
 
     if $(equal $(OSTYPE), Win32)
@@ -329,16 +336,34 @@ public.StaticCLibrary(name, files) =
 
     return $(NORMALLIB)
 
+public.SharedCLibrary(name, files) =
+    private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
+    private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
+
+    private.LIB = $(file $(name)$(EXT_DLL))
+    private.TARGETS = $(LIB)
+    if $(CDLL_IMPLIES_STATIC)
+        TARGETS[] += $(file $(name)$(EXT_LIB))
+        export
+    
+    $(TARGETS): $(OFILES) $(LFILES)
+        $(CC) $(CFLAGS) $(LDOUT)$(LIB) $(OFILES) $(LFILES) $(LDFLAGS) $(LDFLAGS_DLL)
+
+    return $(TARGETS)
+
 #
 # Copy to an install directory
 #
 # \begin{doc}
-# \fun{StaticCLibraryCopy}
+# \thofuns{StaticCLibraryCopy}{SharedCLibraryCopy}
 #
-# The \verb+StaticCLibraryCopy+ function copies the static library
+# The \verb+StaticCLibraryCopy+ and \verb+SharedCLibraryCopy+ functions copy a library
 # to an install location.
 #
-# \verb+StaticCLibraryCopy(<tag>, <dir>, <lib>)+
+# \begin{verbatim}
+# StaticCLibraryCopy(<tag>, <dir>, <lib>)
+# SharedCLibraryCopy(<tag>, <dir>, <lib>)
+# \end{verbatim}
 #
 # The \verb+<tag>+ is the name of a target (typically a \verb+.PHONY+ target);
 # the \verb+<dir>+ is the installation directory, and \verb+<lib>+ is
@@ -376,17 +401,29 @@ public.StaticCLibraryCopy(tag, lib, name) =
 
     return $(LIBNORMAL)
 
+public.SharedCLibraryCopy(tag, lib, name) =
+    TARGETS = 
+        EXT_LIB = $(EXT_DLL)
+        value $(StaticCLibraryCopy tag, lib, name)
+    if $(CDLL_IMPLIES_STATIC)
+        TARGETS[] += $(StaticCLibraryCopy tag, lib, name)
+        export
+    return $(TARGETS)
+
 #
 # We often use them together
 #
 # \begin{doc}
-# \fun{StaticCLibraryInstall}
+# \twofuns{StaticCLibraryInstall}{SharedCLibraryInstall}
 #
-# The \verb+StaticCLibraryInstall+ function builds a library, and
-# sets the install location in one step. It returns the filename of the library
+# The \verb+StaticCLibraryInstall+ and \verb+SharedCLibraryInstall+ functions build a library, and
+# set the install location in one step. Return the filename of the library
 # in the target directory.
 #
-# \verb+StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)+
+# \begin{verbatim}
+# StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+# SharedCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+# \end{verbatim}
 #
 # \begin{verbatim}
 # StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
@@ -396,6 +433,10 @@ public.StaticCLibraryCopy(tag, lib, name) =
 public.StaticCLibraryInstall(tag, lib, name, files) =
     StaticCLibrary($(name), $(files))
     return $(StaticCLibraryCopy $(tag), $(lib), $(name))
+
+public.SharedCLibraryInstall(tag, lib, name, files) =
+    SharedCLibrary($(name), $(files))
+    return $(SharedCLibraryCopy $(tag), $(lib), $(name))
 
 #
 # Build a .o file.  This is like a library,
@@ -598,11 +639,10 @@ public.CXXProgramInstall(tag, bin, name, files) =
    return $(CProgramCopy $(tag), $(bin), $(name))
 
 # \begin{doc}
-# \threefuns{StaticCXXLibrary}{StaticCXXLibraryCopy}{StaticCXXLibraryInstall}
+# \sixfuns{StaticCXXLibrary}{StaticCXXLibraryCopy}{StaticCXXLibraryInstall}{SharedCXXLibrary}{SharedCXXLibraryCopy}{SharedCXXLibraryInstall}
 #
-# Similarly, \verb+StaticCXXLibrary+, \verb+StaticCXXLibraryCopy+ and \verb+StaticCXXLibraryInstall+
-# are the C++ equivalents of \verb+StaticCLibrary+, \verb+StaticCLibraryCopy+ and
-# \verb+StaticCLibraryInstall+ functions.
+# Similarly, the six \verb+CXXLibrary+ functions the C++ equivalents of the corresponding
+# \verb+CLibrary+ functions.
 # \end{doc}
 #
 public.StaticCXXLibrary(name, files) =
@@ -619,4 +659,19 @@ public.StaticCXXLibraryInstall(tag, lib, name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
     return $(StaticCLibraryInstall tag, lib, name, files)
+
+public.SharedCXXLibrary(name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(SharedCLibrary $(name), $(files))
+
+public.SharedCXXLibraryCopy(tag, lib, name) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(SharedCLibraryCopy tag, lib, name)
+
+public.SharedCXXLibraryInstall(tag, lib, name, files) =
+    CC = $(CXX)
+    CFLAGS = $(CXXFLAGS)
+    return $(SharedCLibraryInstall tag, lib, name, files)
 

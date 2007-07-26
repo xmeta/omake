@@ -84,8 +84,9 @@ BIN   = $(dir bin)
 # \var{INSTALL} The command to install a program (\verb+install+ on \verb+Unix+, \verb+cp+ on \verb+Win32+).
 # \var{PATHSEP} The normal path separator (\verb+:+ on \verb+Unix+, \verb+;+ on \verb+Win32+).
 # \var{DIRSEP} The normal directory separator (\verb+/+ on \verb+Unix+, \verb+\+ on \verb+Win32+).
-# \varlabel{EXT_LIB}{EXT\_LIB} File suffix for a static library (default is \verb+.a+ on \verb+Unix+, and \verb+.lib+ on \verb+Win32+).
 # \varlabel{EXT_OBJ}{EXT\_OBJ} File suffix for an object file (default is \verb+.o+ on \verb+Unix+, and \verb+.obj+ on \verb+Win32+).
+# \varlabel{EXT_LIB}{EXT\_LIB} File suffix for a static library (default is \verb+.a+ on \verb+Unix+, and \verb+.lib+ on \verb+Win32+).
+# \varlabel{EXT_DLL}{EXT\_DLL} File suffix for a shared library (default is \verb+.so+ on \verb+Unix+, and \verb+.dll+ on \verb+Win32+).
 # \varlabel{EXT_ASM}{EXT\_ASM} File suffix for an assembly file (default is \verb+.s+ on \verb+Unix+, and \verb+.asm+ on \verb+Win32+).
 # \var{EXE} File suffix for executables (default is empty for \verb+Unix+, and \verb+.exe+ on \verb+Win32+ and \verb+Cygwin+).
 # \end{doc}
@@ -115,6 +116,7 @@ if $(equal $(OSTYPE), Win32)
     # Common suffixes for files
     #
     EXT_LIB = .lib
+    EXT_DLL = .dll
     EXT_OBJ = .obj
     EXT_ASM = .asm
     EXE = .exe
@@ -132,6 +134,7 @@ else
     # Common suffixes for files
     #
     EXT_LIB = .a
+    EXT_DLL = .so
     EXT_OBJ = .o
     EXT_ASM = .s
     EXE =
