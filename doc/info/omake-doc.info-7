@@ -1,5 +1,215 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 11-7,	Next: Section 11-8,	Prev: Section 11-6,	Up: Chapter 11
+  
+
+11.7   Grouping
+*=*=*=*=*=*=*=*
+
+  
+  Parenthesis are used for grouping in a pipeline or conditional
+command. In the following expression, the `test' function is used to
+test whether the `foo.exe' file is executable. If it is, the `foo.exe'
+file is executed. If the file is not executable (or if the `foo.exe'
+command fails), the message `"foo.exe is not executable"' is printed.
+<<   # Run foo.exe, or print an error message
+     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+>>
+  
+
+Node: Section 11-8,	Next: Section 11-9,	Prev: Section 11-7,	Up: Chapter 11
+  
+
+11.8   What is a shell command?
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Syntactially, shell commands are any line that is not one of the
+following:
+  
+  
+ - A variable definition of the form `VAR=string' 
+ - A function call `f(...)' or method call `o.f(...)' 
+ - A rule definition containing a colon `string: ...' 
+ - A special command, including the following: 
+     
+    - `if ...' 
+    - `switch ...' 
+    - `match ...' 
+    - `section ...' 
+    - `return ...' 
+  
+  
+  Commands may also be builtin (aliases). See the documentation for the
+'Shell' object for more information.
+
+Node: Section 11-9,	Next: Subsection 11-9-1,	Prev: Section 11-8,	Up: Chapter 11
+  
+
+11.9   Basic builtin functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+   
+* Menu:
+
+* Subsection 11-9-1::	echo
+* Subsection 11-9-2::	cd
+
+
+Node: Subsection 11-9-1,	Next: Subsection 11-9-2,	Prev: Section 11-9,	Up: Section 11-9
+  
+
+11.9.1   echo
+=============
+
+  The `echo' function prints a string.
+<<$(echo <args>)
+  echo <args>
+>>
+
+Node: Subsection 11-9-2,	Next: Section 11-10,	Prev: Subsection 11-9-1,	Up: Section 11-9
+  
+
+11.9.2   cd
+===========
+
+  The `cd' function changes the current directory.
+<<    cd(dir)
+         dir : Dir
+>>
+  
+  The `cd' function also supports a 2-argument form:
+<<    $(cd dir, e)
+         dir : Dir
+         e : expression
+>>
+  
+  In the two-argument form, expression `e' is evaluated in the directory
+`dir'. The current directory is not changed otherwise.
+  The behavior of the `cd' function can be changed with the `CDPATH'
+variable, which specifies a search path for directories. This is
+normally useful only in the osh command interpreter.
+<<    CDPATH : Dir Sequence
+>>
+  
+  For example, the following will change directory to the first
+directory `./foo', `~/dir1/foo', `~/dir2/foo'.
+<<    CDPATH[] =
+         .
+         $(HOME)/dir1
+         $(HOME)/dir2
+      cd foo
+>>
+  
+
+Node: Section 11-10,	Next: Subsection 11-10-1,	Prev: Section 11-9,	Up: Chapter 11
+  
+
+11.10   Job control builtin functions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 11-10-1::	jobs
+* Subsection 11-10-2::	bg
+* Subsection 11-10-3::	fg
+* Subsection 11-10-4::	stop
+* Subsection 11-10-5::	wait
+* Subsection 11-10-6::	kill
+
+
+Node: Subsection 11-10-1,	Next: Subsection 11-10-2,	Prev: Section 11-10,	Up: Section 11-10
+  
+
+11.10.1   jobs
+==============
+
+  The `jobs' function prints a list of jobs.
+  `jobs' 
+
+Node: Subsection 11-10-2,	Next: Subsection 11-10-3,	Prev: Subsection 11-10-1,	Up: Section 11-10
+  
+
+11.10.2   bg
+============
+
+  The `bg' function places a job in the background.
+  `bg <pid...>' 
+
+Node: Subsection 11-10-3,	Next: Subsection 11-10-4,	Prev: Subsection 11-10-2,	Up: Section 11-10
+  
+
+11.10.3   fg
+============
+
+  The `fg' function brings a job to the foreground.
+  `fg <pid...>' 
+
+Node: Subsection 11-10-4,	Next: Subsection 11-10-5,	Prev: Subsection 11-10-3,	Up: Section 11-10
+  
+
+11.10.4   stop
+==============
+
+  The `stop' function suspends a job.
+  `stop <pid...>' 
+
+Node: Subsection 11-10-5,	Next: Subsection 11-10-6,	Prev: Subsection 11-10-4,	Up: Section 11-10
+  
+
+11.10.5   wait
+==============
+
+  The `wait' function waits for a job to finish. If no process
+identifiers are given, the shell waits for all jobs to complete.
+  `wait <pid...>' 
+
+Node: Subsection 11-10-6,	Next: Section 11-11,	Prev: Subsection 11-10-5,	Up: Section 11-10
+  
+
+11.10.6   kill
+==============
+
+  The `kill' function signals a job.
+  `kill [signal] <pid...>' 
+
+Node: Section 11-11,	Next: Subsection 11-11-1,	Prev: Section 11-10,	Up: Chapter 11
+  
+
+11.11   Command history
+*=*=*=*=*=*=*=*=*=*=*=*
+
+   
+* Menu:
+
+* Subsection 11-11-1::	history
+
+
+Node: Subsection 11-11-1,	Next: Chapter 12,	Prev: Section 11-11,	Up: Section 11-11
+  
+
+11.11.1   history
+=================
+
+<<    $(history-index) : Int
+      $(history) : String Sequence
+      history-file : File
+      history-length : Int
+>>
+  
+  The history variables manage the command-line history in osh. They
+have no effect in omake.
+  The `history-index' variable is the current index into the
+command-line history. The `history' variable is the current command-line
+history.
+  The `history-file' variable can be redefined if you want the
+command-line history to be saved. The default value is
+`~/.omake/osh_history'.
+  The `history-length' variable can be redefined to specify the maximum
+number of lines in the history that you want saved. The default value is
+`100'.   
+
 Node: Chapter 12,	Next: Section 12-1,	Prev: Section 11-11,	Up: Top
   
 
@@ -388,6 +598,7 @@ Node: Subsection 12-1-15,	Next: Subsection 12-1-16,	Prev: Subsection 12-1-14,	Up
 methods. 
   
  - `$(o.close)': close the channel. 
+ - `$(o.name)': returns the file name associated with the channel. 
    
 
 Node: Subsection 12-1-16,	Next: Subsection 12-1-17,	Prev: Subsection 12-1-15,	Up: Section 12-1
@@ -1484,130 +1695,3 @@ at least one should be set to true.
  MENHIR_ENABLED
  Define this as `true' if you wish to
 use `menhir' instead of `ocamlyacc' (default `false'). 
-
-Node: Subsection 13-6-3,	Next: Subsection 13-6-4,	Prev: Subsection 13-6-2,	Up: Section 13-6
-  
-
-13.6.3   OCaml command flags
-============================
-  
-  The following variables specify additional options to be passed to the
-OCaml tools. 
- OCAMLDEPFLAGS
- Flags to pass to `OCAMLDEP' and
-`OCAMLDEP_MODULES'. 
- OCAMLPPFLAGS
- Flags to pass to `CAMLP4'. 
- OCAMLCFLAGS
- Flags to pass to the byte-code
-compiler (default `-g'). 
- OCAMLOPTFLAGS
- Flags to pass to the native-code
-compiler (default empty). 
- OCAMLFLAGS
- Flags to pass to either compiler
-(default `-warn-error A'). 
- OCAML_BYTE_LINK_FLAGS
- Flags to pass to the byte-code linker
-(default empty). 
- OCAML_NATIVE_LINK_FLAGS
- Flags to pass to the native-code
-linker (default empty). 
- OCAML_LINK_FLAGS
- Flags to pass to either linker. 
- MENHIR_FLAGS
- Additional flags to pass to `menhir'. 
-
-Node: Subsection 13-6-4,	Next: Subsection 13-6-5,	Prev: Subsection 13-6-3,	Up: Section 13-6
-  
-
-13.6.4   Library variables
-==========================
-  
-  The following variables are used during linking.
- OCAML_LIBS
- Libraries to pass to the linker. These
-libraries become dependencies of the link step. 
- OCAML_OTHER_LIBS
- Additional libraries to pass to the
-linker. These libraries are not included as dependencies to the link
-step. Typical use is for the OCaml standard libraries like `unix' or
-`str'. 
- OCAML_CLIBS
- C libraries to pass to the linker. 
- OCAML_LIB_FLAGS
- Extra flags for the library linker. 
- ABORT_ON_DEPENDENCY_ERRORS
- OCaml linker requires the OCaml files
-to be listed in dependency order. Normally, all the functions presented
-in this section will automatically sort the list of OCaml modules passed
-in as the `<files>' argument. However, this variable is set to `true',
-the order of the files passed into these function will be left as is,
-but OMake will abort with an error message if the order is illegal.
-
-Node: Subsection 13-6-5,	Next: Subsection 13-6-6,	Prev: Subsection 13-6-4,	Up: Section 13-6
-  
-
-13.6.5   Generated OCaml Files
-==============================
-    As of OCaml version 3.09.2, the
-standard `ocamldep' scanner is "broken". The main issue is that it finds
-only those dependencies that already exist. If `foo.ml' contains a
-dependency on `Bar', 
-<<foo.ml:
-     open Bar
->>
-  then the default `ocamldep' will only find the dependency if a file
-`bar.ml' or `bar.ml' exists in the include path. It will not find (or
-print) the dependency if, for example, only `bar.mly' exists at the time
-`ocamldep' is run, even though `bar.ml' and `bar.mli' can be generated
-from `bar.mly'.
-  OMake currently provides two methods for addressing this problem ---
-one that requires manually specifying the generated files, and an
-experimental method for discovering such "hidden" dependencies
-automatically. The 'OCAMLDEP_MODULES_ENABLED' variable controls which
-method is going to be used. When this variable is false, the manual
-specifications are expected and when it is true, the automated discovery
-will be attempted.
-  
-
-13.6.5.1   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
---------------------------------------------------------
-\@
-name{function:LocalOCamlGeneratedFiles} 
-<<OCamlGeneratedFiles(files)
-  LocalOCamlGeneratedFiles(files)
->>
-  
-  When the 'OCAMLDEP_MODULES_ENABLED' variable variable is set to
-`false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
-functions specify files that need to be generated before any OCaml files
-are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
-are both generated files, specify: 
-<<OCamlGeneratedFiles(parser.ml lexer.ml)
->>
-  
-  The `OCamlGeneratedFiles' function is global --- its arguments will be
-generated before any OCaml files anywhere in the project are scanned for
-dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
-scoping rules of OMake.
-  These functions have no effect when the 'OCAMLDEP_MODULES_ENABLED'
-variable is true.
-  
-
-13.6.5.2   Automatic discovery of generated files during dependency
--------------------------------------------------------------------
-analysis
---------
-   Having to specify the generated files manualy when OMake could
-discover them automatically is obviously suboptimal. To address this, we
-tell `ocamldep' that only finds the free module names in a file and then
-post-process the results internally.
-  Note that the experimental `ocamldep' functionality this relies upon
-is only included in the OCaml version 3.10 and higher. Temporarily, we
-distribute a bytecode version `ocamldep-omake' of the
-appropriately modified `ocamldep'. The appropriate `ocamldep' will be
-discovered automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE'
-and 'OCAMLDEP_MODULES' variables will be set accordingly.
-  By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
-`$(OCAMLDEP_MODULES_AVAILABLE)'. 

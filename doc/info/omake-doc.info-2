@@ -823,6 +823,96 @@ key` = 'value, the key/value pair is added the the `TABLE'.
 be recomputed whenever the dependencies of the rule change. The targets
 of the rule are the variables it exports (in this case, the `TABLE'
 variable).
+  
+
+4.14.1.1   .MEMO
+----------------
+     
+  A `.MEMO' rule is just like a `.STATIC' rule, except that the results
+are not saved between independent runs of `omake'.
+  
+
+4.14.1.2   :key:
+----------------
+   
+  The `.STATIC' and `.MEMO' rules also accept a `:key:' value, which
+specifies a "key" associated with the values being computed. It is
+useful to think of a `.STATIC' rule as a dictionary that associates keys
+with their values. When a `.STATIC' rule is evaluated, the result is
+saved in the table with the `:key:' defined by the rule (if a `:key:' is
+not specified, a default key is used instead). In other words, a rule is
+like a function. The `:key:' specifies the function "argument", and the
+rule body computes the result.
+  To illustrate, let's use a `.MEMO' rule to implement a Fibonacci
+function.
+<<    fib(i) =
+          i = $(int $i)
+          .MEMO: :key: $i
+              println($"Computing fib($i)...")
+              result =
+                  if $(or $(eq $i, 0), $(eq $i, 1))
+                      value $i
+                  else
+                      add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+          value $(result)
+  
+      println($"fib(10) = $(fib 10)")
+      println($"fib(12) = $(fib 12)")
+>>
+  When this script is run, it produces the following output.
+<<    Computing fib(10)...
+      Computing fib(9)...
+      Computing fib(8)...
+      Computing fib(7)...
+      Computing fib(6)...
+      Computing fib(5)...
+      Computing fib(4)...
+      Computing fib(3)...
+      Computing fib(2)...
+      Computing fib(1)...
+      Computing fib(0)...
+      fib(10) = 55
+      Computing fib(12)...
+      Computing fib(11)...
+      fib(12) = 144
+>>
+  Note that the Fibonacci computation is performed just once for each
+value of the argument, rather than an exponential number of times. In
+other words, the `.MEMO' rule has performed a memoization, hence the
+name. Note that if `.STATIC' were used instead, the values would be
+saved across runs of `omake'.
+  As a general guideline, whenever you use a `.STATIC' or `.MEMO' rule
+within a function body, you will usually want to use a `:key:' value to
+index the rule by the function argument. However, this is not required.
+In the following, the `.STATIC' rule is used to perform some expensive
+computation once.
+<<    f(x) =
+          .STATIC:
+              y = $(expensive-computation)
+          add($x, $y)
+>>
+  
+  Additonal care should be taken for recursive functions, like the
+Fibonacci function. If the `:key:' is omitted, then the rule would be
+defined in terms of itself, resulting in a cyclic dependency. Here is
+the output of the Fibonacci program with an omitted `:key:'.
+<<    Computing fib(10)...
+      Computing fib(8)...
+      Computing fib(6)...
+      Computing fib(4)...
+      Computing fib(2)...
+      Computing fib(0)...
+      fib(10) = 0
+      fib(12) = 0
+>>
+  The reason for this behavior is that the `result' value is not saved
+until the base case `i = 0 || i = 1' is reached, so `fib' calls itself
+recursively until reaching `fib(0)', whereupon the `result' value is
+fixed at 0.
+  In any case, recursive definitions are perfectly acceptable, but you
+will usually want a `:key:' argument so that each recursive call has a
+different `:key:'. In most cases, this means that the `:key:' should
+include all arguments to the function.
 
 Node: Section 4-15,	Next: Chapter 5,	Prev: Section 4-14,	Up: Chapter 4
   
@@ -1015,10 +1105,10 @@ Chapter 5     Variables and Naming
     
   During evaluation, there are three different kinds of namespaces.
 Variables can be private, or they may refer to fields in the current
-this object, or they can be part of the global global namespace. The
-namespace can be specified directly by including an explicit qualifier
-before the variable name. The three namespaces are separate; a variable
-can be bound in one or more simultaneously.
+this object, or they can be part of the global namespace. The namespace
+can be specified directly by including an explicit qualifier before the
+variable name. The three namespaces are separate; a variable can be
+bound in one or more simultaneously.
 <<    # private namespace
       private.X = 1
       # current object
@@ -1529,108 +1619,3 @@ and the target `tmp_phony' will remain unchanged.
 * Subsection 6-3-1::	Export regions
 * Subsection 6-3-2::	Returning values from exported regions
 
-
-Node: Subsection 6-3-1,	Next: Subsection 6-3-2,	Prev: Section 6-3,	Up: Section 6-3
-  
-
-6.3.1   Export regions
-======================
-  
-  This feature will be introduced in version 0.9.8.5.
-  The `export' directive does not need to occur at the end of a block.
-An export is valid from the point where it is specified to the end of
-the block in which it is contained. In other words, the export is used
-in the program that follows it. This can be especially useful for
-reducing the amount of code you have to write. In the following example,
-the variable `CFLAGS' is exported from the both branches of the
-conditional.
-<<    export CFLAGS
-      if $(equal $(OSTYPE), Win32)
-          CFLAGS += /DWIN32
-      else
-          CFLAGS += -UWIN32
->>
-  
-
-Node: Subsection 6-3-2,	Next: Section 6-4,	Prev: Subsection 6-3-1,	Up: Section 6-3
-  
-
-6.3.2   Returning values from exported regions
-==============================================
-  
-  This feature will be introduced in version 0.9.8.5.
-  The use of export does not affect the value returned by a block. The
-value is computed as usual, as the value of the last statement in the
-block, ignoring the export. For example, suppose we wish to implement a
-table that maps strings to unique integers. Consider the following
-program.
-<<    # Empty map
-      table = $(Map)
-  
-      # Add an entry to the table
-      intern(s) =
-          export
-          if $(table.mem $s)
-              table.find($s)
-          else
-              private.i = $(table.length)
-              table = $(table.add $s, $i)
-              value $i
-  
-      intern(foo)
-      intern(boo)
-      intern(moo)
-      # Prints "boo = 1"
-      println($"boo = $(intern boo)")
->>
-  Given a string `s', the function `intern' returns either the value
-already associated with `s', or assigns a new value. In the latter case,
-the table is updated with the new value. The `export' at the beginning
-of the function means that the variable `table' is to be exported. The
-bindings for `s' and `i' are not exported, because they are private.
-
-  Evaluation in omake is eager. That is, expressions are evaluated as
-soon as they are encountered by the evaluator. One effect of this is
-that the right-hand-side of a variable definition is expanded when the
-variable is defined.
-<<    osh> A = 1
-      - : "1"
-      osh> A = $(A)$(A)
-      - : "11"
->>
-  
-  In the second definition, `A = $(A)$(A)', the right-hand-side is
-evaluated first, producing the sequence `11'. Then the variable `A' is
-redefined as the new value. When combined with dynamic scoping, this has
-many of the same properties as conventional imperative programming.
-<<    osh> A = 1
-      - : "1"
-      osh> printA() =
-          println($"A = $A")
-      osh> A = $(A)$(A)
-      - : "11"
-      osh> printA()
-      11
->>
-  
-  In this example, the print function is defined in the scope of `A'.
-When it is called on the last line, the dynamic value of `A' is `11',
-which is what is printed.
-  However, dynamic scoping and imperative programming should not be
-confused. The following example illustrates a difference. The second
-`printA' is not in the scope of the definition `A = x$(A)$(A)x', so it
-prints the original value, `1'.
-<<    osh> A = 1
-      - : "1"
-      osh> printA() =
-          println($"A = $A")
-      osh> section
-               A = x$(A)$(A)x
-               printA()
-      x11x
-      osh> printA()
-      1
->>
-  
-  See also Section 7.5*Note Section 7-5:: for further ways to
-control the evaluation order through the use of "lazy" expressions.

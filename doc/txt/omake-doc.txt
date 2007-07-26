@@ -5,8 +5,8 @@
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                             2^ndJuly, 2007
-                             ==============
+                            26^thJuly, 2007
+                            ===============
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -121,6 +121,10 @@ Contents
     - 4.14  static. 
         
        - 4.14.1  .STATIC 
+           
+          - 4.14.1.1  .MEMO 
+          - 4.14.1.2  :key: 
+        
      
     - 4.15  Constants 
   
@@ -233,38 +237,39 @@ Contents
        - 9.3.10  rev 
        - 9.3.11  join 
        - 9.3.12  string 
-       - 9.3.13  string-escaped, ocaml-escaped, html-escaped,
+       - 9.3.13  string-length 
+       - 9.3.14  string-escaped, ocaml-escaped, html-escaped,
          html-pre-escaped, c-escaped, id-escaped 
-       - 9.3.14  decode-uri, encode-uri 
-       - 9.3.15  quote 
-       - 9.3.16  quote-argv 
-       - 9.3.17  html-string 
-       - 9.3.18  addsuffix 
-       - 9.3.19  mapsuffix 
-       - 9.3.20  addsuffixes 
-       - 9.3.21  removeprefix 
-       - 9.3.22  removesuffix 
-       - 9.3.23  replacesuffixes 
-       - 9.3.24  addprefix 
-       - 9.3.25  mapprefix 
-       - 9.3.26  add-wrapper 
-       - 9.3.27  set 
-       - 9.3.28  mem 
-       - 9.3.29  intersection 
-       - 9.3.30  intersects 
-       - 9.3.31  set-diff 
-       - 9.3.32  filter 
-       - 9.3.33  filter-out 
-       - 9.3.34  capitalize 
-       - 9.3.35  uncapitalize 
-       - 9.3.36  uppercase 
-       - 9.3.37  lowercase 
-       - 9.3.38  system 
-       - 9.3.39  shell 
-       - 9.3.40  export 
-       - 9.3.41  while 
-       - 9.3.42  break 
-       - 9.3.43  random, random-init 
+       - 9.3.15  decode-uri, encode-uri 
+       - 9.3.16  quote 
+       - 9.3.17  quote-argv 
+       - 9.3.18  html-string 
+       - 9.3.19  addsuffix 
+       - 9.3.20  mapsuffix 
+       - 9.3.21  addsuffixes 
+       - 9.3.22  removeprefix 
+       - 9.3.23  removesuffix 
+       - 9.3.24  replacesuffixes 
+       - 9.3.25  addprefix 
+       - 9.3.26  mapprefix 
+       - 9.3.27  add-wrapper 
+       - 9.3.28  set 
+       - 9.3.29  mem 
+       - 9.3.30  intersection 
+       - 9.3.31  intersects 
+       - 9.3.32  set-diff 
+       - 9.3.33  filter 
+       - 9.3.34  filter-out 
+       - 9.3.35  capitalize 
+       - 9.3.36  uncapitalize 
+       - 9.3.37  uppercase 
+       - 9.3.38  lowercase 
+       - 9.3.39  system 
+       - 9.3.40  shell 
+       - 9.3.41  export 
+       - 9.3.42  while 
+       - 9.3.43  break 
+       - 9.3.44  random, random-init 
      
     - 9.4  Arithmetic 
         
@@ -376,29 +381,30 @@ Contents
        - 10.8.9  rewind 
        - 10.8.10  tell 
        - 10.8.11  flush 
-       - 10.8.12  dup 
-       - 10.8.13  dup2 
-       - 10.8.14  set-nonblock 
-       - 10.8.15  set-close-on-exec-mode 
-       - 10.8.16  pipe 
-       - 10.8.17  mkfifo 
-       - 10.8.18  select 
-       - 10.8.19  lockf 
-       - 10.8.20  InetAddr 
-       - 10.8.21  Host 
-       - 10.8.22  gethostbyname 
-       - 10.8.23  Protocol 
-       - 10.8.24  getprotobyname 
-       - 10.8.25  Service 
-       - 10.8.26  getservbyname 
-       - 10.8.27  socket 
-       - 10.8.28  bind 
-       - 10.8.29  listen 
-       - 10.8.30  accept 
-       - 10.8.31  connect 
-       - 10.8.32  getchar 
-       - 10.8.33  gets 
-       - 10.8.34  fgets 
+       - 10.8.12  channel-name 
+       - 10.8.13  dup 
+       - 10.8.14  dup2 
+       - 10.8.15  set-nonblock 
+       - 10.8.16  set-close-on-exec-mode 
+       - 10.8.17  pipe 
+       - 10.8.18  mkfifo 
+       - 10.8.19  select 
+       - 10.8.20  lockf 
+       - 10.8.21  InetAddr 
+       - 10.8.22  Host 
+       - 10.8.23  gethostbyname 
+       - 10.8.24  Protocol 
+       - 10.8.25  getprotobyname 
+       - 10.8.26  Service 
+       - 10.8.27  getservbyname 
+       - 10.8.28  socket 
+       - 10.8.29  bind 
+       - 10.8.30  listen 
+       - 10.8.31  accept 
+       - 10.8.32  connect 
+       - 10.8.33  getchar 
+       - 10.8.34  gets 
+       - 10.8.35  fgets 
      
     - 10.9  Printing functions 
     - 10.10  Value printing functions 
@@ -2727,6 +2733,96 @@ of the rule are the variables it exports (in this case, the `TABLE'
 variable).
   
 
+4.14.1.1  .MEMO
+---------------
+     
+  A `.MEMO' rule is just like a `.STATIC' rule, except that the results
+are not saved between independent runs of `omake'.
+  
+
+4.14.1.2  :key:
+---------------
+   
+  The `.STATIC' and `.MEMO' rules also accept a `:key:' value, which
+specifies a "key" associated with the values being computed. It is
+useful to think of a `.STATIC' rule as a dictionary that associates keys
+with their values. When a `.STATIC' rule is evaluated, the result is
+saved in the table with the `:key:' defined by the rule (if a `:key:' is
+not specified, a default key is used instead). In other words, a rule is
+like a function. The `:key:' specifies the function "argument", and the
+rule body computes the result.
+  To illustrate, let's use a `.MEMO' rule to implement a Fibonacci
+function.
+<<    fib(i) =
+          i = $(int $i)
+          .MEMO: :key: $i
+              println($"Computing fib($i)...")
+              result =
+                  if $(or $(eq $i, 0), $(eq $i, 1))
+                      value $i
+                  else
+                      add($(fib $(sub $i, 1)), $(fib $(sub $i, 2)))
+          value $(result)
+  
+      println($"fib(10) = $(fib 10)")
+      println($"fib(12) = $(fib 12)")
+>>
+  When this script is run, it produces the following output.
+<<    Computing fib(10)...
+      Computing fib(9)...
+      Computing fib(8)...
+      Computing fib(7)...
+      Computing fib(6)...
+      Computing fib(5)...
+      Computing fib(4)...
+      Computing fib(3)...
+      Computing fib(2)...
+      Computing fib(1)...
+      Computing fib(0)...
+      fib(10) = 55
+      Computing fib(12)...
+      Computing fib(11)...
+      fib(12) = 144
+>>
+  Note that the Fibonacci computation is performed just once for each
+value of the argument, rather than an exponential number of times. In
+other words, the `.MEMO' rule has performed a memoization, hence the
+name. Note that if `.STATIC' were used instead, the values would be
+saved across runs of `omake'.
+  As a general guideline, whenever you use a `.STATIC' or `.MEMO' rule
+within a function body, you will usually want to use a `:key:' value to
+index the rule by the function argument. However, this is not required.
+In the following, the `.STATIC' rule is used to perform some expensive
+computation once.
+<<    f(x) =
+          .STATIC:
+              y = $(expensive-computation)
+          add($x, $y)
+>>
+  
+  Additonal care should be taken for recursive functions, like the
+Fibonacci function. If the `:key:' is omitted, then the rule would be
+defined in terms of itself, resulting in a cyclic dependency. Here is
+the output of the Fibonacci program with an omitted `:key:'.
+<<    Computing fib(10)...
+      Computing fib(8)...
+      Computing fib(6)...
+      Computing fib(4)...
+      Computing fib(2)...
+      Computing fib(0)...
+      fib(10) = 0
+      fib(12) = 0
+>>
+  The reason for this behavior is that the `result' value is not saved
+until the base case `i = 0 || i = 1' is reached, so `fib' calls itself
+recursively until reaching `fib(0)', whereupon the `result' value is
+fixed at 0.
+  In any case, recursive definitions are perfectly acceptable, but you
+will usually want a `:key:' argument so that each recursive call has a
+different `:key:'. In most cases, this means that the `:key:' should
+include all arguments to the function.
+  
+
 4.15  Constants
 *=*=*=*=*=*=*=*
 
@@ -2906,10 +3002,10 @@ Chapter 5    Variables and Naming
     
   During evaluation, there are three different kinds of namespaces.
 Variables can be private, or they may refer to fields in the current
-this object, or they can be part of the global global namespace. The
-namespace can be specified directly by including an explicit qualifier
-before the variable name. The three namespaces are separate; a variable
-can be bound in one or more simultaneously.
+this object, or they can be part of the global namespace. The namespace
+can be specified directly by including an explicit qualifier before the
+variable name. The three namespaces are separate; a variable can be
+bound in one or more simultaneously.
 <<    # private namespace
       private.X = 1
       # current object
@@ -4731,8 +4827,8 @@ the project root.
 >>
   
   Note that when a `.PHONY' target is inherited by a subdirectory via a
-`.SUBDIRS', a whole hierarchy of `.PHONY' target (that are a part of the
-global one) is created, as described in Section 8.12.2 below.
+`.SUBDIRS', a whole hierarchy of `.PHONY' targets (that are a part of
+the global one) is created, as described in Section 8.12.2 below.
   
 
 8.12  Running OMake from a subdirectory
@@ -5521,7 +5617,19 @@ longer sequence is copied at the end of the output unmodified.
 is similar to the `concat' function, but the elements are separated by
 whitespace. The result is treated as a unit; whitespace is significant.
 
-9.3.13  string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
+9.3.13  string-length
+=====================
+  
+<<   $(string-length sequence) : Int
+        sequence : Sequence
+>>
+  
+  The `string-lenght' returns a length (number of characters) in  its
+argument. If the argument is a sequence, it flattens it, so
+`$(string-length sequence)' is equivalent to `$(string-length $(string
+sequence))'.
+
+9.3.14  string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
 ======================================================================
 c-escaped, id-escaped
 =====================
@@ -5554,7 +5662,7 @@ does not translate newlines into `<br>'.
 >>
   
 
-9.3.14  decode-uri, encode-uri
+9.3.15  decode-uri, encode-uri
 ==============================
   
 <<    $(decode-uri sequence) : sequence
@@ -5570,7 +5678,7 @@ represented by hexadecimal characters.
 >>
   
 
-9.3.15  quote
+9.3.16  quote
 =============
   
 <<   $(quote sequence) : String
@@ -5582,7 +5690,7 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 
-9.3.16  quote-argv
+9.3.17  quote-argv
 ==================
   
 <<   $(quote-argv sequence) : String
@@ -5593,7 +5701,7 @@ c\" d"', and `$(quote abc)' evaluates to `"abc"'.
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components.
 
-9.3.17  html-string
+9.3.18  html-string
 ===================
   
 <<   $(html-string sequence) : String
@@ -5605,7 +5713,7 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant.
 
-9.3.18  addsuffix
+9.3.19  addsuffix
 =================
   
 <<   $(addsuffix suffix, sequence) : Array
@@ -5619,7 +5727,7 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'.
 
-9.3.19  mapsuffix
+9.3.20  mapsuffix
 =================
   
 <<   $(mapsuffix suffix, sequence) : Array
@@ -5634,7 +5742,7 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'.
 
-9.3.20  addsuffixes
+9.3.21  addsuffixes
 ===================
   
 <<   $(addsuffixes suffixes, sequence) : Array
@@ -5648,7 +5756,7 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'.
 
-9.3.21  removeprefix
+9.3.22  removeprefix
 ====================
   
 <<   $(removeprefix prefix, sequence) : Array
@@ -5659,7 +5767,7 @@ to `a.c a.o b.c b.o c.o c.a'.
   The `removeprefix' function removes a prefix from each component of a
 sequence.
 
-9.3.22  removesuffix
+9.3.23  removesuffix
 ====================
   
 <<   $(removesuffix sequence) : Array
@@ -5671,7 +5779,7 @@ of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
 
-9.3.23  replacesuffixes
+9.3.24  replacesuffixes
 =======================
   
 <<   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
@@ -5686,7 +5794,7 @@ the same length.
   For example, `$(replacesuffixes .h .c, .o .o, a.c b.h c.z)' expands to
 `a.o b.o c.z'.
 
-9.3.24  addprefix
+9.3.25  addprefix
 =================
   
 <<   $(addprefix prefix, sequence) : Array
@@ -5700,7 +5808,7 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'.
 
-9.3.25  mapprefix
+9.3.26  mapprefix
 =================
   
 <<   $(mapprefix prefix, sequence) : Array
@@ -5715,7 +5823,7 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'.
 
-9.3.26  add-wrapper
+9.3.27  add-wrapper
 ===================
   
 <<   $(add-wrapper prefix, suffix, sequence) : Array
@@ -5730,7 +5838,7 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence.
 
-9.3.27  set
+9.3.28  set
 ===========
   
 <<   $(set sequence) : Array
@@ -5741,7 +5849,7 @@ sequence.
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'.
 
-9.3.28  mem
+9.3.29  mem
 ===========
   
 <<   $(mem elem, sequence) : Boolean
@@ -5753,7 +5861,7 @@ duplicates.
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'.
 
-9.3.29  intersection
+9.3.30  intersection
 ====================
   
 <<   $(intersection sequence1, sequence2) : Array
@@ -5768,7 +5876,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'.
 
-9.3.30  intersects
+9.3.31  intersects
 ==================
   
 <<   $(intersects sequence1, sequence2) : Boolean
@@ -5782,7 +5890,7 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'.
 
-9.3.31  set-diff
+9.3.32  set-diff
 ================
   
 <<   $(set-diff sequence1, sequence2) : Array
@@ -5798,7 +5906,7 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'.
 
-9.3.32  filter
+9.3.33  filter
 ==============
   
 <<   $(filter patterns, sequence) : Array
@@ -5812,7 +5920,7 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'.
 
-9.3.33  filter-out
+9.3.34  filter-out
 ==================
   
 <<   $(filter-out patterns, sequence) : Array
@@ -5826,7 +5934,7 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'.
 
-9.3.34  capitalize
+9.3.35  capitalize
 ==================
   
 <<   $(capitalize sequence) : Array
@@ -5837,7 +5945,7 @@ evaluates to `x.o y.o'.
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'.
 
-9.3.35  uncapitalize
+9.3.36  uncapitalize
 ====================
   
 <<   $(uncapitalize sequence) : Array
@@ -5848,7 +5956,7 @@ The Looking Glass'.
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'.
 
-9.3.36  uppercase
+9.3.37  uppercase
 =================
   
 <<   $(uppercase sequence) : Array
@@ -5859,7 +5967,7 @@ The Looking Glass'.
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'.
 
-9.3.37  lowercase
+9.3.38  lowercase
 =================
   
 <<   $(lowercase sequence) : Array
@@ -5871,7 +5979,7 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'.
 
-9.3.38  system
+9.3.39  system
 ==============
   
 <<   system(s)
@@ -5886,7 +5994,7 @@ function is used internally by omake to evaluate shell commands.
 >>
   
 
-9.3.39  shell
+9.3.40  shell
 =============
   
 <<   $(shell command) : Array
@@ -5906,7 +6014,7 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system).
 
-9.3.40  export
+9.3.41  export
 ==============
    The `export' function allows one to capture the current environment
 in a variable.
@@ -5925,7 +6033,7 @@ in a variable.
   The arguments to this function are interpreted the exact same way as
 the arguments to the `export' special form (see Section 6.3).
 
-9.3.41  while
+9.3.42  while
 =============
   
 <<   while <test>
@@ -5980,7 +6088,7 @@ value is printed.
   The 'break' function can be used to break out of the `while' loop
 early.
 
-9.3.42  break
+9.3.43  break
 =============
   
 <<   break
@@ -5989,7 +6097,7 @@ early.
   Terminate execution of the innermost loop, returning the current
 state.
 
-9.3.43  random, random-init
+9.3.44  random, random-init
 ===========================
   
 <<    random-init(i)
@@ -7487,7 +7595,17 @@ of the file.
   The `flush' function can be used only on files that are open for
 writing. It flushes all pending data to the file.
 
-10.8.12  dup
+10.8.12  channel-name
+=====================
+  
+<<   $(channel-name channel...) : String
+        channel : Channel
+>>
+  
+  The `channel-name' function returns the name that is associated with
+the channel.
+
+10.8.13  dup
 ============
   
 <<    $(dup channel) : Channel
@@ -7498,7 +7616,7 @@ writing. It flushes all pending data to the file.
   The `dup' function returns a new channel referencing the same file as
 the argument.
 
-10.8.13  dup2
+10.8.14  dup2
 =============
   
 <<   dup2(channel1, channel2)
@@ -7510,7 +7628,7 @@ the argument.
   The `dup2' function causes `channel2' to refer to the same file as
 `channel1'.
 
-10.8.14  set-nonblock
+10.8.15  set-nonblock
 =====================
   
 <<   set-nonblock-mode(mode, channel...)
@@ -7523,7 +7641,7 @@ given channel. When IO is performed on the channel, and the operation
 cannot be completed immediately, the operations raises a
 `RuntimeException'.
 
-10.8.15  set-close-on-exec-mode
+10.8.16  set-close-on-exec-mode
 ===============================
   
 <<   set-close-on-exec-mode(mode, channel...)
@@ -7536,7 +7654,7 @@ cannot be completed immediately, the operations raises a
 the given channels. If the close-on-exec flag is set, the channel is not
 inherited by child processes. Otherwise it is.
 
-10.8.16  pipe
+10.8.17  pipe
 =============
   
 <<   $(pipe) : Pipe
@@ -7547,7 +7665,7 @@ inherited by child processes. Otherwise it is.
 `read' field is a channel that is opened for reading, and the `write'
 field is a channel that is opened for writing.
 
-10.8.17  mkfifo
+10.8.18  mkfifo
 ===============
   
 <<   mkfifo(mode, node...)
@@ -7557,7 +7675,7 @@ field is a channel that is opened for writing.
   
   The `mkfifo' function creates a named pipe.
 
-10.8.18  select
+10.8.19  select
 ===============
   
 <<   $(select rfd..., wfd..., wfd..., timeout) : Select
@@ -7581,7 +7699,7 @@ the following fields:
  error  An array of channels on which an error has occurred. 
 
 
-10.8.19  lockf
+10.8.20  lockf
 ==============
   
 <<    lockf(channel, command, len)
@@ -7603,7 +7721,7 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
 
 
-10.8.20  InetAddr
+10.8.21  InetAddr
 =================
   
   The `InetAddr' object describes an Internet address. It contains the
@@ -7615,7 +7733,7 @@ following fields.
   
   
 
-10.8.21  Host
+10.8.22  Host
 =============
   
   A `Host' object contains the following fields.
@@ -7629,7 +7747,7 @@ following fields.
   
   
 
-10.8.22  gethostbyname
+10.8.23  gethostbyname
 ======================
   
 <<   $(gethostbyname host...) : Host...
@@ -7641,7 +7759,7 @@ following fields.
 host. The `host' may specify a domain name or an Internet address.
   
 
-10.8.23  Protocol
+10.8.24  Protocol
 =================
   
   The `Protocol' object represents a protocol entry. It has the
@@ -7654,7 +7772,7 @@ following fields.
   
   
 
-10.8.24  getprotobyname
+10.8.25  getprotobyname
 =======================
   
 <<   $(getprotobyname name...) : Protocol...
@@ -7666,7 +7784,7 @@ following fields.
 specified protocol. The `name' may be a protocol name, or a protocol
 number.
 
-10.8.25  Service
+10.8.26  Service
 ================
   
   The `Service' object represents a network service. It has the
@@ -7680,7 +7798,7 @@ following fields.
   
   
 
-10.8.26  getservbyname
+10.8.27  getservbyname
 ======================
   
 <<   $(getservbyname service...) : Service...
@@ -7691,7 +7809,7 @@ following fields.
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number.
 
-10.8.27  socket
+10.8.28  socket
 ===============
   
 <<   $(socket domain, type, protocol) : Channel
@@ -7719,7 +7837,7 @@ service. The `service' may be specified as a service name or number.
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database.
 
-10.8.28  bind
+10.8.29  bind
 =============
   
 <<   bind(socket, host, port)
@@ -7738,7 +7856,7 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address.
 
-10.8.29  listen
+10.8.30  listen
 ===============
   
 <<   listen(socket, requests)
@@ -7750,7 +7868,7 @@ filename for the address.
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests.
 
-10.8.30  accept
+10.8.31  accept
 ===============
   
 <<   $(accept socket) : InOutChannel
@@ -7760,7 +7878,7 @@ filename for the address.
   
   The `accept' function accepts a connection on a socket.
 
-10.8.31  connect
+10.8.32  connect
 ================
   
 <<    connect(socket, addr, port)
@@ -7780,7 +7898,7 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket.
 
-10.8.32  getchar
+10.8.33  getchar
 ================
   
 <<    $(getc) : String
@@ -7793,7 +7911,7 @@ filename of the socket.
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'.
 
-10.8.33  gets
+10.8.34  gets
 =============
   
 <<   $(gets) : String
@@ -7806,7 +7924,7 @@ has been reached, the function returns `false'.
 returns the empty string if the end of file has been reached. The line
 terminator is removed.
 
-10.8.34  fgets
+10.8.35  fgets
 ==============
   
 <<   $(fgets) : String
@@ -9302,6 +9420,7 @@ supports the following operations.
 methods. 
   
  - `$(o.close)': close the channel. 
+ - `$(o.name)': returns the file name associated with the channel. 
 
 
 12.1.16  InChannel
@@ -12162,6 +12281,7 @@ Index
  - .BUILDORDER, 10.3.6 
  - .DEFAULT, 8.7, 8.12.1 
  - .INCLUDE, 8.9 
+ - .MEMO, 4.14.1.1 
  - .ORDER, 10.3.6 
  - .omakerc, A.8 
  - .PHONY, 6.3, 8.10, 8.11.3, 8.12.1, 8.12.2 
@@ -12173,6 +12293,7 @@ Index
  
  - :effects:, 8.5.2 
  - :exists:, 8.5.1 
+ - :key:, 4.14.1.2 
  - :scanner:, 8.6.1 
  - :value:, 8.5.3 
  
@@ -12199,13 +12320,13 @@ Index
  - ASFLAGS, 13.5.2 
  - ASOUT, 13.5.2 
  - absname, 10.1.9 
- - accept, 10.8.30 
+ - accept, 10.8.31 
  - add, 9.4.3 
  - add-project-directories, 10.6.2 
- - add-wrapper, 9.3.26 
- - addprefix, 9.3.24 
- - addsuffix, 9.3.18 
- - addsuffixes, 9.3.20 
+ - add-wrapper, 9.3.27 
+ - addprefix, 9.3.25 
+ - addsuffix, 9.3.19 
+ - addsuffixes, 9.3.21 
  - aliases, 15.2 
  - and, 9.2.3 
  - apply, 9.5.2 
@@ -12220,8 +12341,8 @@ Index
  - BYTE_ENABLED, 13.6.2 
  - basename, 10.1.4 
  - bg, 11.10.2 
- - bind, 10.8.28 
- - break, 9.3.42 
+ - bind, 10.8.29 
+ - break, 9.3.43 
  - build, 13.3.6 
  - build model, 3 
  
@@ -12250,12 +12371,13 @@ Index
  - CXXFLAGS, 13.5.2 
  - CXXProgram, 13.5.4.8 
  - CXXProgramInstall, 13.5.4.8 
- - c-escaped, 9.3.13 
- - capitalize, 9.3.34 
+ - c-escaped, 9.3.14 
+ - capitalize, 9.3.35 
  - case, 9.2.6 
  - cat, 10.11.2 
  - cats and dogs, 3.4 
  - cd, 11.9.2 
+ - channel-name, 10.8.12 
  - chmod, 10.5.9 
  - chown, 10.5.10 
  - class, B.2.2.1 
@@ -12265,7 +12387,7 @@ Index
  - compare, 9.7.4 
  - concat, 9.3.3 
  - conditionals, 4.9 
- - connect, 10.8.31 
+ - connect, 10.8.32 
  - constants, 4.15 
  - create-lazy-map, 9.5.4 
  - create-map, 9.5.4 
@@ -12278,7 +12400,7 @@ Index
  - DVIPS, 13.7.1 
  - DVIPSFLAGS, 13.7.1 
  - declare, 5.7 
- - decode-uri, 9.3.14 
+ - decode-uri, 9.3.15 
  - default, 9.2.6 
  - defined, 9.2.10 
  - defined-env, 9.2.11 
@@ -12293,8 +12415,8 @@ Index
  - dirname, 10.1.5 
  - dirof, 10.1.7 
  - div, 9.4.3 
- - dup, 10.8.12 
- - dup2, 10.8.13 
+ - dup, 10.8.13 
+ - dup2, 10.8.14 
  
  - EMPTY, 13.4.1 
  - EXE, 13.4.2 
@@ -12305,7 +12427,7 @@ Index
  - echo, 11.9.1 
  - else, 9.2.5, B.2.2.1 
  - elseif, 9.2.5, B.2.2.1 
- - encode-uri, 9.3.14 
+ - encode-uri, 9.3.15 
  - eprint, 10.9 
  - eprintln, 10.9 
  - eprintv, 10.10 
@@ -12314,21 +12436,21 @@ Index
  - equal, 9.2.2 
  - exists-in-path, 10.2.4 
  - exit, 9.2.9 
- - export, 6.3, 9.3.40, B.2.2.1 
+ - export, 6.3, 9.3.41, B.2.2.1 
  - extends, B.2.2.1 
  
  - File, 12.1.13 
  - Float, 12.1.5 
  - Fun, 12.1.9 
  - fg, 11.10.3 
- - fgets, 10.8.34 
+ - fgets, 10.8.35 
  - file, 10.1.1 
  - file-check-sort, 10.3.7 
  - file-exists, 10.3.1 
  - file-sort, 10.3.6 
- - filter, 9.3.32 
+ - filter, 9.3.33 
  - filter-exists, 10.3.3 
- - filter-out, 9.3.33 
+ - filter-out, 9.3.34 
  - filter-proper-targets, 10.3.3 
  - filter-targets, 10.3.3 
  - find, 10.7.2 
@@ -12356,17 +12478,17 @@ Index
  - GXX_FOUND, 13.5.1.1 
  - ge, 9.4.4 
  - get-registry, 9.2.15 
- - getchar, 10.8.32 
+ - getchar, 10.8.33 
  - getenv, 9.2.12 
  - getgrgid, 10.11.21 
  - getgrnam, 10.11.21 
- - gethostbyname, 10.8.22 
- - getprotobyname, 10.8.24 
+ - gethostbyname, 10.8.23 
+ - getprotobyname, 10.8.25 
  - getpwents, 10.11.19 
  - getpwnam, 10.11.18 
  - getpwuid, 10.11.18 
- - gets, 10.8.33 
- - getservbyname, 10.8.26 
+ - gets, 10.8.34 
+ - getservbyname, 10.8.27 
  - gettimeofday, 10.11.27 
  - getvar, 9.2.16 
  - glob, 10.4.1 
@@ -12380,19 +12502,19 @@ Index
  
  - HOME, 9.1 
  - HOST, 9.1 
- - Host, 10.8.21 
+ - Host, 10.8.22 
  - history, 11.11.1 
  - homename, 10.1.10 
- - html-escaped, 9.3.13 
- - html-pre-escaped, 9.3.13 
- - html-string, 9.3.17 
+ - html-escaped, 9.3.14 
+ - html-pre-escaped, 9.3.14 
+ - html-string, 9.3.18 
  
  - INCLUDES, 13.5.2 
  - INSTALL, 13.4.2 
  - InChannel, 12.1.16 
- - InetAddr, 10.8.20 
+ - InetAddr, 10.8.21 
  - Int, 12.1.4 
- - id-escaped, 9.3.13 
+ - id-escaped, 9.3.14 
  - if, 4.9, 9.2.5, B.2.2.1 
  - ignoreeof, 15.1 
  - in, 10.1.3 
@@ -12400,8 +12522,8 @@ Index
  - inheritance, 4.13 
  - input-line, 10.8.6 
  - int, 9.4.1 
- - intersection, 9.3.29 
- - intersects, 9.3.30 
+ - intersection, 9.3.30 
+ - intersects, 9.3.31 
  
  - jobs, 11.10.1 
  - join, 9.3.11 
@@ -12431,11 +12553,11 @@ Index
  - lex-search, 10.11.8 
  - link, 10.5.6 
  - link-order sorting, 10.3.6 
- - listen, 10.8.29 
+ - listen, 10.8.30 
  - lnot, 9.4.3 
- - lockf, 10.8.19 
+ - lockf, 10.8.20 
  - lor, 9.4.3 
- - lowercase, 9.3.37 
+ - lowercase, 9.3.38 
  - ls, 10.4.2 
  - lseek, 10.8.8 
  - lsl, 9.4.3 
@@ -12450,14 +12572,14 @@ Index
  - MENHIR_AVAILABLE, 13.6.1 
  - MENHIR_ENABLED, 13.6.2 
  - MENHIR_FLAGS, 13.6.3 
- - mapprefix, 9.3.25 
- - mapsuffix, 9.3.19 
+ - mapprefix, 9.3.26 
+ - mapsuffix, 9.3.20 
  - match, 4.10, 9.2.6, B.2.2.1 
  - max, 9.4.3 
- - mem, 9.3.28 
+ - mem, 9.3.29 
  - min, 9.4.3 
  - mkdir, 10.5.1 
- - mkfifo, 10.8.17 
+ - mkfifo, 10.8.18 
  - mod, 9.4.3 
  - mul, 9.4.3 
  
@@ -12527,7 +12649,7 @@ Index
  - OSTYPE, 9.1 
  - OutChannel, 12.1.17 
  - objects, 4.11 
- - ocaml-escaped, 9.3.13 
+ - ocaml-escaped, 9.3.14 
  - ocamldep-omake, 13.6.5.2 
  - open, 4.7, B.2.2.1 
  - open-in-string, 10.8.2 
@@ -12541,8 +12663,8 @@ Index
  - PDFLATEX, 13.7.1 
  - PDFLATEXFLAGS, 13.7.1 
  - PID, 9.1 
- - Protocol, 10.8.23 
- - pipe, 10.8.16 
+ - Protocol, 10.8.24 
+ - pipe, 10.8.17 
  - print, 10.9 
  - println, 10.9 
  - printv, 10.10 
@@ -12564,8 +12686,8 @@ Index
  - pw_uid, 10.11.17 
  
  - quotations, 4.4 
- - quote, 9.3.15 
- - quote-argv, 9.3.16 
+ - quote, 9.3.16 
+ - quote-argv, 9.3.17 
  - quoted strings, 7.2 
  
  - READLINE_AVAILABLE, 14.3.2 
@@ -12577,18 +12699,18 @@ Index
  - RunCProg, 14.1.5 
  - RuntimeException, 12.1.20 
  - raise, 9.2.8 
- - random, 9.3.43 
- - random-init, 9.3.43 
+ - random, 9.3.44 
+ - random-init, 9.3.44 
  - read, 10.8.6 
  - readlink, 10.5.8 
  - regular expressions, 10.11.1 
  - rehash, 10.2.3 
  - remove-project-directories, 10.6.3 
- - removeprefix, 9.3.21 
- - removesuffix, 9.3.22 
+ - removeprefix, 9.3.22 
+ - removesuffix, 9.3.23 
  - rename, 10.5.5 
  - replace-nth, 9.3.6 
- - replacesuffixes, 9.3.23 
+ - replacesuffixes, 9.3.24 
  - return, 4.5, B.2.2.1 
  - rev, 9.3.10 
  - rewind, 10.8.9 
@@ -12601,7 +12723,7 @@ Index
  
  - SCANNER_MODE, 13.4.1 
  - Sequence, 12.1.6 
- - Service, 10.8.25 
+ - Service, 10.8.26 
  - Shell, 12.1.22 
  - SNPRINTF_AVAILABLE, 14.3.3 
  - STDLIB, 9.1 
@@ -12621,17 +12743,17 @@ Index
  - scan, 10.11.4 
  - section, 4.8, 8.3, B.2.2.1 
  - section rule, 8.4 
- - select, 10.8.18 
+ - select, 10.8.19 
  - sequence-forall, 9.7.1 
  - sequence-sort, 9.7.3 
- - set, 9.3.27 
- - set-close-on-exec-mode, 10.8.15 
- - set-diff, 9.3.31 
- - set-nonblock, 10.8.14 
+ - set, 9.3.28 
+ - set-close-on-exec-mode, 10.8.16 
+ - set-diff, 9.3.32 
+ - set-nonblock, 10.8.15 
  - setenv, 9.2.13 
  - setvar, 9.2.17 
- - shell, 9.3.39 
- - socket, 10.8.27 
+ - shell, 9.3.40 
+ - socket, 10.8.28 
  - sorting (link-order), 10.3.6 
  - split, 9.3.2 
  - stat, 10.5.3 
@@ -12642,14 +12764,15 @@ Index
  - stdout, 10.8.1 
  - stop, 11.10.4 
  - string, 9.3.12 
- - string-escaped, 9.3.13 
+ - string-escaped, 9.3.14 
+ - string-length, 9.3.13 
  - sub, 9.4.3 
  - subdirs, 10.4.3 
  - subrange, 9.3.9 
  - suffix, 10.1.11 
  - switch, 4.10, 9.2.6 
  - symlink, 10.5.7 
- - system, 9.3.38 
+ - system, 9.3.39 
  
  - TARGETS, 9.1 
  - Target, 12.1.11 
@@ -12681,10 +12804,10 @@ Index
  - ule, 9.4.4 
  - ult, 9.4.4 
  - umask, 10.5.12 
- - uncapitalize, 9.3.35 
+ - uncapitalize, 9.3.36 
  - unlink, 10.5.4 
  - unsetenv, 9.2.14 
- - uppercase, 9.3.36 
+ - uppercase, 9.3.37 
  
  - VERBOSE, 9.1 
  - VerboseCheckCHeader, 14.1.6 
@@ -12696,7 +12819,7 @@ Index
  - wait, 11.10.5 
  - where, 10.2.2 
  - which, 10.2.1 
- - while, 9.3.41, B.2.2.1 
+ - while, 9.3.42, B.2.2.1 
  - write, 10.8.7 
  
  - xterm-escape, 10.11.24 
@@ -12860,13 +12983,13 @@ Index of functions and special forms
   
   
  - absname, 10.1.9 
- - accept, 10.8.30 
+ - accept, 10.8.31 
  - add, 9.4.3 
  - add-project-directories, 10.6.2 
- - add-wrapper, 9.3.26 
- - addprefix, 9.3.24 
- - addsuffix, 9.3.18 
- - addsuffixes, 9.3.20 
+ - add-wrapper, 9.3.27 
+ - addprefix, 9.3.25 
+ - addsuffix, 9.3.19 
+ - addsuffixes, 9.3.21 
  - and, 9.2.3 
  - apply, 9.5.2 
  - applya, 9.5.3 
@@ -12876,8 +12999,8 @@ Index of functions and special forms
  
  - basename, 10.1.4 
  - bg, 11.10.2 
- - bind, 10.8.28 
- - break, 9.3.42 
+ - bind, 10.8.29 
+ - break, 9.3.43 
  - build, 13.3.6 
  
  - CGeneratedFiles, 13.5.3.1 
@@ -12895,22 +13018,23 @@ Index of functions and special forms
  - CProgramInstall, 13.5.4.7 
  - CXXProgram, 13.5.4.8 
  - CXXProgramInstall, 13.5.4.8 
- - c-escaped, 9.3.13 
- - capitalize, 9.3.34 
+ - c-escaped, 9.3.14 
+ - capitalize, 9.3.35 
  - cat, 10.11.2 
  - cd, 11.9.2 
+ - channel-name, 10.8.12 
  - chmod, 10.5.9 
  - chown, 10.5.10 
  - close, 10.8.5 
  - cmp-versions, 13.2.3 
  - compare, 9.7.4 
  - concat, 9.3.3 
- - connect, 10.8.31 
+ - connect, 10.8.32 
  - create-lazy-map, 9.5.4 
  - create-map, 9.5.4 
  
  - DefineCommandVars, 13.2.4 
- - decode-uri, 9.3.14 
+ - decode-uri, 9.3.15 
  - defined, 9.2.10 
  - defined-env, 9.2.11 
  - dependencies, 13.3.1 
@@ -12924,11 +13048,11 @@ Index of functions and special forms
  - dirname, 10.1.5 
  - dirof, 10.1.7 
  - div, 9.4.3 
- - dup, 10.8.12 
- - dup2, 10.8.13 
+ - dup, 10.8.13 
+ - dup2, 10.8.14 
  
  - echo, 11.9.1 
- - encode-uri, 9.3.14 
+ - encode-uri, 9.3.15 
  - eprint, 10.9 
  - eprintln, 10.9 
  - eprintv, 10.10 
@@ -12937,17 +13061,17 @@ Index of functions and special forms
  - equal, 9.2.2 
  - exists-in-path, 10.2.4 
  - exit, 9.2.9 
- - export, 9.3.40 
+ - export, 9.3.41 
  
  - fg, 11.10.3 
- - fgets, 10.8.34 
+ - fgets, 10.8.35 
  - file, 10.1.1 
  - file-check-sort, 10.3.7 
  - file-exists, 10.3.1 
  - file-sort, 10.3.6 
- - filter, 9.3.32 
+ - filter, 9.3.33 
  - filter-exists, 10.3.3 
- - filter-out, 9.3.33 
+ - filter-out, 9.3.34 
  - filter-proper-targets, 10.3.3 
  - filter-targets, 10.3.3 
  - find, 10.7.2 
@@ -12971,17 +13095,17 @@ Index of functions and special forms
  
  - ge, 9.4.4 
  - get-registry, 9.2.15 
- - getchar, 10.8.32 
+ - getchar, 10.8.33 
  - getenv, 9.2.12 
  - getgrgid, 10.11.21 
  - getgrnam, 10.11.21 
- - gethostbyname, 10.8.22 
- - getprotobyname, 10.8.24 
+ - gethostbyname, 10.8.23 
+ - getprotobyname, 10.8.25 
  - getpwents, 10.11.19 
  - getpwnam, 10.11.18 
  - getpwuid, 10.11.18 
- - gets, 10.8.33 
- - getservbyname, 10.8.26 
+ - gets, 10.8.34 
+ - getservbyname, 10.8.27 
  - gettimeofday, 10.11.27 
  - getvar, 9.2.16 
  - glob, 10.4.1 
@@ -12990,18 +13114,18 @@ Index of functions and special forms
  
  - history, 11.11.1 
  - homename, 10.1.10 
- - html-escaped, 9.3.13 
- - html-pre-escaped, 9.3.13 
- - html-string, 9.3.17 
+ - html-escaped, 9.3.14 
+ - html-pre-escaped, 9.3.14 
+ - html-string, 9.3.18 
  
- - id-escaped, 9.3.13 
+ - id-escaped, 9.3.14 
  - if, 9.2.5 
  - in, 10.1.3 
  - include, 4.7 
  - input-line, 10.8.6 
  - int, 9.4.1 
- - intersection, 9.3.29 
- - intersects, 9.3.30 
+ - intersection, 9.3.30 
+ - intersects, 9.3.31 
  
  - jobs, 11.10.1 
  - join, 9.3.11 
@@ -13020,11 +13144,11 @@ Index of functions and special forms
  - lex, 10.11.7 
  - lex-search, 10.11.8 
  - link, 10.5.6 
- - listen, 10.8.29 
+ - listen, 10.8.30 
  - lnot, 9.4.3 
- - lockf, 10.8.19 
+ - lockf, 10.8.20 
  - lor, 9.4.3 
- - lowercase, 9.3.37 
+ - lowercase, 9.3.38 
  - ls, 10.4.2 
  - lseek, 10.8.8 
  - lsl, 9.4.3 
@@ -13033,14 +13157,14 @@ Index of functions and special forms
  - lt, 9.4.4 
  - lxor, 9.4.3 
  
- - mapprefix, 9.3.25 
- - mapsuffix, 9.3.19 
+ - mapprefix, 9.3.26 
+ - mapsuffix, 9.3.20 
  - match, 4.10, 9.2.6 
  - max, 9.4.3 
- - mem, 9.3.28 
+ - mem, 9.3.29 
  - min, 9.4.3 
  - mkdir, 10.5.1 
- - mkfifo, 10.8.17 
+ - mkfifo, 10.8.18 
  - mod, 9.4.3 
  - mul, 9.4.3 
  
@@ -13060,13 +13184,13 @@ Index of functions and special forms
  - OCamlProgramInstall, 13.6.6.7 
  - OMakeFlags, 13.2.1 
  - OMakeVersion, 13.2.2 
- - ocaml-escaped, 9.3.13 
+ - ocaml-escaped, 9.3.14 
  - open-in-string, 10.8.2 
  - open-out-string, 10.8.3 
  - or, 9.2.4 
  - out-contents, 10.8.3 
  
- - pipe, 10.8.16 
+ - pipe, 10.8.17 
  - print, 10.9 
  - println, 10.9 
  - printv, 10.10 
@@ -13076,22 +13200,22 @@ Index of functions and special forms
  - prompt-invisible-begin, 10.11.25 
  - prompt-invisible-end, 10.11.25 
  
- - quote, 9.3.15 
- - quote-argv, 9.3.16 
+ - quote, 9.3.16 
+ - quote-argv, 9.3.17 
  
  - RunCProg, 14.1.5 
  - raise, 9.2.8 
- - random, 9.3.43 
- - random-init, 9.3.43 
+ - random, 9.3.44 
+ - random-init, 9.3.44 
  - read, 10.8.6 
  - readlink, 10.5.8 
  - rehash, 10.2.3 
  - remove-project-directories, 10.6.3 
- - removeprefix, 9.3.21 
- - removesuffix, 9.3.22 
+ - removeprefix, 9.3.22 
+ - removesuffix, 9.3.23 
  - rename, 10.5.5 
  - replace-nth, 9.3.6 
- - replacesuffixes, 9.3.23 
+ - replacesuffixes, 9.3.24 
  - rev, 9.3.10 
  - rewind, 10.8.9 
  - rootname, 10.1.6 
@@ -13109,30 +13233,31 @@ Index of functions and special forms
  - scan, 10.11.4 
  - section, 8.3 
  - section rule, 8.4 
- - select, 10.8.18 
+ - select, 10.8.19 
  - sequence-forall, 9.7.1 
  - sequence-sort, 9.7.3 
- - set, 9.3.27 
- - set-close-on-exec-mode, 10.8.15 
- - set-diff, 9.3.31 
- - set-nonblock, 10.8.14 
+ - set, 9.3.28 
+ - set-close-on-exec-mode, 10.8.16 
+ - set-diff, 9.3.32 
+ - set-nonblock, 10.8.15 
  - setenv, 9.2.13 
  - setvar, 9.2.17 
- - shell, 9.3.39 
- - socket, 10.8.27 
+ - shell, 9.3.40 
+ - socket, 10.8.28 
  - split, 9.3.2 
  - stat, 10.5.3 
  - stat-reset, 10.3.2 
  - stop, 11.10.4 
  - string, 9.3.12 
- - string-escaped, 9.3.13 
+ - string-escaped, 9.3.14 
+ - string-length, 9.3.13 
  - sub, 9.4.3 
  - subdirs, 10.4.3 
  - subrange, 9.3.9 
  - suffix, 10.1.11 
  - switch, 4.10, 9.2.6 
  - symlink, 10.5.7 
- - system, 9.3.38 
+ - system, 9.3.39 
  
  - TeXGeneratedFiles, 13.7.2.2 
  - TryCompileC, 14.1.4 
@@ -13153,10 +13278,10 @@ Index of functions and special forms
  - ule, 9.4.4 
  - ult, 9.4.4 
  - umask, 10.5.12 
- - uncapitalize, 9.3.35 
+ - uncapitalize, 9.3.36 
  - unlink, 10.5.4 
  - unsetenv, 9.2.14 
- - uppercase, 9.3.36 
+ - uppercase, 9.3.37 
  
  - VerboseCheckCHeader, 14.1.6 
  - VerboseCheckCLib, 14.1.7 
@@ -13165,7 +13290,7 @@ Index of functions and special forms
  - wait, 11.10.5 
  - where, 10.2.2 
  - which, 10.2.1 
- - while, 9.3.41 
+ - while, 9.3.42 
  - write, 10.8.7 
  
  - xterm-escape, 10.11.24 
@@ -13191,10 +13316,10 @@ Index of objects
  
  - Group, 10.11.20 
  
- - Host, 10.8.21 
+ - Host, 10.8.22 
  
  - InChannel, 12.1.16 
- - InetAddr, 10.8.20 
+ - InetAddr, 10.8.21 
  - Int, 12.1.4 
  
  - Lexer, 10.11.9 
@@ -13210,13 +13335,13 @@ Index of objects
  
  - Parser, 10.11.13 
  - Passwd, 10.11.17 
- - Protocol, 10.8.23 
+ - Protocol, 10.8.24 
  
  - Rule, 12.1.10 
  - RuntimeException, 12.1.20 
  
  - Sequence, 12.1.6 
- - Service, 10.8.25 
+ - Service, 10.8.26 
  - Shell, 12.1.22 
  - Stat, 10.5.2 
  - String, 12.1.8 
@@ -13236,6 +13361,7 @@ Index of special targets
  - .BUILDORDER, 10.3.6 
  - .DEFAULT, 8.7, 8.12.1 
  - .INCLUDE, 8.9 
+ - .MEMO, 4.14.1.1 
  - .ORDER, 10.3.6 
  - .PHONY, 8.10, 8.11.3, 8.12.1, 8.12.2 
  - .SCANNER, 8.6, 8.11.2 
@@ -13300,7 +13426,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.4 of 2^ndJuly, 2007.
+  Version: 0.9.8.4 of 26^thJuly, 2007.
   
 
 C.3  License and Copyright

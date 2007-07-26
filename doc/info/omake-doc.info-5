@@ -1,5 +1,171 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 9-5-4,	Next: Section 9-6,	Prev: Subsection 9-5-3,	Up: Section 9-5
+  
+
+9.5.4   create-map, create-lazy-map
+===================================
+
+  The `create-map' is a simplified form for creating `Map' objects. The
+`create-map' function takes an even number of arguments that specify
+key/value pairs. For example, the following values are equivalent.
+<<    X = $(create-map name1, xxx, name2, yyy)
+  
+      X. =
+          extends $(Map)
+          $|name1| = xxx
+          $|name2| = yyy
+>>
+  
+  The `create-lazy-map' function is similar, but the values are computed
+lazily. The following two definitions are equivalent.
+<<    Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
+  
+      Y. =
+          extends $(Map)
+          $|name1| = $`(xxx)
+          $|name2| = $`(yyy)
+>>
+  
+  The 'create-lazy-map' function is used in rule construction. 
+
+Node: Section 9-6,	Next: Subsection 9-6-1,	Prev: Section 9-5,	Up: Chapter 9
+  
+
+9.6   Iteration and mapping
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection 9-6-1::	foreach
+
+
+Node: Subsection 9-6-1,	Next: Section 9-7,	Prev: Section 9-6,	Up: Section 9-6
+  
+
+9.6.1   foreach
+===============
+
+  The `foreach' function maps a function over a sequence.
+<<    $(foreach <fun>, <args>)
+  
+      foreach(<var>, <args>)
+         <body>
+>>
+  
+  For example, the following program defines the variable `X' as an
+array `a.c b.c c.c'.
+<<    X =
+         foreach(x, a b c)
+            value $(x).c
+  
+      # Equivalent expression
+      X = $(foreach $(fun x, $(x).c), abc)
+>>
+  
+  There is also an abbreviated syntax.
+  The `export' form can also be used in a `foreach' body. The final
+value of `X' is `a.c b.c c.c'.
+<<    X =
+      foreach(x, a b c)
+         X += $(x).c
+         export
+>>
+  
+  The 'break' function can be used to break out of the loop early. 
+
+Node: Section 9-7,	Next: Subsection 9-7-1,	Prev: Section 9-6,	Up: Chapter 9
+  
+
+9.7   Boolean tests
+*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection 9-7-1::	sequence-forall
+* Subsection 9-7-2::	sequence-exists
+* Subsection 9-7-3::	sequence-sort
+* Subsection 9-7-4::	compare
+
+
+Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9-7
+  
+
+9.7.1   sequence-forall
+=======================
+
+  The `forall' function tests whether a predicate halds for each element
+of a sequence.
+<<    $(sequence-forall <fun>, <args>)
+  
+      sequence-forall(<var> => ..., <args>)
+         <body>
+>>
+
+Node: Subsection 9-7-2,	Next: Subsection 9-7-3,	Prev: Subsection 9-7-1,	Up: Section 9-7
+  
+
+9.7.2   sequence-exists
+=======================
+  
+  The `exists' function tests whether a predicate holds for some element
+of a sequence.
+<<    $(sequence-exists <fun>, <args>)
+  
+      sequence-exists(<var> => ..., <args>)
+         <body>
+>>
+
+Node: Subsection 9-7-3,	Next: Subsection 9-7-4,	Prev: Subsection 9-7-2,	Up: Section 9-7
+  
+
+9.7.3   sequence-sort
+=====================
+
+  The `sort' function sorts the elements in an array, given a comparison
+function. Given two elements (x, y), the comparison should return a
+negative number if x < y; a positive number if x > y; and 0 if x = y.
+<<    $(sequence-sort <fun>, <args>)
+  
+      sort(<var>, <var> => ..., <args>)
+         <body>
+>>
+
+Node: Subsection 9-7-4,	Next: Chapter 10,	Prev: Subsection 9-7-3,	Up: Section 9-7
+  
+
+9.7.4   compare
+===============
+
+  The `compare' function compares two values (x, y) generically
+returning a negative number if x < y; a positive number if x > y; and 0
+if x = y.
+<<    $(compare x, y) : Int
+>>
+
+Node: Chapter 10,	Next: Section 10-1,	Prev: Section 9-7,	Up: Top
+  
+
+Chapter 10     File, I/O and system operations
+**********************************************
+     
+* Menu:
+
+* Section 10-1::	File names
+* Section 10-2::	Path search
+* Section 10-3::	File stats
+* Section 10-4::	Globbing and file listings
+* Section 10-5::	Filesystem operations
+* Section 10-6::	vmount
+* Section 10-7::	File predicates
+* Section 10-8::	IO functions
+* Section 10-9::	Printing functions
+* Section 10-10::	Value printing functions
+* Section 10-11::	Higher-level IO functions
+
+
 Node: Section 10-1,	Next: Subsection 10-1-1,	Prev: Chapter 10,	Up: Chapter 10
   
 
@@ -518,7 +684,7 @@ Node: Subsection 10-3-5,	Next: Subsection 10-3-6,	Prev: Subsection 10-3-4,	Up: S
 10.3.5   find-ocaml-targets-in-path-optional
 ============================================
 \
-@name{@fun139} The `find-ocaml-targets-in-path-optional' function is
+@name{@fun140} The `find-ocaml-targets-in-path-optional' function is
 very similar to the 'find-targets-in-path-optional' one, except an
 OCaml-style search is used, where for every element of the search path
 and for every name being searched for, first the uncapitalized version
@@ -1313,29 +1479,30 @@ Node: Section 10-8,	Next: Subsection 10-8-1,	Prev: Section 10-7,	Up: Chapter 10
 * Subsection 10-8-9::	rewind
 * Subsection 10-8-10::	tell
 * Subsection 10-8-11::	flush
-* Subsection 10-8-12::	dup
-* Subsection 10-8-13::	dup2
-* Subsection 10-8-14::	set-nonblock
-* Subsection 10-8-15::	set-close-on-exec-mode
-* Subsection 10-8-16::	pipe
-* Subsection 10-8-17::	mkfifo
-* Subsection 10-8-18::	select
-* Subsection 10-8-19::	lockf
-* Subsection 10-8-20::	InetAddr
-* Subsection 10-8-21::	Host
-* Subsection 10-8-22::	gethostbyname
-* Subsection 10-8-23::	Protocol
-* Subsection 10-8-24::	getprotobyname
-* Subsection 10-8-25::	Service
-* Subsection 10-8-26::	getservbyname
-* Subsection 10-8-27::	socket
-* Subsection 10-8-28::	bind
-* Subsection 10-8-29::	listen
-* Subsection 10-8-30::	accept
-* Subsection 10-8-31::	connect
-* Subsection 10-8-32::	getchar
-* Subsection 10-8-33::	gets
-* Subsection 10-8-34::	fgets
+* Subsection 10-8-12::	channel-name
+* Subsection 10-8-13::	dup
+* Subsection 10-8-14::	dup2
+* Subsection 10-8-15::	set-nonblock
+* Subsection 10-8-16::	set-close-on-exec-mode
+* Subsection 10-8-17::	pipe
+* Subsection 10-8-18::	mkfifo
+* Subsection 10-8-19::	select
+* Subsection 10-8-20::	lockf
+* Subsection 10-8-21::	InetAddr
+* Subsection 10-8-22::	Host
+* Subsection 10-8-23::	gethostbyname
+* Subsection 10-8-24::	Protocol
+* Subsection 10-8-25::	getprotobyname
+* Subsection 10-8-26::	Service
+* Subsection 10-8-27::	getservbyname
+* Subsection 10-8-28::	socket
+* Subsection 10-8-29::	bind
+* Subsection 10-8-30::	listen
+* Subsection 10-8-31::	accept
+* Subsection 10-8-32::	connect
+* Subsection 10-8-33::	getchar
+* Subsection 10-8-34::	gets
+* Subsection 10-8-35::	fgets
 
 
 Node: Subsection 10-8-1,	Next: Subsection 10-8-2,	Prev: Section 10-8,	Up: Section 10-8
@@ -1478,182 +1645,3 @@ number of bytes that were written.
 length of the `buffer'.
   If an end-of-file condition is reached, the function raises a
 `RuntimeException' exception. 
-
-Node: Subsection 10-8-8,	Next: Subsection 10-8-9,	Prev: Subsection 10-8-7,	Up: Section 10-8
-  
-
-10.8.8   lseek
-==============
-
-<<    $(lseek channel, offset, whence) : Int
-         channel : Channel
-         offset  : Int
-         whence  : String
-      raises RuntimeException
->>
-  
-  The `lseek' function repositions the offset of the channel `channel'
-according to the `whence' directive, as follows:
-  
-  
- SEEK_SET  The offset is set to `offset'. 
- SEEK_CUR  The offset is set to its current position plus `offset'
-   bytes. 
- SEEK_END  The offset is set to the size of the file plus `offset'
-   bytes. 
-  
-  The `lseek' function returns the new position in the file. 
-
-Node: Subsection 10-8-9,	Next: Subsection 10-8-10,	Prev: Subsection 10-8-8,	Up: Section 10-8
-  
-
-10.8.9   rewind
-===============
-
-<<   rewind(channel...)
-        channel : Channel
->>
-  
-  The `rewind' function set the current file position to the beginning
-of the file. 
-
-Node: Subsection 10-8-10,	Next: Subsection 10-8-11,	Prev: Subsection 10-8-9,	Up: Section 10-8
-  
-
-10.8.10   tell
-==============
-
-<<    $(tell channel...) : Int...
-         channel : Channel
-      raises RuntimeException
->>
-  
-  The `tell' function returns the current position of the `channel'. 
-
-Node: Subsection 10-8-11,	Next: Subsection 10-8-12,	Prev: Subsection 10-8-10,	Up: Section 10-8
-  
-
-10.8.11   flush
-===============
-
-<<   $(flush channel...)
-        channel : OutChannel
->>
-  
-  The `flush' function can be used only on files that are open for
-writing. It flushes all pending data to the file. 
-
-Node: Subsection 10-8-12,	Next: Subsection 10-8-13,	Prev: Subsection 10-8-11,	Up: Section 10-8
-  
-
-10.8.12   dup
-=============
-
-<<    $(dup channel) : Channel
-         channel : Channel
-      raises RuntimeException
->>
-  
-  The `dup' function returns a new channel referencing the same file as
-the argument. 
-
-Node: Subsection 10-8-13,	Next: Subsection 10-8-14,	Prev: Subsection 10-8-12,	Up: Section 10-8
-  
-
-10.8.13   dup2
-==============
-
-<<   dup2(channel1, channel2)
-        channel1 : Channel
-        channel2 : Channel
-     raises RuntimeException
->>
-  
-  The `dup2' function causes `channel2' to refer to the same file as
-`channel1'. 
-
-Node: Subsection 10-8-14,	Next: Subsection 10-8-15,	Prev: Subsection 10-8-13,	Up: Section 10-8
-  
-
-10.8.14   set-nonblock
-======================
-
-<<   set-nonblock-mode(mode, channel...)
-        channel : Channel
-        mode : String
->>
-  
-  The `set-nonblock-mode' function sets the nonblocking flag on the
-given channel. When IO is performed on the channel, and the operation
-cannot be completed immediately, the operations raises a
-`RuntimeException'. 
-
-Node: Subsection 10-8-15,	Next: Subsection 10-8-16,	Prev: Subsection 10-8-14,	Up: Section 10-8
-  
-
-10.8.15   set-close-on-exec-mode
-================================
-
-<<   set-close-on-exec-mode(mode, channel...)
-        channel : Channel
-        mode : String
-     raises RuntimeException
->>
-  
-  The `set-close-on-exec-mode' function sets the close-on-exec flags for
-the given channels. If the close-on-exec flag is set, the channel is not
-inherited by child processes. Otherwise it is. 
-
-Node: Subsection 10-8-16,	Next: Subsection 10-8-17,	Prev: Subsection 10-8-15,	Up: Section 10-8
-  
-
-10.8.16   pipe
-==============
-
-<<   $(pipe) : Pipe
-     raises RuntimeException
->>
-  
-  The `pipe' function creates a `Pipe' object, which has two fields. The
-`read' field is a channel that is opened for reading, and the `write'
-field is a channel that is opened for writing. 
-
-Node: Subsection 10-8-17,	Next: Subsection 10-8-18,	Prev: Subsection 10-8-16,	Up: Section 10-8
-  
-
-10.8.17   mkfifo
-================
-
-<<   mkfifo(mode, node...)
-        mode : Int
-        node : Node
->>
-  
-  The `mkfifo' function creates a named pipe. 
-
-Node: Subsection 10-8-18,	Next: Subsection 10-8-19,	Prev: Subsection 10-8-17,	Up: Section 10-8
-  
-
-10.8.18   select
-================
-
-<<   $(select rfd..., wfd..., wfd..., timeout) : Select
-        rfd : InChannel
-        wfd : OutChannel
-        efd : Channel
-        timeout : float
-     raises RuntimeException
->>
-  
-  The `select' function polls for possible IO on a set of channels. The
-`rfd' are a sequence of channels for reading, `wfd' are a sequence of
-channels for writing, and `efd' are a sequence of channels to poll for
-error conditions. The `timeout' specifies the maximum amount of time to
-wait for events.
-  On successful return, `select' returns a `Select' object, which has
-the following fields: 
-  
- read  An array of channels available for reading. 
- write  An array of channels available for writing. 
- error  An array of channels on which an error has occurred. 
-   

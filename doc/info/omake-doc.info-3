@@ -1,5 +1,110 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 6-3-1,	Next: Subsection 6-3-2,	Prev: Section 6-3,	Up: Section 6-3
+  
+
+6.3.1   Export regions
+======================
+  
+  This feature will be introduced in version 0.9.8.5.
+  The `export' directive does not need to occur at the end of a block.
+An export is valid from the point where it is specified to the end of
+the block in which it is contained. In other words, the export is used
+in the program that follows it. This can be especially useful for
+reducing the amount of code you have to write. In the following example,
+the variable `CFLAGS' is exported from the both branches of the
+conditional.
+<<    export CFLAGS
+      if $(equal $(OSTYPE), Win32)
+          CFLAGS += /DWIN32
+      else
+          CFLAGS += -UWIN32
+>>
+  
+
+Node: Subsection 6-3-2,	Next: Section 6-4,	Prev: Subsection 6-3-1,	Up: Section 6-3
+  
+
+6.3.2   Returning values from exported regions
+==============================================
+  
+  This feature will be introduced in version 0.9.8.5.
+  The use of export does not affect the value returned by a block. The
+value is computed as usual, as the value of the last statement in the
+block, ignoring the export. For example, suppose we wish to implement a
+table that maps strings to unique integers. Consider the following
+program.
+<<    # Empty map
+      table = $(Map)
+  
+      # Add an entry to the table
+      intern(s) =
+          export
+          if $(table.mem $s)
+              table.find($s)
+          else
+              private.i = $(table.length)
+              table = $(table.add $s, $i)
+              value $i
+  
+      intern(foo)
+      intern(boo)
+      intern(moo)
+      # Prints "boo = 1"
+      println($"boo = $(intern boo)")
+>>
+  Given a string `s', the function `intern' returns either the value
+already associated with `s', or assigns a new value. In the latter case,
+the table is updated with the new value. The `export' at the beginning
+of the function means that the variable `table' is to be exported. The
+bindings for `s' and `i' are not exported, because they are private.
+
+  Evaluation in omake is eager. That is, expressions are evaluated as
+soon as they are encountered by the evaluator. One effect of this is
+that the right-hand-side of a variable definition is expanded when the
+variable is defined.
+<<    osh> A = 1
+      - : "1"
+      osh> A = $(A)$(A)
+      - : "11"
+>>
+  
+  In the second definition, `A = $(A)$(A)', the right-hand-side is
+evaluated first, producing the sequence `11'. Then the variable `A' is
+redefined as the new value. When combined with dynamic scoping, this has
+many of the same properties as conventional imperative programming.
+<<    osh> A = 1
+      - : "1"
+      osh> printA() =
+          println($"A = $A")
+      osh> A = $(A)$(A)
+      - : "11"
+      osh> printA()
+      11
+>>
+  
+  In this example, the print function is defined in the scope of `A'.
+When it is called on the last line, the dynamic value of `A' is `11',
+which is what is printed.
+  However, dynamic scoping and imperative programming should not be
+confused. The following example illustrates a difference. The second
+`printA' is not in the scope of the definition `A = x$(A)$(A)x', so it
+prints the original value, `1'.
+<<    osh> A = 1
+      - : "1"
+      osh> printA() =
+          println($"A = $A")
+      osh> section
+               A = x$(A)$(A)x
+               printA()
+      x11x
+      osh> printA()
+      1
+>>
+  
+  See also Section 7.5*Note Section 7-5:: for further ways to
+control the evaluation order through the use of "lazy" expressions.
+
 Node: Section 6-4,	Next: Section 6-5,	Prev: Section 6-3,	Up: Chapter 6
   
 
@@ -1382,95 +1487,6 @@ the project root.
 >>
   
   Note that when a `.PHONY' target is inherited by a subdirectory via a
-`.SUBDIRS', a whole hierarchy of `.PHONY' target (that are a part of the
-global one) is created, as described in Section
+`.SUBDIRS', a whole hierarchy of `.PHONY' targets (that are a part of
+the global one) is created, as described in Section
 8.12.2*Note Subsection 8-12-2:: below.
-
-Node: Section 8-12,	Next: Subsection 8-12-1,	Prev: Section 8-11,	Up: Chapter 8
-  
-
-8.12   Running OMake from a subdirectory
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-    Running `omake foo' asks OMake to
-build the file `foo' in context of the whole project, even when running
-from a subdirectory of the project. Therefore, if `bar/baz' is a regular
-target (not a `.PHONY' one), then running `omake bar/baz' and running
-`(cd bar; omake baz)' are usually equivalent.
-  There are two noteworthy exceptions to the above rule: 
-  
- - If the subdirectory is not a part of the project (there is no
-   `.SUBDIRS') for it, then OMake will complain if you try to run it in
-   that directory. 
- - If a subdirectory contains an `OMakeroot' of its own, this would
-   designate the subdirectory as a separate project (which is usually a
-   bad idea and is not recommended). 
-  
-* Menu:
-
-* Subsection 8-12-1::	Phony targets in a subdirectory
-* Subsection 8-12-2::	Hierarchy of '.PHONY' targets
-
-
-Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Section 8-12
-  
-
-8.12.1   Phony targets in a subdirectory
-========================================
-   \@n
-ame{@default62}
-  Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
-and both the root `OMakefile' and the `OMakefile' in some of the
-subdirectories contain `clean:' rules. In this case 
-  
- - Running `omake clean' in the root directory will execute all the
-   rules (each in the appropriate directory); 
- - Running `omake clean' in the subdirectory will execute just its local
-   one, as well as the ones from the subdirectories of the current
-   directory. 
-  
-  The above equally applies to the built-in `.PHONY' targets, including
-'.DEFAULT'. Namely, if OMake is executed (without argument) in the root
-directory of a project, all the `.DEFAULT' targets in the project will
-be built. On the other hand, when OMake is executed (without argument)
-in a subdirectory, only the `.DEFAULT' targets defined in and under that
-subdirectory will be built.
-  The following Section explains the underlying semantics that gives
-rise to the above behavior.
-
-Node: Subsection 8-12-2,	Next: Section 8-13,	Prev: Subsection 8-12-1,	Up: Section 8-12
-  
-
-8.12.2   Hierarchy of '.PHONY' targets
-======================================
-   
-  When the the root `OMakefile' contains a `.PHONY: clean' directive, it
-creates: 
-  
- - A "global" phony target `/.PHONY/clean' (note the leading "`/'"); 
- - A "relative" phony target attached to the current directory ---
-   `.PHONY/clean' (note the lack of the leading "`/'"); 
- - A dependency `/.PHONY/clean: .PHONY/clean'. 
-  
-  All the `clean: ...' rules in the root `OMakefile' following this
-`.PHONY: clean' declaration would be interpreted as rules for the
-`.PHONY/clean' target.
-  Now when OMake then comes across a `.SUBDIRS: foo' directive (when it
-is in scope of the above `.PHONY: clean' declaration), it does the
-following: 
-  
- - Creates a new `.PHONY/foo/clean' "relative" phony target; 
- - Creates the dependency `.PHONY/clean: .PHONY/foo/clean'; 
- - Processes the body of the `.SUBDIRS: foo' directive, or reads the
-   `foo/OMakefile' file, if the body is empty. While doing that, it
-   interprets its instructions relative to the `foo' directory. In
-   particular, all the `clean: ...' rules will be taken to apply to
-   `.PHONY/foo/clean'. 
-  
-  Now when you run `omake clean' in the root directory of the project,
-it is interpreted as `omake .PHONY/clean' (similar to how it happens
-with the normal targets), so both the rules for `.PHONY/clean' are
-executed and the rules for its dependency  `.PHONY/foo/clean'. Running
-`(cd foo; omake clean)' is, as for normal targets, equivalent to running
-`omake .PHONY/foo/clean' and only those rules that apply to
-`.PHONY/foo/clean' will be executed.

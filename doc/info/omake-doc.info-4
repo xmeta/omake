@@ -1,5 +1,94 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Section 8-12,	Next: Subsection 8-12-1,	Prev: Section 8-11,	Up: Chapter 8
+  
+
+8.12   Running OMake from a subdirectory
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+    Running `omake foo' asks OMake to
+build the file `foo' in context of the whole project, even when running
+from a subdirectory of the project. Therefore, if `bar/baz' is a regular
+target (not a `.PHONY' one), then running `omake bar/baz' and running
+`(cd bar; omake baz)' are usually equivalent.
+  There are two noteworthy exceptions to the above rule: 
+  
+ - If the subdirectory is not a part of the project (there is no
+   `.SUBDIRS') for it, then OMake will complain if you try to run it in
+   that directory. 
+ - If a subdirectory contains an `OMakeroot' of its own, this would
+   designate the subdirectory as a separate project (which is usually a
+   bad idea and is not recommended). 
+  
+* Menu:
+
+* Subsection 8-12-1::	Phony targets in a subdirectory
+* Subsection 8-12-2::	Hierarchy of '.PHONY' targets
+
+
+Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Section 8-12
+  
+
+8.12.1   Phony targets in a subdirectory
+========================================
+   \@n
+ame{@default64}
+  Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
+and both the root `OMakefile' and the `OMakefile' in some of the
+subdirectories contain `clean:' rules. In this case 
+  
+ - Running `omake clean' in the root directory will execute all the
+   rules (each in the appropriate directory); 
+ - Running `omake clean' in the subdirectory will execute just its local
+   one, as well as the ones from the subdirectories of the current
+   directory. 
+  
+  The above equally applies to the built-in `.PHONY' targets, including
+'.DEFAULT'. Namely, if OMake is executed (without argument) in the root
+directory of a project, all the `.DEFAULT' targets in the project will
+be built. On the other hand, when OMake is executed (without argument)
+in a subdirectory, only the `.DEFAULT' targets defined in and under that
+subdirectory will be built.
+  The following Section explains the underlying semantics that gives
+rise to the above behavior.
+
+Node: Subsection 8-12-2,	Next: Section 8-13,	Prev: Subsection 8-12-1,	Up: Section 8-12
+  
+
+8.12.2   Hierarchy of '.PHONY' targets
+======================================
+   
+  When the the root `OMakefile' contains a `.PHONY: clean' directive, it
+creates: 
+  
+ - A "global" phony target `/.PHONY/clean' (note the leading "`/'"); 
+ - A "relative" phony target attached to the current directory ---
+   `.PHONY/clean' (note the lack of the leading "`/'"); 
+ - A dependency `/.PHONY/clean: .PHONY/clean'. 
+  
+  All the `clean: ...' rules in the root `OMakefile' following this
+`.PHONY: clean' declaration would be interpreted as rules for the
+`.PHONY/clean' target.
+  Now when OMake then comes across a `.SUBDIRS: foo' directive (when it
+is in scope of the above `.PHONY: clean' declaration), it does the
+following: 
+  
+ - Creates a new `.PHONY/foo/clean' "relative" phony target; 
+ - Creates the dependency `.PHONY/clean: .PHONY/foo/clean'; 
+ - Processes the body of the `.SUBDIRS: foo' directive, or reads the
+   `foo/OMakefile' file, if the body is empty. While doing that, it
+   interprets its instructions relative to the `foo' directory. In
+   particular, all the `clean: ...' rules will be taken to apply to
+   `.PHONY/foo/clean'. 
+  
+  Now when you run `omake clean' in the root directory of the project,
+it is interpreted as `omake .PHONY/clean' (similar to how it happens
+with the normal targets), so both the rules for `.PHONY/clean' are
+executed and the rules for its dependency  `.PHONY/foo/clean'. Running
+`(cd foo; omake clean)' is, as for normal targets, equivalent to running
+`omake .PHONY/foo/clean' and only those rules that apply to
+`.PHONY/foo/clean' will be executed.
+
 Node: Section 8-13,	Next: Chapter 9,	Prev: Section 8-12,	Up: Chapter 8
   
 
@@ -266,7 +355,7 @@ Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Sect
 9.2.5   if
 ==========
 \@na
-me{@default85}
+me{@default87}
 <<    $(if e1, e2[, e3]) : value
          e1 : String
          e2, e3 : value
@@ -628,37 +717,38 @@ Node: Section 9-3,	Next: Subsection 9-3-1,	Prev: Section 9-2,	Up: Chapter 9
 * Subsection 9-3-10::	rev
 * Subsection 9-3-11::	join
 * Subsection 9-3-12::	string
-* Subsection 9-3-13::	string-escaped, ocaml-escaped, html-escaped, html-pre-escaped, c-escaped, id-escaped
-* Subsection 9-3-14::	decode-uri, encode-uri
-* Subsection 9-3-15::	quote
-* Subsection 9-3-16::	quote-argv
-* Subsection 9-3-17::	html-string
-* Subsection 9-3-18::	addsuffix
-* Subsection 9-3-19::	mapsuffix
-* Subsection 9-3-20::	addsuffixes
-* Subsection 9-3-21::	removeprefix
-* Subsection 9-3-22::	removesuffix
-* Subsection 9-3-23::	replacesuffixes
-* Subsection 9-3-24::	addprefix
-* Subsection 9-3-25::	mapprefix
-* Subsection 9-3-26::	add-wrapper
-* Subsection 9-3-27::	set
-* Subsection 9-3-28::	mem
-* Subsection 9-3-29::	intersection
-* Subsection 9-3-30::	intersects
-* Subsection 9-3-31::	set-diff
-* Subsection 9-3-32::	filter
-* Subsection 9-3-33::	filter-out
-* Subsection 9-3-34::	capitalize
-* Subsection 9-3-35::	uncapitalize
-* Subsection 9-3-36::	uppercase
-* Subsection 9-3-37::	lowercase
-* Subsection 9-3-38::	system
-* Subsection 9-3-39::	shell
-* Subsection 9-3-40::	export
-* Subsection 9-3-41::	while
-* Subsection 9-3-42::	break
-* Subsection 9-3-43::	random, random-init
+* Subsection 9-3-13::	string-length
+* Subsection 9-3-14::	string-escaped, ocaml-escaped, html-escaped, html-pre-escaped, c-escaped, id-escaped
+* Subsection 9-3-15::	decode-uri, encode-uri
+* Subsection 9-3-16::	quote
+* Subsection 9-3-17::	quote-argv
+* Subsection 9-3-18::	html-string
+* Subsection 9-3-19::	addsuffix
+* Subsection 9-3-20::	mapsuffix
+* Subsection 9-3-21::	addsuffixes
+* Subsection 9-3-22::	removeprefix
+* Subsection 9-3-23::	removesuffix
+* Subsection 9-3-24::	replacesuffixes
+* Subsection 9-3-25::	addprefix
+* Subsection 9-3-26::	mapprefix
+* Subsection 9-3-27::	add-wrapper
+* Subsection 9-3-28::	set
+* Subsection 9-3-29::	mem
+* Subsection 9-3-30::	intersection
+* Subsection 9-3-31::	intersects
+* Subsection 9-3-32::	set-diff
+* Subsection 9-3-33::	filter
+* Subsection 9-3-34::	filter-out
+* Subsection 9-3-35::	capitalize
+* Subsection 9-3-36::	uncapitalize
+* Subsection 9-3-37::	uppercase
+* Subsection 9-3-38::	lowercase
+* Subsection 9-3-39::	system
+* Subsection 9-3-40::	shell
+* Subsection 9-3-41::	export
+* Subsection 9-3-42::	while
+* Subsection 9-3-43::	break
+* Subsection 9-3-44::	random, random-init
 
 
 Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9-3
@@ -880,7 +970,22 @@ whitespace. The result is treated as a unit; whitespace is significant.
 Node: Subsection 9-3-13,	Next: Subsection 9-3-14,	Prev: Subsection 9-3-12,	Up: Section 9-3
   
 
-9.3.13   string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
+9.3.13   string-length
+======================
+
+<<   $(string-length sequence) : Int
+        sequence : Sequence
+>>
+  
+  The `string-lenght' returns a length (number of characters) in  its
+argument. If the argument is a sequence, it flattens it, so
+`$(string-length sequence)' is equivalent to `$(string-length $(string
+sequence))'. 
+
+Node: Subsection 9-3-14,	Next: Subsection 9-3-15,	Prev: Subsection 9-3-13,	Up: Section 9-3
+  
+
+9.3.14   string-escaped, ocaml-escaped, html-escaped, html-pre-escaped,
 =======================================================================
 c-escaped, id-escaped
 =====================
@@ -913,10 +1018,10 @@ does not translate newlines into `<br>'.
       a\ b y\:z
 >>
 
-Node: Subsection 9-3-14,	Next: Subsection 9-3-15,	Prev: Subsection 9-3-13,	Up: Section 9-3
+Node: Subsection 9-3-15,	Next: Subsection 9-3-16,	Prev: Subsection 9-3-14,	Up: Section 9-3
   
 
-9.3.14   decode-uri, encode-uri
+9.3.15   decode-uri, encode-uri
 ===============================
 
 <<    $(decode-uri sequence) : sequence
@@ -931,10 +1036,10 @@ represented by hexadecimal characters.
       "a b~c"
 >>
 
-Node: Subsection 9-3-15,	Next: Subsection 9-3-16,	Prev: Subsection 9-3-14,	Up: Section 9-3
+Node: Subsection 9-3-16,	Next: Subsection 9-3-17,	Prev: Subsection 9-3-15,	Up: Section 9-3
   
 
-9.3.15   quote
+9.3.16   quote
 ==============
 
 <<   $(quote sequence) : String
@@ -946,10 +1051,10 @@ quotes around the string. Inner quotation symbols are escaped.
   For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
 c\" d"', and `$(quote abc)' evaluates to `"abc"'. 
 
-Node: Subsection 9-3-16,	Next: Subsection 9-3-17,	Prev: Subsection 9-3-15,	Up: Section 9-3
+Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: Section 9-3
   
 
-9.3.16   quote-argv
+9.3.17   quote-argv
 ===================
 
 <<   $(quote-argv sequence) : String
@@ -960,10 +1065,10 @@ Node: Subsection 9-3-16,	Next: Subsection 9-3-17,	Prev: Subsection 9-3-15,	Up: S
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components. 
 
-Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: Section 9-3
+Node: Subsection 9-3-18,	Next: Subsection 9-3-19,	Prev: Subsection 9-3-17,	Up: Section 9-3
   
 
-9.3.17   html-string
+9.3.18   html-string
 ====================
 
 <<   $(html-string sequence) : String
@@ -975,10 +1080,10 @@ and escaped special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace is significant. 
 
-Node: Subsection 9-3-18,	Next: Subsection 9-3-19,	Prev: Subsection 9-3-17,	Up: Section 9-3
+Node: Subsection 9-3-19,	Next: Subsection 9-3-20,	Prev: Subsection 9-3-18,	Up: Section 9-3
   
 
-9.3.18   addsuffix
+9.3.19   addsuffix
 ==================
 
 <<   $(addsuffix suffix, sequence) : Array
@@ -992,10 +1097,10 @@ elements in the sequence.
   For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
 d".c'. 
 
-Node: Subsection 9-3-19,	Next: Subsection 9-3-20,	Prev: Subsection 9-3-18,	Up: Section 9-3
+Node: Subsection 9-3-20,	Next: Subsection 9-3-21,	Prev: Subsection 9-3-19,	Up: Section 9-3
   
 
-9.3.19   mapsuffix
+9.3.20   mapsuffix
 ==================
 
 <<   $(mapsuffix suffix, sequence) : Array
@@ -1010,10 +1115,10 @@ number of elements in the sequence.
   For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
 d" .c'. 
 
-Node: Subsection 9-3-20,	Next: Subsection 9-3-21,	Prev: Subsection 9-3-19,	Up: Section 9-3
+Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: Section 9-3
   
 
-9.3.20   addsuffixes
+9.3.21   addsuffixes
 ====================
 
 <<   $(addsuffixes suffixes, sequence) : Array
@@ -1027,10 +1132,10 @@ each component of a sequence. If `suffixes' has `n' elements, and
   For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
 to `a.c a.o b.c b.o c.o c.a'. 
 
-Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: Section 9-3
+Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: Section 9-3
   
 
-9.3.21   removeprefix
+9.3.22   removeprefix
 =====================
 
 <<   $(removeprefix prefix, sequence) : Array
@@ -1041,10 +1146,10 @@ Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: S
   The `removeprefix' function removes a prefix from each component of a
 sequence. 
 
-Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: Section 9-3
+Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: Section 9-3
   
 
-9.3.22   removesuffix
+9.3.23   removesuffix
 =====================
 
 <<   $(removesuffix sequence) : Array
@@ -1055,10 +1160,10 @@ Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: S
 of a sequence.
   For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
 
-Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: Section 9-3
+Node: Subsection 9-3-24,	Next: Subsection 9-3-25,	Prev: Subsection 9-3-23,	Up: Section 9-3
   
 
-9.3.23   replacesuffixes
+9.3.24   replacesuffixes
 ========================
 
 <<   $(replacesuffixes old-suffixes, new-suffixes, sequence) : Array
@@ -1073,10 +1178,10 @@ the same length.
   For example, `$(replacesuffixes .h .c, .o .o, a.c b.h c.z)' expands to
 `a.o b.o c.z'. 
 
-Node: Subsection 9-3-24,	Next: Subsection 9-3-25,	Prev: Subsection 9-3-23,	Up: Section 9-3
+Node: Subsection 9-3-25,	Next: Subsection 9-3-26,	Prev: Subsection 9-3-24,	Up: Section 9-3
   
 
-9.3.24   addprefix
+9.3.25   addprefix
 ==================
 
 <<   $(addprefix prefix, sequence) : Array
@@ -1090,10 +1195,10 @@ as the number of elements in the argument sequence.
   For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
 foo/"c d"'. 
 
-Node: Subsection 9-3-25,	Next: Subsection 9-3-26,	Prev: Subsection 9-3-24,	Up: Section 9-3
+Node: Subsection 9-3-26,	Next: Subsection 9-3-27,	Prev: Subsection 9-3-25,	Up: Section 9-3
   
 
-9.3.25   mapprefix
+9.3.26   mapprefix
 ==================
 
 <<   $(mapprefix prefix, sequence) : Array
@@ -1108,10 +1213,10 @@ elements as the argument sequence.
   For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
 "c d"'. 
 
-Node: Subsection 9-3-26,	Next: Subsection 9-3-27,	Prev: Subsection 9-3-25,	Up: Section 9-3
+Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: Section 9-3
   
 
-9.3.26   add-wrapper
+9.3.27   add-wrapper
 ====================
 
 <<   $(add-wrapper prefix, suffix, sequence) : Array
@@ -1126,10 +1231,10 @@ dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence. 
 
-Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: Section 9-3
+Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: Section 9-3
   
 
-9.3.27   set
+9.3.28   set
 ============
 
 <<   $(set sequence) : Array
@@ -1140,10 +1245,10 @@ Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: S
 duplicates.
   For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'. 
 
-Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: Section 9-3
+Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: Section 9-3
   
 
-9.3.28   mem
+9.3.29   mem
 ============
 
 <<   $(mem elem, sequence) : Boolean
@@ -1155,10 +1260,10 @@ Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: S
   For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
 `$(mem m n, y z "m n" w a)' evaluates to `false'. 
 
-Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: Section 9-3
+Node: Subsection 9-3-30,	Next: Subsection 9-3-31,	Prev: Subsection 9-3-29,	Up: Section 9-3
   
 
-9.3.29   intersection
+9.3.30   intersection
 =====================
 
 <<   $(intersection sequence1, sequence2) : Array
@@ -1173,10 +1278,10 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(intersection c a b a, b a)' evaluates
 to `a b a'. 
 
-Node: Subsection 9-3-30,	Next: Subsection 9-3-31,	Prev: Subsection 9-3-29,	Up: Section 9-3
+Node: Subsection 9-3-31,	Next: Subsection 9-3-32,	Prev: Subsection 9-3-30,	Up: Section 9-3
   
 
-9.3.30   intersects
+9.3.31   intersects
 ===================
 
 <<   $(intersects sequence1, sequence2) : Boolean
@@ -1190,10 +1295,10 @@ intersection and testing whether it is empty.
   For example, the expression `$(intersects a b c, d c e)' evaluates to
 `true', and `$(intersects a b c a, d e f)' evaluates to `false'. 
 
-Node: Subsection 9-3-31,	Next: Subsection 9-3-32,	Prev: Subsection 9-3-30,	Up: Section 9-3
+Node: Subsection 9-3-32,	Next: Subsection 9-3-33,	Prev: Subsection 9-3-31,	Up: Section 9-3
   
 
-9.3.31   set-diff
+9.3.32   set-diff
 =================
 
 <<   $(set-diff sequence1, sequence2) : Array
@@ -1209,10 +1314,10 @@ the result and eliminate duplicates in the result if desired.
   For example, the expression `$(set-diff c a b a e, b a)' evaluates to
 `c e'. 
 
-Node: Subsection 9-3-32,	Next: Subsection 9-3-33,	Prev: Subsection 9-3-31,	Up: Section 9-3
+Node: Subsection 9-3-33,	Next: Subsection 9-3-34,	Prev: Subsection 9-3-32,	Up: Section 9-3
   
 
-9.3.32   filter
+9.3.33   filter
 ===============
 
 <<   $(filter patterns, sequence) : Array
@@ -1226,10 +1331,10 @@ wildcard `%' character.
   For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o b.h y.o'. 
 
-Node: Subsection 9-3-33,	Next: Subsection 9-3-34,	Prev: Subsection 9-3-32,	Up: Section 9-3
+Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: Section 9-3
   
 
-9.3.33   filter-out
+9.3.34   filter-out
 ===================
 
 <<   $(filter-out patterns, sequence) : Array
@@ -1243,10 +1348,10 @@ occurrence of the wildcard `%' character.
   For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
 evaluates to `x.o y.o'. 
 
-Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: Section 9-3
+Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: Section 9-3
   
 
-9.3.34   capitalize
+9.3.35   capitalize
 ===================
 
 <<   $(capitalize sequence) : Array
@@ -1257,10 +1362,10 @@ Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: S
 example, `$(capitalize through the looking Glass)' evaluates to `Through
 The Looking Glass'. 
 
-Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: Section 9-3
+Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: Section 9-3
   
 
-9.3.35   uncapitalize
+9.3.36   uncapitalize
 =====================
 
 <<   $(uncapitalize sequence) : Array
@@ -1271,10 +1376,10 @@ Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: S
   For example, `$(uncapitalize through the looking Glass)' evaluates to
 `through the looking glass'. 
 
-Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: Section 9-3
+Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: Section 9-3
   
 
-9.3.36   uppercase
+9.3.37   uppercase
 ==================
 
 <<   $(uppercase sequence) : Array
@@ -1285,10 +1390,10 @@ Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: S
 uppercase. For example, `$(uppercase through the looking Glass)'
 evaluates to `THROUGH THE LOOKING GLASS'. 
 
-Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: Section 9-3
+Node: Subsection 9-3-38,	Next: Subsection 9-3-39,	Prev: Subsection 9-3-37,	Up: Section 9-3
   
 
-9.3.37   lowercase
+9.3.38   lowercase
 ==================
 
 <<   $(lowercase sequence) : Array
@@ -1300,10 +1405,10 @@ lowercase.
   For example, `$(lowercase through tHe looking Glass)' evaluates to
 `through the looking glass'. 
 
-Node: Subsection 9-3-38,	Next: Subsection 9-3-39,	Prev: Subsection 9-3-37,	Up: Section 9-3
+Node: Subsection 9-3-39,	Next: Subsection 9-3-40,	Prev: Subsection 9-3-38,	Up: Section 9-3
   
 
-9.3.38   system
+9.3.39   system
 ===============
 
 <<   system(s)
@@ -1317,10 +1422,10 @@ function is used internally by omake to evaluate shell commands.
 <<   ls foo
 >>
 
-Node: Subsection 9-3-39,	Next: Subsection 9-3-40,	Prev: Subsection 9-3-38,	Up: Section 9-3
+Node: Subsection 9-3-40,	Next: Subsection 9-3-41,	Prev: Subsection 9-3-39,	Up: Section 9-3
   
 
-9.3.39   shell
+9.3.40   shell
 ==============
 
 <<   $(shell command) : Array
@@ -1340,10 +1445,10 @@ diverted.
 `OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
 OMakefile OMakeroot' (on a Unix system). 
 
-Node: Subsection 9-3-40,	Next: Subsection 9-3-41,	Prev: Subsection 9-3-39,	Up: Section 9-3
+Node: Subsection 9-3-41,	Next: Subsection 9-3-42,	Prev: Subsection 9-3-40,	Up: Section 9-3
   
 
-9.3.40   export
+9.3.41   export
 ===============
  The `export'
 function allows one to capture the current environment in a variable.
@@ -1363,10 +1468,10 @@ function allows one to capture the current environment in a variable.
 the arguments to the `export' special form (see Section
 6.3*Note Section 6-3::).  
 
-Node: Subsection 9-3-41,	Next: Subsection 9-3-42,	Prev: Subsection 9-3-40,	Up: Section 9-3
+Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: Section 9-3
   
 
-9.3.41   while
+9.3.42   while
 ==============
 
 <<   while <test>
@@ -1421,10 +1526,10 @@ value is printed.
   The 'break' function can be used to break out of the `while' loop
 early.  
 
-Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: Section 9-3
+Node: Subsection 9-3-43,	Next: Subsection 9-3-44,	Prev: Subsection 9-3-42,	Up: Section 9-3
   
 
-9.3.42   break
+9.3.43   break
 ==============
 
 <<   break
@@ -1433,10 +1538,10 @@ Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: S
   Terminate execution of the innermost loop, returning the current
 state. 
 
-Node: Subsection 9-3-43,	Next: Section 9-4,	Prev: Subsection 9-3-42,	Up: Section 9-3
+Node: Subsection 9-3-44,	Next: Section 9-4,	Prev: Subsection 9-3-43,	Up: Section 9-3
   
 
-9.3.43   random, random-init
+9.3.44   random, random-init
 ============================
 
 <<    random-init(i)
@@ -1624,169 +1729,3 @@ arguments.
          .c
       Z = $(applya $(F), $(args))
 >>
-
-Node: Subsection 9-5-4,	Next: Section 9-6,	Prev: Subsection 9-5-3,	Up: Section 9-5
-  
-
-9.5.4   create-map, create-lazy-map
-===================================
-
-  The `create-map' is a simplified form for creating `Map' objects. The
-`create-map' function takes an even number of arguments that specify
-key/value pairs. For example, the following values are equivalent.
-<<    X = $(create-map name1, xxx, name2, yyy)
-  
-      X. =
-          extends $(Map)
-          $|name1| = xxx
-          $|name2| = yyy
->>
-  
-  The `create-lazy-map' function is similar, but the values are computed
-lazily. The following two definitions are equivalent.
-<<    Y = $(create-lazy-map name1, $(xxx), name2, $(yyy))
-  
-      Y. =
-          extends $(Map)
-          $|name1| = $`(xxx)
-          $|name2| = $`(yyy)
->>
-  
-  The 'create-lazy-map' function is used in rule construction. 
-
-Node: Section 9-6,	Next: Subsection 9-6-1,	Prev: Section 9-5,	Up: Chapter 9
-  
-
-9.6   Iteration and mapping
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection 9-6-1::	foreach
-
-
-Node: Subsection 9-6-1,	Next: Section 9-7,	Prev: Section 9-6,	Up: Section 9-6
-  
-
-9.6.1   foreach
-===============
-
-  The `foreach' function maps a function over a sequence.
-<<    $(foreach <fun>, <args>)
-  
-      foreach(<var>, <args>)
-         <body>
->>
-  
-  For example, the following program defines the variable `X' as an
-array `a.c b.c c.c'.
-<<    X =
-         foreach(x, a b c)
-            value $(x).c
-  
-      # Equivalent expression
-      X = $(foreach $(fun x, $(x).c), abc)
->>
-  
-  There is also an abbreviated syntax.
-  The `export' form can also be used in a `foreach' body. The final
-value of `X' is `a.c b.c c.c'.
-<<    X =
-      foreach(x, a b c)
-         X += $(x).c
-         export
->>
-  
-  The 'break' function can be used to break out of the loop early. 
-
-Node: Section 9-7,	Next: Subsection 9-7-1,	Prev: Section 9-6,	Up: Chapter 9
-  
-
-9.7   Boolean tests
-*=*=*=*=*=*=*=*=*=*
-
-  
-* Menu:
-
-* Subsection 9-7-1::	sequence-forall
-* Subsection 9-7-2::	sequence-exists
-* Subsection 9-7-3::	sequence-sort
-* Subsection 9-7-4::	compare
-
-
-Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9-7
-  
-
-9.7.1   sequence-forall
-=======================
-
-  The `forall' function tests whether a predicate halds for each element
-of a sequence.
-<<    $(sequence-forall <fun>, <args>)
-  
-      sequence-forall(<var> => ..., <args>)
-         <body>
->>
-
-Node: Subsection 9-7-2,	Next: Subsection 9-7-3,	Prev: Subsection 9-7-1,	Up: Section 9-7
-  
-
-9.7.2   sequence-exists
-=======================
-  
-  The `exists' function tests whether a predicate holds for some element
-of a sequence.
-<<    $(sequence-exists <fun>, <args>)
-  
-      sequence-exists(<var> => ..., <args>)
-         <body>
->>
-
-Node: Subsection 9-7-3,	Next: Subsection 9-7-4,	Prev: Subsection 9-7-2,	Up: Section 9-7
-  
-
-9.7.3   sequence-sort
-=====================
-
-  The `sort' function sorts the elements in an array, given a comparison
-function. Given two elements (x, y), the comparison should return a
-negative number if x < y; a positive number if x > y; and 0 if x = y.
-<<    $(sequence-sort <fun>, <args>)
-  
-      sort(<var>, <var> => ..., <args>)
-         <body>
->>
-
-Node: Subsection 9-7-4,	Next: Chapter 10,	Prev: Subsection 9-7-3,	Up: Section 9-7
-  
-
-9.7.4   compare
-===============
-
-  The `compare' function compares two values (x, y) generically
-returning a negative number if x < y; a positive number if x > y; and 0
-if x = y.
-<<    $(compare x, y) : Int
->>
-
-Node: Chapter 10,	Next: Section 10-1,	Prev: Section 9-7,	Up: Top
-  
-
-Chapter 10     File, I/O and system operations
-**********************************************
-     
-* Menu:
-
-* Section 10-1::	File names
-* Section 10-2::	Path search
-* Section 10-3::	File stats
-* Section 10-4::	Globbing and file listings
-* Section 10-5::	Filesystem operations
-* Section 10-6::	vmount
-* Section 10-7::	File predicates
-* Section 10-8::	IO functions
-* Section 10-9::	Printing functions
-* Section 10-10::	Value printing functions
-* Section 10-11::	Higher-level IO functions
-

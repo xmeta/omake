@@ -1,9 +1,201 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 10-8-8,	Next: Subsection 10-8-9,	Prev: Subsection 10-8-7,	Up: Section 10-8
+  
+
+10.8.8   lseek
+==============
+
+<<    $(lseek channel, offset, whence) : Int
+         channel : Channel
+         offset  : Int
+         whence  : String
+      raises RuntimeException
+>>
+  
+  The `lseek' function repositions the offset of the channel `channel'
+according to the `whence' directive, as follows:
+  
+  
+ SEEK_SET  The offset is set to `offset'. 
+ SEEK_CUR  The offset is set to its current position plus `offset'
+   bytes. 
+ SEEK_END  The offset is set to the size of the file plus `offset'
+   bytes. 
+  
+  The `lseek' function returns the new position in the file. 
+
+Node: Subsection 10-8-9,	Next: Subsection 10-8-10,	Prev: Subsection 10-8-8,	Up: Section 10-8
+  
+
+10.8.9   rewind
+===============
+
+<<   rewind(channel...)
+        channel : Channel
+>>
+  
+  The `rewind' function set the current file position to the beginning
+of the file. 
+
+Node: Subsection 10-8-10,	Next: Subsection 10-8-11,	Prev: Subsection 10-8-9,	Up: Section 10-8
+  
+
+10.8.10   tell
+==============
+
+<<    $(tell channel...) : Int...
+         channel : Channel
+      raises RuntimeException
+>>
+  
+  The `tell' function returns the current position of the `channel'. 
+
+Node: Subsection 10-8-11,	Next: Subsection 10-8-12,	Prev: Subsection 10-8-10,	Up: Section 10-8
+  
+
+10.8.11   flush
+===============
+
+<<   $(flush channel...)
+        channel : OutChannel
+>>
+  
+  The `flush' function can be used only on files that are open for
+writing. It flushes all pending data to the file. 
+
+Node: Subsection 10-8-12,	Next: Subsection 10-8-13,	Prev: Subsection 10-8-11,	Up: Section 10-8
+  
+
+10.8.12   channel-name
+======================
+
+<<   $(channel-name channel...) : String
+        channel : Channel
+>>
+  
+  The `channel-name' function returns the name that is associated with
+the channel. 
+
+Node: Subsection 10-8-13,	Next: Subsection 10-8-14,	Prev: Subsection 10-8-12,	Up: Section 10-8
+  
+
+10.8.13   dup
+=============
+
+<<    $(dup channel) : Channel
+         channel : Channel
+      raises RuntimeException
+>>
+  
+  The `dup' function returns a new channel referencing the same file as
+the argument. 
+
+Node: Subsection 10-8-14,	Next: Subsection 10-8-15,	Prev: Subsection 10-8-13,	Up: Section 10-8
+  
+
+10.8.14   dup2
+==============
+
+<<   dup2(channel1, channel2)
+        channel1 : Channel
+        channel2 : Channel
+     raises RuntimeException
+>>
+  
+  The `dup2' function causes `channel2' to refer to the same file as
+`channel1'. 
+
+Node: Subsection 10-8-15,	Next: Subsection 10-8-16,	Prev: Subsection 10-8-14,	Up: Section 10-8
+  
+
+10.8.15   set-nonblock
+======================
+
+<<   set-nonblock-mode(mode, channel...)
+        channel : Channel
+        mode : String
+>>
+  
+  The `set-nonblock-mode' function sets the nonblocking flag on the
+given channel. When IO is performed on the channel, and the operation
+cannot be completed immediately, the operations raises a
+`RuntimeException'. 
+
+Node: Subsection 10-8-16,	Next: Subsection 10-8-17,	Prev: Subsection 10-8-15,	Up: Section 10-8
+  
+
+10.8.16   set-close-on-exec-mode
+================================
+
+<<   set-close-on-exec-mode(mode, channel...)
+        channel : Channel
+        mode : String
+     raises RuntimeException
+>>
+  
+  The `set-close-on-exec-mode' function sets the close-on-exec flags for
+the given channels. If the close-on-exec flag is set, the channel is not
+inherited by child processes. Otherwise it is. 
+
+Node: Subsection 10-8-17,	Next: Subsection 10-8-18,	Prev: Subsection 10-8-16,	Up: Section 10-8
+  
+
+10.8.17   pipe
+==============
+
+<<   $(pipe) : Pipe
+     raises RuntimeException
+>>
+  
+  The `pipe' function creates a `Pipe' object, which has two fields. The
+`read' field is a channel that is opened for reading, and the `write'
+field is a channel that is opened for writing. 
+
+Node: Subsection 10-8-18,	Next: Subsection 10-8-19,	Prev: Subsection 10-8-17,	Up: Section 10-8
+  
+
+10.8.18   mkfifo
+================
+
+<<   mkfifo(mode, node...)
+        mode : Int
+        node : Node
+>>
+  
+  The `mkfifo' function creates a named pipe. 
+
 Node: Subsection 10-8-19,	Next: Subsection 10-8-20,	Prev: Subsection 10-8-18,	Up: Section 10-8
   
 
-10.8.19   lockf
+10.8.19   select
+================
+
+<<   $(select rfd..., wfd..., wfd..., timeout) : Select
+        rfd : InChannel
+        wfd : OutChannel
+        efd : Channel
+        timeout : float
+     raises RuntimeException
+>>
+  
+  The `select' function polls for possible IO on a set of channels. The
+`rfd' are a sequence of channels for reading, `wfd' are a sequence of
+channels for writing, and `efd' are a sequence of channels to poll for
+error conditions. The `timeout' specifies the maximum amount of time to
+wait for events.
+  On successful return, `select' returns a `Select' object, which has
+the following fields: 
+  
+ read  An array of channels available for reading. 
+ write  An array of channels available for writing. 
+ error  An array of channels on which an error has occurred. 
+   
+
+Node: Subsection 10-8-20,	Next: Subsection 10-8-21,	Prev: Subsection 10-8-19,	Up: Section 10-8
+  
+
+10.8.20   lockf
 ===============
 
 <<    lockf(channel, command, len)
@@ -25,10 +217,10 @@ region starts at the current position and extends for `len' bytes.
  F_TRLOCK  Lock a region for reading; fail is already locked. 
    
 
-Node: Subsection 10-8-20,	Next: Subsection 10-8-21,	Prev: Subsection 10-8-19,	Up: Section 10-8
+Node: Subsection 10-8-21,	Next: Subsection 10-8-22,	Prev: Subsection 10-8-20,	Up: Section 10-8
   
 
-10.8.20   InetAddr
+10.8.21   InetAddr
 ==================
 
   The `InetAddr' object describes an Internet address. It contains the
@@ -39,10 +231,10 @@ following fields.
  port  `Int': the port number. 
   
 
-Node: Subsection 10-8-21,	Next: Subsection 10-8-22,	Prev: Subsection 10-8-20,	Up: Section 10-8
+Node: Subsection 10-8-22,	Next: Subsection 10-8-23,	Prev: Subsection 10-8-21,	Up: Section 10-8
   
 
-10.8.21   Host
+10.8.22   Host
 ==============
 
   A `Host' object contains the following fields.
@@ -55,10 +247,10 @@ Node: Subsection 10-8-21,	Next: Subsection 10-8-22,	Prev: Subsection 10-8-20,	Up
    the host. 
   
 
-Node: Subsection 10-8-22,	Next: Subsection 10-8-23,	Prev: Subsection 10-8-21,	Up: Section 10-8
+Node: Subsection 10-8-23,	Next: Subsection 10-8-24,	Prev: Subsection 10-8-22,	Up: Section 10-8
   
 
-10.8.22   gethostbyname
+10.8.23   gethostbyname
 =======================
 
 <<   $(gethostbyname host...) : Host...
@@ -69,10 +261,10 @@ Node: Subsection 10-8-22,	Next: Subsection 10-8-23,	Prev: Subsection 10-8-21,	Up
   The `gethostbyname' function returns a `Host' object for the specified
 host. The `host' may specify a domain name or an Internet address.
 
-Node: Subsection 10-8-23,	Next: Subsection 10-8-24,	Prev: Subsection 10-8-22,	Up: Section 10-8
+Node: Subsection 10-8-24,	Next: Subsection 10-8-25,	Prev: Subsection 10-8-23,	Up: Section 10-8
   
 
-10.8.23   Protocol
+10.8.24   Protocol
 ==================
 
   The `Protocol' object represents a protocol entry. It has the
@@ -84,10 +276,10 @@ following fields.
  proto  `Int': the protocol number. 
   
 
-Node: Subsection 10-8-24,	Next: Subsection 10-8-25,	Prev: Subsection 10-8-23,	Up: Section 10-8
+Node: Subsection 10-8-25,	Next: Subsection 10-8-26,	Prev: Subsection 10-8-24,	Up: Section 10-8
   
 
-10.8.24   getprotobyname
+10.8.25   getprotobyname
 ========================
 
 <<   $(getprotobyname name...) : Protocol...
@@ -99,10 +291,10 @@ Node: Subsection 10-8-24,	Next: Subsection 10-8-25,	Prev: Subsection 10-8-23,	Up
 specified protocol. The `name' may be a protocol name, or a protocol
 number. 
 
-Node: Subsection 10-8-25,	Next: Subsection 10-8-26,	Prev: Subsection 10-8-24,	Up: Section 10-8
+Node: Subsection 10-8-26,	Next: Subsection 10-8-27,	Prev: Subsection 10-8-25,	Up: Section 10-8
   
 
-10.8.25   Service
+10.8.26   Service
 =================
 
   The `Service' object represents a network service. It has the
@@ -115,10 +307,10 @@ following fields.
  proto  `Protocol': the protocol for the service. 
   
 
-Node: Subsection 10-8-26,	Next: Subsection 10-8-27,	Prev: Subsection 10-8-25,	Up: Section 10-8
+Node: Subsection 10-8-27,	Next: Subsection 10-8-28,	Prev: Subsection 10-8-26,	Up: Section 10-8
   
 
-10.8.26   getservbyname
+10.8.27   getservbyname
 =======================
 
 <<   $(getservbyname service...) : Service...
@@ -129,10 +321,10 @@ Node: Subsection 10-8-26,	Next: Subsection 10-8-27,	Prev: Subsection 10-8-25,	Up
   The `getservbyname' function gets the information for a network
 service. The `service' may be specified as a service name or number. 
 
-Node: Subsection 10-8-27,	Next: Subsection 10-8-28,	Prev: Subsection 10-8-26,	Up: Section 10-8
+Node: Subsection 10-8-28,	Next: Subsection 10-8-29,	Prev: Subsection 10-8-27,	Up: Section 10-8
   
 
-10.8.27   socket
+10.8.28   socket
 ================
 
 <<   $(socket domain, type, protocol) : Channel
@@ -160,10 +352,10 @@ Node: Subsection 10-8-27,	Next: Subsection 10-8-28,	Prev: Subsection 10-8-26,	Up
   The `protocol' is an `Int' or `String' that specifies a protocol in
 the protocols database. 
 
-Node: Subsection 10-8-28,	Next: Subsection 10-8-29,	Prev: Subsection 10-8-27,	Up: Section 10-8
+Node: Subsection 10-8-29,	Next: Subsection 10-8-30,	Prev: Subsection 10-8-28,	Up: Section 10-8
   
 
-10.8.28   bind
+10.8.29   bind
 ==============
 
 <<   bind(socket, host, port)
@@ -182,10 +374,10 @@ specifies a host name or IP address, and the `port' is a port number.
   The 2-argument form is for `Unix' sockets. The `file' specifies the
 filename for the address. 
 
-Node: Subsection 10-8-29,	Next: Subsection 10-8-30,	Prev: Subsection 10-8-28,	Up: Section 10-8
+Node: Subsection 10-8-30,	Next: Subsection 10-8-31,	Prev: Subsection 10-8-29,	Up: Section 10-8
   
 
-10.8.29   listen
+10.8.30   listen
 ================
 
 <<   listen(socket, requests)
@@ -197,10 +389,10 @@ Node: Subsection 10-8-29,	Next: Subsection 10-8-30,	Prev: Subsection 10-8-28,	Up
   The `listen' function sets up the socket for receiving up to
 `requests' number of pending connection requests. 
 
-Node: Subsection 10-8-30,	Next: Subsection 10-8-31,	Prev: Subsection 10-8-29,	Up: Section 10-8
+Node: Subsection 10-8-31,	Next: Subsection 10-8-32,	Prev: Subsection 10-8-30,	Up: Section 10-8
   
 
-10.8.30   accept
+10.8.31   accept
 ================
 
 <<   $(accept socket) : InOutChannel
@@ -210,10 +402,10 @@ Node: Subsection 10-8-30,	Next: Subsection 10-8-31,	Prev: Subsection 10-8-29,	Up
   
   The `accept' function accepts a connection on a socket. 
 
-Node: Subsection 10-8-31,	Next: Subsection 10-8-32,	Prev: Subsection 10-8-30,	Up: Section 10-8
+Node: Subsection 10-8-32,	Next: Subsection 10-8-33,	Prev: Subsection 10-8-31,	Up: Section 10-8
   
 
-10.8.31   connect
+10.8.32   connect
 =================
 
 <<    connect(socket, addr, port)
@@ -233,10 +425,10 @@ domain name or IP address. The `port' argument is the port number.
   The 2-argument form is for Unix sockets. The `name' argument is the
 filename of the socket. 
 
-Node: Subsection 10-8-32,	Next: Subsection 10-8-33,	Prev: Subsection 10-8-31,	Up: Section 10-8
+Node: Subsection 10-8-33,	Next: Subsection 10-8-34,	Prev: Subsection 10-8-32,	Up: Section 10-8
   
 
-10.8.32   getchar
+10.8.33   getchar
 =================
 
 <<    $(getc) : String
@@ -249,10 +441,10 @@ Node: Subsection 10-8-32,	Next: Subsection 10-8-33,	Prev: Subsection 10-8-31,	Up
 argument is not specified, `stdin' is used as input. If the end of file
 has been reached, the function returns `false'. 
 
-Node: Subsection 10-8-33,	Next: Subsection 10-8-34,	Prev: Subsection 10-8-32,	Up: Section 10-8
+Node: Subsection 10-8-34,	Next: Subsection 10-8-35,	Prev: Subsection 10-8-33,	Up: Section 10-8
   
 
-10.8.33   gets
+10.8.34   gets
 ==============
 
 <<   $(gets) : String
@@ -265,10 +457,10 @@ Node: Subsection 10-8-33,	Next: Subsection 10-8-34,	Prev: Subsection 10-8-32,	Up
 returns the empty string if the end of file has been reached. The line
 terminator is removed. 
 
-Node: Subsection 10-8-34,	Next: Section 10-9,	Prev: Subsection 10-8-33,	Up: Section 10-8
+Node: Subsection 10-8-35,	Next: Section 10-9,	Prev: Subsection 10-8-34,	Up: Section 10-8
   
 
-10.8.34   fgets
+10.8.35   fgets
 ===============
 
 <<   $(fgets) : String
@@ -1447,213 +1639,3 @@ executes `command2' only if `command1' fails.
      (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
 >>
   
-
-Node: Section 11-7,	Next: Section 11-8,	Prev: Section 11-6,	Up: Chapter 11
-  
-
-11.7   Grouping
-*=*=*=*=*=*=*=*
-
-  
-  Parenthesis are used for grouping in a pipeline or conditional
-command. In the following expression, the `test' function is used to
-test whether the `foo.exe' file is executable. If it is, the `foo.exe'
-file is executed. If the file is not executable (or if the `foo.exe'
-command fails), the message `"foo.exe is not executable"' is printed.
-<<   # Run foo.exe, or print an error message
-     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
->>
-  
-
-Node: Section 11-8,	Next: Section 11-9,	Prev: Section 11-7,	Up: Chapter 11
-  
-
-11.8   What is a shell command?
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  Syntactially, shell commands are any line that is not one of the
-following:
-  
-  
- - A variable definition of the form `VAR=string' 
- - A function call `f(...)' or method call `o.f(...)' 
- - A rule definition containing a colon `string: ...' 
- - A special command, including the following: 
-     
-    - `if ...' 
-    - `switch ...' 
-    - `match ...' 
-    - `section ...' 
-    - `return ...' 
-  
-  
-  Commands may also be builtin (aliases). See the documentation for the
-'Shell' object for more information.
-
-Node: Section 11-9,	Next: Subsection 11-9-1,	Prev: Section 11-8,	Up: Chapter 11
-  
-
-11.9   Basic builtin functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-   
-* Menu:
-
-* Subsection 11-9-1::	echo
-* Subsection 11-9-2::	cd
-
-
-Node: Subsection 11-9-1,	Next: Subsection 11-9-2,	Prev: Section 11-9,	Up: Section 11-9
-  
-
-11.9.1   echo
-=============
-
-  The `echo' function prints a string.
-<<$(echo <args>)
-  echo <args>
->>
-
-Node: Subsection 11-9-2,	Next: Section 11-10,	Prev: Subsection 11-9-1,	Up: Section 11-9
-  
-
-11.9.2   cd
-===========
-
-  The `cd' function changes the current directory.
-<<    cd(dir)
-         dir : Dir
->>
-  
-  The `cd' function also supports a 2-argument form:
-<<    $(cd dir, e)
-         dir : Dir
-         e : expression
->>
-  
-  In the two-argument form, expression `e' is evaluated in the directory
-`dir'. The current directory is not changed otherwise.
-  The behavior of the `cd' function can be changed with the `CDPATH'
-variable, which specifies a search path for directories. This is
-normally useful only in the osh command interpreter.
-<<    CDPATH : Dir Sequence
->>
-  
-  For example, the following will change directory to the first
-directory `./foo', `~/dir1/foo', `~/dir2/foo'.
-<<    CDPATH[] =
-         .
-         $(HOME)/dir1
-         $(HOME)/dir2
-      cd foo
->>
-  
-
-Node: Section 11-10,	Next: Subsection 11-10-1,	Prev: Section 11-9,	Up: Chapter 11
-  
-
-11.10   Job control builtin functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 11-10-1::	jobs
-* Subsection 11-10-2::	bg
-* Subsection 11-10-3::	fg
-* Subsection 11-10-4::	stop
-* Subsection 11-10-5::	wait
-* Subsection 11-10-6::	kill
-
-
-Node: Subsection 11-10-1,	Next: Subsection 11-10-2,	Prev: Section 11-10,	Up: Section 11-10
-  
-
-11.10.1   jobs
-==============
-
-  The `jobs' function prints a list of jobs.
-  `jobs' 
-
-Node: Subsection 11-10-2,	Next: Subsection 11-10-3,	Prev: Subsection 11-10-1,	Up: Section 11-10
-  
-
-11.10.2   bg
-============
-
-  The `bg' function places a job in the background.
-  `bg <pid...>' 
-
-Node: Subsection 11-10-3,	Next: Subsection 11-10-4,	Prev: Subsection 11-10-2,	Up: Section 11-10
-  
-
-11.10.3   fg
-============
-
-  The `fg' function brings a job to the foreground.
-  `fg <pid...>' 
-
-Node: Subsection 11-10-4,	Next: Subsection 11-10-5,	Prev: Subsection 11-10-3,	Up: Section 11-10
-  
-
-11.10.4   stop
-==============
-
-  The `stop' function suspends a job.
-  `stop <pid...>' 
-
-Node: Subsection 11-10-5,	Next: Subsection 11-10-6,	Prev: Subsection 11-10-4,	Up: Section 11-10
-  
-
-11.10.5   wait
-==============
-
-  The `wait' function waits for a job to finish. If no process
-identifiers are given, the shell waits for all jobs to complete.
-  `wait <pid...>' 
-
-Node: Subsection 11-10-6,	Next: Section 11-11,	Prev: Subsection 11-10-5,	Up: Section 11-10
-  
-
-11.10.6   kill
-==============
-
-  The `kill' function signals a job.
-  `kill [signal] <pid...>' 
-
-Node: Section 11-11,	Next: Subsection 11-11-1,	Prev: Section 11-10,	Up: Chapter 11
-  
-
-11.11   Command history
-*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 11-11-1::	history
-
-
-Node: Subsection 11-11-1,	Next: Chapter 12,	Prev: Section 11-11,	Up: Section 11-11
-  
-
-11.11.1   history
-=================
-
-<<    $(history-index) : Int
-      $(history) : String Sequence
-      history-file : File
-      history-length : Int
->>
-  
-  The history variables manage the command-line history in osh. They
-have no effect in omake.
-  The `history-index' variable is the current index into the
-command-line history. The `history' variable is the current command-line
-history.
-  The `history-file' variable can be redefined if you want the
-command-line history to be saved. The default value is
-`~/.omake/osh_history'.
-  The `history-length' variable can be redefined to specify the maximum
-number of lines in the history that you want saved. The default value is
-`100'.   

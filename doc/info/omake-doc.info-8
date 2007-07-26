@@ -1,5 +1,132 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 13-6-3,	Next: Subsection 13-6-4,	Prev: Subsection 13-6-2,	Up: Section 13-6
+  
+
+13.6.3   OCaml command flags
+============================
+  
+  The following variables specify additional options to be passed to the
+OCaml tools. 
+ OCAMLDEPFLAGS
+ Flags to pass to `OCAMLDEP' and
+`OCAMLDEP_MODULES'. 
+ OCAMLPPFLAGS
+ Flags to pass to `CAMLP4'. 
+ OCAMLCFLAGS
+ Flags to pass to the byte-code
+compiler (default `-g'). 
+ OCAMLOPTFLAGS
+ Flags to pass to the native-code
+compiler (default empty). 
+ OCAMLFLAGS
+ Flags to pass to either compiler
+(default `-warn-error A'). 
+ OCAML_BYTE_LINK_FLAGS
+ Flags to pass to the byte-code linker
+(default empty). 
+ OCAML_NATIVE_LINK_FLAGS
+ Flags to pass to the native-code
+linker (default empty). 
+ OCAML_LINK_FLAGS
+ Flags to pass to either linker. 
+ MENHIR_FLAGS
+ Additional flags to pass to `menhir'. 
+
+Node: Subsection 13-6-4,	Next: Subsection 13-6-5,	Prev: Subsection 13-6-3,	Up: Section 13-6
+  
+
+13.6.4   Library variables
+==========================
+  
+  The following variables are used during linking.
+ OCAML_LIBS
+ Libraries to pass to the linker. These
+libraries become dependencies of the link step. 
+ OCAML_OTHER_LIBS
+ Additional libraries to pass to the
+linker. These libraries are not included as dependencies to the link
+step. Typical use is for the OCaml standard libraries like `unix' or
+`str'. 
+ OCAML_CLIBS
+ C libraries to pass to the linker. 
+ OCAML_LIB_FLAGS
+ Extra flags for the library linker. 
+ ABORT_ON_DEPENDENCY_ERRORS
+ OCaml linker requires the OCaml files
+to be listed in dependency order. Normally, all the functions presented
+in this section will automatically sort the list of OCaml modules passed
+in as the `<files>' argument. However, this variable is set to `true',
+the order of the files passed into these function will be left as is,
+but OMake will abort with an error message if the order is illegal.
+
+Node: Subsection 13-6-5,	Next: Subsection 13-6-6,	Prev: Subsection 13-6-4,	Up: Section 13-6
+  
+
+13.6.5   Generated OCaml Files
+==============================
+    As of OCaml version 3.09.2, the
+standard `ocamldep' scanner is "broken". The main issue is that it finds
+only those dependencies that already exist. If `foo.ml' contains a
+dependency on `Bar', 
+<<foo.ml:
+     open Bar
+>>
+  then the default `ocamldep' will only find the dependency if a file
+`bar.ml' or `bar.ml' exists in the include path. It will not find (or
+print) the dependency if, for example, only `bar.mly' exists at the time
+`ocamldep' is run, even though `bar.ml' and `bar.mli' can be generated
+from `bar.mly'.
+  OMake currently provides two methods for addressing this problem ---
+one that requires manually specifying the generated files, and an
+experimental method for discovering such "hidden" dependencies
+automatically. The 'OCAMLDEP_MODULES_ENABLED' variable controls which
+method is going to be used. When this variable is false, the manual
+specifications are expected and when it is true, the automated discovery
+will be attempted.
+  
+
+13.6.5.1   OCamlGeneratedFiles, LocalOCamlGeneratedFiles
+--------------------------------------------------------
+\@
+name{function:LocalOCamlGeneratedFiles} 
+<<OCamlGeneratedFiles(files)
+  LocalOCamlGeneratedFiles(files)
+>>
+  
+  When the 'OCAMLDEP_MODULES_ENABLED' variable variable is set to
+`false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
+functions specify files that need to be generated before any OCaml files
+are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
+are both generated files, specify: 
+<<OCamlGeneratedFiles(parser.ml lexer.ml)
+>>
+  
+  The `OCamlGeneratedFiles' function is global --- its arguments will be
+generated before any OCaml files anywhere in the project are scanned for
+dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
+scoping rules of OMake.
+  These functions have no effect when the 'OCAMLDEP_MODULES_ENABLED'
+variable is true.
+  
+
+13.6.5.2   Automatic discovery of generated files during dependency
+-------------------------------------------------------------------
+analysis
+--------
+   Having to specify the generated files manualy when OMake could
+discover them automatically is obviously suboptimal. To address this, we
+tell `ocamldep' that only finds the free module names in a file and then
+post-process the results internally.
+  Note that the experimental `ocamldep' functionality this relies upon
+is only included in the OCaml version 3.10 and higher. Temporarily, we
+distribute a bytecode version `ocamldep-omake' of the
+appropriately modified `ocamldep'. The appropriate `ocamldep' will be
+discovered automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE'
+and 'OCAMLDEP_MODULES' variables will be set accordingly.
+  By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
+`$(OCAMLDEP_MODULES_AVAILABLE)'. 
+
 Node: Subsection 13-6-6,	Next: Section 13-7,	Prev: Subsection 13-6-5,	Up: Section 13-6
   
 
@@ -1410,163 +1537,3 @@ first word of a program line. They are not otherwise special.
       try      value  when     while
 >>
   
-
-Node: Subsection B-1-5,	Next: Subsection B-1-6,	Prev: Subsection B-1-4,	Up: Section B-1
-  
-
-B.1.5   Variable references
-===========================
-  
-  A variable reference is denoted with the `$' special character
-followed by an identifier. If the identifier name has more than one
-character, it must be enclosed in parentheses. The parenthesized version
-is most common. The following are legal variable references.
-<<    $(Xyz)    $(hello_world)   $(seventy@nine)
-      $(79-32)  $(Gnus~Gnats)    $(CFLAGS)
->>
-  
-  Single-character references also include several additional
-identifiers, including `&*<^?]['. The following are legal
-single-character references.
-<<   $@   $&   $*   $<   $^   $+   $?   $[   $]
-     $A   $_   $a   $b   $x   $1   $2   $3
->>
-  
-  Note that a non-parenthesized variable reference is limited to a
-single character, even if it is followed by additional legal identifier
-charqcters. Suppose the value of the `$x' variable is 17. The following
-examples illustrate evaluation.
-<<    $x           evaluates to    17
-      foo$xbar     evaluates to    foo17bar
-      foo$(x)bar   evaluates to    foo17bar
->>
-  
-  The special sequence `$$' represents the character literal `$'. That
-is, the two-character sequences `\$' and `$$' are normally equalivalent.
-
-Node: Subsection B-1-6,	Next: Section B-2,	Prev: Subsection B-1-5,	Up: Section B-1
-  
-
-B.1.6   String constants
-========================
-   
-  Literal strings are defined with matching string delimiters. A left
-string delimiter begins with the dollar-sign `$', and a non-zero number
-of single-quote or double-quote characters. The string is terminated
-with a matching sequence of quotation symbols. The delimiter quotation
-may not be mixed; it must contain only single-quote characters, or
-double-quote characters. The following are legal strings.
-<<    $'Hello world'
-      $"""printf("Hello world\n")"""
-      $''''
-  Large "block" of
-  text # spanning ''multiple'' lines''''
->>
-  
-  The string delimiters are not included in the string constant. In the
-single-quote form, the contents of the string are interpreted
-verbatim--there are no special characters.
-  The double-quote form permits expression evaluation within the string,
-denoted with the `$' symbol. The following are some examples.
-<<    X = Hello
-      Y = $""$X world""             # Hello world
-      Z = $'''$X world'''           # $X world
-      I = 3
-      W = $"6 > $(add $I, 2)"       # 6 > 5
->>
-  
-  Note that quotation symbols without a leading `$' are not treated
-specially by OMake. The quotation symbols is included in the sequence.
-<<    osh>println('Hello world')
-      'Hello world'
-      osh>println($'Hello world')
-      Hello world
-      osh>X = Hello
-      - : "Hello" : Sequence
-      osh>println('$X world')
-      Hello world
->>
-  
-
-Node: Section B-2,	Next: Subsection B-2-1,	Prev: Section B-1,	Up: Appendix B
-  
-
-B.2   The OMake grammar
-*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  OMake programs are constructed from expressions and statements.
-Generally, an input program consists of a sequence of statements, each
-of which consists of one or more lines. Indentation is significant--if a
-statement consists of more than one line, the second and remaining lines
-(called the body) are usually indented relative to the first line.
-* Menu:
-
-* Subsection B-2-1::	Expressions
-* Subsection B-2-2::	Statements and programs
-
-
-Node: Subsection B-2-1,	Next: Subsection B-2-2,	Prev: Section B-2,	Up: Section B-2
-  
-
-B.2.1   Expressions
-===================
-  
-  The following table lists the syntax for expressions.
-   expr ::=                                             
-            (empty)                                     
-            -- Text (see note)                          
-         |  text                                        
-         |  string-literal                              
-            -- Applications                             
-         |  dollar `<char>'                             
-         |  dollar `(' pathid args `)'                  
-            -- Concatenation                            
-         |  expr expr                                   
-                                                        
- dollar ::= `$' | `$`' | `$,'                           
- pathid ::=                                             
-            id                                          
-         |  pathid `.' id                               
-                                                        
-    arg ::= expr -- excluding special characters `)(,') 
-   args ::= (empty) | arg, ..., arg                     
-  
-  An expression is a sequence composed of text, string-literals,
-variables references and function applications. Text is any sequence of
-non-special characters.
-  
-
-B.2.1.1   Inline applications
------------------------------
-  
-  An application is the application of a function to zero-or-more
-arguments. Inline applications begin with one of the "dollar" sequences
-`$', `$`', or `$,'. The application itself is specified as a single
-character (in which case it is a variable reference), or it is a
-parenthesized list including a function identifier pathid, and
-zero-or-more comma-separated arguments args. The arguments are
-themselves a variant of the expressions where the special character
-`)(,' are not allowed (though any of these may be made non-special with
-the `\' escape character). The following are some examples of valid
-expressions.
-  
-  
- - `xyz abc'
- The text sequence "`xyz abc'"
- 
- - `xyz$wabc'
- A text sequence containing a reference to the variable `w'.
- 
- - `$(addsuffix .c, $(FILES))'
- An application of the function `addsuffix', with first argument `.c',
-   and second argument `$(FILES)'.
- 
- - `$(a.b.c 12)'
- This is a method call. The variable `a' must evaluate to an object with
-   a field `b', which must be an object with a method `c'. This method
-   is called with argument `12'. 
-  
-  The additional dollar sequences specify evaluation order, `$`' (lazy)
-and `$,' (eager), as discussed in the section on dollar modifiers
-(Section B.3*Note Section B-3::).
