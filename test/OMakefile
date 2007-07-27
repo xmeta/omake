@@ -29,6 +29,7 @@ runtest(subtest) =
     elseif $(test -f $(subtest)/OMakeroot -o -f $(subtest)/Root.om)
         cd $(subtest)
         echo "running omake in $(absname .)" >> $(resultfile)
+        rm -f .omakedb
         res = $(shell-code omake >>& $(resultfile))
         export res
     else

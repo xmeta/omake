@@ -2977,6 +2977,7 @@ let rec notify_loop env options targets =
    begin try
       notify_wait env
    with Sys.Break ->
+      eprintf "*** omake: Received Break signal, exiting@.";
       raise (BuildExit 0)
    end;
 
