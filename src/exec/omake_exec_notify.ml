@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004 Mojave Group, Caltech
+ * Copyright (C) 2004-2007 Mojave Group, Caltifornia Institute of Technology,
+ * and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +25,8 @@
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -95,7 +96,7 @@ struct
          { notify_event = Some _ } ->
             true
        | { notify_server = Some server } ->
-            Lm_notify.pending server
+            Lm_thread_pool.blocking_section Lm_notify.pending server
        | { notify_server = None } ->
             false
 
@@ -105,7 +106,7 @@ struct
             notify.notify_event <- None;
             event
        | { notify_server = Some server } ->
-            Lm_notify.next_event server
+            Lm_thread_pool.blocking_section Lm_notify.next_event server
        | { notify_server = None } ->
             raise (Failure "Omake_exec_notify.next_event: no monitors")
 
@@ -141,10 +142,7 @@ struct
          { notify_event = None;
            notify_server = Some server
          } when Lm_notify.pending server ->
-            let event =
-               Lm_thread_pool.blocking_section (fun () ->
-                     Lm_notify.next_event server) ()
-            in
+            let event = Lm_thread_pool.blocking_section Lm_notify.next_event server in
                notify.notify_event <- Some event
        | _ ->
             ()
@@ -162,12 +160,9 @@ struct
             WaitInternalNone
 end
 
-(*!
- * @docoff
- *
+(*
  * -*-
  * Local Variables:
- * Caml-master: "compile"
  * End:
  * -*-
  *)
