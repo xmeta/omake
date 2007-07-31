@@ -1594,6 +1594,17 @@ let venv_current_object venv classnames =
             SymbolTable.add obj class_sym (ValClass table)
 
 (*
+ * Shadow an object field.
+ *)
+let rec hoist_path venv path obj =
+   match path with
+      PathVar (v, _) ->
+         venv_add_var venv v (ValObject obj)
+    | PathField (path, parent_obj, v) ->
+         let obj = SymbolTable.add parent_obj v (ValObject obj) in
+            hoist_path venv path obj
+
+(*
  * ZZZ: this will go away in 0.9.9.
  *)
 let rec filter_objects venv pos v objl = function
@@ -2901,17 +2912,6 @@ let add_exports venv_dst venv_src pos = function
 (*
  * Add the exports along a path.
  *)
-let rec hoist_path venv path obj =
-   match path with
-      PathVar (v, env) ->
-         let obj = SymbolTable.fold SymbolTable.add env obj in
-            venv_add_var venv v (ValObject obj)
-    | PathField (path, parent_obj, v) ->
-         let obj = SymbolTable.add parent_obj v (ValObject obj) in
-            hoist_path venv path obj
-(*
- * Check that the head variable was not already shadowed.
- *)
 let rec val_is_same_path venv1 venv2 = function
    PathVar(v, _) ->
       if venv_defined venv1 v && venv_defined venv2 v then
@@ -2923,23 +2923,47 @@ let rec val_is_same_path venv1 venv2 = function
  | PathField (path, _, _) ->
       val_is_same_path venv1 venv2 path
 
-let hoist_this venv_orig venv_new venv_dst venv_src path =
-   if val_is_same_path venv_orig venv_new path then
-      hoist_path venv_dst path venv_src.venv_this
-   else
-      venv_dst
+(*
+ * venv_orig - environment before the function call.
+ * venv_obj_old - environment after "entering" the object namespace, before the function call
+ * venv_dst - environment after the function call and exports
+ *           (may have object fields spilled into "this")
+ * venv_obj - environment after "entering" the object namespace, and exports
+ *           (contains new object fieds, but may also contain "this" from venv_orig
+ *)
+let hoist_this venv_orig venv_obj_old venv_dst venv_obj path =
+   let obj = venv_obj.venv_this in
+   let obj_orig = venv_obj_old.venv_this in
+   let this_orig = venv_orig.venv_this in
+   let obj, this =
+      SymbolTable.fold (fun (obj, this) var value ->
+         if SymbolTable.mem this_orig var && not (SymbolTable.mem obj_orig var) then
+            obj, SymbolTable.add this var value
+         else
+            SymbolTable.add obj var value, this) (obj_orig, this_orig) obj
+   in
+   let venv = { venv_dst with venv_this = this } in
+      if val_is_same_path venv_orig venv_dst path then
+         hoist_path venv path obj
+      else
+         venv
 
+(*
+ * venv_orig - environment before the function call.
+ * venv_dst - environment after "entering" the object namespace, before the function call
+ * venv_src - environment after the function call
+ *)
 let add_path_exports venv_orig venv_dst venv_src pos path = function
    ExportNone ->
       venv_orig
  | ExportAll ->
       let venv2 = venv_export_venv venv_dst venv_src in
-      let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
-         hoist_this venv_orig venv_src venv1 venv2 path
+      let venv1 = venv_export_venv venv_orig venv_src in
+         hoist_this venv_orig venv_dst venv1 venv2 path
  | ExportList vars ->
       let venv2 = export_list pos venv_dst venv_src vars in
-      let venv1 = { venv_orig with venv_dynamic = venv2.venv_dynamic } in
-         hoist_this venv_orig venv_src venv1 venv2 path
+      let venv1 = export_list pos venv_orig venv_src vars in
+         hoist_this venv_orig venv_dst venv1 venv2 path
 
 (************************************************************************
  * Squashing.
