@@ -106,7 +106,7 @@ struct
             notify.notify_event <- None;
             event
        | { notify_server = Some server } ->
-            Lm_thread_pool.blocking_section Lm_notify.next_event server
+            Lm_thread_pool.blocking_section (Lm_thread.Thread.raise_ctrl_c_wrapper Lm_notify.next_event) server
        | { notify_server = None } ->
             raise (Failure "Omake_exec_notify.next_event: no monitors")
 
