@@ -2904,7 +2904,7 @@ let add_exports venv_dst venv_src pos = function
 let rec hoist_path venv path obj =
    match path with
       PathVar (v, env) ->
-         let venv = venv_with_env venv env in
+         let obj = SymbolTable.fold SymbolTable.add env obj in
             venv_add_var venv v (ValObject obj)
     | PathField (path, parent_obj, v) ->
          let obj = SymbolTable.add parent_obj v (ValObject obj) in
