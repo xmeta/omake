@@ -1443,8 +1443,8 @@ let raise_field_error mode pos loc v =
 
 let rec squash_path_info path info =
    match path with
-      PathVar (_, env) ->
-         PathVar (info, env)
+      PathVar _ ->
+         PathVar info
     | PathField (path, _, _) ->
          squash_path_info path info
 
@@ -1598,7 +1598,7 @@ let venv_current_object venv classnames =
  *)
 let rec hoist_path venv path obj =
    match path with
-      PathVar (v, _) ->
+      PathVar v ->
          venv_add_var venv v (ValObject obj)
     | PathField (path, parent_obj, v) ->
          let obj = SymbolTable.add parent_obj v (ValObject obj) in
@@ -2913,7 +2913,7 @@ let add_exports venv_dst venv_src pos = function
  * Add the exports along a path.
  *)
 let rec val_is_same_path venv1 venv2 = function
-   PathVar(v, _) ->
+   PathVar v ->
       if venv_defined venv1 v && venv_defined venv2 v then
          let obj1 = venv_find_var_exn venv1 v in
          let obj2 = venv_find_var_exn venv2 v in

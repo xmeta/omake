@@ -72,7 +72,7 @@ let pp_print_target buf target =
  * Path printing.
  *)
 let rec pp_print_path buf = function
-   PathVar (info, _) ->
+   PathVar info ->
       pp_print_var_info buf info
  | PathField (path, obj, v) ->
       fprintf buf "%a.%a" pp_print_symbol v pp_print_path path

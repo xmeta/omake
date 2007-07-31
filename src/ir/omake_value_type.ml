@@ -147,7 +147,7 @@ and map = (value, value) Lm_map.tree
  * A method path.
  *)
 type path =
-   PathVar   of var_info * env
+   PathVar   of var_info
  | PathField of path * obj * var
 
 (*

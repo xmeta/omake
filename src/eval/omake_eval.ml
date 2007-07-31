@@ -1486,11 +1486,11 @@ and eval_find_field_aux venv envl pos v vl =
    match envl with
       [env] ->
          let env = eval_object_exn venv pos env in
-         let path = PathVar (v, env) in
+         let path = PathVar v in
             eval_find_field_exn venv path env pos vl
     | env :: envl ->
          let env = eval_object_exn venv pos env in
-         let path = PathVar (v, env) in
+         let path = PathVar v in
             (try eval_find_field_exn venv path env pos vl with
                 Not_found ->
                    eval_find_field_aux venv envl pos v vl)
@@ -1524,11 +1524,11 @@ and eval_with_method_aux venv envl pos v vl =
    match envl with
       [env] ->
          let env = eval_object_exn venv pos env in
-         let path = PathVar (v, env) in
+         let path = PathVar v in
             eval_with_method_exn venv path env pos vl
     | env :: envl ->
          let env = eval_object_exn venv pos env in
-         let path = PathVar (v, env) in
+         let path = PathVar v in
             (try eval_with_method_exn venv path env pos vl with
                 Not_found ->
                    eval_with_method_aux venv envl pos v vl)
