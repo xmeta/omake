@@ -32,6 +32,7 @@
 <h2> OMake Change Log</h2>
 
 <p>Jump to version
+  <a href="#0.9.8.5">0.9.8.5</a>,
   <a href="#0.9.8.4">0.9.8.4</a>,
   <a href="#0.9.8.3">0.9.8.3</a>,
   <a href="#0.9.8.1">0.9.8.1</a>,
@@ -49,6 +50,177 @@
 <p>See also <a
   href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">the
   brief summary change log</a>.
+
+<h3><a name="0.9.8.5">Version 0.9.8.5 (TBA)</a></h3>
+This is a somehat major feature enhancement release
+<ul>
+   <li>Made sure that Ctrl-C would correctly stop OMake on Windows, making it
+much easier to use <tt>-p</tt> and <tt>-P</tt> on Windows.
+   <li>Added <tt>export</tt> sections.
+   <ul>
+   <li>Exports take effect for all sections within their static scope. For
+   example, <pre>
+   section
+      export
+      section
+         public.X = 1
+
+   println($X)  # Prints 1
+</pre>
+   <li>In addition, exports augment any existing exports. For example,
+<pre>
+   section
+      public.X = 1
+      public.Y = 2
+
+      export X
+      section
+         X = 3
+         Y = 4
+      export Y
+   # X is 3
+   # Y is 2
+</pre>
+   <li>Variable definitions also allow exports. For example, <pre>
+   public.X = 1
+   public.f() =
+      X = 2
+      export
+
+   public.Y = $f
+   # X is 2
+   # Y is 2
+</pre>
+Note: this is, of course, not the same as imperative programming, because
+functions can always choose not to export. In particular, the string
+"functions" do not export. <pre>
+   public.X = 1
+   export X
+   public.f() =
+      X = 2
+   Y = $"$f"
+   # X = 1
+   # Y = 2
+</pre>
+   </ul> 
+   <li>Added <tt>.STATIC</tt> and <tt>.MEMO</tt> rules - an enhanced, yet lazy
+(delayed) version of the <tt>static.</tt> sections.
+   <ul>
+      <li>Basic usage: <pre>
+   .STATIC:
+       println(foo)
+       X = 1
+   Y = $X
+</pre>
+   The variable <tt>X</tt> is exported, with a "delayed" value. The rule is
+only evaluated if the value for <tt>$X</tt> is needed, but it is lazy.  The definition of Y does not force evaluation.
+      <li><tt>.STATIC</tt> rules allow dependencies, for example:<pre>
+   .STATIC: x.input
+       X = $(expensive-function x.input)
+</pre> This is be evaluated if <tt>x.input</tt> changes and <tt>X</tt> is forced.
+      <li><tt>.STATIC</tt> rules also allow explicitly specifying which
+variables are exported, for example: <pre>
+   .STATIC: X: x.input
+       Y = 1
+       X = $Y
+</pre>Here, <tt>Y</tt> is not exported from the section.
+      <li>By default, if a <tt>.STATIC</tt> rule is evaluated several times (for example,
+if the <tt>.STATIC</tt> rule is present inside a body of a function that is
+called several times), the result is the <em>same</em> set of delayed
+variables.
+      <li><tt>.STATIC</tt> rules can have <tt>:key:</tt> dependency that
+specify whether we are getting the same set of delayed variables or not, when
+re-executing the same <tt>.STATIC</tt> rule. For example, <pre>
+    g(x) =
+        eprintln($"g($x)")
+        add($x, 1)
+
+    f(x) =
+        .STATIC: :key: $x
+            y = $(g $x)
+        value $y
+
+    println($(f 1))
+    println($(f 2))
+    println($(f 1))
+</pre> will call function <tt>g</tt> twice - only once for each argument,
+printing: <pre>
+    g(1)
+    2
+    g(2)
+    3
+    2</pre>
+      <li><tt>.STATIC</tt> rules have their values are stored in <tt>.omakedb</tt>, not in <tt>.omc</tt>, so
+they are distinct between different projects (while the <tt>static.</tt>
+sections in common library files are shared between projects).
+      <li>The <tt>.MEMO</tt> rules are very similar to the <tt>.STATIC</tt>,
+except the <tt>.MEMO</tt> values are <em>not</em> preserved across runs of
+OMake. They are, however, preserved for the duration of OMake session.
+   </ul>
+   <li>Fields in sub-objects can now be referenced directly using the
+   <tt>$(X.Y.Z)</tt> form (<a
+href="http://bugzilla.metaprl.org/show_bug.cgi?id=580">bug 580</a>). For example, <pre>
+   X. =
+      Y. =
+         Z. =
+            x = 1
+   X.Y.Z.y = 2
+   X.Y.Z.f() =
+       value $(add $x, $y)
+   echo $(X.Y.Z.f)
+   # prints "3"</pre>
+   <li><b>[Expiremental]</b> Object methods can now export their fields back into the parent object.
+For example, <pre>
+   Z. =
+       x = 1
+       f() =
+           x = 2
+           export
+   Z.f()
+   echo $(Z.x)
+   # Prints "2"
+</pre> This works with arbitrary levels of nesting.
+   <li>Allow functions to take their bodies as array arguments (<a
+href="http://bugzilla.metaprl.org/show_bug.cgi?id=645">bug 645</a>). The
+<tt>[...]</tt> argument to a function call stands for an array body and
+<tt>...</tt> stands for a normal body argument. For example,<pre>
+   X =
+      file([...])
+         a
+         b
+         c
+   - : <array
+       /Users/jyh/projects/omake/0.9.8.x/a : File
+       /Users/jyh/projects/omake/0.9.8.x/b : File
+       /Users/jyh/projects/omake/0.9.8.x/c : File>
+       : Array
+</pre>
+   <li>Corrected several cases where the <tt>exit</tt> shell alias would not
+do the right thing. For example, pipelines like <tt>false || exit 5</tt> will
+now return the correct exit code.
+   <li>Added a <tt>build</tt> function, so that builds can be performed from
+<tt>osh</tt> scripts (the function may be called only from <tt>osh</tt>).
+   <li><tt>build/C.om</tt>: new functions for building DLLs:
+<tt>DynamicCLibrary</tt>, <tt>DynamicCLibraryCopy</tt>,
+<tt>DynamicCLibraryInstall</tt>, <tt>DynamicCXXLibrary</tt>,
+<tt>DynamicCXXLibraryCXXopy</tt>, <tt>DynamicCXXLibraryInstall</tt>.
+   <li>New built-in functions: <tt>sort</tt>, <tt>replace-nth</tt>,
+<tt>input-line</tt>, <tt>channel-name</tt>
+   <li>New <tt>Shell</tt> alias: <tt>Shell.pwd</tt>
+   <li>The <tt>defined</tt>, <tt>getvar</tt>, <tt>setvar</tt> now allow
+   qualified names (<em>e.g</em> <tt>public.x</tt> or <tt>private.y</tt>).
+   <li>Built-in <tt>awk</tt> will now set the <tt>FILENAME</tt> and
+<tt>FNR</tt> (&lquo;line number&rquo;) variables when evaluating its body.
+   <li>The run-time is now included in <tt>- exit</tt> messages (<em>e.g.</em>
+when
+<tt>--print-exit</tt> is enabled) - <a
+href="http://bugzilla.metaprl.org/show_bug.cgi?id=680">bug 680</a>. Note that
+this only indicates when OMake <em>have noticed</em> that the command have
+finished, which may be quite inaccurate in parallel builds (where OMake may be
+busy setting up parallel jobs and not paying attention).
+   <li>Significant code reorganization in preparation for OMake 0.9.9, should
+   be largely transparent to the end-users
+</ul>
 
 <h3><a name="0.9.8.4">Version 0.9.8.4 (June 4, 2007)</a></h3>
 <ul>
@@ -80,7 +252,7 @@
   .omakedb should now be significantly smaller.
   <li>Documentation improvements
 </ul>
-<h3>OMake 0.9.8.2</h3>
+<h3>Version 0.9.8.2</h3>
 The version number 0.9.8.2 was skipped.
 
 <h3><a name="0.9.8.1">Version 0.9.8.1 (March 16, 2007)</a></h3>
