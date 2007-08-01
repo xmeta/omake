@@ -286,14 +286,14 @@ else
 #
 # \begin{doc}
 # \subsection{Building C programs and Libraries}
-# \twofuns{StaticCLibrary}{SharedCLibrary}
+# \twofuns{StaticCLibrary}{DynamicCLibrary}
 #
-# The \verb+StaticCLibrary+ builds a static library and the \verb+SharedCLibrary+
+# The \verb+StaticCLibrary+ builds a static library and the \verb+DynamicCLibrary+
 # function builds a shared library (DLL).
 #
 # \begin{verbatim}
 # StaticCLibrary(<target>, <files>)
-# SharedCLibrary(<target>, <files>)
+# DynamicCLibrary(<target>, <files>)
 # \end{verbatim}
 #
 # The \verb+<target>+ does \emph{not} include the library suffix, and
@@ -314,7 +314,7 @@ else
 # \end{verbatim}
 #
 # \varlabel{CDLL_IMPLIES_STATIC}{CDLL\_IMPLIES\_STATIC} If the \verb+CDLL_IMPLIES_STATIC+
-# variable is enabled (this is default on \verb+Win32+), all the \verb+SharedC+ functions
+# variable is enabled (this is default on \verb+Win32+), all the \verb+DynamicC+ functions
 # would assume that creating a shared library automatically created a static one.
 # \end{doc}
 #
@@ -336,7 +336,7 @@ public.StaticCLibrary(name, files) =
 
     return $(NORMALLIB)
 
-public.SharedCLibrary(name, files) =
+public.DynamicCLibrary(name, files) =
     private.OFILES = $(addsuffix $(EXT_OBJ), $(files))
     private.LFILES = $(addsuffix $(EXT_LIB), $(LIBS))
 
@@ -355,14 +355,14 @@ public.SharedCLibrary(name, files) =
 # Copy to an install directory
 #
 # \begin{doc}
-# \thofuns{StaticCLibraryCopy}{SharedCLibraryCopy}
+# \thofuns{StaticCLibraryCopy}{DynamicCLibraryCopy}
 #
-# The \verb+StaticCLibraryCopy+ and \verb+SharedCLibraryCopy+ functions copy a library
+# The \verb+StaticCLibraryCopy+ and \verb+DynamicCLibraryCopy+ functions copy a library
 # to an install location.
 #
 # \begin{verbatim}
 # StaticCLibraryCopy(<tag>, <dir>, <lib>)
-# SharedCLibraryCopy(<tag>, <dir>, <lib>)
+# DynamicCLibraryCopy(<tag>, <dir>, <lib>)
 # \end{verbatim}
 #
 # The \verb+<tag>+ is the name of a target (typically a \verb+.PHONY+ target);
@@ -401,7 +401,7 @@ public.StaticCLibraryCopy(tag, lib, name) =
 
     return $(LIBNORMAL)
 
-public.SharedCLibraryCopy(tag, lib, name) =
+public.DynamicCLibraryCopy(tag, lib, name) =
     TARGETS = 
         EXT_LIB = $(EXT_DLL)
         value $(StaticCLibraryCopy tag, lib, name)
@@ -414,15 +414,15 @@ public.SharedCLibraryCopy(tag, lib, name) =
 # We often use them together
 #
 # \begin{doc}
-# \twofuns{StaticCLibraryInstall}{SharedCLibraryInstall}
+# \twofuns{StaticCLibraryInstall}{DynamicCLibraryInstall}
 #
-# The \verb+StaticCLibraryInstall+ and \verb+SharedCLibraryInstall+ functions build a library, and
+# The \verb+StaticCLibraryInstall+ and \verb+DynamicCLibraryInstall+ functions build a library, and
 # set the install location in one step. Return the filename of the library
 # in the target directory.
 #
 # \begin{verbatim}
 # StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
-# SharedCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+# DynamicCLibraryInstall(<tag>, <dir>, <libname>, <files>)
 # \end{verbatim}
 #
 # \begin{verbatim}
@@ -434,9 +434,9 @@ public.StaticCLibraryInstall(tag, lib, name, files) =
     StaticCLibrary($(name), $(files))
     return $(StaticCLibraryCopy $(tag), $(lib), $(name))
 
-public.SharedCLibraryInstall(tag, lib, name, files) =
-    SharedCLibrary($(name), $(files))
-    return $(SharedCLibraryCopy $(tag), $(lib), $(name))
+public.DynamicCLibraryInstall(tag, lib, name, files) =
+    DynamicCLibrary($(name), $(files))
+    return $(DynamicCLibraryCopy $(tag), $(lib), $(name))
 
 #
 # Build a .o file.  This is like a library,
@@ -639,7 +639,7 @@ public.CXXProgramInstall(tag, bin, name, files) =
    return $(CProgramCopy $(tag), $(bin), $(name))
 
 # \begin{doc}
-# \sixfuns{StaticCXXLibrary}{StaticCXXLibraryCopy}{StaticCXXLibraryInstall}{SharedCXXLibrary}{SharedCXXLibraryCopy}{SharedCXXLibraryInstall}
+# \sixfuns{StaticCXXLibrary}{StaticCXXLibraryCopy}{StaticCXXLibraryInstall}{DynamicCXXLibrary}{DynamicCXXLibraryCopy}{DynamicCXXLibraryInstall}
 #
 # Similarly, the six \verb+CXXLibrary+ functions the C++ equivalents of the corresponding
 # \verb+CLibrary+ functions.
@@ -660,18 +660,18 @@ public.StaticCXXLibraryInstall(tag, lib, name, files) =
     CFLAGS = $(CXXFLAGS)
     return $(StaticCLibraryInstall tag, lib, name, files)
 
-public.SharedCXXLibrary(name, files) =
+public.DynamicCXXLibrary(name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(SharedCLibrary $(name), $(files))
+    return $(DynamicCLibrary $(name), $(files))
 
-public.SharedCXXLibraryCopy(tag, lib, name) =
+public.DynamicCXXLibraryCopy(tag, lib, name) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(SharedCLibraryCopy tag, lib, name)
+    return $(DynamicCLibraryCopy tag, lib, name)
 
-public.SharedCXXLibraryInstall(tag, lib, name, files) =
+public.DynamicCXXLibraryInstall(tag, lib, name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(SharedCLibraryInstall tag, lib, name, files)
+    return $(DynamicCLibraryInstall tag, lib, name, files)
 
