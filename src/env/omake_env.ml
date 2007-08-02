@@ -2925,26 +2925,15 @@ let rec val_is_same_path venv1 venv2 = function
 
 (*
  * venv_orig - environment before the function call.
- * venv_obj_old - environment after "entering" the object namespace, before the function call
  * venv_dst - environment after the function call and exports
  *           (may have object fields spilled into "this")
  * venv_obj - environment after "entering" the object namespace, and exports
  *           (contains new object fieds, but may also contain "this" from venv_orig
  *)
-let hoist_this venv_orig venv_obj_old venv_dst venv_obj path =
-   let obj = venv_obj.venv_this in
-   let obj_orig = venv_obj_old.venv_this in
-   let this_orig = venv_orig.venv_this in
-   let obj, this =
-      SymbolTable.fold (fun (obj, this) var value ->
-         if SymbolTable.mem this_orig var && not (SymbolTable.mem obj_orig var) then
-            obj, SymbolTable.add this var value
-         else
-            SymbolTable.add obj var value, this) (obj_orig, this_orig) obj
-   in
-   let venv = { venv_dst with venv_this = this } in
+let hoist_this venv_orig venv_dst venv_obj path =
+   let venv = { venv_dst with venv_this = venv_orig.venv_this } in
       if val_is_same_path venv_orig venv_dst path then
-         hoist_path venv path obj
+         hoist_path venv path venv_obj.venv_this
       else
          venv
 
@@ -2959,11 +2948,11 @@ let add_path_exports venv_orig venv_dst venv_src pos path = function
  | ExportAll ->
       let venv2 = venv_export_venv venv_dst venv_src in
       let venv1 = venv_export_venv venv_orig venv_src in
-         hoist_this venv_orig venv_dst venv1 venv2 path
+         hoist_this venv_orig venv1 venv2 path
  | ExportList vars ->
       let venv2 = export_list pos venv_dst venv_src vars in
       let venv1 = export_list pos venv_orig venv_src vars in
-         hoist_this venv_orig venv_dst venv1 venv2 path
+         hoist_this venv_orig venv1 venv2 path
 
 (************************************************************************
  * Squashing.
