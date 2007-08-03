@@ -140,9 +140,16 @@ else
     public.LEX = lex
     public.LIBS =
     public.LDFLAGS =
-    public.LDFLAGS_DLL = -shared
     public.CDLL_IMPLIES_STATIC = false
     public.LDOUT = $(array -o)
+
+    # MacOS X specific config
+    if $(equal $(SYSNAME), Darwin)
+        public.LDFLAGS_DLL = -dynamiclib
+        export
+    else
+        public.LDFLAGS_DLL = -shared
+        export
 
     public.AS = as
     public.ASOUT = $(array -o)
