@@ -1,11 +1,12 @@
-PATH[] = . $(PATH)
-#setenv(PATH, .:$(getenv PATH))
-env | grep ^PATH
-
-.PHONY: foo
-foo :
+if $(not $(equal $(OSTYPE), Win32))
+    PATH[] = . $(PATH)
+    #setenv(PATH, .:$(getenv PATH))
     env | grep ^PATH
-    xxx
-    env xxx
 
-.DEFAULT: foo
+    .PHONY: foo
+    foo :
+        env | grep ^PATH
+        xxx
+        env xxx
+
+    .DEFAULT: foo

@@ -12,6 +12,7 @@ foreach(tst, $(TESTS))
             value $(TestMap.add $d, $(tst))
     export TestMap
 
+private.TestDir = $(dir .)
 runtest(subtest) =
     setenv(OMAKEPATH, $(absname $(ROOT)/lib))
     setenv(OMAKEFLAGS, $"--no--progress --no--print-status")
@@ -34,7 +35,7 @@ runtest(subtest) =
         export res
     else
         echo $"*** Don't know how to run tests in $(subtest)!" >> $(resultfile)
-        eprintln($"*** Don't know how to run tests in $(subtest)!")
+        eprintln($"*** Don't know how to run tests in $(in $(TestDir), $(subtest))!")
         res = 1
         export res
 
@@ -58,7 +59,7 @@ Shell. +=
         if $(public.HAS_DATE)
             date > $(resultfile)
         else
-            fprint($(resultfile), $"Stating tests in $(in $(ROOT), $(dir .)):")
+            fprint($(resultfile), $"Starting tests in $(in $(ROOT), $(dir .)):")
         foreach(subtest, $(subtests))
             echo >> $(resultfile)
             echo $"==== $(subtest)" >> $(resultfile)
