@@ -545,6 +545,78 @@ let sequence_nth venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
+ * Subrange.
+ *)
+let sequence_sub venv pos loc args =
+   let pos = string_pos "sub" pos in
+      match args with
+         [arg; off; len] ->
+            let off = int_of_value venv pos off in
+            let len = int_of_value venv pos len in
+            let obj = eval_object venv pos arg in
+            let arg = eval_object_value venv pos obj in
+               (match arg with
+                   ValNone
+                 | ValFun _
+                 | ValPrim _
+                 | ValKeyApply _
+                 | ValApply _
+                 | ValMaybeApply _
+                 | ValSuperApply _
+                 | ValMethodApply _
+                 | ValDelayed _
+                 | ValMap _
+                 | ValObject _
+                 | ValInt _
+                 | ValFloat _
+                 | ValNode _
+                 | ValDir _
+                 | ValBody _
+                 | ValChannel _
+                 | ValClass _
+                 | ValCases _
+                 | ValOther _
+                 | ValVar _ ->
+                      raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)))
+                 | ValData s ->
+                      let length = String.length s in
+                         if off < 0 || len < 0 || off + len >= length then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)));
+                         ValData (String.sub s off len)
+                 | ValQuote vl ->
+                      let s = string_of_quote venv pos None vl in
+                      let length = String.length s in
+                         if off < 0 || len < 0 || off + len >= length then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)));
+                         ValData (String.sub s off len)
+                 | ValQuoteString (c, vl) ->
+                      let s = string_of_quote venv pos (Some c) vl in
+                      let length = String.length s in
+                         if off < 0 || len < 0 || off + len >= length then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)));
+                         ValData (String.sub s off len)
+
+                 | ValSequence _
+                 | ValString _ ->
+                      let values = values_of_value venv pos arg in
+                      let length = List.length values in
+                         if off < 0 || len < 0 || off + len >= length then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)));
+                         ValArray (Lm_list_util.sub values off len)
+                 | ValArray values ->
+                      let length = List.length values in
+                         if off < 0 || len < 0 || off + len >= length then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)));
+                         ValArray (Lm_list_util.sub values off len)
+                 | ValRules values ->
+                      let length = List.length values in
+                         if off < 0 || len < 0 || off + len >= length then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", off)));
+                         ValRules (Lm_list_util.sub values off len))
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+
+(*
  * Reverse the elements in the sequence.
  *)
 let sequence_rev venv pos loc args =
@@ -871,6 +943,7 @@ let () =
        true, "sequence-length",      sequence_length,     ArityExact 1;
        true, "sequence-nth",         sequence_nth,        ArityExact 1;
        true, "sequence-rev",         sequence_rev,        ArityExact 1;
+       true, "sequence-sub",         sequence_sub,        ArityExact 3;
        true,  "create-map",          create_map,          ArityAny;
        false, "create-lazy-map",     create_map,          ArityAny;
        true, "compare",              compare_fun,         ArityExact 2;
