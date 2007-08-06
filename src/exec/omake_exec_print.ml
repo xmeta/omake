@@ -111,7 +111,8 @@ let print_message options s =
 let saving_message = "saved " ^ db_name
 
 let print_saving options =
-   print_message options saving_message
+   if opt_print_status options then
+      print_message options saving_message
 
 (*
  * Print the current directory.
