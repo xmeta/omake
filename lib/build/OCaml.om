@@ -257,18 +257,21 @@ public.OCAML_LIB_FLAGS =
 #
 # \subsubsection{Automatic discovery of generated files during dependency analysis}
 # Having to specify the generated files manualy when \OMake{} could discover them automatically is
-# obviously suboptimal.  To address this, we tell \verb+ocamldep+ that \emph{only}
-# finds the free module names in a file and then post-process the results internally.
+# obviously suboptimal.  To address this, we tell \verb+ocamldep+ to \emph{only}
+# find the free module names in a file and then post-process the results internally.
 #
-# Note that the experimental \verb+ocamldep+ functionality this relies upon is only included in
+# This automated functionality is enabled when the
+# \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} is set to \verb+true+.
+# By default, \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} will be set to
+# \verb+$(OCAMLDEP_MODULES_AVAILABLE)+.
+#
+# Note that the \verb+ocamldep+ functionality this relies upon is only included in
 # the OCaml version 3.10 and higher. Temporarily, we
 # distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
 # modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
 # and the \hypervarxn{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} and
 # \hypervarxn{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} variables will be set accordingly.
 #
-# By default, \hypervarx{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} will be set to
-# \verb+$(OCAMLDEP_MODULES_AVAILABLE)+.
 # \end{doc}
 #
 .STATIC:
