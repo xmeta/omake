@@ -1594,17 +1594,6 @@ let venv_current_object venv classnames =
             SymbolTable.add obj class_sym (ValClass table)
 
 (*
- * Shadow an object field.
- *)
-let rec hoist_path venv path obj =
-   match path with
-      PathVar v ->
-         venv_add_var venv v (ValObject obj)
-    | PathField (path, parent_obj, v) ->
-         let obj = SymbolTable.add parent_obj v (ValObject obj) in
-            hoist_path venv path obj
-
-(*
  * ZZZ: this will go away in 0.9.9.
  *)
 let rec filter_objects venv pos v objl = function
@@ -2924,11 +2913,20 @@ let rec val_is_same_path venv1 venv2 = function
       val_is_same_path venv1 venv2 path
 
 (*
+ * Bind the object along the path.
+ *)
+let rec hoist_path venv path obj =
+   match path with
+      PathVar v ->
+         venv_add_var venv v (ValObject obj)
+    | PathField (path, parent_obj, v) ->
+         let obj = SymbolTable.add parent_obj v (ValObject obj) in
+            hoist_path venv path obj
+
+(*
  * venv_orig - environment before the function call.
  * venv_dst - environment after the function call and exports
- *           (may have object fields spilled into "this")
  * venv_obj - environment after "entering" the object namespace, and exports
- *           (contains new object fieds, but may also contain "this" from venv_orig
  *)
 let hoist_this venv_orig venv_dst venv_obj path =
    let venv = { venv_dst with venv_this = venv_orig.venv_this } in
@@ -2946,12 +2944,12 @@ let add_path_exports venv_orig venv_dst venv_src pos path = function
    ExportNone ->
       venv_orig
  | ExportAll ->
-      let venv2 = venv_export_venv venv_dst venv_src in
       let venv1 = venv_export_venv venv_orig venv_src in
+      let venv2 = venv_export_venv venv_dst venv_src in
          hoist_this venv_orig venv1 venv2 path
  | ExportList vars ->
-      let venv2 = export_list pos venv_dst venv_src vars in
       let venv1 = export_list pos venv_orig venv_src vars in
+      let venv2 = export_list pos venv_dst venv_src vars in
          hoist_this venv_orig venv1 venv2 path
 
 (************************************************************************
