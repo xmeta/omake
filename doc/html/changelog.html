@@ -51,6 +51,20 @@
   href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">the
   brief summary change log</a>.
 
+<!--
+   <li><b>[Experimental]</b> Object methods can now export their fields back into the parent object.
+For example, <pre>
+   Z. =
+       x = 1
+       f() =
+           x = 2
+           export
+   Z.f()
+   echo $(Z.x)
+   # Prints "2"
+</pre> This works with arbitrary levels of nesting.
+-->
+
 <h3><a name="0.9.8.5">Version 0.9.8.5 (TBA)</a></h3>
 This is a somehat major feature enhancement release
 <ul>
@@ -169,17 +183,6 @@ href="http://bugzilla.metaprl.org/show_bug.cgi?id=580">bug 580</a>). For example
        value $(add $x, $y)
    echo $(X.Y.Z.f)
    # prints "3"</pre>
-   <li><b>[Expiremental]</b> Object methods can now export their fields back into the parent object.
-For example, <pre>
-   Z. =
-       x = 1
-       f() =
-           x = 2
-           export
-   Z.f()
-   echo $(Z.x)
-   # Prints "2"
-</pre> This works with arbitrary levels of nesting.
    <li>Allow functions to take their bodies as array arguments (<a
 href="http://bugzilla.metaprl.org/show_bug.cgi?id=645">bug 645</a>). The
 <tt>[...]</tt> argument to a function call stands for an array body and
