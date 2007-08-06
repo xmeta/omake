@@ -2899,21 +2899,18 @@ let add_exports venv_dst venv_src pos = function
       export_list pos venv_dst venv_src vars
 
 (*
- * Add the exports along a path.
- *)
-let rec val_is_same_path venv1 venv2 = function
-   PathVar v ->
-      if venv_defined venv1 v && venv_defined venv2 v then
-         let obj1 = venv_find_var_exn venv1 v in
-         let obj2 = venv_find_var_exn venv2 v in
-            obj1 == obj2
-      else
-         false
- | PathField (path, _, _) ->
-      val_is_same_path venv1 venv2 path
-
-(*
- * Bind the object along the path.
+ * venv_orig - environment before the function call.
+ * venv_dst - environment after "entering" the object namespace, before the function call
+ * venv_src - environment after the function call
+ *
+ *    # venv_orig is here
+ *    A.B.C.f(1)
+ *    # venv_dst is venv_orig with this = A.B.C
+ *    # venv_src is venv when A.B.C.f returns
+ *
+ * 1. export from venv_src into venv_dst
+ * 2. take venv_orig.venv_this
+ * 3. update along the path A.B.C
  *)
 let rec hoist_path venv path obj =
    match path with
@@ -2923,34 +2920,17 @@ let rec hoist_path venv path obj =
          let obj = SymbolTable.add parent_obj v (ValObject obj) in
             hoist_path venv path obj
 
-(*
- * venv_orig - environment before the function call.
- * venv_dst - environment after the function call and exports
- * venv_obj - environment after "entering" the object namespace, and exports
- *)
-let hoist_this venv_orig venv_dst venv_obj path =
-   let venv = { venv_dst with venv_this = venv_orig.venv_this } in
-      if val_is_same_path venv_orig venv_dst path then
-         hoist_path venv path venv_obj.venv_this
-      else
-         venv
+let hoist_this venv_orig venv_obj path =
+   let venv = { venv_obj with venv_this = venv_orig.venv_this } in
+      hoist_path venv path venv_obj.venv_this
 
-(*
- * venv_orig - environment before the function call.
- * venv_dst - environment after "entering" the object namespace, before the function call
- * venv_src - environment after the function call
- *)
 let add_path_exports venv_orig venv_dst venv_src pos path = function
    ExportNone ->
       venv_orig
  | ExportAll ->
-      let venv1 = venv_export_venv venv_orig venv_src in
-      let venv2 = venv_export_venv venv_dst venv_src in
-         hoist_this venv_orig venv1 venv2 path
+      hoist_this venv_orig (venv_export_venv venv_dst venv_src) path
  | ExportList vars ->
-      let venv1 = export_list pos venv_orig venv_src vars in
-      let venv2 = export_list pos venv_dst venv_src vars in
-         hoist_this venv_orig venv1 venv2 path
+      hoist_this venv_orig (export_list pos venv_dst venv_src vars) path
 
 (************************************************************************
  * Squashing.

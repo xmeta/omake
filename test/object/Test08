@@ -8,5 +8,8 @@ map.foreach(key, val)
 
 new = $(map.find key)
 if $(not $(equal $(new), new))
-   println($"Error: expected new, got $(new)")
+   println($"Note: hoist overrides export")
+   exit 2
+else
+   println($"Error: hoist should override export")
    exit 1

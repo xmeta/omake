@@ -37,7 +37,14 @@ runtest(subtest) =
         eprintln($"*** Don't know how to run tests in $(subtest)!")
         res = 1
         export res
-    return$(equal $(res), 0)
+
+    # Exit code 2 is a suggestion, not an error
+    if $(equal $(res), 0)
+        value success
+    elseif $(equal $(res), 2)
+        value note
+    else
+        value failure
 
 static. =
     HAS_DATE = $(CheckProg date)
@@ -46,6 +53,7 @@ Shell. +=
     test(argv) =
         result = $"Tested $(in .., $(dir .)): "
         failures = false
+	notes = false
         subtests = $(file $(set $(TestMap.find $(dir .))))
         if $(public.HAS_DATE)
             date > $(resultfile)
@@ -54,11 +62,17 @@ Shell. +=
         foreach(subtest, $(subtests))
             echo >> $(resultfile)
             echo $"==== $(subtest)" >> $(resultfile)
-            if $(runtest $(subtest))
+            switch $(runtest $(subtest))
+            case success
                 result = $(result).
                 echo "--- success" >> $(resultfile)
                 export
-            else
+            case note
+                result = $(result)N
+		notes = true
+                echo "--- note" >> $(resultfile)
+                export
+            default
                 result = $(result)E
                 failures = true
                 echo "*** failure" >> $(resultfile)
@@ -66,6 +80,9 @@ Shell. +=
             export
         if $(failures)
             result += $"$(nl)    *** SOME TESTS FAILED! See $(in $(ROOT), $(resultfile)) for detail"
+            export
+        elseif $(notes)
+            result += $"$(nl)    --- See notes $(in $(ROOT), $(resultfile)) for detail"
             export
         println($(result))
 

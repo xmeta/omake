@@ -438,7 +438,7 @@ val venv_get_ordering_deps : venv -> ordering_info -> NodeSet.t -> NodeSet.t
 val add_exports      : venv -> venv -> pos -> export -> venv
 val add_path_exports : venv -> venv -> venv -> pos -> path -> export -> venv
 val hoist_path       : venv -> path -> obj -> venv
-val hoist_this       : venv -> venv -> venv -> path -> venv
+val hoist_this       : venv -> venv -> path -> venv
 
 (*
  * Cached buildable flags.
