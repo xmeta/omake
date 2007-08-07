@@ -37,12 +37,11 @@ open Omake_node_sig
 open Omake_ir_free_vars
 open Omake_handle_table
 
+(* %%MAGICBEGIN%% *)
 (*
  * Various kinds of handles.
  *)
-(* %%MAGICBEGIN%% *)
 type handle_env = HandleTable.handle
-(* %%MAGICEND%% *)
 
 (*
  * I/O channels.
