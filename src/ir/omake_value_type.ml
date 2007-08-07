@@ -92,6 +92,9 @@ type value =
    (* Functions *)
  | ValFun         of arity * env * var list * exp list * export
 
+   (* ZZZ: temporary fix, don't propagate to keyword *)
+ | ValFunValue    of arity * env * var list * value
+
    (* Closed values *)
  | ValApply       of loc * var_info * value list
  | ValSuperApply  of loc * var * var * value list

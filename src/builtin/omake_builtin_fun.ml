@@ -107,9 +107,7 @@ let fun_fun venv pos loc args =
                   ValBody (_, body, export) ->
                      ValFun (ArityExact (List.length params), env, params, body, export)
                 | _ ->
-                     raise (OmakeException (pos, StringValueError ("This version of OMake is being changed,
-and inline syntax for anonymous functions doesn't work.
-If you really want this to work, name the function.", body)))
+                     ValFunValue (ArityExact (List.length params), env, params, body)
 
 (*
  * Function application.

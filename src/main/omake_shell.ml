@@ -123,6 +123,7 @@ let print_result result =
     | ValMap _
     | ValChannel _
     | ValFun _
+    | ValFunValue _
     | ValPrim _
     | ValBody _
     | ValRules _

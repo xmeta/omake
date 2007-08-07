@@ -197,6 +197,7 @@ let rec key_of_value venv pos v =
        | ValApply _
        | ValMaybeApply _
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValRules _
        | ValBody _
@@ -239,6 +240,7 @@ let dir_of_value venv pos dir =
        | ValApply _
        | ValMaybeApply _
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValRules _
        | ValBody _
@@ -284,6 +286,7 @@ let node_value_of_value venv pos v =
        | ValNone
        | ValVar _
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValRules _
        | ValMap _
@@ -321,6 +324,7 @@ let dir_value_of_value venv pos v =
        | ValNone
        | ValVar _
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValRules _
        | ValMap _
@@ -399,6 +403,7 @@ let prim_channel_of_value venv pos v =
        | ValBody _
        | ValNone
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValArray _
        | ValRules _
@@ -461,6 +466,7 @@ let in_channel_of_any_value venv pos v =
        | ValChannel (OutChannel, _)
        | ValNone
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValArray _
        | ValRules _
@@ -512,6 +518,7 @@ let out_channel_of_any_value venv pos v =
        | ValChannel (InChannel, _)
        | ValNone
        | ValFun _
+       | ValFunValue _
        | ValPrim _
        | ValArray _
        | ValRules _
@@ -550,6 +557,7 @@ let rec is_glob_value options v =
     | ValFloat _
     | ValNone
     | ValFun _
+    | ValFunValue _
     | ValPrim _
     | ValRules _
     | ValMap _

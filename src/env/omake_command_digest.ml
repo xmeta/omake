@@ -176,6 +176,8 @@ type code =
  | CodeRedirectNode
  | CodeRedirectArg
  | CodeRedirectNone
+   (* ZZZ: temporary fix, don't propagate to keyword *)
+ | CodeValFunValue
 (* %%MAGICEND%% *)
 
 module type HashSig =
@@ -615,6 +617,11 @@ let rec squash_value pos buf v =
             squash_exp_list pos buf body;
             Hash.add_code buf CodeSpace;
             squash_export_info buf export
+       | ValFunValue (_, _, params, body) ->
+            Hash.add_code buf CodeValFunValue;
+            squash_vars buf params;
+            Hash.add_code buf CodeArrow;
+            squash_value pos buf body
        | ValPrim (_, _, f) ->
             Hash.add_code buf CodeValPrim;
             squash_var buf (squash_prim_fun f)

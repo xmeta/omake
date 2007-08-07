@@ -440,6 +440,7 @@ let sequence_length venv pos loc args =
                 | ValArray a ->
                      List.length a
                 | ValFun (arity, _, _, _, _)
+                | ValFunValue (arity, _, _, _)
                 | ValPrim (arity, _, _) ->
                      (match arity with
                          ArityExact i
@@ -482,6 +483,7 @@ let sequence_nth venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
+                 | ValFunValue _
                  | ValPrim _
                  | ValKeyApply _
                  | ValApply _
@@ -558,6 +560,7 @@ let sequence_sub venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
+                 | ValFunValue _
                  | ValPrim _
                  | ValKeyApply _
                  | ValApply _
@@ -628,6 +631,7 @@ let sequence_rev venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
+                 | ValFunValue _
                  | ValPrim _
                  | ValKeyApply _
                  | ValApply _

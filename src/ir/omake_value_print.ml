@@ -119,7 +119,8 @@ let rec pp_print_value buf v =
     | ValMaybeApply (_, v) ->
          fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
             pp_print_var_info v
-    | ValFun (arity, _, _, _, _) ->
+    | ValFun (arity, _, _, _, _)
+    | ValFunValue (arity, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
     | ValPrim (_, special, name) ->
          if special then
@@ -233,7 +234,8 @@ let rec pp_print_simple_value buf v =
     | ValMaybeApply (_, v) ->
          fprintf buf "$?(%a)" (**)
             pp_print_var_info v
-    | ValFun _ ->
+    | ValFun _
+    | ValFunValue _ ->
          pp_print_string buf "<fun>"
     | ValPrim _ ->
          pp_print_string buf "<prim>"
