@@ -860,9 +860,7 @@ single array containing an argument list.
      See the documentation for the 'test' function.
     
     - `find'
-      <<   find \emph{expression}
-      >>
-    
+    `find' expression
     See the documentation for the 'find' function.
   
    
@@ -1270,12 +1268,15 @@ Node: Subsection 13-4-2,	Next: Section 13-5,	Prev: Subsection 13-4-1,	Up: Sectio
  DIRSEP
  The normal directory separator (`/' on
 `Unix', `\' on `Win32'). 
- EXT_LIB
- File suffix for a static library
-(default is `.a' on `Unix', and `.lib' on `Win32'). 
  EXT_OBJ
  File suffix for an object file
 (default is `.o' on `Unix', and `.obj' on `Win32'). 
+ EXT_LIB
+ File suffix for a static library
+(default is `.a' on `Unix', and `.lib' on `Win32'). 
+ EXT_DLL
+ File suffix for a shared library
+(default is `.so' on `Unix', and `.dll' on `Win32'). 
  EXT_ASM
  File suffix for an assembly file
 (default is `.s' on `Unix', and `.asm' on `Win32'). 
@@ -1398,6 +1399,10 @@ static libraries (defaults to `ar cq' on `Unix', and `lib' on `Win32').
  LDFLAGS
  Options to pass to the linker (default
 is empty). 
+ LDFLAGS_DLL
+ Options to pass to the linker when
+compiling a shared library (defaults to `-shared' on `Unix' and `/DLL'
+on `Win32'). 
  LDOUT
  The option to use for specifying the
 output file in C and C++ linkers (defaults to `-o' on `Unix' and `/Fe'
@@ -1445,14 +1450,18 @@ Node: Subsection 13-5-4,	Next: Section 13-6,	Prev: Subsection 13-5-3,	Up: Sectio
 ==========================================
 
 
-13.5.4.1   StaticCLibrary
--------------------------
+13.5.4.1   StaticCLibrary, DynamicCLibrary
+------------------------------------------
 
-  The `StaticCLibrary' builds a static library.
-  `StaticCLibrary(<target>, <files>)'
+  The `StaticCLibrary' builds a static library and the `DynamicCLibrary'
+function builds a shared library (DLL).
+<<StaticCLibrary(<target>, <files>)
+  DynamicCLibrary(<target>, <files>)
+>>
+  
   The `<target>' does not include the library suffix, and The `<files>'
 list does not include the object suffix. These are obtained from the
-`EXT_LIB' and `EXT_OBJ' variables.
+'EXT_LIB' ('EXT_DLL') and 'EXT_OBJ' variables.
   This function returns the library filename.
   The following command builds the library `libfoo.a' from the files
 `a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
@@ -1461,13 +1470,22 @@ list does not include the object suffix. These are obtained from the
   .DEFAULT: $(StaticCLibrary libbar, a b c d)
 >>
   
+ CDLL_IMPLIES_STATIC
+ If the `CDLL_IMPLIES_STATIC' variable
+is enabled (this is default on `Win32'), all the `DynamicC' functions
+would assume that creating a shared library automatically created a
+static one.
 
-13.5.4.2   StaticCLibraryCopy
------------------------------
-
-  The `StaticCLibraryCopy' function copies the static library to an
-install location.
-  `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
+13.5.4.2   StaticCLibraryCopy, DynamicCLibraryCopy
+--------------------------------------------------
+\@n
+ame{function:DynamicCLibraryCopy}
+  The `StaticCLibraryCopy' and `DynamicCLibraryCopy' functions copy a
+library to an install location.
+<<StaticCLibraryCopy(<tag>, <dir>, <lib>)
+  DynamicCLibraryCopy(<tag>, <dir>, <lib>)
+>>
+  
   The `<tag>' is the name of a target (typically a `.PHONY' target); the
 `<dir>' is the installation directory, and `<lib>' is the library to be
 copied (without the library suffix).
@@ -1481,13 +1499,17 @@ directory.
 >>
   
 
-13.5.4.3   StaticCLibraryInstall
---------------------------------
+13.5.4.3   StaticCLibraryInstall, DynamicCLibraryInstall
+--------------------------------------------------------
 
-  The `StaticCLibraryInstall' function builds a library, and sets the
-install location in one step. It returns the filename of the library in
-the target directory.
-  `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
+
+  The `StaticCLibraryInstall' and `DynamicCLibraryInstall' functions
+build a library, and set the install location in one step. Return the
+filename of the library in the target directory.
+<<StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+  DynamicCLibraryInstall(<tag>, <dir>, <libname>, <files>)
+>>
+  
 <<StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
 >>
   
@@ -1555,14 +1577,16 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 
 13.5.4.9   StaticCXXLibrary, StaticCXXLibraryCopy,
 --------------------------------------------------
-StaticCXXLibraryInstall
------------------------
+StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy,
+------------------------------------------------------------------
+DynamicCXXLibraryInstall
+------------------------
 \@nam
 e{function:StaticCXXLibraryCopy}\@name
-{function:StaticCXXLibraryInstall}
-  Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
-`StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
-`StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
+{function:StaticCXXLibraryInstall}\@na
+me{function:DynamicCXXLibrary}
+  Similarly, the six `CXXLibrary' functions the C++ equivalents of the
+corresponding `CLibrary' functions. 
 
 Node: Section 13-6,	Next: Subsection 13-6-1,	Prev: Section 13-5,	Up: Chapter 13
   
@@ -1611,87 +1635,3 @@ understands the `-modules' option is available on your machine.
  MENHIR_AVAILABLE
  True when the Menhir parser-generator
 is available on your machine.
-
-Node: Subsection 13-6-2,	Next: Subsection 13-6-3,	Prev: Subsection 13-6-1,	Up: Section 13-6
-  
-
-13.6.2   Configuration variables for OCaml compilation
-======================================================
-  
-  The following variables can be redefined in your project. 
- USE_OCAMLFIND
- Whether to use the `ocamlfind' utility
-(default `false') 
- OCAMLC
- The OCaml bytecode compiler (default
-`ocamlc.opt' if it exists and `USE_OCAMLFIND' is not set, otherwise
-`ocamlc'). 
- OCAMLOPT
- The OCaml native-code compiler
-(default `ocamlopt.opt' if it exists and `USE_OCAMLFIND' is not set,
-otherwise `ocamlopt'). 
- CAMLP4
- The `camlp4' preprocessor (default
-`camlp4'). 
- OCAMLLEX
- The OCaml lexer generator (default
-`ocamllex'). 
- OCAMLLEXFLAGS
- The flags to pass to `ocamllex'
-(default `-q'). 
- OCAMLYACC
- The OCaml parser generator (default
-`ocamlyacc'). 
- OCAMLYACCFLAGS
- Additional options to pass to
-`$(OCAMLYACC)'. 
- OCAMLDEP
- The OCaml dependency analyzer (default
-`ocamldep'). 
- OCAMLDEP_MODULES
- The OCaml dependency analyzer that
-understands the `-module' option (default `ocamldep', if `ocamldep
--modules' works, or `ocamlrun ocamldep-omake', if `ocamlrun
-ocamldep-omake -modules' works, and empty when neither works). 
- OCAMLDEP_MODULES_ENABLED
- Instead of using `OCAMLDEP' in a
-traditional `make'-style fashion, run `$(OCAMLDEP_MODULES) -modules' and
-then postprocess the output internally to discover all the relevant
-generated `.ml' and `.mli' files. See Section
-13.6.5*Note Subsection 13-6-5:: for more information on
-interactions between OMake, `OCAMLDEP' and generated files. Set to
-`$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
- OCAMLMKTOP
- The OCaml toploop compiler (default
-`ocamlmktop'). 
- OCAMLLINK
- The OCaml bytecode linker (default
-`$(OCAMLC)'). 
- OCAMLOPTLINK
- The OCaml native-code linker (default
-`$(OCAMLOPT)'). 
- OCAMLINCLUDES
- Search path to pass to the OCaml
-compilers (default `.'). The search path with the `-I' prefix is defined
-by the `PREFIXED_OCAMLINCLUDES' variable. 
- OCAMLFIND
- The `ocamlfind' utility (default
-`ocamlfind' if `USE_OCAMLFIND' is set, otherwise empty). 
- OCAMLFINDFLAGS
- The flags to pass to `ocamlfind'
-(default empty, `USE_OCAMLFIND' must be set). 
- OCAMLPACKS
- Package names to pass to `ocamlfind'
-(`USE_OCAMLFIND' must be set). 
- BYTE_ENABLED
- Flag indicating whether to use the
-bytecode compiler (default `true', when no `ocamlopt' found, `false'
-otherwise). 
- NATIVE_ENABLED
- Flag indicating whether to use the
-native-code compiler (default `true', when ocamlopt is found, `false'
-otherwise). Both `BYTE_ENABLED' and `NATIVE_ENABLED' can be set to true;
-at least one should be set to true. 
- MENHIR_ENABLED
- Define this as `true' if you wish to
-use `menhir' instead of `ocamlyacc' (default `false'). 
