@@ -1485,7 +1485,7 @@ let string venv pos loc args =
  *       sequence : Sequence
  * \end{verbatim}
  *
- * The \verb+string-lenght+ returns a length (number of characters) in 
+ * The \verb+string-lenght+ returns a length (number of characters) in
  * its argument. If the argument is a sequence, it flattens it, so \verb+$(string-length sequence)+
  * is equivalent to \verb+$(string-length $(string sequence))+.
  * \end{doc}
@@ -2547,7 +2547,7 @@ let shell_code venv pos loc args =
  * A = 2
  * B = 2
  * C = 2
- * export $(SAVE_ENV)
+ * export($(SAVE_ENV))
  * println($A $B $C)
  * \end{verbatim}
  * will print \verb+1 1 2+.
@@ -2559,11 +2559,22 @@ let shell_code venv pos loc args =
 let export venv pos loc args =
    let pos = string_pos "export" pos in
       match args with
-         [ValOther (ValEnv hand)] ->
-            venv_find_environment venv pos hand, ValNone
+         [ValOther (ValEnv (hand, export))] ->
+            let venv_new = venv_find_environment venv pos hand in
+            let venv = add_exports venv venv_new pos export in
+               venv, ValNone
+       | [vars] ->
+            let exports =
+               List.map (function
+                  ".PHONY" -> ExportPhonies
+                | ".RULE" -> ExportRules
+                | v -> ExportVar (VarGlobal (loc, Lm_symbol.add v))) (strings_of_value venv pos vars)
+            in
+            let hand = venv_add_environment venv in
+               venv, ValOther (ValEnv (hand, ExportList exports))
        | [] ->
             let hand = venv_add_environment venv in
-               venv, ValOther (ValEnv hand)
+               venv, ValOther (ValEnv (hand, ExportAll))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))
 

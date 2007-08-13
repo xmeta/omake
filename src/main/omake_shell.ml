@@ -72,9 +72,9 @@ let parse_string venv s =
    in
    let senv = penv_of_vars (eval_open_file venv) venv node_empty (venv_include_scope venv IncludePervasives) in
    let _, ir = Omake_ir_ast.compile_exp_list senv ast in
-      postprocess_ir ir
+      postprocess_ir venv ir
 
-let parse_ir state senv prompt =
+let parse_ir state venv senv prompt =
    let ast = Omake_ast_lex.parse_shell state prompt in
    let _ =
       if debug print_ast then
@@ -88,7 +88,7 @@ let parse_ir state senv prompt =
        | e -> e
    in
    let ir = { ir with ir_exp = e } in
-      senv, postprocess_ir ir
+      senv, postprocess_ir venv ir
 
 (*
  * The result printer.
@@ -251,7 +251,7 @@ let rec main state senv venv result =
    (* Evaluate it *)
    let senv, venv, result =
       try
-         let senv, ir = parse_ir state senv prompt in
+         let senv, ir = parse_ir state venv senv prompt in
          let venv, result = Omake_eval.eval_exp venv result ir.ir_exp in
             senv, venv, result
       with

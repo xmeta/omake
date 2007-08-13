@@ -243,12 +243,12 @@ let strategy_is_eager be_eager strategy v =
 (************************************************************************
  * Compiling utilities.
  *)
-let postprocess_ir ir =
+let postprocess_ir venv ir =
    let () =
       if debug print_ir then
          eprintf "@[<v 3>IR1:@ %a@]@." Omake_ir_print.pp_print_exp ir.ir_exp
    in
-   let ir = { ir with ir_exp = Omake_ir_semant.build_prog ir.ir_exp } in
+   let ir = { ir with ir_exp = Omake_ir_semant.build_prog venv ir.ir_exp } in
    let () =
       if debug print_ir then
          eprintf "@[<v 3>IR2:@ %a@]@." Omake_ir_print.pp_print_exp ir.ir_exp
@@ -267,7 +267,7 @@ let rec parse_ir venv scope node =
    in
    let vars = venv_include_scope venv scope in
    let senv, ir = Omake_ir_ast.compile_prog (penv_of_vars (open_ir venv) venv node vars) ast in
-      postprocess_ir ir
+      postprocess_ir venv ir
 
 (*
  * When constructing a path, the relative filenames

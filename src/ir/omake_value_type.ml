@@ -118,7 +118,7 @@ and value_other =
  | ValParser      of Parser.t
  | ValLocation    of loc
  | ValExitCode    of int
- | ValEnv         of handle_env
+ | ValEnv         of handle_env * export
 
 and value_delayed =
    ValValue of value

@@ -276,6 +276,7 @@ public.OCAML_LIB_FLAGS =
 #
 .STATIC:
     OCAMLDEP_MODULES =
+    OCAMLDEP_MODULES_USE_OCAMLFIND = true
     ConfMsgChecking(if ocamldep understands -modules)
     OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamldep -modules))
     if $(OCAMLDEP_MODULES_AVAILABLE)
@@ -287,14 +288,15 @@ public.OCAML_LIB_FLAGS =
         if $(OCAMLDEP_OMAKE)
             OCAMLDEP_OMAKE = $(file $(OCAMLDEP_OMAKE))
             ConfMsgResult(found $(absname $(OCAMLDEP_OMAKE)))
-            
+
             ConfMsgChecking(if ocamldep-omake runs)
             OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamlrun $(OCAMLDEP_OMAKE) -modules))
             OCAMLDEP_MODULES = $(if $(OCAMLDEP_MODULES_AVAILABLE), ocamlrun $(OCAMLDEP_OMAKE))
+            OCAMLDEP_MODULES_USE_OCAMLFIND = false
             export
         else
             ConfMsgResult(NOT FOUND)
-        export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
+        export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES OCAMLDEP_MODULES_USE_OCAMLFIND
 
     OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
@@ -442,7 +444,10 @@ Shell. +=
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
-        value $(OCAMLFIND) $(OCAMLDEP_MODULES) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
+        if $(OCAMLDEP_MODULES_USE_OCAMLFIND)
+            value $(OCAMLFIND) $(OCAMLDEP_MODULES) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
+        else
+            value $(OCAMLDEP_MODULES) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
     else
         value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
 
@@ -832,11 +837,12 @@ public.OCamlPackage(name, files) =
    protected.CMO       = $(file $(name).cmo)
    protected.CMX       = $(file $(name).cmx)
    protected.CMI       = $(file $(name).cmi)
+   protected.MLI       = $(file $(name).mli)
 
    protected.BYTE_TARGETS   = $(CMO)
    protected.NATIVE_TARGETS = $(CMX) $(OBJ)
 
-   protected.TARGETS = $(file $(name).mli)
+   protected.TARGETS = $(CMI)
    if $(NATIVE_ENABLED)
        TARGETS += $(NATIVE_TARGETS)
        export
@@ -851,12 +857,12 @@ public.OCamlPackage(name, files) =
    protected.BYTE_DEPS = $(CMOFILES)
    $(BYTE_TARGETS): $(CMOFILES)
       section rule
-         if $(or $(NATIVE_ENABLED), $(target-exists $(name).mli))
+         if $(or $(NATIVE_ENABLED), $(target-exists $(MLI)))
              BYTE_DEPS += $(CMI)
              export
          else
              BYTE_TARGETS += $(CMI)
-             export 
+             export
          $(BYTE_TARGETS): $(BYTE_DEPS)
             $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
                 $(OCAMLCFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMO) $(OCamlLinkSort $(CMOFILES))
@@ -864,7 +870,7 @@ public.OCamlPackage(name, files) =
    protected.NATIVE_DEPS = $(CMXFILES) $(OFILES)
    $(NATIVE_TARGETS): $(NATIVE_DEPS)
       section rule
-         if $(target-exists $(name).mli)
+         if $(target-exists $(MLI))
             NATIVE_DEPS += $(CMI)
             export
          else
@@ -876,9 +882,13 @@ public.OCamlPackage(name, files) =
 
    $(CMI):
       section rule
-         if $(target-exists $(name).mli)
-            $(CMI): $(name).mli :scanner: scan-ocaml-%.mli
+         if $(target-exists $(MLI))
+            $(CMI): $(MLI) :scanner: scan-ocaml-$(name).mli
                 $(OCamlC) -c $<
+         elseif $(NATIVE_ENABLED)
+            $(NATIVE_TARGETS) $(CMI): $(NATIVE_DEPS)
+               $(OCAMLFIND) $(OCAMLOPTLINK) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \
+                   $(OCAMLOPTFLAGS) $(OCAML_LIB_FLAGS) -pack -o $(CMX) $(OCamlLinkSort $(CMXFILES))
          else
             $(BYTE_TARGETS) $(CMI): $(BYTE_DEPS)
                $(OCAMLFIND) $(OCAMLC) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLFLAGS) \

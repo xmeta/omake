@@ -1,5 +1,5 @@
 %define index 0.devel
-Version: 0.9.8.4+
+Version: 0.9.8.5+
 Release: %{index}%{?dist}
 Summary: The omake build system.
 Name: omake

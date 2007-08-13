@@ -36,10 +36,12 @@
  *)
 open Lm_symbol
 open Lm_printf
+open Lm_location
 
 open Omake_ir
 open Omake_env
 open Omake_pos
+open Omake_options
 open Omake_ir_util
 open Omake_value_type
 
@@ -64,7 +66,8 @@ type renv =
  *    env_is_tail     : the current expression is in final position
  *)
 type env =
-   { env_in_function   : bool;
+   { env_warnings      : loc option ref;
+     env_in_function   : bool;
      env_in_cond       : bool;
      env_section_tail  : bool;
      env_function_tail : bool
@@ -100,15 +103,25 @@ let renv_return =
 (*
  * Normal environment, not in a function.
  *)
-let env_empty =
-   { env_in_function   = false;
+let env_empty () =
+   { env_warnings      = ref None;
+     env_in_function   = false;
      env_in_cond       = false;
      env_section_tail  = false;
      env_function_tail = false
    }
 
-let env_object_tail =
-   { env_in_function   = false;
+let env_object env =
+   { env_warnings      = env.env_warnings;
+     env_in_function   = false;
+     env_in_cond       = false;
+     env_section_tail  = false;
+     env_function_tail = false
+   }
+
+let env_object_tail env =
+   { env_warnings      = env.env_warnings;
+     env_in_function   = false;
      env_in_cond       = false;
      env_section_tail  = true;
      env_function_tail = true
@@ -117,8 +130,9 @@ let env_object_tail =
 (*
  * Fresh environment for a function body.
  *)
-let env_fun =
-   { env_in_function   = true;
+let env_fun env =
+   { env_warnings      = env.env_warnings;
+     env_in_function   = true;
      env_in_cond       = false;
      env_section_tail  = true;
      env_function_tail = true
@@ -131,13 +145,17 @@ let update_return renv has_return =
  * Error checkers.
  *)
 let check_return_placement env loc =
-   if not (env.env_in_function && (env.env_function_tail || env.env_section_tail && env.env_in_cond)) then
+   if not env.env_in_function then
       let pos = string_pos "check_in_function" (loc_exp_pos loc) in
       let print_error buf =
          fprintf buf "@[<v 0>Misplaced return statement.";
-         fprintf buf "@ Use the 'value' function if you just want the expression value.@]"
+         fprintf buf "@ The return is not within a function.@]"
       in
          raise (OmakeException (pos, LazyError print_error))
+   else if not (env.env_function_tail || env.env_section_tail && env.env_in_cond) then begin
+      eprintf "@[<v 3>*** omake warning: %a@ statements after this return are not reached@]@." pp_print_location loc;
+      env.env_warnings := Some loc
+   end
 
 let check_section_tail env loc =
    if not env.env_section_tail then
@@ -186,11 +204,11 @@ let rec build_string env s =
          let has_return, sl = build_string_list env sl in
             has_return, QuoteStringString (loc, c, sl)
     | ObjectString (loc, el, export) ->
-         let el = build_object_exp el in
+         let el = build_object_exp env el in
             (* XXX: we should handle the case when an object contains a return *)
             false, ObjectString (loc, el, export)
     | BodyString (loc, el, export) ->
-         let renv, e = build_sequence_exp env el in
+         let renv, el = build_sequence_exp env el in
             renv.renv_has_return, BodyString (loc, el, export)
     | ExpString (loc, el, export) ->
          let renv, el = build_sequence_exp env el in
@@ -220,7 +238,7 @@ and build_string_list env sl =
 and build_exp env e =
    match e with
       LetFunExp (loc, v, vl, vars, el, export) ->
-         let renv, el = build_sequence_exp env_fun el in
+         let renv, el = build_sequence_exp (env_fun env) el in
          let el =
             if renv.renv_has_return then
                [ReturnBodyExp (loc, el)]
@@ -230,12 +248,12 @@ and build_exp env e =
          let e = LetFunExp (loc, v, vl, vars, el, export) in
             renv_empty, e
     | LetObjectExp (loc, v, vl, s, el, export) ->
-         let el = build_object_exp el in
+         let el = build_object_exp env el in
          let has_return, s = build_string env s in
          let e = LetObjectExp (loc, v, vl, s, el, export) in
             update_return renv_empty has_return, e
     | StaticExp (loc, node, v, el) ->
-         let el = build_object_exp el in
+         let el = build_object_exp env el in
          let e = StaticExp (loc, node, v, el) in
             renv_empty, e
     | IfExp (loc, cases) ->
@@ -311,17 +329,20 @@ and build_exp env e =
  * An object expression is an expression sequence,
  * but it is not in a function.
  *)
-and build_object_exp el =
+and build_object_exp_aux env el =
    match el with
       [e] ->
-         let _, e = build_exp env_object_tail e in
+         let _, e = build_exp (env_object_tail env) e in
             [e]
     | e :: el ->
-         let _, e = build_exp env_empty e in
-         let el = build_object_exp el in
+         let _, e = build_exp env e in
+         let el = build_object_exp_aux env el in
             e :: el
     | [] ->
          []
+
+and build_object_exp env el =
+   build_object_exp_aux (env_object env) el
 
 (*
  * A new sequence expression.
@@ -381,8 +402,17 @@ and build_cases_exp env cases =
 (************************************************************************
  * Main function
  *)
-let build_prog e =
-   let _, e = build_exp env_empty e in
+let build_prog venv e =
+   let env = env_empty () in
+   let _, e = build_exp env e in
+   let count = !(env.env_warnings) in
+   let () =
+      match count with
+         Some loc when opt_warn_error (venv_options venv) ->
+            raise (OmakeException (loc_exp_pos loc, StringError "warnings treated as errors"))
+       | _ ->
+            ()
+   in
       e
 
 (*!

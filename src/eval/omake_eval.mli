@@ -88,7 +88,7 @@ val compile : venv -> unit
 (*
  * Passes the IR thru Omake_ir_semant.build_prog, printing it if print_ir is enabled.
  *)
-val postprocess_ir : ir -> ir
+val postprocess_ir : venv -> ir -> ir
 
 (*
  * Evaluate a dependency file.
