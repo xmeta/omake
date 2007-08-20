@@ -514,8 +514,9 @@ let whitec          = [' ' '\t' '\012']
 let white           = whitec +
 let opt_white       = whitec *
 
-let nl              = "\r\n" | ['\n' '\r']
-let eol             = nl | eof
+let strict_nl       = "\r\n" | ['\n' '\r']
+let white_nl        = opt_white strict_nl
+let strict_eol      = strict_nl | eof
 
 (*
  * Identifiers and keywords.
@@ -524,11 +525,12 @@ let name_suffix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '@']
 let name            = name_suffix+ | '[' | ']'
 
 (*
- * Comments begin with a # symbol and continue to end-of-line
+ * Comments begin with a # symbol and continue to end-of-line.
+ * Comments are relaxed w.r.t. leading whitespace.
  *)
-let comment         = '#' [^ '\n']*
-let comment_nl      = comment nl
-let comment_eol     = comment eol
+let comment         = opt_white '#' [^ '\n']*
+let comment_nl      = comment strict_nl
+let comment_eol     = comment strict_eol
 
 (*
  * Quotes.
@@ -559,7 +561,7 @@ let special_char        = ['$' '(' ')' ':' ',' '=']
 let special_esc         = ['#' '\\' '\'' '"' ' ' '\t']
 let esc_quote           = '\\' ['\\' '\'' '"']
 let esc_char            = '\\' (special_char | special_esc)
-let esc_line            = '\\' eol
+let esc_line            = '\\' strict_eol
 
 (*
  * Other stuff that is not names or special characters.
@@ -582,7 +584,7 @@ let literal_text  = [^ '\'' '"' '|' '\r' '\n']+
  * Main lexer.
  *)
 rule lex_main state = parse
-   nl
+   white_nl
  | comment_nl
    { let loc = state.current_loc in
      let _ = lexeme_loc state lexbuf in
@@ -689,7 +691,7 @@ rule lex_main state = parse
  * a quoted string).
  *)
 and lex_quote state = parse
-   nl
+   strict_nl
    { set_next_line state lexbuf;
      syntax_error state "unterminated string" lexbuf
    }
@@ -740,7 +742,7 @@ and lex_quote state = parse
  * processed.
  *)
 and lex_string state = parse
-   nl
+   strict_nl
    { let s, loc = lexeme_string state lexbuf in
         set_next_line state lexbuf;
         state.current_fill_ok <- true;
@@ -787,7 +789,7 @@ and lex_string state = parse
  * Text, but we don't expand variables.
  *)
 and lex_literal state buf equote = parse
-   nl
+   strict_nl
    { let s, loc = lexeme_string state lexbuf in
         set_next_line state lexbuf;
         state.current_fill_ok <- true;
@@ -821,8 +823,8 @@ and lex_literal state buf equote = parse
  * Parse the whitespace at the beginning of the line.
  *)
 and lex_indent state = parse
-   opt_white comment_eol
- | opt_white nl
+   comment_eol
+ | white_nl
    { set_next_line state lexbuf;
      state.current_fill_ok <- true;
      lex_indent state lexbuf
@@ -859,7 +861,7 @@ and lex_deps = parse
         lex_deps_quote s buf lexbuf;
         TokString (Buffer.contents buf, loc)
    }
- | nl
+ | white_nl
  | comment_nl
    { let _, loc = lexeme_pos lexbuf in
         TokEol loc
