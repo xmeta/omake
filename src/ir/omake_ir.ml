@@ -36,7 +36,7 @@ open Omake_node_sig
 open Omake_node
 
 (* %%MAGICBEGIN%% *)
-(* Revision 11186: replaced static-rule function with the new memo-rule *)
+(* Revision 11955: Jason fixed "a terrible typo in Omake_ir_semant" *)
 type var = symbol
 
 (*

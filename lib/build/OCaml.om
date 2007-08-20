@@ -70,9 +70,8 @@ open configure/Configure
 # \var{OCAMLYACCFLAGS} Additional options to pass to \verb+$(OCAMLYACC)+.
 # \var{OCAMLDEP} The OCaml dependency analyzer (default \verb+ocamldep+).
 # \varlabel{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} The OCaml dependency analyzer that understands the
-#    \verb+-module+ option (default \verb+ocamldep+, if \verb+ocamldep -modules+ works, or
-#    \verb+ocamlrun ocamldep-omake+, if \verb+ocamlrun ocamldep-omake -modules+ works, and empty
-#    when neither works).
+#    \verb+-module+ option (default \verb+ocamldep+, if \verb+ocamldep -modules+ works, and empty
+#    if it does not).
 # \varlabel{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} Instead of using \verb+OCAMLDEP+
 #    in a traditional \verb+make+-style fashion, run \verb+$(OCAMLDEP_MODULES) -modules+ and then
 #    postprocess the output internally to discover all the relevant generated \verb+.ml+ and
@@ -266,9 +265,7 @@ public.OCAML_LIB_FLAGS =
 # \verb+$(OCAMLDEP_MODULES_AVAILABLE)+.
 #
 # Note that the \verb+ocamldep+ functionality this relies upon is only included in
-# the OCaml version 3.10 and higher. Temporarily, we
-# distribute a bytecode version \index{ocamldep-omake}\verb+ocamldep-omake+ of the appropriately
-# modified \verb+ocamldep+. The appropriate \verb+ocamldep+ will be discovered automatically --- see
+# the OCaml version 3.10 and higher. It's availability will be discovered automatically
 # and the \hypervarxn{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} and
 # \hypervarxn{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} variables will be set accordingly.
 #
@@ -276,27 +273,14 @@ public.OCAML_LIB_FLAGS =
 #
 .STATIC:
     OCAMLDEP_MODULES =
-    OCAMLDEP_MODULES_USE_OCAMLFIND = true
     ConfMsgChecking(if ocamldep understands -modules)
     OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamldep -modules))
     if $(OCAMLDEP_MODULES_AVAILABLE)
         OCAMLDEP_MODULES = ocamldep
         export
     else
-        ConfMsgChecking(for ocamldep-omake bytecode file)
-        OCAMLDEP_OMAKE = $(find-in-path-optional $(PATH), ocamldep-omake)
-        if $(OCAMLDEP_OMAKE)
-            OCAMLDEP_OMAKE = $(file $(OCAMLDEP_OMAKE))
-            ConfMsgResult(found $(absname $(OCAMLDEP_OMAKE)))
-
-            ConfMsgChecking(if ocamldep-omake runs)
-            OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamlrun $(OCAMLDEP_OMAKE) -modules))
-            OCAMLDEP_MODULES = $(if $(OCAMLDEP_MODULES_AVAILABLE), ocamlrun $(OCAMLDEP_OMAKE))
-            OCAMLDEP_MODULES_USE_OCAMLFIND = false
-            export
-        else
-            ConfMsgResult(NOT FOUND)
-        export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES OCAMLDEP_MODULES_USE_OCAMLFIND
+        ConfMsgResult(NOT FOUND)
+        export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
 
     OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
@@ -444,10 +428,7 @@ Shell. +=
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
-        if $(OCAMLDEP_MODULES_USE_OCAMLFIND)
-            value $(OCAMLFIND) $(OCAMLDEP_MODULES) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
-        else
-            value $(OCAMLDEP_MODULES) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
+        value $(OCAMLFIND) $(OCAMLDEP_MODULES) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
     else
         value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
 

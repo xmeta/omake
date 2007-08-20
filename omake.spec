@@ -54,7 +54,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc LICENSE LICENSE.OMake doc/txt/omake-doc.txt doc/ps/omake-doc.ps doc/ps/omake-doc.pdf doc/html CHANGELOG.txt ocamldep/LICENSE.ocamldep-omake
+%doc LICENSE LICENSE.OMake doc/txt/omake-doc.txt doc/ps/omake-doc.ps doc/ps/omake-doc.pdf doc/html CHANGELOG.txt
 
 %attr(555,root,root) %{_bindir}/*
 %{_libdir}/omake
