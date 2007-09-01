@@ -1331,7 +1331,7 @@ let replace_nth_fun venv pos loc args =
  * \fun{subrange}
  *
  * \begin{verbatim}
- *    $(subrange off, len, sequent) : value
+ *    $(subrange off, len, sequence) : value
  *       off : Int
  *       len : Int
  *       sequence : Sequence
@@ -1748,10 +1748,10 @@ let quote_argv venv pos loc args =
  * \end{verbatim}
  *
  * The \verb+html-string+ function flattens a sequence into a single string,
- * and escaped special HTML characters.
+ * and escapes special HTML characters.
  * This is similar to the \verb+concat+ function, but the elements are
  * separated by whitespace.  The result is treated as a unit; whitespace
- * is significant.
+ * inside sequence elements is preserved literally.
  * \end{doc}
  *)
 let html_string venv pos loc args =
@@ -2638,10 +2638,13 @@ let export venv pos loc args =
  *     while $(lt $i, 10)
  *     case $(equal $i, 0)
  *        echo zero
+ *        i = $(add $i, 1)
  *     case $(equal $i, 1)
  *        echo one
+ *        i = $(add $i, 1)
  *     default
  *        echo $i
+ *        i = $(add $i, 1)
  * \end{verbatim}
  *
  * The \hyperfun{break} can be used to break out of the \verb+while+ loop
@@ -2711,7 +2714,7 @@ let break venv pos loc args =
  * Produce a random number.  The numbers are pseudo-random,
  * and are not cryptographically secure.
  *
- * The generator is initialized form semi-random system data.
+ * The generator is initialized from semi-random system data.
  * Subsequent runs should produce different results.
  * The \verb+rando-init+ function can be used to return
  * the generator to a known state.

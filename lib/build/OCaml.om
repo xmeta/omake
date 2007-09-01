@@ -69,11 +69,8 @@ open configure/Configure
 # \var{OCAMLYACC} The OCaml parser generator (default \verb+ocamlyacc+).
 # \var{OCAMLYACCFLAGS} Additional options to pass to \verb+$(OCAMLYACC)+.
 # \var{OCAMLDEP} The OCaml dependency analyzer (default \verb+ocamldep+).
-# \varlabel{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} The OCaml dependency analyzer that understands the
-#    \verb+-module+ option (default \verb+ocamldep+, if \verb+ocamldep -modules+ works, and empty
-#    if it does not).
 # \varlabel{OCAMLDEP_MODULES_ENABLED}{OCAMLDEP\_MODULES\_ENABLED} Instead of using \verb+OCAMLDEP+
-#    in a traditional \verb+make+-style fashion, run \verb+$(OCAMLDEP_MODULES) -modules+ and then
+#    in a traditional \verb+make+-style fashion, run \verb+$(OCAMLDEP) -modules+ and then
 #    postprocess the output internally to discover all the relevant generated \verb+.ml+ and
 #    \verb+.mli+ files. See Section~\ref{section:ocaml-generated-files} for more information on
 #    interactions between \OMake, \verb+OCAMLDEP+ and generated files. Set to
@@ -156,7 +153,7 @@ public.PREFIXED_OCAMLPACKS =\
 #
 # The following variables specify \emph{additional} options to be passed to
 # the OCaml tools.
-# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+ and \verb+OCAMLDEP_MODULES+.
+# \var{OCAMLDEPFLAGS} Flags to pass to \verb+OCAMLDEP+.
 # \var{OCAMLPPFLAGS} Flags to pass to \verb+CAMLP4+.
 # \var{OCAMLCFLAGS} Flags to pass to the byte-code compiler (default \verb+-g+).
 # \var{OCAMLOPTFLAGS} Flags to pass to the native-code compiler (default empty).
@@ -266,23 +263,16 @@ public.OCAML_LIB_FLAGS =
 #
 # Note that the \verb+ocamldep+ functionality this relies upon is only included in
 # the OCaml version 3.10 and higher. It's availability will be discovered automatically
-# and the \hypervarxn{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE} and
-# \hypervarxn{OCAMLDEP_MODULES}{OCAMLDEP\_MODULES} variables will be set accordingly.
+# and the \hypervarx{OCAMLDEP_MODULES_AVAILABLE}{OCAMLDEP\_MODULES\_AVAILABLE}
+# will be set accordingly.
 #
 # \end{doc}
 #
 .STATIC:
-    OCAMLDEP_MODULES =
     ConfMsgChecking(if ocamldep understands -modules)
     OCAMLDEP_MODULES_AVAILABLE = $(ConfMsgYesNo $(shell-success-null ocamldep -modules))
-    if $(OCAMLDEP_MODULES_AVAILABLE)
-        OCAMLDEP_MODULES = ocamldep
-        export
-    else
-        ConfMsgResult(NOT FOUND)
-        export OCAMLDEP_MODULES_AVAILABLE OCAMLDEP_MODULES
 
-    OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
+public.OCAMLDEP_MODULES_ENABLED = $(OCAMLDEP_MODULES_AVAILABLE)
 
 public.OCAMLDEPFLAGS = $`(if $(and $(NATIVE_ENABLED), $(not $(OCAMLDEP_MODULES_ENABLED))), -native, $(EMPTY))
 
@@ -428,7 +418,7 @@ Shell. +=
 
 public.OCamlScanner(src_file) =
     if $(OCAMLDEP_MODULES_ENABLED)
-        value $(OCAMLFIND) $(OCAMLDEP_MODULES) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
+        value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) -modules $(src_file) | ocamldep-postproc
     else
         value $(OCAMLFIND) $(OCAMLDEP) $(LAZY_OCAMLFINDFLAGS) $(PREFIXED_OCAMLPACKS) $(OCAMLDEPFLAGS) $(PREFIXED_OCAMLINCLUDES) $(src_file)
 
@@ -584,7 +574,7 @@ public.MenhirOCamlcCommand() =
 public.MenhirOCamldepCommand(raw) =
     ocamldep =
        if $(raw)
-           value $(OCAMLDEP_MODULES) -modules $(OCAMLDEPFLAGS)
+           value $(OCAMLDEP) -modules $(OCAMLDEPFLAGS)
        else
            value $(OCAMLDEP) $(PREFIXED_OCAMLINCLUDES) $(OCAMLDEPFLAGS)
     value --ocamldep $(quote-argv $(ocamldep))

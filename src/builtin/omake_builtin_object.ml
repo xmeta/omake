@@ -713,7 +713,7 @@ let sequence_rev venv pos loc args =
  *           value $(x).c
  *
  *     # Equivalent expression
- *     X = $(foreach $(fun x, $(x).c), abc)
+ *     X = $(foreach $(fun x, $(x).c), a b c)
  * \end{verbatim}
  *
  * There is also an abbreviated syntax.
@@ -771,7 +771,7 @@ let foreach_fun venv pos loc args =
  *
  * \fun{sequence-forall}
  *
- * The \verb+forall+ function tests whether a predicate halds for each
+ * The \verb+forall+ function tests whether a predicate holds for each
  * element of a sequence.
  *
  * \begin{verbatim}
