@@ -384,7 +384,8 @@ let gettimeofday venv pos loc args =
  * the function \verb+localtime uses the local time zone.
  * \end{doc}
  *)
-let tm_object obj info =
+let tm_object venv info =
+   let obj = venv_find_object_or_empty venv tm_object_var in
    let obj = venv_add_field_internal obj tm_sec_sym   (ValInt info.Unix.tm_sec) in
    let obj = venv_add_field_internal obj tm_min_sym   (ValInt info.Unix.tm_min) in
    let obj = venv_add_field_internal obj tm_hour_sym  (ValInt info.Unix.tm_hour) in
@@ -394,15 +395,14 @@ let tm_object obj info =
    let obj = venv_add_field_internal obj tm_wday_sym  (ValInt info.Unix.tm_wday) in
    let obj = venv_add_field_internal obj tm_yday_sym  (ValInt info.Unix.tm_yday) in
    let obj = venv_add_field_internal obj tm_isdst_sym (if info.Unix.tm_isdst then val_true else val_false) in
-      ValObject obj
+      obj
 
 let gmtime venv pos loc args =
    let pos = string_pos "gmtime" pos in
       match args with
          [now] ->
             let info = Unix.gmtime (float_of_value venv pos now) in
-            let obj = venv_find_object_or_empty venv tm_object_var in
-               tm_object obj info
+               ValObject (tm_object venv info)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -411,24 +411,33 @@ let localtime venv pos loc args =
       match args with
          [now] ->
             let info = Unix.localtime (float_of_value venv pos now) in
-            let obj = venv_find_object_or_empty venv tm_object_var in
-               tm_object obj info
+               ValObject (tm_object venv info)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * \begin{doc}
- * \fun{mktime}
+ * \twofuns{mktime,normalize-time}
  * \begin{verbatim}
  *    $(mktime tm) : Float
+ *    $(normalize-time tm) : Tm
  *        tm : Tm
  * \end{verbatim}
  *
  * Convert the calendar time to time in seconds since the Unix epoch.
  * Assumes the local time zone.
+ *
+ * The fields \verb+tm_wday+, \verb+tm_mday+, \verb+tm_yday+ are ignored.
+ * The other components are not restricted to their normal ranges and will be
+ * normalized as needed.
+ *
+ * The function \verb+normalize-time+ normalizes the
+ * calendar time.  The returned object contains an additional field
+ * \verb+tm_time : Float+ that represnets the time in seconds since the Unix epoch
+ * (the same value returned by \verb+mktime+).
  * \end{doc}
  *)
-let mktime venv pos loc args =
+let mktime_aux select venv pos loc args =
    let pos = string_pos "mktime" pos in
    let obj =
       match args with
@@ -449,8 +458,14 @@ let mktime venv pos loc args =
         Unix.tm_isdst = bool_of_value venv pos (venv_find_field_internal obj pos tm_isdst_sym)
       }
    in
-   let time, _ = Unix.mktime info in
-      ValFloat time
+      select (Unix.mktime info)
+
+let mktime = mktime_aux (fun (secs, _) -> ValFloat secs)
+let normalize_tm venv pos loc args =
+   mktime_aux (fun (secs, tm) ->
+         let obj = tm_object venv tm in
+         let obj = venv_add_field_internal obj tm_time_sym (ValFloat secs) in
+            ValObject obj) venv pos loc args
 
 (************************************************************************
  * Tables.
@@ -472,6 +487,7 @@ let () =
       true, "gmtime",        gmtime,        ArityExact 1;
       true, "localtime",     localtime,     ArityExact 1;
       true, "mktime",        mktime,        ArityExact 1;
+      true, "normalize-tm",  normalize_tm,  ArityExact 1;
    ] in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }

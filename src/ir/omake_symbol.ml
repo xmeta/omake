@@ -117,6 +117,7 @@ let tm_year_sym                = Lm_symbol.add "tm_year"
 let tm_wday_sym                = Lm_symbol.add "tm_wday"
 let tm_yday_sym                = Lm_symbol.add "tm_yday"
 let tm_isdst_sym               = Lm_symbol.add "tm_isdst"
+let tm_time_sym                = Lm_symbol.add "tm_time"
 
 let target_sym                 = Lm_symbol.add "target"
 let target_effects_sym         = Lm_symbol.add "effects"
