@@ -1533,6 +1533,11 @@ type mode_op =
  | ModeAdd
  | ModeSub
 
+type chmod_mode =
+   ChmodInt of int
+ | ChmodString of string
+ | ChmodNone
+
 (*
  * Mode bit operations.
  *)
@@ -1619,14 +1624,19 @@ let mode_of_symbolic_string mode s =
    List.fold_left mode_of_symbolic_component mode (Lm_string_util.split "," s)
 
 let mode_of_string mode s =
-   if s = "" then
+   match s.[0] with
+      '0'..'7' ->
+         int_of_string ("0o" ^ s)
+    | _ ->
+         mode_of_symbolic_string mode s
+
+let mode_of_chmod mode = function
+   ChmodNone ->
       mode
-   else
-      match s.[0] with
-         '0'..'7' ->
-            int_of_string ("0o" ^ s)
-       | _ ->
-            mode_of_symbolic_string mode s
+ | ChmodInt mode ->
+      mode
+ | ChmodString s ->
+      mode_of_string mode s
 
 (************************************************************************
  * Directories.
@@ -2374,10 +2384,12 @@ let symlink_raw venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{readlink}
+ * \twofuns{readlink,readlink-raw}
  *
  * \begin{verbatim}
  *    $(readlink node...) : Node
+ *       node : Node
+ *    $(readlink-raw node...) : String
  *       node : Node
  * \end{verbatim}
  *
@@ -2386,6 +2398,27 @@ let symlink_raw venv pos loc args =
  *)
 let readlink venv pos loc args =
    let pos = string_pos "readlink" pos in
+      match args with
+         [arg] ->
+            let args = values_of_value venv pos arg in
+            let args =
+               try
+                  List.map (fun arg ->
+                        let node = file_of_value venv pos arg in
+                        let dir = Node.dir node in
+                        let name = Node.fullname node in
+                        let name = Unix.readlink name in
+                           ValNode (venv_intern_cd venv PhonyProhibited dir name)) args
+               with
+                  Unix.Unix_error _ as exn ->
+                     raise (UncaughtException (pos, exn))
+            in
+               concat_array args
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+let readlink_raw venv pos loc args =
+   let pos = string_pos "readlink-raw" pos in
       match args with
          [arg] ->
             let args = values_of_value venv pos arg in
@@ -2434,7 +2467,7 @@ let readlink venv pos loc args =
  * \end{doc}
  *)
 type chmod_info =
-   { chmod_mode    : string;
+   { chmod_mode    : chmod_mode;
      chmod_rec     : bool;
      chmod_force   : bool;
      chmod_verbose : bool;
@@ -2442,7 +2475,7 @@ type chmod_info =
    }
 
 let chmod_default_info =
-   { chmod_mode    = "";
+   { chmod_mode    = ChmodNone;
      chmod_rec     = false;
      chmod_force   = false;
      chmod_verbose = false;
@@ -2453,7 +2486,7 @@ let chmod_spec =
    Lm_arg.MultiLetterOptions, (**)
       ["options", (**)
           ["-m", (**)
-              StringFold (fun info s -> { info with chmod_mode = s }),
+              StringFold (fun info s -> { info with chmod_mode = ChmodString s }),
               "set permission mode";
            "-r", (**)
               UnitFold (fun info -> { info with chmod_rec = true }),
@@ -2480,7 +2513,7 @@ let chmod info filename =
    if info.chmod_verbose then
       printf "Changing permissions on %s@." filename;
    let mode = (Unix.LargeFile.stat filename).Unix.LargeFile.st_perm in
-   let mode = mode_of_string mode info.chmod_mode in
+   let mode = mode_of_chmod mode info.chmod_mode in
    if info.chmod_force then
       try Unix.chmod filename mode with
          Unix.Unix_error _ ->
@@ -2508,7 +2541,17 @@ let chmod venv pos loc args =
    let info, nodes =
       match args with
          [mode; nodes] ->
-            let info = { chmod_default_info with chmod_mode = string_of_value venv pos mode } in
+            let mode =
+               match mode with
+                  ValInt mode ->
+                     ChmodInt mode
+                | _ ->
+                     let s = string_of_value venv pos mode in
+                        try ChmodInt (int_of_string s) with
+                           Failure _ ->
+                              ChmodString s
+            in
+            let info = { chmod_default_info with chmod_mode = mode } in
                info, nodes
        | [nodes] ->
             chmod_default_info, nodes
@@ -2522,12 +2565,12 @@ let chmod venv pos loc args =
             raise (OmakeException (loc_pos loc pos, StringError s))
    in
    let info, files =
-      if info.chmod_mode <> "" then
+      if info.chmod_mode <> ChmodNone then
          info, info.chmod_files
       else
          match List.rev info.chmod_files with
             mode :: rest ->
-               let info = { info with chmod_mode = mode } in
+               let info = { info with chmod_mode = ChmodString mode } in
                   info, rest
           | [] ->
                raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2877,6 +2920,7 @@ let () =
        true, "unlink",                  unlink,                   ArityExact 1;
        true, "rename",                  rename,                   ArityExact 2;
        true, "readlink",                readlink,                 ArityExact 1;
+       true, "readlink-raw",            readlink_raw,             ArityExact 1;
        true, "truncate",                truncate,                 ArityExact 2;
 
        true, "mkdir",                   mkdir,                    ArityRange (1, 2);
