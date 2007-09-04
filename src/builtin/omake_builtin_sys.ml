@@ -37,6 +37,7 @@ open Omake_env
 open Omake_pos
 open Omake_var
 open Omake_node
+open Omake_eval
 open Omake_value
 open Omake_symbol
 open Omake_builtin
@@ -354,6 +355,103 @@ let gettimeofday venv pos loc args =
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 0, List.length args)))
 
+(*
+ * \begin{doc}
+ * \obj{Tm}
+ * The \verb+Tm+ object is a structure that represents the time and date.
+ *
+ * \begin{description}
+ * \itemidx{tm\_sec} \verb+: Int+ Seconds (0--59).
+ * \itemidx{tm\_min} \verb+: Int+ Minutes (0--59).
+ * \itemidx{tm\_hour} \verb+: Int+ Hours (0--23).
+ * \itemidx{tm\_mday} \verb+: Int+ Day of the month (0--31).
+ * \itemidx{tm\_mon} \verb+: Int+ Month (0--11).
+ * \itemidx{tm\_year} \verb+: Int+ Year (minus 1900).
+ * \itemidx{tm\_wday} \verb+: Int+ Day of the week (0--6, Sunday is 0).
+ * \itemidx{tm\_yday} \verb+: Int+ Day of the year (0--365).
+ * \itemidx{tm\_isdst} \verb+: Bool+ True iff daylight savings time is in effect.
+ * \end{description}
+ *
+ * \twofuns{gmtime}{localtime}{
+ * \begin{verbatim}
+ *    $(gmtime time) : tm
+ *    $(localtime time) : tm
+ *        time : Float
+ * \end{verbatim}
+ *
+ * Convert the time in seconds since the Unix epoch to calendar format.
+ * The function \verb+gmtime+ assumes UTC (Coordinated Universal Time);
+ * the function \verb+localtime uses the local time zone.
+ * \end{doc}
+ *)
+let tm_object obj info =
+   let obj = venv_add_field_internal obj tm_sec_sym   (ValInt info.Unix.tm_sec) in
+   let obj = venv_add_field_internal obj tm_min_sym   (ValInt info.Unix.tm_min) in
+   let obj = venv_add_field_internal obj tm_hour_sym  (ValInt info.Unix.tm_hour) in
+   let obj = venv_add_field_internal obj tm_mday_sym  (ValInt info.Unix.tm_mday) in
+   let obj = venv_add_field_internal obj tm_mon_sym   (ValInt info.Unix.tm_mon) in
+   let obj = venv_add_field_internal obj tm_year_sym  (ValInt info.Unix.tm_year) in
+   let obj = venv_add_field_internal obj tm_wday_sym  (ValInt info.Unix.tm_wday) in
+   let obj = venv_add_field_internal obj tm_yday_sym  (ValInt info.Unix.tm_yday) in
+   let obj = venv_add_field_internal obj tm_isdst_sym (if info.Unix.tm_isdst then val_true else val_false) in
+      ValObject obj
+
+let gmtime venv pos loc args =
+   let pos = string_pos "gmtime" pos in
+      match args with
+         [now] ->
+            let info = Unix.gmtime (float_of_value venv pos now) in
+            let obj = venv_find_object_or_empty venv tm_object_var in
+               tm_object obj info
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+let localtime venv pos loc args =
+   let pos = string_pos "gmtime" pos in
+      match args with
+         [now] ->
+            let info = Unix.localtime (float_of_value venv pos now) in
+            let obj = venv_find_object_or_empty venv tm_object_var in
+               tm_object obj info
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
+(*
+ * \begin{doc}
+ * \fun{mktime}
+ * \begin{verbatim}
+ *    $(mktime tm) : Float
+ *        tm : Tm
+ * \end{verbatim}
+ *
+ * Convert the calendar time to time in seconds since the Unix epoch.
+ * Assumes the local time zone.
+ * \end{doc}
+ *)
+let mktime venv pos loc args =
+   let pos = string_pos "mktime" pos in
+   let obj =
+      match args with
+         [obj] ->
+            eval_object venv pos obj
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+   let info =
+      { Unix.tm_sec   = int_of_value venv pos (venv_find_field_internal obj pos tm_sec_sym);
+        Unix.tm_min   = int_of_value venv pos (venv_find_field_internal obj pos tm_min_sym);
+        Unix.tm_hour  = int_of_value venv pos (venv_find_field_internal obj pos tm_hour_sym);
+        Unix.tm_mday  = int_of_value venv pos (venv_find_field_internal obj pos tm_mday_sym);
+        Unix.tm_mon   = int_of_value venv pos (venv_find_field_internal obj pos tm_mon_sym);
+        Unix.tm_year  = int_of_value venv pos (venv_find_field_internal obj pos tm_year_sym);
+        Unix.tm_wday  = int_of_value venv pos (venv_find_field_internal obj pos tm_wday_sym);
+        Unix.tm_yday  = int_of_value venv pos (venv_find_field_internal obj pos tm_yday_sym);
+        Unix.tm_isdst = bool_of_value venv pos (venv_find_field_internal obj pos tm_isdst_sym)
+      }
+   in
+   let time, _ = Unix.mktime info in
+      ValFloat time
+
 (************************************************************************
  * Tables.
  *)
@@ -371,6 +469,9 @@ let () =
       true, "xterm-escape-end",   xterm_escape_end,   ArityExact 0;
       true, "prompt-invisible-begin", prompt_invisible_begin, ArityExact 0;
       true, "prompt-invisible-end",   prompt_invisible_end,   ArityExact 0;
+      true, "gmtime",        gmtime,        ArityExact 1;
+      true, "localtime",     localtime,     ArityExact 1;
+      true, "mktime",        mktime,        ArityExact 1;
    ] in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs }

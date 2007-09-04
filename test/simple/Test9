@@ -18,12 +18,10 @@ subst-nl(s) =
    close($(inx))
    concat($(EMPTY), $(result))
 
-
-X = 123    # ABC
-Y = $"""A
-B  
-"""
-
+#
+# Translate the first string and compare
+# it with the second.
+#
 errors = false
 check-string(s1, s2) =
    s1 = $(subst-nl $(s1))
@@ -34,7 +32,6 @@ check-string(s1, s2) =
       errors = true
       export
    export
-
 
 X = abc   # 123
 check-string($X, abc)

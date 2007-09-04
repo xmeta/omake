@@ -117,6 +117,7 @@ val pipe_object_var            : var_info
 val select_object_var          : var_info
 val runtime_exception_var      : var_info
 val var_object_var             : var_info
+val tm_object_var              : var_info
 
 val printexitvalue_var         : var_info
 
