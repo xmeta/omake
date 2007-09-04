@@ -1003,7 +1003,8 @@ let () =
        "Lexer";
        "Parser";
        "Location";
-       "Position"]
+       "Position";
+      ]
    in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs;

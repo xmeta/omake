@@ -1048,7 +1048,7 @@ let rec search_target_in_path_aux fail venv cache pos loc path files name =
             raise (OmakeException (loc_pos loc pos, StringStringError ("target not found", name)))
          else
             files
-            
+
 let rec search_ocaml_target_in_path_aux venv cache pos loc path files name1 name2 =
    match path with
       dir :: path ->
@@ -2365,10 +2365,9 @@ let readlink venv pos loc args =
                try
                   List.map (fun arg ->
                         let node = file_of_value venv pos arg in
-                        let dir = Node.dir node in
                         let name = Node.fullname node in
                         let name = Unix.readlink name in
-                           ValNode (venv_intern_cd venv PhonyProhibited dir name)) args
+                           ValData name) args
                with
                   Unix.Unix_error _ as exn ->
                      raise (UncaughtException (pos, exn))
@@ -2842,9 +2841,14 @@ let () =
       [true, "vmount",                  vmount,                   ArityRange (2, 3);
       ]
    in
+   let pervasives_objects =
+      ["Tm";
+      ]
+   in
    let builtin_info =
       { builtin_empty with builtin_funs = builtin_funs;
-                           builtin_kfuns = builtin_kfuns
+                           builtin_kfuns = builtin_kfuns;
+                           pervasives_objects = pervasives_objects
       }
    in
       register_builtin builtin_info
