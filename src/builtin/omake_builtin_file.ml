@@ -2312,22 +2312,28 @@ let link venv pos loc args =
 
 (*
  * \begin{doc}
- * \fun{symlink}
+ * \twofuns{symlink,symlink-raw}
  *
  * \begin{verbatim}
  *    symlink(src, dst)
  *       src : Node
  *       dst : Node
+ *    symlink-raw(src, dst)
+ *       src : String
+ &       dst : Node
  *    raises RuntimeException
  * \end{verbatim}
  *
  * The \verb+symlink+ function creates a symbolic link \verb+dst+ that
  * points to the \verb+src+ file.
  *
- * The link name is computed relative to
+ * For \verb+symlink+, the link name is computed relative to
  * the target directory.  For example, the expression
  * \verb+$(symlink a/b, c/d)+ creates a link named
  * \verb+c/d -> ../a/b+.
+ *
+ * The function \verb+symlink-raw+ performs no translation.
+ * The symbolic link is set to the \verb+src+ string.
  *
  * Symbolic links are not supported in Win32. Consider using the \verb+ln-or-cp+
  * \verb+Shell+ alias for cross-platform portable linking/copying.
@@ -2340,6 +2346,22 @@ let symlink venv pos loc args =
             let dst = file_of_value venv pos dst in
             let src = file_of_value venv pos src in
             let src = Node.name (Node.dir dst) src in
+            let dst = Node.fullname dst in
+            let () =
+               try Unix.symlink src dst with
+                  (Unix.Unix_error _ | Invalid_argument _) as exn ->
+                     raise (UncaughtException (pos, exn))
+            in
+               ValNone
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let symlink_raw venv pos loc args =
+   let pos = string_pos "symlink-raw" pos in
+      match args with
+         [src; dst] ->
+            let dst = file_of_value venv pos dst in
+            let src = string_of_value venv pos src in
             let dst = Node.fullname dst in
             let () =
                try Unix.symlink src dst with
@@ -2566,6 +2588,44 @@ let chown venv pos loc args =
       try
          List.iter (fun node ->
                Unix.chown (filename_of_value venv pos node) uid gid) nodes
+      with
+         Unix.Unix_error _ as exn ->
+            raise (UncaughtException (pos, exn))
+   in
+      ValNone
+
+(*
+ * \begin{doc}
+ * \fun{utimes}
+ *
+ * \begin{verbatim}
+ *    utimes(atime, mtime, node...)
+ *       atime : Float
+ *       mtime : Float
+ *       node : Node
+ *    raises RuntimeException
+ * \end{verbatim}
+ *
+ * The \verb+utimes+ function changes the access and modification
+ * times of the files.
+ * \end{doc}
+ *)
+let utimes venv pos loc args =
+   let pos = string_pos "utimes" pos in
+   let atime, mtime, nodes =
+      match args with
+         [atime; mtime; nodes] ->
+            atime, mtime, nodes
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 3, List.length args)))
+   in
+   let atime = float_of_value venv pos atime in
+   let mtime = float_of_value venv pos mtime in
+   let nodes = values_of_value venv pos nodes in
+   let () =
+      try
+         List.iter (fun node ->
+               Unix.utimes (filename_of_value venv pos node) atime mtime) nodes
       with
          Unix.Unix_error _ as exn ->
             raise (UncaughtException (pos, exn))
@@ -2826,8 +2886,10 @@ let () =
        true, "cp",                      cp,                       ArityExact 1;
        true, "link",                    link,                     ArityExact 2;
        true, "symlink",                 symlink,                  ArityExact 2;
+       true, "symlink-raw",             symlink_raw,              ArityExact 2;
        true, "chmod",                   chmod,                    ArityExact 2;
        true, "chown",                   chown,                    ArityRange (2, 3);
+       true, "utimes",                  utimes,                   ArityExact 3;
        true, "umask",                   umask,                    ArityExact 1;
        true, "digest",                  digest,                   ArityExact 1;
        true, "digest-optional",         digest_optional,          ArityExact 1;
