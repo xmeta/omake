@@ -1425,6 +1425,12 @@ let glob venv pos loc args =
  * The returned files are sorted by name.
  * \end{doc}
  *)
+let relative_filename_concat dir file =
+   if Filename.is_relative file then
+      Filename.concat dir file
+   else
+      file
+
 let ls_fun_of_string s =
    let len = String.length s in
    let rec search i =
@@ -1457,8 +1463,8 @@ let ls venv pos loc args =
    let root = Dir.cwd () in
    let cwd  = Dir.name root (venv_dir venv) in
    let dirs, files1 = Lm_glob.glob options cwd dirs in
-   let dirs = List.map (Filename.concat cwd) dirs in
-   let files1 = List.map (Filename.concat cwd) files1 in
+   let dirs = List.map (relative_filename_concat cwd) dirs in
+   let files1 = List.map (relative_filename_concat cwd) files1 in
    let dirs, files2 = ls_fun options "" dirs in
    let dirs  = List.map (fun dir -> ValDir (Dir.chdir root dir)) dirs in
    let nodes = List.map (fun name -> ValNode (venv_intern_cd venv PhonyProhibited root name)) (files1 @ files2) in
@@ -1507,7 +1513,7 @@ let subdirs venv pos loc args =
    let dirs = strings_of_value venv pos arg in
    let root = Dir.cwd () in
    let cwd = Dir.name root (venv_dir venv) in
-   let dirs = List.map (Filename.concat cwd) dirs in
+   let dirs = List.map (relative_filename_concat cwd) dirs in
    let dirs = subdirs_of_dirs options "" dirs in
    let dirs = List.map (fun dir -> ValDir (Dir.chdir root dir)) dirs in
       ValArray dirs
