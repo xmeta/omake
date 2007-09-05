@@ -1624,11 +1624,14 @@ let mode_of_symbolic_string mode s =
    List.fold_left mode_of_symbolic_component mode (Lm_string_util.split "," s)
 
 let mode_of_string mode s =
-   match s.[0] with
-      '0'..'7' ->
-         int_of_string ("0o" ^ s)
-    | _ ->
-         mode_of_symbolic_string mode s
+   if s = "" then
+      mode
+   else
+      match s.[0] with
+         '0'..'7' ->
+            int_of_string ("0o" ^ s)
+       | _ ->
+            mode_of_symbolic_string mode s
 
 let mode_of_chmod mode = function
    ChmodNone ->

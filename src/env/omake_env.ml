@@ -256,7 +256,7 @@ and venv_globals =
      mutable venv_orders                     : StringSet.t;
 
      (* Static rules *)
-     mutable venv_memo_rules               : static_info ValueTable.t;
+     mutable venv_memo_rules                 : static_info ValueTable.t;
 
      (* Cached values for files *)
      mutable venv_ir_files                   : ir NodeTable.t;
@@ -1940,7 +1940,7 @@ let create options dir exec cache =
         venv_explicit_targets           = NodeTable.empty;
         venv_ordering_rules             = [];
         venv_orders                     = StringSet.empty;
-        venv_memo_rules               = ValueTable.empty;
+        venv_memo_rules                 = ValueTable.empty;
         venv_pervasives_obj             = SymbolTable.empty;
         venv_pervasives_vars            = SymbolTable.empty;
         venv_ir_files                   = NodeTable.empty;
