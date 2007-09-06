@@ -1040,12 +1040,12 @@ and eval_include_rule venv pos loc sources deps values commands =
  * Evaluate the commands NOW.
  *)
 and exec_commands venv pos loc commands =
-   let stdin  = channel_of_var venv pos loc stdin_var in
    let stdout = channel_of_var venv pos loc stdout_var in
-   let stdin  = Lm_channel.descr stdin in
+   let stderr = channel_of_var venv pos loc stderr_var in
    let stdout = Lm_channel.descr stdout in
+   let stderr = Lm_channel.descr stderr in
       List.iter (fun command ->
-            let pid = eval_shell_internal stdin stdout command in
+            let pid = eval_shell_internal stdout stderr command in
             let status, _ = eval_shell_wait venv pos pid in
             let code =
                match status with
