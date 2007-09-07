@@ -51,15 +51,7 @@ type channel_mode = Lm_channel.mode =
  | OutChannel
  | InOutChannel
 
-type channel_data =
-   ChannelDelayed
- | ChannelClosed
- | ChannelValue of Lm_channel.t
-
-type prim_channel =
-   { channel_id           : int;
-     mutable channel_data : channel_data
-   }
+type prim_channel = IntHandleTable.handle
 
 (*
  * Possible values.

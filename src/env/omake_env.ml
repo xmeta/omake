@@ -330,14 +330,12 @@ module IntTable = Lm_map.LmMake (IntCompare);;
 type prim_fun_data = venv -> pos -> loc -> value list -> venv * value
 
 type venv_runtime =
-   { mutable venv_channel_index  : int;
-     mutable venv_channels       : (prim_channel * channel_data) IntTable.t;
+   { venv_channels               : Lm_channel.t IntHandleTable.t;
      mutable venv_primitives     : prim_fun_data SymbolTable.t
    }
 
 let venv_runtime =
-   { venv_channel_index  = 0;
-     venv_channels       = IntTable.empty;
+   { venv_channels       = IntHandleTable.create ();
      venv_primitives     = SymbolTable.empty
    }
 
@@ -617,47 +615,36 @@ let venv_find_environment venv pos hand =
 (*
  * Add a channel slot.
  *)
-let venv_add_channel venv data =
-   let { venv_channel_index = index;
-         venv_channels      = channels
-       } = venv_runtime
-   in
-   let data =
+let venv_add_index_channel index data =
+   let channels = venv_runtime.venv_channels in
+   let channel = IntHandleTable.create_handle channels index in
       Lm_channel.set_id data index;
-      ChannelValue data
-   in
-   let channel =
-      { channel_id = index;
-        channel_data = data
-      }
-   in
-      venv_runtime.venv_channels <- IntTable.add channels index (channel, data);
-      venv_runtime.venv_channel_index <- succ index;
+      IntHandleTable.add channels channel data;
+      channel
+
+let venv_add_channel venv data =
+   let channels = venv_runtime.venv_channels in
+   let channel = IntHandleTable.new_handle channels in
+   let index = IntHandleTable.int_of_handle channel in
+      Lm_channel.set_id data index;
+      IntHandleTable.add channels channel data;
       channel
 
 let add_channel file kind mode binary fd =
    Lm_channel.create file kind mode binary (Some fd)
 
-let venv_stdin  = venv_add_channel () (add_channel "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false Unix.stdin)
-let venv_stdout = venv_add_channel () (add_channel "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stdout)
-let venv_stderr = venv_add_channel () (add_channel "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stderr)
+let venv_stdin  = venv_add_index_channel 0 (add_channel "<stdin>"  Lm_channel.PipeChannel Lm_channel.InChannel  false Unix.stdin)
+let venv_stdout = venv_add_index_channel 1 (add_channel "<stdout>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stdout)
+let venv_stderr = venv_add_index_channel 2 (add_channel "<stderr>" Lm_channel.PipeChannel Lm_channel.OutChannel false Unix.stderr)
 
 (*
  * A formatting channel.
  *)
 let venv_add_formatter_channel venv fmt =
-   let { venv_channel_index = index;
-         venv_channels      = channels
-       } = venv_runtime
-   in
+   let channels = venv_runtime.venv_channels in
    let fd = Lm_channel.create "formatter" Lm_channel.FileChannel Lm_channel.OutChannel true None in
-   let () = Lm_channel.set_id fd index in
-   let data = ChannelValue fd in
-   let channel =
-      { channel_id = index;
-        channel_data = data
-      }
-   in
+   let channel = IntHandleTable.new_handle channels in
+   let index = IntHandleTable.int_of_handle channel in
    let reader s off len =
       raise (Unix.Unix_error (Unix.EINVAL, "formatter-channel", ""))
    in
@@ -665,44 +652,29 @@ let venv_add_formatter_channel venv fmt =
       Format.pp_print_string fmt (String.sub s off len);
       len
    in
+      Lm_channel.set_id fd index;
       Lm_channel.set_io_functions fd reader writer;
-      venv_runtime.venv_channels <- IntTable.add channels index (channel, data);
-      venv_runtime.venv_channel_index <- succ index;
+      IntHandleTable.add channels channel fd;
       channel
 
 (*
  * Get the channel.
  *)
 let venv_channel_data channel =
-   match channel with
-      { channel_data = ChannelDelayed; channel_id = id } ->
-         (try
-             let _, data = IntTable.find venv_runtime.venv_channels id in
-                channel.channel_data <- data;
-                data
-          with
-             Not_found ->
-                (* This should never happen, because we close channels on marshaling *)
-                raise (Invalid_argument "expand_channel"))
-    | { channel_data = data } ->
-         data
+   (* Standard channels are always available *)
+   if IntHandleTable.int_of_handle channel <= 2 then
+      IntHandleTable.find_any venv_runtime.venv_channels channel
+   else
+      IntHandleTable.find venv_runtime.venv_channels channel
 
 (*
  * When a channel is closed, close the buffers too.
  *)
 let venv_close_channel venv pos channel =
    try
-      let () =
-         match venv_channel_data channel with
-            ChannelClosed ->
-               ()
-          | ChannelValue channel ->
-               Lm_channel.close channel
-          | ChannelDelayed ->
-               raise (Invalid_argument "venv_close_channel")
-      in
-         channel.channel_data <- ChannelClosed;
-         venv_runtime.venv_channels <- IntTable.remove venv_runtime.venv_channels channel.channel_id
+      let fd = venv_channel_data channel in
+         Lm_channel.close fd;
+         IntHandleTable.remove venv_runtime.venv_channels channel
    with
       Not_found ->
          (* Fail silently *)
@@ -713,24 +685,15 @@ let venv_close_channel venv pos channel =
  *)
 let venv_find_channel venv pos channel =
    let pos = string_pos "venv_find_in_channel" pos in
-      match venv_channel_data channel with
-         ChannelClosed ->
+      try venv_channel_data channel with
+         Not_found ->
             raise (OmakeException (pos, StringError "channel is closed"))
-       | ChannelValue channel ->
-            channel
-       | ChannelDelayed ->
-            raise (Invalid_argument "venv_find_in_channel")
 
 (*
  * Finding by identifiers.
  *)
 let venv_find_channel_id venv pos id =
-   let channel, _ =
-      try IntTable.find venv_runtime.venv_channels id with
-         Not_found ->
-            raise (OmakeException (pos, StringIntError ("channel is closed", id)))
-   in
-      channel
+   IntHandleTable.create_handle venv_runtime.venv_channels id
 
 (************************************************************************
  * Primitive values.
@@ -862,39 +825,6 @@ let venv_add_phony venv loc names =
 (************************************************************************
  * Static values.
  *)
-
-(*
- * During marshaling, set all the refs to None.
- *)
-let venv_marshal venv f x =
-   let { venv_channels = channels;
-         venv_primitives = primitives
-       } = venv_runtime
-   in
-
-   (* Prepare by closing channels, and resetting function data *)
-   let prepare () =
-      IntTable.iter (fun _ (channel, _) ->
-            if channel.channel_id <= 2 then
-               channel.channel_data <- ChannelDelayed
-            else
-               channel.channel_data <- ChannelClosed) channels
-   in
-
-   (* Restore by reopening channels and readding function data *)
-   let restore () =
-      IntTable.iter (fun _ (channel, data) ->
-            channel.channel_data <- data) channels
-   in
-      prepare ();
-      try
-         let y = f x in
-            restore ();
-            y
-      with
-         exn ->
-            restore ();
-            raise exn
 
 (*
  * Static loading.
@@ -1084,8 +1014,7 @@ struct
          { db_file = Some fd; db_name = name; db_digest = digest; db_env = venv } ->
             if !debug_db then
                eprintf "Omake_db.add_ir: %a@." pp_print_node name;
-            venv_marshal venv (fun () ->
-                  Lm_db.add fd (Node.absname name) ir_tag Omake_magic.ir_magic digest ir) ()
+            Lm_db.add fd (Node.absname name) ir_tag Omake_magic.ir_magic digest ir
        | { db_file = None } ->
             ()
 
@@ -1094,8 +1023,7 @@ struct
          { db_file = Some fd; db_name = name; db_digest = digest; db_env = venv } ->
             if !debug_db then
                eprintf "Omake_db.add_object: %a@." pp_print_node name;
-            venv_marshal venv (fun () ->
-                  Lm_db.add fd (Node.absname name) object_tag Omake_magic.obj_magic digest obj) ()
+            Lm_db.add fd (Node.absname name) object_tag Omake_magic.obj_magic digest obj
        | { db_file = None } ->
             ()
 
@@ -1104,8 +1032,7 @@ struct
          { db_file = Some fd; db_name = name; db_digest = digest; db_env = venv } ->
             if !debug_db then
                eprintf "Omake_db.add_values: %a@." pp_print_node name;
-            venv_marshal venv (fun () ->
-                  Lm_db.add fd (Node.absname name) values_tag Omake_magic.obj_magic digest obj) ()
+            Lm_db.add fd (Node.absname name) values_tag Omake_magic.obj_magic digest obj
        | { db_file = None } ->
             ()
 

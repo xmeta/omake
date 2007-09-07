@@ -319,11 +319,6 @@ val venv_get_env         : venv -> env
 val venv_with_env        : venv -> env -> venv
 
 (*
- * During marshaling, all primitive functions are reset.
- *)
-val venv_marshal            : venv -> ('a -> 'b) -> 'a -> 'b
-
-(*
  * Static values.
  *)
 val venv_find_static_object    : venv -> Node.t -> symbol -> obj
