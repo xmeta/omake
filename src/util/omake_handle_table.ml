@@ -89,7 +89,9 @@ sig
    val remove : 'a t -> handle -> unit
    val find   : 'a t -> handle -> 'a
    val find_any : 'a t -> handle -> 'a
-end
+   val find_any_handle : 'a t -> int -> handle
+   val find_value : 'a t -> int -> 'a -> handle
+end;;
 
 module IntHandleTable : IntHandleTableSig =
 struct
@@ -116,6 +118,12 @@ struct
                (key, x) :: entries
       in
          loop [] entries
+
+   let rec assq_value entries x =
+      match entries with
+         (key, x') :: _ when x' == x -> key
+       | _ :: t -> assq_value entries x
+       | [] -> raise Not_found
 
    (************************************************
     * Handle operations.
@@ -169,6 +177,14 @@ struct
       match Table.find table.table_entries !hand with
          (_, x) :: _ -> x
        | [] -> raise Not_found
+
+   let find_any_handle table index =
+      match Table.find table.table_entries index with
+         (hand, _) :: _ -> hand
+       | [] -> raise Not_found
+
+   let find_value table index x =
+      assq_value (Table.find table.table_entries index) x
 end
 
 (*

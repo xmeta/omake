@@ -849,8 +849,7 @@ let select venv pos loc args =
             in
             let reintern_channel fdl =
                List.map (fun fd ->
-                     let id, _, _, _ = Lm_channel.info fd in
-                     let fd = venv_find_channel_id venv pos id in
+                     let fd = venv_find_channel_by_channel venv pos fd in
                      let channel = venv_find_channel venv pos fd in
                      let _, _, mode, _ = Lm_channel.info channel in
                         ValChannel (mode, fd)) fdl

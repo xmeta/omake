@@ -692,8 +692,16 @@ let venv_find_channel venv pos channel =
 (*
  * Finding by identifiers.
  *)
-let venv_find_channel_id venv pos id =
-   IntHandleTable.create_handle venv_runtime.venv_channels id
+let venv_find_channel_by_channel venv pos fd =
+   let index, _, _, _ = Lm_channel.info fd in
+      try IntHandleTable.find_value venv_runtime.venv_channels index fd with
+         Not_found ->
+            raise (OmakeException (pos, StringError "channel is closed"))
+
+let venv_find_channel_by_id venv pos index =
+   try IntHandleTable.find_any_handle venv_runtime.venv_channels index with
+      Not_found ->
+         raise (OmakeException (pos, StringError "channel is closed"))
 
 (************************************************************************
  * Primitive values.

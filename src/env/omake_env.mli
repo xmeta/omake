@@ -344,8 +344,9 @@ val venv_stderr           : prim_channel
 val venv_add_channel      : venv -> Lm_channel.t -> prim_channel
 val venv_close_channel    : venv -> pos -> prim_channel -> unit
 val venv_find_channel     : venv -> pos -> prim_channel -> Lm_channel.t
-val venv_find_channel_id  : venv -> pos -> int -> prim_channel
-val venv_add_formatter_channel : venv -> Format.formatter -> prim_channel
+val venv_find_channel_by_channel  : venv -> pos -> Lm_channel.t -> prim_channel
+val venv_find_channel_by_id       : venv -> pos -> int -> prim_channel
+val venv_add_formatter_channel    : venv -> Format.formatter -> prim_channel
 
 (*
  * Objects.

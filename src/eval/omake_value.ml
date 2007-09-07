@@ -358,7 +358,7 @@ let prim_channel_of_string venv pos s =
                Failure _ ->
                   raise (OmakeException (pos, StringStringError ("not a channel string", s)))
          in
-            venv_find_channel_id venv pos id
+            venv_find_channel_by_id venv pos id
       else
          raise (OmakeException (pos, StringStringError ("not a channel string", s)))
 
