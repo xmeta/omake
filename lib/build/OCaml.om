@@ -54,6 +54,8 @@ open configure/Configure
 #    \verb+ocamldep+ that understands the \verb+-modules+ option is available on your machine.
 # \varlabel{MENHIR_AVAILABLE}{MENHIR\_AVAILABLE} True when the Menhir parser-generator is available
 #    on your machine.
+# \var{OCAMLLIB} The location of OCaml library directory (output of \verb+ocamlc -where+). Empty when no
+#    ocamlc is found.
 #
 # \subsection{Configuration variables for OCaml compilation}
 #
@@ -95,7 +97,7 @@ open configure/Configure
 #
 public.USE_OCAMLFIND = false
 
-.STATIC:
+.STATIC: :value: $(PATH)
     OCAMLFIND_EXISTS = $(CheckProg ocamlfind)
     OCAMLC_OPT_EXISTS = $(CheckProg ocamlc.opt)
     OCAMLC_EXISTS = $(or $(OCAMLC_OPT_EXISTS), $(CheckProg ocamlc))
@@ -129,6 +131,14 @@ public.OCAMLYACCFLAGS =
 public.OCAMLMKTOP = ocamlmktop
 public.OCAMLLINK = $`(OCAMLC)
 public.OCAMLOPTLINK = $`(OCAMLOPT)
+
+.STATIC: :value: $(PATH)
+    OCAMLLIB =
+        if $(OCAMLC_EXISTS)
+            ConfMsgChecking(for OCaml library location)
+            value $(ConfMsgResult $(dir $"$(shell ocamlc -where)"))
+        else
+            value $(EMPTY)
 
 #
 # Include path
