@@ -181,6 +181,11 @@ static int string_escape_length(const char *strp)
 {
     int c, escaped, extra;
 
+    /* Empty arguments must be quoted too */
+    if(*strp == 0)
+        return 2;
+
+    /* Check for special characters */
     extra = 0;
     escaped = 0;
     while(c = *strp++) {
