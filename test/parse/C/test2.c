@@ -26,3 +26,9 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+
+int main(int argc, char **argv)
+{
+    fprintf(stderr, "%s: this is a test\n", argv[0]);
+    return 0;
+}

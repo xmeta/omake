@@ -158,15 +158,12 @@ operators = $(operators.add $'|=', eqop13)
 public.c_lexer. =
     extends $(Lexer)
 
-    # XXX: this is bogus, becuase linking is borken
-    rule = $(this.rule)
-
     #
     # If all else fails, its a syntax error
     #
     other: .
         eprintln(Illegal character: $0)
-        lex()
+        this.lex()
 
     #
     # Numbers
@@ -208,11 +205,11 @@ public.c_lexer. =
     # CPP directive
     #
     cpp: $'#[[:space:]]*[[:alpha:]](\\\n|[^\n])*'
-        lex()
+        this.lex()
 
     line: $'#[[:space:]]*\([[:digit:]]+\)[[:space:]]*"\((\\.|[^"\n])*\)"(\\\n|[^\n])*'
         set-line($2, $1)
-        lex()
+        this.lex()
 
     #
     # Ignore comments and whitespace

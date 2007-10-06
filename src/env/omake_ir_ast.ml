@@ -1102,7 +1102,7 @@ let get_memo_target e =
        | ".MEMO" -> Some false
        | _ -> None
    with OmakeException _ ->
-      None 
+      None
 
 (*
  * Conversion.
@@ -1930,7 +1930,7 @@ and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos 
          Some is_static ->
             let is_static = build_bool_exp loc is_static in
                build_memo_rule_exp genv oenv senv cenv multiple is_static pattern sources body pos loc
-       | None -> 
+       | None ->
             build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc
 
 and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
@@ -1954,8 +1954,12 @@ and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources bo
    let genv, oenv, target  = build_string genv oenv senv cenv target pos in
    let genv, oenv, pattern = build_string genv oenv senv cenv pattern pos in
    let args = [multiple; target; pattern; source; options; body] in
+   (*
+    * XXX: until var3, assume that it is written this.rule
    let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc rule_sym in
    let e = ApplyExp (loc, rule_var, args) in
+    *)
+   let e = ApplyExp (loc, VarThis (loc, rule_sym), args) in
       genv, oenv, senv, e, ValValue
 
 and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources body pos loc =

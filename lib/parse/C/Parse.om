@@ -3774,9 +3774,6 @@ public. =
     parser. =
         extends $(Parser)
 
-        # XXX: this is bogus, becuase linking is borken
-	rule = $(this.rule)
-
         #
         # Use the main lexer
         #
@@ -4289,7 +4286,7 @@ public. =
             foreach(def, $3)
                 private.v = $(def.to-id)
                 private.ty = $(def.ty)
-                types = $(types.add $(v), type)
+                add-type-name($v)
 
                 # Add the typedef if it is not internal
                 if $(not $(hidden-flag))
