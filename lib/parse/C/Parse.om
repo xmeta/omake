@@ -281,7 +281,10 @@ public. =
             # Print it out
             #
             to-string() =
-                value $(array-to-string-term $(defs), $(nl))$(typedefs.to-string)$(structs.to-string)$(enums.to-string)
+                value $"""$(array-to-string-term $(defs), $(nl))
+$(typedefs.to-string)"""
+# $(structs.to-string)
+# $(enums.to-string)"""
 
 #
 # This is the actual program
@@ -1436,7 +1439,10 @@ public. =
                return $(this)
 
             to-string() =
-               value $"$(id)($(exp.to-string)$(args.map arg => $(arg.to-string)))"
+	       s =
+	          foreach(arg, $(args))
+		     arg.to-string()
+               value $"$(id)($(exp.to-string)$s)"
 
     ########################################################################
     # Type modifiers
@@ -2609,7 +2615,7 @@ public. =
 
             no-subfields() =
                 if $(not $(equal $(fields), false))
-                    fields = $(fields.map field => $(field.no-fields))
+                    fields = $(fields.map $(fun field, $(field.no-fields)))
                     return $(this)
                 else
                     return $(this)
@@ -2639,7 +2645,7 @@ public. =
 
             resolve() =
                 if $(not $(equal $(fields), false))
-                    this.fields = $(fields.map field => $(field.resolve))
+                    this.fields = $(fields.map $(fun field, $(field.resolve)))
                     value $(this)
                 else
                     value $(this)
@@ -2724,7 +2730,9 @@ public. =
                         elseif $(case.instanceof CaseStmt)
                             tags[] += $(case.exp)
                         else
-                            fields[] += $(tags.map tag => $(TypeTaggedUnionField.make $(tag), $(case)))
+			    foreach(tag, $(tags))
+			        fields[] += $(TypeTaggedUnionField.make $(tag), $(case))
+				export
                             if $(defcase)
                                 tag = $(case)
                             defcase = false
@@ -2740,7 +2748,7 @@ public. =
 
             no-subfields() =
                 if $(not $(equal $(fields), false))
-                    fields = $(fields.map field => $(field.no-fields))
+                    fields = $(fields.map $(fun field, $(field.no-fields)))
                     return $(this)
                 else
                     return $(this)
@@ -2770,7 +2778,7 @@ public. =
 
             resolve() =
                 if $(not $(equal $(fields), false))
-                    fields = $(fields.map field => $(field.resolve))
+                    fields = $(fields.map $(fun field, $(field.resolve)))
                     value $(this)
                 else
                     value $(this)
@@ -2971,6 +2979,8 @@ public. =
         class TypePtr
         extends $(Type1)
 
+	declare ty
+
         this.const. =
             is-scalar() =
                 return true
@@ -3003,6 +3013,7 @@ public. =
         class TypePointer
         extends $(TypePtr)
 
+	declare ty
 	declare loc
 
         this.const. =
@@ -3029,6 +3040,7 @@ public. =
         class TypeRef
         extends $(TypePtr)
 
+	declare ty
 	declare loc
 
         this.const. =
@@ -3067,6 +3079,7 @@ public. =
         extends $(TypePtr)
 
         this. =
+	    declare ty
             declare exp
 	    declare loc
 
@@ -3100,10 +3113,12 @@ public. =
         class TypeAttr
         extends $(Type1)
 
+        declare ty
+
         this.const. =
             to-pointer() =
                 ty = $(ty.to-pointer)
-                return $(this)
+                return $(ty)
 
             is-void() =
                 ty.is-void()
@@ -3144,6 +3159,7 @@ public. =
         extends $(TypeAttr)
 
         this. =
+	    declare ty
             declare var
 	    declare loc
 
@@ -3203,6 +3219,7 @@ public. =
         extends $(TypeAttr)
 
         this. =
+	    declare ty
             declare qualifiers
 	    declare loc
 
@@ -3231,7 +3248,9 @@ public. =
                             export
                         export
                     tyquals = $(set $(tyquals))
-                    tyquals = $(tyquals.map name => $(TypeQual.make $(name)))
+                    tyquals =
+		       foreach(name, $(tyquals))
+		          TypeQual.make($(name))
                     qualifiers[] = $(if $(IS_EXTERN), $(tymods), $(array $(tyquals), $(tymods)))
                     if $(qualifiers)
                         return $(this)
@@ -3289,6 +3308,7 @@ public. =
         class TypeCore
         extends $(TypeQualified)
 
+	declare ty
 	declare loc
 
         this.const. =
@@ -3323,6 +3343,7 @@ public. =
         this. =
             declare attribute
 	    declare loc
+	    declare ty
 
         this.const. =
             make(ty, attribute) =
@@ -3362,6 +3383,7 @@ public. =
         this. =
             declare bits
 	    declare loc
+	    declare ty
 
         this.const. =
             make(ty, bits) =
@@ -3401,6 +3423,7 @@ public. =
         this. =
             declare exp
 	    declare loc
+	    declare ty
 
         this.const. =
             make(ty, exp) =
@@ -3452,17 +3475,23 @@ public. =
             unqualified() =
                 ty = $(ty.unqualified)
                 IS_POINTER = false
-                params = $(params.map param => $(param.unqualified))
+                params =
+		    foreach(param, $(params))
+		        param.unqualified()
                 return $(this)
 
             resolve() =
                 ty = $(ty.resolve)
-                params = $(params.map param => $(param.resolve))
+                params =
+		   foreach(param, $(params))
+		       param.resolve()
                 return $(this)
 
             resolve-and-prune() =
                 ty = $(ty.resolve-and-prune)
-                params = $(params.map param => $(param.resolve-and-prune))
+                params = 
+		    foreach(param, $(params))
+		        param.resolve-and-prune()
                 return $(this)
 
             to-decl(var) =
@@ -3587,6 +3616,9 @@ public. =
         extends $(Definition)
         extends $(TypeVar)
 
+	declare var
+	declare ty
+
         this.const. =
             make(ty, decl) =
                 this = $(make-type)
@@ -3607,6 +3639,9 @@ public. =
         class ParamDef
         extends $(VarDefCore)
 
+	declare var
+	declare ty
+
         this. =
             to-string() =
                 decl = $(ty.to-decl $(var))
@@ -3616,6 +3651,9 @@ public. =
         class VarDef
         extends $(VarDefCore)
 
+	declare var
+	declare ty
+
         this. =
             to-string() =
                 decl = $(ty.to-decl $(var))
@@ -3624,6 +3662,9 @@ public. =
     TypeDef. =
         class TypeDef
         extends $(VarDefCore)
+
+	declare var
+	declare ty
 
         this. =
             to-string() =
@@ -3821,7 +3862,8 @@ public. =
             array($1 $2)
 
         all_def: __extension__ all_def
-            2.map(item => $(Extension.make $(item)))
+	    foreach(item, $2)
+	        Extension.make($(item))
 
         all_def: var_defs
             value $1
@@ -4258,31 +4300,36 @@ public. =
         #
         var_defs: decl_spec_id id_init_decl_list_opt semi
             if $2
-                2.map(name => $(VarDef.make $1, $(name)))
+	        foreach(name, $2)
+		    VarDef.make($1, $(name))
             else
                 array($(VarNoneDef.make $1))
 
         var_defs: decl_spec_any any_init_decl_list_opt semi
             if $2
-                2.map(name => $(VarDef.make $1, $(name)))
+	        foreach(name, $2)
+		    VarDef.make($1, $(name))
             else
                 array($(VarNoneDef.make $1))
 
         callback_defs: callback var_defs
-            2.map(def => $(CallbackDef.make $(def)))
+	    foreach(def, $2)
+                CallbackDef.make($(def))
 
         #
         # Type definitions
         #
         type_var_defs: decl_spec_id id_init_decl_list_opt
-            2.map(name => $(TypeDef.make $1, $(name)))
+	    foreach(name, $2)
+                TypeDef.make($1, $(name))
 
         type_var_defs: decl_spec_any any_init_decl_list_opt
-            2.map(name => $(TypeDef.make $1, $(name)))
+            foreach(name, $2)
+	        TypeDef.make($1, $(name))
 
         type_defs: decl_specifiers_id_opt typedef type_var_defs semi
             private.val = $3
-            private.hidden-flag = $(1.exists spec => $(spec.is-named __dll_hidden))
+            private.hidden-flag = $(1.exists $(fun spec, $(spec.is-named __dll_hidden)))
             foreach(def, $3)
                 private.v = $(def.to-id)
                 private.ty = $(def.ty)
@@ -4615,4 +4662,4 @@ public. =
         #
         # Debug it
         #
-        build(false)
+        this.build(false)
