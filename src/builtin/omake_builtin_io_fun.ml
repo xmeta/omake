@@ -1563,9 +1563,11 @@ let lex_engine venv pos loc args =
             let action, lexeme_loc, lexeme, args =
                try Lexer.lex lexer inx with
                   Failure _ as exn ->
-                     if close_flag then
-                        venv_close_channel venv pos inp;
-                     raise (UncaughtException (pos, exn))
+                     let loc = Lm_channel.loc inx in
+                     let pos = loc_pos loc pos in
+                        if close_flag then
+                           venv_close_channel venv pos inp;
+                        raise (UncaughtException (pos, exn))
             in
             let () =
                if close_flag then
@@ -1920,8 +1922,6 @@ let parse_engine venv pos loc args =
 @ loc: the location of the token\
 @ name: the name of the token\
 @ val: the value of the token@]\
-@ This is probably because you are using 'export' in a lexer action\
-@ and you haven't defined one of these three fields in your lexer object.\
 @ %a@]" pp_print_value (ValObject obj)
                         in
                            raise (OmakeException (pos, LazyError print_error))

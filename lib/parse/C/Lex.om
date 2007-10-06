@@ -20,7 +20,7 @@ public.types. =
     #
     $|__builtin_va_list| = type
 
-public.add-type-name(v) =
+public.const.add-type-name(v) =
     types = $(types.add $(v), type)
     export
 
@@ -58,15 +58,20 @@ public.keywords. =
     $|unsigned| = tyqual
     $|volatile| = tyclass
     $|while|    = while
+    $|asm|      = asm
 
     #
     # GCC extensions
     #
     $|__attribute__| = __attribute__
+    $|__extension__| = __extension__
     $|__const|       = tyqual
-    $|__extension__| = tyclass
+    $|__volatile|    = tyclass
     $|__inline|      = tyclass
+    $|__inline__|    = tyclass
     $|__restrict|    = tyqual
+    $|__signed|      = tyqual
+    $|__asm__|       = asm
 
     #
     # Our extensions
@@ -150,11 +155,14 @@ operators = $(operators.add $'|=', eqop13)
 ########################################################################
 # The lexer
 #
-public.lexer. =
+public.c_lexer. =
     extends $(Lexer)
 
+    # XXX: this is bogus, becuase linking is borken
+    rule = $(this.rule)
+
     #
-    # If all else fails, it is a syntax error
+    # If all else fails, its a syntax error
     #
     other: .
         eprintln(Illegal character: $0)
@@ -164,37 +172,37 @@ public.lexer. =
     # Numbers
     #
     int: $'([[:digit:]]+|0x[[:xdigit:]]*)[UL]?[UL]?'
-        Token.pair($(loc), int, $0)
+        Token.pair(int, $0)
 
     float: $'([[:digit:]]+[.][[:digit:]]*([eE][+-]?[[:digit:]]*)?|[.][[:digit:]]+([eE][+-]?[[:digit:]]*)?)L?'
-        Token.pair($(loc), float, $0)
+        Token.pair(float, $0)
 
     #
     # Strings and chars
     #
     string: $'"(\\.|[^"])*"'
-        Token.pair($(loc), string, $0)
+        Token.pair(string, $0)
 
     char: $''['](\\.|[^'])*[']''
-        Token.pair($(loc), char, $0)
+        Token.pair(char, $0)
 
     #
     # Names
     #
     id: $'[[:alpha:]_][[:alnum:]_]*'
-        id = $0
+        private.id = $0
         if $(keywords.mem $(id))
-            Token.pair($(loc), $(keywords.find $(id)), $(id))
+            Token.pair($(keywords.find $(id)), $(id))
         elseif $(types.mem $(id))
-            Token.pair($(loc), $(types.find $(id)), $(id))
+            Token.pair($(types.find $(id)), $(id))
         else
-            Token.pair($(loc), id, $(id))
+            Token.pair(id, $(id))
 
     #
     # Operators
     #
     op: $'[-+*/%^|&!~)(}{.<>?:=,;]|\[|\]|[|][|]|&&|<<|>>|->|++|--|[-+*/&^%<>=!|]=|<<=|>>=|[.][.][.]'
-        Token.pair($(loc), $(operators.find $0), $0)
+        Token.pair($(operators.find $0), $0)
 
     #
     # CPP directive
@@ -210,16 +218,16 @@ public.lexer. =
     # Ignore comments and whitespace
     #
     white: $'[[:space:]]+'
-        lex()
+        this.lex()
 
     normal-comment: $'/[*]([*][^/]|[^*])*[*]/'
-        lex()
+        this.lex()
 
     line-comment: $'//[^\n]*\n'
-        lex()
+        this.lex()
 
     #
     # End of file
     #
     eof: $"\'"
-        Token.unit($(loc), eof)
+        Token.unit(eof)
