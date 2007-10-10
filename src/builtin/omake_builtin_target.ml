@@ -215,13 +215,12 @@ let split_command venv (values1, lines1) command =
        } = command
    in
    let values = List.rev_append values2 values1 in
-   let env = venv_get_env venv in
    let lines =
       List.fold_left (fun lines line ->
             let v =
                match line with
                   CommandSection (_, _, e) ->
-                     ValBody (env, e, ExportNone)
+                     ValBody (e, ExportNone)
                 | CommandValue (_, v) ->
                      v
             in
@@ -448,10 +447,10 @@ let project_directories venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let rule_fun venv pos loc args =
+let rule_fun venv pos loc args kargs =
    let pos = string_pos "rule_fun" pos in
-      match args with
-         [multiple; target; pattern; source; options; body] ->
+      match args, kargs with
+         [multiple; target; pattern; source; options; body], [] ->
             let multiple = bool_of_value venv pos multiple in
                eval_rule_exp venv pos loc multiple target pattern source options body
        | _ ->
@@ -461,10 +460,10 @@ let rule_fun venv pos loc args =
  * This is called whenever a .STATIC: ... or a .MEMO: ... rule is evaluated.
  * It isn't clear whether we want to document this.
  *)
-let memo_rule_fun venv pos loc args =
+let memo_rule_fun venv pos loc args kargs =
    let pos = string_pos "memo_rule_fun" pos in
-      match args with
-         [multiple; is_static; node; index; key; vars; source; options; body] ->
+      match args, kargs with
+         [multiple; is_static; node; index; key; vars; source; options; body], [] ->
             let multiple = bool_of_value venv pos multiple in
             let is_static = bool_of_value venv pos is_static in
             let key = values_of_value venv pos key in

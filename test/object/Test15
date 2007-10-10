@@ -1,18 +1,16 @@
 A[] = key
 
 Test(M) =
-   A.foreach(key)
+   public.M = $M
+   A.foreach(key) =>
       M = $(M.add $(key), new)
       export M
 
-   printvln($A)
-
    new = $(M.find key)
-   if $(not $(equal $(new), new))
-      println($"Note: A.foreach exports into A")
-      exit 2
+   if $(equal $(new), new)
+      println($"export M worked [SUCCESS]")
    else
-      eprintln($"Error: A.foreach should export into A")
+      eprintln($"export M had no effect [FAILURE]")
       exit 1
 
 X. =

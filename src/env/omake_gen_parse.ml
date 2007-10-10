@@ -37,6 +37,7 @@ let tokens =
    ["TokWhite";
     "TokLeftParen";
     "TokRightParen";
+    "TokArrow";
     "TokComma";
     "TokColon";
     "TokDoubleColon";
@@ -80,7 +81,9 @@ let white =
 let parens =
    ["TokLeftParen";
     "TokRightParen";
-    "TokComma"]
+    "TokComma";
+    "TokArrow";
+    "TokIn"]
 
 (************************************************************************
  * Productions.
@@ -111,14 +114,14 @@ let keyword_target_start =
 let arg_next =
    subtract tokens parens
 
-let arg_start =
+let arg_any_start =
    subtract arg_next white
 
-let neq_arg_next =
-   subtract arg_next ["TokEq"]
+let arg_start =
+   subtract arg_any_start id
 
-let neq_arg_start =
-   subtract arg_start ["TokEq"]
+let arg_next_noneq =
+   subtract arg_any_start ["TokEq"]
 
 let other_start =
    subtract tokens ("TokWhite" :: "quote" :: List.flatten [id; colon])
@@ -130,7 +133,7 @@ let other_method_id =
    subtract other_method_id_white ("TokDot" :: white)
 
 let other_method_id_prefix_white =
-   subtract tokens ("TokId" :: "TokEq" :: colon)
+   subtract tokens ("TokEq" :: List.flatten [id; colon])
 
 let other_method_id_prefix =
    subtract other_method_id_prefix_white white
@@ -151,8 +154,8 @@ let productions =
      "keyword_target_start",            keyword_target_start;
      "arg_next",                        arg_next;
      "arg_start",                       arg_start;
-     "neq_arg_next",                    neq_arg_next;
-     "neq_arg_start",                   neq_arg_start;
+     "arg_any_start",                   arg_any_start;
+     "arg_next_noneq",                  arg_next_noneq;
      "other_start",                     other_start;
      "other_method_id_white",           other_method_id_white;
      "other_method_id",                 other_method_id;

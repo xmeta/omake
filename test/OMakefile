@@ -3,7 +3,7 @@
 #
 TESTS = $(find . -regex $'^Test[0-9]*$')
 TestMap = $(empty-map)
-foreach(tst, $(TESTS))
+foreach(tst => ..., $(TESTS))
     d = $(dir $(dirname $(tst)))
     TestMap =
         if $(TestMap.mem $d)
@@ -60,7 +60,7 @@ Shell. +=
             date > $(resultfile)
         else
             fprint($(resultfile), $"Starting tests in $(in $(ROOT), $(dir .)):")
-        foreach(subtest, $(subtests))
+        foreach(subtest => ..., $(subtests))
             echo >> $(resultfile)
             echo $"==== $(subtest)" >> $(resultfile)
             switch $(runtest $(subtest))

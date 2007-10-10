@@ -520,7 +520,7 @@ let scan_args venv pos loc args =
 (*
  * Awk the value.
  *)
-let scan venv pos loc args =
+let scan venv pos loc args kargs =
    let pos = string_pos "scan" pos in
    let cases, token_mode, rewrite_mode, files = scan_args venv pos loc args in
 
@@ -736,8 +736,8 @@ let rec awk_eval_cases venv pos loc break line cases =
          let venv, stop =
             match Lexer.search lex channel with
                Some (_, _, _, _, args) ->
-                  let venv = venv_add_match_args venv args in
-                  let venv_new, _ = eval_sequence_exp venv pos body in
+                  let venv_new = venv_add_match_args venv args in
+                  let venv_new, _ = eval_sequence_exp venv_new pos body in
                   let venv = add_exports venv venv_new pos export in
                      venv, break
              | None ->
@@ -798,7 +798,7 @@ let awk_flags pos loc s =
 (*
  * Awk the value.
  *)
-let awk venv pos loc args =
+let awk venv pos loc args kargs =
    let pos = string_pos "awk" pos in
    let cases, flags, files = awk_option_args venv pos loc args in
    let flags = awk_flags pos loc flags in
@@ -998,7 +998,7 @@ let subst_eval_line venv pos loc line cases =
                subst_eval_case venv pos loc buffer channel lex options body;
                Buffer.contents buffer) line cases
 
-let fsubst venv pos loc args =
+let fsubst venv pos loc args kargs =
    let pos = string_pos "fsubst" pos in
    let cases, files = awk_args venv pos loc args in
    let outp = prim_channel_of_var venv pos loc stdout_var in
@@ -1139,7 +1139,7 @@ let fsubst venv pos loc args =
  *)
 let eof_sym = Lm_symbol.add "eof"
 
-let lex venv pos loc args =
+let lex venv pos loc args kargs =
    let pos = string_pos "lex" pos in
    let cases, files = awk_args venv pos loc args in
 
@@ -1262,7 +1262,7 @@ let lex venv pos loc args =
  * The \hyperfun{break} can be used to abort the loop.
  * \end{doc}
  *)
-let lex_search venv pos loc args =
+let lex_search venv pos loc args kargs =
    let pos = string_pos "lex-search" pos in
    let cases, files = awk_args venv pos loc args in
 
@@ -1526,10 +1526,10 @@ let lex_search venv pos loc args =
 (*
  * Add a lexer clause.
  *)
-let lex_rule venv pos loc args =
+let lex_rule venv pos loc args kargs =
    let pos = string_pos "lex-rule" pos in
-      match args with
-         [_; action; _; pattern; _; ValBody (_, body, export)] ->
+      match args, kargs with
+         [_; action; _; pattern; _; ValBody (body, export)], [] ->
             let lexer = current_lexer venv pos in
             let action_name = string_of_value venv pos action in
             let action_sym = Lm_symbol.add action_name in
@@ -1543,7 +1543,7 @@ let lex_rule venv pos loc args =
 
             (* Add the method *)
             let action_var = VarThis (loc, action_sym) in
-            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, [], body, export)) in
+            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, SymbolSet.empty, [], body, export)) in
             let venv = venv_add_var venv builtin_field_var (ValOther (ValLexer lexer)) in
                venv, ValNone
 
@@ -1553,10 +1553,10 @@ let lex_rule venv pos loc args =
 (*
  * Perform the lexing.
  *)
-let lex_engine venv pos loc args =
+let lex_engine venv pos loc args kargs =
    let pos = string_pos "lex" pos in
-      match args with
-         [arg] ->
+      match args, kargs with
+         [arg], [] ->
             let lexer = current_lexer venv pos in
             let inp, close_flag = in_channel_of_any_value venv pos arg in
             let inx = venv_find_channel venv pos inp in
@@ -1576,7 +1576,7 @@ let lex_engine venv pos loc args =
             let venv = venv_add_match venv lexeme args in
             let venv = venv_add_var venv parse_loc_var (ValOther (ValLocation lexeme_loc)) in
             let action = venv_find_var venv pos loc (VarThis (loc, action)) in
-               eval_apply venv pos loc action []
+               eval_apply venv pos loc action [] []
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
@@ -1739,12 +1739,12 @@ let lex_engine venv pos loc args =
 (*
  * Add start symbols.
  *)
-let parse_start venv pos loc args =
+let parse_start venv pos loc args kargs =
    let pos = string_pos "parse-start" pos in
    let parse = current_parser venv pos in
    let args =
-      match args with
-         [arg] ->
+      match args, kargs with
+         [arg], [] ->
             strings_of_value venv pos arg
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -1761,13 +1761,13 @@ let parse_start venv pos loc args =
 (*
  * Precedence operations.
  *)
-let parse_prec venv pos loc args assoc =
+let parse_prec venv pos loc args kargs assoc =
    let pos = string_pos "parse-prec" pos in
    let this = venv_this venv in
    let parse = current_parser venv pos in
    let parse, level, args =
-      match args with
-         [before; args] ->
+      match args, kargs with
+         [before; args], [] ->
             let current_prec = Lm_symbol.add (string_of_value venv pos before) in
             let level =
                try Parser.find_prec parse current_prec with
@@ -1776,7 +1776,7 @@ let parse_prec venv pos loc args assoc =
             in
             let parse, level = Parser.create_prec_lt parse level assoc in
                parse, level, args
-       | [args] ->
+       | [args], [] ->
             let current_prec = Lm_symbol.add (string_of_value venv pos (venv_find_field_internal this pos current_prec_sym)) in
             let level =
                try Parser.find_prec parse current_prec with
@@ -1807,17 +1807,17 @@ let parse_prec venv pos loc args assoc =
    let venv = venv_add_var venv builtin_field_var (ValOther (ValParser parse)) in
       venv, ValNone
 
-let parse_left venv pos loc args =
+let parse_left venv pos loc args kargs =
    let pos = string_pos "parse-left" pos in
-      parse_prec venv pos loc args LeftAssoc
+      parse_prec venv pos loc args kargs LeftAssoc
 
-let parse_right venv pos loc args =
+let parse_right venv pos loc args kargs =
    let pos = string_pos "parse-right" pos in
-      parse_prec venv pos loc args RightAssoc
+      parse_prec venv pos loc args kargs RightAssoc
 
-let parse_nonassoc venv pos loc args =
+let parse_nonassoc venv pos loc args kargs =
    let pos = string_pos "parse-nonassoc" pos in
-      parse_prec venv pos loc args NonAssoc
+      parse_prec venv pos loc args kargs NonAssoc
 
 (*
  * Build the parser.
@@ -1855,11 +1855,11 @@ let find_action_name venv loc =
 (*
  * Add a parser clause.
  *)
-let parse_rule venv pos loc args =
+let parse_rule venv pos loc args kargs =
    let pos = string_pos "parse-rule" pos in
    let action, head, rhs, options, body, export =
-      match args with
-         [_; action; head; rhs; ValMap options; ValBody (_, body, export)] ->
+      match args, kargs with
+         [_; action; head; rhs; ValMap options; ValBody (body, export)], [] ->
             let action = string_of_value venv pos action in
             let head = string_of_value venv pos head in
                if head = "" then   (* Action name was omitted *)
@@ -1881,7 +1881,7 @@ let parse_rule venv pos loc args =
             let body =
                LetVarExp (loc, VarThis (loc, val_sym), [], VarDefNormal, ConstString (loc, "")) :: body
             in
-               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, [], body, export))
+               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, SymbolSet.empty, [], body, export))
        | [] ->
             venv
    in
@@ -1905,7 +1905,7 @@ let parse_engine venv pos loc args =
             let lex (venv, parser_obj, lexer) =
                let lex = venv_find_field_internal lexer pos lex_sym in
                let venv = venv_with_object venv lexer in
-               let venv, result = eval_apply venv pos loc lex [] in
+               let venv, result = eval_apply venv pos loc lex [] [] in
                let obj = eval_object venv pos result in
                   try
                      let lex_loc = venv_find_field_internal_exn obj loc_sym in
@@ -1932,7 +1932,7 @@ let parse_engine venv pos loc args =
                let action = venv_find_field_internal parser_obj pos action in
                let venv = venv_with_object venv parser_obj in
                let venv = venv_add_var venv parse_loc_var (ValOther (ValLocation loc)) in
-               let venv, result = eval_apply venv pos loc action [] in
+               let venv, result = eval_apply venv pos loc action [] [] in
                   (venv, parser_obj, lexer), result
             in
             let _, value =

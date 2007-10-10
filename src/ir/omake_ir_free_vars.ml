@@ -50,8 +50,11 @@ let free_vars_empty = VarInfoSet.empty
 let free_vars_add = VarInfoSet.add
 let free_vars_remove = VarInfoSet.remove
 
-let free_vars_remove_params fv params =
-   List.fold_left VarInfoSet.remove_param fv params
+let free_vars_remove_param_set fv params =
+   SymbolSet.fold VarInfoSet.remove_private fv params
+
+let free_vars_remove_param_list fv params =
+   List.fold_left VarInfoSet.remove_private fv params
 
 (*
  * Union of two free variable sets.
@@ -100,12 +103,21 @@ and free_vars_string_exp fv s =
     | KeyApplyString _
     | VarString _ ->
          fv
-    | ApplyString (_, _, v, args)
-    | MethodApplyString (_, _, v, _, args) ->
+    | FunString (_, opt_params, param_set, vars, s, export) ->
+         let fv_body = free_vars_export_info free_vars_empty export in
+         let fv_body = free_vars_exp_list fv_body s in
+         let fv_body = free_vars_remove_param_list fv_body vars in
+         let fv_body = free_vars_remove_param_set fv_body param_set in
+         let fv = free_vars_union fv fv_body in
+            free_vars_opt_params fv opt_params
+    | ApplyString (_, _, v, args, kargs)
+    | MethodApplyString (_, _, v, _, args, kargs) ->
          let fv = free_vars_string_exp_list fv args in
+         let fv = free_vars_keyword_exp_list fv kargs in
             free_vars_add fv v
-    | SuperApplyString (_, _, _, _, args) ->
+    | SuperApplyString (_, _, _, _, args, kargs) ->
          let fv = free_vars_string_exp_list fv args in
+         let fv = free_vars_keyword_exp_list fv kargs in
             fv
     | SequenceString (_, sl)
     | ArrayString (_, sl)
@@ -154,13 +166,14 @@ and free_vars_exp fv e =
       LetVarExp (_, v, _, _, s) ->
          let fv = free_vars_remove fv v in
             free_vars_string_exp fv s
-    | LetFunExp (_, v, _, vars, el, export) ->
+    | LetFunExp (_, v, _, _, opt_params, param_set, vars, el, export) ->
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body el in
-         let fv_body = free_vars_remove_params fv_body vars in
+         let fv_body = free_vars_remove_param_list fv_body vars in
+         let fv_body = free_vars_remove_param_set fv_body param_set in
          let fv = free_vars_union fv fv_body in
          let fv = free_vars_remove fv v in
-            fv
+            free_vars_opt_params fv opt_params
     | LetObjectExp (_, v, _, s, el, export) ->
          let fv = free_vars_export_info fv export in
          let fv = free_vars_exp_list fv el in
@@ -177,18 +190,18 @@ and free_vars_exp fv e =
          free_vars_exp_list fv el
     | IncludeExp (_, s, sl) ->
          free_vars_string_exp (free_vars_string_exp_list fv sl) s
-    | ApplyExp (_, v, args)
-    | MethodApplyExp (_, v, _, args) ->
-         free_vars_string_exp_list (free_vars_add fv v) args
-    | SuperApplyExp (_, _, _, args) ->
-         free_vars_string_exp_list fv args
-    | ReturnBodyExp (_, el) ->
+    | ApplyExp (_, v, args, kargs)
+    | MethodApplyExp (_, v, _, args, kargs) ->
+         free_vars_keyword_exp_list (free_vars_string_exp_list (free_vars_add fv v) args) kargs
+    | SuperApplyExp (_, _, _, args, kargs) ->
+         free_vars_keyword_exp_list (free_vars_string_exp_list fv args) kargs
+    | ReturnBodyExp (_, el, _) ->
          free_vars_exp_list fv el
     | LetKeyExp (_, _, _, s)
     | LetThisExp (_, s)
     | ShellExp (_, s)
     | StringExp (_, s)
-    | ReturnExp (_, s) ->
+    | ReturnExp (_, s, _) ->
          free_vars_string_exp fv s
     | OpenExp _
     | KeyExp _

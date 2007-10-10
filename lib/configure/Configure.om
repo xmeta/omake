@@ -136,15 +136,15 @@ ConfCleanCFLAGS(cflags) =
 
 TryCompilingC(command, command_suffix, ext, prog, extra) =
     # The command line
-    tmp_c = $(file $(tmpfile omake, .c))
-    tmp = $(file $(replacesuffixes .c, $"$(EMPTY)", $(tmp_c)))
+    private.tmp_c = $(file $(tmpfile omake, .c))
+    private.tmp = $(file $(replacesuffixes .c, $"$(EMPTY)", $(tmp_c)))
 
     if $(and $(not $(equal $(CCOUT), $(LDOUT))), $(equal $(ext), $(EXE)))
         command[] += $(CCOUT)$(file $(tmp)$(EXT_OBJ)) $(LDOUT)$(file $(tmp)$(ext))
-        export
+        export command
     else
         command[] += $(CCOUT)$(file $(tmp)$(ext))
-        export
+        export command
 
     command[] += $(file $(tmp_c)) $(command_suffix)
 

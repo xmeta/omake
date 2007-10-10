@@ -68,7 +68,7 @@ Private variables have two additional properties.
 \begin{enumerate}
 \item Private variables are local to the file in which they are defined.
 \item Private variables are not exported by the \verb+export+ directive, unless they are
-  mentioned explicitly.
+  mentioned explicitly in the \verb+export+ directive.
 
   \begin{verbatim}
        private. =
@@ -144,7 +144,7 @@ scoped.  Global variables \emph{are not} defined as fields of an object.
        f()
 
     Obj. =
-       protected.X = 3
+       this.X = 3
 
        print() =
           println(The protected value of X is: $(X))
@@ -200,7 +200,7 @@ For example, the following program defines two private variables \verb+X+ and \v
 \end{verbatim}
 %
 The qualifier specifies a default namespace for new definitions in the block.  The contents of the
-block is otherwise completely general.
+block is otherwise general.
 
 \begin{verbatim}
     private. =
@@ -210,6 +210,22 @@ block is otherwise completely general.
         # Prints "The value of Z is 3"
         echo The value of Z is $Z
 \end{verbatim}
+%
+Stylistically, it is usually better to avoid large qualified blocks because the qualifier status can
+be easy to forget.  For example, consider the following fragment.
+
+\begin{verbatim}
+    private. =
+        # Large code sequence
+        ...
+        # build foo.o with -g option (ERROR)
+        CFLAGS = -g
+        foo.o:
+\end{verbatim}
+%
+In this case, the programmer probably forgot that the definition of the variable \verb+CFLAGS+ is in
+the \verb+private+ block, so a fresh variable \verb+private.CFLAGS+ is being defined, not the global
+one.  The target \verb+foo.o+ does \emph{not} use this definition of \verb+CFLAGS+.
 
 \section{declare}
 \label{section:declare}\index{declare}
@@ -219,12 +235,12 @@ declaration that is in scope for that variable.  We have already seen this in th
 variable definition is qualified, but the subsequent uses are not qualified explicitly.  In the
 following example, the first occurrence of \verb+$X+ refers to the \emph{private} definition,
 because that is the most recent.  The public definition of \verb+X+ is still \verb+0+, but the
-variable must be qualified explicitly.
+variable must be qualified explicitly in order to access the public value.
 
 \begin{verbatim}
     public.X = 0
     private.X = 1
-    
+
     public.print() =
         println(The value of private.X is: $X)
         println(The value of public.X is: $(public.X))

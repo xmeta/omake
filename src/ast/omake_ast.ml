@@ -72,14 +72,14 @@ type exp =
  | QuoteStringExp  of char * exp list * loc
  | SequenceExp     of exp list * loc
  | ArrayExp        of exp list * loc
- | ApplyExp        of apply_strategy * var * exp list * loc
- | SuperApplyExp   of apply_strategy * var * var * exp list * loc
- | MethodApplyExp  of apply_strategy * var list * exp list * loc
+ | ApplyExp        of apply_strategy * var * arg list * loc
+ | SuperApplyExp   of apply_strategy * var * var * arg list * loc
+ | MethodApplyExp  of apply_strategy * var list * arg list * loc
  | CommandExp      of var * exp * exp list * loc
  | VarDefExp       of var list * define_kind * define_flag * exp * loc
  | VarDefBodyExp   of var list * define_kind * define_flag * exp list * loc
  | ObjectDefExp    of var list * define_flag * exp list * loc
- | FunDefExp       of var list * var list * exp list * loc
+ | FunDefExp       of var list * params * exp list * loc
  | RuleExp         of bool * exp * exp * exp SymbolTable.t * exp list * loc
  | BodyExp         of exp list * loc
  | ShellExp        of exp * loc
@@ -88,6 +88,14 @@ type exp =
  | KeyExp          of apply_strategy * string * loc
  | KeyDefExp       of string * define_kind * define_flag * exp * loc
  | KeyDefBodyExp   of string * define_kind * define_flag * exp list * loc
+
+and param  = var * exp option * loc
+and params = param list
+
+and arg      =
+   NormalArg of var option * exp
+ | ArrowArg  of param list * exp
+and args     = arg list
 
 type prog = exp list
 

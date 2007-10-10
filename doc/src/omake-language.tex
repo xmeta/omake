@@ -184,6 +184,38 @@ prints the string ``She says: Hello world''.
     Printer(She)
 \end{verbatim}
 
+\subsection{Keyword arguments}
+\label{section:keyword-arguments}
+\index{keyword arguments}
+
+\newinkeyword
+
+Functions can also have keyword parameters and arguments.  The syntax of a keyword
+parameter/argument is \verb+<id> = <expression>+.  Keyword arguments and normal anonymous arguments
+are completely separate.  Keyword arguments are always optional, and if they occur, they must always
+be named, and they can occur in any order.  It is an error to pass a keyword argument to a function
+that does not define it as a keyword parameter.
+
+\begin{verbatim}
+    osh>f(x, y = 1, z) =
+           add($(mul $x, 100), $(mul $y, 10), $z)
+    - : <fun 0>
+    osh>f(1, y = 2, 3)
+    - : 123 : Int
+    osh>f(1, 3, y = 2)
+    - : 123 : Int
+    osh>f(1, 3)
+    - : 113 : Int
+    osh>f(1, 2, 3)
+    *** omake error:
+       File -: line 11, characters 0-10
+       arity mismatch: expected 2 args, got 3
+    osh>f(z = 7)
+    *** omake error:
+       File -: line 12, characters 0-8
+       no such keyword: z
+\end{verbatim}   
+
 \section{Comments}
 
 Comments begin with the \verb+#+ character and continue to the end of the line.

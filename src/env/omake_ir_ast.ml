@@ -193,7 +193,8 @@ type senv_open_file  = string -> pos -> loc -> Node.t * senv
  *)
 type context =
    ContextTop
- | ContextFunction
+ | ContextFunction of return_id
+ | ContextRule
  | ContextObject
 
 (*
@@ -288,7 +289,8 @@ type value =
  *)
 let empty_name_info =
    { name_static     = false;
-     name_scope      = None
+     name_scope      = None;
+     name_curry      = false
    }
 
 let is_nonempty_name_info info =
@@ -406,7 +408,8 @@ let cenv_var_scope cenv info =
    let scope =
       match cenv.cenv_context, info.name_scope with
          ContextTop, None
-       | ContextFunction, None
+       | ContextFunction _, None
+       | ContextRule, None
        | _, Some VarScopeVirtual ->
             VarScopeVirtual
        | ContextObject, None
@@ -436,6 +439,7 @@ let cenv_scope cenv =
        } = cenv
    in
       { name_scope  = scope;
+        name_curry  = false;
         name_static = false
       }
 
@@ -443,15 +447,31 @@ let cenv_force_scope cenv info =
    let info = cenv_update_scope cenv info in
       { cenv with cenv_scope = info.name_scope }
 
-let cenv_fun_scope cenv =
+let cenv_fun_scope cenv id =
    { (* cenv with *) cenv_scope        = None;
-                     cenv_context      = ContextFunction
+                     cenv_context      = ContextFunction id
    }
 
-let cenv_rule_scope = cenv_fun_scope
+let cenv_rule_scope cenv =
+   { (* cenv with *) cenv_scope        = None;
+                     cenv_context      = ContextRule
+   }
 
 let cenv_sequence_scope cenv el =
    cenv
+
+let cenv_return_id cenv pos loc =
+   match cenv.cenv_context with
+      ContextFunction id ->
+         id
+    | ContextTop
+    | ContextRule
+    | ContextObject ->
+         raise (OmakeException (loc_pos loc pos, StringError "misplaced return statement"))
+
+let new_return_id loc v =
+   let v = Lm_list_util.last v in
+      loc, Lm_symbol.to_string v
 
 (*
  * Get a new static symbol.
@@ -798,6 +818,8 @@ let parse_declaration senv pos loc vl =
                parse (make_forced_scope info VarScopeVirtual) vl
             else if Lm_symbol.eq scope_var static_sym then
                parse { info with name_static = true } vl
+            else if Lm_symbol.eq scope_var curry_sym then
+               parse { info with name_curry = true } vl
             (* ZZZ: Ignore the const modifier in 0.9.8 *)
             else if Lm_symbol.eq scope_var const_sym then
                parse info vl
@@ -832,7 +854,8 @@ let senv_find_var genv oenv senv cenv pos loc v =
             let info =
                match cenv.cenv_context with
                   ContextTop
-                | ContextFunction ->
+                | ContextRule
+                | ContextFunction _ ->
                      VarGlobal (loc, v)
                 | ContextObject ->
                      VarThis (loc, v)
@@ -855,8 +878,15 @@ let senv_find_method_var genv oenv senv cenv pos loc vl =
       NameEmpty _ ->
          raise (OmakeException (pos, StringError "empty method name"))
     | NameMethod (info, v, vl) ->
+         let curry = info.name_curry in
          let oenv, info = senv_find_scoped_var genv oenv senv cenv pos loc info v in
-            oenv, info, vl
+            oenv, curry, info, vl
+
+let senv_find_method_nocurry_var genv oenv senv cenv pos loc vl =
+   let oenv, curry, info, vl = senv_find_method_var genv oenv senv cenv pos loc vl in
+      if curry then
+         raise (OmakeException (pos, StringError "curry qualifier not allowed"));
+      oenv, info, vl
 
 (************************************************************************
  * Variable definitions.
@@ -938,11 +968,22 @@ let senv_define_var scope genv oenv senv cenv pos loc v =
       senv, info
 (*/XXX*)
 
-(* ZZZ: 0.9.8.x parameters are this; in 0.9.9 this should be changed to private *)
-let senv_add_params genv oenv senv cenv pos loc vl =
-   List.fold_left (fun senv v ->
-         let senv, _ = senv_define_var VarScopeThis genv oenv senv cenv pos loc v in
-            senv) senv vl
+(*
+ * Parameter sorting.
+ *)
+let senv_add_params genv oenv senv cenv pos params =
+   let senv, opt_params, keywords, params =
+      List.fold_left (fun (senv, opt_params, keywords, params) (v, s_opt, loc) ->
+            let senv, _ = senv_define_var VarScopePrivate genv oenv senv cenv pos loc v in
+               match s_opt with
+                  Some s ->
+                     senv, (v, s) :: opt_params, SymbolSet.add keywords v, params
+                | None ->
+                     senv, opt_params, keywords, v :: params) (senv, [], SymbolSet.empty, []) params
+   in
+   let opt_params = List.rev opt_params in
+   let params = List.rev params in
+      senv, opt_params, keywords, params
 
 (*XXX*)
 let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
@@ -991,8 +1032,9 @@ let senv_add_method_def_var genv oenv senv cenv pos loc vl =
          raise (OmakeException (pos, StringError "empty method name"))
 
     | NameMethod (info, v, vl) ->
+         let curry = info.name_curry in
          let genv, oenv, senv, info = senv_add_scoped_var genv oenv senv cenv pos loc info v in
-            genv, oenv, senv, info, vl
+            genv, oenv, senv, curry, info, vl
 
 let senv_add_method_var genv oenv senv cenv pos loc kind vl =
    match kind with
@@ -1002,8 +1044,14 @@ let senv_add_method_var genv oenv senv cenv pos loc kind vl =
          (* ZZZ: we _should_ preserve the scope of the variable.
           * However, 0.9.8 chooses the forced mode over the
           * previous mode. *)
-         let oenv, info, vl = senv_find_method_var genv oenv senv cenv pos loc vl in
-            genv, oenv, senv, info, vl
+         let oenv, curry, info, vl = senv_find_method_var genv oenv senv cenv pos loc vl in
+            genv, oenv, senv, curry, info, vl
+
+let senv_add_method_nocurry_var genv oenv senv cenv pos loc kind vl =
+   let genv, oenv, senv, curry, info, vl = senv_add_method_var genv oenv senv cenv pos loc kind vl in
+      if curry then
+         raise (OmakeException (pos, StringError "curry qualifier not allowed"));
+      genv, oenv, senv, info, vl
 
 (************************************************************************
  * Declarations.
@@ -1086,6 +1134,16 @@ let build_literal_argv e pos =
        | Invalid_argument _ ->
             raise (OmakeException (pos, StringStringError ("syntax error", s)))
 
+let build_literal_string_opt e =
+   try Some (build_literal_string e) with
+      OmakeException _ ->
+         None
+
+let literal_string_equal e s =
+   try build_literal_string e = s with
+      OmakeException _ ->
+         false
+
 let build_literal_argv_list el =
    List.map build_literal_string el
 
@@ -1165,6 +1223,27 @@ and build_string_opt genv oenv senv cenv sl pos =
             None
 
 (*
+ * Parameter lists.
+ *)
+and build_params genv oenv senv cenv params pos loc =
+   let pos = string_pos "build_params" pos in
+   let genv, oenv, params =
+      List.fold_left (fun (genv, oenv, params) (v, e_opt, loc) ->
+            let genv, oenv, s_opt =
+               match e_opt with
+                  Some e ->
+                     let genv, oenv, s = build_string genv oenv senv cenv e (loc_pos loc pos) in
+                        genv, oenv, Some s
+                | None ->
+                     genv, oenv, None
+            in
+               genv, oenv, (v, s_opt, loc) :: params) (genv, oenv, []) params
+   in
+   let params = List.rev params in
+   let senv, opt_params, keywords, params = senv_add_params genv oenv senv cenv pos params in
+      genv, oenv, senv, opt_params, keywords, params
+
+(*
  * When building a sequence, try to collapse adjacent constant strings.
  *)
 and build_sequence_string genv oenv senv cenv el pos loc =
@@ -1222,6 +1301,7 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
                 | ConstString (loc, s) ->
                      let buf_opt = add_string buf_opt s loc in
                         collect genv oenv buf_opt args el
+                | FunString _
                 | KeyApplyString _
                 | ApplyString _
                 | SuperApplyString _
@@ -1244,6 +1324,121 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
       collect genv oenv None [] el
 
 (*
+ * Compatibility with old binding forms.
+ *)
+and foreach_warning loc =
+   eprintf "@[<v 3>%a:@ Warning: old-style foreach expression.@ \
+This expression should use a => binding.@]@." (**)
+      pp_print_location loc
+
+and fun_warning loc =
+   eprintf "@[<v 3>%a:@ Warning: old-style fun expression.@ \
+This expression should use a => binding.@]@." (**)
+      pp_print_location loc
+
+and build_compat_args genv oenv senv cenv v args pos loc =
+   match args with
+      [Omake_ast.NormalArg (None, body);
+       Omake_ast.NormalArg (None, x);
+       Omake_ast.NormalArg (None, e)]
+      when Lm_symbol.eq v foreach_sym ->
+         (match build_literal_string_opt x with
+             Some x ->
+                foreach_warning loc;
+                [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc], body); Omake_ast.NormalArg (None, e)]
+           | None ->
+                args)
+    | [Omake_ast.NormalArg (None, body);
+       Omake_ast.NormalArg (None, x)]
+      when Lm_symbol.eq v fun_sym ->
+         (match build_literal_string_opt x with
+             Some x ->
+                fun_warning loc;
+                [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc], body)]
+           | None ->
+                args)
+    | _ ->
+         args
+
+(*
+ * New-style foreach methods have a single argument: the function.
+ * Multi-argument foreach should be converted.
+ *)
+and build_method_compat_args genv oenv senv cenv vl args pos loc =
+   if Lm_symbol.eq (Lm_list_util.last vl) foreach_sym then
+      (* New-style foreach methods have a single argument, the function *)
+      match args with
+         [Omake_ast.NormalArg (None, body);
+          Omake_ast.NormalArg (None, x)] ->
+            (match build_literal_string_opt x with
+                Some x ->
+                   foreach_warning loc;
+                   [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc], body)]
+           | None ->
+                args)
+       | [Omake_ast.NormalArg (None, body);
+          Omake_ast.NormalArg (None, x);
+          Omake_ast.NormalArg (None, y)] ->
+            (match build_literal_string_opt x, build_literal_string_opt y with
+                Some x, Some y ->
+                   foreach_warning loc;
+                   [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc; Lm_symbol.add y, None, loc], body)]
+              | _ ->
+                   args)
+       | _ ->
+            args
+   else
+      args
+
+(*
+ * Applications might have parameters.
+ * If they do, then add a function value to the arguments.
+ *)
+and build_arg senv cenv pos loc (genv, oenv, args, kargs) arg =
+   match arg with
+      Omake_ast.NormalArg (v_opt, e) ->
+         let genv, oenv, s = build_string genv oenv senv cenv e pos in
+            (match v_opt with
+                Some v ->
+                   genv, oenv, args, (v, s) :: kargs
+              | None ->
+                   genv, oenv, s :: args, kargs)
+    | Omake_ast.ArrowArg (params, e) ->
+         let genv, oenv, senv, opt_params, keywords, params =
+            build_params genv oenv senv cenv params pos loc
+         in
+         let genv, oenv, e, export =
+            match e with
+               Omake_ast.BodyExp (el, _) ->
+                  let genv, oenv, e, export, _ = build_body genv oenv senv cenv el pos loc in
+                     genv, oenv, e, export
+             | e ->
+                  let genv, oenv, s = build_string genv oenv senv cenv e pos in
+                     genv, oenv, [StringExp (loc, s)], ExportNone
+         in
+         let e = FunString (loc, opt_params, keywords, params, e, export) in
+            genv, oenv, e :: args, kargs
+
+and build_arg_list genv oenv senv cenv args pos loc =
+   let pos = string_pos "build_arg_list" pos in
+   let genv, oenv, args, kargs =
+      List.fold_left (build_arg senv cenv pos loc) (genv, oenv, [], []) args
+   in
+   let args = List.rev args in
+   let kargs = List.sort (fun (v1, _) (v2, _) -> Lm_symbol.compare v1 v2) kargs in
+      genv, oenv, args, kargs
+
+and build_apply_args genv oenv senv cenv v args pos loc =
+   let pos = string_pos "build_apply_body" pos in
+   let args = build_compat_args genv oenv senv cenv v args pos loc in
+      build_arg_list genv oenv senv cenv args pos loc
+
+and build_method_apply_args genv oenv senv cenv vl args pos loc =
+   let pos = string_pos "build_apply_body" pos in
+   let args = build_method_compat_args genv oenv senv cenv vl args pos loc in
+      build_arg_list genv oenv senv cenv args pos loc
+
+(*
  * Build an array of strings.
  *)
 and build_array_string genv oenv senv cenv args pos loc =
@@ -1258,43 +1453,39 @@ and build_apply_string genv oenv senv cenv strategy v args pos loc =
    let pos = string_pos "build_apply_string" pos in
    let strategy = ir_strategy_of_ast_strategy strategy in
       if Lm_symbol.eq v this_sym then
-         genv, oenv, ThisString loc
+         let () =
+            if args <> [] then
+               raise (OmakeException (loc_pos loc pos, StringError "illegal arguments"))
+         in
+            genv, oenv, ThisString loc
       else
-         let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
-         let oenv, info = senv_find_var genv oenv senv cenv pos loc v in
-            genv, oenv, ApplyString (loc, strategy, info, args)
+         let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
+         let oenv, v = senv_find_var genv oenv senv cenv pos loc v in
+            genv, oenv, ApplyString (loc, strategy, v, args, kargs)
 
 (*
  * Super call.
  *)
 and build_super_apply_string genv oenv senv cenv strategy super v args pos loc =
    let pos = string_pos "build_super_apply_string" pos in
-   let strategy =
-      match strategy with
-         Omake_ast.LazyApply ->
-            LazyApply
-       | Omake_ast.EagerApply ->
-            EagerApply
-       | Omake_ast.NormalApply ->
-            NormalApply
-   in
-   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
-      genv, oenv, SuperApplyString (loc, strategy, super, v, args)
+   let strategy = ir_strategy_of_ast_strategy strategy in
+   let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
+      genv, oenv, SuperApplyString (loc, strategy, super, v, args, kargs)
 
 (*
  * Build a method application.
  *)
-and build_method_apply_string genv oenv senv cenv strategy vl args pos loc =
+and build_method_apply_string genv oenv senv cenv strategy vars args pos loc =
    let pos = string_pos "build_method_apply_string" pos in
    let strategy = ir_strategy_of_ast_strategy strategy in
-   let oenv, v, vl = senv_find_method_var genv oenv senv cenv pos loc vl in
-   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
+   let genv, oenv, args, kargs = build_method_apply_args genv oenv senv cenv vars args pos loc in
+   let oenv, v, vl = senv_find_method_nocurry_var genv oenv senv cenv pos loc vars in
    let e =
       match vl with
          [] ->
-            ApplyString (loc, strategy, v, args)
+            ApplyString (loc, strategy, v, args, kargs)
        | _ ->
-            MethodApplyString (loc, strategy, v, vl, args)
+            MethodApplyString (loc, strategy, v, vl, args, kargs)
    in
       genv, oenv, e
 
@@ -1490,41 +1681,43 @@ and build_export_command genv oenv senv cenv e cases body pos loc =
  *)
 and build_apply_exp genv oenv senv cenv v args pos loc =
    let pos = string_pos "build_apply_exp" pos in
-   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
+   let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
       match args with
          [arg] when Lm_symbol.eq v return_sym ->
-            genv, oenv, senv, ReturnExp (loc, arg), ValNotReached
+            let id = cenv_return_id cenv pos loc in
+               genv, oenv, senv, ReturnExp (loc, arg, id), ValNotReached
        | args ->
             let oenv, info = senv_find_var genv oenv senv cenv pos loc v in
-               genv, oenv, senv, ApplyExp (loc, info, args), ValValue
+               genv, oenv, senv, ApplyExp (loc, info, args, kargs), ValValue
 
 and build_super_apply_exp genv oenv senv cenv super v args pos loc =
    let pos = string_pos "build_super_apply_exp" pos in
-   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
-      genv, oenv, senv, SuperApplyExp (loc, super, v, args), ValValue
+   let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
+      genv, oenv, senv, SuperApplyExp (loc, super, v, args, kargs), ValValue
 
 and build_method_apply_exp genv oenv senv cenv vl args pos loc =
    let pos = string_pos "build_method_apply_exp" pos in
-   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
-   let oenv, v, vl = senv_find_method_var genv oenv senv cenv pos loc vl in
+   let genv, oenv, args, kargs = build_method_apply_args genv oenv senv cenv vl args pos loc in
+   let oenv, v, vl = senv_find_method_nocurry_var genv oenv senv cenv pos loc vl in
    let e =
       match vl with
          [] ->
-            ApplyExp (loc, v, args)
+            ApplyExp (loc, v, args, kargs)
        | _ ->
-            MethodApplyExp (loc, v, vl, args)
+            MethodApplyExp (loc, v, vl, args, kargs)
    in
       genv, oenv, senv, e, ValValue
 
 and build_cases_apply_exp genv oenv senv cenv v args cases pos loc =
    let pos = string_pos "build_cases_apply_exp" pos in
-   let genv, oenv, args = build_string_list genv oenv senv cenv args pos in
+   let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
       match args, cases with
          [arg], [] when Lm_symbol.eq v return_sym ->
-            genv, oenv, senv, ReturnExp (loc, arg), ValNotReached
+            let id = cenv_return_id cenv pos loc in
+               genv, oenv, senv, ReturnExp (loc, arg, id), ValNotReached
        | _, [] ->
             let oenv, v = senv_find_var genv oenv senv cenv pos loc v in
-               genv, oenv, senv, ApplyExp (loc, v, args), ValValue
+               genv, oenv, senv, ApplyExp (loc, v, args, kargs), ValValue
        | _ ->
             let oenv, v = senv_find_var genv oenv senv cenv pos loc v in
             let genv, oenv, cases =
@@ -1535,7 +1728,7 @@ and build_cases_apply_exp genv oenv senv cenv v args cases pos loc =
                         genv, oenv, case :: cases) (genv, oenv, []) cases
             in
             let args = CasesString (loc, List.rev cases) :: args in
-               genv, oenv, senv, ApplyExp (loc, v, args), ValValue
+               genv, oenv, senv, ApplyExp (loc, v, args, kargs), ValValue
 
 and build_cases_command_exp genv oenv senv cenv v arg cases commands pos loc =
    let pos = string_pos "build_cases_command_exp" pos in
@@ -1550,7 +1743,7 @@ and build_cases_command_exp genv oenv senv cenv v arg cases commands pos loc =
                 | _ ->
                      Omake_ast.BodyExp (commands, loc)
             in
-               build_cases_apply_exp genv oenv senv cenv v [arg] cases pos loc
+               build_cases_apply_exp genv oenv senv cenv v [Omake_ast.NormalArg (None, arg)] cases pos loc
 
 and build_opt_cases_command_exp genv oenv senv cenv v arg cases commands pos loc =
    let pos = string_pos "build_opt_cases_command_exp" pos in
@@ -1561,7 +1754,7 @@ and build_opt_cases_command_exp genv oenv senv cenv v arg cases commands pos loc
          let default = default_sym, Omake_ast.NullExp loc, commands in
             cases @ [default]
    in
-      build_cases_apply_exp genv oenv senv cenv v [arg] cases pos loc
+      build_cases_apply_exp genv oenv senv cenv v [Omake_ast.NormalArg (None, arg)] cases pos loc
 
 (*
  * The command line is handled at parse time as well as
@@ -1573,7 +1766,7 @@ and build_set_exp genv oenv senv cenv e pos loc =
    let senv = { senv with senv_venv = venv_set_options senv.senv_venv loc pos argv } in
    let argv = List.map (fun s -> ConstString (loc, s)) argv in
    let argv = ArrayString (loc, argv) in
-   let e = ApplyExp (loc, omakeflags_var, [argv]) in
+   let e = ApplyExp (loc, omakeflags_var, [argv], []) in
       genv, oenv, senv, e, ValValue
 
 (*
@@ -1602,7 +1795,7 @@ and build_command_exp genv oenv senv cenv v arg commands pos loc =
       else if Lm_symbol.eq v set_sym then
          build_set_exp genv oenv senv cenv arg pos loc
       else
-         build_apply_exp genv oenv senv cenv v [arg] pos loc
+         build_apply_exp genv oenv senv cenv v [Omake_ast.NormalArg (None, arg)] pos loc
 
 (*
  * Include a file.
@@ -1671,7 +1864,8 @@ and build_value_exp genv oenv senv cenv e commands pos loc =
 and build_return_exp genv oenv senv cenv e pos loc =
    let pos = string_pos "build_return_exp" pos in
    let genv, oenv, s = build_string genv oenv senv cenv e pos in
-      genv, oenv, senv, ReturnExp (loc, s), ValNotReached
+   let id = cenv_return_id cenv pos loc in
+      genv, oenv, senv, ReturnExp (loc, s, id), ValNotReached
 
 (*
  * Open the namespace from another file.
@@ -1780,14 +1974,14 @@ and build_normal_object_exp genv oenv senv cenv info v vl flag body pos loc =
          Omake_ast.DefineNormal ->
             let genv, oenv, senv, info = senv_add_scoped_var genv oenv senv cenv pos loc info v in
             let oenv, parent_var = senv_find_var genv oenv senv cenv pos loc object_sym in
-            let parent_string = ApplyString (loc, EagerApply, parent_var, []) in
+            let parent_string = ApplyString (loc, EagerApply, parent_var, [], []) in
                genv, oenv, senv, parent_string, info
        | Omake_ast.DefineAppend ->
             let oenv, parent_var = senv_find_scoped_var genv oenv senv cenv pos loc info v in
             let parent_string =
                match vl with
-                  [] -> ApplyString (loc, EagerApply, parent_var, [])
-                | _ -> MethodApplyString (loc, EagerApply, parent_var, vl, [])
+                  [] -> ApplyString (loc, EagerApply, parent_var, [], [])
+                | _ -> MethodApplyString (loc, EagerApply, parent_var, vl, [], [])
             in
 
             (* ZZZ: We should just use the previous info.
@@ -1842,7 +2036,7 @@ and build_var_def_exp genv oenv senv cenv v kind flag e pos loc =
          [v] when Lm_symbol.eq v this_sym ->
             genv, oenv, senv, LetThisExp (loc, s), ValValue
        | _ ->
-            let genv, oenv, senv, v, vl = senv_add_method_var genv oenv senv cenv pos loc kind v in
+            let genv, oenv, senv, v, vl = senv_add_method_nocurry_var genv oenv senv cenv pos loc kind v in
                genv, oenv, senv, LetVarExp (loc, v, vl, kind, s), ValValue
 
 and build_var_def_body_exp genv oenv senv cenv v kind flag body pos loc =
@@ -1857,7 +2051,7 @@ and build_var_def_body_exp genv oenv senv cenv v kind flag body pos loc =
                genv, oenv, ArrayString (loc, sl)
    in
    let kind = build_var_def_kind flag in
-   let genv, oenv, senv, v, vl = senv_add_method_var genv oenv senv cenv pos loc kind v in
+   let genv, oenv, senv, v, vl = senv_add_method_nocurry_var genv oenv senv cenv pos loc kind v in
       genv, oenv, senv, LetVarExp (loc, v, vl, kind, e), ValValue
 
 (*
@@ -1895,11 +2089,11 @@ and build_key_def_body_exp genv oenv senv cenv v kind flag body pos loc =
  *)
 and build_fun_def_exp genv oenv senv cenv v params el pos loc =
    let pos = string_pos "build_fun_def_exp" pos in
-   let cenv_body = cenv_fun_scope cenv in
-   let senv_body = senv_add_params genv oenv senv cenv_body pos loc params in
+   let cenv_body = cenv_fun_scope cenv (new_return_id loc v) in
+   let genv, oenv, senv_body, opt_params, keywords, params = build_params genv oenv senv cenv_body params pos loc in
    let genv, oenv, body, export, _ = build_body genv oenv senv_body cenv_body el pos loc in
-   let genv, oenv, senv, v, vl = senv_add_method_def_var genv oenv senv cenv pos loc v in
-      genv, oenv, senv, LetFunExp (loc, v, vl, params, body, export), ValValue
+   let genv, oenv, senv, curry, v, vl = senv_add_method_def_var genv oenv senv cenv pos loc v in
+      genv, oenv, senv, LetFunExp (loc, v, vl, curry, opt_params, keywords, params, body, export), ValValue
 
 (*
  * Special rule expressions.
@@ -1920,7 +2114,7 @@ and build_options_exp genv oenv senv cenv pos loc sources =
        | _ -> create_lazy_map_sym
    in
    let oenv, create_map_var = senv_find_var genv oenv senv cenv pos loc create_map_sym in
-   let options = ApplyString (loc, EagerApply, create_map_var, options) in
+   let options = ApplyString (loc, EagerApply, create_map_var, options, []) in
       genv, oenv, options
 
 and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
@@ -1957,9 +2151,9 @@ and build_normal_rule_exp genv oenv senv cenv multiple target pattern sources bo
    (*
     * XXX: until var3, assume that it is written this.rule
    let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc rule_sym in
-   let e = ApplyExp (loc, rule_var, args) in
+   let e = ApplyExp (loc, rule_var, args, []) in
     *)
-   let e = ApplyExp (loc, VarThis (loc, rule_sym), args) in
+   let e = ApplyExp (loc, VarThis (loc, rule_sym), args, []) in
       genv, oenv, senv, e, ValValue
 
 and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources body pos loc =
@@ -2019,12 +2213,12 @@ and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources bod
    let vars = ArrayString (loc, List.map (fun v -> VarString (loc, v)) vars) in
 
    (* The name has three parts: (file, index, key) *)
-   let file = ApplyString (loc, EagerApply, file_var, []) in
+   let file = ApplyString (loc, EagerApply, file_var, [], []) in
    let genv, index = genv_new_index genv in
    let index = ConstString (loc, string_of_int index) in
    let args = [multiple; is_static; file; index; key; vars; source; options; body] in
    let oenv, rule_var = senv_find_var genv oenv senv cenv pos loc memo_rule_sym in
-   let e = ApplyExp (loc, rule_var, args) in
+   let e = ApplyExp (loc, rule_var, args, []) in
       genv, oenv, senv, e, ValValue
 
 (*

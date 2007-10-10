@@ -65,6 +65,13 @@ val debug_implicit : bool ref
 type venv
 
 (*
+ * Full and partial applications.
+ *)
+type partial_apply =
+   FullApply    of venv * value list * keyword_value list
+ | PartialApply of env * keyword_set * var list * keyword_value list
+
+(*
  * Command lists are used for rule bodies.
  * They have their environment, a list of sources,
  * and the actual body.  The body is polymorphic
@@ -243,8 +250,17 @@ val venv_mount       : venv -> mount_option list -> Dir.t -> Dir.t -> venv
 val venv_add_var     : venv -> var_info -> value -> venv
 val venv_add_phony   : venv -> loc -> target list -> venv
 
-val venv_add_args    : venv -> pos -> loc -> env -> var list -> value list -> venv
-val venv_add_args_hack : venv -> pos -> loc -> env -> var list -> value list -> venv
+val venv_add_args      : venv -> pos -> loc -> env -> param list -> value list -> keyword_set -> keyword_value list -> venv
+val venv_with_args     : venv -> pos -> loc -> param list -> value list -> keyword_set -> keyword_value list -> venv
+
+val venv_add_curry_args : venv -> pos -> loc
+    -> env -> param list -> value list
+    -> keyword_set -> keyword_value list -> keyword_value list
+    -> venv * value list * keyword_value list
+val venv_add_partial_args : venv -> pos -> loc
+    -> env -> param list -> value list
+    -> keyword_set -> keyword_value list -> keyword_value list
+    -> partial_apply
 
 val venv_add_wild_match  : venv -> value -> venv
 val venv_add_match_values : venv -> value list -> venv
@@ -329,7 +345,7 @@ val venv_save_static_values    : venv -> unit
 (*
  * Primitive functions.
  *)
-type prim_fun_data = venv -> pos -> loc -> value list -> venv * value
+type prim_fun_data = venv -> pos -> loc -> value list -> keyword_value list -> venv * value
 
 val venv_add_prim_fun    : venv -> var -> prim_fun_data -> prim_fun
 val venv_apply_prim_fun  : prim_fun -> prim_fun_data

@@ -197,8 +197,9 @@ let rec key_of_value venv pos v =
        | ValApply _
        | ValMaybeApply _
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValBody _
        | ValMap _
@@ -240,8 +241,9 @@ let dir_of_value venv pos dir =
        | ValApply _
        | ValMaybeApply _
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValBody _
        | ValMap _
@@ -286,8 +288,9 @@ let node_value_of_value venv pos v =
        | ValNone
        | ValVar _
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValMap _
        | ValObject _
@@ -324,8 +327,9 @@ let dir_value_of_value venv pos v =
        | ValNone
        | ValVar _
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValMap _
        | ValObject _
@@ -403,8 +407,9 @@ let prim_channel_of_value venv pos v =
        | ValBody _
        | ValNone
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValArray _
        | ValRules _
        | ValMap _
@@ -466,8 +471,9 @@ let in_channel_of_any_value venv pos v =
        | ValChannel (OutChannel, _)
        | ValNone
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValArray _
        | ValRules _
        | ValMap _
@@ -518,8 +524,9 @@ let out_channel_of_any_value venv pos v =
        | ValChannel (InChannel, _)
        | ValNone
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValArray _
        | ValRules _
        | ValMap _
@@ -557,8 +564,9 @@ let rec is_glob_value options v =
     | ValFloat _
     | ValNone
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValRules _
     | ValMap _
     | ValObject _

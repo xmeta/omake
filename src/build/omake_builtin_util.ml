@@ -47,7 +47,7 @@ open Omake_value_type
 open Omake_build_type
 open Omake_symbol
 
-module Pos = MakePos (struct let name = "Omake_builtin_util" end)
+module Pos = MakePos (struct let name = "Omake_builtin" end)
 open Pos
 
 (************************************************************************
@@ -62,6 +62,9 @@ let parse_path unlinked venv pos loc s =
       match Omake_ir_ast.parse_declaration venv pos loc vl with
          NameEmpty _ ->
             raise (OmakeException (pos, StringError "empty name"))
+
+       | NameMethod (_, v, _ :: _) ->
+            raise (OmakeException (pos, StringVarError ("name has too many components", v)))
 
        | NameMethod (info, v, vl) ->
             let info =

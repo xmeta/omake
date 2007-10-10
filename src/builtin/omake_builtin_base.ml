@@ -428,17 +428,19 @@ let rec eval_match_cases2 compare venv pos loc s cases =
     | [] ->
          venv, ValNone
 
-let eval_match_exp compare venv pos loc args =
+let eval_match_exp compare venv pos loc args kargs =
    let pos = string_pos "eval_match_exp" pos in
-      match args with
-         [ValCases cases; arg] ->
+      match args, kargs with
+         [ValCases cases; arg], [] ->
             let s = string_of_value venv pos arg in
                eval_match_cases1 compare venv pos loc s cases
-       | arg :: rest ->
+       | arg :: rest, [] ->
             let s = string_of_value venv pos arg in
                eval_match_cases2 compare venv pos loc s rest
-       | [] ->
+       | [], [] ->
             venv, ValNone
+       | _, _ :: _ ->
+            raise (OmakeException (pos, StringError "illegal keyword arguments"))
 
 let switch_fun =
    let compare venv _ _ s1 s2 =
@@ -611,11 +613,11 @@ and eval_exception venv pos obj cases =
  * case.  Note that if an exception occurs in a CatchCase, the
  * FinallyCase *still* needs to be evaluated.
  *)
-let try_fun venv pos loc args =
+let try_fun venv pos loc args kargs =
    let pos = string_pos "eval_try_exp" pos in
    let cases, e =
-      match args with
-         [ValCases cases; e] ->
+      match args, kargs with
+         [ValCases cases; e], [] ->
             cases, e
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -887,10 +889,10 @@ let getenv venv pos loc args =
  *
  * \end{doc}
  *)
-let setenv venv pos loc args =
+let setenv venv pos loc args kargs =
    let pos = string_pos "setenv" pos in
-      match args with
-         [arg1; arg2] ->
+      match args, kargs with
+         [arg1; arg2], [] ->
             let v = string_of_value venv pos arg1 in
             let s = string_of_value venv pos arg2 in
             let venv = venv_setenv venv (Lm_symbol.add v) s in
@@ -913,10 +915,10 @@ let setenv venv pos loc args =
  *
  * \end{doc}
  *)
-let unsetenv venv pos loc args =
+let unsetenv venv pos loc args kargs =
    let pos = string_pos "unsetenv" pos in
-      match args with
-         [arg] ->
+      match args, kargs with
+         [arg], [] ->
             let vars = strings_of_value venv pos arg in
             let venv =
                List.fold_left (fun venv v ->
@@ -1070,10 +1072,10 @@ let getvar venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let setvar venv pos loc args =
+let setvar venv pos loc args kargs =
    let pos = string_pos "setvar" pos in
-      match args with
-         [arg1; arg2] ->
+      match args, kargs with
+         [arg1; arg2], [] ->
             let s = string_of_value venv pos arg1 in
             let venv = add_sym venv pos loc s arg2 in
                venv, arg2
@@ -2440,10 +2442,10 @@ let lowercase venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let system venv pos loc args =
+let system venv pos loc args kargs =
    let pos = string_pos "system" pos in
-      match args with
-         [arg] ->
+      match args, kargs with
+         [arg], [] ->
             eval_shell_exp venv pos loc arg
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -2556,14 +2558,14 @@ let shell_code venv pos loc args =
  * special form (see Section~\ref{section:export}).
  * \end{doc}
  *)
-let export venv pos loc args =
+let export venv pos loc args kargs =
    let pos = string_pos "export" pos in
-      match args with
-         [ValOther (ValEnv (hand, export))] ->
+      match args, kargs with
+         [ValOther (ValEnv (hand, export))], [] ->
             let venv_new = venv_find_environment venv pos hand in
             let venv = add_exports venv venv_new pos export in
                venv, ValNone
-       | [vars] ->
+       | [vars], [] ->
             let exports =
                List.map (function
                   ".PHONY" -> ExportPhonies
@@ -2572,7 +2574,7 @@ let export venv pos loc args =
             in
             let hand = venv_add_environment venv in
                venv, ValOther (ValEnv (hand, ExportList exports))
-       | [] ->
+       | [], [] ->
             let hand = venv_add_environment venv in
                venv, ValOther (ValEnv (hand, ExportAll))
        | _ ->
@@ -2668,13 +2670,13 @@ and while_loop venv pos loc cases arg =
    else
       venv
 
-let while_fun venv pos loc args =
+let while_fun venv pos loc args kargs =
    let pos = string_pos "while" pos in
    let cases, arg =
-      match args with
-         [ValCases cases; arg] ->
+      match args, kargs with
+         [ValCases cases; arg], [] ->
             cases, arg
-       | [_; _] ->
+       | [_; _], [] ->
             raise (OmakeException (loc_pos loc pos, SyntaxError "while loop"))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))

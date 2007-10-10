@@ -104,30 +104,22 @@ let rec pp_print_exp buf e =
          fprintf buf ")@]"
     | ApplyExp (LazyApply, v, [], _) ->
          fprintf buf "$%a" pp_print_symbol v
-    | ApplyExp (s, v, el, _) ->
-         fprintf buf "@[<hv 3>%a%a(" pp_print_symbol v pp_print_strategy s;
-         ignore (List.fold_left (fun firstp e ->
-                       if not firstp then
-                          pp_print_space buf ();
-                       pp_print_exp buf e;
-                       false) true el);
-         fprintf buf ")@]"
-    | SuperApplyExp (s, super, v, el, _) ->
-         fprintf buf "@[<hv 3>%a%a::%a(" pp_print_symbol super pp_print_strategy s pp_print_symbol v;
-         ignore (List.fold_left (fun firstp e ->
-                       if not firstp then
-                          pp_print_space buf ();
-                       pp_print_exp buf e;
-                       false) true el);
-         fprintf buf ")@]"
-    | MethodApplyExp (s, vl, el, _) ->
-         fprintf buf "@[<hv 3>%a%a(" pp_print_method_name vl pp_print_strategy s;
-         ignore (List.fold_left (fun firstp e ->
-                       if not firstp then
-                          pp_print_space buf ();
-                       pp_print_exp buf e;
-                       false) true el);
-         fprintf buf ")@]"
+    | ApplyExp (s, v, args, _) ->
+         fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
+            pp_print_symbol v
+            pp_print_strategy s
+            pp_print_args args
+    | SuperApplyExp (s, super, v, args, _) ->
+         fprintf buf "@[<hv 3>%a%a::%a(%a)@]" (**)
+            pp_print_symbol super
+            pp_print_strategy s
+            pp_print_symbol v
+            pp_print_args args
+    | MethodApplyExp (s, vl, args, _) ->
+         fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
+            pp_print_method_name vl
+            pp_print_strategy s
+            pp_print_args args
     | CommandExp (v, arg, commands, _) ->
          fprintf buf "@[<hv 0>@[<hv 3>command %a(%a) {%a@]@ }@]" (**)
             pp_print_symbol v
@@ -165,13 +157,9 @@ let rec pp_print_exp buf e =
             pp_print_define_flag flag
             pp_print_exp_list el;
     | FunDefExp (v, vars, el, _) ->
-         fprintf buf "@[<hv 3>let %a(" pp_print_method_name v;
-         ignore (List.fold_left (fun firstp v ->
-                       if not firstp then
-                          pp_print_string buf ", ";
-                       pp_print_symbol buf v;
-                       false) true vars);
-         fprintf buf ")";
+         fprintf buf "@[<hv 3>let %a(%a) =" (**)
+            pp_print_params vars
+            pp_print_method_name v;
          List.iter (fun e -> fprintf buf "@ %a" pp_print_exp e) el;
          fprintf buf "@]"
     | RuleExp (multiple, target, pattern, source, commands, _) ->
@@ -196,6 +184,53 @@ let rec pp_print_exp buf e =
          fprintf buf "@[<hv 3>class";
          List.iter (fun v -> fprintf buf "@ %a" pp_print_symbol v) names;
          fprintf buf "@]"
+
+(*
+ * Parameters.
+ *)
+and pp_print_param buf (v, e, _) =
+   match e with
+      Some e ->
+         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v pp_print_exp e
+    | None ->
+         pp_print_symbol buf v
+
+and pp_print_params buf vars =
+   match vars with
+      [v] ->
+         pp_print_param buf v
+    | v :: vars ->
+         fprintf buf "%a,@ " pp_print_param v;
+         pp_print_params buf vars
+    | [] ->
+         ()
+
+and pp_print_normal_arg buf v e =
+   match v with
+      Some v ->
+         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v pp_print_exp e
+    | None ->
+         pp_print_exp buf e
+
+and pp_print_arrow_arg buf params e =
+   fprintf buf "@[<hv 3>%a =>@ %a@]" pp_print_params params pp_print_exp e
+
+and pp_print_arg buf = function
+   NormalArg (v, e) ->
+      pp_print_normal_arg buf v e
+ | ArrowArg (params, e) ->
+      pp_print_arrow_arg buf params e
+
+and pp_print_args buf args =
+   match args with
+      [arg] ->
+         pp_print_arg buf arg
+    | arg :: args ->
+         pp_print_arg buf arg;
+         fprintf buf ",@ ";
+         pp_print_args buf args
+    | [] ->
+         ()
 
 and pp_print_exp_list buf commands =
    List.iter (fun e -> fprintf buf "@ %a" pp_print_exp e) commands

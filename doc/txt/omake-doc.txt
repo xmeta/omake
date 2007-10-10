@@ -5,8 +5,8 @@
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                           20^thAugust, 2007
-                           =================
+                            26^thJuly, 2007
+                            ===============
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -540,9 +540,9 @@ Contents
         
        - 13.5.4  Building C programs and Libraries 
            
-          - 13.5.4.1  StaticCLibrary, DynamicCLibrary 
-          - 13.5.4.2  StaticCLibraryCopy, DynamicCLibraryCopy 
-          - 13.5.4.3  StaticCLibraryInstall, DynamicCLibraryInstall 
+          - 13.5.4.1  StaticCLibrary 
+          - 13.5.4.2  StaticCLibraryCopy 
+          - 13.5.4.3  StaticCLibraryInstall 
           - 13.5.4.4  StaticCObject, StaticCObjectCopy,
             StaticCObjectInstall 
           - 13.5.4.5  CProgram 
@@ -550,8 +550,7 @@ Contents
           - 13.5.4.7  CProgramInstall 
           - 13.5.4.8  CXXProgram, CXXProgramInstall 
           - 13.5.4.9  StaticCXXLibrary, StaticCXXLibraryCopy,
-            StaticCXXLibraryInstall, DynamicCXXLibrary,
-            DynamicCXXLibraryCopy, DynamicCXXLibraryInstall 
+            StaticCXXLibraryInstall 
         
      
     - 13.6  Building OCaml code 
@@ -2679,7 +2678,7 @@ the standard library would do that automatically).
 4.14.1  .STATIC
 ===============
      
-  This feature was introduced in version 0.9.8.5.
+  This feature will be introduced in version 0.9.8.5.
   There is also a rule form of static section. The syntax can be any of
 the following three forms.
 <<    # Export all variables defined by the body
@@ -3470,7 +3469,7 @@ and the target `tmp_phony' will remain unchanged.
 6.3.1  Export regions
 =====================
   
-  This feature was introduced in version 0.9.8.5.
+  This feature will be introduced in version 0.9.8.5.
   The `export' directive does not need to occur at the end of a block.
 An export is valid from the point where it is specified to the end of
 the block in which it is contained. In other words, the export is used
@@ -3490,7 +3489,7 @@ conditional.
 6.3.2  Returning values from exported regions
 =============================================
   
-  This feature was introduced in version 0.9.8.5.
+  This feature will be introduced in version 0.9.8.5.
   The use of export does not affect the value returned by a block. The
 value is computed as usual, as the value of the last statement in the
 block, ignoring the export. For example, suppose we wish to implement a
@@ -5625,7 +5624,7 @@ whitespace. The result is treated as a unit; whitespace is significant.
         sequence : Sequence
 >>
   
-  The `string-lenght' returns a length (number of characters) in its
+  The `string-lenght' returns a length (number of characters) in  its
 argument. If the argument is a sequence, it flattens it, so
 `$(string-length sequence)' is equivalent to `$(string-length $(string
 sequence))'.
@@ -6027,7 +6026,7 @@ in a variable.
   A = 2
   B = 2
   C = 2
-  export($(SAVE_ENV))
+  export $(SAVE_ENV)
   println($A $B $C)
 >>
   will print `1 1 2'.
@@ -7394,7 +7393,6 @@ additions.
   
  - `-name' string : The current file matches the glob expression (see
    Section 10.4). 
- - `-regex' string : The current file matches the regular expression 
   
   The `find' function performs a recursive scan of all subdirectories.
 The following call is being run from the root of the `omake' source
@@ -9663,7 +9661,9 @@ single array containing an argument list.
      See the documentation for the 'test' function.
     
     - `find'
-    `find' expression
+      <<   find \emph{expression}
+      >>
+    
     See the documentation for the 'find' function.
   
 
@@ -9980,15 +9980,12 @@ PATHSEP
    The normal path separator (`:' on `Unix', `;' on `Win32'). 
 DIRSEP
    The normal directory separator (`/' on `Unix', `\' on `Win32'). 
-EXT_OBJ
-   File suffix for an object file (default is `.o' on `Unix', and `.obj'
-on `Win32'). 
 EXT_LIB
    File suffix for a static library (default is `.a' on `Unix', and
 `.lib' on `Win32'). 
-EXT_DLL
-   File suffix for a shared library (default is `.so' on `Unix', and
-`.dll' on `Win32'). 
+EXT_OBJ
+   File suffix for an object file (default is `.o' on `Unix', and `.obj'
+on `Win32'). 
 EXT_ASM
    File suffix for an assembly file (default is `.s' on `Unix', and
 `.asm' on `Win32'). 
@@ -10092,9 +10089,6 @@ LD
 `Win32'). 
 LDFLAGS
    Options to pass to the linker (default is empty). 
-LDFLAGS_DLL
-   Options to pass to the linker when compiling a shared library
-(defaults to `-shared' on `Unix' and `/DLL' on `Win32'). 
 LDOUT
    The option to use for specifying the output file in C and C++ linkers
 (defaults to `-o' on `Unix' and `/Fe' on `Win32'). 
@@ -10135,18 +10129,14 @@ scoping rules of OMake.
 =========================================
 
 
-13.5.4.1  StaticCLibrary, DynamicCLibrary
------------------------------------------
+13.5.4.1  StaticCLibrary
+------------------------
   
-  The `StaticCLibrary' builds a static library and the `DynamicCLibrary'
-function builds a shared library (DLL).
-<<StaticCLibrary(<target>, <files>)
-  DynamicCLibrary(<target>, <files>)
->>
-  
+  The `StaticCLibrary' builds a static library.
+  `StaticCLibrary(<target>, <files>)'
   The `<target>' does not include the library suffix, and The `<files>'
 list does not include the object suffix. These are obtained from the
-'EXT_LIB' ('EXT_DLL') and 'EXT_OBJ' variables.
+`EXT_LIB' and `EXT_OBJ' variables.
   This function returns the library filename.
   The following command builds the library `libfoo.a' from the files
 `a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
@@ -10155,20 +10145,13 @@ list does not include the object suffix. These are obtained from the
   .DEFAULT: $(StaticCLibrary libbar, a b c d)
 >>
   
-CDLL_IMPLIES_STATIC
-   If the `CDLL_IMPLIES_STATIC' variable is enabled (this is default on
-`Win32'), all the `DynamicC' functions would assume that creating a
-shared library automatically created a static one.
 
-13.5.4.2  StaticCLibraryCopy, DynamicCLibraryCopy
--------------------------------------------------
+13.5.4.2  StaticCLibraryCopy
+----------------------------
   
-  The `StaticCLibraryCopy' and `DynamicCLibraryCopy' functions copy a
-library to an install location.
-<<StaticCLibraryCopy(<tag>, <dir>, <lib>)
-  DynamicCLibraryCopy(<tag>, <dir>, <lib>)
->>
-  
+  The `StaticCLibraryCopy' function copies the static library to an
+install location.
+  `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
   The `<tag>' is the name of a target (typically a `.PHONY' target); the
 `<dir>' is the installation directory, and `<lib>' is the library to be
 copied (without the library suffix).
@@ -10182,16 +10165,13 @@ directory.
 >>
   
 
-13.5.4.3  StaticCLibraryInstall, DynamicCLibraryInstall
--------------------------------------------------------
+13.5.4.3  StaticCLibraryInstall
+-------------------------------
   
-  The `StaticCLibraryInstall' and `DynamicCLibraryInstall' functions
-build a library, and set the install location in one step. Return the
-filename of the library in the target directory.
-<<StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
-  DynamicCLibraryInstall(<tag>, <dir>, <libname>, <files>)
->>
-  
+  The `StaticCLibraryInstall' function builds a library, and sets the
+install location in one step. It returns the filename of the library in
+the target directory.
+  `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
 <<StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
 >>
   
@@ -10259,13 +10239,12 @@ for linking instead of `$(CC)' and `$(CFLAGS)'.
 
 13.5.4.9  StaticCXXLibrary, StaticCXXLibraryCopy,
 -------------------------------------------------
-StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy,
-------------------------------------------------------------------
-DynamicCXXLibraryInstall
-------------------------
+StaticCXXLibraryInstall
+-----------------------
   
-  Similarly, the six `CXXLibrary' functions the C++ equivalents of the
-corresponding `CLibrary' functions.
+  Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
+`StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
+`StaticCLibraryCopy' and `StaticCLibraryInstall' functions.
 
 13.6  Building OCaml code
 *=*=*=*=*=*=*=*=*=*=*=*=*
@@ -10464,19 +10443,16 @@ analysis
 --------
    Having to specify the generated files manualy when OMake could
 discover them automatically is obviously suboptimal. To address this, we
-tell `ocamldep' to only find the free module names in a file and then
+tell `ocamldep' that only finds the free module names in a file and then
 post-process the results internally.
-  This automated functionality is enabled when the
-'OCAMLDEP_MODULES_ENABLED' variable is set to `true'. By default,
-'OCAMLDEP_MODULES_ENABLED' variable will be set to
-`$(OCAMLDEP_MODULES_AVAILABLE)'.
-  Note that the `ocamldep' functionality this relies upon is only
-included in the OCaml version 3.10 and higher. Temporarily, we
+  Note that the experimental `ocamldep' functionality this relies upon
+is only included in the OCaml version 3.10 and higher. Temporarily, we
 distribute a bytecode version `ocamldep-omake' of the appropriately
 modified `ocamldep'. The appropriate `ocamldep' will be discovered
 automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE' and
 'OCAMLDEP_MODULES' variables will be set accordingly.
-  
+  By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
+`$(OCAMLDEP_MODULES_AVAILABLE)'.
 
 13.6.6  Using the Menhir parser generator
 =========================================
@@ -12373,7 +12349,6 @@ Index
  - CAMLP4, 13.6.2 
  - CC, 13.5.2 
  - CCOUT, 13.5.2 
- - CDLL_IMPLIES_STATIC, 13.5.4.1 
  - CFLAGS, 13.5.2 
  - CGeneratedFiles, 13.5.3.1 
  - Channel, 12.1.15 
@@ -12424,12 +12399,6 @@ Index
  - DVIPDFMFLAGS, 13.7.1 
  - DVIPS, 13.7.1 
  - DVIPSFLAGS, 13.7.1 
- - DynamicCLibrary, 13.5.4.1 
- - DynamicCLibraryCopy, 13.5.4.2 
- - DynamicCLibraryInstall, 13.5.4.3 
- - DynamicCXXLibrary, 13.5.4.9 
- - DynamicCXXLibraryCopy, 13.5.4.9 
- - DynamicCXXLibraryInstall, 13.5.4.9 
  - declare, 5.7 
  - decode-uri, 9.3.15 
  - default, 9.2.6 
@@ -12452,7 +12421,6 @@ Index
  - EMPTY, 13.4.1 
  - EXE, 13.4.2 
  - EXT_ASM, 13.4.2 
- - EXT_DLL, 13.4.2 
  - EXT_LIB, 13.4.2 
  - EXT_OBJ, 13.4.2 
  - Exception, 12.1.19 
@@ -12569,7 +12537,6 @@ Index
  - LaTeXDocumentInstall, 13.7.2.4 
  - LD, 13.5.2 
  - LDFLAGS, 13.5.2 
- - LDFLAGS_DLL, 13.5.2 
  - LDOUT, 13.5.2 
  - LEX, 13.5.2 
  - Lexer, 10.11.9 
@@ -12888,7 +12855,6 @@ Index of variables
  - CAMLP4, 13.6.2 
  - CC, 13.5.2 
  - CCOUT, 13.5.2 
- - CDLL_IMPLIES_STATIC, 13.5.4.1 
  - CFLAGS, 13.5.2 
  - CL_FOUND, 13.5.1.2 
  - CPP, 13.5.2 
@@ -12905,7 +12871,6 @@ Index of variables
  - EMPTY, 13.4.1 
  - EXE, 13.4.2 
  - EXT_ASM, 13.4.2 
- - EXT_DLL, 13.4.2 
  - EXT_LIB, 13.4.2 
  - EXT_OBJ, 13.4.2 
  
@@ -12923,7 +12888,6 @@ Index of variables
  - LATEXFLAGS, 13.7.1 
  - LD, 13.5.2 
  - LDFLAGS, 13.5.2 
- - LDFLAGS_DLL, 13.5.2 
  - LDOUT, 13.5.2 
  - LEX, 13.5.2 
  - LIB_FOUND, 13.5.1.2 
@@ -13070,12 +13034,6 @@ Index of functions and special forms
  - create-map, 9.5.4 
  
  - DefineCommandVars, 13.2.4 
- - DynamicCLibrary, 13.5.4.1 
- - DynamicCLibraryCopy, 13.5.4.2 
- - DynamicCLibraryInstall, 13.5.4.3 
- - DynamicCXXLibrary, 13.5.4.9 
- - DynamicCXXLibraryCopy, 13.5.4.9 
- - DynamicCXXLibraryInstall, 13.5.4.9 
  - decode-uri, 9.3.15 
  - defined, 9.2.10 
  - defined-env, 9.2.11 
@@ -13468,7 +13426,7 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.5 of 20^thAugust, 2007.
+  Version: 0.9.8.4 of 26^thJuly, 2007.
   
 
 C.3  License and Copyright

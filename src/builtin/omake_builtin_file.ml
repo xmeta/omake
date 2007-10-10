@@ -2816,13 +2816,13 @@ let vmount_touch_files venv pos src dst =
 (*
  * Add the mount.
  *)
-let vmount venv pos loc args =
+let vmount venv pos loc args kargs =
    let pos = string_pos "vmount" pos in
    let flags, src, dst =
-      match args with
-         [src; dst] ->
+      match args, kargs with
+         [src; dst], [] ->
             "", src, dst
-       | [flags; src; dst] ->
+       | [flags; src; dst], [] ->
             string_of_value venv pos flags, src, dst
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))

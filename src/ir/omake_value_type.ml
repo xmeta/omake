@@ -77,21 +77,22 @@ type value =
  | ValClass       of obj SymbolTable.t
 
    (* Raw expressions *)
- | ValBody        of env * exp list * export
+ | ValBody        of exp list * export
  | ValCases       of (var * value * exp list * export) list
 
    (* Functions *)
- | ValFun         of arity * env * var list * exp list * export
-
-   (* ZZZ: temporary fix, don't propagate to keyword *)
- | ValFunValue    of arity * env * var list * value
+ | ValFun         of arity * env * keyword_set * var list * exp list * export
+ | ValFunCurry    of arity * env * keyword_set * var list * exp list * export * keyword_value list
 
    (* Closed values *)
- | ValApply       of loc * var_info * value list
- | ValSuperApply  of loc * var * var * value list
- | ValMethodApply of loc * var_info * var list * value list
+ | ValApply       of loc * var_info * value list * keyword_value list
+ | ValSuperApply  of loc * var * var * value list * keyword_value list
+ | ValMethodApply of loc * var_info * var list * value list * keyword_value list
  | ValKeyApply    of loc * string
- | ValPrim        of arity * bool * prim_fun
+ | ValPrim        of arity * bool * apply_empty_strategy * prim_fun
+
+   (* The args, kargs are kept in -reverse- order *)
+ | ValPrimCurry   of arity * bool * prim_fun * value list * keyword_value list
 
    (* Implicit value dependencies *)
  | ValMaybeApply  of loc * var_info
@@ -105,6 +106,10 @@ type value =
    (* Delayed values *)
  | ValDelayed     of value_delayed ref
 
+(*
+ * Put all the other stuff here, to keep the primary value type
+ * smaller.
+ *)
 and value_other =
    ValLexer       of Lexer.t
  | ValParser      of Parser.t
@@ -117,6 +122,11 @@ and value_delayed =
 
    (* Value in a static block *)
  | ValStaticApply of value * var
+
+(*
+ * Arguments have an optional keyword.
+ *)
+and keyword_value = var * value
 
 (*
  * Primitives are option refs.
@@ -204,6 +214,7 @@ and pos = item Lm_position.pos
 and omake_error =
    SyntaxError        of string
  | StringError        of string
+ | StringAstError     of string * Omake_ast.exp
  | StringStringError  of string * string
  | StringDirError     of string * Dir.t
  | StringNodeError    of string * Node.t
@@ -232,7 +243,7 @@ exception UncaughtException of pos * exn
 exception RaiseException    of pos * obj
 exception ExitException     of pos * int
 exception ExitParentException     of pos * int
-exception Return            of loc * value
+exception Return            of loc * value * return_id
 
 (*
  * Omake's internal version of the Invalid_argument

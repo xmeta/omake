@@ -66,7 +66,7 @@ public. =
         this.const. =
             to-string() =
                 s =
-                this.foreach(v, ty)
+                this.foreach(v, ty) =>
                     s = $(s)$"/* $(name) $(v) = $(ty.to-string); */$(nl)"
                     export
                 value $(s)
@@ -132,28 +132,28 @@ public. =
 
             array-to-string(l) =
                 s =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(x.to-string)
                     export
                 value $(s)
 
             array-to-string-pre(l, pre) =
                 s =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(pre)$(x.to-string)
                     export
                 value $(s)
 
             array-to-string-wrap(l, pre, post) =
                 s =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(pre)$(x.to-string)$(post)
                     export
                 value $(s)
 
             array-to-string-term(l, term) =
                 s =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(x.to-string)$(term)
                     export
                 value $(s)
@@ -161,7 +161,7 @@ public. =
             array-to-string-sep(l, sep) =
                 s =
                 sepx =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(sepx)$(x.to-string)
                     sepx = $(sep)
                     export
@@ -169,7 +169,7 @@ public. =
 
             array-to-identifier-term(l, term) =
                 s =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(x.to-identifier)$(term)
                     export
                 value $(s)
@@ -177,7 +177,7 @@ public. =
             array-to-identifier-sep(l, sep) =
                 s =
                 sepx =
-                foreach(x, $(l))
+                foreach(x => ..., $(l))
                     s = $(s)$(sepx)$(x.to-identifier)
                     sepx = $(sep)
                     export
@@ -1439,9 +1439,7 @@ public. =
                return $(this)
 
             to-string() =
-	       s =
-	          foreach(arg, $(args))
-		     arg.to-string()
+	       s = $(args.map arg => $(arg.to-string))
                value $"$(id)($(exp.to-string)$s)"
 
     ########################################################################
@@ -2615,7 +2613,7 @@ public. =
 
             no-subfields() =
                 if $(not $(equal $(fields), false))
-                    fields = $(fields.map $(fun field, $(field.no-fields)))
+                    fields = $(fields.map field => $(field.no-fields))
                     return $(this)
                 else
                     return $(this)
@@ -2645,7 +2643,7 @@ public. =
 
             resolve() =
                 if $(not $(equal $(fields), false))
-                    this.fields = $(fields.map $(fun field, $(field.resolve)))
+                    this.fields = $(fields.map field => $(field.resolve))
                     value $(this)
                 else
                     value $(this)
@@ -2723,16 +2721,14 @@ public. =
                     export
                     tags[] =
                     defcase = false
-                    foreach(case, $(cases))
+                    foreach(case => ..., $(cases))
                         if $(case.instanceof DefaultStmt)
                             defcase = true
                             tags[] += false
                         elseif $(case.instanceof CaseStmt)
                             tags[] += $(case.exp)
                         else
-			    foreach(tag, $(tags))
-			        fields[] += $(TypeTaggedUnionField.make $(tag), $(case))
-				export
+                            fields[] += $(tags.map tag => $(TypeTaggedUnionField.make $(tag), $(case)))
                             if $(defcase)
                                 tag = $(case)
                             defcase = false
@@ -2748,7 +2744,7 @@ public. =
 
             no-subfields() =
                 if $(not $(equal $(fields), false))
-                    fields = $(fields.map $(fun field, $(field.no-fields)))
+                    fields = $(fields.map field => $(field.no-fields))
                     return $(this)
                 else
                     return $(this)
@@ -2778,7 +2774,7 @@ public. =
 
             resolve() =
                 if $(not $(equal $(fields), false))
-                    fields = $(fields.map $(fun field, $(field.resolve)))
+                    fields = $(fields.map field => $(field.resolve))
                     value $(this)
                 else
                     value $(this)
@@ -3239,7 +3235,7 @@ public. =
                     ty = $(ty.unqualified)
                     tymods[] =
                     tyquals[] =
-                    foreach(qual, $(qualifiers))
+                    foreach(qual => ..., $(qualifiers))
                         if $(qual.instanceof TypeMod)
                             tymods[] += $(qual)
                             export
@@ -3248,9 +3244,7 @@ public. =
                             export
                         export
                     tyquals = $(set $(tyquals))
-                    tyquals =
-		       foreach(name, $(tyquals))
-		          TypeQual.make($(name))
+                    tyquals = $(tyquals.map name => $(TypeQual.make $(name)))
                     qualifiers[] = $(if $(IS_EXTERN), $(tymods), $(array $(tyquals), $(tymods)))
                     if $(qualifiers)
                         return $(this)
@@ -3263,7 +3257,7 @@ public. =
             resolve-and-prune() =
                 ty = $(ty.resolve-and-prune)
                 quals[] =
-                foreach(qual, $(qualifiers))
+                foreach(qual => ..., $(qualifiers))
                     if $(not $(qual.instanceof TypeClass))
                         quals[] += $(qual)
                         export
@@ -3278,7 +3272,7 @@ public. =
             to-pointer() =
                 ty = $(ty.to-pointer)
                 quals[] =
-                foreach(qual, $(qualifiers))
+                foreach(qual => ..., $(qualifiers))
                     if $(not $(qual.is-named const __const))
                         quals[] += $(qual)
                         export
@@ -3475,23 +3469,17 @@ public. =
             unqualified() =
                 ty = $(ty.unqualified)
                 IS_POINTER = false
-                params =
-		    foreach(param, $(params))
-		        param.unqualified()
+                params = $(params.map param => $(param.unqualified))
                 return $(this)
 
             resolve() =
                 ty = $(ty.resolve)
-                params =
-		   foreach(param, $(params))
-		       param.resolve()
+                params = $(params.map param => $(param.resolve))
                 return $(this)
 
             resolve-and-prune() =
                 ty = $(ty.resolve-and-prune)
-                params = 
-		    foreach(param, $(params))
-		        param.resolve-and-prune()
+                params = $(params.map param => $(param.resolve-and-prune))
                 return $(this)
 
             to-decl(var) =
@@ -3511,7 +3499,7 @@ public. =
             to-ml-string() =
                 sep =
                 ty-params[] =
-                foreach(param, $(params))
+                foreach(param => ..., $(params))
                     ty-params = $"$(ty-params)$(sep)($(param.to-ml-string))"
                     sep = $" * "
                     export
@@ -3862,8 +3850,7 @@ public. =
             array($1 $2)
 
         all_def: __extension__ all_def
-	    foreach(item, $2)
-	        Extension.make($(item))
+            2.map(item => $(Extension.make $(item)))
 
         all_def: var_defs
             value $1
@@ -4300,37 +4287,32 @@ public. =
         #
         var_defs: decl_spec_id id_init_decl_list_opt semi
             if $2
-	        foreach(name, $2)
-		    VarDef.make($1, $(name))
+                2.map(name => $(VarDef.make $1, $(name)))
             else
                 array($(VarNoneDef.make $1))
 
         var_defs: decl_spec_any any_init_decl_list_opt semi
             if $2
-	        foreach(name, $2)
-		    VarDef.make($1, $(name))
+                2.map(name => $(VarDef.make $1, $(name)))
             else
                 array($(VarNoneDef.make $1))
 
         callback_defs: callback var_defs
-	    foreach(def, $2)
-                CallbackDef.make($(def))
+            2.map(def => $(CallbackDef.make $(def)))
 
         #
         # Type definitions
         #
         type_var_defs: decl_spec_id id_init_decl_list_opt
-	    foreach(name, $2)
-                TypeDef.make($1, $(name))
+            2.map(name => $(TypeDef.make $1, $(name)))
 
         type_var_defs: decl_spec_any any_init_decl_list_opt
-            foreach(name, $2)
-	        TypeDef.make($1, $(name))
+            2.map(name => $(TypeDef.make $1, $(name)))
 
         type_defs: decl_specifiers_id_opt typedef type_var_defs semi
             private.val = $3
-            private.hidden-flag = $(1.exists $(fun spec, $(spec.is-named __dll_hidden)))
-            foreach(def, $3)
+            private.hidden-flag = $(1.exists spec => $(spec.is-named __dll_hidden))
+            foreach(def => ..., $3)
                 private.v = $(def.to-id)
                 private.ty = $(def.ty)
                 add-type-name($v)

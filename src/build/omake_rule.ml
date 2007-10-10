@@ -626,7 +626,7 @@ let find_alias_exn shell_obj venv pos loc exe =
       in
       let code, venv, value, reraise =
          try
-            let venv, v = f venv pos loc [v] in
+            let venv, v = f venv pos loc [v] [] in
             let code =
                match v with
                   ValOther (ValExitCode code) ->
@@ -774,14 +774,14 @@ let lazy_command venv pos command =
 
 let lazy_commands venv pos commands =
    match eval_value venv pos commands with
-      ValBody (env, el, export) ->
-         List.map (lazy_command (venv_with_env venv env) pos) el, export
+      ValBody (el, export) ->
+         List.map (lazy_command venv pos) el, export
     | _ ->
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))
 
 let exp_list_of_commands venv pos commands =
    match eval_value venv pos commands with
-      ValBody (_, el, _) ->
+      ValBody (el, _) ->
          el
     | _ ->
          raise (OmakeFatalErr (pos, StringValueError ("unknown rule commands", commands)))

@@ -11,21 +11,17 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURLOCE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * Author: Jason Hickey
  * @email{jyh@cs.caltech.edu}
@@ -63,11 +59,14 @@ let debug_lex =
  *    ModeNormal: normal lexing mode
  *    ModeString s: parsing a literal string, dollar sequences are still expanded,
  *       s is the quotation delimiter
+ *    ModeSkipString s :parsing a literal string, dollar sequences are still expanded,
+ *       s is the quotation delimiter, skip the token if it is a quote that is not s
  *    ModeQuote s: parsing a literal string, dollar sequences are still expanded,
  *       escape sequences are allowed, s is the quotation delimiter.
  *)
 type mode =
    ModeNormal
+ | ModeSkipString of string
  | ModeString of string
  | ModeQuote of string
 
@@ -85,7 +84,7 @@ type lexmode =
  * Parsing results.
  *)
 type parse_item =
-   ParseExp of exp list
+   ParseExp of Omake_ast.exp list
  | ParseError
  | ParseEOF
 
@@ -144,6 +143,8 @@ let pp_print_token buf = function
        fprintf buf "left parenthesis: %s" s
   | TokRightParen (s, _) ->
        fprintf buf "right parenthesis: %s" s
+  | TokArrow (s, _) ->
+       fprintf buf "arrow: %s" s
   | TokComma (s, _) ->
        fprintf buf "comma: %s" s
   | TokColon (s, _) ->
@@ -171,7 +172,7 @@ let pp_print_token buf = function
   | TokVar (_, s, _) ->
        fprintf buf "var: %s" s
   | TokString (s, _) ->
-       fprintf buf "string: %s" s
+       fprintf buf "string: \"%s\"" (String.escaped s)
   | TokBeginQuote (s, _) ->
        fprintf buf "begin-quote: %s" s
   | TokEndQuote (s, _) ->
@@ -350,6 +351,24 @@ let lexeme_string state lexbuf =
       s, loc
 
 (*
+ * Remove any trailing dots from the string.
+ *)
+let split_nl_string s =
+   let len = String.length s in
+   let rec search i =
+      if i = len then
+         s, ""
+      else
+         match s.[i] with
+             '\n'
+           | '\r' ->
+                 search (succ i)
+           | _ ->
+                 String.sub s 0 i, String.sub s i (len - i)
+   in
+      search 0
+
+(*
  * Process a name.
  *)
 let lexeme_name state lexbuf =
@@ -377,6 +396,8 @@ let lexeme_name state lexbuf =
        | "autoload"
        | "declare"
        | "value"
+       | "with"
+       | "as"
        | "while"
        | "do"
        | "set" ->
@@ -454,6 +475,10 @@ let lexeme_char state lexbuf =
            TokComma (s, loc)
        | '=' ->
            TokEq (s, loc)
+       | '.' ->
+           TokDot (s, loc)
+       | '%' ->
+           TokVar (NormalApply, s, loc)
        | '(' ->
            push_paren state;
            TokLeftParen (s, loc)
@@ -461,7 +486,25 @@ let lexeme_char state lexbuf =
            pop_paren state;
            TokRightParen (s, loc)
        | _   ->
-           syntax_error state ("illegal character: " ^ s) lexbuf
+           TokString (s, loc)
+
+(*
+ * Special string.
+ *)
+let lexeme_special_string state lexbuf =
+   let s, loc = lexeme_string state lexbuf in
+      match s with
+         "=>" ->
+            TokArrow (s, loc)
+       | "::" ->
+            TokDoubleColon (s, loc)
+       | "+=" ->
+            TokEq (s, loc)
+       | "[]" ->
+            TokArray (s, loc)
+       | _ ->
+            TokString (s, loc)
+
 
 (*
  * Count the indentation in a string of characters.
@@ -539,13 +582,14 @@ let squote         = ['\'']+
 let dquote         = ['"']+
 let pipe           = ['|']+
 let quote          = squote | dquote | pipe
+let quote_opt      = quote?
 
 (*
  * Special variables.
  *)
 let dollar         = '$' ['`' ',' '$']
 let paren_dollar   = '$' ['`' ',']?
-let special_char   = ['@' '&' '*' '<' '>' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
+let special_char   = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
 let special_var    = paren_dollar special_char
 
 (*
@@ -556,12 +600,15 @@ let special_colon   = ':' name ':'
 (*
  * Escape sequences.
  *)
-let special_inline_char = ['$' '(' ')' ',' '=']
-let special_char        = ['$' '(' ')' ':' ',' '=']
-let special_esc         = ['#' '\\' '\'' '"' ' ' '\t']
+let esc_char            = '\\' ['$' '(' ')' ':' ',' '=' '#' '\\' '\'' '"' ' ' '\t']
 let esc_quote           = '\\' ['\\' '\'' '"']
-let esc_char            = '\\' (special_char | special_esc)
 let esc_line            = '\\' strict_eol
+
+(*
+ * Special sequences.
+ *)
+let special_char        = ['$' '(' ')' ':' ',' '=' '.' '%']
+let special_string      = "=>" | "::" | "+=" | "[]" | "..." | "[...]"
 
 (*
  * Other stuff that is not names or special characters.
@@ -597,10 +644,6 @@ rule lex_main state = parse
    }
  | name
    { lexeme_name state lexbuf }
- | '%'
-   { let s, loc = lexeme_string state lexbuf in
-        TokVar (NormalApply, s, loc)
-   }
  | ['\'' '"']
    { let id, loc = lexeme_string state lexbuf in
      let mode = ModeQuote id in
@@ -631,25 +674,11 @@ rule lex_main state = parse
    { lexeme_dollar state lexbuf }
  | special_char
    { lexeme_char state lexbuf }
- | "::"
-   { let s, loc = lexeme_string state lexbuf in
-        TokDoubleColon (s, loc)
-   }
+ | special_string
+   { lexeme_special_string state lexbuf }
  | special_colon
    { let s, loc = lexeme_string state lexbuf in
         TokNamedColon (s, loc)
-   }
- | "+="
-   { let s, loc = lexeme_string state lexbuf in
-        TokEq (s, loc)
-   }
- | '.'
-   { let s, loc = lexeme_string state lexbuf in
-        TokDot (s, loc)
-   }
- | "[]"
-   { let s, loc = lexeme_string state lexbuf in
-        TokArray (s, loc)
    }
  | other
    { let s, loc = lexeme_string state lexbuf in
@@ -732,7 +761,7 @@ and lex_quote state = parse
  | eof
    { syntax_error state "unterminated string" lexbuf }
  | _
-   { let s, loc = lexeme_string state lexbuf in
+   { let s, _ = lexeme_string state lexbuf in
         syntax_error state ("illegal character in string constant: " ^ String.escaped s) lexbuf
    }
 
@@ -742,13 +771,7 @@ and lex_quote state = parse
  * processed.
  *)
 and lex_string state = parse
-   strict_nl
-   { let s, loc = lexeme_string state lexbuf in
-        set_next_line state lexbuf;
-        state.current_fill_ok <- true;
-        TokString (s, loc)
-   }
- | '\\'
+   '\\'
  | string_text
    { let s, loc = lexeme_string state lexbuf in
         TokString (s, loc)
@@ -772,8 +795,28 @@ and lex_string state = parse
    { push_dollar state ModeNormal;
      lexeme_dollar state lexbuf
    }
+ | strict_nl
+   { let s, loc = lexeme_string state lexbuf in
+     let () =
+        match state.current_mode with
+           ModeString s ->
+              push_mode state (ModeSkipString s)
+         | _ ->
+              ()
+     in
+        set_next_line state lexbuf;
+        state.current_fill_ok <- true;
+        TokString (s, loc)
+   }
  | esc_line
    { let loc = lexeme_loc state lexbuf in
+     let () =
+        match state.current_mode with
+           ModeString s ->
+              push_mode state (ModeSkipString s)
+         | _ ->
+              ()
+     in
         set_next_line state lexbuf;
         state.current_fill_ok <- true;
         TokString ("", loc)
@@ -785,6 +828,18 @@ and lex_string state = parse
         syntax_error state ("illegal character: " ^ String.escaped s) lexbuf
    }
 
+and lex_skip_string state = parse
+   quote_opt
+   { let s, loc = lexeme_string state lexbuf in
+        pop_mode state;
+        match state.current_mode with
+           ModeString s' when s' = s ->
+              pop_mode state;
+              TokEndQuote ("", loc)
+         | _ ->
+              TokString ("", loc)
+   }
+
 (*
  * Text, but we don't expand variables.
  *)
@@ -794,7 +849,7 @@ and lex_literal state buf equote = parse
         set_next_line state lexbuf;
         state.current_fill_ok <- true;
         Buffer.add_string buf s;
-        lex_literal state buf equote lexbuf
+        lex_literal_skip state buf equote lexbuf
    }
  | literal_text
    { let s, loc = lexeme_string state lexbuf in
@@ -817,6 +872,16 @@ and lex_literal state buf equote = parse
  | _
    { let s, loc = lexeme_string state lexbuf in
         syntax_error state ("illegal character: " ^ String.escaped s) lexbuf
+   }
+
+and lex_literal_skip state buf equote = parse
+   quote_opt
+   { let s, loc = lexeme_string state lexbuf in
+        if s = equote then
+           let s = Buffer.contents buf in
+              s, loc
+        else
+           lex_literal state buf equote lexbuf
    }
 
 (*
@@ -1031,6 +1096,8 @@ let lex_line state lexbuf =
             lex_main state lexbuf
        | ModeString _ ->
             lex_string state lexbuf
+       | ModeSkipString _ ->
+            lex_skip_string state lexbuf
        | ModeQuote _ ->
             lex_quote state lexbuf
    in

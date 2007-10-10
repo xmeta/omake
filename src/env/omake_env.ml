@@ -327,7 +327,7 @@ end;;
 
 module IntTable = Lm_map.LmMake (IntCompare);;
 
-type prim_fun_data = venv -> pos -> loc -> value list -> venv * value
+type prim_fun_data = venv -> pos -> loc -> value list -> keyword_value list -> venv * value
 
 type venv_runtime =
    { venv_channels               : Lm_channel.t IntHandleTable.t;
@@ -356,6 +356,13 @@ type tok =
 type include_scope =
    IncludePervasives
  | IncludeAll
+
+(*
+ * Full and partial applications.
+ *)
+type partial_apply =
+   FullApply    of venv * value list * keyword_value list
+ | PartialApply of env * keyword_set * var list * keyword_value list
 
 (************************************************************************
  * Access to the globals.
@@ -1215,41 +1222,92 @@ let venv_add_var venv v s =
                         venv_static  = SymbolTable.add static v s
             }
 
-let venv_add_args venv pos loc env vl sl =
-   let len1 = List.length vl in
-   let len2 = List.length sl in
+(*
+ * Add the arguments given an environment.
+ *)
+let venv_add_args venv pos loc static params args keywords kargs =
+   let static =
+      List.fold_left (fun static (v, arg) ->
+            if SymbolSet.mem keywords v then
+               SymbolTable.add static v arg
+            else
+               raise (OmakeException (loc_pos loc pos, StringVarError ("no such keyword", v)))) static kargs
+   in
+   let len1 = List.length params in
+   let len2 = List.length args in
    let _ =
       if len1 <> len2 then
          raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
    in
-      { venv with venv_this = List.fold_left2 SymbolTable.add venv.venv_this vl sl;
-                  venv_static = List.fold_left2 SymbolTable.add env vl sl
-      }
+      { venv with venv_static = List.fold_left2 SymbolTable.add static params args }
 
 (*
- * !!!HACK!!!
- *
- * This is here only to get around the problem with
- * not finding binding occurrences in argument lists.
- * This should go away!
- *
- * Sat Jul  2 07:16:09 PDT 2005
+ * Add the arguments to the given static environment.
  *)
-let venv_add_args_hack venv pos loc env vl sl =
-   let len1 = List.length vl in
-   let len2 = List.length sl in
-   let _ =
-      if len1 <> len2 then
-         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
-   in
-   let { venv_this = this;
-         venv_dynamic = dynamic
-       } = venv
-   in
-      { venv with venv_this = List.fold_left2 SymbolTable.add this vl sl;
-                  venv_static = List.fold_left2 SymbolTable.add env vl sl;
-                  venv_dynamic = List.fold_left2 SymbolTable.add dynamic vl sl
-      }
+let venv_with_args venv pos loc params args keywords kargs =
+   venv_add_args venv pos loc venv.venv_static params args keywords kargs
+
+(*
+ * Curried-applications.
+ *
+ * XXX: this needs to be checked, and performance improved too.
+ *
+ * Here is the idea:
+ *
+ * - Given a normal arg
+ *      + add the value to the env
+ *      + if params = [] then call the function
+ * - Given a keyword arg
+ *      + if the keyword is valid here, add it to the env, subtract from keywords
+ *      + if not valid here, add to pending kargs
+ *
+ * This is the full-application version.  We still need the partial-application
+ * version.
+ *)
+let rec apply_curry_args venv pos loc env kargs params args =
+   match params, args with
+      [], _ ->
+         { venv with venv_static = env }, args, kargs
+    | _, [] ->
+         raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact (List.length params), 0)))
+    | v :: params, arg :: args ->
+         apply_curry_args venv pos loc (SymbolTable.add env v arg) kargs params args
+
+let rec venv_add_curry_args venv pos loc env params args keywords kargs1 kargs2 =
+   match kargs2 with
+      ((v, arg) as karg) :: kargs2 ->
+         if SymbolSet.mem keywords v then
+            let env = SymbolTable.add env v arg in
+            let keywords = SymbolSet.remove keywords v in
+               venv_add_curry_args venv pos loc env params args keywords kargs1 kargs2
+         else
+            venv_add_curry_args venv pos loc env params args keywords (karg :: kargs1) kargs2
+    | [] ->
+         apply_curry_args venv pos loc env kargs1 params args
+
+(*
+ * Also provide a form for partial applications.
+ *)
+let rec apply_partial_args venv pos loc env keywords kargs params args =
+   match params, args with
+      [], _ ->
+         FullApply ({ venv with venv_static = env }, args, kargs)
+    | _, [] ->
+         PartialApply (env, keywords, params, kargs)
+    | v :: params, arg :: args ->
+         apply_partial_args venv pos loc (SymbolTable.add env v arg) keywords kargs params args
+
+let rec venv_add_partial_args venv pos loc env params args keywords kargs1 kargs2 =
+   match kargs2 with
+      ((v, arg) as karg) :: kargs2 ->
+         if SymbolSet.mem keywords v then
+            let env = SymbolTable.add env v arg in
+            let keywords = SymbolSet.remove keywords v in
+               venv_add_partial_args venv pos loc env params args keywords kargs1 kargs2
+         else
+            venv_add_partial_args venv pos loc env params args keywords (karg :: kargs1) kargs2
+    | [] ->
+         apply_partial_args venv pos loc env keywords kargs1 params args
 
 (*
  * The system environment.
@@ -2226,7 +2284,7 @@ let venv_add_implicit2_rule venv pos loc multiple patterns locks sources scanner
  * Add an explicit rule.
  *)
 let venv_add_explicit_rules venv pos loc multiple targets locks sources scanners values body =
-   let _pos = string_pos "venv_add_explicit_rule" pos in
+   let _pos = string_pos "venv_add_explicit_rules" pos in
    let target_args = List.map (venv_intern_rule_target venv multiple) targets in
    let lock_args = List.map (intern_source venv) locks in
    let source_args = List.map (intern_source venv) sources in
@@ -2749,7 +2807,7 @@ let export_item pos venv_dst venv_src = function
  | ExportVar (VarThis (_, v)) ->
       { venv_dst with venv_this = copy_var pos venv_dst.venv_this venv_src.venv_this v }
  | ExportVar (VarVirtual (_, v)) ->
-      { venv_dst with venv_this = copy_var pos venv_dst.venv_dynamic venv_src.venv_dynamic v }
+      { venv_dst with venv_dynamic = copy_var pos venv_dst.venv_dynamic venv_src.venv_dynamic v }
  | ExportVar (VarGlobal (_, v)) ->
       (*
        * For now, we don't know which scope to use, so we

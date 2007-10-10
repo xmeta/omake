@@ -140,7 +140,8 @@ val eval_prim_value : venv -> pos -> value -> value
 (*
  * Evaluate a function application.
  *)
-val eval_apply : venv -> pos -> loc -> value -> value list -> venv * value
+val eval_apply : venv -> pos -> loc -> value -> value list -> keyword_value list -> venv * value
+val eval_partial_apply : venv -> pos -> loc -> value -> value list -> keyword_value list -> venv * value
 
 (*
  * Conversions.

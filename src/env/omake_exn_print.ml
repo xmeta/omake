@@ -80,6 +80,9 @@ let pp_print_obj_err buf obj =
 (*
  * Exception printer.
  *)
+let pp_print_return_id buf (loc, s) =
+   fprintf buf "%s (%a)" s pp_print_location loc
+
 let pp_print_exn buf exn =
    match exn with
       OmakeException (pos, exn) ->
@@ -106,9 +109,10 @@ let pp_print_exn buf exn =
             (if code = 0 then "warning" else "error")
             pp_print_pos pos
             code
-    | Return (loc, _) ->
-         fprintf buf "@[<v 3>*** omake internal error:@ %a@ uncaught return@]" (**)
+    | Return (loc, _, id) ->
+         fprintf buf "@[<v 3>*** omake error:@ %a@ uncaught return from %a@]" (**)
             pp_print_location loc
+            pp_print_return_id id
     | exn ->
          fprintf buf "@[<v 3>*** omake error:@ %a@]" pp_print_other_exn exn
 

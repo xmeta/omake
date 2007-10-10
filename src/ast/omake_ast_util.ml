@@ -91,17 +91,17 @@ let key_of_exp = function
  | KeyExp _
  | KeyDefExp _
  | KeyDefBodyExp _ ->
-     "key"
+      "key"
  | RuleExp _ ->
-     "rule"
+      "rule"
  | BodyExp _ ->
-     "body"
+      "body"
  | ShellExp _ ->
-     "shell"
+      "shell"
  | CatchExp _ ->
-     "catch"
+      "catch"
  | ClassExp _ ->
-     "class"
+      "class"
 
 (*
  * In an argument list, each ... is replaced by the body.
@@ -109,8 +109,8 @@ let key_of_exp = function
  * first argument.
  *)
 let is_elide_exp = function
-   SequenceExp ([StringExp (".", _); StringExp (".", _); StringExp (".", _)], _)
- | SequenceExp ([StringExp ("[", _); StringExp (".", _); StringExp (".", _); StringExp (".", _); StringExp ("]", _)], _) ->
+   StringExp ("...", _)
+ | StringExp ("[...]", _) ->
       true
  | _ ->
       false
@@ -131,13 +131,18 @@ let add_elide_code loc code1 code2 =
 
 let scan_elide_args code args =
    List.fold_left (fun code arg ->
-         match arg with
-            SequenceExp ([StringExp (".", _); StringExp (".", _); StringExp (".", _)], loc) ->
-               add_elide_code loc code ColonBody
-          | SequenceExp ([StringExp ("[", _); StringExp (".", _); StringExp (".", _); StringExp (".", _); StringExp ("]", _)], loc) ->
-               add_elide_code loc code ArrayBody
-          | _ ->
-               code) code args
+         let arg =
+            match arg with
+               NormalArg (_, e) -> e
+             | ArrowArg (_, e) -> e
+         in
+            match arg with
+               StringExp ("...", loc) ->
+                  add_elide_code loc code ColonBody
+             | StringExp ("[...]", loc) ->
+                  add_elide_code loc code ArrayBody
+             | _ ->
+                  code) code args
 
 let scan_body_flag code e =
    match e with
@@ -148,9 +153,6 @@ let scan_body_flag code e =
     | _ ->
          code
 
-(*
- * Update the body of an expression.
- *)
 let update_body_args loc code body args =
    let body =
       match code with
@@ -163,17 +165,32 @@ let update_body_args loc code body args =
    in
    let rev_args, found =
       List.fold_left (fun (args, found) arg ->
-            if is_elide_exp arg then
-               body :: args, true
-            else
+            let arg, found =
+               match arg with
+                  NormalArg (v_opt, e) ->
+                     if is_elide_exp e then
+                        NormalArg (v_opt, body), true
+                     else
+                        arg, found
+                | ArrowArg (params, e) ->
+                     if is_elide_exp e then
+                        ArrowArg (params, body), true
+                     else
+                        arg, found
+            in
                arg :: args, found) ([], false) args
    in
    let args = List.rev rev_args in
       if found then
          args
       else
-         body :: args
+         NormalArg (None, body) :: args
 
+(*
+ * In an argument list, each ... is replaced by the body.
+ * If there is no elision, then the body is added as the
+ * first argument.
+ *)
 let update_body_exp e code body =
    match e with
       NullExp _

@@ -67,7 +67,7 @@ type renv =
  *)
 type env =
    { env_warnings      : loc option ref;
-     env_in_function   : bool;
+     env_in_function   : return_id option;
      env_in_cond       : bool;
      env_section_tail  : bool;
      env_function_tail : bool
@@ -105,7 +105,7 @@ let renv_return =
  *)
 let env_empty () =
    { env_warnings      = ref None;
-     env_in_function   = false;
+     env_in_function   = None;
      env_in_cond       = false;
      env_section_tail  = false;
      env_function_tail = false
@@ -113,7 +113,7 @@ let env_empty () =
 
 let env_object env =
    { env_warnings      = env.env_warnings;
-     env_in_function   = false;
+     env_in_function   = None;
      env_in_cond       = false;
      env_section_tail  = false;
      env_function_tail = false
@@ -121,7 +121,7 @@ let env_object env =
 
 let env_object_tail env =
    { env_warnings      = env.env_warnings;
-     env_in_function   = false;
+     env_in_function   = None;
      env_in_cond       = false;
      env_section_tail  = true;
      env_function_tail = true
@@ -130,12 +130,21 @@ let env_object_tail env =
 (*
  * Fresh environment for a function body.
  *)
-let env_fun env =
+let new_return_id loc v =
+   let _, v = var_of_var_info v in
+      loc, Lm_symbol.to_string v
+
+let env_fun env id =
    { env_warnings      = env.env_warnings;
-     env_in_function   = true;
+     env_in_function   = Some id;
      env_in_cond       = false;
      env_section_tail  = true;
      env_function_tail = true
+   }
+
+let env_anon_fun env =
+   { env with env_in_cond       = true;
+              env_section_tail  = true
    }
 
 let update_return renv has_return =
@@ -145,17 +154,20 @@ let update_return renv has_return =
  * Error checkers.
  *)
 let check_return_placement env loc =
-   if not env.env_in_function then
-      let pos = string_pos "check_in_function" (loc_exp_pos loc) in
-      let print_error buf =
-         fprintf buf "@[<v 0>Misplaced return statement.";
-         fprintf buf "@ The return is not within a function.@]"
-      in
-         raise (OmakeException (pos, LazyError print_error))
-   else if not (env.env_function_tail || env.env_section_tail && env.env_in_cond) then begin
-      eprintf "@[<v 3>*** omake warning: %a@ statements after this return are not reached@]@." pp_print_location loc;
-      env.env_warnings := Some loc
-   end
+   match env.env_in_function with
+      None ->
+         let pos = string_pos "check_in_function" (loc_exp_pos loc) in
+         let print_error buf =
+            fprintf buf "@[<v 0>Misplaced return statement.";
+            fprintf buf "@ The return is not within a function.@]"
+         in
+            raise (OmakeException (pos, LazyError print_error))
+    | Some id ->
+         if not (env.env_function_tail || env.env_section_tail && env.env_in_cond) then begin
+            eprintf "@[<v 3>*** omake warning: %a@ statements after this return are not reached@]@." pp_print_location loc;
+            env.env_warnings := Some loc
+         end;
+         id
 
 let check_section_tail env loc =
    if not env.env_section_tail then
@@ -163,7 +175,7 @@ let check_section_tail env loc =
          raise (OmakeException (pos, StringError "This should be the last expression in the section."))
 
 let check_object_tail env loc =
-   if env.env_in_function || not env.env_section_tail then
+   if env.env_in_function <> None || not env.env_section_tail then
       let pos = string_pos "check_object_tail" (loc_exp_pos loc) in
          raise (OmakeException (pos, StringError "This should be the last expression in the object."))
 
@@ -172,57 +184,65 @@ let check_object_tail env loc =
  *)
 let rec build_string env s =
    let env = { env with env_function_tail = false } in
-   match s with
-      NoneString _
-    | ConstString _
-    | ThisString _
-    | KeyApplyString _
-    | VarString _ ->
-         false, s
-    | ApplyString (loc, strategy, v, args) ->
-         let has_return, args = build_string_list env args in
-            has_return, ApplyString (loc, strategy, v, args)
-    | SuperApplyString (loc, strategy, v1, v2, args) ->
-         let has_return, args = build_string_list env args in
-            has_return, SuperApplyString (loc, strategy, v1, v2, args)
-    | MethodApplyString (loc, strategy, v, vl, args) ->
-         let has_return, args = build_string_list env args in
-            has_return, MethodApplyString (loc, strategy, v, vl, args)
-    | SequenceString (loc, sl) ->
-         let has_return, sl = build_string_list env sl in
-            has_return, SequenceString (loc, sl)
-    | ArrayString (loc, sl) ->
-         let has_return, sl = build_string_list env sl in
-            has_return, ArrayString (loc, sl)
-    | ArrayOfString (loc, s) ->
-         let has_return, s = build_string env s in
-            has_return, ArrayOfString (loc, s)
-    | QuoteString (loc, sl) ->
-         let has_return, sl = build_string_list env sl in
-            has_return, QuoteString (loc, sl)
-    | QuoteStringString (loc, c, sl) ->
-         let has_return, sl = build_string_list env sl in
-            has_return, QuoteStringString (loc, c, sl)
-    | ObjectString (loc, el, export) ->
-         let el = build_object_exp env el in
-            (* XXX: we should handle the case when an object contains a return *)
-            false, ObjectString (loc, el, export)
-    | BodyString (loc, el, export) ->
-         let renv, el = build_sequence_exp env el in
-            renv.renv_has_return, BodyString (loc, el, export)
-    | ExpString (loc, el, export) ->
-         let renv, el = build_sequence_exp env el in
-            renv.renv_has_return, ExpString (loc, el, export)
-    | CasesString (loc, cases) ->
-         let env = { env with env_in_cond = true } in
-         let has_return, cases =
-            List.fold_left (fun (has_return, cases) (v, s, el, export) ->
-                  let has_return2, s = build_string env s in
-                  let renv, e = build_sequence_exp env el in
-                  let has_return = has_return || has_return2 || renv.renv_has_return in
-                     has_return, (v, s, e, export) :: cases) (false, []) cases
-         in
-            has_return, CasesString (loc, List.rev cases)
+      match s with
+         NoneString _
+       | ConstString _
+       | ThisString _
+       | KeyApplyString _
+       | VarString _ ->
+            false, s
+       | FunString (loc, opt_params, keywords, params, e, export) ->
+            (* Returns propagate -through- anonymous functions *)
+            let renv, e = build_sequence_exp (env_anon_fun env) e in
+            let has_return, opt_params = build_keyword_string_list env opt_params in
+               renv.renv_has_return || has_return, FunString (loc, opt_params, keywords, params, e, export)
+       | ApplyString (loc, strategy, v, args, kargs) ->
+            let has_return1, args = build_string_list env args in
+            let has_return2, kargs = build_keyword_string_list env kargs in
+               has_return1 || has_return2, ApplyString (loc, strategy, v, args, kargs)
+       | SuperApplyString (loc, strategy, v1, v2, args, kargs) ->
+            let has_return1, args = build_string_list env args in
+            let has_return2, kargs = build_keyword_string_list env kargs in
+               has_return1 || has_return2, SuperApplyString (loc, strategy, v1, v2, args, kargs)
+       | MethodApplyString (loc, strategy, v, vl, args, kargs) ->
+            let has_return1, args = build_string_list env args in
+            let has_return2, kargs = build_keyword_string_list env kargs in
+               has_return1 || has_return2, MethodApplyString (loc, strategy, v, vl, args, kargs)
+       | SequenceString (loc, sl) ->
+            let has_return, sl = build_string_list env sl in
+               has_return, SequenceString (loc, sl)
+       | ArrayString (loc, sl) ->
+            let has_return, sl = build_string_list env sl in
+               has_return, ArrayString (loc, sl)
+       | ArrayOfString (loc, s) ->
+            let has_return, s = build_string env s in
+               has_return, ArrayOfString (loc, s)
+       | QuoteString (loc, sl) ->
+            let has_return, sl = build_string_list env sl in
+               has_return, QuoteString (loc, sl)
+       | QuoteStringString (loc, c, sl) ->
+            let has_return, sl = build_string_list env sl in
+               has_return, QuoteStringString (loc, c, sl)
+       | ObjectString (loc, el, export) ->
+            let el = build_object_exp env el in
+               (* XXX: we should handle the case when an object contains a return *)
+               false, ObjectString (loc, el, export)
+       | BodyString (loc, el, export) ->
+            let renv, el = build_sequence_exp env el in
+               renv.renv_has_return, BodyString (loc, el, export)
+       | ExpString (loc, el, export) ->
+            let renv, el = build_sequence_exp env el in
+               renv.renv_has_return, ExpString (loc, el, export)
+       | CasesString (loc, cases) ->
+            let env = { env with env_in_cond = true } in
+            let has_return, cases =
+               List.fold_left (fun (has_return, cases) (v, s, el, export) ->
+                     let has_return2, s = build_string env s in
+                     let renv, e = build_sequence_exp env el in
+                     let has_return = has_return || has_return2 || renv.renv_has_return in
+                        has_return, (v, s, e, export) :: cases) (false, []) cases
+            in
+               has_return, CasesString (loc, List.rev cases)
 
 and build_string_list env sl =
    let has_return, sl =
@@ -232,21 +252,31 @@ and build_string_list env sl =
    in
       has_return, List.rev sl
 
+and build_keyword_string_list env kargs =
+   let has_return, kargs =
+      List.fold_left (fun (has_return, sl) (v, s) ->
+            let has_return2, s = build_string env s in
+               has_return || has_return2, (v, s) :: sl) (false, []) kargs
+   in
+      has_return, List.rev kargs
+
 (*
  * Convert the current expression.
  *)
 and build_exp env e =
    match e with
-      LetFunExp (loc, v, vl, vars, el, export) ->
-         let renv, el = build_sequence_exp (env_fun env) el in
+      LetFunExp (loc, v, vl, curry, opt_params, keywords, vars, el, export) ->
+         let id = new_return_id loc v in
+         let renv, el = build_sequence_exp (env_fun env id) el in
          let el =
             if renv.renv_has_return then
-               [ReturnBodyExp (loc, el)]
+               [ReturnBodyExp (loc, el, id)]
             else
                el
          in
-         let e = LetFunExp (loc, v, vl, vars, el, export) in
-            renv_empty, e
+         let has_return, opt_params = build_keyword_string_list env opt_params in
+         let e = LetFunExp (loc, v, vl, curry, opt_params, keywords, vars, el, export) in
+            update_return renv_empty has_return, e
     | LetObjectExp (loc, v, vl, s, el, export) ->
          let el = build_object_exp env el in
          let has_return, s = build_string env s in
@@ -269,9 +299,9 @@ and build_exp env e =
          let renv, el = build_sequence_exp env el in
          let e = SectionExp (loc, s, el, export) in
             update_return renv has_return, e
-    | ReturnBodyExp (loc, el) ->
+    | ReturnBodyExp (loc, el, id) ->
          let renv, el = build_sequence_exp env el in
-         let el = ReturnBodyExp (loc, el) in
+         let el = ReturnBodyExp (loc, el, id) in
             renv, el
     | LetVarExp (loc, v, vl, kind, s) ->
          let has_return, s = build_string env s in
@@ -282,18 +312,21 @@ and build_exp env e =
          let has_return2, sl = build_string_list env sl in
          let e = IncludeExp (loc, s, sl) in
             update_return renv_empty (has_return1 || has_return2), e
-    | ApplyExp (loc, v, args) ->
-         let has_return, args = build_string_list env args in
-         let e = ApplyExp (loc, v, args) in
-            update_return renv_empty has_return, e
-    | SuperApplyExp (loc, v1, v2, args) ->
-         let has_return, args = build_string_list env args in
-         let e = SuperApplyExp (loc, v1, v2, args) in
-            update_return renv_empty has_return, e
-    | MethodApplyExp (loc, v, vl, args) ->
-         let has_return, args = build_string_list env args in
-         let e = MethodApplyExp (loc, v, vl, args) in
-            update_return renv_empty has_return, e
+    | ApplyExp (loc, v, args, kargs) ->
+         let has_return1, args = build_string_list env args in
+         let has_return2, kargs = build_keyword_string_list env kargs in
+         let e = ApplyExp (loc, v, args, kargs) in
+            update_return renv_empty (has_return1 || has_return2), e
+    | SuperApplyExp (loc, v1, v2, args, kargs) ->
+         let has_return1, args = build_string_list env args in
+         let has_return2, kargs = build_keyword_string_list env kargs in
+         let e = SuperApplyExp (loc, v1, v2, args, kargs) in
+            update_return renv_empty (has_return1 || has_return2), e
+    | MethodApplyExp (loc, v, vl, args, kargs) ->
+         let has_return1, args = build_string_list env args in
+         let has_return2, kargs = build_keyword_string_list env kargs in
+         let e = MethodApplyExp (loc, v, vl, args, kargs) in
+            update_return renv_empty (has_return1 || has_return2), e
     | LetKeyExp (loc, v, kind, s) ->
          let has_return, s = build_string env s in
          let e = LetKeyExp (loc, v, kind, s) in
@@ -313,13 +346,13 @@ and build_exp env e =
          let has_return, s = build_string env s in
          let e = StringExp (loc, s) in
             update_return renv_value has_return, e
-    | ReturnExp (loc, s) ->
-         check_return_placement env loc;
+    | ReturnExp (loc, s, _) ->
+         let id = check_return_placement env loc in
          let has_return, s = build_string env s in
             if env.env_function_tail then
                update_return renv_final has_return, StringExp (loc, s)
             else
-               renv_return, ReturnExp (loc, s)
+               renv_return, ReturnExp (loc, s, id)
     | ReturnObjectExp (loc, _)
     | ReturnSaveExp loc ->
          check_object_tail env loc;

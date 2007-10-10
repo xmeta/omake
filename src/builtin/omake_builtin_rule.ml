@@ -156,7 +156,7 @@ let phony_targets =
  * \end{verbatim}
  * \end{doc}
  *)
-let set_options venv pos loc args =
+let set_options venv pos loc args kargs =
    let pos = string_pos "OMakeFlags" pos in
       match args with
          [arg] ->
@@ -288,11 +288,11 @@ let cmp_version venv pos loc args =
  * use by \Prog{omake} to define these variables for the first time.
  * \end{doc}
  *)
-let define_command_vars venv pos loc args =
+let define_command_vars venv pos loc args kargs =
    let pos = string_pos "DefineCommandVars" pos in
-      match args with
-         []
-       | [_] ->
+      match args, kargs with
+         [], []
+       | [_], [] ->
             venv_add_command_defs venv, ValNone
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (0, 1), List.length args)))

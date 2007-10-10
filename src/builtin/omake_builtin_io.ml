@@ -1795,7 +1795,7 @@ struct
             print_fd = fd
           } = info
       in
-         ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd)])
+         ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd)] [])
 
    let apply2 info arg1 arg2 =
       let { print_venv = venv;
@@ -1804,7 +1804,7 @@ struct
             print_fd = fd
           } = info
       in
-         ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd); arg2])
+         ignore (eval_apply venv pos loc arg1 [ValChannel (OutChannel, fd); arg2] [])
 
    (*
     * Catch too many arguments.

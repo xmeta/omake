@@ -70,44 +70,21 @@ open Pos
  *     F(X, Y) =
  *        return($(addsuffix $(Y), $(X)))
  *
- *     F = $(fun X, Y, $(addsuffix $(Y), $(X)))
+ *     F = $(fun X, Y => $(addsuffix $(Y), $(X)))
  *
  *     F =
- *        fun(X, Y)
+ *        fun(X, Y) =>
  *           value $(addsuffix $(Y), $(X))
  * \end{verbatim}
  * \end{doc}
  *)
-let param_list venv pos loc args =
-   let rec collect params args =
-      match args with
-         [] ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
-       | [body] ->
-            List.rev params, body
-       | param :: args ->
-            let param = Lm_symbol.add (string_of_value venv pos param) in
-               collect (param :: params) args
-   in
-      collect [] args
-
 let fun_fun venv pos loc args =
    let pos = string_pos "fun" pos in
-   let env = venv_get_env venv in
       match args with
-         ValBody (_, body, export) :: params ->
-            let params =
-               List.map (fun param ->
-                     Lm_symbol.add (string_of_value venv pos param)) params
-            in
-               ValFun (ArityExact (List.length params), env, params, body, export)
+         [arg] ->
+            arg
        | _ ->
-            let params, body = param_list venv pos loc args in
-               match body with
-                  ValBody (_, body, export) ->
-                     ValFun (ArityExact (List.length params), env, params, body, export)
-                | _ ->
-                     ValFunValue (ArityExact (List.length params), env, params, body)
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
 (*
  * Function application.
@@ -132,9 +109,21 @@ let fun_fun venv pos loc args =
  *     X = F(a b c, .c)
  *     X = $(apply $(F), a b c, .c)
  * \end{verbatim}
+ *
+ * The \verb+apply+ form can also be used for partial applications,
+ * where a function is passed fewer arguments than it expects.  The
+ * result is a function that takes the remaining arguments,
+ * and calls the function with the full set of arguments.
+ *
+ * \begin{verbatim}
+ *     add2(i, j) =
+ *        add($i, $j)
+ *     succ = $(apply $(add2), 1)
+ *     i = $(succ 5)   # Computes 1+5
+ * \end{verbatim}
  * \end{doc}
  *)
-let apply_fun venv pos loc args =
+let apply_fun venv pos loc args kargs =
    let pos = string_pos "apply" pos in
    let fun_val, args =
       match args with
@@ -143,7 +132,7 @@ let apply_fun venv pos loc args =
        | [] ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, 0)))
    in
-      eval_apply venv pos loc fun_val args
+      eval_partial_apply venv pos loc fun_val args kargs
 
 (*
  * Function application.
@@ -167,9 +156,11 @@ let apply_fun venv pos loc args =
  *        .c
  *     Z = $(applya $(F), $(args))
  * \end{verbatim}
+ *
+ * The \verb+applya+ form can also be used for partial applications.
  * \end{doc}
  *)
-let applya_fun venv pos loc args =
+let applya_fun venv pos loc args kargs =
    let pos = string_pos "applya" pos in
    let fun_val, args =
       match args with
@@ -179,17 +170,14 @@ let applya_fun venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, 0)))
    in
    let args = values_of_value venv pos args in
-      eval_apply venv pos loc fun_val args
+      eval_partial_apply venv pos loc fun_val args kargs
 
 (************************************************************************
  * Tables.
  *)
-
-
 let () =
    let builtin_funs =
-      [false, "fun",                  fun_fun,             ArityExact 1;
-      ]
+      [false, "fun",                  fun_fun,             ArityExact 1]
    in
    let builtin_kfuns =
       [true,  "apply",                apply_fun,           ArityAny;

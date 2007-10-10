@@ -97,6 +97,11 @@ let print_files =
       }
 
 (*
+ * For now, use a bogu location for parameters.
+ *)
+let param_loc = bogus_loc "Omake_eval.param"
+
+(*
  * Including files.
  *)
 type include_flag =
@@ -151,8 +156,9 @@ let rec is_empty_value v =
     | ValApply _
     | ValMaybeApply _
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValRules _
     | ValNode _
     | ValDir _
@@ -198,8 +204,9 @@ let rec is_array_value v =
     | ValMaybeApply _
     | ValSequence _
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValRules _
     | ValNode _
     | ValDir _
@@ -239,6 +246,48 @@ let strategy_is_eager be_eager strategy v =
          not be_eager
     | LazyApply, _ ->
          false
+
+(*
+ * Determine when an application is ready from its arity.
+ *)
+type partial_arity =
+   FullArity    of value list * value list
+ | PartialArity of arity * value list
+
+let rec concat_n_args args1 args2 n =
+   if n = 0 then
+      FullArity (List.rev args1, args2)
+   else
+      match args2 with
+         arg :: args2 ->
+            concat_n_args (arg :: args1) args2 (n - 1)
+       | [] ->
+            raise (Invalid_argument "concat_n_args")
+
+let arity_apply_args arity args1 args2 =
+   let len = List.length args2 in
+      match arity with
+         ArityRange (min, max) ->
+            if len < min then
+               let arity = ArityRange (min - len, max - len) in
+               let args = List.rev_append args2 args1 in
+                  PartialArity (arity, args)
+            else if len < max then
+               let args = List.rev_append args1 args2 in
+                  FullArity (args, [])
+            else
+               concat_n_args args1 args2 max
+       | ArityExact i ->
+            if len < i then
+               let arity = ArityExact (i - len) in
+               let args = List.rev_append args2 args1 in
+                  PartialArity (arity, args)
+            else
+               concat_n_args args1 args2 i
+       | ArityNone ->
+            FullArity ([], List.rev_append args1 args2)
+       | ArityAny ->
+            FullArity (List.rev_append args1 args2, [])
 
 (************************************************************************
  * Compiling utilities.
@@ -496,8 +545,9 @@ and string_of_value venv pos v =
          (* Values that expand to nothing *)
          ValNone
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValBody _
        | ValMap _
@@ -571,8 +621,9 @@ and string_of_quote_buf scratch_buf venv pos vl =
          (* Values that expand to nothing *)
          ValNone
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValBody _
        | ValMap _
@@ -702,8 +753,9 @@ and values_of_value venv pos v =
                  | ValArray el ->
                       collect (collect_array (Lm_string_util.tokens_break tokens) el []) vl vll
                  | ValFun _
-                 | ValFunValue _
+                 | ValFunCurry _
                  | ValPrim _
+                 | ValPrimCurry _
                  | ValRules _
                  | ValBody _
                  | ValMap _
@@ -807,8 +859,9 @@ and tokens_of_value venv pos lexer v =
                  | ValArray el ->
                       collect (collect_array (Lm_string_util.tokens_break tokens) el []) vl vll
                  | ValFun _
-                 | ValFunValue _
+                 | ValFunCurry _
                  | ValPrim _
+                 | ValPrimCurry _
                  | ValRules _
                  | ValBody _
                  | ValMap _
@@ -877,8 +930,9 @@ and arg_of_values venv pos vl =
                  | ValQuote _
                  | ValQuoteString _
                  | ValFun _
-                 | ValFunValue _
+                 | ValFunCurry _
                  | ValPrim _
+                 | ValPrimCurry _
                  | ValRules _
                  | ValBody _
                  | ValMap _
@@ -952,8 +1006,9 @@ and file_of_value venv pos file =
        | ValApply _
        | ValMaybeApply _
        | ValFun _
-       | ValFunValue _
+       | ValFunCurry _
        | ValPrim _
+       | ValPrimCurry _
        | ValRules _
        | ValBody _
        | ValMap _
@@ -1049,10 +1104,10 @@ and eval_value_core venv pos v =
             eval_key venv pos loc v
          in
             eval_value_core venv pos v
-    | ValApply (loc, v, []) ->
+    | ValApply (loc, v, [], []) ->
          let v =
             match venv_find_var venv pos loc v with
-               ValApply (_, v', []) when var_equal v v' ->
+               ValApply (_, v', [], []) when var_equal v v' ->
                   let print_error buf =
                      (* XXX: JYH: is it really necessary to print the variable name 3 times? *)
                      fprintf buf "@[<v 0>@[<hv 3>Self-referential variable:@ %a@]\
@@ -1068,10 +1123,10 @@ and eval_value_core venv pos v =
                   eval_var venv pos loc v
          in
             eval_value_core venv pos v
-    | ValApply (loc, v, args) ->
+    | ValApply (loc, v, args, kargs) ->
          let v =
             let v = venv_find_var venv pos loc v in
-               eval_apply venv pos loc v args
+               eval_apply venv pos loc v args kargs
          in
             eval_value_core venv pos v
     | ValMaybeApply (loc, v) ->
@@ -1083,28 +1138,28 @@ and eval_value_core venv pos v =
             (match v with
                 Some v -> ValArray [eval_value_core venv pos (eval_var venv pos loc v)]
               | None -> ValNone)
-    | ValSuperApply (loc, super, v, []) ->
+    | ValSuperApply (loc, super, v, [], []) ->
          let v =
             let v = venv_find_super_field venv pos loc super v in
                eval_var venv pos loc v
          in
             eval_value_core venv pos v
-    | ValSuperApply (loc, super, v, args) ->
+    | ValSuperApply (loc, super, v, args, kargs) ->
          let v =
             let v = venv_find_super_field venv pos loc super v in
-               eval_apply venv pos loc v args
+               eval_apply venv pos loc v args kargs
          in
             eval_value_core venv pos v
-    | ValMethodApply (loc, v, vl, []) ->
+    | ValMethodApply (loc, v, vl, [], []) ->
          let v =
             let venv, v = eval_find_method venv pos loc v vl in
                eval_var venv pos loc v
          in
             eval_value_core venv pos v
-    | ValMethodApply (loc, v, vl, args) ->
+    | ValMethodApply (loc, v, vl, args, kargs) ->
          let v =
             let venv, v = eval_find_method venv pos loc v vl in
-               eval_apply venv pos loc v args
+               eval_apply venv pos loc v args kargs
          in
             eval_value_core venv pos v
     | ValDelayed p ->
@@ -1178,8 +1233,8 @@ and eval_body_value venv pos v =
          ValSequence (List.map (eval_body_value venv pos) sl)
     | ValArray sl ->
          ValArray (List.map (eval_body_value venv pos) sl)
-    | ValBody (env, body, _) ->
-         snd (eval_sequence_exp (venv_with_env venv env) pos body)
+    | ValBody (body, _) ->
+         snd (eval_sequence_exp venv pos body)
     | ValNone
     | ValInt _
     | ValFloat _
@@ -1190,8 +1245,9 @@ and eval_body_value venv pos v =
     | ValDir _
     | ValNode _
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValRules _
     | ValMap _
     | ValObject _
@@ -1216,8 +1272,8 @@ and eval_body_value_env venv pos v =
          venv, ValSequence (List.map (eval_body_value venv pos) sl)
     | ValArray sl ->
          venv, ValArray (List.map (eval_body_value venv pos) sl)
-    | ValBody (env, body, export) ->
-         eval_sequence_export_exp (venv_with_env venv env) pos body export
+    | ValBody (body, export) ->
+         eval_sequence_exp venv pos body
     | ValNone
     | ValInt _
     | ValFloat _
@@ -1228,8 +1284,9 @@ and eval_body_value_env venv pos v =
     | ValDir _
     | ValNode _
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValRules _
     | ValMap _
     | ValObject _
@@ -1253,8 +1310,8 @@ and eval_body_exp venv pos x v =
          venv, ValSequence (List.map (eval_body_value venv pos) sl)
     | ValArray sl ->
          venv, ValArray (List.map (eval_body_value venv pos) sl)
-    | ValBody (env, body, export) ->
-         eval_sequence_export (venv_with_env venv env) pos x body export
+    | ValBody (body, export) ->
+         eval_sequence_export venv pos x body export
     | ValNone
     | ValInt _
     | ValFloat _
@@ -1265,8 +1322,9 @@ and eval_body_exp venv pos x v =
     | ValDir _
     | ValNode _
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValRules _
     | ValMap _
     | ValObject _
@@ -1291,15 +1349,19 @@ and eval_body_exp venv pos x v =
  *)
 and eval_var venv pos loc v =
    match v with
-      ValFun (_, env, [], body, _) ->
+      ValFun (_, env, _, [], body, _)
+    | ValFunCurry (_, env, _, [], body, _, []) ->
          let venv = venv_with_env venv env in
          let _, result = eval_sequence venv pos ValNone body in
             result
-    | ValFunValue (_, env, [], body) ->
-         let venv = venv_with_env venv env in
-            eval_value venv pos body
-    | ValPrim (ArityExact 0, _, f) ->
-         snd (venv_apply_prim_fun f venv pos loc [])
+    | ValFunCurry (_, env, _, [], body, export, kargs) ->
+         (* XXX: verify that we should pass forward the exports *)
+         let venv_new = venv_with_env venv env in
+         let venv_new, v = eval_sequence venv_new pos ValNone body in
+         let venv = add_exports venv venv_new pos export in
+            eval_apply venv pos loc v [] kargs
+    | ValPrim (_, _, ApplyEmpty, f) ->
+         snd (venv_apply_prim_fun f venv pos loc [] [])
     | _ ->
          v
 
@@ -1317,25 +1379,31 @@ and eval_key venv pos loc v =
 (*
  * Evaluate an application.
  *)
-and eval_apply venv pos loc v args =
+and eval_apply venv pos loc v args kargs =
    match eval_value venv pos v with
-      ValFun (_, env, params, body, _) ->
-         let venv = venv_add_args venv pos loc env params args in
+      ValFun (_, env, keywords, params, body, _) ->
+         let venv = venv_add_args venv pos loc env params args keywords kargs in
          let _, result = eval_sequence_exp venv pos body in
             result
-    | ValFunValue (_, env, params, body) ->
-         let venv = venv_add_args venv pos loc env params args in
-            eval_value venv pos body
-    | ValPrim (_, _, f) ->
-         snd (venv_apply_prim_fun f venv pos loc args)
+    | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
+         let venv_new, args, kargs = venv_add_curry_args venv pos loc env params args keywords kargs1 kargs in
+         let venv_new, v = eval_sequence_exp venv_new pos body in
+         let venv = add_exports venv venv_new pos export in
+            eval_apply venv pos loc v args kargs
+    | ValPrim (_, _, _, f) ->
+         snd (venv_apply_prim_fun f venv pos loc args kargs)
+    | ValPrimCurry (_, _, f, args1, kargs1) ->
+         snd (venv_apply_prim_fun f venv pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs))
     | v ->
-         if args = [] then
+         if args = [] && kargs = [] then
             v
          else
             let print_error buf =
                fprintf buf "@[<v 3>illegal function application:@ @[<hv 3>function:@ %a@]" pp_print_value v;
                List.iter (fun arg ->
                      fprintf buf "@ @[<hv 3>arg = %a@]" pp_print_value arg) args;
+               List.iter (fun (v, arg) ->
+                     fprintf buf "@ @[<hv 3>%a = %a@]" pp_print_symbol v pp_print_value arg) kargs;
                fprintf buf "@]"
             in
                raise (OmakeException (pos, LazyError print_error))
@@ -1343,29 +1411,40 @@ and eval_apply venv pos loc v args =
 (*
  * Evaluate an application with string arguments.
  *)
-and eval_apply_string_exp venv venv_new pos loc v args =
+and eval_apply_string_exp venv venv_obj pos loc v args kargs =
    let pos = string_pos "eval_apply_string_exp" pos in
       match eval_value venv pos v with
-         ValFun (_, env, params, body, _) ->
+         ValFun (_, env, keywords, params, body, _) ->
             let args = List.map (eval_string_exp true venv pos) args in
-            let venv_new = venv_add_args venv_new pos loc env params args in
+            let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+            let venv_new = venv_add_args venv_obj pos loc env params args keywords kargs in
             let _, result = eval_sequence_exp venv_new pos body in
                result
-       | ValFunValue (_, env, params, body) ->
+       | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
             let args = List.map (eval_string_exp true venv pos) args in
-            let venv_new = venv_add_args venv_new pos loc env params args in
-               eval_value venv_new pos body
-       | ValPrim (_, be_eager, f) ->
-            let args = List.map (eval_string_exp be_eager venv_new pos) args in
-               snd (venv_apply_prim_fun f venv_new pos loc args)
+            let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+            let venv_new, args, kargs = venv_add_curry_args venv_obj pos loc env params args keywords kargs1 kargs in
+            let venv_new, v = eval_sequence_exp venv_new pos body in
+            let venv = add_exports venv venv_new pos export in
+               eval_apply venv pos loc v args kargs
+       | ValPrim (_, be_eager, _, f) ->
+            let args = List.map (eval_string_exp be_eager venv pos) args in
+            let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+               snd (venv_apply_prim_fun f venv_obj pos loc args kargs)
+       | ValPrimCurry (_, be_eager, f, args1, kargs1) ->
+            let args = List.map (eval_string_exp be_eager venv pos) args in
+            let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+               snd (venv_apply_prim_fun f venv_obj pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs))
        | v ->
-            if args = [] then
+            if args = [] && kargs = [] then
                v
             else
                let print_error buf =
                   fprintf buf "@[<v 3>illegal function application:@ @[<hv 3>function:@ %a@]" pp_print_value v;
                   List.iter (fun arg ->
                         fprintf buf "@ @[<hv 3>arg = %a@]" pp_print_string_exp arg) args;
+                  List.iter (fun (v, arg) ->
+                        fprintf buf "@ @[<hv 3>%a = %a@]" pp_print_symbol v pp_print_string_exp arg) kargs;
                   fprintf buf "@]"
                in
                   raise (OmakeException (pos, LazyError print_error))
@@ -1375,31 +1454,35 @@ and eval_apply_string_exp venv venv_new pos loc v args =
  *)
 and eval_fun venv pos v =
    match eval_value venv pos v with
-      ValFun (arity, env, params, body, export) ->
-         let f venv pos loc args =
-            let venv_new = venv_add_args venv pos loc env params args in
+      ValFun (arity, env, keywords, params, body, export) ->
+         let f venv pos loc args kargs =
+            let venv_new = venv_add_args venv pos loc env params args keywords kargs in
             let venv_new, result = eval_sequence_exp venv_new pos body in
             let venv = add_exports venv venv_new pos export in
                venv, result
          in
             arity, true, f
-    | ValFunValue (arity, env, params, body) ->
-         let f venv pos loc args =
-            let venv_new = venv_add_args venv pos loc env params args in
-            let result = eval_value venv_new pos body in
-               venv, result
+    | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
+         let f venv pos loc args kargs =
+            let venv_new, args, kargs = venv_add_curry_args venv pos loc env params args keywords kargs1 kargs in
+            let venv_new, v = eval_sequence_exp venv_new pos body in
+            let venv = add_exports venv venv_new pos export in
+               eval_apply_export venv pos loc v args kargs
          in
             arity, true, f
-    | ValPrim (arity, be_eager, f) ->
+    | ValPrim (arity, be_eager, _, f) ->
          arity, be_eager, venv_apply_prim_fun f
-    | ValBody (env, body, export) ->
+    | ValPrimCurry (arity, be_eager, f, args1, kargs1) ->
+         let f venv pos loc args2 kargs2 =
+            venv_apply_prim_fun f venv pos loc (List.rev_append args1 args2) (List.rev_append kargs1 kargs2)
+         in
+            arity, be_eager, f
+    | ValBody (body, export) ->
          let arity = ArityExact 0 in
-         let f venv pos loc args =
-            if args <> [] then
+         let f venv pos loc args kargs =
+            if args <> [] || kargs <> [] then
                raise (OmakeException (loc_pos loc pos, ArityMismatch (arity, List.length args)));
-            let venv_new, result = eval_sequence_exp (venv_with_env venv env) pos body in
-            let venv = add_exports venv venv_new pos export in
-               venv, result
+            eval_sequence_export_exp venv pos body export
          in
             arity, true, f
     | _ ->
@@ -1440,8 +1523,9 @@ and eval_object_exn venv pos x =
     | ValArray _ ->
          create_object venv x array_object_var
     | ValFun _
-    | ValFunValue _
-    | ValPrim _ ->
+    | ValFunCurry _
+    | ValPrim _
+    | ValPrimCurry _ ->
          create_object venv x fun_object_var
     | ValRules _ ->
          create_object venv x rule_object_var
@@ -1702,36 +1786,43 @@ and eval_string_exp be_eager venv pos s =
                eval_key venv pos loc v
             else
                ValKeyApply (loc, v)
-       | ApplyString (loc, strategy, v, []) ->
+       | FunString (loc, opt_params, keywords, params, body, export) ->
+            let venv = eval_opt_params_exp be_eager venv pos opt_params in
+            let env = venv_get_env venv in
+               ValFun (ArityExact 0, env, keywords, params, body, export)
+       | ApplyString (loc, strategy, v, [], []) ->
             if strategy_is_eager be_eager strategy v then
                eval_var venv pos loc (venv_find_var venv pos loc v)
             else
-               ValApply (loc, v, [])
-       | ApplyString (loc, strategy, v, args) ->
+               ValApply (loc, v, [], [])
+       | ApplyString (loc, strategy, v, args, kargs) ->
             if strategy_is_eager be_eager strategy v then
-               eval_apply_string_exp venv venv pos loc (venv_find_var venv pos loc v) args
+               eval_apply_string_exp venv venv pos loc (venv_find_var venv pos loc v) args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
-                  ValApply (loc, v, args)
-       | SuperApplyString (loc, strategy, super, v, args) ->
+               let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
+                  ValApply (loc, v, args, kargs)
+       | SuperApplyString (loc, strategy, super, v, args, kargs) ->
             if key_strategy_is_eager be_eager strategy then
                let v = venv_find_super_field venv pos loc super v in
-                  eval_apply_string_exp venv venv pos loc v args
+                  eval_apply_string_exp venv venv pos loc v args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
-                  ValSuperApply (loc, super, v, args)
-       | MethodApplyString (loc, strategy, v, vl, args) ->
+               let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
+                  ValSuperApply (loc, super, v, args, kargs)
+       | MethodApplyString (loc, strategy, v, vl, args, kargs) ->
             if strategy_is_eager be_eager strategy v then
                let venv_obj, v = eval_find_method venv pos loc v vl in
-                  eval_apply_string_exp venv venv_obj pos loc v args
+                  eval_apply_string_exp venv venv_obj pos loc v args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
-                  ValMethodApply (loc, v, vl, args)
+               let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
+                  ValMethodApply (loc, v, vl, args, kargs)
        | SequenceString (loc, sl) ->
             ValSequence (List.map (eval_string_exp be_eager venv pos) sl)
        | ObjectString (_, e, export)
        | BodyString (_, e, export) ->
-            ValBody (venv_get_env venv, e, export)
+            ValBody (e, export)
        | ArrayString (_, el) ->
             ValArray (List.map (eval_string_exp be_eager venv pos) el)
        | ArrayOfString (_, e) ->
@@ -1755,6 +1846,18 @@ and eval_string_exp be_eager venv pos s =
        | ThisString _ ->
             ValObject (venv_this venv)
 
+and eval_keyword_string_exp be_eager venv pos (v, s) =
+   v, eval_string_exp be_eager venv pos s
+
+and eval_opt_params_exp be_eager venv pos opt_params =
+   match opt_params with
+      (v, s) :: opt_params ->
+         let s = eval_string_exp be_eager venv pos s in
+         let venv = venv_add_var venv (VarPrivate (param_loc, v)) s in
+            eval_opt_params_exp be_eager venv pos opt_params
+    | [] ->
+         venv
+
 (*
  * Short forms of the string evaluator.
  *)
@@ -1775,104 +1878,182 @@ and eval_var_export venv pos loc v =
 
    (* Do not use eval_value; we don't want to force evaluation *)
    match v with
-      ValFun (_, env, [], body, export) ->
+      ValFun (_, env, _, [], body, export)
+    | ValFunCurry (_, env, _, [], body, export, []) ->
          let venv_new = venv_with_env venv env in
          let venv_new, result = eval_sequence venv_new pos ValNone body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunValue (_, env, [], body) ->
+    | ValFunCurry (_, env, _, [], body, export, kargs) ->
          let venv_new = venv_with_env venv env in
-         let result = eval_value venv_new pos body in
-            venv, result
-    | ValPrim (ArityExact 0, _, f) ->
-         venv_apply_prim_fun f venv pos loc []
+         let venv_new, v = eval_sequence venv_new pos ValNone body in
+         let venv = add_exports venv venv_new pos export in
+            eval_apply_export venv pos loc v [] kargs
+    | ValPrim (_, _, ApplyEmpty, f) ->
+         venv_apply_prim_fun f venv pos loc [] []
     | _ ->
          venv, v
 
 (*
  * Evaluate an application.
  *)
-and eval_apply_export venv pos loc v args =
+and eval_apply_export venv pos loc v args kargs =
    match eval_value venv pos v with
-      ValFun (_, env, params, body, export) ->
-         let venv_new = venv_add_args venv pos loc env params args in
+      ValFun (_, env, keywords, params, body, export) ->
+         let venv_new = venv_add_args venv pos loc env params args keywords kargs in
          let venv_new, result = eval_sequence_exp venv_new pos body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunValue (_, env, params, body) ->
-         let venv_new = venv_add_args venv pos loc env params args in
-         let result = eval_value venv_new pos body in
-            venv, result
-    | ValPrim (_, _, f) ->
-         venv_apply_prim_fun f venv pos loc args
+    | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
+         let venv_new, args, kargs = venv_add_curry_args venv pos loc env params args keywords kargs1 kargs in
+         let venv_new, v = eval_sequence_exp venv_new pos body in
+         let venv = add_exports venv venv_new pos export in
+            eval_apply_export venv pos loc v args kargs
+    | ValPrim (_, _, _, f) ->
+         venv_apply_prim_fun f venv pos loc args kargs
+    | ValPrimCurry (_, _, f, args1, kargs1) ->
+         venv_apply_prim_fun f venv pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs)
     | v ->
-         if args = [] then
+         if args = [] && kargs = [] then
             venv, v
          else
             let print_error buf =
                fprintf buf "@[<v 3>illegal function application:@ @[<hv 3>function:@ %a@]" pp_print_value v;
                List.iter (fun arg ->
                      fprintf buf "@ @[<hv 3>arg = %a@]" pp_print_value arg) args;
+               List.iter (fun (v, arg) ->
+                     fprintf buf "@ @[<hv 3>%a = %a@]" pp_print_symbol v pp_print_value arg) kargs;
                fprintf buf "@]"
             in
                raise (OmakeException (pos, LazyError print_error))
 
-and eval_apply_string_export_exp venv venv_new pos loc v args =
+and eval_partial_apply venv pos loc v args kargs =
+   match eval_value venv pos v with
+      ValFun (arity, env, keywords, params, body, export) ->
+         (match venv_add_partial_args venv pos loc env params args keywords [] kargs with
+             PartialApply (env, keywords, params, kargs) ->
+                venv, ValFunCurry (arity, env, keywords, params, body, export, kargs)
+           | FullApply (venv, args, kargs) ->
+                let venv_new, v = eval_sequence_exp venv pos body in
+                let venv = add_exports venv venv_new pos export in
+                   eval_partial_apply venv pos loc v args kargs)
+    | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
+         (match venv_add_partial_args venv pos loc env params args keywords kargs1 kargs with
+             PartialApply (env, keywords, params, kargs) ->
+                venv, ValFunCurry (arity, env, keywords, params, body, export, kargs)
+           | FullApply (venv, args, kargs) ->
+                let venv_new, v = eval_sequence_exp venv pos body in
+                let venv = add_exports venv venv_new pos export in
+                   eval_partial_apply venv pos loc v args kargs)
+    | ValPrim (arity, eager, _, f) ->
+         (match arity_apply_args arity [] args with
+             FullArity (current_args, rest_args) ->
+                (* We assume the primitive takes all the keyword args *)
+                let venv, v = venv_apply_prim_fun f venv pos loc current_args kargs in
+                   eval_partial_apply venv pos loc v rest_args []
+           | PartialArity (arity, args) ->
+                venv, ValPrimCurry (arity, eager, f, args, List.rev kargs))
+    | ValPrimCurry (arity, eager, f, args1, kargs1) ->
+         (match arity_apply_args arity args1 args with
+             FullArity (current_args, rest_args) ->
+                (* We assume the primitive takes all the keyword args *)
+                let venv, v = venv_apply_prim_fun f venv pos loc current_args kargs in
+                   eval_partial_apply venv pos loc v rest_args []
+           | PartialArity (arity, args) ->
+                venv, ValPrimCurry (arity, eager, f, args, List.rev_append kargs kargs1))
+    | v ->
+         if args = [] && kargs = [] then
+            venv, v
+         else
+            let print_error buf =
+               fprintf buf "@[<v 3>illegal function application:@ @[<hv 3>function:@ %a@]" pp_print_value v;
+               List.iter (fun arg ->
+                     fprintf buf "@ @[<hv 3>arg = %a@]" pp_print_value arg) args;
+               List.iter (fun (v, arg) ->
+                     fprintf buf "@ @[<hv 3>%a = %a@]" pp_print_symbol v pp_print_value arg) kargs;
+               fprintf buf "@]"
+            in
+               raise (OmakeException (pos, LazyError print_error))
+
+and eval_apply_string_export_exp venv venv_new pos loc v args kargs =
    let pos = string_pos "eval_apply_string_export_exp" pos in
    match eval_value venv pos v with
-      ValFun (_, env, params, body, export) ->
+      ValFun (_, env, keywords, params, body, export) ->
          let args = List.map (eval_string_exp true venv pos) args in
-         let venv_new = venv_add_args venv_new pos loc env params args in
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+         let venv_new = venv_add_args venv_new pos loc env params args keywords kargs in
          let venv_new, result = eval_sequence_exp venv_new pos body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunValue (_, env, params, body) ->
+    | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
          let args = List.map (eval_string_exp true venv pos) args in
-         let venv_new = venv_add_args venv_new pos loc env params args in
-         let result = eval_value venv_new pos body in
-            venv, result
-    | ValPrim (_, be_eager, f) ->
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+         let venv_new, args, kargs = venv_add_curry_args venv_new pos loc env params args keywords kargs1 kargs in
+         let venv_new, v = eval_sequence_exp venv_new pos body in
+         let venv = add_exports venv venv_new pos export in
+            eval_apply_export venv pos loc v args kargs
+    | ValPrim (_, be_eager, _, f) ->
          let args = List.map (eval_string_exp be_eager venv pos) args in
-            venv_apply_prim_fun f venv_new pos loc args
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp be_eager venv pos s) kargs in
+            venv_apply_prim_fun f venv_new pos loc args kargs
+    | ValPrimCurry (_, be_eager, f, args1, kargs1) ->
+         let args = List.map (eval_string_exp be_eager venv pos) args in
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp be_eager venv pos s) kargs in
+            venv_apply_prim_fun f venv_new pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs)
     | v ->
-         if args = [] then
+         if args = [] && kargs = [] then
             venv, v
          else
             let print_error buf =
                fprintf buf "@[<v 3>illegal function application:@ @[<hv 3>function:@ %a@]" pp_print_value v;
                List.iter (fun arg ->
                      fprintf buf "@ @[<hv 3>arg = %a@]" pp_print_string_exp arg) args;
+               List.iter (fun (v, arg) ->
+                     fprintf buf "@ @[<hv 3>%a = %a@]" pp_print_symbol v pp_print_string_exp arg) kargs;
                fprintf buf "@]"
             in
                raise (OmakeException (pos, LazyError print_error))
 
-and eval_apply_method_export_exp venv venv_obj pos loc path v args =
-   let pos = string_pos "eval_apply_string_export_exp" pos in
+and eval_apply_method_export_exp venv venv_obj pos loc path v args kargs =
+   let pos = string_pos "eval_apply_method_export_exp" pos in
    match eval_value venv pos v with
-      ValFun (_, env, params, body, export) ->
+      ValFun (_, env, keywords, params, body, export) ->
          let args = List.map (eval_string_exp true venv pos) args in
-         let venv_new = venv_add_args venv_obj pos loc env params args in
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+         let venv_new = venv_add_args venv_obj pos loc env params args keywords kargs in
          let venv_new, result = eval_sequence_exp venv_new pos body in
          let venv = add_path_exports venv venv_obj venv_new pos path export in
             venv, result
-    | ValFunValue (_, env, params, body) ->
+    | ValFunCurry (arity, env, keywords, params, body, export, kargs1) ->
+         (* XXX: JYH: this, need to think about *)
          let args = List.map (eval_string_exp true venv pos) args in
-         let venv_new = venv_add_args venv_obj pos loc env params args in
-         let result = eval_value venv_new pos body in
-            venv, result
-    | ValPrim (_, be_eager, f) ->
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp true venv pos s) kargs in
+         let venv_new, args, kargs = venv_add_curry_args venv_obj pos loc env params args keywords kargs1 kargs in
+         let venv_new, v = eval_sequence_exp venv_new pos body in
+         let venv = add_path_exports venv venv_obj venv_new pos path export in
+            eval_apply_export venv pos loc v args kargs
+    | ValPrim (_, be_eager, _, f) ->
          let args = List.map (eval_string_exp be_eager venv pos) args in
-         let venv_new, result = venv_apply_prim_fun f venv_obj pos loc args in
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp be_eager venv pos s) kargs in
+         let venv_new, result = venv_apply_prim_fun f venv_obj pos loc args kargs in
+         let venv = hoist_this venv venv_new path in
+            venv, result
+    | ValPrimCurry (_, be_eager, f, args1, kargs1) ->
+         let args = List.map (eval_string_exp be_eager venv pos) args in
+         let kargs = List.map (fun (v, s) -> v, eval_string_exp be_eager venv pos s) kargs in
+         let venv_new, result = venv_apply_prim_fun f venv_obj pos loc (List.rev_append args1 args) (List.rev_append kargs1 kargs) in
          let venv = hoist_this venv venv_new path in
             venv, result
     | v ->
-         if args = [] then
+         if args = [] && kargs = [] then
             venv, v
          else
             let print_error buf =
                fprintf buf "@[<v 3>illegal function application:@ @[<hv 3>function:@ %a@]" pp_print_value v;
                List.iter (fun arg ->
                      fprintf buf "@ @[<hv 3>arg = %a@]" pp_print_string_exp arg) args;
+               List.iter (fun (v, arg) ->
+                     fprintf buf "@ @[<hv 3>%a = %a@]" pp_print_symbol v pp_print_string_exp arg) kargs;
                fprintf buf "@]"
             in
                raise (OmakeException (pos, LazyError print_error))
@@ -1892,36 +2073,43 @@ and eval_string_export_exp be_eager venv pos s =
                venv, eval_key venv pos loc v
             else
                venv, ValKeyApply (loc, v)
-       | ApplyString (loc, strategy, v, []) ->
+       | FunString (loc, opt_params, keywords, params, body, export) ->
+            let venv = eval_opt_params_exp be_eager venv pos opt_params in
+            let env = venv_get_env venv in
+               venv, ValFun (ArityExact 0, env, keywords, params, body, export)
+       | ApplyString (loc, strategy, v, [], []) ->
             if strategy_is_eager be_eager strategy v then
                eval_var_export venv pos loc (venv_find_var venv pos loc v)
             else
-               venv, ValApply (loc, v, [])
-       | ApplyString (loc, strategy, v, args) ->
+               venv, ValApply (loc, v, [], [])
+       | ApplyString (loc, strategy, v, args, kargs) ->
             if strategy_is_eager be_eager strategy v then
-               eval_apply_string_export_exp venv venv pos loc (venv_find_var venv pos loc v) args
+               eval_apply_string_export_exp venv venv pos loc (venv_find_var venv pos loc v) args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
-                  venv, ValApply (loc, v, args)
-       | SuperApplyString (loc, strategy, super, v, args) ->
+               let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
+                  venv, ValApply (loc, v, args, kargs)
+       | SuperApplyString (loc, strategy, super, v, args, kargs) ->
             if key_strategy_is_eager be_eager strategy then
                let v = venv_find_super_field venv pos loc super v in
-                  eval_apply_string_export_exp venv venv pos loc v args
+                  eval_apply_string_export_exp venv venv pos loc v args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
-                  venv, ValSuperApply (loc, super, v, args)
-       | MethodApplyString (loc, strategy, v, vl, args) ->
+               let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
+                  venv, ValSuperApply (loc, super, v, args, kargs)
+       | MethodApplyString (loc, strategy, v, vl, args, kargs) ->
             if strategy_is_eager be_eager strategy v then
                let venv_obj, path, v = eval_with_method venv pos loc v vl in
-                  eval_apply_method_export_exp venv venv_obj pos loc path v args
+                  eval_apply_method_export_exp venv venv_obj pos loc path v args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
-                  venv, ValMethodApply (loc, v, vl, args)
+               let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
+                  venv, ValMethodApply (loc, v, vl, args, kargs)
        | SequenceString (loc, sl) ->
             venv, ValSequence (List.map (eval_string_exp be_eager venv pos) sl)
        | ObjectString (_, e, export)
        | BodyString (_, e, export) ->
-            venv, ValBody (venv_get_env venv, e, export)
+            venv, ValBody (e, export)
        | ArrayString (_, el) ->
             venv, ValArray (List.map (eval_string_exp be_eager venv pos) el)
        | ArrayOfString (_, e) ->
@@ -1956,10 +2144,10 @@ and eval_exp venv result e =
             eval_let_var_field_exp venv pos loc v vl flag s
        | LetKeyExp (_, v, flag, s) ->
             eval_let_key_exp venv pos v flag s
-       | LetFunExp (loc, v, [], params, body, export) ->
-            eval_let_fun_exp venv pos loc v params body export
-       | LetFunExp (loc, v, vl, params, body, export) ->
-            eval_let_fun_field_exp venv pos loc v vl params body export
+       | LetFunExp (loc, v, [], curry, opt_params, keywords, params, body, export) ->
+            eval_let_fun_exp venv pos loc v curry opt_params keywords params body export
+       | LetFunExp (loc, v, vl, curry, opt_params, keywords, params, body, export) ->
+            eval_let_fun_field_exp venv pos loc v vl curry opt_params keywords params body export
        | LetObjectExp (_, v, [], s, e, export) ->
             eval_let_object_exp venv pos v s e export
        | LetObjectExp (loc, v, vl, s, e, export) ->
@@ -1978,18 +2166,18 @@ and eval_exp venv result e =
             eval_open_exp venv pos loc s
        | IncludeExp (loc, s, e) ->
             eval_include_exp venv pos loc s e
-       | ApplyExp (loc, f, args) ->
-            eval_apply_exp venv pos loc f args
-       | SuperApplyExp (loc, super, v, args) ->
-            eval_super_apply_exp venv pos loc super v args
-       | MethodApplyExp (loc, v, vl, args) ->
-            eval_method_apply_exp venv pos loc v vl args
-       | ReturnBodyExp (_, e) ->
-            eval_return_body_exp venv pos e
+       | ApplyExp (loc, f, args, kargs) ->
+            eval_apply_exp venv pos loc f args kargs
+       | SuperApplyExp (loc, super, v, args, kargs) ->
+            eval_super_apply_exp venv pos loc super v args kargs
+       | MethodApplyExp (loc, v, vl, args, kargs) ->
+            eval_method_apply_exp venv pos loc v vl args kargs
+       | ReturnBodyExp (_, e, id) ->
+            eval_return_body_exp venv pos e id
        | StringExp (_, s) ->
             eval_string_value_exp venv pos s
-       | ReturnExp (loc, s) ->
-            eval_return_exp venv pos loc s
+       | ReturnExp (loc, s, id) ->
+            eval_return_exp venv pos loc s id
        | ReturnSaveExp _ ->
             eval_return_save_exp venv pos
        | ReturnObjectExp (_, names) ->
@@ -2061,15 +2249,27 @@ and eval_let_key_exp venv pos v flag s =
 (*
  * Function definitions.
  *)
-and eval_let_fun_exp venv pos loc v params body export =
-   let env = venv_get_env venv in
-   let e = ValFun (ArityExact (List.length params), env, params, body, export) in
+and eval_let_fun_exp venv pos loc v curry opt_params keywords params body export =
+   let venv_fun = eval_opt_params_exp true venv pos opt_params in
+   let env = venv_get_env venv_fun in
+   let e =
+      if curry then
+         ValFunCurry (ArityExact 0, env, keywords, params, body, export, [])
+      else
+         ValFun (ArityExact 0, env, keywords, params, body, export)
+   in
    let venv = venv_add_var venv v e in
       venv, e
 
-and eval_let_fun_field_exp venv pos loc v vl params body export =
-   let env = venv_get_env venv in
-   let e = ValFun (ArityExact (List.length params), env, params, body, export) in
+and eval_let_fun_field_exp venv pos loc v vl curry opt_params keywords params body export =
+   let venv_fun = eval_opt_params_exp true venv pos opt_params in
+   let env = venv_get_env venv_fun in
+   let e =
+      if curry then
+         ValFunCurry (ArityExact 0, env, keywords, params, body, export, [])
+      else
+         ValFun (ArityExact 0, env, keywords, params, body, export)
+   in
    let path, obj, v = eval_find_field venv pos loc v vl in
    let venv, obj = venv_add_field venv obj pos v e in
    let venv = hoist_path venv path obj in
@@ -2087,7 +2287,7 @@ and eval_shell_exp venv pos loc e =
    in
    let v = venv_find_var venv pos loc system_var in
    let venv, s = eval_string_export_exp true venv pos e in
-      eval_apply_export venv pos loc v [s]
+      eval_apply_export venv pos loc v [s] []
 
 (*
  * Conditionals.
@@ -2243,36 +2443,36 @@ and eval_key_exp venv pos loc v =
 (*
  * Function application.
  *)
-and eval_apply_exp venv pos loc f args =
+and eval_apply_exp venv pos loc f args kargs =
    let pos = string_pos "eval_apply_exp" pos in
-      eval_apply_string_export_exp venv venv pos loc (venv_find_var venv pos loc f) args
+      eval_apply_string_export_exp venv venv pos loc (venv_find_var venv pos loc f) args kargs
 
-and eval_super_apply_exp venv pos loc super v args =
+and eval_super_apply_exp venv pos loc super v args kargs =
    let pos = string_pos "eval_super_apply_exp" pos in
    let v = venv_find_super_field venv pos loc super v in
-      eval_apply_string_export_exp venv venv pos loc v args
+      eval_apply_string_export_exp venv venv pos loc v args kargs
 
-and eval_method_apply_exp venv pos loc v vl args =
+and eval_method_apply_exp venv pos loc v vl args kargs =
    let pos = string_pos "eval_method_apply_exp" pos in
    let venv_obj, path, v = eval_with_method venv pos loc v vl in
-      eval_apply_method_export_exp venv venv_obj pos loc path v args
+      eval_apply_method_export_exp venv venv_obj pos loc path v args kargs
 
 (*
  * Return a value.  This is just the identity.
  *)
-and eval_return_body_exp venv pos e =
+and eval_return_body_exp venv pos e id =
    let _pos = string_pos "eval_return_body_exp" pos in
       try eval_sequence_exp venv pos e with
-         Return (_, v) ->
+         Return (_, v, id') when id' == id ->
             venv, v
 
-and eval_return_exp venv pos loc s =
+and eval_return_exp venv pos loc s id =
    let pos = string_pos "eval_return_exp" pos in
    let result = eager_string_exp venv pos s in
-      raise (Return (loc, result))
+      raise (Return (loc, result, id))
 
 and eval_string_value_exp venv pos s =
-   let pos = string_pos "eval_return_exp" pos in
+   let pos = string_pos "eval_string_value_exp" pos in
    let result = eager_string_exp venv pos s in
       venv, result
 

@@ -230,10 +230,10 @@ all: $(DEFAULTFILES)  $(INSTALLFILES)
 install: $(DEFAULTFILES)  $(INSTALLFILES)
     mkdir -p $(INSTALL_LIBDIR)/omake
     cp -f -m 444 $(DEFAULTFILES) $(INSTALL_LIBDIR)/omake/
-    foreach(name, $(STDLIBNAMES))
+    foreach(name => ..., $(STDLIBNAMES))
         node = $(file $(INSTALL_LIBDIR)/omake/$(name).om)
         mkdir -p $(dirof $(node))
-	cp -f -m 444 lib/$(name).install $(node)
+	cp -f -m 444 lib/$(private.name).install $(node)
 
 ########################################################################
 # Testing

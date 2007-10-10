@@ -34,7 +34,7 @@
 </P><P>OMake also includes a standalone command-line interpreter <TT>osh</TT> that can be used as an
 interactive shell. The shell uses the same syntax, and provides the same features on all platforms
 <TT>omake</TT> supports, including Win32.</P><H2 CLASS="section"><A NAME="toc106"></A><A NAME="htoc423">15.1</A>&#XA0;&#XA0;Startup</H2><P>On startup, <TT>osh</TT> reads the file <CODE>~/.oshrc</CODE> if it exists. The syntax of this file is the
-same as an <TT>OMakefile</TT>. The following additional variables are significant.</P><H5 CLASS="paragraph">prompt</H5><P><A NAME="var:prompt"></A><A NAME="@default541"></A><A NAME="@var123"></A> The <CODE>prompt</CODE> variable specifies the command-line prompt.
+same as an <TT>OMakefile</TT>. The following additional variables are significant.</P><H5 CLASS="paragraph">prompt</H5><P><A NAME="var:prompt"></A><A NAME="@default532"></A><A NAME="@var120"></A> The <CODE>prompt</CODE> variable specifies the command-line prompt.
 It can be a simple string.</P><PRE CLASS="verbatim">    prompt = osh&gt;
 </PRE><P>Or you may choose to define it as a function of no arguments.</P><PRE CLASS="verbatim">    prompt() =
         return $"&lt;$(USER):$(HOST) $(homename $(CWD))&gt;"
@@ -48,10 +48,10 @@ terminals that support it, you can use the following.
        bold-begin = $(prompt-invisible $(tgetstr bold))
        bold-end = $(prompt-invisible $(tgetstr sgr0))
        value $(bold-begin)$"osh&gt;"$(bold-end)
-</PRE><H5 CLASS="paragraph">ignoreeof</H5><P><A NAME="var:ignoreeof"></A><A NAME="@default542"></A><A NAME="@var124"></A>
+</PRE><H5 CLASS="paragraph">ignoreeof</H5><P><A NAME="var:ignoreeof"></A><A NAME="@default533"></A><A NAME="@var121"></A>
 If the <CODE>ignoreeof</CODE> is <CODE>true</CODE>, then <CODE>osh</CODE> will not exit on
 a terminal end-of-file (usually <CODE>^D</CODE> on Unix systems).</P><H2 CLASS="section"><A NAME="toc107"></A><A NAME="htoc424">15.2</A>&#XA0;&#XA0;Aliases</H2><P>
-<A NAME="@default543"></A></P><P>Command aliases are defined by adding functions to the <CODE>Shell.</CODE> object. The following alias
+<A NAME="@default534"></A></P><P>Command aliases are defined by adding functions to the <CODE>Shell.</CODE> object. The following alias
 adds the <CODE>-AF</CODE> option to the <CODE>ls</CODE> command.</P><PRE CLASS="verbatim">    Shell. +=
        ls(argv) =
           "ls" -AF $(argv)

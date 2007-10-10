@@ -337,12 +337,12 @@ public.PrintMLIDependencies(filename, cmideps) =
         println($"""$(base).cmi: $(string-escaped $(cmideps))""")
 
 public.PrintMLDependencies(filename, cmideps, cmxdeps) =
-    private.base = $(string-escaped $(removesuffix $(filename)))
-    private.esc = $' \'
-    private.text =
+    protected.base = $(string-escaped $(removesuffix $(filename)))
+    protected.esc = $' \'
+    protected.text =
     if $(cmideps)
         cmideps = $(string-escaped $(cmideps))
-        private.text = $"""
+        text = $"""
 $(base).cmo: $(cmideps)
 $(base).cmx $(base)$(EXT_OBJ):$(esc)
     $(cmideps)"""
@@ -905,7 +905,7 @@ public.OCamlLibraryCopy(tag, lib, name, ifiles) =
       private.MLIFILES  = $(filter-targets $(addsuffix .mli, $(ifiles)))
       private.CMIFILES  = $(addsuffix .cmi, $(ifiles))
 
-      foreach(src, $(MLIFILES) $(CMIFILES))
+      foreach(src => $(MLIFILES) $(CMIFILES))
           $(lib)/$(basename $(src)): $(src) $(lib) :scanner: $(NOSCANNER)
               ln-or-cp $< $@
 

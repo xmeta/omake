@@ -7,21 +7,17 @@
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
- * 
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
- * Additional permission is given to link this library with the
- * with the Objective Caml runtime, and to redistribute the
- * linked executables.  See the file LICENSE.OMake for more details.
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * Author: Jason Hickey
  * jyh@cs.caltech.edu
@@ -37,8 +33,6 @@ open Omake_ast
 open Omake_symbol
 open Omake_ast_util
 open Omake_value_type
-
-let replacesuffixes_sym = Lm_symbol.add "replacesuffixes"
 
 module Pos = MakePos (struct let name = "Omake_parse" end)
 open Pos;;
@@ -68,12 +62,27 @@ let string_white_exp (_, loc) =
  *)
 let param_of_arg arg =
    match arg with
-      StringExp (s, _)
-    | SequenceExp ([StringExp (s, _)], _) ->
-         Lm_symbol.add s
-    | _ ->
-         raise (OmakeException (loc_exp_pos (loc_of_exp arg), StringError "bad function parameter"))
+      NormalArg (Some v, e) ->
+         v, Some e, loc_of_exp e
+    | NormalArg (None, e) ->
+        (match e with
+            StringExp (s, loc)
+          | SequenceExp ([StringExp (s, loc)], _) ->
+               Lm_symbol.add s, None, loc
+          | SequenceExp ([StringExp (s, loc); StringExp (w, _)], _)
+            when Lm_string_util.is_white w ->
+               Lm_symbol.add s, None, loc
+          | _ ->
+               raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("bad argument parameter", e))))
+    | ArrowArg (_, e) ->
+        raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("illegal function argument", e)))
 
+let get_fun_params args =
+   List.map param_of_arg args
+
+(*
+ * Utilities.
+ *)
 let rec simplify e =
    match e with
       SequenceExp ([e], _) ->
@@ -88,8 +97,6 @@ let sequence_exp l loc =
     | _ ->
          SequenceExp (l, loc)
 
-let params_of_args args =
-   List.map param_of_arg args
 
 (*
  * Intern the method name.
@@ -171,6 +178,7 @@ let rule2 multiple target ploc source loc2 body =
  */
 %token <string * Lm_location.loc> TokLeftParen
 %token <string * Lm_location.loc> TokRightParen
+%token <string * Lm_location.loc> TokArrow
 %token <string * Lm_location.loc> TokComma
 %token <string * Lm_location.loc> TokColon
 %token <string * Lm_location.loc> TokDoubleColon
@@ -235,20 +243,26 @@ shell_line:
           { NoBody, sequence_exp [] $2 }
 
           /* Builtin functions */
-        | TokKeyword opt_white keyword_text_optcolon TokEol
+        | TokKeyword TokWhite keyword_text_optcolon TokEol
           { let id, loc1 = $1 in
             let body, arg = get_optcolon_text $3 $4 in
             let loc = union_loc loc1 $4 in
                body, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
+        | TokKeyword opt_literal_colon TokEol
+          { let id, loc1 = $1 in
+            let body = $2 in
+            let loc = union_loc loc1 $3 in
+            let arg = NullExp loc in
+               body, CommandExp (Lm_symbol.add id, arg, [], loc)
+          }
 
           /* Keyword applications */
-        | TokKeyword opt_white TokLeftParen opt_params TokRightParen opt_colon TokEol
+        | TokKeyword opt_white TokLeftParen opt_args TokRightParen opt_colon TokEol
           { let id, loc1 = $1 in
             let body = $6 in
             let loc = union_loc loc1 $7 in
-            let args = $4 in
-            let e = ApplyExp (EagerApply, Lm_symbol.add id, args, loc) in
+            let e = ApplyExp (EagerApply, Lm_symbol.add id, $4, loc) in
                body, e
           }
 
@@ -339,7 +353,7 @@ shell_line:
           }
 
           /* Applications that use parens may also have a body */
-        | method_id_opt_white TokLeftParen opt_params TokRightParen opt_colon TokEol
+        | method_id_opt_white TokLeftParen opt_args TokRightParen opt_colon TokEol
           { let id, loc1 = $1 in
             let body = $5 in
             let loc = union_loc loc1 $6 in
@@ -354,12 +368,28 @@ shell_line:
                body, e
           }
 
-          /* Function definition */
-        | method_id_opt_white TokLeftParen opt_params TokRightParen opt_white TokEq opt_white TokEol
+          /* Applications with all binding vars */
+        | method_id_opt_white TokLeftParen opt_args TokRightParen opt_colon TokArrow opt_white TokEol
           { let id, loc1 = $1 in
-            let args = $3 in
+            let body = $5 in
+            let loc = union_loc loc1 $8 in
+            let params = get_fun_params $3 in
+            let arg = ArrowArg (params, StringExp ("...", loc)) in
+            let e =
+               match id with
+                  [id] ->
+                     ApplyExp (EagerApply, Lm_symbol.add id, [arg], loc)
+                | _ ->
+                     MethodApplyExp (EagerApply, method_id_intern id, [arg], loc)
+            in
+               body, e
+          }
+
+          /* Function definition */
+        | method_id_opt_white TokLeftParen opt_args TokRightParen opt_white TokEq opt_white TokEol
+          { let id, loc1 = $1 in
             let id = method_id_intern id in
-            let params = params_of_args args in
+            let params = get_fun_params $3 in
             let loc = union_loc loc1 $8 in
                ColonBody, FunDefExp (id, params, [], loc)
           }
@@ -393,7 +423,7 @@ shell_line:
             let e = method_id_prefix_string_exp idl loc in
                ColonBody, rule2 true (e, loc) $2 $3 $4 []
           }
-        | method_id_opt_white TokDoubleColon opt_white method_id_opt_white TokLeftParen opt_params TokRightParen opt_colon TokEol
+        | method_id_opt_white TokDoubleColon opt_white method_id_opt_white TokLeftParen opt_args TokRightParen opt_colon TokEol
           { let super, loc1 = $1 in
             let name, _ = $4 in
             let body = $8 in
@@ -461,38 +491,26 @@ dep:      /* 2-place rule dependency */
 /*
  * A variable lookup.
  */
-apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_args TokRightParen
+apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args TokRightParen
           { let _, strategy, loc1 = $1 in
             let _, loc2 = $7 in
             let idl, _ = $5 in
+            let args = $6 in
             let loc = union_loc loc1 loc2 in
                match idl with
                   [id] ->
-                     ApplyExp (strategy, Lm_symbol.add id, $6, loc), loc
+                     ApplyExp (strategy, Lm_symbol.add id, args, loc), loc
                 | _ ->
-                     MethodApplyExp (strategy, method_id_intern idl, $6, loc), loc
+                     MethodApplyExp (strategy, method_id_intern idl, args, loc), loc
           }
-        | TokDollar opt_white TokLeftParen opt_white method_name TokColon neq_arg TokEq arg TokRightParen
-          { let _, strategy, loc1 = $1 in
-            let _, loc2 = $10 in
-            let idl, _ = $5 in
-            let loc = union_loc loc1 loc2 in
-            let arg =
-               match idl with
-                  [id] ->
-                     ApplyExp (NormalApply, Lm_symbol.add id, [], loc)
-                | _ ->
-                     MethodApplyExp (NormalApply, method_id_intern idl, [], loc)
-            in
-                ApplyExp (strategy, replacesuffixes_sym, [$7; $9; arg], loc), loc
-          }
-        | TokDollar opt_white TokLeftParen opt_white id TokDoubleColon id opt_args TokRightParen
+        | TokDollar opt_white TokLeftParen opt_white id TokDoubleColon id opt_apply_args TokRightParen
           { let _, strategy, loc1 = $1 in
             let _, loc2 = $9 in
             let super, _ = $5 in
             let v, _ = $7 in
+            let args = $8 in
             let loc = union_loc loc1 loc2 in
-               SuperApplyExp (strategy, Lm_symbol.add super, Lm_symbol.add v, $8, loc), loc
+               SuperApplyExp (strategy, Lm_symbol.add super, Lm_symbol.add v, args, loc), loc
           }
         | TokVar
           { let strategy, id, loc = $1 in
@@ -668,7 +686,7 @@ rev_method_id:
           { let id, loc = $1 in
                [id], loc
           }
-        | rev_method_id_prefix TokId
+        | rev_method_id_prefix id
           { let idl, loc1 = $1 in
             let id, loc2 = $2 in
             let loc = union_loc loc1 loc2 in
@@ -682,6 +700,24 @@ rev_method_id_prefix:
             let _, loc2 = $2 in
             let loc = union_loc loc1 loc2 in
                idl, loc
+          }
+        | TokKeyword TokDot
+          { let id, loc1 = $1 in
+            let _, loc2 = $2 in
+            let loc = union_loc loc1 loc2 in
+               [id], loc
+          }
+        | TokClass TokDot
+          { let id, loc1 = $1 in
+            let _, loc2 = $2 in
+            let loc = union_loc loc1 loc2 in
+               [id], loc
+          }
+        | TokCatch TokDot
+          { let id, loc1 = $1 in
+            let _, loc2 = $2 in
+            let loc = union_loc loc1 loc2 in
+               [id], loc
           }
         ;
 
@@ -934,27 +970,44 @@ rev_text_nonempty:
                e :: l, union_loc loc1 loc2
           }
         ;
-
 /*
- * arg: [^ TokEol TokComma TokLeftParen TokRightParen]*
+ * arg: [^ TokEol TokComma TokArrow TokLeftParen TokRightParen]*
  * leading whitespace is stripped.
  */
 opt_args:
-          opt_white
-          { [] }
-        | white args
-          { $2 }
-        ;
-
-opt_params:
           opt_white
           { [] }
         | args
           { $1 }
         ;
 
+opt_apply_args:
+          opt_white
+          { [] }
+        | white args
+          { $2 }
+        ;
+
 args:     rev_args
           { List.rev $1 }
+        | rev_arrow_args
+          { List.rev $1 }
+        | rev_arrow_args TokComma rev_args
+          { List.rev_append $1 (List.rev $3) }
+        ;
+
+rev_arrow_args:
+          arrow_arg
+          { [$1] }
+        | rev_arrow_args TokComma arrow_arg
+          { $3 :: $1 }
+        ;
+
+arrow_arg:
+          rev_args TokArrow opt_white rev_any_arg
+          { let el, loc2 = $4 in
+               ArrowArg (get_fun_params (List.rev $1), sequence_exp (List.rev el) loc2)
+          }
         ;
 
 rev_args:
@@ -964,38 +1017,79 @@ rev_args:
           { $3 :: $1 }
         ;
 
-arg:
-          opt_white rev_arg
-          { let l, loc = $2 in
-               sequence_exp (List.rev l) loc
+arg:      opt_white arg_inner
+          { $2 }
+        ;
+
+arg_inner:
+          rev_normal_arg
+          { let el, loc = $1 in
+            let e = sequence_exp (List.rev el) loc in
+               NormalArg (None, e)
+          }
+        | arg_id
+          { let (id, loc0), w, loc = $1 in
+            let id = StringExp (id, loc0) in
+            let el =
+               match w with
+                  Some (w, loc0) ->
+                     [id; StringExp (w, loc0)]
+                | None ->
+                     [id]
+            in
+            let e = sequence_exp el loc in
+               NormalArg (None, e)
+          }
+        | arg_id TokEq opt_white
+          { let (id, _), _, loc1 = $1 in
+               NormalArg (Some (Lm_symbol.add id), NullExp loc1)
+          }
+        | arg_id TokEq opt_white rev_any_arg
+          { let (id, _), _, loc1 = $1 in
+            let el, loc2 = $4 in
+               NormalArg (Some (Lm_symbol.add id), sequence_exp (List.rev el) loc2)
           }
         ;
 
-rev_arg:
-          arg_start
+arg_id:
+          id opt_white
+          { let id = $1 in
+            let _, loc = id in
+               id, $2, loc
+          }
+        ;
+
+rev_any_arg:
+          arg_any_start
           { let e, loc = $1 in
                [e], loc
           }
-        | rev_arg arg_next
+        | rev_any_arg arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
                e :: l, union_loc loc1 loc2
           }
         ;
 
-neq_arg:
-          opt_white rev_neq_arg
-          { let l, loc = $2 in
-               sequence_exp (List.rev l) loc
+rev_normal_arg:
+          arg_id arg_next_noneq
+          { let (id, loc0), w, loc1 = $1 in
+            let id = StringExp (id, loc0) in
+            let e, loc2 = $2 in
+            let el =
+               match w with
+                  Some (w, loc0) ->
+                     [e; StringExp (w, loc0); id]
+                | None ->
+                     [e; id]
+            in
+               el, union_loc loc1 loc2
           }
-        ;
-
-rev_neq_arg:
-          neq_arg_start
+        | arg_start
           { let e, loc = $1 in
                [e], loc
           }
-        | rev_neq_arg neq_arg_next
+        | rev_normal_arg arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
                e :: l, union_loc loc1 loc2
@@ -1010,6 +1104,13 @@ rev_neq_arg:
 /*
  * Optional white space.
  */
+opt_literal_colon:
+          /* empty */
+          { OptBody }
+        | colon opt_white
+          { ColonBody }
+        ;
+
 opt_colon:
           opt_white
           { OptBody }

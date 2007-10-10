@@ -123,8 +123,9 @@ let print_result result =
     | ValMap _
     | ValChannel _
     | ValFun _
-    | ValFunValue _
+    | ValFunCurry _
     | ValPrim _
+    | ValPrimCurry _
     | ValBody _
     | ValRules _
     | ValOther _
@@ -235,7 +236,7 @@ let rec main state senv venv result =
 
    let prompt =
       try
-         let prompt = ValApply (loc, VarVirtual (loc, prompt_sym), []) in
+         let prompt = ValApply (loc, VarVirtual (loc, prompt_sym), [], []) in
             string_of_value venv pos prompt
       with
          OmakeException _
@@ -244,7 +245,8 @@ let rec main state senv venv result =
        | Unix.Unix_error _
        | Sys_error _
        | Failure _
-       | Not_found ->
+       | Not_found
+       | Return _ ->
             "% "
    in
 
@@ -337,6 +339,7 @@ let shell_script venv scriptname args =
                eprintf "@[<3>shell_script (pid=%i): script@ %a:@ got EOF, exiting@]@." (**)
                   (Unix.getpid()) pp_print_node node;
             exit 0
+       | Return _
        | OmakeException _
        | UncaughtException _
        | RaiseException _ as exn ->
@@ -366,6 +369,7 @@ let shell_string venv s =
       End_of_file ->
          eprintf "Empty command: %s@." s;
          exit 1
+    | Return _
     | OmakeException _
     | UncaughtException _
     | RaiseException _ as exn ->

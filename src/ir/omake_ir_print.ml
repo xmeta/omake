@@ -168,6 +168,12 @@ let pp_print_export_info buf info =
          fprintf buf "@ @[<b 3>export %a@]" pp_print_export_items items
 
 (*
+ * Return identifiers.
+ *)
+let pp_print_return_id buf (loc, s) =
+   fprintf buf "%s (%a)" s pp_print_location loc
+
+(*
  * Print a string expression.
  *)
 let rec pp_print_string_exp complete buf s =
@@ -178,39 +184,44 @@ let rec pp_print_string_exp complete buf s =
          fprintf buf "\"%s\"" (String.escaped s)
     | KeyApplyString (_, strategy, s) ->
          fprintf buf "$%a|%s|" pp_print_strategy strategy s
-    | VarString (_, v) ->
-         fprintf buf "`%a" pp_print_var_info v
-    | ApplyString (_, strategy, v, []) ->
+    | FunString (_, opt_params, param_set, params, e, export) ->
+         fprintf buf "@[<hv 3>(fun %a =>@ %a%a)@]" (**)
+            (pp_print_opt_params complete) (opt_params, param_set, params)
+            (pp_print_exp_list complete) e
+            pp_print_export_info export
+    | ApplyString (_, strategy, v, [], []) ->
          fprintf buf "@[<hv 3>$%a(%a)@]" (**)
             pp_print_strategy strategy
             pp_print_var_info v
-    | ApplyString (_, strategy, v, args) ->
+    | VarString (_, v) ->
+         fprintf buf "`%a" pp_print_var_info v
+    | ApplyString (_, strategy, v, args, kargs) ->
          fprintf buf "@[<hv 3>$%a(%a %a)@]" (**)
             pp_print_strategy strategy
             pp_print_var_info v
-            (pp_print_string_exp_list complete) args
-    | SuperApplyString (_, strategy, super, v, []) ->
+            (pp_print_args complete) (args, kargs)
+    | SuperApplyString (_, strategy, super, v, [], []) ->
          fprintf buf "@[<hv 3>$%a(%a::%a)@]" (**)
             pp_print_strategy strategy
             pp_print_symbol super
             pp_print_symbol v
-    | SuperApplyString (_, strategy, super, v, args) ->
+    | SuperApplyString (_, strategy, super, v, args, kargs) ->
          fprintf buf "@[<hv 3>$%a(%a::%a %a)@]" (**)
             pp_print_strategy strategy
             pp_print_symbol super
             pp_print_symbol v
-            (pp_print_string_exp_list complete) args
-    | MethodApplyString (_, strategy, v, vl, []) ->
+            (pp_print_args complete) (args, kargs)
+    | MethodApplyString (_, strategy, v, vl, [], []) ->
          fprintf buf "@[<hv 3>$%a(%a.%a)@]" (**)
             pp_print_strategy strategy
             pp_print_var_info v
             pp_print_method_name vl
-    | MethodApplyString (_, strategy, v, vl, args) ->
+    | MethodApplyString (_, strategy, v, vl, args, kargs) ->
          fprintf buf "@[<hv 3>$%a(%a.%a %a)@]" (**)
             pp_print_strategy strategy
             pp_print_var_info v
             pp_print_method_name vl
-            (pp_print_string_exp_list complete) args
+            (pp_print_args complete) (args, kargs)
     | SequenceString (_, sl) ->
          fprintf buf "@[<hv 1>(%a)@]" (**)
             (pp_print_string_exp_list complete) sl
@@ -272,6 +283,72 @@ and pp_print_string_exp_list complete buf sl =
          fprintf buf "%a,@ %a" (pp_print_string_exp complete) s (pp_print_string_exp_list complete) sl
 
 (*
+ * Print a list of symbols.
+ *)
+and pp_print_curry buf flag =
+   if flag then
+      pp_print_string buf "curry."
+
+and pp_print_params_inner buf sl =
+   match sl with
+      [v] ->
+         pp_print_symbol buf v
+    | [] ->
+         ()
+    | v :: sl ->
+         fprintf buf "%a, " pp_print_symbol v;
+         pp_print_params_inner buf sl
+
+and pp_print_params buf sl =
+   pp_print_params_inner buf sl
+
+and pp_print_opt_params_inner complete buf params =
+   match params with
+      [v, s] ->
+         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v (pp_print_string_exp complete) s
+    | (v, s) :: params ->
+         fprintf buf "@[<hv 3>%a =@ %a@],@ " pp_print_symbol v (pp_print_string_exp complete) s;
+         pp_print_opt_params_inner complete buf params
+    | [] ->
+         ()
+
+and pp_print_opt_params complete buf x =
+   match x with
+      [], _, [] ->
+         ()
+    | opt_params, _, [] ->
+         fprintf buf "[%a]" (pp_print_opt_params_inner complete) opt_params
+    | [], _, params ->
+         pp_print_params buf params
+    | opt_params, _, params ->
+         fprintf buf "[%a], %a" (**)
+            (pp_print_opt_params_inner complete) opt_params
+            pp_print_params params
+
+and pp_print_normal_args complete buf first args =
+   match args with
+      arg :: args ->
+         if not first then
+            fprintf buf ",@ ";
+         pp_print_string_exp complete buf arg;
+         pp_print_normal_args complete buf false args
+    | [] ->
+         first
+
+and pp_print_keyword_args complete buf first args =
+   match args with
+      (v, arg) :: args ->
+         if not first then
+            fprintf buf ",@ ";
+         fprintf buf "%a =@ %a" pp_print_symbol v (pp_print_string_exp complete) arg;
+         pp_print_keyword_args complete buf false args
+    | [] ->
+         ()
+
+and pp_print_args complete buf (args, kargs) =
+   pp_print_keyword_args complete buf (pp_print_normal_args complete buf true args) kargs
+
+(*
  * Print an expression.
  *)
 and pp_print_exp complete buf e =
@@ -284,11 +361,12 @@ and pp_print_exp complete buf e =
             pp_print_method_name vl
             pp_print_var_def_kind kind
             (pp_print_string_exp complete) s
-    | LetFunExp (_, v, vl, params, el, export) ->
-         fprintf buf "@[<hv 3>%a%a(%a) =@ %a%a@]" (**)
+    | LetFunExp (_, v, vl, curry, opt_params, param_set, params, el, export) ->
+         fprintf buf "@[<hv 3>%a%a%a(%a) =@ %a%a@]" (**)
+            pp_print_curry curry
             pp_print_var_info v
             pp_print_method_name vl
-            pp_print_symbol_list params
+            (pp_print_opt_params complete) (opt_params, param_set, params)
             (string_override "<...>" pp_print_exp_list complete) el
             pp_print_export_info export
     | LetObjectExp (_, v, vl, s, el, export) ->
@@ -329,27 +407,30 @@ and pp_print_exp complete buf e =
          fprintf buf "@[<hv 3>include %a:%a@]" (**)
             (pp_print_string_exp complete) s
             (pp_print_commands complete) commands
-    | ApplyExp (_, v, args) ->
+    | ApplyExp (_, v, args, kargs) ->
          fprintf buf "@[<hv 3>%a(%a)@]" (**)
             pp_print_var_info v
-            (pp_print_string_exp_list complete) args
-    | SuperApplyExp (_, super, v, args) ->
+            (pp_print_args complete) (args, kargs)
+    | SuperApplyExp (_, super, v, args, kargs) ->
          fprintf buf "@[<hv 0>%a::%a(%a)@]" (**)
             pp_print_symbol super
             pp_print_symbol v
-            (pp_print_string_exp_list complete) args
-    | MethodApplyExp (_, v, vl, args) ->
+            (pp_print_args complete) (args, kargs)
+    | MethodApplyExp (_, v, vl, args, kargs) ->
          fprintf buf "@[<hv 3>%a.%a(%a)@]" (**)
             pp_print_var_info v
             pp_print_method_name vl
-            (pp_print_string_exp_list complete) args
-    | ReturnBodyExp (_, el) ->
-         fprintf buf "@[<hv 3>return-body@ %a@]"
+            (pp_print_args complete) (args, kargs)
+    | ReturnBodyExp (_, el, id) ->
+         fprintf buf "@[<hv 3>return-body %a@ %a@]" (**)
+            pp_print_return_id id
             (string_override "<...>" pp_print_exp_list complete) el
     | StringExp (_, s) ->
          fprintf buf "string(%a)" (pp_print_string_exp complete) s
-    | ReturnExp (_, s) ->
-         fprintf buf "return(%a)" (pp_print_string_exp complete) s
+    | ReturnExp (_, s, id) ->
+         fprintf buf "return(%a) from %a" (**)
+            (pp_print_string_exp complete) s
+            pp_print_return_id id
     | ReturnSaveExp _ ->
          pp_print_string buf "return-current-file"
     | ReturnObjectExp (_, names) ->

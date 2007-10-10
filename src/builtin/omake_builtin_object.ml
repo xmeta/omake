@@ -58,7 +58,7 @@ open Pos
  * Extend an object with another.
  * The argument may be a file or an object.
  *)
-let extends_fun venv pos loc args =
+let extends_fun venv pos loc args kargs =
    let pos = string_pos "extends" pos in
    let extend_arg venv v =
       let obj =
@@ -120,10 +120,10 @@ let object_find venv pos loc args =
 (*
  * Add a field to an object.
  *)
-let object_add venv pos loc args =
+let object_add venv pos loc args kargs =
    let pos = string_pos "object-add" pos in
-      match args with
-         [arg; v; x] ->
+      match args, kargs with
+         [arg; v; x], [] ->
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
             let v = Lm_symbol.add s in
@@ -147,7 +147,8 @@ let object_length venv pos loc args =
 (*
  * Iterate over the object.
  *)
-let object_map venv pos loc args =
+let object_map venv pos loc args kargs =
+   let pos = string_pos "map" pos in
    let pos = string_pos "map" pos in
    let f, obj =
       match args with
@@ -155,28 +156,15 @@ let object_map venv pos loc args =
             let obj = eval_object venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, obj
-       | [arg; param1; param2; ValBody (env, body, export)] ->
-            let params =
-               [Lm_symbol.add (string_of_value venv pos param1);
-                Lm_symbol.add (string_of_value venv pos param2)]
-            in
-            let obj = eval_object venv pos arg in
-            let f venv pos loc args =
-               let venv_new = venv_add_args_hack venv pos loc env params args in
-               let venv_new, result = eval_sequence_exp venv_new pos body in
-               let venv = add_exports venv venv_new pos export in
-                  venv, result
-            in
-               f, obj
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (3, 4), List.length args)))
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
 
    (* If the body exports the environment, preserve it across calls *)
    let venv, obj =
       venv_object_fold_internal (fun (venv, obj) v x ->
-            let venv, result = f venv pos loc [ValString (Lm_symbol.to_string v); x] in
-            let obj = venv_add_field_internal obj v result in
+            let venv, x = f venv pos loc [ValString (Lm_symbol.to_string v); x] [] in
+            let obj = venv_add_field_internal obj v x in
                venv, obj) (venv, obj) obj
    in
       venv, ValObject obj
@@ -291,38 +279,24 @@ let map_remove venv pos loc args =
 (*
  * Iterate over the object.
  *)
-let map_map venv pos loc args =
+let map_map venv pos loc args kargs =
    let pos = string_pos "map-map" pos in
    let f, obj, map =
-      match args with
-         [arg; fun_val] ->
+      match args, kargs with
+         [arg; fun_val], [] ->
             let obj = eval_object venv pos arg in
             let map = map_of_object venv pos obj in
             let _, _, f = eval_fun venv pos fun_val in
                f, obj, map
-       | [arg; param1; param2; ValBody (env, body, export)] ->
-            let params =
-               [Lm_symbol.add (string_of_value venv pos param1);
-                Lm_symbol.add (string_of_value venv pos param2)]
-            in
-            let obj = eval_object venv pos arg in
-            let map = map_of_object venv pos obj in
-            let f venv pos loc args =
-               let venv_new = venv_add_args_hack venv pos loc env params args in
-               let venv_new, result = eval_sequence_exp venv_new pos body in
-               let venv = add_exports venv venv_new pos export in
-                  venv, result
-            in
-               f, obj, map
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (3, 4), List.length args)))
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
 
    (* If the body exports the environment, preserve it across calls *)
    let venv, map =
       venv_map_fold (fun (venv, map) v x ->
-            let venv, result = f venv pos loc [v; x] in
-            let map = venv_map_add map pos v result in
+            let venv, x = f venv pos loc [v; x] [] in
+            let map = venv_map_add map pos v x in
                venv, map) (venv, map) map
    in
       venv, wrap_map obj map
@@ -439,9 +413,10 @@ let sequence_length venv pos loc args =
                      List.length (values_of_value venv pos arg)
                 | ValArray a ->
                      List.length a
-                | ValFun (arity, _, _, _, _)
-                | ValFunValue (arity, _, _, _)
-                | ValPrim (arity, _, _) ->
+                | ValFun (arity, _, _, _, _, _)
+                | ValFunCurry (arity, _, _, _, _, _, _)
+                | ValPrim (arity, _, _, _)
+                | ValPrimCurry (arity, _, _, _, _) ->
                      (match arity with
                          ArityExact i
                        | ArityRange (i, _) ->
@@ -483,8 +458,9 @@ let sequence_nth venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
-                 | ValFunValue _
+                 | ValFunCurry _
                  | ValPrim _
+                 | ValPrimCurry _
                  | ValKeyApply _
                  | ValApply _
                  | ValMaybeApply _
@@ -560,8 +536,9 @@ let sequence_sub venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
-                 | ValFunValue _
+                 | ValFunCurry _
                  | ValPrim _
+                 | ValPrimCurry _
                  | ValKeyApply _
                  | ValApply _
                  | ValMaybeApply _
@@ -631,8 +608,9 @@ let sequence_rev venv pos loc args =
                (match arg with
                    ValNone
                  | ValFun _
-                 | ValFunValue _
+                 | ValFunCurry _
                  | ValPrim _
+                 | ValPrimCurry _
                  | ValKeyApply _
                  | ValApply _
                  | ValMaybeApply _
@@ -731,37 +709,23 @@ let sequence_rev venv pos loc args =
  * The \hyperfun{break} can be used to break out of the loop early.
  * \end{doc}
  *)
-let foreach_fun venv pos loc args =
+let foreach_fun venv pos loc args kargs =
    let pos = string_pos "foreach" pos in
    let f, args =
-      match args with
-         [fun_val; arg] ->
+      match args, kargs with
+         [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, args
-       | [ValBody (env, body, export); param; arg] ->
-            let params = [Lm_symbol.add (string_of_value venv pos param)] in
-            let args = values_of_value venv pos arg in
-            let f venv pos loc args =
-               let venv_new = venv_add_args_hack venv pos loc env params args in
-               let venv_new, result = eval_sequence_exp venv_new pos body in
-               let venv = add_exports venv venv_new pos export in
-                  venv, result
-            in
-               f, args
        | _ ->
-            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityRange (2, 3), List.length args)))
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
 
    (* If the body exports the environment, preserve it across calls *)
    let venv, values =
-      try
-         List.fold_left (fun (venv, values) v ->
-               let venv, result = f venv pos loc [v] in
-                  venv, result :: values) (venv, []) args
-      with
-         Break (_, venv) ->
-            venv, []
+      List.fold_left (fun (venv, values) v ->
+            let venv, x = f venv pos loc [v] [] in
+               venv, x :: values) (venv, []) args
    in
       venv, ValArray (List.rev values)
 
@@ -782,11 +746,11 @@ let foreach_fun venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let forall_fun venv pos loc args =
+let forall_fun venv pos loc args kargs =
    let pos = string_pos "sequence-forall" pos in
    let f, args =
-      match args with
-         [fun_val; arg] ->
+      match args, kargs with
+         [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, args
@@ -796,7 +760,7 @@ let forall_fun venv pos loc args =
    let rec test venv args =
       match args with
          arg :: args ->
-            let venv, result = f venv pos loc [arg] in
+            let venv, result = f venv pos loc [arg] [] in
                if bool_of_value venv pos result then
                   test venv args
                else
@@ -828,11 +792,11 @@ let forall_fun venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let exists_fun venv pos loc args =
+let exists_fun venv pos loc args kargs =
    let pos = string_pos "sequence-exists" pos in
    let f, args =
-      match args with
-         [fun_val; arg] ->
+      match args, kargs with
+         [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, args
@@ -844,7 +808,7 @@ let exists_fun venv pos loc args =
    let rec test venv args =
       match args with
          arg :: args ->
-            let venv, result = f venv pos loc [arg] in
+            let venv, result = f venv pos loc [arg] [] in
                if bool_of_value venv pos result then
                   venv, true
                else
@@ -878,11 +842,11 @@ let exists_fun venv pos loc args =
  * \end{verbatim}
  * \end{doc}
  *)
-let sort_fun venv pos loc args =
+let sort_fun venv pos loc args kargs =
    let pos = string_pos "sequence-sort" pos in
    let f, args =
-      match args with
-         [fun_val; arg] ->
+      match args, kargs with
+         [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
             let _, _, f = eval_fun venv pos fun_val in
                f, args
@@ -890,9 +854,8 @@ let sort_fun venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
 
-   (* If the body exports the environment, preserve it across calls *)
    let compare v1 v2 =
-      let _, x = f venv pos loc [v1; v2] in
+      let _, x = f venv pos loc [v1; v2] [] in
          int_of_value venv pos x
    in
    let args = List.sort compare args in
@@ -955,7 +918,7 @@ let () =
    in
    let builtin_kfuns =
       [true, "obj-add",              object_add,          ArityExact 3;
-       true, "extends",              extends_fun,         ArityAny;
+       true, "extends",              extends_fun,         ArityExact 1;
        true, "foreach",              foreach_fun,         ArityExact 2;
        true, "obj-map",              object_map,          ArityRange (3, 4);
        true, "map-map",              map_map,             ArityRange (3, 4);
@@ -974,7 +937,7 @@ let () =
        "Float",            value_sym, ValFloat 0.0;
        "String",           value_sym, ValNone;
        "Array",            value_sym, ValArray [];
-       "Fun",              value_sym, ValFun (ArityExact 0, venv_empty_env, [], [], ExportNone);
+       "Fun",              value_sym, ValFun (ArityExact 0, venv_empty_env, SymbolSet.empty, [], [], ExportNone);
        "Rule",             value_sym, ValRules [];
        "File",             value_sym, ValNone;
        "Dir",              value_sym, ValNone;

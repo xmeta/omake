@@ -102,27 +102,29 @@ let rec pp_print_value buf v =
          fprintf buf "@[<hv 3><sequence%a>@ : Sequence@]" pp_print_value_list vl
     | ValArray vl ->
          fprintf buf "@[<v 3><array%a>@ : Array@]" pp_print_value_list vl
-    | ValApply (_, f, args) ->
+    | ValApply (_, f, args, kargs) ->
          fprintf buf "@[<hv 3>$(apply %a%a)@]" (**)
             pp_print_var_info f
-            pp_print_value_list args
-    | ValSuperApply (_, super, f, args) ->
+            pp_print_value_args (args, kargs)
+    | ValSuperApply (_, super, f, args, kargs) ->
          fprintf buf "@[<hv 3>$(apply %a::%a%a)@]" (**)
             pp_print_symbol super
             pp_print_symbol f
-            pp_print_value_list args
-    | ValMethodApply (_, v, vl, args) ->
+            pp_print_value_args (args, kargs)
+    | ValMethodApply (_, v, vl, args, kargs) ->
          fprintf buf "@[<hv 3>$(%a%a%a)@]" (**)
             pp_print_var_info v
             pp_print_method_name vl
-            pp_print_value_list args
+            pp_print_value_args (args, kargs)
     | ValMaybeApply (_, v) ->
          fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
             pp_print_var_info v
-    | ValFun (arity, _, _, _, _)
-    | ValFunValue (arity, _, _, _) ->
+    | ValFun (arity, _, _, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
-    | ValPrim (_, special, name) ->
+    | ValFunCurry (arity, _, _, _, _, _, _) ->
+         fprintf buf "<curry %a>" pp_print_arity arity
+    | ValPrim (_, special, _, name)
+    | ValPrimCurry (_, special, name, _, _) ->
          if special then
             fprintf buf "<special-function %a>" pp_print_symbol name
          else
@@ -135,7 +137,7 @@ let rec pp_print_value buf v =
          fprintf buf "%a : Dir" pp_print_dir dir
     | ValNode node ->
          fprintf buf "%a : File" pp_print_node node
-    | ValBody (_, el, export) ->
+    | ValBody (el, export) ->
          fprintf buf "@[<v 0>%a%a@ : Body@]" pp_print_exp_list el pp_print_export_info export
     | ValObject env ->
          pp_print_env buf env
@@ -185,6 +187,29 @@ let rec pp_print_value buf v =
 and pp_print_value_list buf vl =
    List.iter (fun v -> fprintf buf "@ %a" pp_print_value v) vl
 
+and pp_print_normal_args buf first args =
+   match args with
+      arg :: args ->
+         if not first then
+            fprintf buf ",@ ";
+         pp_print_value buf arg;
+         pp_print_normal_args buf false args
+    | [] ->
+         first
+
+and pp_print_keyword_args buf first kargs =
+   match kargs with
+      (v, arg) :: kargs ->
+         if not first then
+            fprintf buf ",@ ";
+         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v pp_print_value arg;
+         pp_print_keyword_args buf false kargs
+    | [] ->
+         ()
+
+and pp_print_value_args buf (args, kargs) =
+   pp_print_keyword_args buf (pp_print_normal_args buf true args) kargs
+
 and pp_print_env buf env =
    let tags = venv_get_class env in
    let env = SymbolTable.remove env class_sym in
@@ -217,27 +242,29 @@ let rec pp_print_simple_value buf v =
          pp_print_simple_value_list buf vl
     | ValArray vl ->
          pp_print_simple_arg_list buf vl
-    | ValApply (_, f, args) ->
+    | ValApply (_, f, args, kargs) ->
          fprintf buf "$(%a%a)" (**)
             pp_print_var_info f
-            pp_print_simple_arg_list args
-    | ValSuperApply (_, super, f, args) ->
+            pp_print_value_args (args, kargs)
+    | ValSuperApply (_, super, f, args, kargs) ->
          fprintf buf "$(%a::%a%a)" (**)
             pp_print_symbol super
             pp_print_symbol f
-            pp_print_simple_arg_list args
-    | ValMethodApply (_, v, vl, args) ->
+            pp_print_value_args (args, kargs)
+    | ValMethodApply (_, v, vl, args, kargs) ->
          fprintf buf "$(%a%a%a)" (**)
             pp_print_var_info v
             pp_print_method_name vl
-            pp_print_value_list args
+            pp_print_value_args (args, kargs)
     | ValMaybeApply (_, v) ->
          fprintf buf "$?(%a)" (**)
             pp_print_var_info v
-    | ValFun _
-    | ValFunValue _ ->
+    | ValFun _ ->
          pp_print_string buf "<fun>"
-    | ValPrim _ ->
+    | ValFunCurry _ ->
+         pp_print_string buf "<curry>"
+    | ValPrim _
+    | ValPrimCurry _ ->
          pp_print_string buf "<prim>"
     | ValRules _ ->
          pp_print_string buf "<rules>"

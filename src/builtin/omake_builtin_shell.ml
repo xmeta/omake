@@ -244,7 +244,7 @@ let cd_aux venv cd_path pos loc arg =
     | args ->
          raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
 
-let cd_fun venv pos loc args =
+let cd_fun venv pos loc args kargs =
    let pos = string_pos "cd" pos in
    let cd_path =
       try venv_find_var_exn venv cdpath_var with
@@ -253,12 +253,12 @@ let cd_fun venv pos loc args =
    in
    let cd_path = values_of_value venv pos cd_path in
    let cd_path = List.map (dir_of_value venv pos) cd_path in
-      match args with
-         [arg] ->
+      match args, kargs with
+         [arg], [] ->
             let dir = cd_aux venv cd_path pos loc arg in
             let venv = venv_chdir_tmp venv dir in
                venv, ValDir dir
-       | [dir; e] ->
+       | [dir; e], [] ->
             (* Change temporarily and evaluate the exp *)
             let dir = cd_aux venv cd_path pos loc dir in
             let venv_new = venv_chdir_tmp venv dir in

@@ -98,8 +98,12 @@ let get_registered_builtins () =
 (*
  * Check that there are no keyword arguments.
  *)
-let wrap_normal_prim_fun f venv pos loc args =
-   venv, f venv pos loc args
+let wrap_normal_prim_fun f venv pos loc args kargs =
+   match kargs with
+      [] ->
+         venv, f venv pos loc args
+    | (v, _) :: _ ->
+         raise (OmakeException (loc_pos loc pos, StringVarError ("no such parameter", v)))
 
 (*
  * Add all the functions to the environment.
@@ -124,14 +128,24 @@ let venv_add_builtins venv =
             let name = Lm_symbol.add s in
             let v = VarGlobal (loc, name) in
             let p = venv_add_prim_fun venv name (wrap_normal_prim_fun f) in
-               venv_add_var venv v (ValPrim (arity, special, p))) venv builtin_funs
+            let no_args =
+               match arity with
+                  ArityExact 0 -> ApplyEmpty
+                | _ -> ApplyNonEmpty
+            in
+               venv_add_var venv v (ValPrim (arity, special,no_args, p))) venv builtin_funs
    in
    let venv =
       List.fold_left (fun venv (special, s, f, arity) ->
             let name = Lm_symbol.add s in
             let v = VarGlobal (loc, name) in
             let p = venv_add_prim_fun venv name f in
-               venv_add_var venv v (ValPrim (arity, special, p))) venv builtin_kfuns
+            let no_args =
+               match arity with
+                  ArityExact 0 -> ApplyEmpty
+                | _ -> ApplyNonEmpty
+            in
+               venv_add_var venv v (ValPrim (arity, special,no_args,  p))) venv builtin_kfuns
    in
    let venv =
       List.fold_left (fun venv (multiple, targets, sources) ->

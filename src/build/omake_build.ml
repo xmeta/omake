@@ -2696,11 +2696,11 @@ let wait_for_lock, unlock_db =
              *)
             Unix.Unix_error ((Unix.EOPNOTSUPP | Unix.ENOLCK) as err, _, _) ->
                eprintf "*** omake WARNING: Can not lock the project database file .omakedb:
-   \t%s. Will proceed anyway.
-   \tWARNING: Be aware that simultaneously running more than one instance
-   \t\tof OMake on the same project is not recommended.  It may
-   \t\tresult in some OMake instances failing to record their
-   \t\tprogress in the database@."
+\t%s. Will proceed anyway.
+\tWARNING: Be aware that simultaneously running more than one instance
+\t\tof OMake on the same project is not recommended.  It may
+\t\tresult in some OMake instances failing to record their
+\t\tprogress in the database@."
                   (Unix.error_message err)
           | Unix.Unix_error (err, _, _) ->
                raise (Failure ("Failed to lock the file " ^ name ^ ": " ^ (Unix.error_message err)))

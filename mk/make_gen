@@ -51,13 +51,13 @@ MakeLinkExternalFile(dst, src) =
     export
 
 MakeLinkFiles(files) =
-    foreach(name, $(files))
+    foreach(name => ..., $(files))
         MakeLinkFile($(name), $(name))
         export
     export
 
 MakeLinkExternal(srcdir, files) =
-    foreach(name, $(files))
+    foreach(name => ..., $(files))
         # Record the link
         MakeLinkFile($(name), $(srcdir)/$(name))
 
@@ -174,7 +174,7 @@ SRC_$(base) = $(cwd)
     #
     # Link all the files
     #
-    foreach(name, $(implicit-links))
+    foreach(name => ..., $(implicit-links))
         srcfile = $"$$(SRC_$(base))$$(slash)$(name)"
         MAKEFILE_TEXT += $"""
 $(name): $(srcfile)
@@ -234,7 +234,7 @@ EXT_OBJ = .o
 EXT_LIB = .a
 EXE =
 
-OCAMLFLAGS =
+OCAMLFLAGS = -g
 THREADSLIB =
 
 .SUFFIXES: .mll .mly .mli .ml .c .cmi .cmo .cma .o

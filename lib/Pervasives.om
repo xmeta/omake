@@ -290,11 +290,12 @@ Map. +=
         return $(map-find $(this), $(v))
 
     map(f) =
+        export
         return $(map-map $(this), $(f))
 
-    foreach(body, v, x) =
+    foreach(f) =
         export
-        map-map($(this), $(v), $(x), $(body))
+        map-map($(this), $f)
 
     length() =
         return $(map-length $(this))
@@ -432,9 +433,12 @@ Sequence. +=
    map(f) =
       sequence-map($(f), $(this))
 
-   foreach(body, v) =
-      export
-      sequence-map($(body), $(v), $(this))
+   # Note: private exports have no effect
+   curry.foreach() =
+      private.THIS = $(this)
+      g(f) =
+         export
+         sequence-map($(f), $(THIS))
 
    forall(f) =
       sequence-forall($f, $(this))
@@ -1182,7 +1186,7 @@ Shell. +=
    # \end{doc}
    #
    digest(argv) =
-       foreach(n, $(argv))
+       foreach(n => ..., $(argv))
            println($"$n: $(digest $n)")
        value
 

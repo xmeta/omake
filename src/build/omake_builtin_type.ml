@@ -39,7 +39,7 @@ open Omake_value_type
 open Omake_build_type
 
 type builtin_fun = venv -> pos -> loc -> value list -> value
-type builtin_kfun = venv -> pos -> loc -> value list -> venv * value
+type builtin_kfun = venv -> pos -> loc -> value list -> keyword_value list -> venv * value
 type builtin_env_fun = env -> builtin_fun
 type builtin_object_info = string * var * value
 type builtin_rule = bool * string list * string list

@@ -38,6 +38,16 @@ open Omake_node
 (* %%MAGICBEGIN%% *)
 (* Revision 11955: Jason fixed "a terrible typo in Omake_ir_semant" *)
 type var = symbol
+type param = symbol
+type keyword_set = SymbolSet.t
+type curry_flag = bool
+
+(*
+ * Whether a function of zero arguments should be applied.
+ *)
+type apply_empty_strategy =
+   ApplyEmpty
+ | ApplyNonEmpty
 
 (*
  * Evaluation of lazy applications is delayed as much as possible.
@@ -104,15 +114,29 @@ type export =
  | ExportList of export_item list
 
 (*
+ * A return identifier is a unique id for the function to return from.
+ * NOTE: this is a unique string, compared with pointer equality.
+ *)
+type return_id = loc * string
+
+(*
  * Expression that results in a string.
+ *
+ * Functions: a function takes a triple:
+ *    keyword_param list : the optional parameters
+ *    keyword_set : the set of keywords (for checking against the keyword arguments)
+ *    param list : the names of the required parameters
+ *
+ * The ordering of keyword arguments is irrelevant.
  *)
 type string_exp =
    NoneString        of loc
  | ConstString       of loc * string
-   (* ZZZ: FunString, MethodString *)
- | ApplyString       of loc * apply_strategy * var_info * string_exp list
- | SuperApplyString  of loc * apply_strategy * var * var * string_exp list
- | MethodApplyString of loc * apply_strategy * var_info * var list * string_exp list
+ | FunString         of loc * keyword_param list * keyword_set * param list * exp list * export
+   (* ZZZ: MethodString *)
+ | ApplyString       of loc * apply_strategy * var_info * string_exp list * keyword_arg list
+ | SuperApplyString  of loc * apply_strategy * var * var * string_exp list * keyword_arg list
+ | MethodApplyString of loc * apply_strategy * var_info * var list * string_exp list * keyword_arg list
  | SequenceString    of loc * string_exp list
  | ArrayString       of loc * string_exp list
  | ArrayOfString     of loc * string_exp
@@ -131,6 +155,16 @@ and source_exp = node_kind * string_exp
 and source_table = string_exp SymbolTable.t
 
 (*
+ * Optional function arguments.
+ *)
+and keyword_param = var * string_exp
+
+(*
+ * Arguments are a pair of normal arguments and keyword arguments.
+ *)
+and keyword_arg = var * string_exp
+
+(*
  * Commands.
  *)
 and rule_command =
@@ -140,15 +174,15 @@ and rule_command =
 and exp =
    (* Definitions *)
    LetVarExp        of loc * var_info * var list * var_def_kind * string_exp
- | LetFunExp        of loc * var_info * var list * var list * exp list * export
+ | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * keyword_set * param list * exp list * export
  | LetObjectExp     of loc * var_info * var list * string_exp * exp list * export
  | LetThisExp       of loc * string_exp
  | LetKeyExp        of loc * string * var_def_kind * string_exp
 
    (* Applications *)
- | ApplyExp         of loc * var_info * string_exp list
- | SuperApplyExp    of loc * var * var * string_exp list
- | MethodApplyExp   of loc * var_info * var list * string_exp list
+ | ApplyExp         of loc * var_info * string_exp list * keyword_arg list
+ | SuperApplyExp    of loc * var * var * string_exp list * keyword_arg list
+ | MethodApplyExp   of loc * var_info * var list * string_exp list * keyword_arg list
  | KeyExp           of loc * string
 
    (* Sequences *)
@@ -173,8 +207,8 @@ and exp =
     *    Return to here.
     *)
  | StringExp        of loc * string_exp
- | ReturnExp        of loc * string_exp
- | ReturnBodyExp    of loc * exp list
+ | ReturnExp        of loc * string_exp * return_id
+ | ReturnBodyExp    of loc * exp list * return_id
 
    (*
     * LetOpenExp (loc, v, id, file, link)
@@ -313,6 +347,7 @@ let var_of_var_info = function
  *)
 type name_info =
    { name_static     : bool;
+     name_curry      : bool;
      name_scope      : var_scope option
    }
 
