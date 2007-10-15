@@ -76,7 +76,7 @@ let param_of_arg arg =
     | NormalArg (KeyArg (v, e)) ->
         OptionalParam (v, e, loc_of_exp e)
     | NormalArg (ExpArg e) ->
-        raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("bad argument parameter", e)))
+        raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("illegal function parameter", e)))
     | NormalArg (ArrowArg (_, e)) ->
         raise (OmakeException (loc_exp_pos (loc_of_exp e), StringAstError ("illegal function argument", e)))
 
