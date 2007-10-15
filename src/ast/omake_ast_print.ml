@@ -188,12 +188,13 @@ let rec pp_print_exp buf e =
 (*
  * Parameters.
  *)
-and pp_print_param buf (v, e, _) =
-   match e with
-      Some e ->
-         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v pp_print_exp e
-    | None ->
-         pp_print_symbol buf v
+and pp_print_param buf = function
+   OptionalParam (v, e, _) ->
+      fprintf buf "@[<hv 3>?%a =@ %a@]" pp_print_symbol v pp_print_exp e
+ | RequiredParam (v, _) ->
+      fprintf buf "~%a" pp_print_symbol v
+ | NormalParam (v, _) ->
+      pp_print_symbol buf v
 
 and pp_print_params buf vars =
    match vars with
@@ -205,19 +206,14 @@ and pp_print_params buf vars =
     | [] ->
          ()
 
-and pp_print_normal_arg buf v e =
-   match v with
-      Some v ->
-         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v pp_print_exp e
-    | None ->
-         pp_print_exp buf e
-
 and pp_print_arrow_arg buf params e =
    fprintf buf "@[<hv 3>%a =>@ %a@]" pp_print_params params pp_print_exp e
 
 and pp_print_arg buf = function
-   NormalArg (v, e) ->
-      pp_print_normal_arg buf v e
+   KeyArg (v, e) ->
+      fprintf buf "@[<hv 3>~%a =@ %a@]" pp_print_symbol v pp_print_exp e
+ | ExpArg e ->
+      pp_print_exp buf e
  | ArrowArg (params, e) ->
       pp_print_arrow_arg buf params e
 

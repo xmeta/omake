@@ -163,6 +163,8 @@ let pp_print_token buf = function
        fprintf buf "dot: %s" s
   | TokId (s, _) ->
        fprintf buf "id: %s" s
+  | TokKey (s, _) ->
+       fprintf buf "key: %s" s
   | TokKeyword (s, _) ->
        fprintf buf "keyword: %s" s
   | TokCatch (s, _) ->
@@ -409,6 +411,10 @@ let lexeme_name state lexbuf =
        | _ ->
              TokId (id, loc)
 
+let lexeme_key state lexbuf =
+    let id, loc = lexeme_string state lexbuf in
+       TokKey (id, loc)
+
 (*
  * Get the escaped char.
  *)
@@ -564,8 +570,10 @@ let strict_eol      = strict_nl | eof
 (*
  * Identifiers and keywords.
  *)
+let name_prefix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '@']
 let name_suffix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '@']
-let name            = name_suffix+ | '[' | ']'
+let name            = name_prefix name_suffix* | '[' | ']'
+let key             = ['~' '?'] name_suffix+
 
 (*
  * Comments begin with a # symbol and continue to end-of-line.
@@ -614,7 +622,7 @@ let special_string      = "=>" | "::" | "+=" | "[]" | "..." | "[...]"
  * Other stuff that is not names or special characters.
  *)
 let other_char          = [^ ' ' '\t' '\012' '\n' '\r'
-                           '_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '@'
+                           '_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '?' '@'
                            '$' '(' ')' ':' ',' '=' '\\' '#' '%' '[' ']' '.' '"' '\'']
 let other_drive         = ['A'-'Z' 'a'-'z'] ':' ['\\' '/']
 let other_prefix        = other_char | other_drive
@@ -644,6 +652,8 @@ rule lex_main state = parse
    }
  | name
    { lexeme_name state lexbuf }
+ | key
+   { lexeme_key state lexbuf }
  | ['\'' '"']
    { let id, loc = lexeme_string state lexbuf in
      let mode = ModeQuote id in

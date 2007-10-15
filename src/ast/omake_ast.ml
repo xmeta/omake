@@ -89,12 +89,22 @@ type exp =
  | KeyDefExp       of string * define_kind * define_flag * exp * loc
  | KeyDefBodyExp   of string * define_kind * define_flag * exp list * loc
 
-and param  = var * exp option * loc
 and params = param list
 
+and param =
+   OptionalParam of var * exp * loc
+ | RequiredParam of var * loc
+ | NormalParam   of var * loc
+
 and arg      =
-   NormalArg of var option * exp
- | ArrowArg  of param list * exp
+ | KeyArg      of var * exp
+ | ExpArg      of exp
+ | ArrowArg    of param list * exp
+
+and parse_arg =
+   IdArg       of string * (string * loc) option * loc   (* Second string is always whitespace *)
+ | NormalArg   of arg
+
 and args     = arg list
 
 type prog = exp list

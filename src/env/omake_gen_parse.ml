@@ -46,6 +46,7 @@ let tokens =
     "TokArray";
     "TokDot";
     "TokId";
+    "TokKey";
     "TokKeyword";
     "TokCatch";
     "TokClass";
@@ -74,6 +75,13 @@ let id =
     "TokKeyword";
     "TokCatch";
     "TokClass"]
+
+let key =
+   ["TokId";
+    "TokKeyword";
+    "TokCatch";
+    "TokClass";
+    "TokKey"]
 
 let white =
    ["TokWhite"]
@@ -118,7 +126,7 @@ let arg_any_start =
    subtract arg_next white
 
 let arg_start =
-   subtract arg_any_start id
+   subtract arg_any_start key
 
 let arg_next_noneq =
    subtract arg_any_start ["TokEq"]

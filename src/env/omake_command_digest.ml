@@ -181,6 +181,8 @@ type code =
  | CodeRedirectNode
  | CodeRedirectArg
  | CodeRedirectNone
+ | CodeKeywordSpec
+ | CodeKeywordSpecList
 (* %%MAGICEND%% *)
 
 module type HashSig =
@@ -246,6 +248,15 @@ let squash_var_info buf v =
          Hash.add_code buf CodeVarGlobal;
          Hash.add_code buf CodeSpace;
          squash_var buf v
+
+let squash_keyword_spec buf (v, required) =
+   Hash.add_code buf CodeKeywordSpec;
+   squash_var buf v;
+   Hash.add_bool buf required
+
+let squash_keyword_spec_list buf keywords =
+   Hash.add_code buf CodeKeywordSpecList;
+   List.iter (squash_keyword_spec buf) keywords
 
 (*
  * File.
@@ -662,7 +673,7 @@ let rec squash_value pos buf v =
             squash_keyword_values pos buf kargs
        | ValFun (_, _, keywords, params, body, export) ->
             Hash.add_code buf CodeValFun;
-            squash_params buf keywords;
+            squash_keyword_spec_list buf keywords;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeArrow;
@@ -671,7 +682,7 @@ let rec squash_value pos buf v =
             squash_export_info buf export
        | ValFunCurry (_, _, keywords, params, body, export, kargs) ->
             Hash.add_code buf CodeValFun;
-            squash_params buf keywords;
+            squash_keyword_spec_list buf keywords;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeArrow;

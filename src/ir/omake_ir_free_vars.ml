@@ -56,6 +56,8 @@ let free_vars_remove_param_set fv params =
 let free_vars_remove_param_list fv params =
    List.fold_left VarInfoSet.remove_private fv params
 
+let free_vars_remove_keyword_spec_list fv keywords =
+   List.fold_left (fun fv (v, _) -> VarInfoSet.remove_private fv v) fv keywords
 (*
  * Union of two free variable sets.
  *)
@@ -107,7 +109,7 @@ and free_vars_string_exp fv s =
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body s in
          let fv_body = free_vars_remove_param_list fv_body vars in
-         let fv_body = free_vars_remove_param_list fv_body keywords in
+         let fv_body = free_vars_remove_keyword_spec_list fv_body keywords in
          let fv = free_vars_union fv fv_body in
             free_vars_opt_params fv opt_params
     | ApplyString (_, _, v, args, kargs)
@@ -170,7 +172,7 @@ and free_vars_exp fv e =
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body el in
          let fv_body = free_vars_remove_param_list fv_body vars in
-         let fv_body = free_vars_remove_param_list fv_body keywords in
+         let fv_body = free_vars_remove_keyword_spec_list fv_body keywords in
          let fv = free_vars_union fv fv_body in
          let fv = free_vars_remove fv v in
             free_vars_opt_params fv opt_params

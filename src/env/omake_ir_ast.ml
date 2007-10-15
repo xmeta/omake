@@ -281,6 +281,16 @@ type value =
  | ValNotReached
  | ValExport of var_info SymbolTable.t
 
+(*
+ * Parameters.
+ *)
+type param_info =
+   RequiredParam
+ | NormalParam
+ | OptionalParam of string_exp
+
+type param = var * param_info * loc
+
 (************************************************************************
  * Name info.
  *)
@@ -966,19 +976,26 @@ let senv_define_var scope genv oenv senv cenv pos loc v =
 (*
  * Parameter sorting.
  *)
+let check_duplicate_keyword pos keywords v =
+   if SymbolTable.mem keywords v then
+      raise (OmakeException (pos, StringVarError ("duplicate keyword parameter", v)))
+
 let senv_add_params genv oenv senv cenv pos params =
    let senv, opt_params, keywords, params =
-      List.fold_left (fun (senv, opt_params, keywords, params) (v, s_opt, loc) ->
+      List.fold_left (fun (senv, opt_params, keywords, params) (v, info, loc) ->
             let senv, _ = senv_define_var VarScopePrivate genv oenv senv cenv pos loc v in
-               match s_opt with
-                  Some s ->
-                     if SymbolSet.mem keywords v then
-                        raise (OmakeException (pos, StringVarError ("duplicate keyword parameter", v)));
-                     senv, (v, s) :: opt_params, SymbolSet.add keywords v, params
-                | None ->
-                     senv, opt_params, keywords, v :: params) (senv, [], SymbolSet.empty, []) params
+               match info with
+                  NormalParam ->
+                     senv, opt_params, keywords, v :: params
+                | RequiredParam ->
+                     check_duplicate_keyword pos keywords v;
+                     senv, opt_params, SymbolTable.add keywords v true, params
+                | OptionalParam s ->
+                     check_duplicate_keyword pos keywords v;
+                     senv, (v, s) :: opt_params, SymbolTable.add keywords v false, params) (senv, [], SymbolTable.empty, []) params
    in
-   let keywords = SymbolSet.to_list keywords in
+   let keywords = SymbolTable.fold (fun keywords v x -> (v, x) :: keywords) [] keywords in
+   let keywords = List.rev keywords in
    let opt_params = List.rev opt_params in
    let params = List.rev params in
       senv, opt_params, keywords, params
@@ -1224,16 +1241,18 @@ and build_string_opt genv oenv senv cenv sl pos =
 and build_params genv oenv senv cenv params pos loc =
    let pos = string_pos "build_params" pos in
    let genv, oenv, params =
-      List.fold_left (fun (genv, oenv, params) (v, e_opt, loc) ->
-            let genv, oenv, s_opt =
-               match e_opt with
-                  Some e ->
+      List.fold_left (fun (genv, oenv, params) param ->
+            let genv, oenv, param =
+               match param with
+                  Omake_ast.RequiredParam (v, _) ->
+                     genv, oenv, (v, RequiredParam, loc)
+                | Omake_ast.NormalParam (v, loc) ->
+                     genv, oenv, (v, NormalParam, loc)
+                | Omake_ast.OptionalParam (v, e, loc) ->
                      let genv, oenv, s = build_string genv oenv senv cenv e (loc_pos loc pos) in
-                        genv, oenv, Some s
-                | None ->
-                     genv, oenv, None
+                        genv, oenv, (v, OptionalParam s, loc)
             in
-               genv, oenv, (v, s_opt, loc) :: params) (genv, oenv, []) params
+               genv, oenv, param :: params) (genv, oenv, []) params
    in
    let params = List.rev params in
    let senv, opt_params, keywords, params = senv_add_params genv oenv senv cenv pos params in
@@ -1334,23 +1353,23 @@ This expression should use a => binding.@]@." (**)
 
 and build_compat_args genv oenv senv cenv v args pos loc =
    match args with
-      [Omake_ast.NormalArg (None, body);
-       Omake_ast.NormalArg (None, x);
-       Omake_ast.NormalArg (None, e)]
+      [Omake_ast.ExpArg body;
+       Omake_ast.ExpArg x;
+       Omake_ast.ExpArg e]
       when Lm_symbol.eq v foreach_sym ->
          (match build_literal_string_opt x with
              Some x ->
                 foreach_warning loc;
-                [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc], body); Omake_ast.NormalArg (None, e)]
+                [Omake_ast.ArrowArg ([Omake_ast.NormalParam (Lm_symbol.add x, loc)], body); Omake_ast.ExpArg e]
            | None ->
                 args)
-    | [Omake_ast.NormalArg (None, body);
-       Omake_ast.NormalArg (None, x)]
+    | [Omake_ast.ExpArg body;
+       Omake_ast.ExpArg x]
       when Lm_symbol.eq v fun_sym ->
          (match build_literal_string_opt x with
              Some x ->
                 fun_warning loc;
-                [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc], body)]
+                [Omake_ast.ArrowArg ([Omake_ast.NormalParam (Lm_symbol.add x, loc)], body)]
            | None ->
                 args)
     | _ ->
@@ -1364,21 +1383,22 @@ and build_method_compat_args genv oenv senv cenv vl args pos loc =
    if Lm_symbol.eq (Lm_list_util.last vl) foreach_sym then
       (* New-style foreach methods have a single argument *)
       match args with
-         [Omake_ast.NormalArg (None, body);
-          Omake_ast.NormalArg (None, x)] ->
+         [Omake_ast.ExpArg body;
+          Omake_ast.ExpArg x] ->
             (match build_literal_string_opt x with
                 Some x ->
                    foreach_warning loc;
-                   [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc], body)]
+                   [Omake_ast.ArrowArg ([Omake_ast.NormalParam (Lm_symbol.add x, loc)], body)]
            | None ->
                 args)
-       | [Omake_ast.NormalArg (None, body);
-          Omake_ast.NormalArg (None, x);
-          Omake_ast.NormalArg (None, y)] ->
+       | [Omake_ast.ExpArg body;
+          Omake_ast.ExpArg x;
+          Omake_ast.ExpArg y] ->
             (match build_literal_string_opt x, build_literal_string_opt y with
                 Some x, Some y ->
                    foreach_warning loc;
-                   [Omake_ast.ArrowArg ([Lm_symbol.add x, None, loc; Lm_symbol.add y, None, loc], body)]
+                   [Omake_ast.ArrowArg ([Omake_ast.NormalParam (Lm_symbol.add x, loc);
+                                         Omake_ast.NormalParam (Lm_symbol.add y, loc)], body)]
               | _ ->
                    args)
        | _ ->
@@ -1392,13 +1412,12 @@ and build_method_compat_args genv oenv senv cenv vl args pos loc =
  *)
 and build_arg senv cenv pos loc (genv, oenv, args, kargs) arg =
    match arg with
-      Omake_ast.NormalArg (v_opt, e) ->
+      Omake_ast.ExpArg e ->
          let genv, oenv, s = build_string genv oenv senv cenv e pos in
-            (match v_opt with
-                Some v ->
-                   genv, oenv, args, (v, s) :: kargs
-              | None ->
-                   genv, oenv, s :: args, kargs)
+            genv, oenv, s :: args, kargs
+    | Omake_ast.KeyArg (v, e) ->
+         let genv, oenv, s = build_string genv oenv senv cenv e pos in
+            genv, oenv, args, (v, s) :: kargs
     | Omake_ast.ArrowArg (params, e) ->
          let genv, oenv, senv, opt_params, keywords, params =
             build_params genv oenv senv cenv params pos loc
@@ -1739,7 +1758,7 @@ and build_cases_command_exp genv oenv senv cenv v arg cases commands pos loc =
                 | _ ->
                      Omake_ast.BodyExp (commands, loc)
             in
-               build_cases_apply_exp genv oenv senv cenv v [Omake_ast.NormalArg (None, arg)] cases pos loc
+               build_cases_apply_exp genv oenv senv cenv v [Omake_ast.ExpArg arg] cases pos loc
 
 and build_opt_cases_command_exp genv oenv senv cenv v arg cases commands pos loc =
    let pos = string_pos "build_opt_cases_command_exp" pos in
@@ -1750,7 +1769,7 @@ and build_opt_cases_command_exp genv oenv senv cenv v arg cases commands pos loc
          let default = default_sym, Omake_ast.NullExp loc, commands in
             cases @ [default]
    in
-      build_cases_apply_exp genv oenv senv cenv v [Omake_ast.NormalArg (None, arg)] cases pos loc
+      build_cases_apply_exp genv oenv senv cenv v [Omake_ast.ExpArg arg] cases pos loc
 
 (*
  * The command line is handled at parse time as well as
@@ -1791,7 +1810,7 @@ and build_command_exp genv oenv senv cenv v arg commands pos loc =
       else if Lm_symbol.eq v set_sym then
          build_set_exp genv oenv senv cenv arg pos loc
       else
-         build_apply_exp genv oenv senv cenv v [Omake_ast.NormalArg (None, arg)] pos loc
+         build_apply_exp genv oenv senv cenv v [Omake_ast.ExpArg arg] pos loc
 
 (*
  * Include a file.

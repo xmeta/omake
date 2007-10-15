@@ -133,13 +133,15 @@ let scan_elide_args code args =
    List.fold_left (fun code arg ->
          let arg =
             match arg with
-               NormalArg (_, e) -> e
-             | ArrowArg (_, e) -> e
+               KeyArg (_, e)
+             | ExpArg e
+             | ArrowArg (_, e) ->
+                  Some e
          in
             match arg with
-               StringExp ("...", loc) ->
+               Some (StringExp ("...", loc)) ->
                   add_elide_code loc code ColonBody
-             | StringExp ("[...]", loc) ->
+             | Some (StringExp ("[...]", loc)) ->
                   add_elide_code loc code ArrayBody
              | _ ->
                   code) code args
@@ -167,9 +169,14 @@ let update_body_args loc code body args =
       List.fold_left (fun (args, found) arg ->
             let arg, found =
                match arg with
-                  NormalArg (v_opt, e) ->
+                  KeyArg (v, e) ->
                      if is_elide_exp e then
-                        NormalArg (v_opt, body), true
+                        KeyArg (v, body), true
+                     else
+                        arg, found
+                | ExpArg e ->
+                     if is_elide_exp e then
+                        ExpArg body, true
                      else
                         arg, found
                 | ArrowArg (params, e) ->
@@ -184,7 +191,7 @@ let update_body_args loc code body args =
       if found then
          args
       else
-         NormalArg (None, body) :: args
+         ExpArg body :: args
 
 (*
  * In an argument list, each ... is replaced by the body.

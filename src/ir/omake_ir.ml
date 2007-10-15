@@ -41,6 +41,7 @@ type var = symbol
 type param = symbol
 type keyword = symbol
 type curry_flag = bool
+type keyword_spec = keyword * bool
 
 (*
  * Whether a function of zero arguments should be applied.
@@ -133,7 +134,7 @@ type return_id = loc * string
 type string_exp =
    NoneString        of loc
  | ConstString       of loc * string
- | FunString         of loc * keyword_param list * keyword list * param list * exp list * export
+ | FunString         of loc * keyword_param list * keyword_spec list * param list * exp list * export
    (* ZZZ: MethodString *)
  | ApplyString       of loc * apply_strategy * var_info * string_exp list * keyword_arg list
  | SuperApplyString  of loc * apply_strategy * var * var * string_exp list * keyword_arg list
@@ -175,7 +176,7 @@ and rule_command =
 and exp =
    (* Definitions *)
    LetVarExp        of loc * var_info * var list * var_def_kind * string_exp
- | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * keyword list * param list * exp list * export
+ | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * keyword_spec list * param list * exp list * export
  | LetObjectExp     of loc * var_info * var list * string_exp * exp list * export
  | LetThisExp       of loc * string_exp
  | LetKeyExp        of loc * string * var_def_kind * string_exp

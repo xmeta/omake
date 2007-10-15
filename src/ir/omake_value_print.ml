@@ -68,6 +68,12 @@ let pp_print_target buf target =
     | TargetString s ->
          pp_print_string buf s
 
+let pp_print_required buf b =
+   if b then
+      pp_print_char buf '~'
+   else
+      pp_print_char buf '?'
+
 (************************************************************************
  * Path printing.
  *)
@@ -121,8 +127,9 @@ let rec pp_print_value buf v =
             pp_print_var_info v
     | ValFun (arity, _, _, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
-    | ValFunCurry (arity, _, _, _, _, _, _) ->
+    | ValFunCurry (arity, _, specs, _, _, _, kargs) ->
          fprintf buf "<curry %a>" pp_print_arity arity
+
     | ValPrim (_, special, _, name)
     | ValPrimCurry (_, special, name, _, _) ->
          if special then

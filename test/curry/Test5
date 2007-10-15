@@ -34,15 +34,15 @@ else
 #
 # Keyword arguments
 #
-f(A = 1, x) =
-   g(B = 2, y) =
+f(~A = 1, x) =
+   g(~B = 2, y) =
       add($A, $B, $x, $y)
 
-i = $(apply $f, B = 10, 20, 30)
+i = $(apply $f, ~B = 10, 20, 30)
 if $(equal $i, 61)
-    println($"f(B = 10, 20, 30) = $i [SUCCESS]")
+    println($"f(~B = 10, 20, 30) = $i [SUCCESS]")
 else
-    eprintln($"f(B = 10, 20, 30) = $i [FAILURE]")
+    eprintln($"f(~B = 10, 20, 30) = $i [FAILURE]")
     errors = true
     export
 
