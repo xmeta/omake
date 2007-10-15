@@ -227,7 +227,6 @@ let squash_var_set buf vars =
          squash_var buf v) vars
 
 let squash_params = squash_vars
-let squash_param_set = squash_var_set
 
 let squash_var_info buf v =
    match v with
@@ -663,7 +662,7 @@ let rec squash_value pos buf v =
             squash_keyword_values pos buf kargs
        | ValFun (_, _, keywords, params, body, export) ->
             Hash.add_code buf CodeValFun;
-            squash_param_set buf keywords;
+            squash_params buf keywords;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeArrow;
@@ -672,7 +671,7 @@ let rec squash_value pos buf v =
             squash_export_info buf export
        | ValFunCurry (_, _, keywords, params, body, export, kargs) ->
             Hash.add_code buf CodeValFun;
-            squash_param_set buf keywords;
+            squash_params buf keywords;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeArrow;

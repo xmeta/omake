@@ -103,11 +103,11 @@ and free_vars_string_exp fv s =
     | KeyApplyString _
     | VarString _ ->
          fv
-    | FunString (_, opt_params, param_set, vars, s, export) ->
+    | FunString (_, opt_params, keywords, vars, s, export) ->
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body s in
          let fv_body = free_vars_remove_param_list fv_body vars in
-         let fv_body = free_vars_remove_param_set fv_body param_set in
+         let fv_body = free_vars_remove_param_list fv_body keywords in
          let fv = free_vars_union fv fv_body in
             free_vars_opt_params fv opt_params
     | ApplyString (_, _, v, args, kargs)
@@ -166,11 +166,11 @@ and free_vars_exp fv e =
       LetVarExp (_, v, _, _, s) ->
          let fv = free_vars_remove fv v in
             free_vars_string_exp fv s
-    | LetFunExp (_, v, _, _, opt_params, param_set, vars, el, export) ->
+    | LetFunExp (_, v, _, _, opt_params, keywords, vars, el, export) ->
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body el in
          let fv_body = free_vars_remove_param_list fv_body vars in
-         let fv_body = free_vars_remove_param_set fv_body param_set in
+         let fv_body = free_vars_remove_param_list fv_body keywords in
          let fv = free_vars_union fv fv_body in
          let fv = free_vars_remove fv v in
             free_vars_opt_params fv opt_params

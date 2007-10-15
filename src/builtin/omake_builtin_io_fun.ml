@@ -1543,7 +1543,7 @@ let lex_rule venv pos loc args kargs =
 
             (* Add the method *)
             let action_var = VarThis (loc, action_sym) in
-            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, SymbolSet.empty, [], body, export)) in
+            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, [], [], body, export)) in
             let venv = venv_add_var venv builtin_field_var (ValOther (ValLexer lexer)) in
                venv, ValNone
 
@@ -1881,7 +1881,7 @@ let parse_rule venv pos loc args kargs =
             let body =
                LetVarExp (loc, VarThis (loc, val_sym), [], VarDefNormal, ConstString (loc, "")) :: body
             in
-               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, SymbolSet.empty, [], body, export))
+               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, [], [], body, export))
        | [] ->
             venv
    in
@@ -1939,6 +1939,8 @@ let parse_engine venv pos loc args =
                try Parser.parse dfa start lex eval (venv, parser_obj, lexer) with
                   Failure _ as exn ->
                      raise (UncaughtException (pos, exn))
+                | Lm_parser.ParseError (loc, s) ->
+                     raise (OmakeException (loc_pos loc pos, StringError s))
             in
                value
        | _ ->

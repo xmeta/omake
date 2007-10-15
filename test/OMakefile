@@ -17,7 +17,6 @@ runtest(subtest) =
     setenv(OMAKEPATH, $(absname $(ROOT)/lib))
     setenv(OMAKEFLAGS, $"--no--progress --no--print-status")
     PATH[] = $(absname $(ROOT)/src/main) $(PATH)
-    setenv(PATH, $(concat $':', $(PATH)))
     if $(test -f $(subtest))
         echo "running osh $(subtest)" >> $(resultfile)
         res = $(shell-code osh $(subtest) >>& $(resultfile))

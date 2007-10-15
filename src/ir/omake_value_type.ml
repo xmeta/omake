@@ -81,8 +81,8 @@ type value =
  | ValCases       of (var * value * exp list * export) list
 
    (* Functions *)
- | ValFun         of arity * env * keyword_set * var list * exp list * export
- | ValFunCurry    of arity * env * keyword_set * var list * exp list * export * keyword_value list
+ | ValFun         of arity * env * keyword list * var list * exp list * export
+ | ValFunCurry    of arity * env * keyword list * var list * exp list * export * keyword_value list
 
    (* Closed values *)
  | ValApply       of loc * var_info * value list * keyword_value list

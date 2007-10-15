@@ -937,7 +937,7 @@ let () =
        "Float",            value_sym, ValFloat 0.0;
        "String",           value_sym, ValNone;
        "Array",            value_sym, ValArray [];
-       "Fun",              value_sym, ValFun (ArityExact 0, venv_empty_env, SymbolSet.empty, [], [], ExportNone);
+       "Fun",              value_sym, ValFun (ArityExact 0, venv_empty_env, [], [], [], ExportNone);
        "Rule",             value_sym, ValRules [];
        "File",             value_sym, ValNone;
        "Dir",              value_sym, ValNone;

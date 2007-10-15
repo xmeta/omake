@@ -51,8 +51,6 @@ open Pos;;
 (************************************************************************
  * Variable checking.
  *)
-
-(*XXX*)
 let raise_var_def_error pos info1 info2 =
    let print_error buf =
       let loc, _ = var_of_var_info info2 in
@@ -79,7 +77,6 @@ let check_vars pos info1 info2 =
             raise_var_def_error pos info1 info2
     | _ ->
          ()
-(*/XXX*)
 
 (************************************************************************
  * Declaration checking.
@@ -903,7 +900,6 @@ let senv_open_file genv senv pos loc filename =
    in
       { senv with senv_forced_vars = vars }, node
 
-(*XXX*)
 (* ZZZ: in 0.9.8.x:
  * If the scope is specified explicitly,
  * do not add it as a definition to senv.
@@ -966,7 +962,6 @@ let senv_define_var scope genv oenv senv cenv pos loc v =
    let info = create_var genv oenv senv cenv loc scope v in
    let senv = senv_define_var_info senv pos loc scope v info in
       senv, info
-(*/XXX*)
 
 (*
  * Parameter sorting.
@@ -977,15 +972,17 @@ let senv_add_params genv oenv senv cenv pos params =
             let senv, _ = senv_define_var VarScopePrivate genv oenv senv cenv pos loc v in
                match s_opt with
                   Some s ->
+                     if SymbolSet.mem keywords v then
+                        raise (OmakeException (pos, StringVarError ("duplicate keyword parameter", v)));
                      senv, (v, s) :: opt_params, SymbolSet.add keywords v, params
                 | None ->
                      senv, opt_params, keywords, v :: params) (senv, [], SymbolSet.empty, []) params
    in
+   let keywords = SymbolSet.to_list keywords in
    let opt_params = List.rev opt_params in
    let params = List.rev params in
       senv, opt_params, keywords, params
 
-(*XXX*)
 let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
    if is_nonempty_name_info name_info then
       let scope = cenv_var_scope cenv name_info in
@@ -1018,7 +1015,6 @@ let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
                      senv_define_var VarScopeGlobal genv oenv senv cenv pos loc v
       in
          genv, oenv, senv, info
-(*/XXX*)
 
 let senv_add_var genv oenv senv cenv pos loc v =
    senv_add_var_aux genv oenv senv cenv pos loc (cenv_scope cenv) v
@@ -1366,7 +1362,7 @@ and build_compat_args genv oenv senv cenv v args pos loc =
  *)
 and build_method_compat_args genv oenv senv cenv vl args pos loc =
    if Lm_symbol.eq (Lm_list_util.last vl) foreach_sym then
-      (* New-style foreach methods have a single argument, the function *)
+      (* New-style foreach methods have a single argument *)
       match args with
          [Omake_ast.NormalArg (None, body);
           Omake_ast.NormalArg (None, x)] ->

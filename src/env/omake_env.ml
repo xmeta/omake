@@ -362,7 +362,7 @@ type include_scope =
  *)
 type partial_apply =
    FullApply    of venv * value list * keyword_value list
- | PartialApply of env * keyword_set * var list * keyword_value list
+ | PartialApply of env * keyword list * var list * keyword_value list
 
 (************************************************************************
  * Access to the globals.
@@ -1225,14 +1225,23 @@ let venv_add_var venv v s =
 (*
  * Add the arguments given an environment.
  *)
-let venv_add_args venv pos loc static params args keywords kargs =
-   let static =
-      List.fold_left (fun static (v, arg) ->
-            if SymbolSet.mem keywords v then
-               SymbolTable.add static v arg
+let rec venv_add_keyword_args pos static keywords kargs =
+   match keywords, kargs with
+      v1 :: keywords_tl, (v2, arg) :: kargs_tl ->
+         let i = Lm_symbol.compare v1 v2 in
+            if i = 0 then
+               venv_add_keyword_args pos (SymbolTable.add static v1 arg) keywords_tl kargs_tl
+            else if i < 0 then
+               venv_add_keyword_args pos static keywords_tl kargs
             else
-               raise (OmakeException (loc_pos loc pos, StringVarError ("no such keyword", v)))) static kargs
-   in
+               raise (OmakeException (pos, StringVarError ("no such keyword", v2)))
+    | _, [] ->
+         static
+    | [], (v2, _) :: _ ->
+         raise (OmakeException (pos, StringVarError ("no such keyword", v2)))
+
+let venv_add_args venv pos loc static params args keywords kargs =
+   let static = venv_add_keyword_args pos static keywords kargs in
    let len1 = List.length params in
    let len2 = List.length args in
    let _ =
@@ -1260,30 +1269,31 @@ let venv_with_args venv pos loc params args keywords kargs =
  * - Given a keyword arg
  *      + if the keyword is valid here, add it to the env, subtract from keywords
  *      + if not valid here, add to pending kargs
- *
- * This is the full-application version.  We still need the partial-application
- * version.
  *)
-let rec apply_curry_args venv pos loc env kargs params args =
+let rec apply_curry_args venv pos loc env skipped_kargs params args =
    match params, args with
       [], _ ->
-         { venv with venv_static = env }, args, kargs
+         { venv with venv_static = env }, args, skipped_kargs
     | _, [] ->
          raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact (List.length params), 0)))
     | v :: params, arg :: args ->
-         apply_curry_args venv pos loc (SymbolTable.add env v arg) kargs params args
+         apply_curry_args venv pos loc (SymbolTable.add env v arg) skipped_kargs params args
 
-let rec venv_add_curry_args venv pos loc env params args keywords kargs1 kargs2 =
-   match kargs2 with
-      ((v, arg) as karg) :: kargs2 ->
-         if SymbolSet.mem keywords v then
-            let env = SymbolTable.add env v arg in
-            let keywords = SymbolSet.remove keywords v in
-               venv_add_curry_args venv pos loc env params args keywords kargs1 kargs2
-         else
-            venv_add_curry_args venv pos loc env params args keywords (karg :: kargs1) kargs2
-    | [] ->
-         apply_curry_args venv pos loc env kargs1 params args
+let rec venv_add_curry_args venv pos loc env params args keywords skipped_kargs kargs =
+   match keywords, kargs with
+      v1 :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
+         let i = Lm_symbol.compare v1 v2 in
+            if i = 0 then
+               let env = SymbolTable.add env v1 arg in
+                  venv_add_curry_args venv pos loc env params args keywords_tl skipped_kargs kargs_tl
+            else if i < 0 then
+               venv_add_curry_args venv pos loc env params args keywords_tl skipped_kargs kargs
+            else
+               venv_add_curry_args venv pos loc env params args keywords_tl (karg :: skipped_kargs) kargs_tl
+    | [], karg :: kargs_tl ->
+         venv_add_curry_args venv pos loc env params args keywords (karg :: skipped_kargs) kargs_tl
+    | _, [] ->
+         apply_curry_args venv pos loc env skipped_kargs params args
 
 (*
  * Also provide a form for partial applications.
@@ -1293,21 +1303,25 @@ let rec apply_partial_args venv pos loc env keywords kargs params args =
       [], _ ->
          FullApply ({ venv with venv_static = env }, args, kargs)
     | _, [] ->
-         PartialApply (env, keywords, params, kargs)
+         PartialApply (env, List.rev keywords, params, kargs)
     | v :: params, arg :: args ->
          apply_partial_args venv pos loc (SymbolTable.add env v arg) keywords kargs params args
 
-let rec venv_add_partial_args venv pos loc env params args keywords kargs1 kargs2 =
-   match kargs2 with
-      ((v, arg) as karg) :: kargs2 ->
-         if SymbolSet.mem keywords v then
-            let env = SymbolTable.add env v arg in
-            let keywords = SymbolSet.remove keywords v in
-               venv_add_partial_args venv pos loc env params args keywords kargs1 kargs2
-         else
-            venv_add_partial_args venv pos loc env params args keywords (karg :: kargs1) kargs2
-    | [] ->
-         apply_partial_args venv pos loc env keywords kargs1 params args
+let rec venv_add_partial_args venv pos loc env params args keywords skipped_kargs kargs =
+   match keywords, kargs with
+      v1 :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
+         let i = Lm_symbol.compare v1 v2 in
+            if i = 0 then
+               let env = SymbolTable.add env v1 arg in
+                  venv_add_partial_args venv pos loc env params args keywords_tl skipped_kargs kargs_tl
+            else if i < 0 then
+               venv_add_partial_args venv pos loc env params args keywords_tl skipped_kargs kargs
+            else
+               venv_add_partial_args venv pos loc env params args keywords_tl (karg :: skipped_kargs) kargs_tl
+    | [], karg :: kargs_tl ->
+         venv_add_partial_args venv pos loc env params args keywords (karg :: skipped_kargs) kargs_tl
+    | _, [] ->
+         apply_partial_args venv pos loc env keywords skipped_kargs params args
 
 (*
  * The system environment.

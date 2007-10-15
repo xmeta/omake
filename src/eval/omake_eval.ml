@@ -1380,6 +1380,7 @@ and eval_key venv pos loc v =
  * Evaluate an application.
  *)
 and eval_apply venv pos loc v args kargs =
+   let pos = string_pos "eval_apply" pos in
    match eval_value venv pos v with
       ValFun (_, env, keywords, params, body, _) ->
          let venv = venv_add_args venv pos loc env params args keywords kargs in
@@ -1614,7 +1615,7 @@ and eval_find_field venv pos loc v vl =
    let envl = venv_current_objects venv pos v in
       try eval_find_field_aux venv envl pos v vl with
          Not_found ->
-            let pos = string_pos "eval_find_field" (loc_pos loc pos) in
+            let pos = string_pos "eval_find_field" pos in
                raise (OmakeException (pos, UnboundMethod vl))
 
 (*
@@ -1898,6 +1899,7 @@ and eval_var_export venv pos loc v =
  * Evaluate an application.
  *)
 and eval_apply_export venv pos loc v args kargs =
+   let pos = string_pos "eval_apply_export" pos in
    match eval_value venv pos v with
       ValFun (_, env, keywords, params, body, export) ->
          let venv_new = venv_add_args venv pos loc env params args keywords kargs in

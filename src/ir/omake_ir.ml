@@ -39,7 +39,7 @@ open Omake_node
 (* Revision 11955: Jason fixed "a terrible typo in Omake_ir_semant" *)
 type var = symbol
 type param = symbol
-type keyword_set = SymbolSet.t
+type keyword = symbol
 type curry_flag = bool
 
 (*
@@ -127,12 +127,13 @@ type return_id = loc * string
  *    keyword_set : the set of keywords (for checking against the keyword arguments)
  *    param list : the names of the required parameters
  *
- * The ordering of keyword arguments is irrelevant.
+ * The ordering of keyword arguments in the source is irrelevant.
+ * Internally, we sort them by symbol name, for easy checking.
  *)
 type string_exp =
    NoneString        of loc
  | ConstString       of loc * string
- | FunString         of loc * keyword_param list * keyword_set * param list * exp list * export
+ | FunString         of loc * keyword_param list * keyword list * param list * exp list * export
    (* ZZZ: MethodString *)
  | ApplyString       of loc * apply_strategy * var_info * string_exp list * keyword_arg list
  | SuperApplyString  of loc * apply_strategy * var * var * string_exp list * keyword_arg list
@@ -174,7 +175,7 @@ and rule_command =
 and exp =
    (* Definitions *)
    LetVarExp        of loc * var_info * var list * var_def_kind * string_exp
- | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * keyword_set * param list * exp list * export
+ | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * keyword list * param list * exp list * export
  | LetObjectExp     of loc * var_info * var list * string_exp * exp list * export
  | LetThisExp       of loc * string_exp
  | LetKeyExp        of loc * string * var_def_kind * string_exp
