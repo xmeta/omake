@@ -250,6 +250,133 @@ let pp_print_prog buf prog =
    List.iter (fun e -> fprintf buf "@ %a" pp_print_exp e) prog;
    fprintf buf "@]"
 
+(*
+ * Simplified printing.
+ *)
+let rec pp_print_simple_exp buf e =
+   if !print_location then
+      fprintf buf "<%a>" pp_print_location (loc_of_exp e);
+   match e with
+      NullExp _ ->
+         pp_print_string buf "<null>"
+    | StringExp (s, _) ->
+         pp_print_string buf s
+    | QuoteExp (el, _) ->
+         fprintf buf "$'%a'" pp_print_simple_exp_list el
+    | QuoteStringExp (c, el, _) ->
+         fprintf buf "%c%a%c" c pp_print_simple_exp_list el c
+    | SequenceExp (el, _) ->
+         pp_print_simple_exp_list buf el
+    | ArrayExp (el, _) ->
+         fprintf buf "@[<hv 3>(array";
+         List.iter (fun e ->
+               fprintf buf "@ %a" pp_print_exp e) el;
+         fprintf buf ")@]"
+    | ApplyExp (LazyApply, v, [], _) ->
+         fprintf buf "$%a" pp_print_symbol v
+    | ApplyExp (s, v, args, _) ->
+         fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
+            pp_print_symbol v
+            pp_print_strategy s
+            pp_print_simple_args args
+    | SuperApplyExp (s, super, v, args, _) ->
+         fprintf buf "@[<hv 3>%a%a::%a(%a)@]" (**)
+            pp_print_symbol super
+            pp_print_strategy s
+            pp_print_symbol v
+            pp_print_simple_args args
+    | MethodApplyExp (s, vl, args, _) ->
+         fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
+            pp_print_method_name vl
+            pp_print_strategy s
+            pp_print_simple_args args
+    | CommandExp (v, arg, commands, _) ->
+         fprintf buf "@[<hv 0>@[<hv 3>command %a(%a) {%a@]@ }@]" (**)
+            pp_print_symbol v
+            pp_print_simple_exp arg
+            pp_print_simple_exp_list commands
+    | VarDefExp (v, kind, flag, e, _) ->
+         fprintf buf "@[<hv 3>let %a%a %a@ %a@]" (**)
+            pp_print_method_name v
+            pp_print_define_kind kind
+            pp_print_define_flag flag
+            pp_print_simple_exp e
+    | VarDefBodyExp (v, kind, flag, el, _) ->
+         fprintf buf "@[<hv 3>let %a%a %a@ %a@]" (**)
+            pp_print_method_name v
+            pp_print_define_kind kind
+            pp_print_define_flag flag
+            pp_print_simple_exp_list el
+    | KeyExp (strategy, v, _) ->
+         fprintf buf "$%a|%s|" pp_print_strategy strategy v
+    | KeyDefExp (v, kind, flag, e, _) ->
+         fprintf buf "@[<hv 3>\"%s\"%a %a@ %a@]" (**)
+            v
+            pp_print_define_kind kind
+            pp_print_define_flag flag
+            pp_print_simple_exp e
+    | KeyDefBodyExp (v, kind, flag, el, _) ->
+         fprintf buf "@[<hv 3>key \"%s\"%a %a@ %a@]" (**)
+            v
+            pp_print_define_kind kind
+            pp_print_define_flag flag
+            pp_print_simple_exp_list el
+    | ObjectDefExp (v, flag, el, _) ->
+         fprintf buf "@[<hv 3>let %a. %a@ %a@]" (**)
+            pp_print_method_name v
+            pp_print_define_flag flag
+            pp_print_simple_exp_list el
+    | FunDefExp (v, vars, el, _) ->
+         fprintf buf "@[<hv 3>let %a(%a) =" (**)
+            pp_print_params vars
+            pp_print_method_name v;
+         List.iter (fun e -> fprintf buf "@ %a" pp_print_exp e) el;
+         fprintf buf "@]"
+    | RuleExp (multiple, target, pattern, source, commands, _) ->
+         fprintf buf "@[<hv 0>@[<hv 3>rule {@ multiple = %b;@ @[<hv 3>target =@ %a;@]@ @[<hv 3>pattern =@ %a;@]@ @[<hv 3>source =@ %a@]@ %a@]@ }@]" (**)
+            multiple
+            pp_print_simple_exp target
+            pp_print_simple_exp pattern
+            pp_print_table_exp source
+            pp_print_simple_exp_list commands
+    | BodyExp (body, _) ->
+         fprintf buf "@[<v 3>body";
+         List.iter (fun e -> fprintf buf "@ %a" pp_print_simple_exp e) body;
+         fprintf buf "@]"
+    | ShellExp (e, _) ->
+         fprintf buf "@[<hv 3>shell %a@]" pp_print_simple_exp e
+    | CatchExp (name, v, body, _) ->
+         fprintf buf "@[<v 3>catch %a(%a)@ %a@]" (**)
+            pp_print_symbol name
+            pp_print_symbol v
+            pp_print_simple_exp_list body
+    | ClassExp (names, _) ->
+         fprintf buf "@[<hv 3>class";
+         List.iter (fun v -> fprintf buf "@ %a" pp_print_symbol v) names;
+         fprintf buf "@]"
+
+and pp_print_simple_exp_list buf el =
+   List.iter (pp_print_simple_exp buf) el
+
+and pp_print_simple_args buf args =
+   match args with
+      [arg] ->
+         pp_print_simple_arg buf arg
+    | arg :: args ->
+         pp_print_simple_arg buf arg;
+         fprintf buf ",@ ";
+         pp_print_simple_args buf args
+    | [] ->
+         ()
+
+and pp_print_simple_arg buf = function
+   KeyArg (v, e) ->
+      fprintf buf "@[<hv 3>~%a =@ %a@]" pp_print_symbol v pp_print_exp e
+ | ExpArg e ->
+      pp_print_simple_exp buf e
+ | ArrowArg (params, e) ->
+      pp_print_arrow_arg buf params e
+
 (*!
  * @docoff
  *

@@ -90,7 +90,7 @@ and pp_print_exn buf = function
    SyntaxError s ->
       fprintf buf "syntax error: %s" s
  | StringAstError (s, e) ->
-      fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_exp e
+      fprintf buf "@[<hv 3>%s:@ %a@]" s Omake_ast_print.pp_print_simple_exp e
  | StringError s ->
       pp_print_string buf s
  | StringIntError (s, i) ->
