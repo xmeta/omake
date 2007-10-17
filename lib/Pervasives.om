@@ -359,6 +359,10 @@ Float. +=
 #
 # \begin{itemize}
 # \item \verb+$(s.length)+: the number of elements in the sequence.
+# \item \verb+$(s.is-nonempty)+: true iff the expression \verb+$(s.nth 0)+
+#    will complete without failure.
+# \item \verb+$(s.nth <i>)+: return the n'th element of the sequence.
+# \item \verb+$(s.nth-tl <i>)+: return the n'th tail of the sequence.
 # \item \verb+$(s.map <fun>)+: maps a function over the fields in the sequence.
 #    The function should take one argument. The result is a new sequence
 #    constructed from the values returned by the function.
@@ -421,8 +425,14 @@ Sequence. +=
    length() =
       sequence-length($(this))
 
+   is-nonempty() =
+      sequence-nonempty($(this))
+
    nth(i) =
       sequence-nth($(this), $(i))
+
+   nth-tl(i) =
+      sequence-nth-tl($(this), $(i))
 
    sub(off, len) =
       sequence-sub($(this), $(off), $(len))
@@ -862,6 +872,9 @@ OutChannel. +=
 Location. +=
     class Location
     extends $(Object)
+
+    to-string() =
+        string-of-location($(this))
 
 ########################################################################
 # \begin{doc}

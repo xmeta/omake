@@ -523,6 +523,139 @@ let sequence_nth venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
 
 (*
+ * Test if a sequence is nonempty.
+ *)
+let sequence_nth_tl venv pos loc args =
+   let pos = string_pos "nth-tl" pos in
+      match args with
+         [arg; i] ->
+            let i = int_of_value venv pos i in
+            let obj = eval_object venv pos arg in
+            let arg = eval_object_value venv pos obj in
+               (match arg with
+                   ValNone
+                 | ValFun _
+                 | ValFunCurry _
+                 | ValPrim _
+                 | ValPrimCurry _
+                 | ValKeyApply _
+                 | ValApply _
+                 | ValMaybeApply _
+                 | ValSuperApply _
+                 | ValMethodApply _
+                 | ValDelayed _
+                 | ValMap _
+                 | ValObject _
+                 | ValInt _
+                 | ValFloat _
+                 | ValNode _
+                 | ValDir _
+                 | ValBody _
+                 | ValChannel _
+                 | ValClass _
+                 | ValCases _
+                 | ValOther _
+                 | ValVar _ ->
+                      raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)))
+                 | ValData s ->
+                      let len = String.length s in
+                         if i < 0 || i > len then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)));
+                         ValData (String.sub s i (String.length s - i))
+                 | ValQuote vl ->
+                      let s = string_of_quote venv pos None vl in
+                      let len = String.length s in
+                         if i < 0 || i > len then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)));
+                         ValData (String.sub s i (String.length s - i))
+                 | ValQuoteString (c, vl) ->
+                      let s = string_of_quote venv pos (Some c) vl in
+                      let len = String.length s in
+                         if i < 0 || i > len then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)));
+                         ValData (String.sub s i (String.length s - i))
+
+                 | ValSequence _
+                 | ValString _ ->
+                      let values = values_of_value venv pos arg in
+                      let len = List.length values in
+                         if i < 0 || i > len then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)));
+                         ValArray (Lm_list_util.nth_tl i values)
+                 | ValArray a ->
+                      let len = List.length a in
+                         if i < 0 || i > len then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)));
+                         ValArray (Lm_list_util.nth_tl i a)
+                 | ValRules l ->
+                      let len = List.length l in
+                         if i < 0 || i > len then
+                            raise (OmakeException (loc_pos loc pos, StringIntError ("out of bounds", i)));
+                         ValRules (Lm_list_util.nth_tl i l))
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+(*
+ * Get the nth-tl of a sequence.
+ *)
+let sequence_nonempty venv pos loc args =
+   let pos = string_pos "is-nonempty" pos in
+   let b =
+      match args with
+         [arg] ->
+            let obj = eval_object venv pos arg in
+            let arg = eval_object_value venv pos obj in
+               (match arg with
+                   ValNone
+                 | ValFun _
+                 | ValFunCurry _
+                 | ValPrim _
+                 | ValPrimCurry _
+                 | ValKeyApply _
+                 | ValApply _
+                 | ValMaybeApply _
+                 | ValSuperApply _
+                 | ValMethodApply _
+                 | ValDelayed _
+                 | ValMap _
+                 | ValObject _ ->
+                      true
+                 | ValInt _
+                 | ValFloat _
+                 | ValNode _
+                 | ValDir _
+                 | ValBody _
+                 | ValChannel _
+                 | ValClass _
+                 | ValCases _
+                 | ValOther _
+                 | ValVar _ ->
+                      false
+                 | ValData s ->
+                      String.length s <> 0
+                 | ValQuote vl ->
+                      let s = string_of_quote venv pos None vl in
+                         String.length s <> 0
+                 | ValQuoteString (c, vl) ->
+                      let s = string_of_quote venv pos (Some c) vl in
+                         String.length s <> 0
+
+                 | ValSequence _
+                 | ValString _ ->
+                      values_of_value venv pos arg <> []
+                 | ValArray a ->
+                      a <> []
+                 | ValRules l ->
+                      l <> [])
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+      if b then
+         val_true
+      else
+         val_false
+
+(*
  * Subrange.
  *)
 let sequence_sub venv pos loc args =
@@ -885,6 +1018,23 @@ let compare_fun venv pos loc args =
    in
       ValInt (ValueCompare.compare x y)
 
+(*
+ * Printable location.
+ *)
+let string_of_location venv pos loc args =
+   let pos = string_pos "string-of-location" pos in
+      match args with
+         [arg] ->
+            let obj = eval_object venv pos arg in
+            let arg = eval_object_value venv pos obj in
+               (match arg with
+                   ValOther (ValLocation loc) ->
+                      ValData (Lm_location.string_of_location loc)
+                 | _ ->
+                      raise (OmakeException (pos, StringValueError ("not a location", arg))))
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
+
 (************************************************************************
  * Define the functions.
  *)
@@ -908,12 +1058,15 @@ let () =
        true, "map-keys",             map_keys,            ArityExact 1;
        true, "map-values",           map_values,          ArityExact 1;
        true, "sequence-length",      sequence_length,     ArityExact 1;
-       true, "sequence-nth",         sequence_nth,        ArityExact 1;
+       true, "sequence-nth",         sequence_nth,        ArityExact 2;
+       true, "sequence-nth-tl",      sequence_nth_tl,     ArityExact 2;
+       true, "sequence-nonempty",    sequence_nonempty,   ArityExact 1;
        true, "sequence-rev",         sequence_rev,        ArityExact 1;
        true, "sequence-sub",         sequence_sub,        ArityExact 3;
        true,  "create-map",          create_map,          ArityAny;
        false, "create-lazy-map",     create_map,          ArityAny;
        true, "compare",              compare_fun,         ArityExact 2;
+       true, "string-of-location",   string_of_location,  ArityExact 1
       ]
    in
    let builtin_kfuns =

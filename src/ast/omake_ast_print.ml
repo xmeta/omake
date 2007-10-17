@@ -276,8 +276,8 @@ let rec pp_print_simple_exp buf e =
          fprintf buf "$%a" pp_print_symbol v
     | ApplyExp (s, v, args, _) ->
          fprintf buf "@[<hv 3>%a%a(%a)@]" (**)
-            pp_print_symbol v
             pp_print_strategy s
+            pp_print_symbol v
             pp_print_simple_args args
     | SuperApplyExp (s, super, v, args, _) ->
          fprintf buf "@[<hv 3>%a%a::%a(%a)@]" (**)
