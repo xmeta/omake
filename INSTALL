@@ -46,10 +46,19 @@ or even bootstrap, build, and install it:
 Environment variables:
  - PREFIX (make all, make install) specifies the prefix for OMake
    installation (defaults to /usr/local)
+ - LIBDIR (make all, make install) specifies the location for OMake
+   library directory (defaults to $PREFIX/lib)
+ - BINDIR (make install) specifies the location for OMake binaries
+   (defaults to $PREFIX/bin)
  - INSTALL_ROOT (make install) specifies a "packaging root" for the
    installation. Namely, omake will be installed under 
-   $INSTALL_ROOT$PREFIX, but the omake binary will be compiled to
-   look for its files under $PREFIX.
+   $INSTALL_ROOT/$LIBDIR and $INSTALL_ROOT/$BINDIR, but the omake binary
+   will be compiled to look for its files under $LIBDIR.
+
+Please note that the first time OMake is built, the PREFIX, LIBDIR and
+BINDIR variables are wrtten into the .config file in the root of the 
+sources tree. If the .config file exists, then the variables present there
+have precedence over the environment variables.
 
 -- Win32 bootstrap --
 
