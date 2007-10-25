@@ -188,9 +188,11 @@ Object. +=
    object-map(f) =
       return $(obj-map $(this), $(f))
 
-   object-foreach(body, v, x) =
-      export
-      obj-map($(this), $(v), $(x), $(body))
+   curry.object-foreach() =
+      private.THIS = $(this)
+      g(v, x, body) =
+         export
+         obj-map($(THIS), $(v), $(x), $(body))
 
    instanceof(v) =
       return $(obj-instanceof $(this), $(v))
@@ -293,9 +295,11 @@ Map. +=
         export
         return $(map-map $(this), $(f))
 
-    foreach(f) =
-        export
-        map-map($(this), $f)
+    curry.foreach() =
+        private.THIS = $(this)
+        g(f) =
+            export
+            map-map($(THIS), $f)
 
     length() =
         return $(map-length $(this))
