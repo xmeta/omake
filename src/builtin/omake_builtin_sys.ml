@@ -372,7 +372,7 @@ let gettimeofday venv pos loc args =
  * \itemidx{tm\_isdst} \verb+: Bool+ True iff daylight savings time is in effect.
  * \end{description}
  *
- * \twofuns{gmtime}{localtime}{
+ * \twofuns{gmtime}{localtime}
  * \begin{verbatim}
  *    $(gmtime time) : tm
  *    $(localtime time) : tm
@@ -381,7 +381,7 @@ let gettimeofday venv pos loc args =
  *
  * Convert the time in seconds since the Unix epoch to calendar format.
  * The function \verb+gmtime+ assumes UTC (Coordinated Universal Time);
- * the function \verb+localtime uses the local time zone.
+ * the function \verb+localtime+ uses the local time zone.
  * \end{doc}
  *)
 let tm_object venv info =
@@ -417,7 +417,7 @@ let localtime venv pos loc args =
 
 (*
  * \begin{doc}
- * \twofuns{mktime,normalize-time}
+ * \twofuns{mktime}{normalize-time}
  * \begin{verbatim}
  *    $(mktime tm) : Float
  *    $(normalize-time tm) : Tm

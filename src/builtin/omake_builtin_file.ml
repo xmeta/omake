@@ -2325,7 +2325,7 @@ let link venv pos loc args =
 
 (*
  * \begin{doc}
- * \twofuns{symlink,symlink-raw}
+ * \twofuns{symlink}{symlink-raw}
  *
  * \begin{verbatim}
  *    symlink(src, dst)
@@ -2333,7 +2333,7 @@ let link venv pos loc args =
  *       dst : Node
  *    symlink-raw(src, dst)
  *       src : String
- &       dst : Node
+ *       dst : Node
  *    raises RuntimeException
  * \end{verbatim}
  *
@@ -2387,7 +2387,7 @@ let symlink_raw venv pos loc args =
 
 (*
  * \begin{doc}
- * \twofuns{readlink,readlink-raw}
+ * \twofuns{readlink}{readlink-raw}
  *
  * \begin{verbatim}
  *    $(readlink node...) : Node
