@@ -153,7 +153,7 @@ case $'^\([^ ]*\) '
 BASENAME = omake-$(VERSION)-$(RELEASE)
 
 rpm: version.txt make_rpm make_checkout
-	./make_rpm
+    ./make_rpm
 
 zip: download/$(BASENAME).src.zip
 tar: download/$(BASENAME).tar.gz
@@ -197,7 +197,7 @@ doc: txt info html tex
 #
 .SUBDIRS: $(subdirs C, lib)
     %.install: %.om $(GENMAGIC)$(EXE) $(VERSION_TXT)
-	$(GENMAGIC) -o $@ --version $(VERSION_TXT) --root $<
+        $(GENMAGIC) -o $@ --version $(VERSION_TXT) --root $<
 
     clean:
         $(CLEAN)
@@ -223,8 +223,6 @@ lib/OMakefile.default: $(BOOTFILES)
 ########################################################################
 # Installation
 #
-name =
-
 all: $(DEFAULTFILES)  $(INSTALLFILES)
 
 install: $(DEFAULTFILES)  $(INSTALLFILES)
@@ -233,7 +231,7 @@ install: $(DEFAULTFILES)  $(INSTALLFILES)
     foreach(name => ..., $(STDLIBNAMES))
         node = $(file $(INSTALL_LIBDIR)/omake/$(name).om)
         mkdir -p $(dirof $(node))
-	cp -f -m 444 lib/$(private.name).install $(node)
+        cp -f -m 444 lib/$(name).install $(node)
 
 ########################################################################
 # Testing
