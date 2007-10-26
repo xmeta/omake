@@ -306,6 +306,7 @@ val venv_defined_env : venv -> var -> bool
  * Handle options.
  *)
 val venv_options          : venv -> omake_options
+val venv_with_options     : venv -> omake_options -> venv
 val venv_set_options      : venv -> loc -> pos -> string list -> venv
 
 (*

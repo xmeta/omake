@@ -1398,6 +1398,12 @@ let venv_defined_env venv v =
 (*
  * Options.
  *)
+let venv_options venv =
+   venv.venv_inner.venv_options
+
+let venv_with_options venv options =
+   { venv with venv_inner = { venv.venv_inner with venv_options = options } }
+
 let venv_set_options_aux venv loc pos argv =
    let argv = Array.of_list argv in
    let add_unknown options s =
@@ -1413,16 +1419,10 @@ let venv_set_options_aux venv loc pos argv =
           Lm_arg.BogusArg s ->
             raise (OmakeException (loc_pos loc pos, StringError s))
    in
-      { venv with venv_inner = { venv.venv_inner with venv_options = options } }
+      venv_with_options venv options
 
 let venv_set_options venv loc pos argv =
    venv_set_options_aux venv loc pos ("omake" :: argv)
-
-let venv_options venv =
-   venv.venv_inner.venv_options
-
-let venv_options venv =
-   venv.venv_inner.venv_options
 
 (************************************************************************
  * Manipulating static objects.

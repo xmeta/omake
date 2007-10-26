@@ -59,6 +59,7 @@ open Omake_shell_type
 open Omake_value_type
 open Omake_value_print
 open Omake_ir_free_vars
+open Omake_options
 open Omake_command_type
 open Omake_command_digest
 
@@ -1208,7 +1209,9 @@ and eval_path venv pos =
    let pos = string_pos "eval_path" pos in
       try
          let path = venv_find_var_exn venv path_var in
-         let path = strings_of_value venv pos path in
+         let options = venv_options venv in
+         let venv' = if opt_absname options then venv else venv_with_options venv (set_absname_opt options true) in
+         let path = strings_of_value venv' pos path in
          let path = String.concat pathsep path in
             venv_setenv venv path_sym path
       with
