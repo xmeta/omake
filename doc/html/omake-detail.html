@@ -10,9 +10,9 @@
 </HEAD>
 <BODY >
 
-<img src="images/omake-manual.gif" border="0" align="top" alt=""><br>
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
@@ -24,14 +24,14 @@
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
-<H1 CLASS="chapter"><A NAME="htoc57">Chapter&#XA0;6</A>&#XA0;&#XA0;Expressions and values</H1><UL>
-<LI><A HREF="omake-detail.html#toc38">Dynamic scoping</A></LI>
-<LI><A HREF="omake-detail.html#toc39">Functional evaluation</A></LI>
-<LI><A HREF="omake-detail.html#toc40">Exporting the environment</A></LI>
-<LI><A HREF="omake-detail.html#toc41">Objects</A></LI>
-<LI><A HREF="omake-detail.html#toc42">Field and method calls</A></LI>
-<LI><A HREF="omake-detail.html#toc43">Method override</A></LI>
-<LI><A HREF="omake-detail.html#toc44">Super calls</A></LI>
+<H1 CLASS="chapter"><A NAME="htoc59">Chapter&#XA0;6</A>&#XA0;&#XA0;Expressions and values</H1><UL>
+<LI><A HREF="omake-detail.html#toc39">Dynamic scoping</A></LI>
+<LI><A HREF="omake-detail.html#toc40">Functional evaluation</A></LI>
+<LI><A HREF="omake-detail.html#toc41">Exporting the environment</A></LI>
+<LI><A HREF="omake-detail.html#toc42">Objects</A></LI>
+<LI><A HREF="omake-detail.html#toc43">Field and method calls</A></LI>
+<LI><A HREF="omake-detail.html#toc44">Method override</A></LI>
+<LI><A HREF="omake-detail.html#toc45">Super calls</A></LI>
 </UL>
 <P>
 <A NAME="chapter:extra"></A>
@@ -55,7 +55,7 @@ form to evaluate an expression directly.</P><PRE CLASS="verbatim">    osh&gt; 1
     - : "1" : Sequence
     osh&gt; ls -l omake
     -rwxrwxr-x  1 jyh jyh 1662189 Aug 25 10:24 omake*
-</PRE><H2 CLASS="section"><A NAME="toc38"></A><A NAME="htoc58">6.1</A>&#XA0;&#XA0;Dynamic scoping</H2><P>Dynamic scoping means that the value of a variable is determined by the most
+</PRE><H2 CLASS="section"><A NAME="toc39"></A><A NAME="htoc60">6.1</A>&#XA0;&#XA0;Dynamic scoping</H2><P>Dynamic scoping means that the value of a variable is determined by the most
 recent binding of the variable in scope at runtime. Consider the following
 program.</P><PRE CLASS="verbatim">    OPTIONS = a b c
     f() =
@@ -110,7 +110,7 @@ definition in scope in the source text.</P><PRE CLASS="verbatim">   private
    PATHSEP = /
    make-path(/bin /usr/bin /usr/X11R6/bin)
    - : "/bin:/usr/bin:/usr/X11R6/bin" : String
-</PRE><H2 CLASS="section"><A NAME="toc39"></A><A NAME="htoc59">6.2</A>&#XA0;&#XA0;Functional evaluation</H2><P>Apart from I/O, <TT>omake</TT> programs are entirely functional. This has two parts:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+</PRE><H2 CLASS="section"><A NAME="toc40"></A><A NAME="htoc61">6.2</A>&#XA0;&#XA0;Functional evaluation</H2><P>Apart from I/O, <TT>omake</TT> programs are entirely functional. This has two parts:</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 There is no assignment operator.
 </LI><LI CLASS="li-itemize">Functions are values, and may be passed as arguments, and returned from
 functions just like any other value.
@@ -129,8 +129,8 @@ it possible for a subproject to modify the global behavior of the project? In fa
 the omission is intentional. Build scripts are much easier to write when there
 is a guarantee that subprojects do not interfere with one another.</P><P>However, there are times when a subproject needs to propagate
 information back to its parent object, or when an inner scope needs to
-propagate information back to the outer scope.</P><H2 CLASS="section"><A NAME="toc40"></A><A NAME="htoc60">6.3</A>&#XA0;&#XA0;Exporting the environment</H2><P>
-<A NAME="section:export"></A><A NAME="@default37"></A>
+propagate information back to the outer scope.</P><H2 CLASS="section"><A NAME="toc41"></A><A NAME="htoc62">6.3</A>&#XA0;&#XA0;Exporting the environment</H2><P>
+<A NAME="section:export"></A><A NAME="@default38"></A>
 The <CODE>export</CODE> directive can be used to propagate all or part of an inner scope back to its
 parent. If used without
 arguments, the entire scope is propagated back to the parent; otherwise the arguments specify which
@@ -163,8 +163,8 @@ environment is exported.
 </LI><LI CLASS="li-itemize">Otherwise, the value must be a sequence of strings specifying which items are to be propagated
 back. The following strings have special meaning:
 <UL CLASS="itemize"><LI CLASS="li-itemize">
-<A NAME="@default38"></A><CODE>.RULE</CODE> &#X2014; implicit rules and implicit dependencies.
-</LI><LI CLASS="li-itemize"><A NAME="@default39"></A><CODE>.PHONY</CODE> &#X2014; the set of &#X201C;phony&#X201D; target declarations.
+<A NAME="@default39"></A><CODE>.RULE</CODE> &#X2014; implicit rules and implicit dependencies.
+</LI><LI CLASS="li-itemize"><A NAME="@default40"></A><CODE>.PHONY</CODE> &#X2014; the set of &#X201C;phony&#X201D; target declarations.
 </LI></UL>
 All other strings are interpreted as names of the variables that need to be propagated back.
 </LI></UL><P>For example, in the following (somewhat artificial) example, the variables <CODE>A</CODE> and <CODE>B</CODE>
@@ -182,7 +182,7 @@ the variable <CODE>TMP</CODE> and the target <CODE>tmp_phony</CODE> will remain 
    %.foo: %.bar tmp_phony
       compute_foo $(TMP) $&lt; $@
    export A B .RULE
-</PRE><H3 CLASS="subsection"><A NAME="htoc61">6.3.1</A>&#XA0;&#XA0;Export regions</H3><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>The <CODE>export</CODE> directive does not need to occur at the end of a block. An export is valid from
+</PRE><H3 CLASS="subsection"><A NAME="htoc63">6.3.1</A>&#XA0;&#XA0;Export regions</H3><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>The <CODE>export</CODE> directive does not need to occur at the end of a block. An export is valid from
 the point where it is specified to the end of the block in which it is contained. In other words,
 the export is used in the program that follows it. This can be especially useful for reducing the
 amount of code you have to write. In the following example, the variable <CODE>CFLAGS</CODE> is exported
@@ -191,7 +191,7 @@ from the both branches of the conditional.</P><PRE CLASS="verbatim">    export C
         CFLAGS += /DWIN32
     else
         CFLAGS += -UWIN32
-</PRE><H3 CLASS="subsection"><A NAME="htoc62">6.3.2</A>&#XA0;&#XA0;Returning values from exported regions</H3><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>The use of export does not affect the value returned by a block. The value is computed as usual, as
+</PRE><H3 CLASS="subsection"><A NAME="htoc64">6.3.2</A>&#XA0;&#XA0;Returning values from exported regions</H3><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>The use of export does not affect the value returned by a block. The value is computed as usual, as
 the value of the last statement in the block, ignoring the export. For example, suppose we wish to
 implement a table that maps strings to unique integers. Consider the following program.</P><PRE CLASS="verbatim">    # Empty map
     table = $(Map)
@@ -244,7 +244,7 @@ illustrates a difference. The second <CODE>printA</CODE> is not in the scope of 
     osh&gt; printA()
     1
 </PRE><P>See also Section&#XA0;<A HREF="omake-language-examples.html#section:lazy">7.5</A> for further ways to control the evaluation order through the use
-of &#X201C;lazy&#X201D; expressions.</P><H2 CLASS="section"><A NAME="toc41"></A><A NAME="htoc63">6.4</A>&#XA0;&#XA0;Objects</H2><P><TT>omake</TT> is an object-oriented language. Everything is an object, including
+of &#X201C;lazy&#X201D; expressions.</P><H2 CLASS="section"><A NAME="toc42"></A><A NAME="htoc65">6.4</A>&#XA0;&#XA0;Objects</H2><P><TT>omake</TT> is an object-oriented language. Everything is an object, including
 base values like numbers and strings. In many projects, this may not be so apparent
 because most evaluation occurs in the default toplevel object, the <CODE>Pervasives</CODE>
 object, and few other objects are ever defined.</P><P>However, objects provide additional means for data structuring, and in some cases
@@ -271,7 +271,7 @@ the earlier definitions.</P><P>The <CODE>class</CODE> directive is optional. If 
 for the object that can be used in <CODE>instanceof</CODE> operations, as well
 as <CODE>::</CODE> scoping directives discussed below.</P><P>The body of the object is actually an arbitrary program. The
 variables defined in the body of the object become its fields, and the
-functions defined in the body become its methods.</P><H2 CLASS="section"><A NAME="toc42"></A><A NAME="htoc64">6.5</A>&#XA0;&#XA0;Field and method calls</H2><P>The fields and methods of an object are named using <CODE>object.name</CODE> notation.
+functions defined in the body become its methods.</P><H2 CLASS="section"><A NAME="toc43"></A><A NAME="htoc66">6.5</A>&#XA0;&#XA0;Field and method calls</H2><P>The fields and methods of an object are named using <CODE>object.name</CODE> notation.
 For example, let's define a one-dimensional point value.</P><PRE CLASS="verbatim">   Point. =
       class Point
 
@@ -303,7 +303,7 @@ object, which returns a new object with 15 as its initial value. The
 expression <CODE>$(p1.move)</CODE> is also a method call, which returns a
 new object at position 16.</P><P>Note that objects are functional &#X2014; it is not possible to modify the fields
 or methods of an existing object in place. Thus, the <CODE>new</CODE> and <CODE>move</CODE>
-methods return new objects.</P><H2 CLASS="section"><A NAME="toc43"></A><A NAME="htoc65">6.6</A>&#XA0;&#XA0;Method override</H2><P>Suppose we wish to create a new object that moves by 2 units, instead of
+methods return new objects.</P><H2 CLASS="section"><A NAME="toc44"></A><A NAME="htoc67">6.6</A>&#XA0;&#XA0;Method override</H2><P>Suppose we wish to create a new object that moves by 2 units, instead of
 just 1. We can do it by overriding the <CODE>move</CODE> method.</P><PRE CLASS="verbatim">   Point2. =
       extends $(Point)
 
@@ -316,7 +316,7 @@ just 1. We can do it by overriding the <CODE>move</CODE> method.</P><PRE CLASS="
    osh&gt; p3 = $(p2.move)
    osh&gt; value $(p3.x)
    - : 17 : Int
-</PRE><P>However, by doing this, we have completely replaced the old <CODE>move</CODE> method.</P><H2 CLASS="section"><A NAME="toc44"></A><A NAME="htoc66">6.7</A>&#XA0;&#XA0;Super calls</H2><P>Suppose we wish to define a new <CODE>move</CODE> method that just calls the old one twice.
+</PRE><P>However, by doing this, we have completely replaced the old <CODE>move</CODE> method.</P><H2 CLASS="section"><A NAME="toc45"></A><A NAME="htoc68">6.7</A>&#XA0;&#XA0;Super calls</H2><P>Suppose we wish to define a new <CODE>move</CODE> method that just calls the old one twice.
 We can refer to the old definition of move using a super call, which uses the notation
 <CODE>$(classname::name &lt;args&gt;)</CODE>. The <CODE>classname</CODE> should be the name of the
 superclass, and <CODE>name</CODE> the field or method to be referenced. An alternative
@@ -330,7 +330,7 @@ way of defining the <CODE>Point2</CODE> object is then as follows.</P><PRE CLASS
 </PRE><P>Note that the first call to <CODE>$(Point::move)</CODE> redefines the
 current object (the <CODE>this</CODE> variable). This is because the method
 returns a new object, which is re-used for the second call.</P>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>

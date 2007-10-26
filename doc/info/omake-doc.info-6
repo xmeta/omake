@@ -1,5 +1,146 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 10-8-1,	Next: Subsection 10-8-2,	Prev: Section 10-8,	Up: Section 10-8
+  
+
+10.8.1   Standard channels
+==========================
+  
+  The following variables define the standard channels.
+ stdin
+
+<<stdin : InChannel
+>>
+  
+  The standard input channel, open for reading.
+ stdout
+ 
+<<stdout : OutChannel
+>>
+  
+  The standard output channel, open for writing.
+ stderr
+ 
+<<stderr : OutChannel
+>>
+  
+  The standard error channel, open for writing. 
+
+Node: Subsection 10-8-2,	Next: Subsection 10-8-3,	Prev: Subsection 10-8-1,	Up: Section 10-8
+  
+
+10.8.2   open-in-string
+=======================
+ The
+`open-in-string' treats a string as if it were a file and returns a
+channel for reading.
+<<   $(open-in-string s) : Channel
+         s : String
+>>
+
+Node: Subsection 10-8-3,	Next: Subsection 10-8-4,	Prev: Subsection 10-8-2,	Up: Section 10-8
+  
+
+10.8.3   open-out-string, out-contents
+======================================
+\@name
+{function:out-contents} The
+`open-out-string' creates a channel that writes to a string instead of a
+file. The string may be retrieved with the `out-contents' function.
+<<   $(open-out-string) : Channel
+     $(out-contents chan) : String
+         chan : OutChannel
+>>
+
+Node: Subsection 10-8-4,	Next: Subsection 10-8-5,	Prev: Subsection 10-8-3,	Up: Section 10-8
+  
+
+10.8.4   fopen
+==============
+
+  The `fopen' function opens a file for reading or writing.
+<<   $(fopen file, mode) : Channel
+        file : File
+        mode : String
+>>
+  
+  The `file' is the name of the file to be opened. The `mode' is a
+combination of the following characters. 
+  
+ r  Open the file for reading; it is an error if the file does not
+   exist. 
+ w  Open the file for writing; the file is created if it does not exist.
+   
+ a  Open the file in append mode; the file is created if it does not
+   exist. 
+ +  Open the file for both reading and writing. 
+ t  Open the file in text mode (default). 
+ b  Open the file in binary mode. 
+ n  Open the file in nonblocking mode. 
+ x  Fail if the file already exists. 
+  
+  Binary mode is not significant on Unix systems, where text and binary
+modes are equivalent. 
+
+Node: Subsection 10-8-5,	Next: Subsection 10-8-6,	Prev: Subsection 10-8-4,	Up: Section 10-8
+  
+
+10.8.5   close
+==============
+
+<<    $(close channel...)
+         channel : Channel
+>>
+  
+  The `close' function closes a file that was previously opened with
+`fopen'. 
+
+Node: Subsection 10-8-6,	Next: Subsection 10-8-7,	Prev: Subsection 10-8-5,	Up: Section 10-8
+  
+
+10.8.6   read, input-line
+=========================
+
+<<   $(read channel, amount) : String
+     $(input-line channel) : String
+        channel : InChannel
+        amount  : Int
+     raises RuntimeException
+>>
+  
+  The `read' function reads up to `amount' bytes from an input channel,
+and returns the data that was read. The `input-line' function reads a
+line from the file and returns the line read, without the line
+terminator. If an end-of-file condition is reached, both functions raise
+a `RuntimeException' exception. 
+
+Node: Subsection 10-8-7,	Next: Subsection 10-8-8,	Prev: Subsection 10-8-6,	Up: Section 10-8
+  
+
+10.8.7   write
+==============
+
+<<   $(write channel, buffer, offset, amount) : String
+        channel : OutChannel
+        buffer  : String
+        offset  : Int
+        amount  : Int
+     $(write channel, buffer) : String
+        channel : OutChannel
+        buffer  : String
+     raises RuntimeException
+>>
+  
+  In the 4-argument form, the `write' function writes bytes to the
+output channel `channel' from the `buffer', starting at position
+`offset'. Up to `amount' bytes are written. The function returns the
+number of bytes that were written.
+  The 3-argument form is similar, but the `offset' is 0.
+  In the 2-argument form, the `offset' is 0, and the `amount' if the
+length of the `buffer'.
+  If an end-of-file condition is reached, the function raises a
+`RuntimeException' exception. 
+
 Node: Subsection 10-8-8,	Next: Subsection 10-8-9,	Prev: Subsection 10-8-7,	Up: Section 10-8
   
 
@@ -587,6 +728,9 @@ Node: Section 10-11,	Next: Subsection 10-11-1,	Prev: Section 10-10,	Up: Chapter 
 * Subsection 10-11-25::	prompt-invisible-begin, prompt-invisible-end
 * Subsection 10-11-26::	prompt-invisible
 * Subsection 10-11-27::	gettimeofday
+* Subsection 10-11-28::	Tm
+* Subsection 10-11-29::	gmtime, localtime
+* Subsection 10-11-30::	mktime, normalize-time
 
 
 Node: Subsection 10-11-1,	Next: Subsection 10-11-2,	Prev: Section 10-11,	Up: Section 10-11
@@ -1471,7 +1615,7 @@ Node: Subsection 10-11-26,	Next: Subsection 10-11-27,	Prev: Subsection 10-11-25,
 `invisible" sections of the shell 'prompt' (such as various escape
 sequences) must be wrapped this way. 
 
-Node: Subsection 10-11-27,	Next: Chapter 11,	Prev: Subsection 10-11-26,	Up: Section 10-11
+Node: Subsection 10-11-27,	Next: Subsection 10-11-28,	Prev: Subsection 10-11-26,	Up: Section 10-11
   
 
 10.11.27   gettimeofday
@@ -1482,160 +1626,3 @@ Node: Subsection 10-11-27,	Next: Chapter 11,	Prev: Subsection 10-11-26,	Up: Sect
   
   The `gettimeofday' function returns the time of day in seconds since
 January 1, 1970.
-
-Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-11,	Up: Top
-  
-
-Chapter 11     Shell commands
-*****************************
-    
-  Shell commands (commands to be executed by the operating system) can
-be freely mixed with other code.
-  NOTE: the syntax and shell usage is identical on all platforms,
-including Win32. To avoid portability problems on Win32, it is
-recommended that you avoid the use of the native shell interpreter
-`cmd'.
-<<    LIB = $(dir lib)
-      println(The contents of the $(LIB) directory is:)
-      ls $(LIB)
->>
-  
-* Menu:
-
-* Section 11-1::	Simple commands
-* Section 11-2::	Globbing
-* Section 11-3::	Background jobs
-* Section 11-4::	File redirection
-* Section 11-5::	Pipelines
-* Section 11-6::	Conditional execution
-* Section 11-7::	Grouping
-* Section 11-8::	What is a shell command?
-* Section 11-9::	Basic builtin functions
-* Section 11-10::	Job control builtin functions
-* Section 11-11::	Command history
-
-
-Node: Section 11-1,	Next: Section 11-2,	Prev: Chapter 11,	Up: Chapter 11
-  
-
-11.1   Simple commands
-*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  The syntax of shell commands is similar to the syntax used by the Unix
-shell `bash'. In general, a command is a pipeline. A basic command is
-part of a pipeline. It is specified with the name of an executable and
-some arguments. Here are some examples.
-<<    ls
-      ls -AF .
-      echo Hello world
->>
-  
-  The command is found using the current search path in the variable
-`PATH[]', which should define an array of directories containing
-executables.
-  A command may also be prefixed by environment variable definitions.
-<<    # Prints "Hello world"
-      env X="Hello world" Y=2 printenv X
-      # Pass the include path to the Visual C++
-      env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
->>
-  
-
-Node: Section 11-2,	Next: Section 11-3,	Prev: Section 11-1,	Up: Chapter 11
-  
-
-11.2   Globbing
-*=*=*=*=*=*=*=*
-
-  
-  Commands may contain wildcard patterns. A pattern specifies a set of
-files through a limited kind of regular expression. Patterns are
-expanded before the function is executed.
-<<   # List all files with a .c suffix
-     ls *.c
-  
-     # List all files with a single character prefix, and .c suffix
-     ls ?.c
-  
-     # Rename the file hello.ml to foo.ml
-     mv {hello,foo}.ml
->>
-  
-  A comprehensive description of OMake glob patterns is given in Section
-10.4*Note Section 10-4::.
-
-Node: Section 11-3,	Next: Section 11-4,	Prev: Section 11-2,	Up: Chapter 11
-  
-
-11.3   Background jobs
-*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  The command may also be placed in the background by placing an
-ampersand after the command. Control returns to the shell without
-waiting for the job to complete. The job continues to run in the
-background.
-<<    gcc -o hugeprogram *.c &
->>
-  
-
-Node: Section 11-4,	Next: Section 11-5,	Prev: Section 11-3,	Up: Chapter 11
-  
-
-11.4   File redirection
-*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  Input and output can be redirected to files by using the `<', `>', and
-`>&' directives after the command.
-<<    # Write to the "foo" file
-      echo Hello world > foo
-  
-      # Redirect input from the foo file
-      cat < foo
-  
-      # Redirect standard output and errors to the foo file
-      gcc -o boo *.c >& foo
->>
-  
-
-Node: Section 11-5,	Next: Section 11-6,	Prev: Section 11-4,	Up: Chapter 11
-  
-
-11.5   Pipelines
-*=*=*=*=*=*=*=*=
-
-  
-  Pipelines are sequences of commands, where the output from each
-command is sent to the next. Pipelines are defined with the `|' and `|&'
-syntax. With `|' the output is redirected, but errors are not. With `|&'
-both output and errors are redirected.
-<<   # Send the output of the ls command to the printer
-     ls *.c | lpr
-  
-     # Send output and errors to jyh as email
-     gcc -o hugefile *.c |& mail jyh
->>
-  
-
-Node: Section 11-6,	Next: Section 11-7,	Prev: Section 11-5,	Up: Chapter 11
-  
-
-11.6   Conditional execution
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  Commands may also be composed though conditional evaluation using the
-`||' and `&&' syntax. Every command has an integer exit code, which may
-be zero or some other integer. A command is said to succeed if its exit
-code is zero. The expression `command1 && command2' executes `command2'
-only if `command1' succeeds. The expression `command1 || command2'
-executes `command2' only if `command1' fails.
-<<   # Display the x/y file if possible
-     cd x && cat y
-  
-     # Run foo.exe, or print an error message
-     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
->>
-  

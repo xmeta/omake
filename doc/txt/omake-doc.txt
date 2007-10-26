@@ -1,19 +1,19 @@
-     
+   
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                           20^thAugust, 2007
-                           =================
+                           25^thOctober, 2007
+                           ==================
   
    All the documentation on a single page (23)
   OMake table of contents 
 -----------------------------------
   
   
- (1) http://omake.metaprl.org/
+ (1) ../index.html
  
  (2) omake.html
  
@@ -35,7 +35,7 @@
  
  (11) omake-option-index.html
  
- (12) http://omake.metaprl.org/
+ (12) ../index.html
  
  (13) omake.html
  
@@ -110,23 +110,27 @@ Contents
     - 4.3  Arrays 
     - 4.4  Special characters and quoting 
     - 4.5  Function definitions 
-    - 4.6  Comments 
-    - 4.7  File inclusion 
-    - 4.8  Scoping, sections 
-    - 4.9  Conditionals 
-    - 4.10  Matching 
-    - 4.11  Objects 
-    - 4.12  Classes 
-    - 4.13  Inheritance 
-    - 4.14  static. 
         
-       - 4.14.1  .STATIC 
+       - 4.5.1  Keyword arguments 
+     
+    - 4.6  Curried functions 
+    - 4.7  Comments 
+    - 4.8  File inclusion 
+    - 4.9  Scoping, sections 
+    - 4.10  Conditionals 
+    - 4.11  Matching 
+    - 4.12  Objects 
+    - 4.13  Classes 
+    - 4.14  Inheritance 
+    - 4.15  static. 
+        
+       - 4.15.1  .STATIC 
            
-          - 4.14.1.1  .MEMO 
-          - 4.14.1.2  :key: 
+          - 4.15.1.1  .MEMO 
+          - 4.15.1.2  :key: 
         
      
-    - 4.15  Constants 
+    - 4.16  Constants 
   
  - Chapter 5  Variables and Naming 
      
@@ -350,12 +354,13 @@ Contents
        - 10.5.4  unlink 
        - 10.5.5  rename 
        - 10.5.6  link 
-       - 10.5.7  symlink 
-       - 10.5.8  readlink 
+       - 10.5.7  symlink, symlink-raw 
+       - 10.5.8  readlink, readlink-raw 
        - 10.5.9  chmod 
        - 10.5.10  chown 
-       - 10.5.11  truncate 
-       - 10.5.12  umask 
+       - 10.5.11  utimes 
+       - 10.5.12  truncate 
+       - 10.5.13  umask 
      
     - 10.6  vmount 
         
@@ -443,6 +448,9 @@ Contents
        - 10.11.25  prompt-invisible-begin, prompt-invisible-end 
        - 10.11.26  prompt-invisible 
        - 10.11.27  gettimeofday 
+       - 10.11.28  Tm 
+       - 10.11.29  gmtime, localtime 
+       - 10.11.30  mktime, normalize-time 
      
   
  - Chapter 11  Shell commands 
@@ -1736,7 +1744,7 @@ is the files to link (also without suffixes). Here is the code fragment.
       CatProgram(program, files) =
           # Add the suffixes
           file_names = $(addsuffix .woof, $(files))
-          prog_name = $(addsuffix .dog, $(files))
+          prog_name = $(addsuffix .dog, $(program))
   
           # The build rule
           $(prog_name): $(file_names)
@@ -2237,7 +2245,7 @@ equivalent.
    
   Arrays can be defined by appending the `[]' sequence to the variable
 name and defining initial values for the elements as separate lines.
-Whitespace is significant on each line. The following code sequence
+Whitespace on each line is taken literally. The following code sequence
 prints `c d e'.
 <<    X[] =
           a b
@@ -2348,7 +2356,99 @@ program prints the string "She says: Hello world".
   
   
 
-4.6  Comments
+4.5.1  Keyword arguments
+========================
+    
+  This feature will be introduced in version 0.9.9.0.
+  Functions can also have keyword parameters and arguments. The syntax
+of a keyword parameter/argument is `[~|?]<id> [= <expression>]', where
+the keyword name `<id>' is preceeded by the character `~' (for required
+arguments), or `?' (for optional arguments). If a default value `=
+<expression>' is provided, the argument is always optional.
+  Keyword arguments and normal anonymous arguments are completely
+separate. Also, it is an error to pass a keyword argument to a function
+that does not define it as a keyword parameter.
+<<    osh>f(x, ?y = 1, z) =
+             add($(mul $x, 100), $(mul $y, 10), $z)
+      - : <fun 0>
+      osh>f(1, ~y = 2, 3)
+      - : 123 : Int
+      osh>f(1, 3, ~y = 2)
+      - : 123 : Int
+      osh>f(1, 3)
+      - : 113 : Int
+      osh>f(1, 2, 3)
+      *** omake error:
+         File -: line 11, characters 0-10
+         arity mismatch: expected 2 args, got 3
+      osh>f(~z = 7)
+      *** omake error:
+         File -: line 12, characters 0-8
+         no such keyword: z
+>>
+  
+  An optional keyword argument defaults to the empty value.
+<<    osh> g(?x) =
+               println($">>>$x<<<")
+      - : <fun 0>
+      osh> g()
+      >>><<<
+      osh> g(~x = xxx)
+      >>>xxx<<<
+>>
+  
+  It is an error to omit a required keyword argument.
+<<    osh> h(~x, ~y) =
+               println(x = $x; y = $y)
+      - : <fun 0>
+      osh> h(~y = 2, ~x = 1)
+      x = 1; y = 2
+      osh> h(~y = 2)
+      *** omake error:
+         File -: line 11, characters 0-9
+         keyword argument is required: x
+>>
+  
+  
+
+4.6  Curried functions
+*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Functions that are marked with the classifier `curry' can be called
+with "too many" arguments. It is expected that a curried function
+returns a function that consumes the remaining arguments. All arguments
+must be specified.
+<<    osh>curry.f(x, y) =
+              println($"Got two arguments: x = $x, y = $y")
+              g(z) =
+                 add($x, $y, $z)
+      osh> f(1, 2, 3)
+      Got two arguments: x = 1, y = 2
+      - : 6 : Int
+      osh> f(1, 2)
+      Got two arguments: x = 1, y = 2
+      *** omake error:
+         File -: line 62, characters 0-7
+         arity mismatch: expected 1 args, got 0
+>>
+  
+  The function `apply' can be used to compute partial applications,
+whether or not the function is labeled as a curried function.
+<<    osh> f1(a, ~b = 2, ~c = 3, d) =
+              println($"a = $a, b = $b, c = $c, d = $d")
+      - : <fun 0>
+      osh> f2 = $(apply $(f1), ~c = 13, 11)
+      - : <curry 0>
+      osh> f2(14, ~b = 12)
+      a = 11, b = 12, c = 13, d = 14
+      osh> f2(24)
+      a = 11, b = 2, c = 13, d = 24
+>>
+  
+  
+
+4.7  Comments
 *=*=*=*=*=*=*
 
   
@@ -2356,7 +2456,7 @@ program prints the string "She says: Hello world".
 line.
   
 
-4.7  File inclusion
+4.8  File inclusion
 *=*=*=*=*=*=*=*=*=*
 
     
@@ -2380,7 +2480,7 @@ In case of the `open' directive, the search is performed at parse time,
 and the argument to `open' may not contain any expressions.
   
 
-4.8  Scoping, sections
+4.9  Scoping, sections
 *=*=*=*=*=*=*=*=*=*=*=
 
     
@@ -2438,14 +2538,14 @@ yacc rule will be inherited by the `foo' subdirectory, but not by the
 scope in the current directory.
   
 
-4.9  Conditionals
-*=*=*=*=*=*=*=*=*
+4.10  Conditionals
+*=*=*=*=*=*=*=*=*=
 
      
   Top level conditionals have the following form.
 <<    if <test>
          <true-clause>
-      elseif <text>
+      elseif <test2>
          <elseif-clause>
       else
          <else-clause>
@@ -2483,7 +2583,7 @@ if its string representation is the empty string, or one of the strings
   
   
 
-4.10  Matching
+4.11  Matching
 *=*=*=*=*=*=*=
 
      
@@ -2540,7 +2640,7 @@ ignored)
   
   
 
-4.11  Objects
+4.12  Objects
 *=*=*=*=*=*=*
 
     
@@ -2565,7 +2665,7 @@ used to specify a point (1, 5) on the two-dimensional plane.
 method `print' prints out the position of the point.
   
 
-4.12  Classes
+4.13  Classes
 *=*=*=*=*=*=*
 
    
@@ -2612,7 +2712,7 @@ object. Also, classes and objects are functional---the `new' and
 coordinates.
   
 
-4.13  Inheritance
+4.14  Inheritance
 *=*=*=*=*=*=*=*=*
 
    
@@ -2638,7 +2738,7 @@ inherits all of the methods and fields of the parent classes/objects.
   
   
 
-4.14  static.
+4.15  static.
 *=*=*=*=*=*=*
 
     
@@ -2676,7 +2776,7 @@ and 'ConfMsgResult' functions (of course, most of helper functions in
 the standard library would do that automatically).
   
 
-4.14.1  .STATIC
+4.15.1  .STATIC
 ===============
      
   This feature was introduced in version 0.9.8.5.
@@ -2734,14 +2834,14 @@ of the rule are the variables it exports (in this case, the `TABLE'
 variable).
   
 
-4.14.1.1  .MEMO
+4.15.1.1  .MEMO
 ---------------
      
   A `.MEMO' rule is just like a `.STATIC' rule, except that the results
 are not saved between independent runs of `omake'.
   
 
-4.14.1.2  :key:
+4.15.1.2  :key:
 ---------------
    
   The `.STATIC' and `.MEMO' rules also accept a `:key:' value, which
@@ -2824,7 +2924,7 @@ different `:key:'. In most cases, this means that the `:key:' should
 include all arguments to the function.
   
 
-4.15  Constants
+4.16  Constants
 *=*=*=*=*=*=*=*
 
    
@@ -2892,7 +2992,7 @@ here.
       >>
     
     
-    - A data string is a string where whitespace is significant. It
+    - A data string is a string where whitespace is taken literally. It
       represents a single value, not an array. The constructors are the
       quotations `$"..."' and `$'...''.
       <<    osh>S = $'''This is a string'''
@@ -3064,7 +3164,7 @@ variable.
   
  1. Private variables are local to the file in which they are defined. 
  2. Private variables are not exported by the `export' directive, unless
-   they are mentioned explicitly.
+   they are mentioned explicitly in the `export' directive.
    <<       private. =
                FLAG = true
      
@@ -3140,7 +3240,7 @@ are not defined as fields of an object.
          f()
   
       Obj. =
-         protected.X = 3
+         this.X = 3
   
          print() =
             println(The protected value of X is: $(X))
@@ -3199,7 +3299,7 @@ example, the following program defines two private variables `X' and
           Y = 2
 >>
   The qualifier specifies a default namespace for new definitions in the
-block. The contents of the block is otherwise completely general.
+block. The contents of the block is otherwise general.
 <<    private. =
           X = 1
           Y = 2
@@ -3207,7 +3307,20 @@ block. The contents of the block is otherwise completely general.
           # Prints "The value of Z is 3"
           echo The value of Z is $Z
 >>
-  
+  Stylistically, it is usually better to avoid large qualified blocks
+because the qualifier status can be easy to forget. For example,
+consider the following fragment.
+<<    private. =
+          # Large code sequence
+          ...
+          # build foo.o with -g option (ERROR)
+          CFLAGS = -g
+          foo.o:
+>>
+  In this case, the programmer probably forgot that the definition of
+the variable `CFLAGS' is in the `private' block, so a fresh variable
+`private.CFLAGS' is being defined, not the global one. The target
+`foo.o' does not use this definition of `CFLAGS'.
   
 
 5.7  declare
@@ -3221,10 +3334,10 @@ definition is qualified, but the subsequent uses are not qualified
 explicitly. In the following example, the first occurrence of `$X'
 refers to the private definition, because that is the most recent. The
 public definition of `X' is still `0', but the variable must be
-qualified explicitly.
+qualified explicitly in order to access the public value.
 <<    public.X = 0
       private.X = 1
-      
+  
       public.print() =
           println(The value of private.X is: $X)
           println(The value of public.X is: $(public.X))
@@ -3731,8 +3844,8 @@ single indented line.
 >>
   
   One central property of arrays is that whitespace in the elements is
-significant. This can be useful, especially for filenames that contain
-whitespace. 
+taken literally. This can be useful, especially for filenames that
+contain whitespace. 
 <<   # List the current files in the directory
       osh> ls -Q
       "fee"  "fi"  "foo"  "fum"
@@ -3750,15 +3863,15 @@ whitespace.
 *=*=*=*=*=*=*=*=*=*
 
     
-  A `String' is a single value; whitespace is significant in a string.
-Strings are introduced with quotes. There are four kinds of quoted
-elements; the kind is determined by the opening quote. The symbols `''
-(single-quote) and `"' (double-quote) introduce the normal shell-style
-quoted elements. The quotation symbols are included in the result
-string. Variables are always expanded within a quote of this kind. Note
-that the osh(1) (Chapter 15) printer escapes double-quotes within the
-string; these are only for printing, they are not part of the string
-itself.
+  A `String' is a single value; whitespace is taken literally in a
+string. Strings are introduced with quotes. There are four kinds of
+quoted elements; the kind is determined by the opening quote. The
+symbols `'' (single-quote) and `"' (double-quote) introduce the normal
+shell-style quoted elements. The quotation symbols are included in the
+result string. Variables are always expanded within a quote of this
+kind. Note that the osh(1) (Chapter 15) printer escapes double-quotes
+within the string; these are only for printing, they are not part of the
+string itself.
 <<    osh> A = 'Hello "world"'
       - : "'Hello \"world\"'" : String
       osh> B = "$(A)"
@@ -4513,10 +4626,10 @@ $(INCLUDES)) $<
   The next step is to define explicit scanner dependencies. The
 `:scanner:' dependency is used for this. In this case, the scanner
 dependencies are specified explicitly.
-<<    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%c
+<<    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%.c
           gcc ...
   
-      $(CL_FILES): %.obj: %.c :scanner: scan-cl-%c
+      $(CL_FILES): %.obj: %.c :scanner: scan-cl-%.c
           cl ...
 >>
   
@@ -4999,7 +5112,7 @@ startup, the default value is determined as follows.
 --version' 
 OMAKEPATH
    An array of directories specifying the lookup path for the `include'
-and `open' directives (see Section 4.7). The default value is an array
+and `open' directives (see Section 4.8). The default value is an array
 of two elements --- `.' and `$(STDLIB)'. 
 OSTYPE
    Set to the machine architecture omake is running on. Possible values
@@ -5570,7 +5683,7 @@ c" d'.
 9.3.9  subrange
 ===============
   
-<<   $(subrange off, len, sequent) : value
+<<   $(subrange off, len, sequence) : value
         off : Int
         len : Int
         sequence : Sequence
@@ -5710,9 +5823,10 @@ command-line parse can separate the string back into its components.
 >>
   
   The `html-string' function flattens a sequence into a single string,
-and escaped special HTML characters. This is similar to the `concat'
+and escapes special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
-treated as a unit; whitespace is significant.
+treated as a unit; whitespace inside sequence elements is preserved
+literally.
 
 9.3.19  addsuffix
 =================
@@ -6080,10 +6194,13 @@ value is printed.
       while $(lt $i, 10)
       case $(equal $i, 0)
          echo zero
+         i = $(add $i, 1)
       case $(equal $i, 1)
          echo one
+         i = $(add $i, 1)
       default
          echo $i
+         i = $(add $i, 1)
 >>
   
   The 'break' function can be used to break out of the `while' loop
@@ -6108,7 +6225,7 @@ state.
   
   Produce a random number. The numbers are pseudo-random, and are not
 cryptographically secure.
-  The generator is initialized form semi-random system data. Subsequent
+  The generator is initialized from semi-random system data. Subsequent
 runs should produce different results. The `rando-init' function can be
 used to return the generator to a known state.
 
@@ -6187,10 +6304,10 @@ the parameter names.
 <<    F(X, Y) =
          return($(addsuffix $(Y), $(X)))
   
-      F = $(fun X, Y, $(addsuffix $(Y), $(X)))
+      F = $(fun X, Y => $(addsuffix $(Y), $(X)))
   
       F =
-         fun(X, Y)
+         fun(X, Y) =>
             value $(addsuffix $(Y), $(X))
 >>
   
@@ -6210,6 +6327,16 @@ the parameter names.
       X = $(apply $(F), a b c, .c)
 >>
   
+  The `apply' form can also be used for partial applications, where a
+function is passed fewer arguments than it expects. The result is a
+function that takes the remaining arguments, and calls the function with
+the full set of arguments.
+<<    add2(i, j) =
+         add($i, $j)
+      succ = $(apply $(add2), 1)
+      i = $(succ 5)   # Computes 1+5
+>>
+  
 
 9.5.3  applya
 =============
@@ -6226,6 +6353,7 @@ arguments.
       Z = $(applya $(F), $(args))
 >>
   
+  The `applya' form can also be used for partial applications.
 
 9.5.4  create-map, create-lazy-map
 ==================================
@@ -6276,7 +6404,7 @@ array `a.c b.c c.c'.
             value $(x).c
   
       # Equivalent expression
-      X = $(foreach $(fun x, $(x).c), abc)
+      X = $(foreach $(fun x, $(x).c), a b c)
 >>
   
   There is also an abbreviated syntax.
@@ -6299,7 +6427,7 @@ value of `X' is `a.c b.c c.c'.
 9.7.1  sequence-forall
 ======================
   
-  The `forall' function tests whether a predicate halds for each element
+  The `forall' function tests whether a predicate holds for each element
 of a sequence.
 <<    $(sequence-forall <fun>, <args>)
   
@@ -7144,27 +7272,34 @@ directory `src'.
   Hard links may work under Win32 when NTFS is used.
   Normally, only the superuser can create hard links to directories.
 
-10.5.7  symlink
-===============
+10.5.7  symlink, symlink-raw
+============================
   
 <<   symlink(src, dst)
         src : Node
+        dst : Node
+     symlink-raw(src, dst)
+        src : String
         dst : Node
      raises RuntimeException
 >>
   
   The `symlink' function creates a symbolic link `dst' that points to
 the `src' file.
-  The link name is computed relative to the target directory. For
-example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
--> ../a/b'.
+  For `symlink', the link name is computed relative to the target
+directory. For example, the expression `$(symlink a/b, c/d)' creates a
+link named `c/d -> ../a/b'.
+  The function `symlink-raw' performs no translation. The symbolic link
+is set to the `src' string.
   Symbolic links are not supported in Win32. Consider using the
 `ln-or-cp' `Shell' alias for cross-platform portable linking/copying.
 
-10.5.8  readlink
-================
+10.5.8  readlink, readlink-raw
+==============================
   
 <<   $(readlink node...) : Node
+        node : Node
+     $(readlink-raw node...) : String
         node : Node
 >>
   
@@ -7208,7 +7343,20 @@ example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
 `gid' is not specified, it is not changed. If either id is -1, that id
 is not changed.
 
-10.5.11  truncate
+10.5.11  utimes
+===============
+  
+<<   utimes(atime, mtime, node...)
+        atime : Float
+        mtime : Float
+        node : Node
+     raises RuntimeException
+>>
+  
+  The `utimes' function changes the access and modification times of the
+files.
+
+10.5.12  truncate
 =================
   
 <<   truncate(length, node...)
@@ -7219,7 +7367,7 @@ is not changed.
   
   The `truncate' function truncates a file to the given length.
 
-10.5.12  umask
+10.5.13  umask
 ==============
   
 <<    $(umask mode) : Int
@@ -8826,6 +8974,53 @@ sequences) must be wrapped this way.
 January 1, 1970.
   
 
+10.11.28  Tm
+============
+   The `Tm' object is a structure that represents the time and date.
+  
+  
+  'tm_sec' `: Int' Seconds (0--59). 
+  'tm_min' `: Int' Minutes (0--59). 
+  'tm_hour' `: Int' Hours (0--23). 
+  'tm_mday' `: Int' Day of the month (0--31). 
+  'tm_mon' `: Int' Month (0--11). 
+  'tm_year' `: Int' Year (minus 1900). 
+  'tm_wday' `: Int' Day of the week (0--6, Sunday is 0). 
+  'tm_yday' `: Int' Day of the year (0--365). 
+  'tm_isdst' `: Bool' True iff daylight savings time is in effect. 
+  
+  
+
+10.11.29  gmtime, localtime
+===========================
+   
+<<   $(gmtime time) : tm
+     $(localtime time) : tm
+         time : Float
+>>
+  
+  Convert the time in seconds since the Unix epoch to calendar format.
+The function `gmtime' assumes UTC (Coordinated Universal Time); the
+function `localtime' uses the local time zone.
+
+10.11.30  mktime, normalize-time
+================================
+   
+<<   $(mktime tm) : Float
+     $(normalize-time tm) : Tm
+         tm : Tm
+>>
+  
+  Convert the calendar time to time in seconds since the Unix epoch.
+Assumes the local time zone.
+  The fields `tm_wday', `tm_mday', `tm_yday' are ignored. The other
+components are not restricted to their normal ranges and will be
+normalized as needed.
+  The function `normalize-time' normalizes the calendar time. The
+returned object contains an additional field `tm_time : Float' that
+represnets the time in seconds since the Unix epoch (the same value
+returned by `mktime').
+
 Chapter 11    Shell commands
 ****************************
     
@@ -9258,6 +9453,10 @@ sequential elements. It provides the following methods.
   
   
  - `$(s.length)': the number of elements in the sequence. 
+ - `$(s.is-nonempty)': true iff the expression `$(s.nth 0)' will
+   complete without failure. 
+ - `$(s.nth <i>)': return the n'th element of the sequence. 
+ - `$(s.nth-tl <i>)': return the n'th tail of the sequence. 
  - `$(s.map <fun>)': maps a function over the fields in the sequence.
    The function should take one argument. The result is a new sequence
    constructed from the values returned by the function. 
@@ -10296,7 +10495,10 @@ OCAMLDEP_MODULES_AVAILABLE
    True when a version of `ocamldep' that understands the `-modules'
 option is available on your machine. 
 MENHIR_AVAILABLE
-   True when the Menhir parser-generator is available on your machine.
+   True when the Menhir parser-generator is available on your machine. 
+OCAMLLIB
+   The location of OCaml library directory (output of `ocamlc -where').
+Empty when no ocamlc is found.
   
 
 13.6.2  Configuration variables for OCaml compilation
@@ -10323,18 +10525,12 @@ OCAMLYACCFLAGS
    Additional options to pass to `$(OCAMLYACC)'. 
 OCAMLDEP
    The OCaml dependency analyzer (default `ocamldep'). 
-OCAMLDEP_MODULES
-   The OCaml dependency analyzer that understands the `-module' option
-(default `ocamldep', if `ocamldep -modules' works, or `ocamlrun
-ocamldep-omake', if `ocamlrun ocamldep-omake -modules' works, and empty
-when neither works). 
 OCAMLDEP_MODULES_ENABLED
    Instead of using `OCAMLDEP' in a traditional `make'-style fashion,
-run `$(OCAMLDEP_MODULES) -modules' and then postprocess the output
-internally to discover all the relevant generated `.ml' and `.mli'
-files. See Section 13.6.5 for more information on interactions between
-OMake, `OCAMLDEP' and generated files. Set to
-`$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
+run `$(OCAMLDEP) -modules' and then postprocess the output internally to
+discover all the relevant generated `.ml' and `.mli' files. See Section
+13.6.5 for more information on interactions between OMake, `OCAMLDEP'
+and generated files. Set to `$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
 OCAMLMKTOP
    The OCaml toploop compiler (default `ocamlmktop'). 
 OCAMLLINK
@@ -10371,7 +10567,7 @@ MENHIR_ENABLED
   The following variables specify additional options to be passed to the
 OCaml tools. 
 OCAMLDEPFLAGS
-   Flags to pass to `OCAMLDEP' and `OCAMLDEP_MODULES'. 
+   Flags to pass to `OCAMLDEP'. 
 OCAMLPPFLAGS
    Flags to pass to `CAMLP4'. 
 OCAMLCFLAGS
@@ -10471,11 +10667,9 @@ post-process the results internally.
 'OCAMLDEP_MODULES_ENABLED' variable will be set to
 `$(OCAMLDEP_MODULES_AVAILABLE)'.
   Note that the `ocamldep' functionality this relies upon is only
-included in the OCaml version 3.10 and higher. Temporarily, we
-distribute a bytecode version `ocamldep-omake' of the appropriately
-modified `ocamldep'. The appropriate `ocamldep' will be discovered
-automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE' and
-'OCAMLDEP_MODULES' variables will be set accordingly.
+included in the OCaml version 3.10 and higher. It's availability will be
+discovered automatically and the 'OCAMLDEP_MODULES_AVAILABLE' variable
+will be set accordingly.
   
 
 13.6.6  Using the Menhir parser generator
@@ -10734,7 +10928,7 @@ of autoconfiguring itself to adjust to different build environments.
 properties of your build environment in a fashion similar to the one
 used by GNU autoconf tool you may be familiar with. It is recommended
 that these function be used from an appropriate `static.' block (see
-Section 4.14 for more information).
+Section 4.15 for more information).
   In order to use the following general-purpose functions, you need to
 have the line 
 <<open configure/Configure
@@ -10891,7 +11085,7 @@ functions.
 
    A number of configuration tests are already included in the standard
 library. In order to use them in your project, simply `open' (see
-Section 4.7) the corresponding build file in your `OMakefile' and the
+Section 4.8) the corresponding build file in your `OMakefile' and the
 tests will run the first time OMake is executed. Note that it is not a
 problem to `open' these files from more than one place in your project
 --- if you do that, the test will still run only once.
@@ -11829,7 +12023,7 @@ B.2.2.1  Special forms
 ----------------------
   
   The special forms include the following.
-  Conditionals (see the section on conditionals --- Section 4.9). The
+  Conditionals (see the section on conditionals --- Section 4.10). The
 `if' command should be followed by an expression that represents the
 condition, and an indented body. The conditional may be followed by
 `elseif' and `else' blocks.
@@ -11842,7 +12036,7 @@ condition, and an indented body. The conditional may be followed by
           indented-body
 >>
   
-  matching (see the section on matching --- Section 4.10). The `switch'
+  matching (see the section on matching --- Section 4.11). The `switch'
 and `match' commands perform pattern-matching. All cases are optional.
 Each case may include `when' clauses that specify additional matching
 conditions.
@@ -11882,13 +12076,13 @@ clauses.
 <<    raise expr
 >>
   
-  section (see the `section' description in Section 4.8). The `section'
+  section (see the `section' description in Section 4.9). The `section'
 command introduces a new scope.
 <<    section
           indented-body
 >>
   
-  include, open (see also Section 4.7). The `include' command performs
+  include, open (see also Section 4.8). The `include' command performs
 file inclusion. The expression should evaluate to a file name.
   The `open' form is like include, but it performs the inclusion only if
 the inclusion has not already been performed. The `open' form is usually
@@ -11922,7 +12116,7 @@ introduces a `while' loop.
           indented-body
 >>
   
-  class, extends (see the section on objects --- Section 4.11). The
+  class, extends (see the section on objects --- Section 4.12). The
 `class' command specifies an identifier for an object. The `extends'
 command specifies a parent object.
 <<    class id
@@ -12021,7 +12215,7 @@ function is indented.
 B.2.2.4  Objects
 ----------------
   
-  See the section on objects (Section 4.11). Objects are defined as an
+  See the section on objects (Section 4.12). Objects are defined as an
 identifier with a terminal period. The body of the object is indented.
 <<    Obj. =
           class Obj
@@ -12305,19 +12499,19 @@ Index
  - .BUILDORDER, 10.3.6 
  - .DEFAULT, 8.7, 8.12.1 
  - .INCLUDE, 8.9 
- - .MEMO, 4.14.1.1 
+ - .MEMO, 4.15.1.1 
  - .ORDER, 10.3.6 
  - .omakerc, A.8 
  - .PHONY, 6.3, 8.10, 8.11.3, 8.12.1, 8.12.2 
  - .RULE, 6.3 
  - .SCANNER, 3.4.3, 8.6, 8.11.2 
- - .STATIC, 4.14.1 
+ - .STATIC, 4.15.1 
  - .SUBDIRS, 3, 8.8 
  - .SUBDIRS bodies, 3.5 
  
  - :effects:, 8.5.2 
  - :exists:, 8.5.1 
- - :key:, 4.14.1.2 
+ - :key:, 4.15.1.2 
  - :scanner:, 8.6.1 
  - :value:, 8.5.3 
  
@@ -12406,14 +12600,14 @@ Index
  - chmod, 10.5.9 
  - chown, 10.5.10 
  - class, B.2.2.1 
- - classes, 4.12 
+ - classes, 4.13 
  - close, 10.8.5 
  - cmp-versions, 13.2.3 
  - compare, 9.7.4 
  - concat, 9.3.3 
- - conditionals, 4.9 
+ - conditionals, 4.10 
  - connect, 10.8.32 
- - constants, 4.15 
+ - constants, 4.16 
  - create-lazy-map, 9.5.4 
  - create-map, 9.5.4 
  
@@ -12525,6 +12719,7 @@ Index
  - getvar, 9.2.16 
  - glob, 10.4.1 
  - global., 5.3 
+ - gmtime, 10.11.29 
  - gr_gid, 10.11.20 
  - gr_group, 10.11.20 
  - gr_mem, 10.11.20 
@@ -12547,11 +12742,11 @@ Index
  - InetAddr, 10.8.21 
  - Int, 12.1.4 
  - id-escaped, 9.3.14 
- - if, 4.9, 9.2.5, B.2.2.1 
+ - if, 4.10, 9.2.5, B.2.2.1 
  - ignoreeof, 15.1 
  - in, 10.1.3 
- - include, 4.7, B.2.2.1 
- - inheritance, 4.13 
+ - include, 4.8, B.2.2.1 
+ - inheritance, 4.14 
  - input-line, 10.8.6 
  - int, 9.4.1 
  - intersection, 9.3.30 
@@ -12560,6 +12755,7 @@ Index
  - jobs, 11.10.1 
  - join, 9.3.11 
  
+ - keyword arguments, 4.5.1 
  - kill, 11.10.6 
  
  - LATEX, 13.7.1 
@@ -12588,6 +12784,7 @@ Index
  - link-order sorting, 10.3.6 
  - listen, 10.8.30 
  - lnot, 9.4.3 
+ - localtime, 10.11.29 
  - lockf, 10.8.20 
  - lor, 9.4.3 
  - lowercase, 9.3.38 
@@ -12607,12 +12804,13 @@ Index
  - MENHIR_FLAGS, 13.6.3 
  - mapprefix, 9.3.26 
  - mapsuffix, 9.3.20 
- - match, 4.10, 9.2.6, B.2.2.1 
+ - match, 4.11, 9.2.6, B.2.2.1 
  - max, 9.4.3 
  - mem, 9.3.29 
  - min, 9.4.3 
  - mkdir, 10.5.1 
  - mkfifo, 10.8.18 
+ - mktime, 10.11.30 
  - mod, 9.4.3 
  - mul, 9.4.3 
  
@@ -12625,6 +12823,7 @@ Index
  - Node, 12.1.12 
  - Number, 12.1.3 
  - neg, 9.4.3 
+ - normalize-time, 10.11.30 
  - not, 9.2.1 
  - nth, 9.3.5 
  - nth-hd, 9.3.7 
@@ -12641,7 +12840,6 @@ Index
  - OCAMLC, 13.6.2 
  - OCAMLCFLAGS, 13.6.3 
  - OCAMLDEP, 13.6.2 
- - OCAMLDEP_MODULES, 13.6.2 
  - OCAMLDEP_MODULES_AVAILABLE, 13.6.1 
  - OCAMLDEP_MODULES_ENABLED, 13.6.2 
  - OCAMLDEPFLAGS, 13.6.3 
@@ -12652,6 +12850,7 @@ Index
  - OCAMLINCLUDES, 13.6.2 
  - OCAMLLEX, 13.6.2 
  - OCAMLLEXFLAGS, 13.6.2 
+ - OCAMLLIB, 13.6.1 
  - OCAMLLINK, 13.6.2 
  - OCAMLMKTOP, 13.6.2 
  - OCAMLOPT, 13.6.2 
@@ -12681,10 +12880,9 @@ Index
  - OS_VERSION, 9.1 
  - OSTYPE, 9.1 
  - OutChannel, 12.1.17 
- - objects, 4.11 
+ - objects, 4.12 
  - ocaml-escaped, 9.3.14 
- - ocamldep-omake, 13.6.5.2 
- - open, 4.7, B.2.2.1 
+ - open, 4.8, B.2.2.1 
  - open-in-string, 10.8.2 
  - open-out-string, 10.8.3 
  - or, 9.2.4 
@@ -12736,6 +12934,7 @@ Index
  - random-init, 9.3.44 
  - read, 10.8.6 
  - readlink, 10.5.8 
+ - readlink-raw, 10.5.8 
  - regular expressions, 10.11.1 
  - rehash, 10.2.3 
  - remove-project-directories, 10.6.3 
@@ -12774,7 +12973,7 @@ Index
  - String, 12.1.8 
  - SYSNAME, 9.1 
  - scan, 10.11.4 
- - section, 4.8, 8.3, B.2.2.1 
+ - section, 4.9, 8.3, B.2.2.1 
  - section rule, 8.4 
  - select, 10.8.19 
  - sequence-forall, 9.7.1 
@@ -12791,7 +12990,7 @@ Index
  - split, 9.3.2 
  - stat, 10.5.3 
  - stat-reset, 10.3.2 
- - static., 4.14 
+ - static., 4.15 
  - stderr, 10.8.1 
  - stdin, 10.8.1 
  - stdout, 10.8.1 
@@ -12803,8 +13002,9 @@ Index
  - subdirs, 10.4.3 
  - subrange, 9.3.9 
  - suffix, 10.1.11 
- - switch, 4.10, 9.2.6 
+ - switch, 4.11, 9.2.6 
  - symlink, 10.5.7 
+ - symlink-raw, 10.5.7 
  - system, 9.3.39 
  
  - TARGETS, 9.1 
@@ -12814,6 +13014,7 @@ Index
  - TEXINPUTS, 13.7.2.1 
  - TEXVARS, 13.7.2.1 
  - TeXGeneratedFiles, 13.7.2.2 
+ - Tm, 10.11.28 
  - TryCompileC, 14.1.4 
  - TryLinkC, 14.1.4 
  - TryRunC, 14.1.4 
@@ -12824,8 +13025,17 @@ Index
  - test, 10.7.1 
  - tgetstr, 10.11.22 
  - this., 5.2 
+ - tm_hour, 10.11.28 
+ - tm_isdst, 10.11.28 
+ - tm_mday, 10.11.28 
+ - tm_min, 10.11.28 
+ - tm_mon, 10.11.28 
+ - tm_sec, 10.11.28 
+ - tm_wday, 10.11.28 
+ - tm_yday, 10.11.28 
+ - tm_year, 10.11.28 
  - tmpfile, 10.1.2 
- - truncate, 10.5.11 
+ - truncate, 10.5.12 
  - try, 9.2.7, B.2.2.1 
  
  - UnbuildableException, 12.1.21 
@@ -12836,11 +13046,12 @@ Index
  - ugt, 9.4.4 
  - ule, 9.4.4 
  - ult, 9.4.4 
- - umask, 10.5.12 
+ - umask, 10.5.13 
  - uncapitalize, 9.3.36 
  - unlink, 10.5.4 
  - unsetenv, 9.2.14 
  - uppercase, 9.3.37 
+ - utimes, 10.5.11 
  
  - VERBOSE, 9.1 
  - VerboseCheckCHeader, 14.1.6 
@@ -12952,7 +13163,6 @@ Index of variables
  - OCAMLC, 13.6.2 
  - OCAMLCFLAGS, 13.6.3 
  - OCAMLDEP, 13.6.2 
- - OCAMLDEP_MODULES, 13.6.2 
  - OCAMLDEP_MODULES_AVAILABLE, 13.6.1 
  - OCAMLDEP_MODULES_ENABLED, 13.6.2 
  - OCAMLDEPFLAGS, 13.6.3 
@@ -12963,6 +13173,7 @@ Index of variables
  - OCAMLINCLUDES, 13.6.2 
  - OCAMLLEX, 13.6.2 
  - OCAMLLEXFLAGS, 13.6.2 
+ - OCAMLLIB, 13.6.1 
  - OCAMLLINK, 13.6.2 
  - OCAMLMKTOP, 13.6.2 
  - OCAMLOPT, 13.6.2 
@@ -13151,6 +13362,7 @@ Index of functions and special forms
  - gettimeofday, 10.11.27 
  - getvar, 9.2.16 
  - glob, 10.4.1 
+ - gmtime, 10.11.29 
  - grep, 10.11.3 
  - gt, 9.4.4 
  
@@ -13163,7 +13375,7 @@ Index of functions and special forms
  - id-escaped, 9.3.14 
  - if, 9.2.5 
  - in, 10.1.3 
- - include, 4.7 
+ - include, 4.8 
  - input-line, 10.8.6 
  - int, 9.4.1 
  - intersection, 9.3.30 
@@ -13188,6 +13400,7 @@ Index of functions and special forms
  - link, 10.5.6 
  - listen, 10.8.30 
  - lnot, 9.4.3 
+ - localtime, 10.11.29 
  - lockf, 10.8.20 
  - lor, 9.4.3 
  - lowercase, 9.3.38 
@@ -13201,16 +13414,18 @@ Index of functions and special forms
  
  - mapprefix, 9.3.26 
  - mapsuffix, 9.3.20 
- - match, 4.10, 9.2.6 
+ - match, 4.11, 9.2.6 
  - max, 9.4.3 
  - mem, 9.3.29 
  - min, 9.4.3 
  - mkdir, 10.5.1 
  - mkfifo, 10.8.18 
+ - mktime, 10.11.30 
  - mod, 9.4.3 
  - mul, 9.4.3 
  
  - neg, 9.4.3 
+ - normalize-time, 10.11.30 
  - not, 9.2.1 
  - nth, 9.3.5 
  - nth-hd, 9.3.7 
@@ -13251,6 +13466,7 @@ Index of functions and special forms
  - random-init, 9.3.44 
  - read, 10.8.6 
  - readlink, 10.5.8 
+ - readlink-raw, 10.5.8 
  - rehash, 10.2.3 
  - remove-project-directories, 10.6.3 
  - removeprefix, 9.3.22 
@@ -13297,8 +13513,9 @@ Index of functions and special forms
  - subdirs, 10.4.3 
  - subrange, 9.3.9 
  - suffix, 10.1.11 
- - switch, 4.10, 9.2.6 
+ - switch, 4.11, 9.2.6 
  - symlink, 10.5.7 
+ - symlink-raw, 10.5.7 
  - system, 9.3.39 
  
  - TeXGeneratedFiles, 13.7.2.2 
@@ -13312,18 +13529,19 @@ Index of functions and special forms
  - test, 10.7.1 
  - tgetstr, 10.11.22 
  - tmpfile, 10.1.2 
- - truncate, 10.5.11 
+ - truncate, 10.5.12 
  - try, 9.2.7 
  
  - uge, 9.4.4 
  - ugt, 9.4.4 
  - ule, 9.4.4 
  - ult, 9.4.4 
- - umask, 10.5.12 
+ - umask, 10.5.13 
  - uncapitalize, 9.3.36 
  - unlink, 10.5.4 
  - unsetenv, 9.2.14 
  - uppercase, 9.3.37 
+ - utimes, 10.5.11 
  
  - VerboseCheckCHeader, 14.1.6 
  - VerboseCheckCLib, 14.1.7 
@@ -13389,6 +13607,7 @@ Index of objects
  - String, 12.1.8 
  
  - Target, 12.1.11 
+ - Tm, 10.11.28 
  
  - UnbuildableException, 12.1.21 
 
@@ -13403,11 +13622,11 @@ Index of special targets
  - .BUILDORDER, 10.3.6 
  - .DEFAULT, 8.7, 8.12.1 
  - .INCLUDE, 8.9 
- - .MEMO, 4.14.1.1 
+ - .MEMO, 4.15.1.1 
  - .ORDER, 10.3.6 
  - .PHONY, 8.10, 8.11.3, 8.12.1, 8.12.2 
  - .SCANNER, 8.6, 8.11.2 
- - .STATIC, 4.14.1 
+ - .STATIC, 4.15.1 
  - .SUBDIRS, 8.8 
 
 
@@ -13468,7 +13687,8 @@ C.2  Version
 *=*=*=*=*=*=
 
   
-  Version: 0.9.8.5 of 20^thAugust, 2007.
+  Version: 0.9.8.5+ (working towards version 0.9.8.6 and/or 0.9.9+) of
+25^thOctober, 2007.
   
 
 C.3  License and Copyright
