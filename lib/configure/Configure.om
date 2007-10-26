@@ -139,12 +139,11 @@ TryCompilingC(command, command_suffix, ext, prog, extra) =
     private.tmp_c = $(file $(tmpfile omake, .c))
     private.tmp = $(file $(replacesuffixes .c, $"$(EMPTY)", $(tmp_c)))
 
+    export command
     if $(and $(not $(equal $(CCOUT), $(LDOUT))), $(equal $(ext), $(EXE)))
         command[] += $(CCOUT)$(file $(tmp)$(EXT_OBJ)) $(LDOUT)$(file $(tmp)$(ext))
-        export command
     else
         command[] += $(CCOUT)$(file $(tmp)$(ext))
-        export command
 
     command[] += $(file $(tmp_c)) $(command_suffix)
 
@@ -158,19 +157,17 @@ $(prog)
     fprint($(tmp_c), $(program))
     protected.result = $(shell-success-null $(command))
 
+    export result
     if $(result)
         switch $(extra)
         case Runs
             result = $(shell-success-null $(file $(tmp)$(EXE)))
-            export
         case Output
             result =
                 try
                     value $(shell $(file $(tmp)$(EXE)))
                 default
                     value $(not true)
-            export
-        export
 
     # Remove temporaries
     rm -f $(tmp_c) $(tmp)$(EXT_OBJ) $(tmp)$(EXE)
