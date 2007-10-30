@@ -490,19 +490,17 @@ static value handle_wait(const char *debug, Process **processpp)
 #endif
     switch(processp->status) {
     case STATUS_STOPPED:
-        tuple = alloc_tuple(2);
-        Field(tuple, 0) = Val_int(processp->pid);
-        Field(tuple, 1) = Val_unit;
         status = alloc_small(1, TAG_WSTOPPED);
         Field(status, 0) = Val_int(processp->code);
+        tuple = alloc_tuple(2);
+        Field(tuple, 0) = Val_int(processp->pid);
         Field(tuple, 1) = status;
         break;
     case STATUS_EXITED:
-        tuple = alloc_tuple(2);
-        Field(tuple, 0) = Val_int(processp->pid);
-        Field(tuple, 1) = Val_unit;
         status = alloc_small(1, TAG_WEXITED);
         Field(status, 0) = Val_int(processp->code);
+        tuple = alloc_tuple(2);
+        Field(tuple, 0) = Val_int(processp->pid);
         Field(tuple, 1) = status;
 
         CloseHandle(processp->handle);
