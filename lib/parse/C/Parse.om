@@ -4156,6 +4156,14 @@ public. =
         direct_decl_id: direct_decl_id attribute
             VarAttribute.make($1, $2)
 
+	# JYH: I'm sure this is not the way to handle asm, but I'm not
+	# really sure what it means.  Here is an example from stdio.h
+	# on Mac OS X, 10.5.
+	#
+	# int	 fputs(__const char * , FILE * ) __asm("_" "fputs" "$UNIX2003");
+        direct_decl_id: direct_decl_id asm_stmt
+            VarAttribute.make($1, $2)
+
         #
         # Any identifiers (type identifiers are treated as normal identifiers)
         #
@@ -4211,6 +4219,9 @@ public. =
             VarFun.make($1, $3)
 
         direct_decl_any: direct_decl_any attribute
+            VarAttribute.make($1, $2)
+
+        direct_decl_any: direct_decl_any asm_stmt
             VarAttribute.make($1, $2)
 
         ########################################################################
@@ -4580,7 +4591,10 @@ public. =
         stmt: default colon
             DefaultStmt.make()
 
-        stmt: asm lparen exp asm_args rparen semi
+        stmt: asm_stmt semi
+            value $1
+
+        asm_stmt: asm lparen exp asm_args rparen
             AsmStmt.make($1, $3, $4)
 
         stmt_list:

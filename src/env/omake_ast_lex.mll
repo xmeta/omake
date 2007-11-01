@@ -595,10 +595,10 @@ let quote_opt      = quote?
 (*
  * Special variables.
  *)
-let dollar         = '$' ['`' ',' '$']
-let paren_dollar   = '$' ['`' ',']?
-let special_char   = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
-let special_var    = paren_dollar special_char
+let dollar           = '$' ['`' ',' '$']
+let paren_dollar     = '$' ['`' ',']?
+let special_var_char = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
+let special_var      = paren_dollar special_var_char
 
 (*
  * Named colon separators.
@@ -622,12 +622,14 @@ let special_string      = "=>" | "::" | "+=" | "[]" | "..." | "[...]"
  * Other stuff that is not names or special characters.
  *)
 let other_char          = [^ ' ' '\t' '\012' '\n' '\r'
-                           '_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '?' '@'
+                           '_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '?' '@' '~'
                            '$' '(' ')' ':' ',' '=' '\\' '#' '%' '[' ']' '.' '"' '\'']
 let other_drive         = ['A'-'Z' 'a'-'z'] ':' ['\\' '/']
 let other_prefix        = other_char | other_drive
-let other_suffix        = whitec | name_suffix | other_prefix
-let other               = other_prefix other_suffix *
+let other_special       = ['~' '?']
+let other_suffix1       = whitec | name_suffix | other_prefix | other_special
+let other_suffix2       = whitec | other_prefix | other_special
+let other               = other_prefix other_suffix1 * | other_special other_suffix2 *
 
 (*
  * A string is anything but a quote, dollar, or backslash.

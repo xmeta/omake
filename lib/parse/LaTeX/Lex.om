@@ -73,7 +73,7 @@ public.latex_lexer. =
     #
     # Macros.
     #
-    macro: $'''\\([[:alpha:]@]+[*]?|[ \t\n%_'>#$^&*}{"[:digit:]]|\\|\[|\])'''
+    macro: $'''\\([[:alpha:]@]+[*]?|[ \t\n%_'=>#$^&*}{"[:digit:]]|\\|\[|\])'''
         Token.pair(macro, $0)
 
     begin: $'''\\begin[{][[:alpha:]]+[*]?[}]'''
@@ -107,7 +107,7 @@ public.latex_lexer. =
     text: $'[^][{}%\\$[:space:][:alpha:]]+'
         Token.pair(text, $0)
 
-    lstinline: $'\\lstinline(/[^/]*/|[$][^$]*[$]|+[^+]*+|![^!]*!|[]][^]]*[]]|~[^~]*~|`[^`]*`)'
+    lstinline: $'\\(lstinline|verb)(/[^/]*/|[$][^$]*[$]|+[^+]*+|![^!]*!|[]][^]]*[]]|~[^~]*~|`[^`]*`)'
         Token.pair(text, $0)
 
     comment: $'%[^\n]*\n'
