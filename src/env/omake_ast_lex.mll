@@ -36,7 +36,6 @@ open Lm_symbol
 open Lm_location
 
 open Omake_ast
-open Omake_env
 open Omake_pos
 open Omake_ast_util
 open Omake_ast_parse
@@ -163,6 +162,10 @@ let pp_print_token buf = function
        fprintf buf "dot: %s" s
   | TokId (s, _) ->
        fprintf buf "id: %s" s
+  | TokInt (s, _) ->
+       fprintf buf "int: %s" s
+  | TokFloat (s, _) ->
+       fprintf buf "float: %s" s
   | TokKey (s, _) ->
        fprintf buf "key: %s" s
   | TokKeyword (s, _) ->
@@ -173,6 +176,8 @@ let pp_print_token buf = function
        fprintf buf "class: %s" s
   | TokVar (_, s, _) ->
        fprintf buf "var: %s" s
+  | TokOp (s, _) ->
+       fprintf buf "op: %s" s
   | TokString (s, _) ->
        fprintf buf "string: \"%s\"" (String.escaped s)
   | TokBeginQuote (s, _) ->
@@ -402,7 +407,8 @@ let lexeme_name state lexbuf =
        | "as"
        | "while"
        | "do"
-       | "set" ->
+       | "set"
+       | "program-syntax" ->
              TokKeyword (id, loc)
        | "catch" ->
              TokCatch (id, loc)
@@ -492,7 +498,7 @@ let lexeme_char state lexbuf =
            pop_paren state;
            TokRightParen (s, loc)
        | _   ->
-           TokString (s, loc)
+           TokOp (s, loc)
 
 (*
  * Special string.
@@ -509,8 +515,7 @@ let lexeme_special_string state lexbuf =
        | "[]" ->
             TokArray (s, loc)
        | _ ->
-            TokString (s, loc)
-
+            TokOp (s, loc)
 
 (*
  * Count the indentation in a string of characters.
@@ -570,10 +575,24 @@ let strict_eol      = strict_nl | eof
 (*
  * Identifiers and keywords.
  *)
-let name_prefix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '@']
+let name_prefix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '@']
 let name_suffix     = ['_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '~' '@']
 let name            = name_prefix name_suffix* | '[' | ']'
 let key             = ['~' '?'] name_suffix+
+
+(*
+ * Numbers.
+ *)
+let binary          = "0b" ['0'-'1']*
+let octal           = "0o" ['0'-'7']*
+let decimal         = ['0'-'9']+
+let hex             = "0x" ['0'-'9' 'a'-'f' 'A'-'F']*
+let integer         = binary | octal | decimal | hex
+
+let float_exp       = ['e' 'E'] ['-' '+']? ['0'-'9']+
+let float1          = ['0'-'9']* '.' ['0'-'9'] float_exp?
+let float2          = ['0'-'9']+ float_exp
+let float           = float1 | float2
 
 (*
  * Comments begin with a # symbol and continue to end-of-line.
@@ -595,10 +614,10 @@ let quote_opt      = quote?
 (*
  * Special variables.
  *)
-let dollar           = '$' ['`' ',' '$']
-let paren_dollar     = '$' ['`' ',']?
-let special_var_char = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
-let special_var      = paren_dollar special_var_char
+let dollar         = '$' ['`' ',' '$']
+let paren_dollar   = '$' ['`' ',']?
+let special_sym    = ['@' '&' '*' '<' '^' '+' '?' 'A'-'Z' 'a'-'z' '_' '0'-'9' '~' '[' ']']
+let special_var    = paren_dollar special_sym
 
 (*
  * Named colon separators.
@@ -615,20 +634,21 @@ let esc_line            = '\\' strict_eol
 (*
  * Special sequences.
  *)
-let special_char        = ['$' '(' ')' ':' ',' '=' '.' '%']
-let special_string      = "=>" | "::" | "+=" | "[]" | "..." | "[...]"
+let special_char        = ['$' '(' ')' ':' ',' ';' '=' '.' '%' '+' '-' '*' '/' '<' '>' '^' '&' '|']
+let special_string      = "=>" | "::" | "+=" | "[]" | "<<" | ">>" | ">>>" | "&&" | "||" | "..." | "[...]"
 
 (*
  * Other stuff that is not names or special characters.
  *)
 let other_char          = [^ ' ' '\t' '\012' '\n' '\r'
                            '_' 'A'-'Z' 'a'-'z' '0'-'9' '-' '?' '@' '~'
-                           '$' '(' ')' ':' ',' '=' '\\' '#' '%' '[' ']' '.' '"' '\'']
+                           '$' '(' ')' ':' ',' ';' '=' '\\' '#' '%' '[' ']' '.' '"' '\''
+			   '<' '>' '^' '|' '&' '*' '/' '+']
 let other_drive         = ['A'-'Z' 'a'-'z'] ':' ['\\' '/']
 let other_prefix        = other_char | other_drive
 let other_special       = ['~' '?']
-let other_suffix1       = whitec | name_suffix | other_prefix | other_special
-let other_suffix2       = whitec | other_prefix | other_special
+let other_suffix1       = name_suffix | other_prefix | other_special
+let other_suffix2       = other_prefix | other_special
 let other               = other_prefix other_suffix1 * | other_special other_suffix2 *
 
 (*
@@ -652,8 +672,20 @@ rule lex_main state = parse
    { let s, loc = lexeme_string state lexbuf in
         TokWhite (s, loc)
    }
+   (* Note: many numbers are also identifiers,
+    * like the decimal numbers, etc.  We can define the
+    * regular expressions normally, but give precedence
+    * to identifiers. *)
  | name
    { lexeme_name state lexbuf }
+ | integer
+   { let s, loc = lexeme_string state lexbuf in
+        TokInt (s, loc)
+   }
+ | float
+   { let s, loc = lexeme_string state lexbuf in
+        TokFloat (s, loc)
+   }
  | key
    { lexeme_key state lexbuf }
  | ['\'' '"']

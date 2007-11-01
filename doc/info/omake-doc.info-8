@@ -1,280 +1,5 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 13-5-4,	Next: Section 13-6,	Prev: Subsection 13-5-3,	Up: Section 13-5
-  
-
-13.5.4   Building C programs and Libraries
-==========================================
-
-
-13.5.4.1   StaticCLibrary, DynamicCLibrary
-------------------------------------------
-
-  The `StaticCLibrary' builds a static library and the `DynamicCLibrary'
-function builds a shared library (DLL).
-<<StaticCLibrary(<target>, <files>)
-  DynamicCLibrary(<target>, <files>)
->>
-  
-  The `<target>' does not include the library suffix, and The `<files>'
-list does not include the object suffix. These are obtained from the
-'EXT_LIB' ('EXT_DLL') and 'EXT_OBJ' variables.
-  This function returns the library filename.
-  The following command builds the library `libfoo.a' from the files
-`a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
-`a.obj b.obj c.obj' on `Win32'.
-<<StaticCLibrary(libfoo, a b c)
-  .DEFAULT: $(StaticCLibrary libbar, a b c d)
->>
-  
- CDLL_IMPLIES_STATIC
- If the `CDLL_IMPLIES_STATIC' variable
-is enabled (this is default on `Win32'), all the `DynamicC' functions
-would assume that creating a shared library automatically created a
-static one.
-
-13.5.4.2   StaticCLibraryCopy, DynamicCLibraryCopy
---------------------------------------------------
-\@n
-ame{function:DynamicCLibraryCopy}
-  The `StaticCLibraryCopy' and `DynamicCLibraryCopy' functions copy a
-library to an install location.
-<<StaticCLibraryCopy(<tag>, <dir>, <lib>)
-  DynamicCLibraryCopy(<tag>, <dir>, <lib>)
->>
-  
-  The `<tag>' is the name of a target (typically a `.PHONY' target); the
-`<dir>' is the installation directory, and `<lib>' is the library to be
-copied (without the library suffix).
-  This function returns the filename of the library in the target
-directory.
-  For example, the following code copies the library `libfoo.a' to the
-`/usr/lib' directory.
-<<.PHONY: install
-  
-  StaticCLibraryCopy(install, /usr/lib, libfoo)
->>
-  
-
-13.5.4.3   StaticCLibraryInstall, DynamicCLibraryInstall
---------------------------------------------------------
-
-
-  The `StaticCLibraryInstall' and `DynamicCLibraryInstall' functions
-build a library, and set the install location in one step. Return the
-filename of the library in the target directory.
-<<StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)
-  DynamicCLibraryInstall(<tag>, <dir>, <libname>, <files>)
->>
-  
-<<StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
->>
-  
-
-13.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
------------------------------------------------------------------
-
-  These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
-`StaticCLibraryInstall' functions, but they build an object file (a `.o'
-file on `Unix', and a `.obj' file on `Win32').
-
-13.5.4.5   CProgram
--------------------
-
-  The `CProgram' function builds a C program from a set of object files
-and libraries.
-  `CProgram(<name>, <files>)'
-  The `<name>' argument specifies the name of the program to be built;
-the `<files>' argument specifies the files to be linked. The function
-returns the filename of the executable.
-  Additional options can be passed through the following variables. 
-  
- CFLAGS  Flags used by the C compiler during the link step. 
- LDFLAGS  Flags to pass to the loader. 
- LIBS  Additional libraries to be linked. 
-  
-  For example, the following code specifies that the program `foo' is to
-be produced by linking the files `bar.o' and `baz.o' and libraries
-`libfoo.a'.
-<<section
-     LIBS = libfoo
-     LDFLAGS += -lbar
-     CProgram(foo, bar baz)
->>
-  
-
-13.5.4.6   CProgramCopy
------------------------
-
-  The `CProgramCopy' function copies a file to an install location.
-  `CProgramCopy(<tag>, <dir>, <program>)'
-<<CProgramCopy(install, /usr/bin, foo)
->>
-  
-
-13.5.4.7   CProgramInstall
---------------------------
-
-  The `CProgramInstall' function specifies a program to build, and a
-location to install, simultaneously.
-  `CProgramInstall(<tag>, <dir>, <name>, <files>)'
-<<section
-     LIBS = libfoo
-     LDFLAGS += -lbar
-     CProgramInstall(install, /usr/bin, foo, bar baz)
->>
-  
-
-13.5.4.8   CXXProgram, CXXProgramInstall
-----------------------------------------
-
-  The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
-their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
-for linking instead of `$(CC)' and `$(CFLAGS)'.
-
-13.5.4.9   StaticCXXLibrary, StaticCXXLibraryCopy,
---------------------------------------------------
-StaticCXXLibraryInstall, DynamicCXXLibrary, DynamicCXXLibraryCopy,
-------------------------------------------------------------------
-DynamicCXXLibraryInstall
-------------------------
-\@nam
-e{function:StaticCXXLibraryCopy}\@name
-{function:StaticCXXLibraryInstall}\@na
-me{function:DynamicCXXLibrary}
-  Similarly, the six `CXXLibrary' functions the C++ equivalents of the
-corresponding `CLibrary' functions. 
-
-Node: Section 13-6,	Next: Subsection 13-6-1,	Prev: Section 13-5,	Up: Chapter 13
-  
-
-13.6   Building OCaml code
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  OMake provides extensive support for building OCaml code, including
-support for tools like `ocamlfind', `ocamlyacc' and `menhir'. In order
-to use the functions defined in this section, you need to make sure the
-line 
-<<open build/OCaml
->>
-  is present in your `OMakeroot' file.
-* Menu:
-
-* Subsection 13-6-1::	Autoconfiguration variables for OCaml compilation
-* Subsection 13-6-2::	Configuration variables for OCaml compilation
-* Subsection 13-6-3::	OCaml command flags
-* Subsection 13-6-4::	Library variables
-* Subsection 13-6-5::	Generated OCaml Files
-* Subsection 13-6-6::	Using the Menhir parser generator
-
-
-Node: Subsection 13-6-1,	Next: Subsection 13-6-2,	Prev: Section 13-6,	Up: Section 13-6
-  
-
-13.6.1   Autoconfiguration variables for OCaml compilation
-==========================================================
-   These variables will get defined based on the "autoconf-style" tests
-executed when you run OMake for the first time. You can use them to
-configure your project accordingly, and you should not redefine them.
-  You can use the `--configure' command line option (Section
-A.3.9*Note Subsection A-3-9::) to force re-execution of all the
-tests.
- OCAMLOPT_EXISTS
- True when `ocamlopt' (or
-`ocamlopt.opt') is available on your machine. 
- OCAMLFIND_EXISTS
- True when the ocamlfind is available
-on your machines. 
- OCAMLDEP_MODULES_AVAILABLE
- True when a version of `ocamldep' that
-understands the `-modules' option is available on your machine. 
- MENHIR_AVAILABLE
- True when the Menhir parser-generator
-is available on your machine. 
- OCAMLLIB
- The location of OCaml library
-directory (output of `ocamlc -where'). Empty when no ocamlc is found.
-
-Node: Subsection 13-6-2,	Next: Subsection 13-6-3,	Prev: Subsection 13-6-1,	Up: Section 13-6
-  
-
-13.6.2   Configuration variables for OCaml compilation
-======================================================
-  
-  The following variables can be redefined in your project. 
- USE_OCAMLFIND
- Whether to use the `ocamlfind' utility
-(default `false') 
- OCAMLC
- The OCaml bytecode compiler (default
-`ocamlc.opt' if it exists and `USE_OCAMLFIND' is not set, otherwise
-`ocamlc'). 
- OCAMLOPT
- The OCaml native-code compiler
-(default `ocamlopt.opt' if it exists and `USE_OCAMLFIND' is not set,
-otherwise `ocamlopt'). 
- CAMLP4
- The `camlp4' preprocessor (default
-`camlp4'). 
- OCAMLLEX
- The OCaml lexer generator (default
-`ocamllex'). 
- OCAMLLEXFLAGS
- The flags to pass to `ocamllex'
-(default `-q'). 
- OCAMLYACC
- The OCaml parser generator (default
-`ocamlyacc'). 
- OCAMLYACCFLAGS
- Additional options to pass to
-`$(OCAMLYACC)'. 
- OCAMLDEP
- The OCaml dependency analyzer (default
-`ocamldep'). 
- OCAMLDEP_MODULES_ENABLED
- Instead of using `OCAMLDEP' in a
-traditional `make'-style fashion, run `$(OCAMLDEP) -modules' and then
-postprocess the output internally to discover all the relevant generated
-`.ml' and `.mli' files. See Section
-13.6.5*Note Subsection 13-6-5:: for more information on
-interactions between OMake, `OCAMLDEP' and generated files. Set to
-`$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
- OCAMLMKTOP
- The OCaml toploop compiler (default
-`ocamlmktop'). 
- OCAMLLINK
- The OCaml bytecode linker (default
-`$(OCAMLC)'). 
- OCAMLOPTLINK
- The OCaml native-code linker (default
-`$(OCAMLOPT)'). 
- OCAMLINCLUDES
- Search path to pass to the OCaml
-compilers (default `.'). The search path with the `-I' prefix is defined
-by the `PREFIXED_OCAMLINCLUDES' variable. 
- OCAMLFIND
- The `ocamlfind' utility (default
-`ocamlfind' if `USE_OCAMLFIND' is set, otherwise empty). 
- OCAMLFINDFLAGS
- The flags to pass to `ocamlfind'
-(default empty, `USE_OCAMLFIND' must be set). 
- OCAMLPACKS
- Package names to pass to `ocamlfind'
-(`USE_OCAMLFIND' must be set). 
- BYTE_ENABLED
- Flag indicating whether to use the
-bytecode compiler (default `true', when no `ocamlopt' found, `false'
-otherwise). 
- NATIVE_ENABLED
- Flag indicating whether to use the
-native-code compiler (default `true', when ocamlopt is found, `false'
-otherwise). Both `BYTE_ENABLED' and `NATIVE_ENABLED' can be set to true;
-at least one should be set to true. 
- MENHIR_ENABLED
- Define this as `true' if you wish to
-use `menhir' instead of `ocamlyacc' (default `false'). 
-
 Node: Subsection 13-6-3,	Next: Subsection 13-6-4,	Prev: Subsection 13-6-2,	Up: Section 13-6
   
 
@@ -284,7 +9,8 @@ Node: Subsection 13-6-3,	Next: Subsection 13-6-4,	Prev: Subsection 13-6-2,	Up: S
   The following variables specify additional options to be passed to the
 OCaml tools. 
  OCAMLDEPFLAGS
- Flags to pass to `OCAMLDEP'. 
+ Flags to pass to `OCAMLDEP' and
+`OCAMLDEP_MODULES'. 
  OCAMLPPFLAGS
  Flags to pass to `CAMLP4'. 
  OCAMLCFLAGS
@@ -390,16 +116,16 @@ analysis
 --------
    Having to specify the generated files manualy when OMake could
 discover them automatically is obviously suboptimal. To address this, we
-tell `ocamldep' to only find the free module names in a file and then
+tell `ocamldep' that only finds the free module names in a file and then
 post-process the results internally.
-  This automated functionality is enabled when the
-'OCAMLDEP_MODULES_ENABLED' variable is set to `true'. By default,
-'OCAMLDEP_MODULES_ENABLED' variable will be set to
-`$(OCAMLDEP_MODULES_AVAILABLE)'.
-  Note that the `ocamldep' functionality this relies upon is only
-included in the OCaml version 3.10 and higher. It's availability will be
-discovered automatically and the 'OCAMLDEP_MODULES_AVAILABLE' variable
-will be set accordingly.
+  Note that the experimental `ocamldep' functionality this relies upon
+is only included in the OCaml version 3.10 and higher. Temporarily, we
+distribute a bytecode version `ocamldep-omake' of the
+appropriately modified `ocamldep'. The appropriate `ocamldep' will be
+discovered automatically --- see and the 'OCAMLDEP_MODULES_AVAILABLE'
+and 'OCAMLDEP_MODULES' variables will be set accordingly.
+  By default, 'OCAMLDEP_MODULES_ENABLED' variable will be set to
+`$(OCAMLDEP_MODULES_AVAILABLE)'. 
 
 Node: Subsection 13-6-6,	Next: Section 13-7,	Prev: Subsection 13-6-5,	Up: Section 13-6
   
@@ -581,8 +307,7 @@ LaTeX you have installed).
  The LaTeX flags (defaults depend on
 the `TETEX2_ENABLED' variable) 
  BIBTEX
- The BibTeX command (default
-`bibtex'). 
+ The BibTeX command (default `bibtex').
  MAKEINDEX
  The command to build an index
 (default `makeindex'). 
@@ -699,7 +424,7 @@ Node: Section 14-1,	Next: Subsection 14-1-1,	Prev: Chapter 14,	Up: Chapter 14
 properties of your build environment in a fashion similar to the one
 used by GNU autoconf tool you may be familiar with. It is recommended
 that these function be used from an appropriate `static.' block (see
-Section 4.15*Note Section 4-15:: for more information).
+Section 4.14*Note Section 4-14:: for more information).
   In order to use the following general-purpose functions, you need to
 have the line 
 <<open configure/Configure
@@ -900,7 +625,7 @@ Node: Section 14-3,	Next: Subsection 14-3-1,	Prev: Section 14-2,	Up: Chapter 14
 
    A number of configuration tests are already included in the standard
 library. In order to use them in your project, simply `open' (see
-Section 4.8*Note Section 4-8::) the corresponding build file in
+Section 4.7*Note Section 4-7::) the corresponding build file in
 your `OMakefile' and the tests will run the first time OMake is
 executed. Note that it is not a problem to `open' these files from more
 than one place in your project --- if you do that, the test will still
@@ -1512,3 +1237,303 @@ is in effect, also print listings for each dependency. The output is
 very verbose, consider redirecting to a file. If neither option
 --print-dependencies, --show-dependencies is specified, this option has
 no effect.
+
+Node: Subsection A-3-17,	Next: Subsection A-3-18,	Prev: Subsection A-3-16,	Up: Section A-3
+  
+
+A.3.17   --install
+==================
+ `--install'
+  Install default files OMakefile and OMakeroot into the current
+directory. You would typically do this to start a project in the current
+directory.
+
+Node: Subsection A-3-18,	Next: Subsection A-3-19,	Prev: Subsection A-3-17,	Up: Section A-3
+  
+
+A.3.18   --install-all
+======================
+
+`--install-all'
+  In addition to installing files OMakefile and OMakeroot, install
+default OMakefiles into each subdirectory of the current directory.
+cvs(1) rules are used for filtering the subdirectory list. For example,
+OMakefiles are not copied into directories called `CVS', `RCCS', etc.
+
+Node: Subsection A-3-19,	Next: Subsection A-3-20,	Prev: Subsection A-3-18,	Up: Section A-3
+  
+
+A.3.19   --install-force
+========================
+
+`--install-force'
+  Normally, omake will prompt before it overwrites any existing
+OMakefile. If this option is given, all files are forcibly overwritten
+without prompting.
+
+Node: Subsection A-3-20,	Next: Subsection A-3-21,	Prev: Subsection A-3-19,	Up: Section A-3
+  
+
+A.3.20   --absname
+==================
+ `--absname'
+  Filenames should expand to absolute pathnames.
+  N.B. This is an experimental option. It may become deprecated.
+
+Node: Subsection A-3-21,	Next: Section A-4,	Prev: Subsection A-3-20,	Up: Section A-3
+  
+
+A.3.21   variable definition
+============================
+
+`name=[value]'
+  omake variables can also be defined on the command line in the form
+`name=value'. For example, the `CFLAGS' variable might be defined on the
+command line with the argument `CFLAGS="-Wall -g"'.
+
+Node: Section A-4,	Next: Section A-5,	Prev: Section A-3,	Up: Appendix A
+  
+
+A.4   Additional options
+*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  In addition, omake supports a number of debugging flags on the command
+line. Run `omake --help' to get a summary of these flags.
+
+Node: Section A-5,	Next: Subsection A-5-1,	Prev: Section A-4,	Up: Appendix A
+  
+
+A.5   Environment variables
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-5-1::	OMAKEFLAGS
+* Subsection A-5-2::	OMAKELIB
+
+
+Node: Subsection A-5-1,	Next: Subsection A-5-2,	Prev: Section A-5,	Up: Section A-5
+  
+
+A.5.1   OMAKEFLAGS
+==================
+   
+  If defines, the `OMAKEFLAGS' should specify a set of options exactly
+as they are specified on the command line.
+
+Node: Subsection A-5-2,	Next: Section A-6,	Prev: Subsection A-5-1,	Up: Section A-5
+  
+
+A.5.2   OMAKELIB
+================
+   
+  If defined, the `OMAKELIB' environment variable should refer to the
+installed location of the OMake standard library. This is the directory
+that contains `Pervasives.om' etc. On a Unix system, this is often
+`/usr/lib/omake' or `/usr/local/lib/omake', and on Win32 systems it is
+often `c:\Program Files\OMake\lib'.
+  If not defined, `omake' uses the default configured location. You
+should normally leave this unset.
+
+Node: Section A-6,	Next: Subsection A-6-1,	Prev: Section A-5,	Up: Appendix A
+  
+
+A.6   Functions
+*=*=*=*=*=*=*=*
+
+  
+* Menu:
+
+* Subsection A-6-1::	OMakeFlags
+
+
+Node: Subsection A-6-1,	Next: Section A-7,	Prev: Section A-6,	Up: Section A-6
+  
+
+A.6.1   OMakeFlags
+==================
+  
+  The `OMakeFlags' function can be used within an `OMakefile' to modify
+the set of options. The options should be specified exactly as they are
+on the command line. For example, if you want some specific project to
+be silent and display a progress bar, you can add the following line to
+your `OMakefile'.
+<<    OMakeFlags(-S --progress)
+>>
+  
+  For options where it makes sense, the options are scoped like
+variables. For example, if you want OMake to be silent for a single rule
+(instead of for the entire project), you can use scoping the restrict
+the range of the option.
+<<    section
+          # Do not display command output when foo is constructed
+          OMakeFlags(-S)
+  
+          foo: fee
+             echo "This is a generated file" > foo
+             cat fee >> foo
+             chmod 555 foo
+>>
+  
+
+Node: Section A-7,	Next: Section A-8,	Prev: Section A-6,	Up: Appendix A
+  
+
+A.7   Option processing
+*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  When `omake' is invoked, the options are processed in the following
+order.
+  
+  
+ 1. All options specified by the `OMAKEFLAGS' environment variable are
+   defined globally. 
+ 2. All options from the command line are defined globally. 
+ 3. Any individual calls the the `OMakeFlags' function modify the
+   options locally. 
+  
+
+Node: Section A-8,	Next: Appendix B,	Prev: Section A-7,	Up: Appendix A
+  
+
+A.8   .omakerc
+*=*=*=*=*=*=*=
+
+    
+  If the `$(HOME)/.omakerc' exists, it is read before any of the
+`OMakefiles' in your project. The `.omakerc' file is frequently used for
+user-specific customization. For example, instead of defining the
+`OMAKEFLAGS' environment variable, you could add a line to your
+`.omakerc'.
+<<    $(HOME)/.omakerc:
+          # My private options
+          OMakeFlags(-S --progress)
+>>
+  
+   
+
+Node: Appendix B,	Next: Section B-1,	Prev: Appendix A,	Up: Top
+  
+
+Appendix B     OMake grammar
+****************************
+    
+* Menu:
+
+* Section B-1::	OMake lexical conventions
+* Section B-2::	The OMake grammar
+* Section B-3::	Dollar modifiers
+
+
+Node: Section B-1,	Next: Subsection B-1-1,	Prev: Appendix B,	Up: Appendix B
+  
+
+B.1   OMake lexical conventions
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  The OMake language is based on the language for GNU/BSD make, where
+there are few lexical conventions. Strictly speaking, there are no
+keywords, and few special symbols.
+* Menu:
+
+* Subsection B-1-1::	Comments
+* Subsection B-1-2::	Special characters
+* Subsection B-1-3::	Identifiers
+* Subsection B-1-4::	Command identifiers
+* Subsection B-1-5::	Variable references
+* Subsection B-1-6::	String constants
+
+
+Node: Subsection B-1-1,	Next: Subsection B-1-2,	Prev: Section B-1,	Up: Section B-1
+  
+
+B.1.1   Comments
+================
+  
+  Comments begin with the `#' character and continue to the end-of-line.
+Text within a comment is unrestricted.
+  Examples.
+<<   # This is a comment
+     # This $comment contains a quote " character
+>>
+  
+
+Node: Subsection B-1-2,	Next: Subsection B-1-3,	Prev: Subsection B-1-1,	Up: Section B-1
+  
+
+B.1.2   Special characters
+==========================
+  
+  The following characters are special in some contexts.
+<<   $    (    )    ,    .   =    :    "    '    `    \    #
+>>
+  
+  
+  
+ - `$' is used to denote a variable reference, or function application. 
+ - Parentheses `)', `(' are argument deliminters. 
+ - The command `,' is an argument separator. 
+ - The period symbol `.' is a name separator. 
+ - The equality symbol `=' denotes a definition. 
+ - The colon symbol `:' is used to denote rules, and (optionally) to
+   indicate that an expression is followed by an indented body. 
+ - The quotation symbols `"' and `'' delimit character strings. 
+ - The symbol `#' is the first character of a constant. 
+ - The escape symbol `\' is special only when followed by another
+   special character. In this case, the special status of the second
+   character is removed, and the sequence denotes the second character.
+   Otherwise, the `\' is not special.
+ Examples:
+ 
+     
+    - `\$': the `$' character (as a normal character). 
+    - `\#': the `#' character (as a normal character). 
+    - `\\': the `\' character (as a normal character). 
+    - `c\:\Windows\moo\#boo': the string `c:\Windows\moo#boo'. 
+  
+  
+
+Node: Subsection B-1-3,	Next: Subsection B-1-4,	Prev: Subsection B-1-2,	Up: Section B-1
+  
+
+B.1.3   Identifiers
+===================
+  
+  Identifiers (variable names) are drawn from the ASCII alphanumeric
+characters as well as `_', `-', `~', `@'. Case is significant; the
+following identifiers are distinct: `FOO', `Foo', `foo'. The identifier
+may begin with any of the valid characters, including digits.
+  Using `egrep' notation, the regular expression for identifiers is
+defined as follows.
+<<    identifier ::= [-@~_A-Za-z0-9]+
+>>
+  
+  The following are legal identifiers.
+<<    Xyz    hello_world    seventy@nine
+      79-32  Gnus~Gnats     CFLAGS
+>>
+  
+  The following are not legal identifiers.
+<<    x+y    hello&world
+>>
+  
+
+Node: Subsection B-1-4,	Next: Subsection B-1-5,	Prev: Subsection B-1-3,	Up: Section B-1
+  
+
+B.1.4   Command identifiers
+===========================
+  
+  The following words have special significance when they occur as the
+first word of a program line. They are not otherwise special.
+<<    case     catch  class    declare    default
+      do       else   elseif   export     extends
+      finally  if     import   include    match
+      open     raise  return   section    switch
+      try      value  when     while
+>>
+  

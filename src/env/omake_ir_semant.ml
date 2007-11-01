@@ -186,6 +186,9 @@ let rec build_string env s =
    let env = { env with env_function_tail = false } in
       match s with
          NoneString _
+       | IntString _
+       | FloatString _
+       | WhiteString _
        | ConstString _
        | ThisString _
        | KeyApplyString _

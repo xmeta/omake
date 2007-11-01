@@ -180,6 +180,12 @@ let rec pp_print_string_exp complete buf s =
    match s with
       NoneString _ ->
          fprintf buf "<none>"
+    | IntString (_, i) ->
+         fprintf buf "%d" i
+    | FloatString (_, x) ->
+         fprintf buf "%g" x
+    | WhiteString (_, s) ->
+         fprintf buf "'%s'" (String.escaped s)
     | ConstString (_, s) ->
          fprintf buf "\"%s\"" (String.escaped s)
     | KeyApplyString (_, strategy, s) ->

@@ -763,6 +763,89 @@ osh> println($"$X")  # force the evaluation and print
 1.c 2.c 3.c
 \end{verbatim}
 
+\section{Programming syntax}
+\label{section:program-syntax}
+
+\newinkeyword
+
+The standard OMake language is designed to make it easy to specify strings.  By default, all values
+are strings, and strings are any sequence of text and variable references; quote symbols are not
+necessary.
+
+\begin{verbatim}
+    CFLAGS += -g -Wall
+\end{verbatim}
+
+The tradeoff is that variable references are a bit longer, requiring the syntax \verb+$(...)+.
+
+The ``\emph{program syntax}'' inverts this behavior.  The main differences are the following.
+
+\begin{enumerate}
+\item Identifiers represent variables.
+\item Strings must be quoted.
+\item Function application is written \verb+f(exp1, ..., expN)+.
+\end{enumerate}
+
+It is only the syntax of expressions that changes.  The large scale program is as before: a program
+is a sequence of definitions, commands, indentation is significant, etc.  However, the syntax of expressions
+changes, where an expression is 1) the value on the right of a variable definition \verb+Var = <exp>+, or 2)
+an argument to a function.
+
+The following table lists the syntax for expressions.
+
+\begin{tabular}{rcll}
+e & ::= & 0, 1, 2, ...    & integers\\
+  & |   & 0.1, 1E+23, ... & floating-point constants\\
+  & |   & x, ABC, ...     & identifiers\\
+  & |   & id\verb+::+id   & scoped name\\
+  & |   & id.id. ... id   & projection\\
+  & |   & \verb+-+ e      & negation\\
+  & |   & e \verb/+/ e | e \verb/-/ e | e \verb+*+ e | e \verb+/+ e | e \verb+%+ e  & arithmetic\\
+  & |   & e \verb+^+ e | e \verb+&+ e | e \verb+|+ e & bitwise operations\\
+  & |   & e \verb+<<+ e  | e \verb+>>+  e | e \verb+>>>+ e & shifting\\
+  & |   & e \verb+&&+ e  | e \verb+||+ e & Boolean operations\\
+  & |   & e \verb+<+ e | e \verb+<=+ e | e \verb+=+ e | e \verb+>=+ e | e \verb+>+ e & comparisons\\
+  & |   & e\verb+(+e\verb+,+ ...\verb+,+ e\verb+)+ & function application\\
+  & |   & e\verb+[+e\verb+]+ & array subscripting\\
+  & |   & \verb+(+ e \verb+)+ & parenthesized expressions\\
+  & |   & \verb+"+ ... \verb+"+ | \verb+'+ ... \verb+'+ & strings\\
+  & |   & \verb+$"+ ... \verb+"+ | \verb+$'+ ... \verb+'+ & strings\\
+  & |   & \verb+$(+ ... \verb+)+ & variables and applications
+\end{tabular}
+
+Note that the \verb+$+-style expressions are still permitted.
+
+\subsection{Examples}
+
+The program-syntax is specified with the directive \verb+program-syntax+, which is scoped in the normal way.
+
+\begin{verbatim}
+    program-syntax
+
+    i = 0
+    l[] =
+    while i < 10
+        l[] += i
+        i = i + 1
+    println($"The indexes are: $l")
+\end{verbatim}
+
+You can mix normal and program syntax.
+
+\begin{verbatim}
+program-syntax
+
+add2(i) =
+    eprintln($"add2($i)")
+    return i + 2
+
+mul2(i, j) =
+    eprintln($"mul2($i, $j)")
+    return i * j
+
+println(mul2(mul2(3, 4), $(add2 1 << 20)))
+\end{verbatim}
+
 % -*-
 % Local Variables:
 % Mode: LaTeX

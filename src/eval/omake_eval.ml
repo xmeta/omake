@@ -134,6 +134,7 @@ let buffer_add_quote buf = function
 let rec is_empty_value v =
    match v with
       ValNone
+    | ValWhite _
     | ValString ""
     | ValData ""
     | ValQuote []
@@ -199,6 +200,7 @@ let rec is_array_value v =
     | ValData _
     | ValQuote _
     | ValQuoteString _
+    | ValWhite _
     | ValString _
     | ValApply _
     | ValMaybeApply _
@@ -312,7 +314,12 @@ let rec parse_ir venv scope node =
    let ast = Omake_ast_lex.parse_ast filename in
    let () =
       if debug print_ast then
-         eprintf "@[<v 3>AST:@ %a@]@." Omake_ast_print.pp_print_prog ast
+         eprintf "@[<v 3>AST (initial):@ %a@]@." Omake_ast_print.pp_print_prog ast
+   in
+   let ast = Omake_exp_lex.compile_prog ast in
+   let () =
+      if debug print_ast then
+         eprintf "@[<v 3>AST %a:@ %a@]@." pp_print_node node Omake_ast_print.pp_print_prog ast
    in
    let vars = venv_include_scope venv scope in
    let senv, ir = Omake_ir_ast.compile_prog (penv_of_vars (open_ir venv) venv node vars) ast in
@@ -585,6 +592,7 @@ and string_of_value venv pos v =
        | ValFloat x ->
             Buffer.add_string scratch_buf (string_of_float x)
        | ValData s
+       | ValWhite s
        | ValString s ->
             Buffer.add_string scratch_buf s
        | ValDir dir2 ->
@@ -651,6 +659,7 @@ and string_of_quote_buf scratch_buf venv pos vl =
        | ValFloat x ->
             Buffer.add_string scratch_buf (string_of_float x)
        | ValData s
+       | ValWhite s
        | ValString s ->
             Buffer.add_string scratch_buf s
        | ValDir dir2 ->
@@ -734,6 +743,7 @@ and values_of_value venv pos v =
                       collect tokens vl vll
 
                    (* Strings *)
+                 | ValWhite s
                  | ValString s ->
                       collect (Lm_string_util.tokens_string tokens s) vl vll
                  | ValSequence el ->
@@ -839,6 +849,7 @@ and tokens_of_value venv pos lexer v =
                       collect tokens vl vll
 
                    (* Strings *)
+                 | ValWhite s
                  | ValString s ->
                       collect (Lm_string_util.tokens_lex tokens s) vl vll
                  | ValSequence el ->
@@ -907,6 +918,7 @@ and arg_of_values venv pos vl =
                       collect is_quoted tokens vl vll
 
                    (* Strings *)
+                 | ValWhite s
                  | ValString s ->
                       let tokens =
                          if is_quoted then
@@ -971,11 +983,14 @@ and bool_of_value venv pos v =
    let values = values_of_value venv pos v in
       match values with
          []
-       | [ValNone] ->
+       | [ValNone]
+       | [ValWhite _] ->
             false
        | [ValData s]
        | [ValString s] ->
             Omake_util.bool_of_string s
+       | [ValInt i] ->
+            i <> 0
        | [ValQuote vl] ->
             Omake_util.bool_of_string (string_of_quote venv pos None vl)
        | _ ->
@@ -1002,6 +1017,7 @@ and file_of_value venv pos file =
             venv_intern venv PhonyExplicit (string_of_value venv pos file)
        | ValArray _
        | ValNone
+       | ValWhite _
        | ValKeyApply _
        | ValApply _
        | ValMaybeApply _
@@ -1042,7 +1058,7 @@ and append_arrays venv pos a1 a2 =
    else if is_empty_value a2 then
       a1
    else
-      ValSequence [a1; ValString " "; a2]
+      ValSequence [a1; ValWhite " "; a2]
 
 (************************************************************************
  * Evaluation.
@@ -1205,6 +1221,7 @@ and eval_catenable_value venv pos v =
             (try
                 match venv_find_field_internal_exn obj builtin_sym with
                    ValNone
+                 | ValWhite _
                  | ValString _
                  | ValSequence _
                  | ValData _
@@ -1239,6 +1256,7 @@ and eval_body_value venv pos v =
     | ValInt _
     | ValFloat _
     | ValData _
+    | ValWhite _
     | ValString _
     | ValQuote _
     | ValQuoteString _
@@ -1278,6 +1296,7 @@ and eval_body_value_env venv pos v =
     | ValInt _
     | ValFloat _
     | ValData _
+    | ValWhite _
     | ValString _
     | ValQuote _
     | ValQuoteString _
@@ -1318,6 +1337,7 @@ and eval_body_exp venv pos x v =
     | ValData _
     | ValQuote _
     | ValQuoteString _
+    | ValWhite _
     | ValString _
     | ValDir _
     | ValNode _
@@ -1518,6 +1538,7 @@ and eval_object_exn venv pos x =
     | ValQuoteString _ ->
          create_object venv x string_object_var
     | ValSequence _
+    | ValWhite _
     | ValString _
     | ValNone ->
          create_object venv x sequence_object_var
@@ -1731,7 +1752,8 @@ and eval_defined_field venv pos loc v vl =
  *)
 and simplify_quote_val venv pos c el =
    match el with
-      [ValString s]
+      [ValWhite s]
+    | [ValString s]
     | [ValData s] ->
          (match c with
              None ->
@@ -1752,7 +1774,8 @@ and simplify_quote_val venv pos c el =
             match el with
                e :: el ->
                   (match eval_value venv pos e with
-                      ValString s
+                      ValWhite s
+                    | ValString s
                     | ValData s ->
                          Buffer.add_string buf s;
                          collect vl el
@@ -1762,7 +1785,8 @@ and simplify_quote_val venv pos c el =
                   List.rev (flush vl)
          in
             match collect [] el with
-               [ValString s]
+               [ValWhite s]
+             | [ValString s]
              | [ValData s] ->
                   ValData s
              | el ->
@@ -1780,6 +1804,12 @@ and eval_string_exp be_eager venv pos s =
       match s with
          NoneString _ ->
             ValNone
+       | IntString (_, i) ->
+            ValInt i
+       | FloatString (_, x) ->
+            ValFloat x
+       | WhiteString (_, s) ->
+            ValWhite s
        | ConstString (_, s) ->
             ValString s
        | KeyApplyString (loc, strategy, v) ->
@@ -2068,6 +2098,12 @@ and eval_string_export_exp be_eager venv pos s =
       match s with
          NoneString _ ->
             venv, ValNone
+       | IntString (_, i) ->
+            venv, ValInt i
+       | FloatString (_, x) ->
+            venv, ValFloat x
+       | WhiteString (_, s) ->
+            venv, ValWhite s
        | ConstString (_, s) ->
             venv, ValString s
        | KeyApplyString (loc, strategy, v) ->

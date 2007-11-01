@@ -34,31 +34,37 @@ open Printf
  * Tokens and their productions.
  *)
 let tokens =
-   ["TokWhite";
-    "TokLeftParen";
-    "TokRightParen";
-    "TokArrow";
-    "TokComma";
-    "TokColon";
-    "TokDoubleColon";
-    "TokNamedColon";
-    "TokEq";
-    "TokArray";
-    "TokDot";
-    "TokId";
-    "TokKey";
-    "TokKeyword";
-    "TokCatch";
-    "TokClass";
-    "TokString"]
+   ["TokWhite",         "StringWhiteExp";
+    "TokOp",            "StringOpExp";
+    "TokLeftParen",     "StringOpExp";
+    "TokRightParen",    "StringOpExp";
+    "TokArrow",         "StringOpExp";
+    "TokComma",         "StringOpExp";
+    "TokColon",         "StringOpExp";
+    "TokDoubleColon",   "StringOpExp";
+    "TokNamedColon",    "StringOpExp";
+    "TokEq",            "StringOpExp";
+    "TokArray",         "StringOpExp";
+    "TokDot",           "StringOpExp";
+    "TokId",            "StringIdExp";
+    "TokInt",           "StringIntExp";
+    "TokFloat",         "StringFloatExp";
+    "TokKey",           "StringKeywordExp";
+    "TokKeyword",       "StringKeywordExp";
+    "TokCatch",         "StringKeywordExp";
+    "TokClass",         "StringKeywordExp";
+    "TokString",        "StringOtherExp"]
 
 let named_tokens =
    ["quote",      "{ $1 }";
     "apply",      "{ $1 }"]
 
 let tokens =
+   let print_const name =
+      sprintf "{ let (s, loc) = $1 in %s (s, loc), loc }" name
+   in
    let tokens =
-      List.map (fun s -> s, "{ string_pair_exp $1 }") tokens
+      List.map (fun (s, id) -> s, print_const id) tokens
    in
       tokens @ named_tokens
 
@@ -88,8 +94,10 @@ let white =
 
 let parens =
    ["TokLeftParen";
-    "TokRightParen";
-    "TokComma";
+    "TokRightParen"]
+
+let arg =
+   ["TokComma";
     "TokArrow";
     "TokIn"]
 
@@ -119,8 +127,11 @@ let target_start =
 let keyword_target_start =
    subtract target_start ["TokLeftParen"]
 
-let arg_next =
+let paren_next =
    subtract tokens parens
+
+let arg_next =
+   subtract paren_next arg
 
 let arg_any_start =
    subtract arg_next white
@@ -160,6 +171,7 @@ let productions =
      "target_next",                     target_next;
      "target_start",                    target_start;
      "keyword_target_start",            keyword_target_start;
+     "paren_next",                      paren_next;
      "arg_next",                        arg_next;
      "arg_start",                       arg_start;
      "arg_any_start",                   arg_any_start;

@@ -393,7 +393,8 @@ let sequence_length venv pos loc args =
                      venv_map_length map
                 | ValObject obj ->
                      venv_object_length obj
-                | ValNone ->
+                | ValNone
+                | ValWhite _ ->
                      0
                 | ValInt _
                 | ValFloat _
@@ -457,6 +458,7 @@ let sequence_nth venv pos loc args =
             let arg = eval_object_value venv pos obj in
                (match arg with
                    ValNone
+                 | ValWhite _
                  | ValFun _
                  | ValFunCurry _
                  | ValPrim _
@@ -576,6 +578,7 @@ let sequence_nth_tl venv pos loc args =
                          ValData (String.sub s i (String.length s - i))
 
                  | ValSequence _
+                 | ValWhite _
                  | ValString _ ->
                       let values = values_of_value venv pos arg in
                       let len = List.length values in
@@ -629,6 +632,7 @@ let sequence_nonempty venv pos loc args =
                  | ValClass _
                  | ValCases _
                  | ValOther _
+                 | ValWhite _
                  | ValVar _ ->
                       false
                  | ValData s ->
@@ -668,6 +672,7 @@ let sequence_sub venv pos loc args =
             let arg = eval_object_value venv pos obj in
                (match arg with
                    ValNone
+                 | ValWhite _
                  | ValFun _
                  | ValFunCurry _
                  | ValPrim _
@@ -740,6 +745,7 @@ let sequence_rev venv pos loc args =
             let arg = eval_object_value venv pos obj in
                (match arg with
                    ValNone
+                 | ValWhite _
                  | ValFun _
                  | ValFunCurry _
                  | ValPrim _

@@ -352,14 +352,14 @@ let rec collect_if cases el =
       Omake_ast.CommandExp (v, e, body, loc) :: el when Lm_symbol.eq v elseif_sym ->
          collect_if ((e, body) :: cases) el
     | Omake_ast.CommandExp (v, e, body, loc) :: el when Lm_symbol.eq v else_sym ->
-         let cases = (Omake_ast.StringExp ("true", loc), body) :: cases in
+         let cases = (Omake_ast.StringOtherExp ("true", loc), body) :: cases in
             List.rev cases, el
     | _ ->
          List.rev cases, el
 
 let is_true_string s =
    match s with
-      Omake_ast.StringExp ("true", _) ->
+      Omake_ast.StringOtherExp ("true", _) ->
          true
     | _ ->
          false
@@ -372,7 +372,7 @@ let rec collect_cases cases el =
       (Omake_ast.CommandExp (v, e, body, _) :: el) when SymbolSet.mem clauses_set v ->
          collect_cases ((v, e, body) :: cases) el
     | (Omake_ast.CatchExp (v1, v2, body, loc) :: el) ->
-         collect_cases ((v1, Omake_ast.StringExp (Lm_symbol.to_string v2, loc), body) :: cases) el
+         collect_cases ((v1, Omake_ast.StringOtherExp (Lm_symbol.to_string v2, loc), body) :: cases) el
     | _ ->
          List.rev cases, el
 
@@ -1096,7 +1096,8 @@ let ir_strategy_of_ast_strategy strategy =
    match strategy with
       Omake_ast.LazyApply ->
          LazyApply
-    | Omake_ast.EagerApply ->
+    | Omake_ast.EagerApply
+    | Omake_ast.CommandApply ->
          EagerApply
     | Omake_ast.NormalApply ->
          NormalApply
@@ -1110,12 +1111,20 @@ let build_literal_string e =
       match e with
          Omake_ast.NullExp _ ->
             ()
-       | Omake_ast.StringExp (s, _) ->
+       | Omake_ast.StringOpExp (s, _)
+       | Omake_ast.StringIdExp (s, _)
+       | Omake_ast.StringIntExp (s, _)
+       | Omake_ast.StringFloatExp (s, _)
+       | Omake_ast.StringWhiteExp (s, _)
+       | Omake_ast.StringOtherExp (s, _)
+       | Omake_ast.StringKeywordExp (s, _) ->
             Buffer.add_string buf s
        | Omake_ast.QuoteExp (el, _)
        | Omake_ast.QuoteStringExp (_, el, _)
        | Omake_ast.SequenceExp (el, _) ->
             collect_exp_list el
+       | Omake_ast.IntExp (_, loc)
+       | Omake_ast.FloatExp (_, loc)
        | Omake_ast.ArrayExp (_, loc)
        | Omake_ast.ApplyExp (_, _, _, loc)
        | Omake_ast.SuperApplyExp (_, _, _, _, loc)
@@ -1183,8 +1192,19 @@ let rec build_string genv oenv senv cenv e pos =
       match e with
          Omake_ast.NullExp loc ->
             genv, oenv, NoneString loc
-       | Omake_ast.StringExp (s, loc) ->
+       | Omake_ast.IntExp (i, loc) ->
+            genv, oenv, IntString (loc, i)
+       | Omake_ast.FloatExp (x, loc) ->
+            genv, oenv, FloatString (loc, x)
+       | Omake_ast.StringOpExp (s, loc)
+       | Omake_ast.StringIdExp (s, loc)
+       | Omake_ast.StringIntExp (s, loc)
+       | Omake_ast.StringFloatExp (s, loc)
+       | Omake_ast.StringOtherExp (s, loc)
+       | Omake_ast.StringKeywordExp (s, loc) ->
             genv, oenv, ConstString (loc, s)
+       | Omake_ast.StringWhiteExp (s, loc) ->
+            genv, oenv, WhiteString (loc, s)
        | Omake_ast.QuoteExp (el, loc) ->
             build_quote_string genv oenv senv cenv el pos loc
        | Omake_ast.QuoteStringExp (c, el, loc) ->
@@ -1316,6 +1336,9 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
                 | ConstString (loc, s) ->
                      let buf_opt = add_string buf_opt s loc in
                         collect genv oenv buf_opt args el
+                | IntString _
+                | FloatString _
+                | WhiteString _
                 | FunString _
                 | KeyApplyString _
                 | ApplyString _
@@ -1519,7 +1542,15 @@ and build_exp genv oenv senv cenv result e =
    let pos = string_pos "build_exp" (ast_exp_pos e) in
       match e with
          Omake_ast.NullExp loc
-       | Omake_ast.StringExp (_, loc)
+       | Omake_ast.IntExp (_, loc)
+       | Omake_ast.FloatExp (_, loc)
+       | Omake_ast.StringOpExp (_, loc)
+       | Omake_ast.StringIdExp (_, loc)
+       | Omake_ast.StringIntExp (_, loc)
+       | Omake_ast.StringFloatExp (_, loc)
+       | Omake_ast.StringWhiteExp (_, loc)
+       | Omake_ast.StringOtherExp (_, loc)
+       | Omake_ast.StringKeywordExp (_, loc)
        | Omake_ast.QuoteExp (_, loc)
        | Omake_ast.QuoteStringExp (_, _, loc) ->
             genv, oenv, senv, SequenceExp (loc, []), ValValue

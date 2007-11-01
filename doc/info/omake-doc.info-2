@@ -219,17 +219,16 @@ definitions.
 * Section 4-3::	Arrays
 * Section 4-4::	Special characters and quoting
 * Section 4-5::	Function definitions
-* Section 4-6::	Curried functions
-* Section 4-7::	Comments
-* Section 4-8::	File inclusion
-* Section 4-9::	Scoping, sections
-* Section 4-10::	Conditionals
-* Section 4-11::	Matching
-* Section 4-12::	Objects
-* Section 4-13::	Classes
-* Section 4-14::	Inheritance
-* Section 4-15::	static.
-* Section 4-16::	Constants
+* Section 4-6::	Comments
+* Section 4-7::	File inclusion
+* Section 4-8::	Scoping, sections
+* Section 4-9::	Conditionals
+* Section 4-10::	Matching
+* Section 4-11::	Objects
+* Section 4-12::	Classes
+* Section 4-13::	Inheritance
+* Section 4-14::	static.
+* Section 4-15::	Constants
 
 
 Node: Section 4-1,	Next: Section 4-2,	Prev: Chapter 4,	Up: Chapter 4
@@ -296,7 +295,7 @@ Node: Section 4-3,	Next: Section 4-4,	Prev: Section 4-2,	Up: Chapter 4
    
   Arrays can be defined by appending the `[]' sequence to the variable
 name and defining initial values for the elements as separate lines.
-Whitespace on each line is taken literally. The following code sequence
+Whitespace is significant on each line. The following code sequence
 prints `c d e'.
 <<    X[] =
           a b
@@ -343,7 +342,7 @@ quotations are not included in the text.
 >>
   
 
-Node: Section 4-5,	Next: Subsection 4-5-1,	Prev: Section 4-4,	Up: Chapter 4
+Node: Section 4-5,	Next: Section 4-6,	Prev: Section 4-4,	Up: Chapter 4
   
 
 4.5   Function definitions
@@ -409,122 +408,21 @@ program prints the string "She says: Hello world".
       Printer(She)
 >>
   
-* Menu:
-
-* Subsection 4-5-1::	Keyword arguments
-
-
-Node: Subsection 4-5-1,	Next: Section 4-6,	Prev: Section 4-5,	Up: Section 4-5
-  
-
-4.5.1   Keyword arguments
-=========================
-    
-  This feature will be introduced in version 0.9.8.6.
-  Functions can also have keyword parameters and arguments. The syntax
-of a keyword parameter/argument is `[~|?]<id> [= <expression>]', where
-the keyword name `<id>' is preceeded by the character `~' (for required
-arguments), or `?' (for optional arguments). If a default value `=
-<expression>' is provided, the argument is always optional.
-  Keyword arguments and normal anonymous arguments are completely
-separate. Also, it is an error to pass a keyword argument to a function
-that does not define it as a keyword parameter.
-<<    osh>f(x, ?y = 1, z) =
-             add($(mul $x, 100), $(mul $y, 10), $z)
-      - : <fun 0>
-      osh>f(1, ~y = 2, 3)
-      - : 123 : Int
-      osh>f(1, 3, ~y = 2)
-      - : 123 : Int
-      osh>f(1, 3)
-      - : 113 : Int
-      osh>f(1, 2, 3)
-      *** omake error:
-         File -: line 11, characters 0-10
-         arity mismatch: expected 2 args, got 3
-      osh>f(~z = 7)
-      *** omake error:
-         File -: line 12, characters 0-8
-         no such keyword: z
->>
-  
-  An optional keyword argument defaults to the empty value.
-<<    osh> g(?x) =
-               println($">>>$x<<<")
-      - : <fun 0>
-      osh> g()
-      >>><<<
-      osh> g(~x = xxx)
-      >>>xxx<<<
->>
-  
-  It is an error to omit a required keyword argument.
-<<    osh> h(~x, ~y) =
-               println(x = $x; y = $y)
-      - : <fun 0>
-      osh> h(~y = 2, ~x = 1)
-      x = 1; y = 2
-      osh> h(~y = 2)
-      *** omake error:
-         File -: line 11, characters 0-9
-         keyword argument is required: x
->>
-  
 
 Node: Section 4-6,	Next: Section 4-7,	Prev: Section 4-5,	Up: Chapter 4
   
 
-4.6   Curried functions
-*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  This feature will be introduced in version 0.9.8.6.
-  Functions that are marked with the classifier `curry' can be called
-with "too many" arguments. It is expected that a curried function
-returns a function that consumes the remaining arguments. All arguments
-must be specified.
-<<    osh>curry.f(x, y) =
-              println($"Got two arguments: x = $x, y = $y")
-              g(z) =
-                 add($x, $y, $z)
-      osh> f(1, 2, 3)
-      Got two arguments: x = 1, y = 2
-      - : 6 : Int
-      osh> f(1, 2)
-      Got two arguments: x = 1, y = 2
-      *** omake error:
-         File -: line 62, characters 0-7
-         arity mismatch: expected 1 args, got 0
->>
-  
-  The function `apply' can be used to compute partial applications,
-whether or not the function is labeled as a curried function.
-<<    osh> f1(a, ~b = 2, ~c = 3, d) =
-              println($"a = $a, b = $b, c = $c, d = $d")
-      - : <fun 0>
-      osh> f2 = $(apply $(f1), ~c = 13, 11)
-      - : <curry 0>
-      osh> f2(14, ~b = 12)
-      a = 11, b = 12, c = 13, d = 14
-      osh> f2(24)
-      a = 11, b = 2, c = 13, d = 24
->>
-  
-
-Node: Section 4-7,	Next: Section 4-8,	Prev: Section 4-6,	Up: Chapter 4
-  
-
-4.7   Comments
+4.6   Comments
 *=*=*=*=*=*=*=
 
   
   Comments begin with the `#' character and continue to the end of the
 line.
 
-Node: Section 4-8,	Next: Section 4-9,	Prev: Section 4-7,	Up: Chapter 4
+Node: Section 4-7,	Next: Section 4-8,	Prev: Section 4-6,	Up: Chapter 4
   
 
-4.8   File inclusion
+4.7   File inclusion
 *=*=*=*=*=*=*=*=*=*=
 
    
@@ -548,10 +446,10 @@ included at most once.
 In case of the `open' directive, the search is performed at parse time,
 and the argument to `open' may not contain any expressions.
 
-Node: Section 4-9,	Next: Section 4-10,	Prev: Section 4-8,	Up: Chapter 4
+Node: Section 4-8,	Next: Section 4-9,	Prev: Section 4-7,	Up: Chapter 4
   
 
-4.9   Scoping, sections
+4.8   Scoping, sections
 *=*=*=*=*=*=*=*=*=*=*=*
 
     
@@ -609,17 +507,17 @@ yacc rule will be inherited by the `foo' subdirectory, but not by the
 `bar' and `baz' ones; furthermore this implicit rule will not be in
 scope in the current directory.
 
-Node: Section 4-10,	Next: Section 4-11,	Prev: Section 4-9,	Up: Chapter 4
+Node: Section 4-9,	Next: Section 4-10,	Prev: Section 4-8,	Up: Chapter 4
   
 
-4.10   Conditionals
-*=*=*=*=*=*=*=*=*=*
+4.9   Conditionals
+*=*=*=*=*=*=*=*=*=
 
      
   Top level conditionals have the following form.
 <<    if <test>
          <true-clause>
-      elseif <test2>
+      elseif <text>
          <elseif-clause>
       else
          <else-clause>
@@ -657,10 +555,10 @@ if its string representation is the empty string, or one of the strings
 >>
   
 
-Node: Section 4-11,	Next: Section 4-12,	Prev: Section 4-10,	Up: Chapter 4
+Node: Section 4-10,	Next: Section 4-11,	Prev: Section 4-9,	Up: Chapter 4
   
 
-4.11   Matching
+4.10   Matching
 *=*=*=*=*=*=*=*
 
     
@@ -717,10 +615,10 @@ ignored)
 >>
   
 
-Node: Section 4-12,	Next: Section 4-13,	Prev: Section 4-11,	Up: Chapter 4
+Node: Section 4-11,	Next: Section 4-12,	Prev: Section 4-10,	Up: Chapter 4
   
 
-4.12   Objects
+4.11   Objects
 *=*=*=*=*=*=*=
 
     
@@ -744,10 +642,10 @@ used to specify a point (1, 5) on the two-dimensional plane.
   The fields `x' and `y' represent the coordinates of the point. The
 method `print' prints out the position of the point.
 
-Node: Section 4-13,	Next: Section 4-14,	Prev: Section 4-12,	Up: Chapter 4
+Node: Section 4-12,	Next: Section 4-13,	Prev: Section 4-11,	Up: Chapter 4
   
 
-4.13   Classes
+4.12   Classes
 *=*=*=*=*=*=*=
 
    
@@ -793,10 +691,10 @@ object. Also, classes and objects are functional---the `new' and
 `p2' is a different object from `p1', which retains the original (1, 5)
 coordinates.
 
-Node: Section 4-14,	Next: Section 4-15,	Prev: Section 4-13,	Up: Chapter 4
+Node: Section 4-13,	Next: Section 4-14,	Prev: Section 4-12,	Up: Chapter 4
   
 
-4.14   Inheritance
+4.13   Inheritance
 *=*=*=*=*=*=*=*=*=
 
    
@@ -821,10 +719,10 @@ inherits all of the methods and fields of the parent classes/objects.
 >>
   
 
-Node: Section 4-15,	Next: Subsection 4-15-1,	Prev: Section 4-14,	Up: Chapter 4
+Node: Section 4-14,	Next: Subsection 4-14-1,	Prev: Section 4-13,	Up: Chapter 4
   
 
-4.15   static.
+4.14   static.
 *=*=*=*=*=*=*=
 
     
@@ -863,16 +761,16 @@ and 'ConfMsgResult' functions (of course, most of helper functions in
 the standard library would do that automatically).
 * Menu:
 
-* Subsection 4-15-1::	.STATIC
+* Subsection 4-14-1::	.STATIC
 
 
-Node: Subsection 4-15-1,	Next: Section 4-16,	Prev: Section 4-15,	Up: Section 4-15
+Node: Subsection 4-14-1,	Next: Section 4-15,	Prev: Section 4-14,	Up: Section 4-14
   
 
-4.15.1   .STATIC
+4.14.1   .STATIC
 ================
      
-  This feature was introduced in version 0.9.8.5.
+  This feature will be introduced in version 0.9.8.5.
   There is also a rule form of static section. The syntax can be any of
 the following three forms.
 <<    # Export all variables defined by the body
@@ -927,14 +825,14 @@ of the rule are the variables it exports (in this case, the `TABLE'
 variable).
   
 
-4.15.1.1   .MEMO
+4.14.1.1   .MEMO
 ----------------
      
   A `.MEMO' rule is just like a `.STATIC' rule, except that the results
 are not saved between independent runs of `omake'.
   
 
-4.15.1.2   :key:
+4.14.1.2   :key:
 ----------------
    
   The `.STATIC' and `.MEMO' rules also accept a `:key:' value, which
@@ -1016,10 +914,10 @@ will usually want a `:key:' argument so that each recursive call has a
 different `:key:'. In most cases, this means that the `:key:' should
 include all arguments to the function.
 
-Node: Section 4-16,	Next: Chapter 5,	Prev: Section 4-15,	Up: Chapter 4
+Node: Section 4-15,	Next: Chapter 5,	Prev: Section 4-14,	Up: Chapter 4
   
 
-4.16   Constants
+4.15   Constants
 *=*=*=*=*=*=*=*=
 
    
@@ -1090,7 +988,7 @@ here.
       >>
     
     
-    - A data string is a string where whitespace is taken literally. It
+    - A data string is a string where whitespace is significant. It
       represents a single value, not an array. The constructors are the
       quotations `$"..."' and `$'...''.
       <<    osh>S = $'''This is a string'''
@@ -1175,7 +1073,7 @@ here.
                    add($i, $j)
          >>
        
-       - (This feature will be introduced in version 0.9.8.6.) As an
+       - This feature will be introduced in version 0.9.9.0.As an
          anonymous function argument. 
          <<    osh>foreach(i => $(add $i, 1), 1 2 3)
                - : <array 2 3 4> : Array
@@ -1280,7 +1178,7 @@ variable.
   
  1. Private variables are local to the file in which they are defined. 
  2. Private variables are not exported by the `export' directive, unless
-   they are mentioned explicitly in the `export' directive.
+   they are mentioned explicitly.
    <<       private. =
                FLAG = true
      
@@ -1360,7 +1258,7 @@ are not defined as fields of an object.
          f()
   
       Obj. =
-         this.X = 3
+         protected.X = 3
   
          print() =
             println(The protected value of X is: $(X))
@@ -1425,7 +1323,7 @@ example, the following program defines two private variables `X' and
           Y = 2
 >>
   The qualifier specifies a default namespace for new definitions in the
-block. The contents of the block is otherwise general.
+block. The contents of the block is otherwise completely general.
 <<    private. =
           X = 1
           Y = 2
@@ -1433,20 +1331,7 @@ block. The contents of the block is otherwise general.
           # Prints "The value of Z is 3"
           echo The value of Z is $Z
 >>
-  Stylistically, it is usually better to avoid large qualified blocks
-because the qualifier status can be easy to forget. For example,
-consider the following fragment.
-<<    private. =
-          # Large code sequence
-          ...
-          # build foo.o with -g option (ERROR)
-          CFLAGS = -g
-          foo.o:
->>
-  In this case, the programmer probably forgot that the definition of
-the variable `CFLAGS' is in the `private' block, so a fresh variable
-`private.CFLAGS' is being defined, not the global one. The target
-`foo.o' does not use this definition of `CFLAGS'.
+  
 
 Node: Section 5-7,	Next: Chapter 6,	Prev: Section 5-6,	Up: Chapter 5
   
@@ -1462,10 +1347,10 @@ definition is qualified, but the subsequent uses are not qualified
 explicitly. In the following example, the first occurrence of `$X'
 refers to the private definition, because that is the most recent. The
 public definition of `X' is still `0', but the variable must be
-qualified explicitly in order to access the public value.
+qualified explicitly.
 <<    public.X = 0
       private.X = 1
-  
+      
       public.print() =
           println(The value of private.X is: $X)
           println(The value of public.X is: $(public.X))
@@ -1617,3 +1502,120 @@ source text.
      - : "/bin:/usr/bin:/usr/X11R6/bin" : String
 >>
   
+
+Node: Section 6-2,	Next: Section 6-3,	Prev: Section 6-1,	Up: Chapter 6
+  
+
+6.2   Functional evaluation
+*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Apart from I/O, omake programs are entirely functional. This has two
+parts:
+  
+  
+ - There is no assignment operator. 
+ - Functions are values, and may be passed as arguments, and returned
+   from functions just like any other value. 
+  
+  The second item is straightforward. For example, the following program
+defines an increment function by returning a function value.
+<<   incby(n) =
+        g(i) =
+           return $(add $(i), $(n))
+        return $(g)
+  
+     f = $(incby 5)
+  
+     value $(f 3)
+     - : 8 : Int
+>>
+  
+  The first item may be the most confusing initially. Without
+assignment, how is it possible for a subproject to modify the global
+behavior of the project? In fact, the omission is intentional. Build
+scripts are much easier to write when there is a guarantee that
+subprojects do not interfere with one another.
+  However, there are times when a subproject needs to propagate
+information back to its parent object, or when an inner scope needs to
+propagate information back to the outer scope.
+
+Node: Section 6-3,	Next: Subsection 6-3-1,	Prev: Section 6-2,	Up: Chapter 6
+  
+
+6.3   Exporting the environment
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
+
+    The `export' directive can
+be used to propagate all or part of an inner scope back to its parent.
+If used without arguments, the entire scope is propagated back to the
+parent; otherwise the arguments specify which part of the environment to
+propagate. The most common usage is to export some or all of the
+definitions in a conditional block. In the following example, the
+variable `B' is bound to 2 after the conditional. The `A' variable is
+not redefined.
+<<    if $(test)
+         A = 1
+         B = $(add $(A), 1)
+         export B
+      else
+         B = 2
+         export
+>>
+  
+  If the `export' directive is used without an argument, all of the
+following is exported: 
+  
+ - The values of all the dynamically scoped variables (as described in
+   Section 5.5*Note Section 5-5::). 
+ - The current working directory. 
+ - The current Unix environment. 
+ - The current implicit rules and implicit dependencies (see also
+   Section 8.11.1*Note Subsection 8-11-1::). 
+ - The current set of "phony" target declarations (see Sections
+   8.10*Note Section 8-10:: and
+   8.11.3*Note Subsection 8-11-3::). 
+  
+  If the `export' directive is used with an argument, the argument
+expression is evaluated and the resulting value is interpreted as
+follows: 
+  
+ - If the value is empty, everything is exported, as described above. 
+ - If the value represents a environment (or a partial environment)
+   captured using the 'export' function, then the corresponding
+   environment or partial environment is exported. 
+ - Otherwise, the value must be a sequence of strings specifying which
+   items are to be propagated back. The following strings have special
+   meaning: 
+     
+    - `.RULE' --- implicit rules and implicit
+      dependencies. 
+    - `.PHONY' --- the set of "phony" target
+      declarations. 
+  All other strings are interpreted as names of the variables that need
+   to be propagated back. 
+  
+  For example, in the following (somewhat artificial) example, the
+variables `A' and `B' will be exported, and the implicit rule will
+remain in the environment after the section ends, but the variable `TMP'
+and the target `tmp_phony' will remain unchanged.
+<<section
+     A = 1
+     B = 2
+     TMP = $(add $(A), $(B))
+  
+     .PHONY: tmp_phony
+  
+     tmp_phony:
+        prepare_foo
+  
+     %.foo: %.bar tmp_phony
+        compute_foo $(TMP) $< $@
+     export A B .RULE
+>>
+  
+* Menu:
+
+* Subsection 6-3-1::	Export regions
+* Subsection 6-3-2::	Returning values from exported regions
+

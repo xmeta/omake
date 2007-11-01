@@ -133,9 +133,11 @@ type return_id = loc * string
  *)
 type string_exp =
    NoneString        of loc
+ | IntString         of loc * int
+ | FloatString       of loc * float
+ | WhiteString       of loc * string
  | ConstString       of loc * string
  | FunString         of loc * keyword_param list * keyword_spec list * param list * exp list * export
-   (* ZZZ: MethodString *)
  | ApplyString       of loc * apply_strategy * var_info * string_exp list * keyword_arg list
  | SuperApplyString  of loc * apply_strategy * var * var * string_exp list * keyword_arg list
  | MethodApplyString of loc * apply_strategy * var_info * var list * string_exp list * keyword_arg list

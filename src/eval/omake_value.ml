@@ -79,7 +79,8 @@ let add_object_value obj x =
  * Concatenate.
  *)
 let concat_array = function
-   [ValString s] ->
+   [ValWhite s]
+ | [ValString s] ->
       ValData s
  | [ValSequence _] as vl ->
       ValQuote vl
@@ -186,6 +187,7 @@ let rec key_of_value venv pos v =
             v
        | ValQuote _
        | ValQuoteString _
+       | ValWhite _
        | ValString _
        | ValSequence _ ->
             ValData (string_of_value venv pos v)
@@ -236,6 +238,7 @@ let dir_of_value venv pos dir =
        | ValFloat _ ->
             venv_intern_dir venv (string_of_value venv pos dir)
        | ValNone
+       | ValWhite _
        | ValVar _
        | ValKeyApply _
        | ValApply _
@@ -286,6 +289,7 @@ let node_value_of_value venv pos v =
                else
                   ValNode node
        | ValNone
+       | ValWhite _
        | ValVar _
        | ValFun _
        | ValFunCurry _
@@ -325,6 +329,7 @@ let dir_value_of_value venv pos v =
             let name = string_of_value venv pos v in
                ValDir (venv_intern_dir venv name)
        | ValNone
+       | ValWhite _
        | ValVar _
        | ValFun _
        | ValFunCurry _
@@ -406,6 +411,7 @@ let prim_channel_of_value venv pos v =
        | ValVar _
        | ValBody _
        | ValNone
+       | ValWhite _
        | ValFun _
        | ValFunCurry _
        | ValPrim _
@@ -470,6 +476,7 @@ let in_channel_of_any_value venv pos v =
                      pc, true
        | ValChannel (OutChannel, _)
        | ValNone
+       | ValWhite _
        | ValFun _
        | ValFunCurry _
        | ValPrim _
@@ -523,6 +530,7 @@ let out_channel_of_any_value venv pos v =
                      prim, true
        | ValChannel (InChannel, _)
        | ValNone
+       | ValWhite _
        | ValFun _
        | ValFunCurry _
        | ValPrim _
@@ -563,6 +571,7 @@ let rec is_glob_value options v =
     | ValInt _
     | ValFloat _
     | ValNone
+    | ValWhite _
     | ValFun _
     | ValFunCurry _
     | ValPrim _

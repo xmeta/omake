@@ -100,6 +100,7 @@ let print_result result =
     | ValSequence []
     | ValArray []
     | ValString ""
+    | ValWhite _
     | ValClass _
     | ValOther (ValExitCode 0) ->
          ()

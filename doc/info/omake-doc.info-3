@@ -1,129 +1,12 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Section 6-2,	Next: Section 6-3,	Prev: Section 6-1,	Up: Chapter 6
-  
-
-6.2   Functional evaluation
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-  
-  Apart from I/O, omake programs are entirely functional. This has two
-parts:
-  
-  
- - There is no assignment operator. 
- - Functions are values, and may be passed as arguments, and returned
-   from functions just like any other value. 
-  
-  The second item is straightforward. For example, the following program
-defines an increment function by returning a function value.
-<<   incby(n) =
-        g(i) =
-           return $(add $(i), $(n))
-        return $(g)
-  
-     f = $(incby 5)
-  
-     value $(f 3)
-     - : 8 : Int
->>
-  
-  The first item may be the most confusing initially. Without
-assignment, how is it possible for a subproject to modify the global
-behavior of the project? In fact, the omission is intentional. Build
-scripts are much easier to write when there is a guarantee that
-subprojects do not interfere with one another.
-  However, there are times when a subproject needs to propagate
-information back to its parent object, or when an inner scope needs to
-propagate information back to the outer scope.
-
-Node: Section 6-3,	Next: Subsection 6-3-1,	Prev: Section 6-2,	Up: Chapter 6
-  
-
-6.3   Exporting the environment
-*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-    The `export' directive can
-be used to propagate all or part of an inner scope back to its parent.
-If used without arguments, the entire scope is propagated back to the
-parent; otherwise the arguments specify which part of the environment to
-propagate. The most common usage is to export some or all of the
-definitions in a conditional block. In the following example, the
-variable `B' is bound to 2 after the conditional. The `A' variable is
-not redefined.
-<<    if $(test)
-         A = 1
-         B = $(add $(A), 1)
-         export B
-      else
-         B = 2
-         export
->>
-  
-  If the `export' directive is used without an argument, all of the
-following is exported: 
-  
- - The values of all the dynamically scoped variables (as described in
-   Section 5.5*Note Section 5-5::). 
- - The current working directory. 
- - The current Unix environment. 
- - The current implicit rules and implicit dependencies (see also
-   Section 8.11.1*Note Subsection 8-11-1::). 
- - The current set of "phony" target declarations (see Sections
-   8.10*Note Section 8-10:: and
-   8.11.3*Note Subsection 8-11-3::). 
-  
-  If the `export' directive is used with an argument, the argument
-expression is evaluated and the resulting value is interpreted as
-follows: 
-  
- - If the value is empty, everything is exported, as described above. 
- - If the value represents a environment (or a partial environment)
-   captured using the 'export' function, then the corresponding
-   environment or partial environment is exported. 
- - Otherwise, the value must be a sequence of strings specifying which
-   items are to be propagated back. The following strings have special
-   meaning: 
-     
-    - `.RULE' --- implicit rules and implicit
-      dependencies. 
-    - `.PHONY' --- the set of "phony" target
-      declarations. 
-  All other strings are interpreted as names of the variables that need
-   to be propagated back. 
-  
-  For example, in the following (somewhat artificial) example, the
-variables `A' and `B' will be exported, and the implicit rule will
-remain in the environment after the section ends, but the variable `TMP'
-and the target `tmp_phony' will remain unchanged.
-<<section
-     A = 1
-     B = 2
-     TMP = $(add $(A), $(B))
-  
-     .PHONY: tmp_phony
-  
-     tmp_phony:
-        prepare_foo
-  
-     %.foo: %.bar tmp_phony
-        compute_foo $(TMP) $< $@
-     export A B .RULE
->>
-  
-* Menu:
-
-* Subsection 6-3-1::	Export regions
-* Subsection 6-3-2::	Returning values from exported regions
-
-
 Node: Subsection 6-3-1,	Next: Subsection 6-3-2,	Prev: Section 6-3,	Up: Section 6-3
   
 
 6.3.1   Export regions
 ======================
   
-  This feature was introduced in version 0.9.8.5.
+  This feature will be introduced in version 0.9.8.5.
   The `export' directive does not need to occur at the end of a block.
 An export is valid from the point where it is specified to the end of
 the block in which it is contained. In other words, the export is used
@@ -145,7 +28,7 @@ Node: Subsection 6-3-2,	Next: Section 6-4,	Prev: Subsection 6-3-1,	Up: Section 6
 6.3.2   Returning values from exported regions
 ==============================================
   
-  This feature was introduced in version 0.9.8.5.
+  This feature will be introduced in version 0.9.8.5.
   The use of export does not affect the value returned by a block. The
 value is computed as usual, as the value of the last statement in the
 block, ignoring the export. For example, suppose we wish to implement a
@@ -411,8 +294,8 @@ single indented line.
 >>
   
   One central property of arrays is that whitespace in the elements is
-taken literally. This can be useful, especially for filenames that
-contain whitespace. 
+significant. This can be useful, especially for filenames that contain
+whitespace. 
 <<   # List the current files in the directory
       osh> ls -Q
       "fee"  "fi"  "foo"  "fum"
@@ -432,15 +315,15 @@ Node: Section 7-2,	Next: Section 7-3,	Prev: Section 7-1,	Up: Chapter 7
 *=*=*=*=*=*=*=*=*=*=
 
     
-  A `String' is a single value; whitespace is taken literally in a
-string. Strings are introduced with quotes. There are four kinds of
-quoted elements; the kind is determined by the opening quote. The
-symbols `'' (single-quote) and `"' (double-quote) introduce the normal
-shell-style quoted elements. The quotation symbols are included in the
-result string. Variables are always expanded within a quote of this
-kind. Note that the osh(1) (Chapter 15*Note Chapter 15::) printer
-escapes double-quotes within the string; these are only for printing,
-they are not part of the string itself.
+  A `String' is a single value; whitespace is significant in a string.
+Strings are introduced with quotes. There are four kinds of quoted
+elements; the kind is determined by the opening quote. The symbols `''
+(single-quote) and `"' (double-quote) introduce the normal shell-style
+quoted elements. The quotation symbols are included in the result
+string. Variables are always expanded within a quote of this kind. Note
+that the osh(1) (Chapter 15*Note Chapter 15::) printer escapes
+double-quotes within the string; these are only for printing, they are
+not part of the string itself.
 <<    osh> A = 'Hello "world"'
       - : "'Hello \"world\"'" : String
       osh> B = "$(A)"
@@ -1265,10 +1148,10 @@ $(INCLUDES)) $<
   The next step is to define explicit scanner dependencies. The
 `:scanner:' dependency is used for this. In this case, the scanner
 dependencies are specified explicitly.
-<<    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%.c
+<<    $(GCC_FILES): %.o: %.c :scanner: scan-gcc-%c
           gcc ...
   
-      $(CL_FILES): %.obj: %.c :scanner: scan-cl-%.c
+      $(CL_FILES): %.obj: %.c :scanner: scan-cl-%c
           cl ...
 >>
   
@@ -1521,3 +1404,89 @@ can modify the example above to provide a new implicit rule for building
 implicit rule for building `%.o' files. The implicit rule adds the
 `-DLIBRARY' option. This implicit rule is defined only for the target
 `hello_lib.o'; the target `hello_code.o' is built as normal.
+
+Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: Section 8-11
+  
+
+8.11.2   Scoping of '.SCANNER' rules
+====================================
+   
+  Scanner rules are scoped the same way as normal rules. If the
+`.SCANNER' rule is explicit (containing no wildcard patterns), then the
+scope of the scan target is the same as the the rule. If the `.SCANNER'
+rule is implicit, then the environment is taken from the `:scanner:'
+dependency.
+<<    # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # scanner for .c files
+      .SCANNER: scan-c-%.c: %.c
+         $(CC) $(CFLAGS) -MM $<
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          CFLAGS += -DLIBRARY
+          hello_lib.o: hello_lib.c :scanner: scan-c-hello_lib.c
+             $(CC) $(CFLAGS) -c $<
+  
+      # Compile hello_code.c with CFLAGS = -g -O3
+      section
+          CFLAGS += -O3
+          hello_code.o: hello_code.c :scanner: scan-c-hello_code.c
+             $(CC) $(CFLAGS) -c $<
+>>
+  
+  Again, this is for illustration---it is unlikely you would need to
+write a complicated configuration like this! In this case, the
+`.SCANNER' rule specifies that the C-compiler should be called with the
+`-MM' flag to compute dependencies. For the target `hello_lib.o', the
+scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
+is called with `CFLAGS=-g -O3'.
+
+Node: Subsection 8-11-3,	Next: Section 8-12,	Prev: Subsection 8-11-2,	Up: Section 8-11
+  
+
+8.11.3   Scoping for '.PHONY' targets
+=====================================
+   
+  Phony targets (targets that do not correspond to files) are defined
+with a `.PHONY:' rule. Phony targets are scoped as usual. The following
+illustrates a common mistake, where the `.PHONY' target is declared
+after it is used.
+<<    # !!This example is broken!!
+      all: hello
+  
+      hello: hello_code.o hello_lib.o
+          $(CC) $(CFLAGS) -o $@ $+
+  
+      .PHONY: all
+>>
+  
+  This doesn't work as expected because the `.PHONY' declaration occurs
+too late. The proper way to write this example is to place the `.PHONY'
+declaration first.
+<<    # Phony targets must be declared before being used
+      .PHONY: all
+  
+      all: hello
+  
+      hello: hello_code.o hello_lib.o
+          $(CC) $(CFLAGS) -o $@ $+
+>>
+  
+  Phony targets are passed to subdirectories. As a practical matter, it
+is wise to declare all `.PHONY' targets in your root `OMakefile', before
+any `.SUBDIRS'. This will ensure that 1) they are considered as phony
+targets in each of the subdirectories, and 2) you can build them from
+the project root.
+<<    .PHONY: all install clean
+  
+      .SUBDIRS: src lib clib
+>>
+  
+  Note that when a `.PHONY' target is inherited by a subdirectory via a
+`.SUBDIRS', a whole hierarchy of `.PHONY' targets (that are a part of
+the global one) is created, as described in Section
+8.12.2*Note Subsection 8-12-2:: below.

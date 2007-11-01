@@ -36,6 +36,7 @@ open Omake_eval
 open Omake_value_type
 open Omake_shell_type
 open Omake_shell_parse
+open Omake_value_print
 open Omake_command_type
 
 module Pos = MakePos (struct let name = "Omake_shell_lex" end);;
@@ -52,6 +53,29 @@ let shell_sym = Lm_symbol.add "shell"
 
 let syntax_error s loc =
    raise (OmakeException (loc_exp_pos loc, SyntaxError s))
+
+(*
+ * For debugging, try to print the first token.
+ *)
+let rec pp_print_token buf tok =
+   match tok with
+      Omake_env.TokString v  ->
+         pp_print_value buf v
+    | Omake_env.TokToken s  ->
+         pp_print_string buf s
+    | Omake_env.TokGroup toks ->
+         fprintf buf "(%a)" pp_print_token_list toks
+
+and pp_print_token_list buf toks =
+   match toks with
+      [tok] ->
+         pp_print_token buf tok
+    | tok :: toks ->
+         pp_print_token buf tok;
+         pp_print_char buf ' ';
+         pp_print_token_list buf toks
+    | [] ->
+         ()
 
 (*
  * Tokenizer.
@@ -166,6 +190,8 @@ let lexer s off len =
  *)
 let collect_flags toks =
    let rec collect_flags flags toks =
+      if false then
+         eprintf "Command: %a@." pp_print_token_list toks;
       match toks with
          tok :: toks' ->
             (match tok with

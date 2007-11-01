@@ -64,6 +64,7 @@ type value =
  | ValFloat       of float
  | ValSequence    of value list
  | ValArray       of value list
+ | ValWhite       of string
  | ValString      of string
  | ValData        of string
  | ValQuote       of value list

@@ -52,6 +52,7 @@ let pp_print_strategy buf s =
       LazyApply -> pp_print_char buf '\''
     | EagerApply -> pp_print_char buf ','
     | NormalApply -> ()
+    | CommandApply -> pp_print_char buf '#'
 
 (*
  * Definitions.
@@ -80,8 +81,24 @@ let rec pp_print_exp buf e =
    match e with
       NullExp _ ->
          pp_print_string buf "<null>"
-    | StringExp (s, _) ->
-         fprintf buf "(string \"%s\")" (String.escaped s)
+    | IntExp (i, _) ->
+         fprintf buf "(int %d)" i
+    | FloatExp (x, _) ->
+         fprintf buf "(float %f)" x
+    | StringOpExp (s, _) ->
+         fprintf buf "(string-op \"%s\")" (String.escaped s)
+    | StringIdExp (s, _) ->
+         fprintf buf "(string-id \"%s\")" (String.escaped s)
+    | StringIntExp (s, _) ->
+         fprintf buf "(string-int \"%s\")" (String.escaped s)
+    | StringFloatExp (s, _) ->
+         fprintf buf "(string-float \"%s\")" (String.escaped s)
+    | StringWhiteExp (s, _) ->
+         fprintf buf "(string-white \"%s\")" (String.escaped s)
+    | StringOtherExp (s, _) ->
+         fprintf buf "(string-other \"%s\")" (String.escaped s)
+    | StringKeywordExp (s, _) ->
+         fprintf buf "(string-keyword \"%s\")" (String.escaped s)
     | QuoteExp (el, _) ->
          fprintf buf "@[<hv 3>(quote";
          List.iter (fun e ->
@@ -259,7 +276,17 @@ let rec pp_print_simple_exp buf e =
    match e with
       NullExp _ ->
          pp_print_string buf "<null>"
-    | StringExp (s, _) ->
+    | IntExp (i, _) ->
+         fprintf buf "%d" i
+    | FloatExp (x, _) ->
+         fprintf buf "%f" x
+    | StringOpExp (s, _)
+    | StringIdExp (s, _)
+    | StringIntExp (s, _)
+    | StringFloatExp (s, _)
+    | StringWhiteExp (s, _)
+    | StringOtherExp (s, _)
+    | StringKeywordExp (s, _) ->
          pp_print_string buf s
     | QuoteExp (el, _) ->
          fprintf buf "$'%a'" pp_print_simple_exp_list el

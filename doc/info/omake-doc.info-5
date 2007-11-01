@@ -1,167 +1,5 @@
 This file has been translated from LaTeX by HeVeA.
 
-Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
-  
-
-9.4.2   float
-=============
- The `float'
-function can be used to create floating-point numbers. It returns a
-`Float' object.
-  `$(float 3.1415926)'. 
-
-Node: Subsection 9-4-3,	Next: Subsection 9-4-4,	Prev: Subsection 9-4-2,	Up: Section 9-4
-  
-
-9.4.3   Basic arithmetic
-========================
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  The following functions can be used to perform basic arithmetic.
-  
-  
- - `$(neg <numbers>)': arithmetic inverse 
- - `$(add <numbers>)': addition. 
- - `$(sub <numbers>)': subtraction. 
- - `$(mul <numbers>)': multiplication. 
- - `$(div <numbers>)': division. 
- - `$(mod <numbers>)': remainder. 
- - `$(lnot <numbers>)': bitwise inverse. 
- - `$(land <numbers>)': bitwise and. 
- - `$(lor <numbers>)': bitwise or. 
- - `$(lxor <numbers>)': bitwise exclusive-or. 
- - `$(lsl <numbers>)': logical shift left. 
- - `$(lsr <numbers>)': logical shift right. 
- - `$(asr <numbers>)': arithmetic shift right. 
- - `$(min <numbers>)': smallest element. 
- - `$(max <numbers>)': largest element. 
-   
-
-Node: Subsection 9-4-4,	Next: Section 9-5,	Prev: Subsection 9-4-3,	Up: Section 9-4
-  
-
-9.4.4   Comparisons
-===================
-   
-
-
-
-
-
-
-
-
-  The following functions can be used to perform numerical comparisons.
-  
-  
- - `$(lt <numbers>)': less then. 
- - `$(le <numbers>)': no more than. 
- - `$(eq <numbers>)': equal. 
- - `$(ge <numbers>)': no less than. 
- - `$(gt <numbers>)': greater than. 
- - `$(ult <numbers>)': unsigned less than. 
- - `$(ule <numbers>)': unsigned greater than. 
- - `$(uge <numbers>)': unsigned greater than or equal. 
- - `$(ugt <numbers>)': unsigned greater than. 
-   
-
-Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
-  
-
-9.5   First-class functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 9-5-1::	fun
-* Subsection 9-5-2::	apply
-* Subsection 9-5-3::	applya
-* Subsection 9-5-4::	create-map, create-lazy-map
-
-
-Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9-5
-  
-
-9.5.1   fun
-===========
-
-  The `fun' form introduces anonymous functions.
-  `$(fun <v1>, ..., <vn>, <body>)'
-  The last argument is the body of the function. The other arguments are
-the parameter names.
-  The three following definitions are equivalent.
-<<    F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
-  
-      F = $(fun X, Y => $(addsuffix $(Y), $(X)))
-  
-      F =
-         fun(X, Y) =>
-            value $(addsuffix $(Y), $(X))
->>
-
-Node: Subsection 9-5-2,	Next: Subsection 9-5-3,	Prev: Subsection 9-5-1,	Up: Section 9-5
-  
-
-9.5.2   apply
-=============
-
-  The `apply' operator is used to apply a function.
-  `$(apply <fun>, <args>)'
-  Suppose we have the following function definition.
-<<    F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
->>
-  
-  The the two expressions below are equivalent.
-<<    X = F(a b c, .c)
-      X = $(apply $(F), a b c, .c)
->>
-  
-  The `apply' form can also be used for partial applications, where a
-function is passed fewer arguments than it expects. The result is a
-function that takes the remaining arguments, and calls the function with
-the full set of arguments.
-<<    add2(i, j) =
-         add($i, $j)
-      succ = $(apply $(add2), 1)
-      i = $(succ 5)   # Computes 1+5
->>
-
-Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Section 9-5
-  
-
-9.5.3   applya
-==============
-
-  The `applya' operator is used to apply a function to an array of
-arguments.
-  `$(applya <fun>, <args>)'
-  For example, in the following program, the value of `Z' is `file.c'.
-<<    F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
-      args[] =
-         file
-         .c
-      Z = $(applya $(F), $(args))
->>
-  
-  The `applya' form can also be used for partial applications. 
-
 Node: Subsection 9-5-4,	Next: Section 9-6,	Prev: Subsection 9-5-3,	Up: Section 9-5
   
 
@@ -223,7 +61,7 @@ array `a.c b.c c.c'.
             value $(x).c
   
       # Equivalent expression
-      X = $(foreach $(fun x, $(x).c), a b c)
+      X = $(foreach $(fun x, $(x).c), abc)
 >>
   
   There is also an abbreviated syntax.
@@ -258,7 +96,7 @@ Node: Subsection 9-7-1,	Next: Subsection 9-7-2,	Prev: Section 9-7,	Up: Section 9
 9.7.1   sequence-forall
 =======================
 
-  The `forall' function tests whether a predicate holds for each element
+  The `forall' function tests whether a predicate halds for each element
 of a sequence.
 <<    $(sequence-forall <fun>, <args>)
   
@@ -1143,13 +981,12 @@ Node: Section 10-5,	Next: Subsection 10-5-1,	Prev: Section 10-4,	Up: Chapter 10
 * Subsection 10-5-4::	unlink
 * Subsection 10-5-5::	rename
 * Subsection 10-5-6::	link
-* Subsection 10-5-7::	symlink, symlink-raw
-* Subsection 10-5-8::	readlink, readlink-raw
+* Subsection 10-5-7::	symlink
+* Subsection 10-5-8::	readlink
 * Subsection 10-5-9::	chmod
 * Subsection 10-5-10::	chown
-* Subsection 10-5-11::	utimes
-* Subsection 10-5-12::	truncate
-* Subsection 10-5-13::	umask
+* Subsection 10-5-11::	truncate
+* Subsection 10-5-12::	umask
 
 
 Node: Subsection 10-5-1,	Next: Subsection 10-5-2,	Prev: Section 10-5,	Up: Section 10-5
@@ -1301,37 +1138,30 @@ directory `src'.
 Node: Subsection 10-5-7,	Next: Subsection 10-5-8,	Prev: Subsection 10-5-6,	Up: Section 10-5
   
 
-10.5.7   symlink, symlink-raw
-=============================
+10.5.7   symlink
+================
 
 <<   symlink(src, dst)
         src : Node
-        dst : Node
-     symlink-raw(src, dst)
-        src : String
         dst : Node
      raises RuntimeException
 >>
   
   The `symlink' function creates a symbolic link `dst' that points to
 the `src' file.
-  For `symlink', the link name is computed relative to the target
-directory. For example, the expression `$(symlink a/b, c/d)' creates a
-link named `c/d -> ../a/b'.
-  The function `symlink-raw' performs no translation. The symbolic link
-is set to the `src' string.
+  The link name is computed relative to the target directory. For
+example, the expression `$(symlink a/b, c/d)' creates a link named `c/d
+-> ../a/b'.
   Symbolic links are not supported in Win32. Consider using the
 `ln-or-cp' `Shell' alias for cross-platform portable linking/copying. 
 
 Node: Subsection 10-5-8,	Next: Subsection 10-5-9,	Prev: Subsection 10-5-7,	Up: Section 10-5
   
 
-10.5.8   readlink, readlink-raw
-===============================
+10.5.8   readlink
+=================
 
 <<   $(readlink node...) : Node
-        node : Node
-     $(readlink-raw node...) : String
         node : Node
 >>
   
@@ -1384,23 +1214,7 @@ is not changed.
 Node: Subsection 10-5-11,	Next: Subsection 10-5-12,	Prev: Subsection 10-5-10,	Up: Section 10-5
   
 
-10.5.11   utimes
-================
-
-<<   utimes(atime, mtime, node...)
-        atime : Float
-        mtime : Float
-        node : Node
-     raises RuntimeException
->>
-  
-  The `utimes' function changes the access and modification times of the
-files. 
-
-Node: Subsection 10-5-12,	Next: Subsection 10-5-13,	Prev: Subsection 10-5-11,	Up: Section 10-5
-  
-
-10.5.12   truncate
+10.5.11   truncate
 ==================
 
 <<   truncate(length, node...)
@@ -1411,10 +1225,10 @@ Node: Subsection 10-5-12,	Next: Subsection 10-5-13,	Prev: Subsection 10-5-11,	Up
   
   The `truncate' function truncates a file to the given length. 
 
-Node: Subsection 10-5-13,	Next: Section 10-6,	Prev: Subsection 10-5-12,	Up: Section 10-5
+Node: Subsection 10-5-12,	Next: Section 10-6,	Prev: Subsection 10-5-11,	Up: Section 10-5
   
 
-10.5.13   umask
+10.5.12   umask
 ===============
 
 <<    $(umask mode) : Int
@@ -1620,7 +1434,6 @@ additions.
   
  - `-name' string : The current file matches the glob expression (see
    Section 10.4*Note Section 10-4::). 
- - `-regex' string : The current file matches the regular expression 
   
   The `find' function performs a recursive scan of all subdirectories.
 The following call is being run from the root of the `omake' source
@@ -1691,3 +1504,144 @@ Node: Section 10-8,	Next: Subsection 10-8-1,	Prev: Section 10-7,	Up: Chapter 10
 * Subsection 10-8-34::	gets
 * Subsection 10-8-35::	fgets
 
+
+Node: Subsection 10-8-1,	Next: Subsection 10-8-2,	Prev: Section 10-8,	Up: Section 10-8
+  
+
+10.8.1   Standard channels
+==========================
+  
+  The following variables define the standard channels.
+ stdin
+
+<<stdin : InChannel
+>>
+  
+  The standard input channel, open for reading.
+ stdout
+ 
+<<stdout : OutChannel
+>>
+  
+  The standard output channel, open for writing.
+ stderr
+ 
+<<stderr : OutChannel
+>>
+  
+  The standard error channel, open for writing. 
+
+Node: Subsection 10-8-2,	Next: Subsection 10-8-3,	Prev: Subsection 10-8-1,	Up: Section 10-8
+  
+
+10.8.2   open-in-string
+=======================
+ The
+`open-in-string' treats a string as if it were a file and returns a
+channel for reading.
+<<   $(open-in-string s) : Channel
+         s : String
+>>
+
+Node: Subsection 10-8-3,	Next: Subsection 10-8-4,	Prev: Subsection 10-8-2,	Up: Section 10-8
+  
+
+10.8.3   open-out-string, out-contents
+======================================
+\@name
+{function:out-contents} The
+`open-out-string' creates a channel that writes to a string instead of a
+file. The string may be retrieved with the `out-contents' function.
+<<   $(open-out-string) : Channel
+     $(out-contents chan) : String
+         chan : OutChannel
+>>
+
+Node: Subsection 10-8-4,	Next: Subsection 10-8-5,	Prev: Subsection 10-8-3,	Up: Section 10-8
+  
+
+10.8.4   fopen
+==============
+
+  The `fopen' function opens a file for reading or writing.
+<<   $(fopen file, mode) : Channel
+        file : File
+        mode : String
+>>
+  
+  The `file' is the name of the file to be opened. The `mode' is a
+combination of the following characters. 
+  
+ r  Open the file for reading; it is an error if the file does not
+   exist. 
+ w  Open the file for writing; the file is created if it does not exist.
+   
+ a  Open the file in append mode; the file is created if it does not
+   exist. 
+ +  Open the file for both reading and writing. 
+ t  Open the file in text mode (default). 
+ b  Open the file in binary mode. 
+ n  Open the file in nonblocking mode. 
+ x  Fail if the file already exists. 
+  
+  Binary mode is not significant on Unix systems, where text and binary
+modes are equivalent. 
+
+Node: Subsection 10-8-5,	Next: Subsection 10-8-6,	Prev: Subsection 10-8-4,	Up: Section 10-8
+  
+
+10.8.5   close
+==============
+
+<<    $(close channel...)
+         channel : Channel
+>>
+  
+  The `close' function closes a file that was previously opened with
+`fopen'. 
+
+Node: Subsection 10-8-6,	Next: Subsection 10-8-7,	Prev: Subsection 10-8-5,	Up: Section 10-8
+  
+
+10.8.6   read, input-line
+=========================
+
+<<   $(read channel, amount) : String
+     $(input-line channel) : String
+        channel : InChannel
+        amount  : Int
+     raises RuntimeException
+>>
+  
+  The `read' function reads up to `amount' bytes from an input channel,
+and returns the data that was read. The `input-line' function reads a
+line from the file and returns the line read, without the line
+terminator. If an end-of-file condition is reached, both functions raise
+a `RuntimeException' exception. 
+
+Node: Subsection 10-8-7,	Next: Subsection 10-8-8,	Prev: Subsection 10-8-6,	Up: Section 10-8
+  
+
+10.8.7   write
+==============
+
+<<   $(write channel, buffer, offset, amount) : String
+        channel : OutChannel
+        buffer  : String
+        offset  : Int
+        amount  : Int
+     $(write channel, buffer) : String
+        channel : OutChannel
+        buffer  : String
+     raises RuntimeException
+>>
+  
+  In the 4-argument form, the `write' function writes bytes to the
+output channel `channel' from the `buffer', starting at position
+`offset'. Up to `amount' bytes are written. The function returns the
+number of bytes that were written.
+  The 3-argument form is similar, but the `offset' is 0.
+  In the 2-argument form, the `offset' is 0, and the `amount' if the
+length of the `buffer'.
+  If an end-of-file condition is reached, the function raises a
+`RuntimeException' exception. 

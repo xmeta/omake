@@ -59,6 +59,7 @@ open Omake_builtin_type
 open Omake_builtin_util
 open Omake_command_type
 open Omake_value_type
+open Omake_value_print
 
 module Pos = MakePos (struct let name = "Omake_builtin_base" end)
 open Pos

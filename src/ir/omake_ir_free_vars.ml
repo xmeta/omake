@@ -100,6 +100,9 @@ let rec free_vars_opt_params fv opt_params =
 and free_vars_string_exp fv s =
    match s with
       NoneString _
+    | IntString _
+    | FloatString _
+    | WhiteString _
     | ConstString _
     | ThisString _
     | KeyApplyString _

@@ -647,7 +647,7 @@ OCAML_CCLIBS_omake_gen_parse =
 omake_gen_parse$(EXE): $(CMOFILES_omake_gen_parse) $(OCAML_LIBS_omake_gen_parse) $(OCAML_CLIBS_omake_gen_parse)
 	$(OCAMLC) $(OCAMLFLAGS) -custom -o $@ $(OCAML_CCLIBS_omake_gen_parse) $(OCAML_OTHER_LIBS_omake_gen_parse) $(THREADSLIB) $(OCAML_LIBS_omake_gen_parse) $(CMOFILES_omake_gen_parse)
 
-CMOFILES_env = omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo
+CMOFILES_env = omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo
 OCAML_LIB_FLAGS_env =
 
 env.cma: $(CMOFILES_env)
@@ -662,6 +662,9 @@ omake_ast_lex.cmo: omake_ast_lex.cmi
 omake_ast_parse.ml: omake_ast_parse.mly
 omake_ast_parse.mli: omake_ast_parse.mly
 omake_ast_parse.cmo: omake_ast_parse.cmi
+omake_exp_parse.ml: omake_exp_parse.mly
+omake_exp_parse.mli: omake_exp_parse.mly
+omake_exp_parse.cmo: omake_exp_parse.cmi
 
 omake_ast_lex.mll: ..$(slash)src$(slash)env$(slash)omake_ast_lex.mll
 	$(LN) ..$(slash)src$(slash)env$(slash)omake_ast_lex.mll omake_ast_lex.mll
@@ -669,9 +672,12 @@ omake_ast_lex.mll: ..$(slash)src$(slash)env$(slash)omake_ast_lex.mll
 omake_ast_parse.input: ..$(slash)src$(slash)env$(slash)omake_ast_parse.input
 	$(LN) ..$(slash)src$(slash)env$(slash)omake_ast_parse.input omake_ast_parse.input
 
-omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_parse.cmi omake_ast_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
+omake_exp_parse.mly: ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly
+	$(LN) ..$(slash)src$(slash)env$(slash)omake_exp_parse.mly omake_exp_parse.mly
 
-Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast_parse.ml
+omake_env.cmo omake_exn_print.cmo omake_ast_parse.cmo omake_ast_lex.cmo omake_exp_parse.cmo omake_exp_lex.cmo omake_ir_ast.cmo omake_ir_semant.cmo omake_command_digest.cmo omake_env.cmi omake_exn_print.cmi omake_ast_parse.cmi omake_ast_lex.cmi omake_exp_lex.cmi omake_ir_ast.cmi omake_ir_semant.cmi omake_command_digest.cmi: magic.cma
+
+Makefile.dep: omake_ast_lex.ml omake_ast_parse.mly omake_ast_parse.mli omake_ast_parse.ml omake_exp_parse.ml omake_exp_parse.mli
 
 SRC_env = ..$(slash)src$(slash)env
 
@@ -696,6 +702,12 @@ omake_exn_print.ml: $(SRC_env)$(slash)omake_exn_print.ml
 omake_exn_print.mli: $(SRC_env)$(slash)omake_exn_print.mli
 	$(LN) $(SRC_env)$(slash)omake_exn_print.mli omake_exn_print.mli
 
+omake_exp_lex.ml: $(SRC_env)$(slash)omake_exp_lex.ml
+	$(LN) $(SRC_env)$(slash)omake_exp_lex.ml omake_exp_lex.ml
+
+omake_exp_lex.mli: $(SRC_env)$(slash)omake_exp_lex.mli
+	$(LN) $(SRC_env)$(slash)omake_exp_lex.mli omake_exp_lex.mli
+
 omake_gen_parse.ml: $(SRC_env)$(slash)omake_gen_parse.ml
 	$(LN) $(SRC_env)$(slash)omake_gen_parse.ml omake_gen_parse.ml
 
@@ -711,7 +723,7 @@ omake_ir_semant.ml: $(SRC_env)$(slash)omake_ir_semant.ml
 omake_ir_semant.mli: $(SRC_env)$(slash)omake_ir_semant.mli
 	$(LN) $(SRC_env)$(slash)omake_ir_semant.mli omake_ir_semant.mli
 
-ALLFILES_env = omake_ast_lex.mli omake_command_digest.ml omake_command_digest.mli omake_env.ml omake_env.mli omake_exn_print.ml omake_exn_print.mli omake_gen_parse.ml omake_ir_ast.ml omake_ir_ast.mli omake_ir_semant.ml omake_ir_semant.mli omake_ast_lex.mll omake_ast_parse.input
+ALLFILES_env = omake_ast_lex.mli omake_command_digest.ml omake_command_digest.mli omake_env.ml omake_env.mli omake_exn_print.ml omake_exn_print.mli omake_exp_lex.ml omake_exp_lex.mli omake_gen_parse.ml omake_ir_ast.ml omake_ir_ast.mli omake_ir_semant.ml omake_ir_semant.mli omake_ast_lex.mll omake_ast_parse.input omake_exp_parse.mly
 
 
 CMOFILES_shell = omake_shell_parse.cmo omake_shell_lex.cmo omake_shell_sys_type.cmo omake_shell_sys.cmo omake_shell_job.cmo omake_shell_completion.cmo

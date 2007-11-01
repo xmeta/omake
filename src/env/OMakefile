@@ -11,6 +11,8 @@ FILES[] =
     omake_exn_print
     omake_ast_parse
     omake_ast_lex
+    omake_exp_parse
+    omake_exp_lex
     omake_ir_ast
     omake_ir_semant
     omake_command_digest
@@ -34,6 +36,8 @@ GENERATED_FILES[] =
     omake_ast_parse.mly
     omake_ast_parse.mli
     omake_ast_parse.ml
+    omake_exp_parse.ml
+    omake_exp_parse.mli
 
 LocalOCamlGeneratedFiles($(GENERATED_FILES))
 
@@ -61,9 +65,12 @@ omake_ast_lex.cmo: omake_ast_lex.cmi
 omake_ast_parse.ml: omake_ast_parse.mly
 omake_ast_parse.mli: omake_ast_parse.mly
 omake_ast_parse.cmo: omake_ast_parse.cmi
+omake_exp_parse.ml: omake_exp_parse.mly
+omake_exp_parse.mli: omake_exp_parse.mly
+omake_exp_parse.cmo: omake_exp_parse.cmi
 """
 
-MakeLinkFiles(omake_ast_lex.mll omake_ast_parse.input)
+MakeLinkFiles(omake_ast_lex.mll omake_ast_parse.input omake_exp_parse.mly)
 MakeDontLink($(GENERATED_FILES))
 MakeOCamlDepend($(FILES), magic.cma)
 MakeMakefile()

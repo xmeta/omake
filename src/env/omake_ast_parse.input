@@ -27,7 +27,6 @@ open Lm_printf
 open Lm_symbol
 open Lm_location
 
-open Omake_env
 open Omake_pos
 open Omake_ast
 open Omake_symbol
@@ -46,16 +45,6 @@ let define_flag (s, loc) =
     | "+=" -> DefineAppend
     | _ ->
        raise (OmakeException (loc_exp_pos loc, StringStringError ("undefined assignment operator", s)))
-
-
-(*
- * Helper functions for building text.
- *)
-let string_pair_exp (s, loc) =
-   StringExp (s, loc), loc
-
-let string_white_exp (_, loc) =
-   StringExp (" ", loc), loc
 
 (*
  * Convert arguments to parameters.
@@ -88,13 +77,13 @@ let get_fun_params args =
  *)
 let arg_of_parse_arg = function
    IdArg (s, w, loc1) ->
-      let e = StringExp (s, loc1) in
+      let id = StringIdExp (s, loc1) in
       let e =
          match w with
              Some (w, loc2) ->
-                SequenceExp ([e; StringExp (w, loc2)], loc1)
+                SequenceExp ([id; StringWhiteExp (w, loc2)], loc1)
            | None ->
-                e
+                id
       in
           ExpArg e
  | NormalArg arg ->
@@ -129,7 +118,7 @@ let method_id_intern idl =
 (*
  * Get a string from a method name.
  *)
-let method_id_buf idl =
+let method_id_string idl =
    let buf = Buffer.create 32 in
    let rec collect idl =
       match idl with
@@ -143,19 +132,27 @@ let method_id_buf idl =
             ()
    in
       collect idl;
-      buf
+      Buffer.contents buf
 
-let method_id_string idl =
-   let buf = method_id_buf idl in
-       Buffer.contents buf
+let rec method_id_rev_sequence loc items idl =
+   match idl with
+      [id] ->
+         (StringIdExp (id, loc)) :: items
+    | id :: idl ->
+         let items = StringOpExp (".", loc) :: StringIdExp (id, loc) :: items in
+            method_id_rev_sequence loc items idl
+    | [] ->
+         items
+
+let method_id_sequence loc idl =
+   List.rev (method_id_rev_sequence loc [] idl)
 
 let method_id_string_exp idl loc =
-   StringExp (method_id_string idl, loc)
+   SequenceExp (method_id_sequence loc idl, loc)
 
 let method_id_prefix_string_exp idl loc =
-   let buf = method_id_buf idl in
-      Buffer.add_char buf '.';
-      StringExp (Buffer.contents buf, loc)
+   let idl = List.rev (method_id_rev_sequence loc [StringOpExp (".", loc)] idl) in
+      SequenceExp (idl, loc)
 
 let var_quote (strategy, s, loc) =
    KeyExp (strategy, s, loc), loc
@@ -218,6 +215,9 @@ let rule2 multiple target ploc source loc2 body =
 %token <string * Lm_location.loc> TokKeyword
 %token <string * Lm_location.loc> TokCatch
 %token <string * Lm_location.loc> TokClass
+%token <string * Lm_location.loc> TokOp
+%token <string * Lm_location.loc> TokInt
+%token <string * Lm_location.loc> TokFloat
 %token <string * Lm_location.loc> TokString
 %token <string * Lm_location.loc> TokBeginQuote
 %token <string * Lm_location.loc> TokEndQuote
@@ -286,7 +286,7 @@ shell_line:
             let body = $6 in
             let loc = union_loc loc1 $7 in
 	    let args = args_of_parse_args $4 in
-            let e = ApplyExp (EagerApply, Lm_symbol.add id, args, loc) in
+            let e = ApplyExp (CommandApply, Lm_symbol.add id, args, loc) in
                body, e
           }
 
@@ -385,9 +385,9 @@ shell_line:
             let e =
                match id with
                   [id] ->
-                     ApplyExp (EagerApply, Lm_symbol.add id, args, loc)
+                     ApplyExp (CommandApply, Lm_symbol.add id, args, loc)
                 | _ ->
-                     MethodApplyExp (EagerApply, method_id_intern id, args, loc)
+                     MethodApplyExp (CommandApply, method_id_intern id, args, loc)
             in
                body, e
           }
@@ -398,13 +398,13 @@ shell_line:
             let body = $5 in
             let loc = union_loc loc1 $8 in
             let params = get_fun_params $3 in
-            let arg = ArrowArg (params, StringExp ("...", loc)) in
+            let arg = ArrowArg (params, StringOpExp ("...", loc)) in
             let e =
                match id with
                   [id] ->
-                     ApplyExp (EagerApply, Lm_symbol.add id, [arg], loc)
+                     ApplyExp (CommandApply, Lm_symbol.add id, [arg], loc)
                 | _ ->
-                     MethodApplyExp (EagerApply, method_id_intern id, [arg], loc)
+                     MethodApplyExp (CommandApply, method_id_intern id, [arg], loc)
             in
                body, e
           }
@@ -456,7 +456,7 @@ shell_line:
             let e =
                match super, name with
                   [super], [name] ->
-                     SuperApplyExp (EagerApply, Lm_symbol.add super, Lm_symbol.add name, args, loc)
+                     SuperApplyExp (CommandApply, Lm_symbol.add super, Lm_symbol.add name, args, loc)
                 | _, [_] ->
                      raise (OmakeException (loc_exp_pos loc, StringStringError ("illegal super class", method_id_string super)))
                 | _ ->
@@ -544,7 +544,7 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
           { let id1, loc1 = $1 in
             let id2, loc2 = $3 in
             let loc = union_loc loc1 loc2 in
-            let el = StringExp (id1, loc1) :: List.rev_append $2 [StringExp (id2, loc2)] in
+            let el = StringOtherExp (id1, loc1) :: List.rev_append $2 [StringOtherExp (id2, loc2)] in
                QuoteExp (el, loc), loc
           }
         | TokBeginQuoteString rev_text TokEndQuoteString
@@ -555,7 +555,7 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
           }
         | TokStringQuote
           { let s, loc = $1 in
-               QuoteExp ([StringExp (s, loc)], loc), loc
+               QuoteExp ([StringOtherExp (s, loc)], loc), loc
           }
         ;
 
@@ -788,7 +788,7 @@ rev_other_target:
           { let idl, s, loc1 = $1 in
             let e, loc2 = $2 in
             let loc = union_loc loc1 loc2 in
-            let el = [e; StringExp (s, loc1); method_id_string_exp (List.rev idl) loc1] in
+            let el = [e; StringWhiteExp (s, loc1); method_id_string_exp (List.rev idl) loc1] in
                el, loc
           }
         | rev_method_id_prefix other_method_id_prefix
@@ -802,7 +802,7 @@ rev_other_target:
           { let idl, s, loc1 = $1 in
             let e, loc2 = $2 in
             let loc = union_loc loc1 loc2 in
-            let el = [e; StringExp (s, loc1); method_id_prefix_string_exp (List.rev idl) loc1] in
+            let el = [e; StringWhiteExp (s, loc1); method_id_prefix_string_exp (List.rev idl) loc1] in
                el, loc
           }
         | quote other_quote_id
@@ -816,7 +816,7 @@ rev_other_target:
           { let id, s, loc1 = $1 in
             let e, loc2 = $2 in
             let loc = union_loc loc1 loc2 in
-            let el = [id; StringExp (s, loc1); e] in
+            let el = [id; StringWhiteExp (s, loc1); e] in
                el, loc
           }
         | rev_other_target target_next
@@ -1088,11 +1088,11 @@ arg_key:
         ;
 
 rev_any_arg:
-          arg_any_start
+          paren_arg_any_start
           { let e, loc = $1 in
                [e], loc
           }
-        | rev_any_arg arg_next
+        | rev_any_arg paren_arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
                e :: l, union_loc loc1 loc2
@@ -1100,42 +1100,94 @@ rev_any_arg:
         ;
 
 rev_normal_arg:
-          arg_key arg_next_noneq
+          arg_key paren_arg_next_noneq
           { let (id, loc0), w, loc1 = $1 in
-            let id = StringExp (id, loc0) in
+            let id = StringIdExp (id, loc0) in
             let e, loc2 = $2 in
             let el =
                match w with
-                  Some (w, loc3) ->
-                     [e; StringExp (w, loc3); id]
+                  Some (w, loc0) ->
+                     [e; StringWhiteExp (w, loc0); id]
                 | None ->
                      [e; id]
             in
                el, union_loc loc1 loc2
           }
-        | arg_id arg_any_start
+        | arg_id paren_arg_any_start
           { let (id, loc0), w, loc1 = $1 in
-            let id = StringExp (id, loc0) in
+            let id = StringIdExp (id, loc0) in
             let e, loc2 = $2 in
             let el =
                match w with
                   Some (w, loc3) ->
-                     [e; StringExp (w, loc3); id]
+                     [e; StringWhiteExp (w, loc3); id]
                 | None ->
                      [e; id]
             in
                el, union_loc loc1 loc2
           }
-        | arg_start
+        | paren_arg_start
           { let e, loc = $1 in
                [e], loc
           }
-        | rev_normal_arg arg_next
+        | rev_normal_arg paren_arg_next
           { let l, loc1 = $1 in
             let e, loc2 = $2 in
                e :: l, union_loc loc1 loc2
           }
         ;
+
+paren_arg_any_start:
+	  arg_any_start
+	  { $1 }
+	| paren_arg
+	  { $1 }
+	;
+
+paren_arg_next_noneq:
+	  arg_next_noneq
+	  { $1 }
+	| paren_arg
+	  { $1 }
+	;
+
+paren_arg_start:
+	  arg_start
+	  { $1 }
+	| paren_arg
+	  { $1 }
+	;
+
+paren_arg_next:
+	  arg_next
+	  { $1 }
+	| paren_arg
+	  { $1 }
+	;	  
+
+paren_arg:
+	  TokLeftParen rev_paren_text TokRightParen
+          { let s1, loc1 = $1 in
+            let sl = $2 in
+            let s3, loc3 = $3 in
+            let loc = union_loc loc1 loc3 in
+            let el = StringOpExp (s1, loc1) :: (List.rev (StringOpExp (s3, loc3) :: sl)) in
+               SequenceExp (el, loc), loc
+          }
+	;
+
+rev_paren_text:
+	  /* empty */
+	  { [] }
+	| rev_paren_text paren_next
+	  { let s, _ = $2 in
+               s :: $1
+          }
+        | rev_paren_text paren_arg
+          { let s, _ = $2 in
+               s :: $1
+          }
+	;
 
 /*
  * Generated section.

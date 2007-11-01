@@ -49,6 +49,7 @@ type apply_strategy =
    LazyApply
  | EagerApply
  | NormalApply
+ | CommandApply
 
 (*
  * When a variable is defined, these are additional flags.
@@ -63,11 +64,22 @@ type define_flag =
  | DefineAppend
 
 (*
- * Patterns.
+ * Expressions.
+ *
+ * The String*Exp are all strings.  Normally, they are all interpreted
+ * the same way.
  *)
 type exp =
    NullExp         of loc
- | StringExp       of string * loc
+ | IntExp          of int * loc
+ | FloatExp        of float * loc
+ | StringOpExp     of string * loc
+ | StringIdExp     of string * loc
+ | StringIntExp    of string * loc
+ | StringFloatExp  of string * loc
+ | StringWhiteExp  of string * loc
+ | StringOtherExp  of string * loc
+ | StringKeywordExp of string * loc
  | QuoteExp        of exp list * loc
  | QuoteStringExp  of char * exp list * loc
  | SequenceExp     of exp list * loc

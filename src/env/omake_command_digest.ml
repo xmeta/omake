@@ -74,6 +74,9 @@ type code =
  | CodeCommand
  | CodeCommands
  | CodeNoneString
+ | CodeIntString
+ | CodeFloatString
+ | CodeWhiteString
  | CodeConstString
  | CodeVarString
  | CodeEagerApply
@@ -141,6 +144,7 @@ type code =
  | CodeValQuote
  | CodeValQuoteString
  | CodeValSequence
+ | CodeValWhite
  | CodeValString
  | CodeValVar
  | CodeValMaybeApply
@@ -335,6 +339,15 @@ let rec squash_string_exp pos buf e =
       match e with
          NoneString _ ->
             Hash.add_code buf CodeNoneString
+       | IntString (_, i) ->
+            Hash.add_code buf CodeIntString;
+            Hash.add_int buf i
+       | FloatString (_, x) ->
+            Hash.add_code buf CodeFloatString;
+            Hash.add_float buf x
+       | WhiteString (_, s) ->
+            Hash.add_code buf CodeWhiteString;
+            Hash.add_string buf s
        | ConstString (_, s) ->
             Hash.add_code buf CodeConstString;
             Hash.add_string buf s
@@ -633,6 +646,9 @@ let rec squash_value pos buf v =
        | ValArray vl ->
             Hash.add_code buf CodeValArray;
             squash_values pos buf vl
+       | ValWhite s ->
+            Hash.add_code buf CodeValWhite;
+            Hash.add_string buf s
        | ValString s ->
             Hash.add_code buf CodeValString;
             Hash.add_string buf s
