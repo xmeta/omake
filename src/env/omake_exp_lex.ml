@@ -203,6 +203,14 @@ type mode =
    ProgramMode
  | NormalMode
 
+let apply_mode mode = function
+   CommandApply ->
+      mode
+ | NormalApply
+ | EagerApply
+ | LazyApply ->
+      NormalMode
+
 let languages = "legal languages are (program, make); you said"
 
 let language_mode loc pattern source =
@@ -257,18 +265,12 @@ let rec translate_exp mode e =
 
     | ArrayExp (el, loc) ->
          ArrayExp (translate_exp_list mode el, loc)
-    | ApplyExp (CommandApply, v, args, loc) ->
-         ApplyExp (CommandApply, v, translate_arg_list mode args, loc)
-    | SuperApplyExp (CommandApply, v1, v2, args, loc) ->
-         SuperApplyExp (CommandApply, v1, v2, translate_arg_list mode args, loc)
-    | MethodApplyExp (CommandApply, vl, args, loc) ->
-         MethodApplyExp (CommandApply, vl, translate_arg_list mode args, loc)
     | ApplyExp (strategy, v, args, loc) ->
-         ApplyExp (strategy, v, translate_arg_list NormalMode args, loc)
+         ApplyExp (strategy, v, translate_arg_list (apply_mode mode strategy) args, loc)
     | SuperApplyExp (strategy, v1, v2, args, loc) ->
-         SuperApplyExp (strategy, v1, v2, translate_arg_list NormalMode args, loc)
+         SuperApplyExp (strategy, v1, v2, translate_arg_list (apply_mode mode strategy) args, loc)
     | MethodApplyExp (strategy, vl, args, loc) ->
-         MethodApplyExp (strategy, vl, translate_arg_list NormalMode args, loc)
+         MethodApplyExp (strategy, vl, translate_arg_list (apply_mode mode strategy) args, loc)
     | CommandExp (v, e, el, loc) ->
          CommandExp (v, translate_exp mode e, translate_body mode el, loc)
     | VarDefExp (vl, kind, flag, e, loc) ->
