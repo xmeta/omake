@@ -35,7 +35,7 @@ let loc_of_exp e =
       LetVarExp (loc, _, _, _, _)
     | KeyExp (loc, _)
     | LetKeyExp (loc, _, _, _)
-    | LetFunExp (loc, _, _, _, _, _, _, _, _)
+    | LetFunExp (loc, _, _, _, _, _, _, _)
     | LetObjectExp (loc, _, _, _, _, _)
     | LetThisExp (loc, _)
     | ShellExp (loc, _)

@@ -129,7 +129,7 @@ let rec pp_print_value buf v =
             pp_print_var_info v
     | ValFun (arity, _, _, _, _, _) ->
          fprintf buf "<fun %a>" pp_print_arity arity
-    | ValFunCurry (arity, _, specs, _, _, _, kargs) ->
+    | ValFunCurry (arity, _, _, _, _, _, _, kargs) ->
          fprintf buf "<curry %a>" pp_print_arity arity
 
     | ValPrim (_, special, _, name)
@@ -146,6 +146,8 @@ let rec pp_print_value buf v =
          fprintf buf "%a : Dir" pp_print_dir dir
     | ValNode node ->
          fprintf buf "%a : File" pp_print_node node
+    | ValStringExp e ->
+         fprintf buf "@[<hv 0>%a : Exp@]" pp_print_string_exp e
     | ValBody (el, export) ->
          fprintf buf "@[<v 0>%a%a@ : Body@]" pp_print_exp_list el pp_print_export_info export
     | ValObject env ->
@@ -282,6 +284,8 @@ let rec pp_print_simple_value buf v =
          pp_print_dir buf dir
     | ValNode node ->
          pp_print_node buf node
+    | ValStringExp _ ->
+         pp_print_string buf "<exp>"
     | ValBody _ ->
          pp_print_string buf "<body>"
     | ValObject _ ->

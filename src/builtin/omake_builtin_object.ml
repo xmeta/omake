@@ -415,7 +415,7 @@ let sequence_length venv pos loc args =
                 | ValArray a ->
                      List.length a
                 | ValFun (arity, _, _, _, _, _)
-                | ValFunCurry (arity, _, _, _, _, _, _)
+                | ValFunCurry (arity, _, _, _, _, _, _, _)
                 | ValPrim (arity, _, _, _)
                 | ValPrimCurry (arity, _, _, _, _) ->
                      (match arity with
@@ -434,6 +434,7 @@ let sequence_length venv pos loc args =
                 | ValOther _
                 | ValVar _ ->
                      0
+                | ValStringExp _
                 | ValKeyApply _
                 | ValApply _
                 | ValMaybeApply _
@@ -463,6 +464,7 @@ let sequence_nth venv pos loc args =
                  | ValFunCurry _
                  | ValPrim _
                  | ValPrimCurry _
+                 | ValStringExp _
                  | ValKeyApply _
                  | ValApply _
                  | ValMaybeApply _
@@ -552,6 +554,7 @@ let sequence_nth_tl venv pos loc args =
                  | ValFloat _
                  | ValNode _
                  | ValDir _
+                 | ValStringExp _
                  | ValBody _
                  | ValChannel _
                  | ValClass _
@@ -614,6 +617,7 @@ let sequence_nonempty venv pos loc args =
                  | ValFunCurry _
                  | ValPrim _
                  | ValPrimCurry _
+                 | ValStringExp _
                  | ValKeyApply _
                  | ValApply _
                  | ValMaybeApply _
@@ -689,6 +693,7 @@ let sequence_sub venv pos loc args =
                  | ValFloat _
                  | ValNode _
                  | ValDir _
+                 | ValStringExp _
                  | ValBody _
                  | ValChannel _
                  | ValClass _
@@ -762,6 +767,7 @@ let sequence_rev venv pos loc args =
                  | ValFloat _
                  | ValNode _
                  | ValDir _
+                 | ValStringExp _
                  | ValBody _
                  | ValChannel _
                  | ValClass _

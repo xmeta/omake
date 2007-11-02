@@ -194,11 +194,11 @@ let rec build_string env s =
        | KeyApplyString _
        | VarString _ ->
             false, s
-       | FunString (loc, opt_params, keywords, params, e, export) ->
+       | FunString (loc, opt_params, params, e, export) ->
             (* Returns propagate -through- anonymous functions *)
             let renv, e = build_sequence_exp (env_anon_fun env) e in
-            let has_return, opt_params = build_keyword_string_list env opt_params in
-               renv.renv_has_return || has_return, FunString (loc, opt_params, keywords, params, e, export)
+            let has_return, opt_params = build_keyword_param_list env opt_params in
+               renv.renv_has_return || has_return, FunString (loc, opt_params, params, e, export)
        | ApplyString (loc, strategy, v, args, kargs) ->
             let has_return1, args = build_string_list env args in
             let has_return2, kargs = build_keyword_string_list env kargs in
@@ -263,12 +263,24 @@ and build_keyword_string_list env kargs =
    in
       has_return, List.rev kargs
 
+and build_keyword_param_list env kargs =
+   let has_return, kargs =
+      List.fold_left (fun (has_return, sl) (v, s_opt) ->
+            match s_opt with
+               Some s ->
+                  let has_return2, s = build_string env s in
+                     has_return || has_return2, (v, Some s) :: sl
+             | None ->
+                  has_return, (v, None) :: sl) (false, []) kargs
+   in
+      has_return, List.rev kargs
+
 (*
  * Convert the current expression.
  *)
 and build_exp env e =
    match e with
-      LetFunExp (loc, v, vl, curry, opt_params, keywords, vars, el, export) ->
+      LetFunExp (loc, v, vl, curry, opt_params, vars, el, export) ->
          let id = new_return_id loc v in
          let renv, el = build_sequence_exp (env_fun env id) el in
          let el =
@@ -277,8 +289,8 @@ and build_exp env e =
             else
                el
          in
-         let has_return, opt_params = build_keyword_string_list env opt_params in
-         let e = LetFunExp (loc, v, vl, curry, opt_params, keywords, vars, el, export) in
+         let has_return, opt_params = build_keyword_param_list env opt_params in
+         let e = LetFunExp (loc, v, vl, curry, opt_params, vars, el, export) in
             update_return renv_empty has_return, e
     | LetObjectExp (loc, v, vl, s, el, export) ->
          let el = build_object_exp env el in

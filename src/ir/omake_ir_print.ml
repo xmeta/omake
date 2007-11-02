@@ -190,9 +190,9 @@ let rec pp_print_string_exp complete buf s =
          fprintf buf "\"%s\"" (String.escaped s)
     | KeyApplyString (_, strategy, s) ->
          fprintf buf "$%a|%s|" pp_print_strategy strategy s
-    | FunString (_, opt_params, param_set, params, e, export) ->
+    | FunString (_, opt_params, params, e, export) ->
          fprintf buf "@[<hv 3>(fun %a =>@ %a%a)@]" (**)
-            (pp_print_opt_params complete) (opt_params, param_set, params)
+            (pp_print_all_params complete) (opt_params, params)
             (pp_print_exp_list complete) e
             pp_print_export_info export
     | ApplyString (_, strategy, v, [], []) ->
@@ -308,28 +308,27 @@ and pp_print_params_inner buf sl =
 and pp_print_params buf sl =
    pp_print_params_inner buf sl
 
-and pp_print_opt_params_inner complete buf params =
+and pp_print_opt_param complete buf param =
+   match param with
+      (v, Some s) ->
+         fprintf buf "@[<hv 3>?%a =@ %a@]" pp_print_symbol v (pp_print_string_exp complete) s
+    | (v, None) ->
+         fprintf buf "@[<hv 3>~%a@]" pp_print_symbol v
+
+and pp_print_opt_params complete buf params =
    match params with
-      [v, s] ->
-         fprintf buf "@[<hv 3>%a =@ %a@]" pp_print_symbol v (pp_print_string_exp complete) s
-    | (v, s) :: params ->
-         fprintf buf "@[<hv 3>%a =@ %a@],@ " pp_print_symbol v (pp_print_string_exp complete) s;
-         pp_print_opt_params_inner complete buf params
+      [p] ->
+         pp_print_opt_param complete buf p
+    | p :: params ->
+         fprintf buf "%a,@ " (pp_print_opt_param complete) p;
+         pp_print_opt_params complete buf params
     | [] ->
          ()
 
-and pp_print_opt_params complete buf x =
-   match x with
-      [], _, [] ->
-         ()
-    | opt_params, _, [] ->
-         fprintf buf "[%a]" (pp_print_opt_params_inner complete) opt_params
-    | [], _, params ->
-         pp_print_params buf params
-    | opt_params, _, params ->
-         fprintf buf "[%a], %a" (**)
-            (pp_print_opt_params_inner complete) opt_params
-            pp_print_params params
+and pp_print_all_params complete buf = function
+   [], params -> pp_print_params buf params
+ | opt_params, [] -> pp_print_opt_params complete buf opt_params
+ | opt_params, params -> fprintf buf "%a,@ %a" (pp_print_opt_params complete) opt_params pp_print_params params
 
 and pp_print_normal_args complete buf first args =
    match args with
@@ -367,12 +366,12 @@ and pp_print_exp complete buf e =
             pp_print_method_name vl
             pp_print_var_def_kind kind
             (pp_print_string_exp complete) s
-    | LetFunExp (_, v, vl, curry, opt_params, param_set, params, el, export) ->
+    | LetFunExp (_, v, vl, curry, opt_params, params, el, export) ->
          fprintf buf "@[<hv 3>%a%a%a(%a) =@ %a%a@]" (**)
             pp_print_curry curry
             pp_print_var_info v
             pp_print_method_name vl
-            (pp_print_opt_params complete) (opt_params, param_set, params)
+            (pp_print_all_params complete) (opt_params, params)
             (string_override "<...>" pp_print_exp_list complete) el
             pp_print_export_info export
     | LetObjectExp (_, v, vl, s, el, export) ->

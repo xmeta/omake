@@ -981,24 +981,23 @@ let check_duplicate_keyword pos keywords v =
       raise (OmakeException (pos, StringVarError ("duplicate keyword parameter", v)))
 
 let senv_add_params genv oenv senv cenv pos params =
-   let senv, opt_params, keywords, params =
-      List.fold_left (fun (senv, opt_params, keywords, params) (v, info, loc) ->
-            let senv, _ = senv_define_var VarScopePrivate genv oenv senv cenv pos loc v in
+   let senv, keywords, params =
+      List.fold_left (fun (senv, keywords, params) (v, info, loc) ->
+            let senv, _ = senv_define_var VarScopeVirtual genv oenv senv cenv pos loc v in
                match info with
                   NormalParam ->
-                     senv, opt_params, keywords, v :: params
+                     senv, keywords, v :: params
                 | RequiredParam ->
                      check_duplicate_keyword pos keywords v;
-                     senv, opt_params, SymbolTable.add keywords v true, params
+                     senv, SymbolTable.add keywords v None, params
                 | OptionalParam s ->
                      check_duplicate_keyword pos keywords v;
-                     senv, (v, s) :: opt_params, SymbolTable.add keywords v false, params) (senv, [], SymbolTable.empty, []) params
+                     senv, SymbolTable.add keywords v (Some s), params) (senv, SymbolTable.empty, []) params
    in
    let keywords = SymbolTable.fold (fun keywords v x -> (v, x) :: keywords) [] keywords in
    let keywords = List.rev keywords in
-   let opt_params = List.rev opt_params in
    let params = List.rev params in
-      senv, opt_params, keywords, params
+      senv, keywords, params
 
 let senv_add_var_aux genv oenv senv cenv pos loc name_info v =
    if is_nonempty_name_info name_info then
@@ -1275,8 +1274,8 @@ and build_params genv oenv senv cenv params pos loc =
                genv, oenv, param :: params) (genv, oenv, []) params
    in
    let params = List.rev params in
-   let senv, opt_params, keywords, params = senv_add_params genv oenv senv cenv pos params in
-      genv, oenv, senv, opt_params, keywords, params
+   let senv, keywords, params = senv_add_params genv oenv senv cenv pos params in
+      genv, oenv, senv, keywords, params
 
 (*
  * When building a sequence, try to collapse adjacent constant strings.
@@ -1442,7 +1441,7 @@ and build_arg senv cenv pos loc (genv, oenv, args, kargs) arg =
          let genv, oenv, s = build_string genv oenv senv cenv e pos in
             genv, oenv, args, (v, s) :: kargs
     | Omake_ast.ArrowArg (params, e) ->
-         let genv, oenv, senv, opt_params, keywords, params =
+         let genv, oenv, senv, keywords, params =
             build_params genv oenv senv cenv params pos loc
          in
          let genv, oenv, e, export =
@@ -1454,7 +1453,7 @@ and build_arg senv cenv pos loc (genv, oenv, args, kargs) arg =
                   let genv, oenv, s = build_string genv oenv senv cenv e pos in
                      genv, oenv, [StringExp (loc, s)], ExportNone
          in
-         let e = FunString (loc, opt_params, keywords, params, e, export) in
+         let e = FunString (loc, keywords, params, e, export) in
             genv, oenv, e :: args, kargs
 
 and build_arg_list genv oenv senv cenv args pos loc =
@@ -2136,10 +2135,10 @@ and build_key_def_body_exp genv oenv senv cenv v kind flag body pos loc =
 and build_fun_def_exp genv oenv senv cenv v params el pos loc =
    let pos = string_pos "build_fun_def_exp" pos in
    let cenv_body = cenv_fun_scope cenv (new_return_id loc v) in
-   let genv, oenv, senv_body, opt_params, keywords, params = build_params genv oenv senv cenv_body params pos loc in
+   let genv, oenv, senv_body, opt_params, params = build_params genv oenv senv cenv_body params pos loc in
    let genv, oenv, body, export, _ = build_body genv oenv senv_body cenv_body el pos loc in
    let genv, oenv, senv, curry, v, vl = senv_add_method_def_var genv oenv senv cenv pos loc v in
-      genv, oenv, senv, LetFunExp (loc, v, vl, curry, opt_params, keywords, params, body, export), ValValue
+      genv, oenv, senv, LetFunExp (loc, v, vl, curry, opt_params, params, body, export), ValValue
 
 (*
  * Special rule expressions.

@@ -41,7 +41,6 @@ type var = symbol
 type param = symbol
 type keyword = symbol
 type curry_flag = bool
-type keyword_spec = keyword * bool
 
 (*
  * Whether a function of zero arguments should be applied.
@@ -137,7 +136,7 @@ type string_exp =
  | FloatString       of loc * float
  | WhiteString       of loc * string
  | ConstString       of loc * string
- | FunString         of loc * keyword_param list * keyword_spec list * param list * exp list * export
+ | FunString         of loc * keyword_param list * param list * exp list * export
  | ApplyString       of loc * apply_strategy * var_info * string_exp list * keyword_arg list
  | SuperApplyString  of loc * apply_strategy * var * var * string_exp list * keyword_arg list
  | MethodApplyString of loc * apply_strategy * var_info * var list * string_exp list * keyword_arg list
@@ -161,7 +160,7 @@ and source_table = string_exp SymbolTable.t
 (*
  * Optional function arguments.
  *)
-and keyword_param = var * string_exp
+and keyword_param = var * string_exp option
 
 (*
  * Arguments are a pair of normal arguments and keyword arguments.
@@ -178,7 +177,7 @@ and rule_command =
 and exp =
    (* Definitions *)
    LetVarExp        of loc * var_info * var list * var_def_kind * string_exp
- | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * keyword_spec list * param list * exp list * export
+ | LetFunExp        of loc * var_info * var list * curry_flag * keyword_param list * param list * exp list * export
  | LetObjectExp     of loc * var_info * var list * string_exp * exp list * export
  | LetThisExp       of loc * string_exp
  | LetKeyExp        of loc * string * var_def_kind * string_exp
@@ -330,8 +329,11 @@ struct
    let remove_private set v =
       remove set (VarPrivate (loc, v))
 
+   let remove_virtual set v =
+      remove set (VarVirtual (loc, v))
+
    (* Parameters are always private *)
-   let remove_param = remove_private
+   let remove_param = remove_virtual
 end;;
 
 module VarInfoTable = Lm_map.LmMake (VarInfoCompare);;

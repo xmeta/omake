@@ -50,7 +50,7 @@ static. =
     HAS_DATE = $(CheckProg date)
 
 Shell. +=
-    test(argv) =
+    testit(argv) =
         result = $"Tested $(in .., $(dir .)): "
         failures = false
 	notes = false
@@ -79,17 +79,17 @@ Shell. +=
                 export
             export
         if $(failures)
-            result += $"$(nl)    *** SOME TESTS FAILED! See $(in $(ROOT), $(resultfile)) for detail"
+            result += $"$(nl)    *** SOME TESTS FAILED! See $(in $(ROOT), $(resultfile)) for details"
             export
         elseif $(notes)
-            result += $"$(nl)    --- See notes $(in $(ROOT), $(resultfile)) for detail"
+            result += $"$(nl)    --- See notes $(in $(ROOT), $(resultfile)) for details"
             export
         println($(result))
 
 .SUBDIRS: $(TestMap.keys)
     resultfile = $(file result.log)
     check: /.PHONY/all :effects: $(resultfile)
-        test $(resultfile)
+        testit $(resultfile)
 
     clean:
         rm -f $(resultfile) *.omc Test*/.omakedb* Test*/*.omc Test*/stdout Test*/output

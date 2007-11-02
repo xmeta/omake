@@ -127,6 +127,7 @@ type code =
  | CodeThisString
  | CodeValApply
  | CodeValArray
+ | CodeValStringExp
  | CodeValBody
  | CodeValData
  | CodeValDir
@@ -187,6 +188,8 @@ type code =
  | CodeRedirectNone
  | CodeKeywordSpec
  | CodeKeywordSpecList
+ | CodeNone
+ | CodeSome
 (* %%MAGICEND%% *)
 
 module type HashSig =
@@ -358,11 +361,11 @@ let rec squash_string_exp pos buf e =
             Hash.add_code buf CodeKeyApplyString;
             squash_strategy buf strategy;
             Hash.add_string buf s
-       | FunString (_, opt_params, _, params, s, export) ->
+       | FunString (_, opt_params, params, s, export) ->
             Hash.add_code buf CodeFunString;
             squash_params buf params;
             Hash.add_code buf CodeArrow;
-            squash_keyword_exp_list pos buf opt_params;
+            squash_keyword_param_list pos buf opt_params;
             Hash.add_code buf CodeArrow;
             squash_exp_list pos buf s;
             Hash.add_code buf CodeSpace;
@@ -434,6 +437,13 @@ let rec squash_string_exp pos buf e =
    end;
    Hash.add_code buf CodeEnd
 
+and squash_opt_string_exp pos buf = function
+   Some s ->
+      Hash.add_code buf CodeSome;
+      squash_string_exp pos buf s
+ | None ->
+      Hash.add_code buf CodeNone
+
 and squash_string_exp_list pos buf sl =
    match sl with
       [s] ->
@@ -453,6 +463,17 @@ and squash_keyword_exp_list pos buf kargs =
          Hash.add_code buf CodeSpace;
          squash_string_exp pos buf arg;
          squash_keyword_exp_list pos buf kargs
+    | [] ->
+         ()
+
+and squash_keyword_param_list pos buf kargs =
+   match kargs with
+      (v, opt_arg) :: kargs ->
+         Hash.add_code buf CodeSpace;
+         squash_var buf v;
+         Hash.add_code buf CodeSpace;
+         squash_opt_string_exp pos buf opt_arg;
+         squash_keyword_param_list pos buf kargs
     | [] ->
          ()
 
@@ -498,14 +519,14 @@ and squash_exp pos buf e =
             squash_def_kind buf def;
             Hash.add_code buf CodeSpace;
             squash_string_exp pos buf s
-       | LetFunExp (_, v, vl, curry, opt_params, _, params, s, export) ->
+       | LetFunExp (_, v, vl, curry, opt_params, params, s, export) ->
             Hash.add_code buf CodeLetFunExp;
             squash_var_info buf v;
             Hash.add_code buf CodeSpace;
             squash_vars buf vl;
             Hash.add_code buf CodeSpace;
             Hash.add_bool buf curry;
-            squash_keyword_exp_list pos buf opt_params;
+            squash_keyword_param_list pos buf opt_params;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeSpace;
@@ -689,16 +710,18 @@ let rec squash_value pos buf v =
             squash_keyword_values pos buf kargs
        | ValFun (_, _, keywords, params, body, export) ->
             Hash.add_code buf CodeValFun;
-            squash_keyword_spec_list buf keywords;
+            squash_keyword_param_values pos buf keywords;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeArrow;
             squash_exp_list pos buf body;
             Hash.add_code buf CodeSpace;
             squash_export_info buf export
-       | ValFunCurry (_, _, keywords, params, body, export, kargs) ->
-            Hash.add_code buf CodeValFun;
-            squash_keyword_spec_list buf keywords;
+       | ValFunCurry (_, _, args, keywords, params, body, export, kargs) ->
+            Hash.add_code buf CodeValFunCurry;
+            squash_keyword_values pos buf args;
+            Hash.add_code buf CodeSpace;
+            squash_keyword_param_values pos buf keywords;
             Hash.add_code buf CodeSpace;
             squash_params buf params;
             Hash.add_code buf CodeArrow;
@@ -721,6 +744,9 @@ let rec squash_value pos buf v =
        | ValDir dir ->
             Hash.add_code buf CodeValDir;
             Hash.add_string buf (Dir.fullname dir)
+       | ValStringExp e ->
+            Hash.add_code buf CodeValStringExp;
+            squash_string_exp pos buf e
        | ValBody (e, export) ->
             Hash.add_code buf CodeValBody;
             squash_exp_list pos buf e;
@@ -758,6 +784,13 @@ let rec squash_value pos buf v =
    end;
    Hash.add_code buf CodeEnd
 
+and squash_opt_value pos buf = function
+   Some v ->
+      Hash.add_code buf CodeSome;
+      squash_value pos buf v
+ | None ->
+      Hash.add_code buf CodeNone
+
 and squash_values pos buf vl =
    match vl with
       [v] ->
@@ -777,6 +810,17 @@ and squash_keyword_values pos buf kargs =
          Hash.add_code buf CodeSpace;
          squash_value pos buf arg;
          squash_keyword_values pos buf kargs
+    | [] ->
+         ()
+
+and squash_keyword_param_values pos buf kargs =
+   match kargs with
+      (v, opt_arg) :: kargs ->
+         Hash.add_code buf CodeSpace;
+         squash_var buf v;
+         Hash.add_code buf CodeSpace;
+         squash_opt_value pos buf opt_arg;
+         squash_keyword_param_values pos buf kargs
     | [] ->
          ()
 

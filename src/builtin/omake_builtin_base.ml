@@ -432,9 +432,13 @@ let rec eval_match_cases2 compare venv pos loc s cases =
 let eval_match_exp compare venv pos loc args kargs =
    let pos = string_pos "eval_match_exp" pos in
       match args, kargs with
-         [ValCases cases; arg], [] ->
-            let s = string_of_value venv pos arg in
-               eval_match_cases1 compare venv pos loc s cases
+         [cases; arg], [] ->
+            (match eval_value venv pos cases with
+                ValCases cases ->
+                   let s = string_of_value venv pos arg in
+                      eval_match_cases1 compare venv pos loc s cases
+              | _ ->
+                   raise (OmakeException (pos, StringError "malformed match expression")))
        | arg :: rest, [] ->
             let s = string_of_value venv pos arg in
                eval_match_cases2 compare venv pos loc s rest
@@ -618,8 +622,12 @@ let try_fun venv pos loc args kargs =
    let pos = string_pos "eval_try_exp" pos in
    let cases, e =
       match args, kargs with
-         [ValCases cases; e], [] ->
-            cases, e
+         [cases; e], [] ->
+            (match eval_value venv pos cases with
+                ValCases cases ->
+                   cases, e
+              | _ ->
+                   raise (OmakeException (pos, StringError "malformed try expression")))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
@@ -2675,10 +2683,12 @@ let while_fun venv pos loc args kargs =
    let pos = string_pos "while" pos in
    let cases, arg =
       match args, kargs with
-         [ValCases cases; arg], [] ->
-            cases, arg
-       | [_; _], [] ->
-            raise (OmakeException (loc_pos loc pos, SyntaxError "while loop"))
+         [cases; arg], [] ->
+            (match eval_value venv pos cases with
+                ValCases cases ->
+                   cases, arg
+              | _ ->
+                   raise (OmakeException (pos, StringError "malformed while expression")))
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in

@@ -127,6 +127,7 @@ let print_result result =
     | ValFunCurry _
     | ValPrim _
     | ValPrimCurry _
+    | ValStringExp _
     | ValBody _
     | ValRules _
     | ValOther _

@@ -51,13 +51,13 @@ let free_vars_add = VarInfoSet.add
 let free_vars_remove = VarInfoSet.remove
 
 let free_vars_remove_param_set fv params =
-   SymbolSet.fold VarInfoSet.remove_private fv params
+   SymbolSet.fold VarInfoSet.remove_param fv params
 
 let free_vars_remove_param_list fv params =
-   List.fold_left VarInfoSet.remove_private fv params
+   List.fold_left VarInfoSet.remove_param fv params
 
-let free_vars_remove_keyword_spec_list fv keywords =
-   List.fold_left (fun fv (v, _) -> VarInfoSet.remove_private fv v) fv keywords
+let free_vars_remove_opt_param_list fv keywords =
+   List.fold_left (fun fv (v, _) -> VarInfoSet.remove_param fv v) fv keywords
 (*
  * Union of two free variable sets.
  *)
@@ -86,8 +86,10 @@ let free_vars_export_info fv info =
  *)
 let rec free_vars_opt_params fv opt_params =
    match opt_params with
-      (_, s) :: opt_params ->
+      (_, Some s) :: opt_params ->
          free_vars_opt_params (free_vars_string_exp fv s) opt_params
+    | (_, None) :: opt_params ->
+         free_vars_opt_params fv opt_params
     | [] ->
          fv
 
@@ -108,11 +110,11 @@ and free_vars_string_exp fv s =
     | KeyApplyString _
     | VarString _ ->
          fv
-    | FunString (_, opt_params, keywords, vars, s, export) ->
+    | FunString (_, opt_params, vars, s, export) ->
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body s in
          let fv_body = free_vars_remove_param_list fv_body vars in
-         let fv_body = free_vars_remove_keyword_spec_list fv_body keywords in
+         let fv_body = free_vars_remove_opt_param_list fv_body opt_params in
          let fv = free_vars_union fv fv_body in
             free_vars_opt_params fv opt_params
     | ApplyString (_, _, v, args, kargs)
@@ -171,11 +173,11 @@ and free_vars_exp fv e =
       LetVarExp (_, v, _, _, s) ->
          let fv = free_vars_remove fv v in
             free_vars_string_exp fv s
-    | LetFunExp (_, v, _, _, opt_params, keywords, vars, el, export) ->
+    | LetFunExp (_, v, _, _, opt_params, vars, el, export) ->
          let fv_body = free_vars_export_info free_vars_empty export in
          let fv_body = free_vars_exp_list fv_body el in
          let fv_body = free_vars_remove_param_list fv_body vars in
-         let fv_body = free_vars_remove_keyword_spec_list fv_body keywords in
+         let fv_body = free_vars_remove_opt_param_list fv_body opt_params in
          let fv = free_vars_union fv fv_body in
          let fv = free_vars_remove fv v in
             free_vars_opt_params fv opt_params

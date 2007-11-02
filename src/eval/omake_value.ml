@@ -203,6 +203,7 @@ let rec key_of_value venv pos v =
        | ValPrim _
        | ValPrimCurry _
        | ValRules _
+       | ValStringExp _
        | ValBody _
        | ValMap _
        | ValObject _
@@ -248,6 +249,7 @@ let dir_of_value venv pos dir =
        | ValPrim _
        | ValPrimCurry _
        | ValRules _
+       | ValStringExp _
        | ValBody _
        | ValMap _
        | ValObject _
@@ -278,6 +280,7 @@ let node_value_of_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStringExp _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -323,6 +326,7 @@ let dir_value_of_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStringExp _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -409,6 +413,7 @@ let prim_channel_of_value venv pos v =
        | ValSuperApply _
        | ValMethodApply _
        | ValVar _
+       | ValStringExp _
        | ValBody _
        | ValNone
        | ValWhite _
@@ -457,6 +462,7 @@ let in_channel_of_any_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStringExp _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -511,6 +517,7 @@ let out_channel_of_any_value venv pos v =
        | ValMaybeApply _
        | ValSuperApply _
        | ValMethodApply _
+       | ValStringExp _
        | ValBody _
        | ValInt _
        | ValFloat _ ->
@@ -567,6 +574,7 @@ let rec is_glob_value options v =
     | ValMaybeApply _
     | ValSuperApply _
     | ValMethodApply _
+    | ValStringExp _
     | ValBody _
     | ValInt _
     | ValFloat _
