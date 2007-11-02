@@ -237,16 +237,13 @@ let key_strategy_is_eager be_eager strategy =
     | LazyApply ->
          false
 
-let strategy_is_eager be_eager strategy v =
-   match strategy, v with
-      EagerApply, _
-    | NormalApply, VarPrivate _ ->
+let strategy_is_eager be_eager strategy =
+   match strategy with
+      EagerApply ->
          true
-    | NormalApply, _ ->
+    | NormalApply ->
          be_eager
-    | LazyApply, VarPrivate _ ->
-         not be_eager
-    | LazyApply, _ ->
+    | LazyApply ->
          false
 
 (*
@@ -1822,12 +1819,12 @@ and eval_string_exp be_eager venv pos s =
             let env = venv_get_env venv in
                ValFun (ArityExact 0, env, keywords, params, body, export)
        | ApplyString (loc, strategy, v, [], []) ->
-            if strategy_is_eager be_eager strategy v then
+            if strategy_is_eager be_eager strategy then
                eval_var venv pos loc (venv_find_var venv pos loc v)
             else
                ValApply (loc, v, [], [])
        | ApplyString (loc, strategy, v, args, kargs) ->
-            if strategy_is_eager be_eager strategy v then
+            if strategy_is_eager be_eager strategy then
                eval_apply_string_exp venv venv pos loc (venv_find_var venv pos loc v) args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
@@ -1842,7 +1839,7 @@ and eval_string_exp be_eager venv pos s =
                let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
                   ValSuperApply (loc, super, v, args, kargs)
        | MethodApplyString (loc, strategy, v, vl, args, kargs) ->
-            if strategy_is_eager be_eager strategy v then
+            if strategy_is_eager be_eager strategy then
                let venv_obj, v = eval_find_method venv pos loc v vl in
                   eval_apply_string_exp venv venv_obj pos loc v args kargs
             else
@@ -2116,12 +2113,12 @@ and eval_string_export_exp be_eager venv pos s =
             let env = venv_get_env venv in
                venv, ValFun (ArityExact 0, env, keywords, params, body, export)
        | ApplyString (loc, strategy, v, [], []) ->
-            if strategy_is_eager be_eager strategy v then
+            if strategy_is_eager be_eager strategy then
                eval_var_export venv pos loc (venv_find_var venv pos loc v)
             else
                venv, ValApply (loc, v, [], [])
        | ApplyString (loc, strategy, v, args, kargs) ->
-            if strategy_is_eager be_eager strategy v then
+            if strategy_is_eager be_eager strategy then
                eval_apply_string_export_exp venv venv pos loc (venv_find_var venv pos loc v) args kargs
             else
                let args = List.map (eval_string_exp false venv pos) args in
@@ -2136,7 +2133,7 @@ and eval_string_export_exp be_eager venv pos s =
                let kargs = List.map (eval_keyword_string_exp false venv pos) kargs in
                   venv, ValSuperApply (loc, super, v, args, kargs)
        | MethodApplyString (loc, strategy, v, vl, args, kargs) ->
-            if strategy_is_eager be_eager strategy v then
+            if strategy_is_eager be_eager strategy then
                let venv_obj, path, v = eval_with_method venv pos loc v vl in
                   eval_apply_method_export_exp venv venv_obj pos loc path v args kargs
             else
