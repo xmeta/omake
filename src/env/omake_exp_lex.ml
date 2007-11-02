@@ -32,6 +32,7 @@ open Omake_ast
 open Omake_pos
 open Omake_symbol
 open Omake_ast_util
+open Omake_ast_print
 open Omake_exp_parse
 open Omake_value_type
 
@@ -202,6 +203,21 @@ type mode =
    ProgramMode
  | NormalMode
 
+let languages = "legal languages are (program, make); you said"
+
+let language_mode loc pattern source =
+   let pos = string_pos "language_mode" (loc_exp_pos loc) in
+      if SymbolTable.cardinal source <> 1 || not (SymbolTable.mem source normal_sym) then
+         raise (OmakeException (pos, StringError "illegal language"));
+      match SymbolTable.find source normal_sym with
+         StringIdExp (s, _) ->
+            (match s with
+                "program" -> ProgramMode
+              | "make" -> NormalMode
+              | _ -> raise (OmakeException (pos, StringStringError (languages, s))))
+       | e ->
+            raise (OmakeException (pos, StringAstError (languages, e)))
+
 (*
  * Perform the ast->ast translation.
  *)
@@ -315,12 +331,14 @@ and translate_body mode el =
          []
     | e :: el ->
          match e with
-            CommandExp (v, e, body, loc) when Lm_symbol.eq v program_syntax_sym ->
-               if body = [] then
-                  translate_exp_list ProgramMode el
-               else
-                  CommandExp (section_sym, e, translate_exp_list ProgramMode body, loc)
-                  :: translate_body mode el
+            (* JYH: this kind of matching is very fragile *)
+            RuleExp (_, SequenceExp ([StringOpExp (".", _); StringIdExp ("LANGUAGE", _)], _), pattern, source, body, loc) ->
+               let new_mode = language_mode loc pattern source in
+                  (match body with
+                      [] ->
+                         translate_body new_mode el
+                    | _ :: _ ->
+                         CommandExp (section_sym, e, translate_body new_mode body, loc) :: translate_body mode el)
           | _ ->
                translate_exp mode e :: translate_body mode el
 

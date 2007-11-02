@@ -213,8 +213,6 @@ let foreach_sym   = Lm_symbol.add "foreach"
 let fun_sym       = Lm_symbol.add "fun"
 let set_sym       = Lm_symbol.add "set"
 
-let program_syntax_sym   = Lm_symbol.add "program-syntax"
-
 let neg_fun_sym       = Lm_symbol.add "neg"
 let add_fun_sym       = Lm_symbol.add "add"
 let sub_fun_sym       = Lm_symbol.add "sub"
