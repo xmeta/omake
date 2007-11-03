@@ -69,7 +69,7 @@ type venv
  *)
 type partial_apply =
    FullApply    of venv * value list * keyword_value list
- | PartialApply of env * keyword_value list * keyword_param_value list * var list * keyword_value list
+ | PartialApply of env * param_value list * keyword_param_value list * param list * keyword_value list
 
 (*
  * Command lists are used for rule bodies.
@@ -254,14 +254,14 @@ val venv_add_args      : venv -> pos -> loc -> env -> param list -> value list -
 val venv_with_args     : venv -> pos -> loc -> param list -> value list -> keyword_param_value list -> keyword_value list -> venv
 
 val venv_add_curry_args : venv -> pos -> loc
-    -> env -> keyword_value list -> param list -> value list
+    -> env -> param_value list -> param list -> value list
     -> keyword_param_value list -> keyword_value list -> keyword_value list
     -> venv * value list * keyword_value list
 val venv_add_partial_args : venv -> pos -> loc
-    -> env -> keyword_value list -> param list -> value list
+    -> env -> param_value list -> param list -> value list
     -> keyword_param_value list -> keyword_value list -> keyword_value list
     -> partial_apply
-val venv_with_partial_args : venv -> env -> keyword_value list -> venv
+val venv_with_partial_args : venv -> env -> param_value list -> venv
 
 val venv_add_wild_match  : venv -> value -> venv
 val venv_add_match_values : venv -> value list -> venv

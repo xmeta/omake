@@ -235,8 +235,6 @@ let squash_var_set buf vars =
          Hash.add_code buf CodeSpace;
          squash_var buf v) vars
 
-let squash_params = squash_vars
-
 let squash_var_info buf v =
    match v with
       VarPrivate (_, v) ->
@@ -255,6 +253,19 @@ let squash_var_info buf v =
          Hash.add_code buf CodeVarGlobal;
          Hash.add_code buf CodeSpace;
          squash_var buf v
+
+let rec squash_var_info_list buf vars =
+   match vars with
+      [v] ->
+         squash_var_info buf v
+    | v :: vars ->
+         squash_var_info buf v;
+         Hash.add_code buf CodeSpace;
+         squash_var_info_list buf vars
+    | [] ->
+         ()
+
+let squash_params = squash_var_info_list
 
 let squash_keyword_spec buf (v, required) =
    Hash.add_code buf CodeKeywordSpec;
@@ -468,9 +479,11 @@ and squash_keyword_exp_list pos buf kargs =
 
 and squash_keyword_param_list pos buf kargs =
    match kargs with
-      (v, opt_arg) :: kargs ->
+      (v, v_info, opt_arg) :: kargs ->
          Hash.add_code buf CodeSpace;
          squash_var buf v;
+         Hash.add_code buf CodeSpace;
+         squash_var_info buf v_info;
          Hash.add_code buf CodeSpace;
          squash_opt_string_exp pos buf opt_arg;
          squash_keyword_param_list pos buf kargs
@@ -719,7 +732,7 @@ let rec squash_value pos buf v =
             squash_export_info buf export
        | ValFunCurry (_, _, args, keywords, params, body, export, kargs) ->
             Hash.add_code buf CodeValFunCurry;
-            squash_keyword_values pos buf args;
+            squash_param_values pos buf args;
             Hash.add_code buf CodeSpace;
             squash_keyword_param_values pos buf keywords;
             Hash.add_code buf CodeSpace;
@@ -802,6 +815,17 @@ and squash_values pos buf vl =
     | [] ->
          ()
 
+and squash_param_values pos buf kargs =
+   match kargs with
+      (v, arg) :: kargs ->
+         Hash.add_code buf CodeSpace;
+         squash_var_info buf v;
+         Hash.add_code buf CodeSpace;
+         squash_value pos buf arg;
+         squash_param_values pos buf kargs
+    | [] ->
+         ()
+
 and squash_keyword_values pos buf kargs =
    match kargs with
       (v, arg) :: kargs ->
@@ -815,9 +839,11 @@ and squash_keyword_values pos buf kargs =
 
 and squash_keyword_param_values pos buf kargs =
    match kargs with
-      (v, opt_arg) :: kargs ->
+      (v, v_info, opt_arg) :: kargs ->
          Hash.add_code buf CodeSpace;
          squash_var buf v;
+         Hash.add_code buf CodeSpace;
+         squash_var_info buf v_info;
          Hash.add_code buf CodeSpace;
          squash_opt_value pos buf opt_arg;
          squash_keyword_param_values pos buf kargs

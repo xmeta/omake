@@ -137,6 +137,8 @@ let pp_print_var_info buf v =
          fprintf buf "global.%a" (**)
             pp_print_symbol v
 
+let pp_print_param = pp_print_var_info
+
 (*
  * Print the export info.
  *)
@@ -298,37 +300,37 @@ and pp_print_curry buf flag =
 and pp_print_params_inner buf sl =
    match sl with
       [v] ->
-         pp_print_symbol buf v
+         pp_print_param buf v
     | [] ->
          ()
     | v :: sl ->
-         fprintf buf "%a, " pp_print_symbol v;
+         fprintf buf "%a, " pp_print_param v;
          pp_print_params_inner buf sl
 
 and pp_print_params buf sl =
    pp_print_params_inner buf sl
 
-and pp_print_opt_param complete buf param =
+and pp_print_keyword_param complete buf param =
    match param with
-      (v, Some s) ->
-         fprintf buf "@[<hv 3>?%a =@ %a@]" pp_print_symbol v (pp_print_string_exp complete) s
-    | (v, None) ->
-         fprintf buf "@[<hv 3>~%a@]" pp_print_symbol v
+      (v1, v2, Some s) ->
+         fprintf buf "@[<hv 3>?%a (%a) =@ %a@]" pp_print_symbol v1 pp_print_param v2 (pp_print_string_exp complete) s
+    | (v1, v2, None) ->
+         fprintf buf "@[<hv 3>~%a (%a)@]" pp_print_symbol v1 pp_print_param v2
 
-and pp_print_opt_params complete buf params =
+and pp_print_keyword_params complete buf params =
    match params with
       [p] ->
-         pp_print_opt_param complete buf p
+         pp_print_keyword_param complete buf p
     | p :: params ->
-         fprintf buf "%a,@ " (pp_print_opt_param complete) p;
-         pp_print_opt_params complete buf params
+         fprintf buf "%a,@ " (pp_print_keyword_param complete) p;
+         pp_print_keyword_params complete buf params
     | [] ->
          ()
 
 and pp_print_all_params complete buf = function
    [], params -> pp_print_params buf params
- | opt_params, [] -> pp_print_opt_params complete buf opt_params
- | opt_params, params -> fprintf buf "%a,@ %a" (pp_print_opt_params complete) opt_params pp_print_params params
+ | opt_params, [] -> pp_print_keyword_params complete buf opt_params
+ | opt_params, params -> fprintf buf "%a,@ %a" (pp_print_keyword_params complete) opt_params pp_print_params params
 
 and pp_print_normal_args complete buf first args =
    match args with

@@ -983,18 +983,18 @@ let check_duplicate_keyword pos keywords v =
 let senv_add_params genv oenv senv cenv pos params =
    let senv, keywords, params =
       List.fold_left (fun (senv, keywords, params) (v, info, loc) ->
-            let senv, _ = senv_define_var VarScopeVirtual genv oenv senv cenv pos loc v in
+            let senv, v_info = senv_define_var VarScopeVirtual genv oenv senv cenv pos loc v in
                match info with
                   NormalParam ->
-                     senv, keywords, v :: params
+                     senv, keywords, v_info :: params
                 | RequiredParam ->
                      check_duplicate_keyword pos keywords v;
-                     senv, SymbolTable.add keywords v None, params
+                     senv, SymbolTable.add keywords v (v_info, None), params
                 | OptionalParam s ->
                      check_duplicate_keyword pos keywords v;
-                     senv, SymbolTable.add keywords v (Some s), params) (senv, SymbolTable.empty, []) params
+                     senv, SymbolTable.add keywords v (v_info, Some s), params) (senv, SymbolTable.empty, []) params
    in
-   let keywords = SymbolTable.fold (fun keywords v x -> (v, x) :: keywords) [] keywords in
+   let keywords = SymbolTable.fold (fun keywords v (v_info, x) -> (v, v_info, x) :: keywords) [] keywords in
    let keywords = List.rev keywords in
    let params = List.rev params in
       senv, keywords, params

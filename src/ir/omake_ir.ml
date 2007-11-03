@@ -36,9 +36,7 @@ open Omake_node_sig
 open Omake_node
 
 (* %%MAGICBEGIN%% *)
-(* Revision 11955: Jason fixed "a terrible typo in Omake_ir_semant" *)
 type var = symbol
-type param = symbol
 type keyword = symbol
 type curry_flag = bool
 
@@ -94,6 +92,8 @@ type var_info =
  | VarThis           of loc * var
  | VarVirtual        of loc * var
  | VarGlobal         of loc * var
+
+type param = var_info
 
 (*
  * A symbol table maps variables to their info.
@@ -160,7 +160,7 @@ and source_table = string_exp SymbolTable.t
 (*
  * Optional function arguments.
  *)
-and keyword_param = var * string_exp option
+and keyword_param = var * param * string_exp option
 
 (*
  * Arguments are a pair of normal arguments and keyword arguments.
@@ -318,24 +318,7 @@ struct
             1
 end;;
 
-module VarInfoSet =
-struct
-   module Set = Lm_set.LmMake (VarInfoCompare);;
-   include Set;;
-
-   let loc = bogus_loc "VarInfoSet"
-
-   (* Remove classes of variables *)
-   let remove_private set v =
-      remove set (VarPrivate (loc, v))
-
-   let remove_virtual set v =
-      remove set (VarVirtual (loc, v))
-
-   (* Parameters are always private *)
-   let remove_param = remove_virtual
-end;;
-
+module VarInfoSet = Lm_set.LmMake (VarInfoCompare);;
 module VarInfoTable = Lm_map.LmMake (VarInfoCompare);;
 
 let var_equal v1 v2 =

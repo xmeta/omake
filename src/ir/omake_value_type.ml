@@ -83,8 +83,8 @@ type value =
  | ValCases       of (var * value * exp list * export) list
 
    (* Functions *)
- | ValFun         of arity * env * keyword_param_value list * var list * exp list * export
- | ValFunCurry    of arity * env * keyword_value list * keyword_param_value list * var list * exp list * export * keyword_value list
+ | ValFun         of arity * env * keyword_param_value list * param list * exp list * export
+ | ValFunCurry    of arity * env * param_value list * keyword_param_value list * param list * exp list * export * keyword_value list
 
    (* Closed values *)
  | ValApply       of loc * var_info * value list * keyword_value list
@@ -128,8 +128,9 @@ and value_delayed =
 (*
  * Arguments have an optional keyword.
  *)
+and param_value = param * value
 and keyword_value = var * value
-and keyword_param_value = var * value option
+and keyword_param_value = var * param * value option
 
 (*
  * Primitives are option refs.

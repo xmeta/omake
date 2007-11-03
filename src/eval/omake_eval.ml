@@ -1833,7 +1833,7 @@ and eval_string_exp be_eager venv pos s =
             else
                ValKeyApply (loc, v)
        | FunString (loc, opt_params, params, body, export) ->
-            let opt_params = eval_opt_params_exp be_eager venv pos opt_params in
+            let opt_params = eval_keyword_param_value_list_exp be_eager venv pos opt_params in
             let env = venv_get_env venv in
                ValFun (ArityExact 0, env, opt_params, params, body, export)
        | ApplyString (loc, strategy, v, [], []) ->
@@ -1895,13 +1895,13 @@ and eval_string_exp be_eager venv pos s =
 and eval_keyword_string_exp be_eager venv pos (v, s) =
    v, eval_string_exp be_eager venv pos s
 
-and eval_opt_params_exp be_eager venv pos opt_params =
-   List.map (eval_opt_param_exp be_eager venv pos) opt_params
+and eval_keyword_param_value_list_exp be_eager venv pos opt_params =
+   List.map (eval_keyword_param_value_exp be_eager venv pos) opt_params
 
-and eval_opt_param_exp be_eager venv pos = function
-   v, Some s ->
-      v, Some (eval_string_exp be_eager venv pos s)
- | _, None as param ->
+and eval_keyword_param_value_exp be_eager venv pos = function
+   v, v_info, Some s ->
+      v, v_info, Some (eval_string_exp be_eager venv pos s)
+ | _, _, None as param ->
       param
 
 and eval_prim_arg_exp be_eager venv pos s =
@@ -2137,7 +2137,7 @@ and eval_string_export_exp be_eager venv pos s =
             else
                venv, ValKeyApply (loc, v)
        | FunString (loc, opt_params, params, body, export) ->
-            let opt_params = eval_opt_params_exp be_eager venv pos opt_params in
+            let opt_params = eval_keyword_param_value_list_exp be_eager venv pos opt_params in
             let env = venv_get_env venv in
                venv, ValFun (ArityExact 0, env, opt_params, params, body, export)
        | ApplyString (loc, strategy, v, [], []) ->
@@ -2313,7 +2313,7 @@ and eval_let_key_exp venv pos v flag s =
  * Function definitions.
  *)
 and eval_let_fun_exp venv pos loc v curry opt_params params body export =
-   let opt_params = eval_opt_params_exp true venv pos opt_params in
+   let opt_params = eval_keyword_param_value_list_exp true venv pos opt_params in
    let env = venv_get_env venv in
    let e =
       if curry then
@@ -2325,7 +2325,7 @@ and eval_let_fun_exp venv pos loc v curry opt_params params body export =
       venv, e
 
 and eval_let_fun_field_exp venv pos loc v vl curry opt_params params body export =
-   let opt_params = eval_opt_params_exp true venv pos opt_params in
+   let opt_params = eval_keyword_param_value_list_exp true venv pos opt_params in
    let env = venv_get_env venv in
    let e =
       if curry then

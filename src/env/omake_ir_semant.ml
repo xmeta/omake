@@ -265,13 +265,13 @@ and build_keyword_string_list env kargs =
 
 and build_keyword_param_list env kargs =
    let has_return, kargs =
-      List.fold_left (fun (has_return, sl) (v, s_opt) ->
+      List.fold_left (fun (has_return, sl) (v, v_info, s_opt) ->
             match s_opt with
                Some s ->
                   let has_return2, s = build_string env s in
-                     has_return || has_return2, (v, Some s) :: sl
+                     has_return || has_return2, (v, v_info, Some s) :: sl
              | None ->
-                  has_return, (v, None) :: sl) (false, []) kargs
+                  has_return, (v, v_info, None) :: sl) (false, []) kargs
    in
       has_return, List.rev kargs
 

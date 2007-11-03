@@ -362,7 +362,7 @@ type include_scope =
  *)
 type partial_apply =
    FullApply    of venv * value list * keyword_value list
- | PartialApply of env * keyword_value list * keyword_param_value list * var list * keyword_value list
+ | PartialApply of env * param_value list * keyword_param_value list * param list * keyword_value list
 
 (************************************************************************
  * Access to the globals.
@@ -1225,41 +1225,39 @@ let venv_add_var venv v s =
 (*
  * Add the arguments given an environment.
  *)
-let rec venv_add_keyword_args pos env keywords kargs =
+let rec venv_add_keyword_args pos venv keywords kargs =
    match keywords, kargs with
-      (v1, opt_arg) :: keywords_tl, (v2, arg) :: kargs_tl ->
+      (v1, v_info, opt_arg) :: keywords_tl, (v2, arg) :: kargs_tl ->
          let i = Lm_symbol.compare v1 v2 in
             if i = 0 then
-               venv_add_keyword_args pos (SymbolTable.add env v1 arg) keywords_tl kargs_tl
+               venv_add_keyword_args pos (venv_add_var venv v_info arg) keywords_tl kargs_tl
             else if i < 0 then
                match opt_arg with
                   Some arg ->
-                     venv_add_keyword_args pos (SymbolTable.add env v1 arg) keywords_tl kargs
+                     venv_add_keyword_args pos (venv_add_var venv v_info arg) keywords_tl kargs
                 | None ->
                      raise (OmakeException (pos, StringVarError ("keyword argument is required", v1)))
             else
                raise (OmakeException (pos, StringVarError ("no such keyword", v2)))
-    | (v1, None) :: _, [] ->
+    | (v1, _, None) :: _, [] ->
          raise (OmakeException (pos, StringVarError ("keyword argument is required", v1)))
-    | (v1, Some arg) :: keywords_tl, [] ->
-         venv_add_keyword_args pos (SymbolTable.add env v1 arg) keywords_tl kargs
+    | (v1, v_info, Some arg) :: keywords_tl, [] ->
+         venv_add_keyword_args pos (venv_add_var venv v_info arg) keywords_tl kargs
     | [], [] ->
-         env
+         venv
     | [], (v2, _) :: _ ->
          raise (OmakeException (pos, StringVarError ("no such keyword", v2)))
 
 let venv_add_args venv pos loc static params args keywords kargs =
-   let dynamic = venv_add_keyword_args pos venv.venv_dynamic keywords kargs in
+   let venv = { venv with venv_static = static } in
+   let venv = venv_add_keyword_args pos venv keywords kargs in
    let len1 = List.length params in
    let len2 = List.length args in
    let () =
       if len1 <> len2 then
          raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact len1, len2)))
    in
-   let dynamic = List.fold_left2 SymbolTable.add dynamic params args in
-      { venv with venv_static = static;
-                  venv_dynamic = dynamic
-      }
+      List.fold_left2 venv_add_var venv params args
 
 (*
  * Add the arguments to the given static environment.
@@ -1304,75 +1302,64 @@ let merge_kargs pos kargs1 kargs2 =
          collect_merge_kargs pos [] kargs1 kargs2
 
 let add_partial_args venv args =
-   List.fold_left (fun env (v, arg) ->
-         SymbolTable.add env v arg) venv.venv_dynamic args
+   List.fold_left (fun venv (v, arg) ->
+         venv_add_var venv v arg) venv args
 
-let rec apply_curry_args pos env skipped_kargs params args =
+let rec apply_curry_args pos venv skipped_kargs params args =
    match params, args with
       [], _ ->
-         env, args, List.rev skipped_kargs
+         venv, args, List.rev skipped_kargs
     | _, [] ->
          raise (OmakeException (pos, ArityMismatch (ArityExact (List.length params), 0)))
     | v :: params, arg :: args ->
-         apply_curry_args pos (SymbolTable.add env v arg) skipped_kargs params args
+         apply_curry_args pos (venv_add_var venv v arg) skipped_kargs params args
 
-let rec venv_add_curry_args pos env params args keywords skipped_kargs kargs =
+let rec venv_add_curry_args pos venv params args keywords skipped_kargs kargs =
    match keywords, kargs with
-      (v1, opt_arg) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
+      (v1, v_info, opt_arg) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
          let i = Lm_symbol.compare v1 v2 in
             if i = 0 then
-               venv_add_curry_args pos (SymbolTable.add env v1 arg) params args keywords_tl skipped_kargs kargs_tl
+               venv_add_curry_args pos (venv_add_var venv v_info arg) params args keywords_tl skipped_kargs kargs_tl
             else if i < 0 then
                match opt_arg with
                   Some arg ->
-                     venv_add_curry_args pos (SymbolTable.add env v1 arg) params args keywords_tl skipped_kargs kargs
+                     venv_add_curry_args pos (venv_add_var venv v_info arg) params args keywords_tl skipped_kargs kargs
                 | None ->
                      raise (OmakeException (pos, StringVarError ("keyword argument is required", v1)));
             else
-               venv_add_curry_args pos env params args keywords (karg :: skipped_kargs) kargs_tl
-    | (v1, None) :: _, [] ->
+               venv_add_curry_args pos venv params args keywords (karg :: skipped_kargs) kargs_tl
+    | (v1, _, None) :: _, [] ->
          raise (OmakeException (pos, StringVarError ("keyword argument is required", v1)))
-    | (v1, Some arg) :: keywords_tl, [] ->
-         venv_add_curry_args pos (SymbolTable.add env v1 arg) params args keywords_tl skipped_kargs kargs
+    | (_, v_info, Some arg) :: keywords_tl, [] ->
+         venv_add_curry_args pos (venv_add_var venv v_info arg) params args keywords_tl skipped_kargs kargs
     | [], karg :: kargs_tl ->
-         venv_add_curry_args pos env params args keywords (karg :: skipped_kargs) kargs_tl
+         venv_add_curry_args pos venv params args keywords (karg :: skipped_kargs) kargs_tl
     | [], [] ->
-         apply_curry_args pos env skipped_kargs params args
+         apply_curry_args pos venv skipped_kargs params args
 
 let venv_add_curry_args venv pos loc static pargs params args keywords kargs1 kargs2 =
-   let dynamic = add_partial_args venv pargs in
-   let dynamic, args, skipped_kargs =
-      venv_add_curry_args pos dynamic params args keywords [] (merge_kargs pos kargs1 kargs2)
-   in
-   let venv =
-      { venv with venv_static = static;
-                  venv_dynamic = dynamic
-      }
-   in
-      venv, args, skipped_kargs
+   let venv = { venv with venv_static = static } in
+   let venv = add_partial_args venv pargs in
+      venv_add_curry_args pos venv params args keywords [] (merge_kargs pos kargs1 kargs2)
 
 (*
  * Also provide a form for partial applications.
  *)
-let rec add_partial_keywords pos env = function
-   (v, None) :: _ ->
+let rec add_partial_keywords pos venv = function
+   (v, _, None) :: _ ->
       raise (OmakeException (pos, StringVarError ("keyword argument is required", v)))
- | (v, Some arg) :: keywords_tl ->
-      add_partial_keywords pos (SymbolTable.add env v arg) keywords_tl
+ | (_, v_info, Some arg) :: keywords_tl ->
+      add_partial_keywords pos (venv_add_var venv v_info arg) keywords_tl
  | [] ->
-      env
+      venv
 
 let rec apply_partial_args venv pos loc static env skipped_keywords keywords skipped_kargs params args =
    match params, args with
       [], _ ->
-         let env = add_partial_args venv env in
-         let env = add_partial_keywords pos env skipped_keywords in
-         let env = add_partial_keywords pos env keywords in
-         let venv =
-            { venv with venv_dynamic = env;
-                        venv_static = static
-            }
-         in
+         let venv = { venv with venv_static = static } in
+         let venv = add_partial_args venv env in
+         let venv = add_partial_keywords pos venv skipped_keywords in
+         let venv = add_partial_keywords pos venv keywords in
             FullApply (venv, args, List.rev skipped_kargs)
     | _, [] ->
          PartialApply (static, env, List.rev_append skipped_keywords keywords, params, List.rev skipped_kargs)
@@ -1381,10 +1368,10 @@ let rec apply_partial_args venv pos loc static env skipped_keywords keywords ski
 
 let rec venv_add_partial_args venv pos loc static env params args skipped_keywords keywords skipped_kargs kargs =
    match keywords, kargs with
-      ((v1, opt_arg) as key) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
+      ((v1, v_info, opt_arg) as key) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
          let i = Lm_symbol.compare v1 v2 in
             if i = 0 then
-               venv_add_partial_args venv pos loc static ((v1, arg) ::env) params args skipped_keywords keywords_tl skipped_kargs kargs_tl
+               venv_add_partial_args venv pos loc static ((v_info, arg) :: env) params args skipped_keywords keywords_tl skipped_kargs kargs_tl
             else if i < 0 then
                venv_add_partial_args venv pos loc static env params args (key :: skipped_keywords) keywords_tl skipped_kargs kargs
             else
@@ -1400,9 +1387,8 @@ let venv_add_partial_args venv pos loc static pargs params args keywords kargs1 
    venv_add_partial_args venv pos loc static pargs params args [] keywords [] (merge_kargs pos kargs1 kargs2)
 
 let venv_with_partial_args venv env args =
-   { venv with venv_static = env;
-               venv_dynamic = add_partial_args venv args
-   }
+   let venv = { venv with venv_static = env } in
+      add_partial_args venv args
 
 (*
  * The system environment.

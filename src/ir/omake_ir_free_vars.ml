@@ -50,14 +50,11 @@ let free_vars_empty = VarInfoSet.empty
 let free_vars_add = VarInfoSet.add
 let free_vars_remove = VarInfoSet.remove
 
-let free_vars_remove_param_set fv params =
-   SymbolSet.fold VarInfoSet.remove_param fv params
-
 let free_vars_remove_param_list fv params =
-   List.fold_left VarInfoSet.remove_param fv params
+   List.fold_left VarInfoSet.remove fv params
 
 let free_vars_remove_opt_param_list fv keywords =
-   List.fold_left (fun fv (v, _) -> VarInfoSet.remove_param fv v) fv keywords
+   List.fold_left (fun fv (_, v, _) -> VarInfoSet.remove fv v) fv keywords
 (*
  * Union of two free variable sets.
  *)
@@ -86,9 +83,9 @@ let free_vars_export_info fv info =
  *)
 let rec free_vars_opt_params fv opt_params =
    match opt_params with
-      (_, Some s) :: opt_params ->
+      (_, _, Some s) :: opt_params ->
          free_vars_opt_params (free_vars_string_exp fv s) opt_params
-    | (_, None) :: opt_params ->
+    | (_, _, None) :: opt_params ->
          free_vars_opt_params fv opt_params
     | [] ->
          fv
