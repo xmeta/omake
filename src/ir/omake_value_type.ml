@@ -87,10 +87,6 @@ type value =
  | ValFunCurry    of arity * env * param_value list * keyword_param_value list * param list * exp list * export * keyword_value list
 
    (* Closed values *)
- | ValApply       of loc * var_info * value list * keyword_value list
- | ValSuperApply  of loc * var * var * value list * keyword_value list
- | ValMethodApply of loc * var_info * var list * value list * keyword_value list
- | ValKeyApply    of loc * string
  | ValPrim        of arity * bool * apply_empty_strategy * prim_fun
 
    (* The args, kargs are kept in -reverse- order *)

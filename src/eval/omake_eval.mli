@@ -63,8 +63,7 @@ val eval_sequence_export_exp : venv -> pos -> exp list -> export -> venv * value
 (*
  * String expression evaluation.
  *)
-val eager_string_exp : venv -> pos -> string_exp -> value
-val lazy_string_exp : venv -> pos -> string_exp -> value
+val eval_string_exp : venv -> pos -> string_exp -> value
 
 (*
  * Include the file literally.

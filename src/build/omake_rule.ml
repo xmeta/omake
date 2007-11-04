@@ -766,9 +766,9 @@ let lazy_command venv pos command =
    match command with
       SectionExp (loc, s, el, _) ->
          let fv = free_vars_exp_list el in
-            CommandSection (eager_string_exp venv pos s, fv, el)
+            CommandSection (eval_string_exp venv pos s, fv, el)
     | ShellExp (loc, s) ->
-         CommandValue (loc, lazy_string_exp venv pos s)
+         CommandValue (loc, ValStringExp (venv_get_env venv, s))
     | _ ->
          let fv = free_vars_exp command in
             CommandSection (ValData "eval", fv, [command])

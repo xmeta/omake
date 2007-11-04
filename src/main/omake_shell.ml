@@ -114,11 +114,7 @@ let print_result result =
     | ValString _
     | ValNode _
     | ValDir _
-    | ValKeyApply _
-    | ValApply _
     | ValMaybeApply _
-    | ValSuperApply _
-    | ValMethodApply _
     | ValVar _
     | ValObject _
     | ValMap _
@@ -238,7 +234,7 @@ let rec main state senv venv result =
 
    let prompt =
       try
-         let prompt = ValApply (loc, VarVirtual (loc, prompt_sym), [], []) in
+         let prompt = ValStringExp (venv_get_env venv, ApplyString (loc, VarVirtual (loc, prompt_sym), [], [])) in
             string_of_value venv pos prompt
       with
          OmakeException _

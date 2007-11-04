@@ -435,11 +435,7 @@ let sequence_length venv pos loc args =
                 | ValVar _ ->
                      0
                 | ValStringExp _
-                | ValKeyApply _
-                | ValApply _
                 | ValMaybeApply _
-                | ValSuperApply _
-                | ValMethodApply _
                 | ValDelayed _ ->
                      raise (Invalid_argument "Omake_builtin_base.length")
             in
@@ -465,11 +461,7 @@ let sequence_nth venv pos loc args =
                  | ValPrim _
                  | ValPrimCurry _
                  | ValStringExp _
-                 | ValKeyApply _
-                 | ValApply _
                  | ValMaybeApply _
-                 | ValSuperApply _
-                 | ValMethodApply _
                  | ValDelayed _
                  | ValMap _
                  | ValObject _ ->
@@ -542,11 +534,7 @@ let sequence_nth_tl venv pos loc args =
                  | ValFunCurry _
                  | ValPrim _
                  | ValPrimCurry _
-                 | ValKeyApply _
-                 | ValApply _
                  | ValMaybeApply _
-                 | ValSuperApply _
-                 | ValMethodApply _
                  | ValDelayed _
                  | ValMap _
                  | ValObject _
@@ -618,11 +606,7 @@ let sequence_nonempty venv pos loc args =
                  | ValPrim _
                  | ValPrimCurry _
                  | ValStringExp _
-                 | ValKeyApply _
-                 | ValApply _
                  | ValMaybeApply _
-                 | ValSuperApply _
-                 | ValMethodApply _
                  | ValDelayed _
                  | ValMap _
                  | ValObject _ ->
@@ -681,11 +665,7 @@ let sequence_sub venv pos loc args =
                  | ValFunCurry _
                  | ValPrim _
                  | ValPrimCurry _
-                 | ValKeyApply _
-                 | ValApply _
                  | ValMaybeApply _
-                 | ValSuperApply _
-                 | ValMethodApply _
                  | ValDelayed _
                  | ValMap _
                  | ValObject _
@@ -755,11 +735,7 @@ let sequence_rev venv pos loc args =
                  | ValFunCurry _
                  | ValPrim _
                  | ValPrimCurry _
-                 | ValKeyApply _
-                 | ValApply _
                  | ValMaybeApply _
-                 | ValSuperApply _
-                 | ValMethodApply _
                  | ValDelayed _
                  | ValMap _
                  | ValObject _

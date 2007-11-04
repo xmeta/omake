@@ -59,15 +59,6 @@ let pp_print_match_kind out kind =
       pp_print_string out s
 
 (*
- * Print the evaluation strategy.
- *)
-let pp_print_strategy buf s =
-   match s with
-      LazyApply -> pp_print_char buf '\''
-    | EagerApply -> pp_print_char buf ','
-    | NormalApply -> ()
-
-(*
  * Arities.
  *)
 let pp_print_arity buf arity =
@@ -190,43 +181,37 @@ let rec pp_print_string_exp complete buf s =
          fprintf buf "'%s'" (String.escaped s)
     | ConstString (_, s) ->
          fprintf buf "\"%s\"" (String.escaped s)
-    | KeyApplyString (_, strategy, s) ->
-         fprintf buf "$%a|%s|" pp_print_strategy strategy s
+    | KeyApplyString (_, s) ->
+         fprintf buf "$|%s|" s
     | FunString (_, opt_params, params, e, export) ->
          fprintf buf "@[<hv 3>(fun %a =>@ %a%a)@]" (**)
             (pp_print_all_params complete) (opt_params, params)
             (pp_print_exp_list complete) e
             pp_print_export_info export
-    | ApplyString (_, strategy, v, [], []) ->
-         fprintf buf "@[<hv 3>$%a(%a)@]" (**)
-            pp_print_strategy strategy
+    | ApplyString (_, v, [], []) ->
+         fprintf buf "@[<hv 3>$(%a)@]" (**)
             pp_print_var_info v
     | VarString (_, v) ->
          fprintf buf "`%a" pp_print_var_info v
-    | ApplyString (_, strategy, v, args, kargs) ->
-         fprintf buf "@[<hv 3>$%a(%a %a)@]" (**)
-            pp_print_strategy strategy
+    | ApplyString (_, v, args, kargs) ->
+         fprintf buf "@[<hv 3>$(%a %a)@]" (**)
             pp_print_var_info v
             (pp_print_args complete) (args, kargs)
-    | SuperApplyString (_, strategy, super, v, [], []) ->
-         fprintf buf "@[<hv 3>$%a(%a::%a)@]" (**)
-            pp_print_strategy strategy
+    | SuperApplyString (_, super, v, [], []) ->
+         fprintf buf "@[<hv 3>$(%a::%a)@]" (**)
             pp_print_symbol super
             pp_print_symbol v
-    | SuperApplyString (_, strategy, super, v, args, kargs) ->
-         fprintf buf "@[<hv 3>$%a(%a::%a %a)@]" (**)
-            pp_print_strategy strategy
+    | SuperApplyString (_, super, v, args, kargs) ->
+         fprintf buf "@[<hv 3>$(%a::%a %a)@]" (**)
             pp_print_symbol super
             pp_print_symbol v
             (pp_print_args complete) (args, kargs)
-    | MethodApplyString (_, strategy, v, vl, [], []) ->
-         fprintf buf "@[<hv 3>$%a(%a.%a)@]" (**)
-            pp_print_strategy strategy
+    | MethodApplyString (_, v, vl, [], []) ->
+         fprintf buf "@[<hv 3>$(%a.%a)@]" (**)
             pp_print_var_info v
             pp_print_method_name vl
-    | MethodApplyString (_, strategy, v, vl, args, kargs) ->
-         fprintf buf "@[<hv 3>$%a(%a.%a %a)@]" (**)
-            pp_print_strategy strategy
+    | MethodApplyString (_, v, vl, args, kargs) ->
+         fprintf buf "@[<hv 3>$(%a.%a %a)@]" (**)
             pp_print_var_info v
             pp_print_method_name vl
             (pp_print_args complete) (args, kargs)
@@ -278,8 +263,15 @@ let rec pp_print_string_exp complete buf s =
             fprintf buf "@]"
          end else
             pp_print_string buf "<cases...>"
-    | ThisString loc ->
+    | ThisString _ ->
          pp_print_string buf "$<this>"
+    | LazyString (_, e) ->
+         fprintf buf "$`[%a]" (pp_print_string_exp complete) e
+    | LetVarString (_, v, e1, e2) ->
+         fprintf buf "@[<hv 2>let %a = %a in@ %a@]" (**)
+            pp_print_var_info v
+            (pp_print_string_exp complete) e1
+            (pp_print_string_exp complete) e2
 
 and pp_print_string_exp_list complete buf sl =
    match sl with

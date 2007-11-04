@@ -199,18 +199,18 @@ let rec build_string env s =
             let renv, e = build_sequence_exp (env_anon_fun env) e in
             let has_return, opt_params = build_keyword_param_list env opt_params in
                renv.renv_has_return || has_return, FunString (loc, opt_params, params, e, export)
-       | ApplyString (loc, strategy, v, args, kargs) ->
+       | ApplyString (loc, v, args, kargs) ->
             let has_return1, args = build_string_list env args in
             let has_return2, kargs = build_keyword_string_list env kargs in
-               has_return1 || has_return2, ApplyString (loc, strategy, v, args, kargs)
-       | SuperApplyString (loc, strategy, v1, v2, args, kargs) ->
+               has_return1 || has_return2, ApplyString (loc, v, args, kargs)
+       | SuperApplyString (loc, v1, v2, args, kargs) ->
             let has_return1, args = build_string_list env args in
             let has_return2, kargs = build_keyword_string_list env kargs in
-               has_return1 || has_return2, SuperApplyString (loc, strategy, v1, v2, args, kargs)
-       | MethodApplyString (loc, strategy, v, vl, args, kargs) ->
+               has_return1 || has_return2, SuperApplyString (loc, v1, v2, args, kargs)
+       | MethodApplyString (loc, v, vl, args, kargs) ->
             let has_return1, args = build_string_list env args in
             let has_return2, kargs = build_keyword_string_list env kargs in
-               has_return1 || has_return2, MethodApplyString (loc, strategy, v, vl, args, kargs)
+               has_return1 || has_return2, MethodApplyString (loc, v, vl, args, kargs)
        | SequenceString (loc, sl) ->
             let has_return, sl = build_string_list env sl in
                has_return, SequenceString (loc, sl)
@@ -246,6 +246,13 @@ let rec build_string env s =
                         has_return, (v, s, e, export) :: cases) (false, []) cases
             in
                has_return, CasesString (loc, List.rev cases)
+       | LazyString (loc, s) ->
+            let has_return, s = build_string env s in
+               has_return, LazyString (loc, s)
+       | LetVarString (loc, v, s1, s2) ->
+            let has_return1, s1 = build_string env s1 in
+            let has_return2, s2 = build_string env s2 in
+               has_return1 || has_return2, LetVarString (loc, v, s1, s2)
 
 and build_string_list env sl =
    let has_return, sl =

@@ -114,12 +114,12 @@ and free_vars_string_exp fv s =
          let fv_body = free_vars_remove_opt_param_list fv_body opt_params in
          let fv = free_vars_union fv fv_body in
             free_vars_opt_params fv opt_params
-    | ApplyString (_, _, v, args, kargs)
-    | MethodApplyString (_, _, v, _, args, kargs) ->
+    | ApplyString (_, v, args, kargs)
+    | MethodApplyString (_, v, _, args, kargs) ->
          let fv = free_vars_string_exp_list fv args in
          let fv = free_vars_keyword_exp_list fv kargs in
             free_vars_add fv v
-    | SuperApplyString (_, _, _, _, args, kargs) ->
+    | SuperApplyString (_, _, _, args, kargs) ->
          let fv = free_vars_string_exp_list fv args in
          let fv = free_vars_keyword_exp_list fv kargs in
             fv
@@ -128,7 +128,8 @@ and free_vars_string_exp fv s =
     | QuoteString (_, sl)
     | QuoteStringString (_, _, sl) ->
          free_vars_string_exp_list fv sl
-    | ArrayOfString (_, s) ->
+    | ArrayOfString (_, s)
+    | LazyString (_, s) ->
          free_vars_string_exp fv s
     | ObjectString (_, e, export)
     | BodyString (_, e, export)
@@ -136,6 +137,10 @@ and free_vars_string_exp fv s =
          free_vars_exp_list (free_vars_export_info fv export) e
     | CasesString (loc, cases) ->
          free_vars_cases fv cases
+    | LetVarString (_, v, e1, e2) ->
+         let fv = free_vars_string_exp fv e1 in
+         let fv = free_vars_remove fv v in
+            free_vars_string_exp fv e1
 
 and free_vars_string_exp_list fv sl =
    match sl with

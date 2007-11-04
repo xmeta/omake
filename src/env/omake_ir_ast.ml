@@ -41,6 +41,7 @@ open Omake_pos
 open Omake_node
 open Omake_symbol
 open Omake_options
+open Omake_ir_util
 open Omake_node_sig
 open Omake_ir_print
 open Omake_value_type
@@ -216,7 +217,8 @@ type cenv =
 
 (*
  * Scoping environment.
- * The values here are affected by exports.
+ * The values here are affected by exports, but otherwise
+ * respect scoping/indentation.
  *)
 type senv =
    { (* Forced, non-private definitions in the current object/file *)
@@ -235,7 +237,7 @@ type senv =
    }
 
 (*
- * Object environment.
+ * "Object" environment.
  *
  * This is an environment that is global to each object.
  * That is, each object gets a fresh environment.
@@ -243,6 +245,17 @@ type senv =
 type oenv =
    { (* Class names for the current object *)
      oenv_class_names     : SymbolSet.t;
+   }
+
+(*
+ * "Lazy" environment.
+ *
+ * This environment is for collecting eager expressions
+ * inside a lazy block.
+ *)
+type genv_lazy =
+   { genv_lazy_mode       : bool;
+     genv_lazy_values     : (loc * string_exp) SymbolTable.t;
    }
 
 (*
@@ -259,7 +272,10 @@ type genv =
      genv_static_index      : int;
 
      (* Count up the number of warnings *)
-     genv_warning_count     : int
+     genv_warning_count     : int;
+
+     (* Lazy mode *)
+     genv_lazy              : genv_lazy
    }
 
 (*
@@ -308,6 +324,19 @@ let is_nonempty_name_info info =
  *)
 let oenv_empty =
    { oenv_class_names   = SymbolSet.empty;
+   }
+
+(*
+ * Empty lazy environment.
+ *)
+let lazy_empty =
+   { genv_lazy_mode   = false;
+     genv_lazy_values = SymbolTable.empty
+   }
+
+let lazy_env =
+   { genv_lazy_mode   = true;
+     genv_lazy_values = SymbolTable.empty
    }
 
 (************************************************************************
@@ -1085,21 +1114,57 @@ let senv_declare_normal_var genv oenv senv cenv pos loc info v =
       senv_define_var scope genv oenv senv cenv pos loc v
 
 (************************************************************************
+ * Lazy mode.
+ *
+ * Strategy handling.  When we enter a lazy mode, we collect any eager parts
+ * in the oenv.
+ *)
+type lazy_state =
+   NormalState
+ | EagerState
+ | LazyState of genv_lazy
+
+let lazy_push_strategy genv strategy =
+   match strategy with
+      Omake_ast.NormalApply
+    | Omake_ast.CommandApply ->
+         genv, NormalState
+    | Omake_ast.EagerApply ->
+         let state = if genv.genv_lazy.genv_lazy_mode then EagerState else NormalState in
+            genv, state
+    | Omake_ast.LazyApply ->
+         (* Push a new lazy state *)
+         let state = LazyState genv.genv_lazy in
+         let genv = { genv with genv_lazy = lazy_env } in
+            genv, state
+
+let lazy_pop_strategy genv state loc e =
+   match state with
+      NormalState ->
+         genv, e
+    | EagerState ->
+         (* Expression was eager *)
+         let i = genv.genv_static_index in
+         let v = Lm_symbol.make "eager.x" i in
+         let lenv = genv.genv_lazy in
+         let lenv = { lenv with genv_lazy_values = SymbolTable.add lenv.genv_lazy_values v (loc, e) } in
+         let genv = { genv with genv_static_index = i + 1; genv_lazy = lenv } in
+         let e = ApplyString (loc, VarPrivate (loc, v), [], []) in
+            genv, e
+    | LazyState lenv_old ->
+         (* Expression was lazy, so pre-evaluate all the eager parts *)
+         let e = LazyString (loc, e) in
+         let e =
+            SymbolTable.fold (fun e1 v (loc, e2) ->
+                  let v = VarPrivate (loc, v) in
+                     LetVarString (loc, v, e2, e1)) e genv.genv_lazy.genv_lazy_values
+         in
+         let genv = { genv with genv_lazy = lenv_old } in
+            genv, e
+
+(************************************************************************
  * Conversion
  *)
-
-(*
- * Strategy conversion.
- *)
-let ir_strategy_of_ast_strategy strategy =
-   match strategy with
-      Omake_ast.LazyApply ->
-         LazyApply
-    | Omake_ast.EagerApply
-    | Omake_ast.CommandApply ->
-         EagerApply
-    | Omake_ast.NormalApply ->
-         NormalApply
 
 (*
  * Literal string.
@@ -1353,7 +1418,9 @@ and build_sequence_string_aux genv oenv senv cenv el pos loc =
                 | ExpString _
                 | CasesString _
                 | VarString _
-                | ThisString _ ->
+                | ThisString _
+                | LazyString _
+                | LetVarString _ ->
                      let args = flush_buffer buf_opt args in
                      let args = e :: args in
                         collect genv oenv None args el
@@ -1488,49 +1555,55 @@ and build_array_string genv oenv senv cenv args pos loc =
  *)
 and build_apply_string genv oenv senv cenv strategy v args pos loc =
    let pos = string_pos "build_apply_string" pos in
-   let strategy = ir_strategy_of_ast_strategy strategy in
-      if Lm_symbol.eq v this_sym then
-         let () =
-            if args <> [] then
-               raise (OmakeException (loc_pos loc pos, StringError "illegal arguments"))
-         in
-            genv, oenv, ThisString loc
+      if Lm_symbol.eq v this_sym then begin
+         if args <> [] then
+            raise (OmakeException (loc_pos loc pos, StringError "illegal arguments"));
+         genv, oenv, ThisString loc
+      end
       else
+         let genv, lazy_state = lazy_push_strategy genv strategy in
          let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
          let oenv, v = senv_find_var genv oenv senv cenv pos loc v in
-            genv, oenv, ApplyString (loc, strategy, v, args, kargs)
+         let e = ApplyString (loc, v, args, kargs) in
+         let genv, e = lazy_pop_strategy genv lazy_state loc e in
+            genv, oenv, e
 
 (*
  * Super call.
  *)
 and build_super_apply_string genv oenv senv cenv strategy super v args pos loc =
    let pos = string_pos "build_super_apply_string" pos in
-   let strategy = ir_strategy_of_ast_strategy strategy in
+   let genv, lazy_state = lazy_push_strategy genv strategy in
    let genv, oenv, args, kargs = build_apply_args genv oenv senv cenv v args pos loc in
-      genv, oenv, SuperApplyString (loc, strategy, super, v, args, kargs)
+   let e = SuperApplyString (loc, super, v, args, kargs) in
+   let genv, e = lazy_pop_strategy genv lazy_state loc e in
+      genv, oenv, e
 
 (*
  * Build a method application.
  *)
 and build_method_apply_string genv oenv senv cenv strategy vars args pos loc =
    let pos = string_pos "build_method_apply_string" pos in
-   let strategy = ir_strategy_of_ast_strategy strategy in
+   let genv, lazy_state = lazy_push_strategy genv strategy in
    let genv, oenv, args, kargs = build_method_apply_args genv oenv senv cenv vars args pos loc in
    let oenv, v, vl = senv_find_method_nocurry_var genv oenv senv cenv pos loc vars in
    let e =
       match vl with
          [] ->
-            ApplyString (loc, strategy, v, args, kargs)
+            ApplyString (loc, v, args, kargs)
        | _ ->
-            MethodApplyString (loc, strategy, v, vl, args, kargs)
+            MethodApplyString (loc, v, vl, args, kargs)
    in
+   let genv, e = lazy_pop_strategy genv lazy_state loc e in
       genv, oenv, e
 
 (*
  * Key application $|xxx|
  *)
 and build_key_apply_string genv oenv senv cenv strategy v pos loc =
-   let e = KeyApplyString (loc, ir_strategy_of_ast_strategy strategy, v) in
+   let genv, lazy_state = lazy_push_strategy genv strategy in
+   let e = KeyApplyString (loc, v) in
+   let genv, e = lazy_pop_strategy genv lazy_state loc e in
       genv, oenv, e
 
 (*
@@ -2026,14 +2099,14 @@ and build_normal_object_exp genv oenv senv cenv info v vl flag body pos loc =
          Omake_ast.DefineNormal ->
             let genv, oenv, senv, info = senv_add_scoped_var genv oenv senv cenv pos loc info v in
             let oenv, parent_var = senv_find_var genv oenv senv cenv pos loc object_sym in
-            let parent_string = ApplyString (loc, EagerApply, parent_var, [], []) in
+            let parent_string = ApplyString (loc, parent_var, [], []) in
                genv, oenv, senv, parent_string, info
        | Omake_ast.DefineAppend ->
             let oenv, parent_var = senv_find_scoped_var genv oenv senv cenv pos loc info v in
             let parent_string =
                match vl with
-                  [] -> ApplyString (loc, EagerApply, parent_var, [], [])
-                | _ -> MethodApplyString (loc, EagerApply, parent_var, vl, [], [])
+                  [] -> ApplyString (loc, parent_var, [], [])
+                | _ -> MethodApplyString (loc, parent_var, vl, [], [])
             in
 
             (* ZZZ: We should just use the previous info.
@@ -2166,7 +2239,7 @@ and build_options_exp genv oenv senv cenv pos loc sources =
        | _ -> create_lazy_map_sym
    in
    let oenv, create_map_var = senv_find_var genv oenv senv cenv pos loc create_map_sym in
-   let options = ApplyString (loc, EagerApply, create_map_var, options, []) in
+   let options = ApplyString (loc, create_map_var, options, []) in
       genv, oenv, options
 
 and build_rule_exp genv oenv senv cenv multiple target pattern sources body pos loc =
@@ -2265,7 +2338,7 @@ and build_memo_rule_exp genv oenv senv cenv multiple is_static names sources bod
    let vars = ArrayString (loc, List.map (fun v -> VarString (loc, v)) vars) in
 
    (* The name has three parts: (file, index, key) *)
-   let file = ApplyString (loc, EagerApply, file_var, [], []) in
+   let file = ApplyString (loc, file_var, [], []) in
    let genv, index = genv_new_index genv in
    let index = ConstString (loc, string_of_int index) in
    let args = [multiple; is_static; file; index; key; vars; source; options; body] in
@@ -2352,7 +2425,8 @@ let genv_create open_file node =
    { genv_open_file      = open_file;
      genv_file           = node;
      genv_static_index   = 0;
-     genv_warning_count  = 0
+     genv_warning_count  = 0;
+     genv_lazy           = lazy_empty
    }
 
 let penv_create open_file venv node =

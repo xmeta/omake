@@ -48,17 +48,6 @@ type apply_empty_strategy =
  | ApplyNonEmpty
 
 (*
- * Evaluation of lazy applications is delayed as much as possible.
- * Eager applications are evaluated even in the scope of a lazy
- * application.  Normal applications are evaluated eagerly, except
- * in the scope of a lazy application.
- *)
-type apply_strategy =
-   LazyApply
- | EagerApply
- | NormalApply
-
-(*
  * Arity of functions.
  *)
 type arity =
@@ -137,9 +126,9 @@ type string_exp =
  | WhiteString       of loc * string
  | ConstString       of loc * string
  | FunString         of loc * keyword_param list * param list * exp list * export
- | ApplyString       of loc * apply_strategy * var_info * string_exp list * keyword_arg list
- | SuperApplyString  of loc * apply_strategy * var * var * string_exp list * keyword_arg list
- | MethodApplyString of loc * apply_strategy * var_info * var list * string_exp list * keyword_arg list
+ | ApplyString       of loc * var_info * string_exp list * keyword_arg list
+ | SuperApplyString  of loc * var * var * string_exp list * keyword_arg list
+ | MethodApplyString of loc * var_info * var list * string_exp list * keyword_arg list
  | SequenceString    of loc * string_exp list
  | ArrayString       of loc * string_exp list
  | ArrayOfString     of loc * string_exp
@@ -149,9 +138,11 @@ type string_exp =
  | BodyString        of loc * exp list * export
  | ExpString         of loc * exp list * export
  | CasesString       of loc * (var * string_exp * exp list * export) list
- | KeyApplyString    of loc * apply_strategy * string
+ | KeyApplyString    of loc * string
  | VarString         of loc * var_info
  | ThisString        of loc
+ | LazyString        of loc * string_exp
+ | LetVarString      of loc * var_info * string_exp * string_exp
 
 and source_exp = node_kind * string_exp
 

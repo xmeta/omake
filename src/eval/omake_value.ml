@@ -195,8 +195,6 @@ let rec key_of_value venv pos v =
             let values = values_of_value venv pos v in
             let values = List.map (key_of_value venv pos) values in
                ValArray values
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
        | ValFun _
        | ValFunCurry _
@@ -207,8 +205,6 @@ let rec key_of_value venv pos v =
        | ValBody _
        | ValMap _
        | ValObject _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValChannel _
        | ValClass _
        | ValCases _
@@ -241,8 +237,6 @@ let dir_of_value venv pos dir =
        | ValNone
        | ValWhite _
        | ValVar _
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
        | ValFun _
        | ValFunCurry _
@@ -253,8 +247,6 @@ let dir_of_value venv pos dir =
        | ValBody _
        | ValMap _
        | ValObject _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValChannel _
        | ValClass _
        | ValCases _
@@ -275,11 +267,7 @@ let node_value_of_value venv pos v =
        | ValString _
        | ValSequence _
        | ValArray _
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValStringExp _
        | ValBody _
        | ValInt _
@@ -321,11 +309,7 @@ let dir_value_of_value venv pos v =
        | ValString _
        | ValSequence _
        | ValArray _
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValStringExp _
        | ValBody _
        | ValInt _
@@ -407,11 +391,7 @@ let prim_channel_of_value venv pos v =
             prim_channel_of_string venv pos (string_of_value venv pos arg)
        | ValInt _
        | ValFloat _
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValVar _
        | ValStringExp _
        | ValBody _
@@ -457,11 +437,7 @@ let in_channel_of_any_value venv pos v =
        | ValQuoteString _
        | ValString _
        | ValSequence _
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValStringExp _
        | ValBody _
        | ValInt _
@@ -512,11 +488,7 @@ let out_channel_of_any_value venv pos v =
        | ValString _
        | ValQuoteString _
        | ValSequence _
-       | ValKeyApply _
-       | ValApply _
        | ValMaybeApply _
-       | ValSuperApply _
-       | ValMethodApply _
        | ValStringExp _
        | ValBody _
        | ValInt _
@@ -569,11 +541,7 @@ let rec is_glob_value options v =
     | ValDir _
     | ValData _
     | ValQuote _
-    | ValKeyApply _
-    | ValApply _
     | ValMaybeApply _
-    | ValSuperApply _
-    | ValMethodApply _
     | ValStringExp _
     | ValBody _
     | ValInt _

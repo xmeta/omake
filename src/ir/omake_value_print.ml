@@ -110,20 +110,6 @@ let rec pp_print_value buf v =
          fprintf buf "@[<hv 3><sequence%a>@ : Sequence@]" pp_print_value_list vl
     | ValArray vl ->
          fprintf buf "@[<v 3><array%a>@ : Array@]" pp_print_value_list vl
-    | ValApply (_, f, args, kargs) ->
-         fprintf buf "@[<hv 3>$(apply %a%a)@]" (**)
-            pp_print_var_info f
-            pp_print_value_args (args, kargs)
-    | ValSuperApply (_, super, f, args, kargs) ->
-         fprintf buf "@[<hv 3>$(apply %a::%a%a)@]" (**)
-            pp_print_symbol super
-            pp_print_symbol f
-            pp_print_value_args (args, kargs)
-    | ValMethodApply (_, v, vl, args, kargs) ->
-         fprintf buf "@[<hv 3>$(%a%a%a)@]" (**)
-            pp_print_var_info v
-            pp_print_method_name vl
-            pp_print_value_args (args, kargs)
     | ValMaybeApply (_, v) ->
          fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
             pp_print_var_info v
@@ -176,8 +162,6 @@ let rec pp_print_value buf v =
                   pp_print_exp_list e2
                   pp_print_export_info export) cases;
          fprintf buf "@]"
-    | ValKeyApply (_, v) ->
-         fprintf buf "key $|%s|" v
     | ValVar (_, v) ->
          fprintf buf "`%a" pp_print_var_info v
     | ValOther (ValLexer _) ->
@@ -254,20 +238,6 @@ let rec pp_print_simple_value buf v =
          pp_print_simple_value_list buf vl
     | ValArray vl ->
          pp_print_simple_arg_list buf vl
-    | ValApply (_, f, args, kargs) ->
-         fprintf buf "$(%a%a)" (**)
-            pp_print_var_info f
-            pp_print_value_args (args, kargs)
-    | ValSuperApply (_, super, f, args, kargs) ->
-         fprintf buf "$(%a::%a%a)" (**)
-            pp_print_symbol super
-            pp_print_symbol f
-            pp_print_value_args (args, kargs)
-    | ValMethodApply (_, v, vl, args, kargs) ->
-         fprintf buf "$(%a%a%a)" (**)
-            pp_print_var_info v
-            pp_print_method_name vl
-            pp_print_value_args (args, kargs)
     | ValMaybeApply (_, v) ->
          fprintf buf "$?(%a)" (**)
             pp_print_var_info v
@@ -298,8 +268,6 @@ let rec pp_print_simple_value buf v =
          pp_print_string buf "<class>"
     | ValCases _ ->
          pp_print_string buf "<cases>"
-    | ValKeyApply (_, v) ->
-         fprintf buf "$|%s|" v
     | ValVar (_, v) ->
          fprintf buf "`%a" pp_print_var_info v
     | ValOther (ValLexer _) ->
