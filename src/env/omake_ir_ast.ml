@@ -1122,6 +1122,7 @@ let senv_declare_normal_var genv oenv senv cenv pos loc info v =
 type lazy_state =
    NormalState
  | EagerState
+ | NestedState
  | LazyState of genv_lazy
 
 let lazy_push_strategy genv strategy =
@@ -1133,10 +1134,13 @@ let lazy_push_strategy genv strategy =
          let state = if genv.genv_lazy.genv_lazy_mode then EagerState else NormalState in
             genv, state
     | Omake_ast.LazyApply ->
-         (* Push a new lazy state *)
-         let state = LazyState genv.genv_lazy in
-         let genv = { genv with genv_lazy = lazy_env } in
-            genv, state
+         if genv.genv_lazy.genv_lazy_mode then
+            genv, NestedState
+         else
+            (* Push a new lazy state when not already lazy *)
+            let state = LazyState genv.genv_lazy in
+            let genv = { genv with genv_lazy = lazy_env } in
+               genv, state
 
 let lazy_pop_strategy genv state loc e =
    match state with
@@ -1151,6 +1155,9 @@ let lazy_pop_strategy genv state loc e =
          let genv = { genv with genv_static_index = i + 1; genv_lazy = lenv } in
          let e = ApplyString (loc, VarPrivate (loc, v), [], []) in
             genv, e
+    | NestedState ->
+         (* Expression was lazy, but nested *)
+         genv, LazyString (loc, e)
     | LazyState lenv_old ->
          (* Expression was lazy, so pre-evaluate all the eager parts *)
          let e = LazyString (loc, e) in
