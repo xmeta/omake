@@ -1223,7 +1223,7 @@ let rec build_string genv oenv senv cenv e pos =
        | Omake_ast.BodyExp (el, loc) ->
             build_body_string genv oenv senv cenv el pos loc
        | Omake_ast.KeyExp (strategy, v, loc) ->
-            genv, oenv, KeyApplyString (loc, ir_strategy_of_ast_strategy strategy, v)
+            build_key_apply_string genv oenv senv cenv strategy v pos loc
        | Omake_ast.CommandExp (_, _, _, loc)
        | Omake_ast.VarDefExp (_, _, _, _, loc)
        | Omake_ast.VarDefBodyExp (_, _, _, _, loc)
@@ -1524,6 +1524,13 @@ and build_method_apply_string genv oenv senv cenv strategy vars args pos loc =
        | _ ->
             MethodApplyString (loc, strategy, v, vl, args, kargs)
    in
+      genv, oenv, e
+
+(*
+ * Key application $|xxx|
+ *)
+and build_key_apply_string genv oenv senv cenv strategy v pos loc =
+   let e = KeyApplyString (loc, ir_strategy_of_ast_strategy strategy, v) in
       genv, oenv, e
 
 (*
