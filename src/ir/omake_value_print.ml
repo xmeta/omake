@@ -146,7 +146,7 @@ let rec pp_print_value buf v =
          fprintf buf "%a : Dir" pp_print_dir dir
     | ValNode node ->
          fprintf buf "%a : File" pp_print_node node
-    | ValStringExp e ->
+    | ValStringExp (_, e) ->
          fprintf buf "@[<hv 0>%a : Exp@]" pp_print_string_exp e
     | ValBody (el, export) ->
          fprintf buf "@[<v 0>%a%a@ : Body@]" pp_print_exp_list el pp_print_export_info export

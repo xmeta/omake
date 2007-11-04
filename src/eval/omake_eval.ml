@@ -1187,8 +1187,8 @@ and eval_value_core venv pos v =
          eval_value_delayed venv pos p
     | ValSequence [v] ->
          eval_value_core venv pos v
-    | ValStringExp e ->
-         let v = eval_string_exp true venv pos e in
+    | ValStringExp (env, e) ->
+         let v = eval_string_exp true (venv_with_env venv env) pos e in
             eval_value_core venv pos v
     | _ ->
          v
@@ -1908,7 +1908,7 @@ and eval_prim_arg_exp be_eager venv pos s =
    if be_eager then
       eval_string_exp be_eager venv pos s
    else
-      ValStringExp s
+      ValStringExp (venv_get_env venv, s)
 
 (*
  * Short forms of the string evaluator.

@@ -757,7 +757,7 @@ let rec squash_value pos buf v =
        | ValDir dir ->
             Hash.add_code buf CodeValDir;
             Hash.add_string buf (Dir.fullname dir)
-       | ValStringExp e ->
+       | ValStringExp (_, e) ->
             Hash.add_code buf CodeValStringExp;
             squash_string_exp pos buf e
        | ValBody (e, export) ->

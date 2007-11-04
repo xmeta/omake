@@ -78,7 +78,7 @@ type value =
  | ValClass       of obj SymbolTable.t
 
    (* Raw expressions *)
- | ValStringExp   of string_exp
+ | ValStringExp   of env * string_exp
  | ValBody        of exp list * export
  | ValCases       of (var * value * exp list * export) list
 
