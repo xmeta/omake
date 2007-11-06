@@ -283,9 +283,9 @@ let rec translate_exp mode e =
          FunDefExp (vl, translate_param_list mode params, translate_body mode el, loc)
     | RuleExp (multiple, target, pattern, options, body, loc) ->
          RuleExp (multiple,
-                  translate_exp mode target,
-                  translate_exp mode pattern,
-                  translate_table_exp mode options,
+                  translate_exp NormalMode target,
+                  translate_exp NormalMode pattern,
+                  translate_table_exp NormalMode options,
                   translate_exp_list mode body,
                   loc)
     | BodyExp (el, loc) ->
