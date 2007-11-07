@@ -30,7 +30,7 @@
  * @end[license]
  *)
 open Lm_location
-open Lm_symbol
+open Om_symbol
 
 open Omake_node_sig
 open Omake_node
@@ -258,7 +258,7 @@ struct
        | VarScopeThis, VarScopeThis
        | VarScopeVirtual, VarScopeVirtual
        | VarScopeGlobal, VarScopeGlobal ->
-            Lm_symbol.compare v1 v2
+            Om_symbol.compare v1 v2
        | VarScopePrivate, VarScopeThis
        | VarScopePrivate, VarScopeVirtual
        | VarScopePrivate, VarScopeGlobal
@@ -292,7 +292,7 @@ struct
        | VarThis (_, v1),      VarThis (_, v2)
        | VarVirtual (_, v1),   VarVirtual (_, v2)
        | VarGlobal (_, v1),    VarGlobal (_, v2) ->
-            Lm_symbol.compare v1 v2
+            Om_symbol.compare v1 v2
        | VarPrivate _,        VarThis _
        | VarPrivate _,        VarVirtual _
        | VarPrivate _,        VarGlobal _

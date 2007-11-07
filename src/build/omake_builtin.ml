@@ -30,13 +30,13 @@
  *)
 open Lm_printf
 
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_ir
 open Omake_env
 open Omake_pos
-open Omake_symbol
+open Om_symbol
 open Omake_node_sig
 open Omake_exn_print
 open Omake_value_type
@@ -47,7 +47,7 @@ open Omake_builtin_type
 module Pos = MakePos (struct let name = "Omake_builtin" end)
 open Pos
 
-let object_sym = Lm_symbol.add "Object"
+let object_sym = Om_symbol.add "Object"
 
 (*
  * Add a command line variable definition.
@@ -125,7 +125,7 @@ let venv_add_builtins venv =
    let venv = venv_add_phony venv loc (List.map (fun s -> TargetString s) phony_targets) in
    let venv =
       List.fold_left (fun venv (special, s, f, arity) ->
-            let name = Lm_symbol.add s in
+            let name = Om_symbol.add s in
             let v = VarGlobal (loc, name) in
             let p = venv_add_prim_fun venv name (wrap_normal_prim_fun f) in
             let no_args =
@@ -137,7 +137,7 @@ let venv_add_builtins venv =
    in
    let venv =
       List.fold_left (fun venv (special, s, f, arity) ->
-            let name = Lm_symbol.add s in
+            let name = Om_symbol.add s in
             let v = VarGlobal (loc, name) in
             let p = venv_add_prim_fun venv name f in
             let no_args =
@@ -168,19 +168,19 @@ let venv_add_builtins venv =
    let venv =
       List.fold_left (fun venv (s, v, x) ->
             let obj = venv_add_field_internal obj v x in
-            let v = VarGlobal (loc, Lm_symbol.add s) in
+            let v = VarGlobal (loc, Om_symbol.add s) in
                venv_add_var venv v (ValObject obj)) venv builtin_objects
    in
    let venv =
       List.fold_left (fun venv s ->
-            let v = VarGlobal (loc, Lm_symbol.add s) in
+            let v = VarGlobal (loc, Om_symbol.add s) in
                venv_add_var venv v (ValObject obj)) venv pervasives_objects
    in
 
    (* Add the variables last *)
    let venv =
       List.fold_left (fun venv (s, v) ->
-            let x = VarGlobal (loc, Lm_symbol.add s) in
+            let x = VarGlobal (loc, Om_symbol.add s) in
                venv_add_var venv x (v venv)) venv builtin_vars
    in
       venv

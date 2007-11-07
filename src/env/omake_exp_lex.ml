@@ -25,7 +25,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_ast
@@ -63,7 +63,7 @@ let create_lexinfo loc tokens =
 (*
  * Locations.
  *)
-let shell_sym = Lm_symbol.add "shell"
+let shell_sym = Om_symbol.add "shell"
 
 let syntax_error s loc =
    raise (OmakeException (loc_exp_pos loc, SyntaxError s))
@@ -117,8 +117,8 @@ let lex_id s loc =
                 | "]" -> TokRightBrack loc
                 | _ ->
                      match s.[0] with
-                        '~' | '?' -> TokKey (Lm_symbol.add (String.sub s 1 (String.length s - 1)), loc)
-                      | _ -> TokId (Lm_symbol.add s, loc)
+                        '~' | '?' -> TokKey (Om_symbol.add (String.sub s 1 (String.length s - 1)), loc)
+                      | _ -> TokId (Om_symbol.add s, loc)
 
 (*
  * Translate an expression to a token.
@@ -138,7 +138,7 @@ let rec lex_tok lexinfo e =
     | StringFloatExp (s, loc) ->
          TokFloat (float_of_string s, loc)
     | StringKeywordExp (s, loc) ->
-         TokId (Lm_symbol.add s, loc)
+         TokId (Om_symbol.add s, loc)
     | StringWhiteExp _ ->
          lex_main lexinfo
     | StringOtherExp (s, loc) ->

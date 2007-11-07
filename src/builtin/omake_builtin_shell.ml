@@ -45,7 +45,7 @@ open Omake_node_sig
 open Omake_node
 open Omake_value
 open Omake_state
-open Omake_symbol
+open Om_symbol
 open Omake_builtin
 open Omake_shell_type
 open Omake_value_type

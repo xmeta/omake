@@ -67,7 +67,7 @@ let make_binary_exp v (e1, loc1) (e2, loc2) =
 (*
  * If the function is a null application, add the args.
  *)
-let apply_var = Lm_symbol.add ".fun"
+let apply_var = Om_symbol.add ".fun"
 
 let make_apply_exp (e, loc) args =
    match e with
@@ -132,8 +132,8 @@ let get_fun_params = List.map get_fun_param
 /*
  * Words.
  */
-%token <Lm_symbol.symbol * Lm_location.loc> TokId
-%token <Lm_symbol.symbol * Lm_location.loc> TokKey
+%token <Om_symbol.symbol * Lm_location.loc> TokId
+%token <Om_symbol.symbol * Lm_location.loc> TokKey
 %token <Lm_location.loc> TokCatch
 
 /*

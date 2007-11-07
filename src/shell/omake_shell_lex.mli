@@ -29,7 +29,7 @@
  * @end[license]
  *)
 open Lm_glob
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_env

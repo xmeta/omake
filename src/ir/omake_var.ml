@@ -31,7 +31,7 @@
  *)
 open Lm_hash
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_ir
@@ -160,7 +160,7 @@ let create_numeric_var =
       let size = (i + 1) * 2 in
       let table = Array.create size wild_var in
          for j = 0 to pred size do
-            table.(j) <- create_pervasives_var (Lm_symbol.add (string_of_int j))
+            table.(j) <- create_pervasives_var (Om_symbol.add (string_of_int j))
          done;
          numeric_vars := table;
          table

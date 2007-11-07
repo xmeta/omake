@@ -28,20 +28,20 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Lm_symbol
+open Om_symbol
 
 module Parser =
 struct
    module ParserArg =
    struct
-      type symbol = Lm_symbol.symbol
+      type symbol = Om_symbol.symbol
 
       let to_string = to_string
       let pp_print_symbol = pp_print_symbol
       let hash_symbol = Hashtbl.hash
-      let compare_symbol = Lm_symbol.compare
+      let compare_symbol = Om_symbol.compare
 
-      let eof = Lm_symbol.add "<eof>"
+      let eof = Om_symbol.add "<eof>"
 
       module Action = Omake_lexer.LexerAction;;
 
@@ -53,8 +53,8 @@ struct
 
    include Lm_parser.MakeParser (ParserArg) (Lm_parser.ParserPrecedence)
 
-   let empty = add_prec empty prec_min (Lm_symbol.add ".min")
-   let empty = add_prec empty prec_max (Lm_symbol.add ".max")
+   let empty = add_prec empty prec_min (Om_symbol.add ".min")
+   let empty = add_prec empty prec_max (Om_symbol.add ".max")
 end
 
 (*!

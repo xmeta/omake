@@ -25,7 +25,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_ir
@@ -268,7 +268,6 @@ sig
    val string_pos     : string -> pos -> pos
    val pos_pos        : pos -> pos -> pos
    val int_pos        : int -> pos -> pos
-   val var_pos        : var -> pos -> pos
    val error_pos      : omake_error -> pos -> pos
 
    val del_pos        : (formatter -> unit) -> loc -> pos
@@ -291,7 +290,7 @@ let empty_obj = SymbolTable.empty
 (*
  * Get the class identifiers from the object.
  *)
-let class_sym = Lm_symbol.add "$class"
+let class_sym = Om_symbol.add "$class"
 
 let venv_get_class obj =
    match

@@ -546,7 +546,7 @@ let where venv pos loc args =
                          let obj = venv_find_var_exn venv shell_object_var in
                             match eval_single_value venv pos obj with
                                ValObject obj ->
-                                  let v = venv_find_field_internal_exn obj (Lm_symbol.add arg) in
+                                  let v = venv_find_field_internal_exn obj (Om_symbol.add arg) in
                                   let kind =
                                      match eval_value venv pos v with
                                         ValPrim _ ->
@@ -1153,7 +1153,7 @@ let sort_aux sorter venv pos loc args =
          [name; arg] ->
             let values = values_of_value venv pos arg in
             let nodes = List.map (file_of_value venv pos) values in
-            let name = Lm_symbol.add (string_of_value venv pos name) in
+            let name = Om_symbol.add (string_of_value venv pos name) in
                name, nodes
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))

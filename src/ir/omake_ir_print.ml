@@ -30,7 +30,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_ir

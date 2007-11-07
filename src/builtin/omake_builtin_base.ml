@@ -37,7 +37,7 @@
  *)
 open Lm_printf
 
-open Lm_symbol
+open Om_symbol
 open Lm_location
 open Lm_string_set
 
@@ -401,14 +401,14 @@ let if_fun venv pos loc args =
 let rec eval_match_cases1 compare venv pos loc s cases =
    match cases with
       (v, pattern, el, export) :: cases ->
-         if Lm_symbol.eq v case_sym then
+         if Om_symbol.eq v case_sym then
             let pattern = string_of_value venv pos pattern in
                match compare venv pos loc pattern s with
                   Some venv ->
                      eval_sequence_export_exp venv pos el export
                 | None ->
                      eval_match_cases1 compare venv pos loc s cases
-         else if Lm_symbol.eq v default_sym then
+         else if Om_symbol.eq v default_sym then
             eval_sequence_export_exp venv pos el export
          else
             raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
@@ -564,7 +564,7 @@ let object_of_uncaught_exception venv pos exn =
  *)
 let rec eval_finally_case venv pos result cases =
    match cases with
-      (v, _, e, export) :: cases when Lm_symbol.eq v finally_sym ->
+      (v, _, e, export) :: cases when Om_symbol.eq v finally_sym ->
          eval_sequence_export venv pos result e export
     | _ :: cases ->
          eval_finally_case venv pos result cases
@@ -578,7 +578,7 @@ let rec eval_finally_case venv pos result cases =
  *)
 let rec eval_catch_rest venv pos obj result cases =
    match cases with
-      (v, s, e, export) :: cases when Lm_symbol.eq v when_sym ->
+      (v, s, e, export) :: cases when Om_symbol.eq v when_sym ->
          let b = bool_of_value venv pos s in
             if b then
                let venv, result = eval_sequence_export venv pos result e export in
@@ -600,13 +600,13 @@ and eval_catch_case venv pos v obj e cases export =
 and eval_exception venv pos obj cases =
    match cases with
       (v, s, e, export) :: cases ->
-         if Lm_symbol.eq v when_sym then
+         if Om_symbol.eq v when_sym then
             eval_exception venv pos obj cases
-         else if Lm_symbol.eq v finally_sym then
+         else if Om_symbol.eq v finally_sym then
             None
-         else if Lm_symbol.eq v default_sym || venv_instanceof obj v then
+         else if Om_symbol.eq v default_sym || venv_instanceof obj v then
             (* FIXME: BUG: JYH: this binding occurence should be fixed *)
-            let v = VarThis (loc_of_pos pos, Lm_symbol.add (string_of_value venv pos s)) in
+            let v = VarThis (loc_of_pos pos, Om_symbol.add (string_of_value venv pos s)) in
                eval_catch_case venv pos v obj e cases export
          else
             eval_exception venv pos obj cases
@@ -820,7 +820,7 @@ let defined_env venv pos loc args =
             let args = strings_of_value venv pos arg in
             let b =
                List.for_all (fun s ->
-                     venv_defined_env venv (Lm_symbol.add s)) args
+                     venv_defined_env venv (Om_symbol.add s)) args
             in
                val_of_bool b
        | _ ->
@@ -874,7 +874,7 @@ let getenv venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
    in
    let s = string_of_value venv pos arg in
-      try ValString (venv_getenv venv (Lm_symbol.add s)) with
+      try ValString (venv_getenv venv (Om_symbol.add s)) with
          Not_found ->
             match def with
                Some def ->
@@ -904,7 +904,7 @@ let setenv venv pos loc args kargs =
          [arg1; arg2], [] ->
             let v = string_of_value venv pos arg1 in
             let s = string_of_value venv pos arg2 in
-            let venv = venv_setenv venv (Lm_symbol.add v) s in
+            let venv = venv_setenv venv (Om_symbol.add v) s in
                venv, ValData s
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -931,7 +931,7 @@ let unsetenv venv pos loc args kargs =
             let vars = strings_of_value venv pos arg in
             let venv =
                List.fold_left (fun venv v ->
-                     venv_unsetenv venv (Lm_symbol.add v)) venv vars
+                     venv_unsetenv venv (Om_symbol.add v)) venv vars
             in
                venv, ValNone
        | _ ->
@@ -2579,7 +2579,7 @@ let export venv pos loc args kargs =
                List.map (function
                   ".PHONY" -> ExportPhonies
                 | ".RULE" -> ExportRules
-                | v -> ExportVar (VarGlobal (loc, Lm_symbol.add v))) (strings_of_value venv pos vars)
+                | v -> ExportVar (VarGlobal (loc, Om_symbol.add v))) (strings_of_value venv pos vars)
             in
             let hand = venv_add_environment venv in
                venv, ValOther (ValEnv (hand, ExportList exports))
@@ -2665,7 +2665,7 @@ let export venv pos loc args kargs =
 let rec eval_while_cases venv pos loc orig_cases arg cases =
    match cases with
       (v, pattern, e, export) :: cases ->
-         if Lm_symbol.eq v case_sym && bool_of_value venv pos pattern || Lm_symbol.eq v default_sym then
+         if Om_symbol.eq v case_sym && bool_of_value venv pos pattern || Om_symbol.eq v default_sym then
             let venv, _ = eval_sequence_exp venv pos e in
                while_loop venv pos loc orig_cases arg
          else

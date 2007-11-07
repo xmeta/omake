@@ -35,7 +35,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_string_set
 open Lm_hash_sig
 open Lm_hash

@@ -32,7 +32,7 @@ open Lm_printf
 
 open Lm_glob
 open Lm_debug
-open Lm_symbol
+open Om_symbol
 open Lm_location
 open Lm_string_set
 
@@ -601,7 +601,7 @@ let string_of_env env =
  *)
 let find_alias_exn shell_obj venv pos loc exe =
    (* If this is an internal command, create the PipeApply *)
-   let name = Lm_symbol.add exe in
+   let name = Om_symbol.add exe in
    let v = venv_find_field_internal_exn shell_obj name in
    let _, _, f = eval_fun venv pos v in
 
@@ -732,26 +732,26 @@ let sources_of_options venv pos loc sources options =
    let effects, sources, scanners, values =
       venv_map_fold (fun (effects, sources, scanners, values) optname optval ->
             let s = string_of_value venv pos optname in
-            let v = Lm_symbol.add s in
-               if Lm_symbol.eq v normal_sym then
+            let v = Om_symbol.add s in
+               if Om_symbol.eq v normal_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeNormal files, scanners, values
-               else if Lm_symbol.eq v optional_sym then
+               else if Om_symbol.eq v optional_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeOptional files, scanners, values
-               else if Lm_symbol.eq v exists_sym then
+               else if Om_symbol.eq v exists_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeExists files, scanners, values
-               else if Lm_symbol.eq v squash_sym then
+               else if Om_symbol.eq v squash_sym then
                   let files = targets_of_value venv pos optval in
                      effects, add_sources sources NodeSquashed files, scanners, values
-               else if Lm_symbol.eq v scanner_sym then
+               else if Om_symbol.eq v scanner_sym then
                   let files = targets_of_value venv pos optval in
                      effects, sources, add_sources scanners NodeScanner files, values
-               else if Lm_symbol.eq v effects_sym then
+               else if Om_symbol.eq v effects_sym then
                   let files = targets_of_value venv pos optval in
                      add_sources effects NodeNormal files, sources, scanners, values
-               else if Lm_symbol.eq v values_sym then
+               else if Om_symbol.eq v values_sym then
                   effects, sources, scanners, optval :: values
                else
                   raise (OmakeException (loc_pos loc pos, StringVarError ("unknown rule option", v)))) (**)
@@ -897,7 +897,7 @@ let rec eval_rule_exp venv pos loc multiple target pattern source options body =
 
          (* .ORDER rules are handled specially *)
        | [TargetString name] when venv_is_order venv name ->
-            let name = Lm_symbol.add name in
+            let name = Om_symbol.add name in
                if commands_are_nontrivial then
                   raise (OmakeException (loc_exp_pos loc, SyntaxError ".ORDER rule cannot have build commands"));
                if effects <> [] || scanners <> [] || values <> [] then

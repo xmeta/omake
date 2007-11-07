@@ -25,7 +25,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_location
 open Lm_string_set
 
@@ -35,7 +35,7 @@ open Omake_var
 open Omake_pos
 open Omake_node
 open Omake_value
-open Omake_symbol
+open Om_symbol
 open Omake_node_sig
 open Omake_value_type
 
@@ -169,7 +169,7 @@ let command_completion_exn venv pos loc s =
       match eval_single_value venv pos shell_obj with
          ValObject obj ->
             venv_object_fold_internal (fun items v _ ->
-                  let s2 = Lm_symbol.to_string v in
+                  let s2 = Om_symbol.to_string v in
                      if Lm_string_util.is_string_prefix s s2 then
                         StringSet.add items s2
                      else

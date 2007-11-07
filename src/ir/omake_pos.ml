@@ -25,7 +25,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Lm_symbol
+open Om_symbol
 open Lm_location
 
 open Omake_ir
@@ -167,13 +167,12 @@ struct
    let var_exp_pos v    = base_pos (Symbol v)
    let string_exp_pos s = base_pos (String s)
    let value_exp_pos v  = base_pos (Value v)
-   let var_pos          = symbol_pos
    let value_pos v pos  = cons_pos (Value v) pos
    let error_pos e pos  = cons_pos (Error e) pos
 end
 
-module Pos = MakePos (struct let name = "Omake_env" end)
-             open Pos;;
+module Pos = MakePos (struct let name = "Omake_env" end);;
+open Pos;;
 
 (*
  * -*-

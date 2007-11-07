@@ -114,7 +114,7 @@ open Lm_debug
 open Lm_printf
 open Lm_parser
 open Lm_location
-open Lm_symbol
+open Om_symbol
 
 open Omake_ir
 open Omake_env
@@ -527,10 +527,10 @@ let scan venv pos loc args kargs =
    (* Get lexers for all the cases *)
    let cases, def =
       List.fold_left (fun (cases, def) (v, test, body, export) ->
-            if Lm_symbol.eq v case_sym then
+            if Om_symbol.eq v case_sym then
                let s = string_of_value venv pos test in
                let cases =
-                  SymbolTable.filter_add cases (Lm_symbol.add s) (fun b ->
+                  SymbolTable.filter_add cases (Om_symbol.add s) (fun b ->
                         match b with
                            Some _ ->
                               raise (OmakeException (loc_pos loc pos, StringVarError ("duplicate case", v)))
@@ -538,7 +538,7 @@ let scan venv pos loc args kargs =
                               body, export)
                in
                   cases, def
-            else if Lm_symbol.eq v default_sym then
+            else if Om_symbol.eq v default_sym then
                match def with
                   Some _ ->
                      raise (OmakeException (loc_pos loc pos, StringError "duplicate default case"))
@@ -569,7 +569,7 @@ let scan venv pos loc args kargs =
       let body =
          match words with
             command :: _ ->
-               (try Some (SymbolTable.find cases (Lm_symbol.add command)) with
+               (try Some (SymbolTable.find cases (Om_symbol.add command)) with
                    Not_found ->
                       def)
           | [] ->
@@ -831,7 +831,7 @@ let awk venv pos loc args kargs =
    (* Get lexers for all the cases *)
    let cases =
       List.map (fun (v, test, body, export) ->
-            if Lm_symbol.eq v case_sym then
+            if Om_symbol.eq v case_sym then
                let s = string_of_value venv pos test in
                let _, lex =
                   try Lexer.add_clause Lexer.empty v s with
@@ -840,7 +840,7 @@ let awk venv pos loc args kargs =
                            raise (OmakeException (loc_pos loc pos, StringStringError (msg, err)))
                in
                   Some lex, body, export
-            else if Lm_symbol.eq v default_sym then
+            else if Om_symbol.eq v default_sym then
                None, body, export
             else
                raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) cases
@@ -1029,9 +1029,9 @@ let fsubst venv pos loc args kargs =
                      "", []
             in
             let pattern, options =
-               if Lm_symbol.eq v case_sym then
+               if Om_symbol.eq v case_sym then
                   pattern, options
-               else if Lm_symbol.eq v default_sym then
+               else if Om_symbol.eq v default_sym then
                   ".*", []
                else
                   raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
@@ -1137,7 +1137,7 @@ let fsubst venv pos loc args kargs =
  * The \hyperfun{break} can be used to abort the loop.
  * \end{doc}
  *)
-let eof_sym = Lm_symbol.add "eof"
+let eof_sym = Om_symbol.add "eof"
 
 let lex venv pos loc args kargs =
    let pos = string_pos "lex" pos in
@@ -1158,14 +1158,14 @@ let lex venv pos loc args kargs =
                      ""
             in
             let pattern =
-               if Lm_symbol.eq v case_sym then
+               if Om_symbol.eq v case_sym then
                   pattern
-               else if Lm_symbol.eq v default_sym then
+               else if Om_symbol.eq v default_sym then
                   "."
                else
                   raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))
             in
-               let action_sym = Lm_symbol.make "action" index in
+               let action_sym = Om_symbol.make "action" index in
                let _, lex =
                   try Lexer.add_clause lex action_sym pattern with
                      Failure err ->
@@ -1179,7 +1179,7 @@ let lex venv pos loc args kargs =
    (* Process the files *)
    let rec input_loop venv inx =
       let action_sym, lexeme_loc, lexeme, args = Lexer.lex lex inx in
-         if Lm_symbol.eq action_sym eof_sym then
+         if Om_symbol.eq action_sym eof_sym then
             venv
          else
             let venv_new = venv_add_match venv lexeme args in
@@ -1277,8 +1277,8 @@ let lex_search venv pos loc args kargs =
                 | [] ->
                      ""
             in
-               if Lm_symbol.eq v case_sym then
-                  let action_sym = Lm_symbol.make "action" index in
+               if Om_symbol.eq v case_sym then
+                  let action_sym = Om_symbol.make "action" index in
                   let _, lex =
                      try Lexer.add_clause lex action_sym pattern with
                         Failure err ->
@@ -1287,7 +1287,7 @@ let lex_search venv pos loc args kargs =
                   in
                   let cases = SymbolTable.add cases action_sym (body, export) in
                      lex, cases, default, succ index
-               else if Lm_symbol.eq v default_sym then
+               else if Om_symbol.eq v default_sym then
                   lex, cases, Some (body, export), index
                else
                   raise (OmakeException (loc_pos loc pos, StringVarError ("unknown case", v)))) (**)
@@ -1532,7 +1532,7 @@ let lex_rule venv pos loc args kargs =
          [_; action; _; pattern; _; ValBody (body, export)], [] ->
             let lexer = current_lexer venv pos in
             let action_name = string_of_value venv pos action in
-            let action_sym = Lm_symbol.add action_name in
+            let action_sym = Om_symbol.add action_name in
             let pattern = string_of_value venv pos pattern in
             let _, lexer =
                try Lexer.add_clause lexer action_sym pattern with
@@ -1751,7 +1751,7 @@ let parse_start venv pos loc args kargs =
    in
    let parse =
       List.fold_left (fun parse s ->
-            Parser.add_start parse (Lm_symbol.add s)) parse args
+            Parser.add_start parse (Om_symbol.add s)) parse args
    in
 
    (* Redefine the parser *)
@@ -1768,7 +1768,7 @@ let parse_prec venv pos loc args kargs assoc =
    let parse, level, args =
       match args, kargs with
          [before; args], [] ->
-            let current_prec = Lm_symbol.add (string_of_value venv pos before) in
+            let current_prec = Om_symbol.add (string_of_value venv pos before) in
             let level =
                try Parser.find_prec parse current_prec with
                   Not_found ->
@@ -1777,7 +1777,7 @@ let parse_prec venv pos loc args kargs assoc =
             let parse, level = Parser.create_prec_lt parse level assoc in
                parse, level, args
        | [args], [] ->
-            let current_prec = Lm_symbol.add (string_of_value venv pos (venv_find_field_internal this pos current_prec_sym)) in
+            let current_prec = Om_symbol.add (string_of_value venv pos (venv_find_field_internal this pos current_prec_sym)) in
             let level =
                try Parser.find_prec parse current_prec with
                   Not_found ->
@@ -1791,7 +1791,7 @@ let parse_prec venv pos loc args kargs assoc =
    let args = strings_of_value venv pos args in
    let parse =
       List.fold_left (fun parse s ->
-            Parser.add_prec parse level (Lm_symbol.add s)) parse args
+            Parser.add_prec parse level (Om_symbol.add s)) parse args
    in
 
    (* Reset the current precedence *)
@@ -1840,17 +1840,17 @@ let prec_option venv pos loc options =
    venv_map_fold (fun pre optname optval ->
          let s = string_of_value venv pos optname in
             if s = ":prec:" then
-               Some (Lm_symbol.add (string_of_value venv pos optval))
+               Some (Om_symbol.add (string_of_value venv pos optval))
             else
                raise (OmakeException (pos, StringValueError ("illegal option", optname)))) None options
 
 (*
  * Compute an action name that is not defined in the current object.
  *)
-let action_sym = Lm_symbol.add "action"
+let action_sym = Om_symbol.add "action"
 
 let find_action_name venv loc =
-   Lm_symbol.new_name action_sym (fun v -> venv_defined venv (VarThis (loc, v)))
+   Om_symbol.new_name action_sym (fun v -> venv_defined venv (VarThis (loc, v)))
 
 (*
  * Add a parser clause.
@@ -1863,14 +1863,14 @@ let parse_rule venv pos loc args kargs =
             let action = string_of_value venv pos action in
             let head = string_of_value venv pos head in
                if head = "" then   (* Action name was omitted *)
-                  find_action_name venv loc, Lm_symbol.add action, rhs, options, body, export
+                  find_action_name venv loc, Om_symbol.add action, rhs, options, body, export
                else
-                  Lm_symbol.add action, Lm_symbol.add head, rhs, options, body, export
+                  Om_symbol.add action, Om_symbol.add head, rhs, options, body, export
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 6, List.length args)))
    in
    let par = current_parser venv pos in
-   let rhs = List.map Lm_symbol.add (strings_of_value venv pos rhs) in
+   let rhs = List.map Om_symbol.add (strings_of_value venv pos rhs) in
    let pre = prec_option venv pos loc options in
    let par = Parser.add_production par action head rhs pre in
 
@@ -1898,7 +1898,7 @@ let parse_engine venv pos loc args =
       match args with
          [start] ->
             let dfa = current_parser venv pos in
-            let start = Lm_symbol.add (string_of_value venv pos start) in
+            let start = Om_symbol.add (string_of_value venv pos start) in
             let lexer = venv_find_var venv pos loc lexer_field_var in
             let lexer = eval_object venv pos lexer in
             let parser_obj = venv_this venv in
@@ -1911,7 +1911,7 @@ let parse_engine venv pos loc args =
                      let lex_loc = venv_find_field_internal_exn obj loc_sym in
                      let lex_loc = loc_of_value venv pos lex_loc in
                      let name = venv_find_field_internal_exn obj name_sym in
-                     let name = Lm_symbol.add (string_of_value venv pos name) in
+                     let name = Om_symbol.add (string_of_value venv pos name) in
                      let value = venv_find_field_internal_exn obj val_sym in
                         name, lex_loc, (venv, parser_obj, lexer), value
                   with

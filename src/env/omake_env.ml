@@ -31,7 +31,7 @@
 open Lm_printf
 
 open Lm_debug
-open Lm_symbol
+open Om_symbol
 open Lm_int_set
 open Lm_location
 open Lm_string_set
@@ -1228,7 +1228,7 @@ let venv_add_var venv v s =
 let rec venv_add_keyword_args pos venv keywords kargs =
    match keywords, kargs with
       (v1, v_info, opt_arg) :: keywords_tl, (v2, arg) :: kargs_tl ->
-         let i = Lm_symbol.compare v1 v2 in
+         let i = Om_symbol.compare v1 v2 in
             if i = 0 then
                venv_add_keyword_args pos (venv_add_var venv v_info arg) keywords_tl kargs_tl
             else if i < 0 then
@@ -1282,7 +1282,7 @@ let venv_with_args venv pos loc params args keywords kargs =
 let rec collect_merge_kargs pos rev_kargs kargs1 kargs2 =
    match kargs1, kargs2 with
       ((v1, _) as karg1) :: kargs1_tl, ((v2, _) as karg2) :: kargs2_tl ->
-         let i = Lm_symbol.compare v1 v2 in
+         let i = Om_symbol.compare v1 v2 in
             if i = 0 then
                raise (OmakeException (pos, StringVarError ("duplicate keyword", v1)))
             else if i < 0 then
@@ -1317,7 +1317,7 @@ let rec apply_curry_args pos venv skipped_kargs params args =
 let rec venv_add_curry_args pos venv params args keywords skipped_kargs kargs =
    match keywords, kargs with
       (v1, v_info, opt_arg) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
-         let i = Lm_symbol.compare v1 v2 in
+         let i = Om_symbol.compare v1 v2 in
             if i = 0 then
                venv_add_curry_args pos (venv_add_var venv v_info arg) params args keywords_tl skipped_kargs kargs_tl
             else if i < 0 then
@@ -1369,7 +1369,7 @@ let rec apply_partial_args venv pos loc static env skipped_keywords keywords ski
 let rec venv_add_partial_args venv pos loc static env params args skipped_keywords keywords skipped_kargs kargs =
    match keywords, kargs with
       ((v1, v_info, opt_arg) as key) :: keywords_tl, ((v2, arg) as karg) :: kargs_tl ->
-         let i = Lm_symbol.compare v1 v2 in
+         let i = Om_symbol.compare v1 v2 in
             if i = 0 then
                venv_add_partial_args venv pos loc static ((v_info, arg) :: env) params args skipped_keywords keywords_tl skipped_kargs kargs_tl
             else if i < 0 then
@@ -1877,8 +1877,8 @@ let intern_source venv (kind, source) =
 (*
  * Symbols for directories.
  *)
-let wild_sym            = Lm_symbol.add wild_string
-let explicit_target_sym = Lm_symbol.add "<EXPLICIT_TARGET>"
+let wild_sym            = Om_symbol.add wild_string
+let explicit_target_sym = Om_symbol.add "<EXPLICIT_TARGET>"
 
 (*
  * Don't save explicit rules.
@@ -1981,7 +1981,7 @@ let create_environ () =
             else
                name
          in
-         let v = Lm_symbol.add name in
+         let v = Om_symbol.add name in
          let x = String.sub s (j + 1) (String.length s - j - 1) in
          let table = SymbolTable.add table v x in
             collect table (succ i)
@@ -2794,7 +2794,7 @@ let venv_add_ordering_rule venv pos loc name pattern sources =
  *)
 let venv_get_ordering_info venv name =
    List.fold_left (fun orules orule ->
-         if Lm_symbol.eq orule.orule_name name then
+         if Om_symbol.eq orule.orule_name name then
             orule :: orules
          else
             orules) [] venv.venv_inner.venv_globals.venv_ordering_rules

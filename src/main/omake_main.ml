@@ -39,7 +39,7 @@ open Omake_node
 open Omake_exec
 open Omake_rule
 open Omake_state
-open Omake_symbol
+open Om_symbol
 open Omake_exec_type
 open Omake_value_type
 open Omake_options
