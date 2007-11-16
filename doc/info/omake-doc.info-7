@@ -1,5 +1,220 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 10-11-28,	Next: Subsection 10-11-29,	Prev: Subsection 10-11-27,	Up: Section 10-11
+  
+
+10.11.28   Tm
+=============
+ The `Tm' object is a
+structure that represents the time and date.
+  
+  
+  'tm_sec' `: Int' Seconds (0--59). 
+  'tm_min' `: Int' Minutes (0--59). 
+  'tm_hour' `: Int' Hours (0--23). 
+  'tm_mday' `: Int' Day of the month (0--31). 
+  'tm_mon' `: Int' Month (0--11). 
+  'tm_year' `: Int' Year (minus 1900). 
+  'tm_wday' `: Int' Day of the week (0--6, Sunday is
+   0). 
+  'tm_yday' `: Int' Day of the year (0--365). 
+  'tm_isdst' `: Bool' True iff daylight savings time
+   is in effect. 
+  
+
+Node: Subsection 10-11-29,	Next: Subsection 10-11-30,	Prev: Subsection 10-11-28,	Up: Section 10-11
+  
+
+10.11.29   gmtime, localtime
+============================
+ 
+<<   $(gmtime time) : tm
+     $(localtime time) : tm
+         time : Float
+>>
+  
+  Convert the time in seconds since the Unix epoch to calendar format.
+The function `gmtime' assumes UTC (Coordinated Universal Time); the
+function `localtime' uses the local time zone. 
+
+Node: Subsection 10-11-30,	Next: Chapter 11,	Prev: Subsection 10-11-29,	Up: Section 10-11
+  
+
+10.11.30   mktime, normalize-time
+=================================
+ 
+<<   $(mktime tm) : Float
+     $(normalize-time tm) : Tm
+         tm : Tm
+>>
+  
+  Convert the calendar time to time in seconds since the Unix epoch.
+Assumes the local time zone.
+  The fields `tm_wday', `tm_mday', `tm_yday' are ignored. The other
+components are not restricted to their normal ranges and will be
+normalized as needed.
+  The function `normalize-time' normalizes the calendar time. The
+returned object contains an additional field `tm_time : Float' that
+represnets the time in seconds since the Unix epoch (the same value
+returned by `mktime'). 
+
+Node: Chapter 11,	Next: Section 11-1,	Prev: Section 10-11,	Up: Top
+  
+
+Chapter 11     Shell commands
+*****************************
+    
+  Shell commands (commands to be executed by the operating system) can
+be freely mixed with other code.
+  NOTE: the syntax and shell usage is identical on all platforms,
+including Win32. To avoid portability problems on Win32, it is
+recommended that you avoid the use of the native shell interpreter
+`cmd'.
+<<    LIB = $(dir lib)
+      println(The contents of the $(LIB) directory is:)
+      ls $(LIB)
+>>
+  
+* Menu:
+
+* Section 11-1::	Simple commands
+* Section 11-2::	Globbing
+* Section 11-3::	Background jobs
+* Section 11-4::	File redirection
+* Section 11-5::	Pipelines
+* Section 11-6::	Conditional execution
+* Section 11-7::	Grouping
+* Section 11-8::	What is a shell command?
+* Section 11-9::	Basic builtin functions
+* Section 11-10::	Job control builtin functions
+* Section 11-11::	Command history
+
+
+Node: Section 11-1,	Next: Section 11-2,	Prev: Chapter 11,	Up: Chapter 11
+  
+
+11.1   Simple commands
+*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The syntax of shell commands is similar to the syntax used by the Unix
+shell `bash'. In general, a command is a pipeline. A basic command is
+part of a pipeline. It is specified with the name of an executable and
+some arguments. Here are some examples.
+<<    ls
+      ls -AF .
+      echo Hello world
+>>
+  
+  The command is found using the current search path in the variable
+`PATH[]', which should define an array of directories containing
+executables.
+  A command may also be prefixed by environment variable definitions.
+<<    # Prints "Hello world"
+      env X="Hello world" Y=2 printenv X
+      # Pass the include path to the Visual C++
+      env include="c:\Program Files\Microsoft SDK\include" cl foo.cpp
+>>
+  
+
+Node: Section 11-2,	Next: Section 11-3,	Prev: Section 11-1,	Up: Chapter 11
+  
+
+11.2   Globbing
+*=*=*=*=*=*=*=*
+
+  
+  Commands may contain wildcard patterns. A pattern specifies a set of
+files through a limited kind of regular expression. Patterns are
+expanded before the function is executed.
+<<   # List all files with a .c suffix
+     ls *.c
+  
+     # List all files with a single character prefix, and .c suffix
+     ls ?.c
+  
+     # Rename the file hello.ml to foo.ml
+     mv {hello,foo}.ml
+>>
+  
+  A comprehensive description of OMake glob patterns is given in Section
+10.4*Note Section 10-4::.
+
+Node: Section 11-3,	Next: Section 11-4,	Prev: Section 11-2,	Up: Chapter 11
+  
+
+11.3   Background jobs
+*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  The command may also be placed in the background by placing an
+ampersand after the command. Control returns to the shell without
+waiting for the job to complete. The job continues to run in the
+background.
+<<    gcc -o hugeprogram *.c &
+>>
+  
+
+Node: Section 11-4,	Next: Section 11-5,	Prev: Section 11-3,	Up: Chapter 11
+  
+
+11.4   File redirection
+*=*=*=*=*=*=*=*=*=*=*=*
+
+  
+  Input and output can be redirected to files by using the `<', `>', and
+`>&' directives after the command.
+<<    # Write to the "foo" file
+      echo Hello world > foo
+  
+      # Redirect input from the foo file
+      cat < foo
+  
+      # Redirect standard output and errors to the foo file
+      gcc -o boo *.c >& foo
+>>
+  
+
+Node: Section 11-5,	Next: Section 11-6,	Prev: Section 11-4,	Up: Chapter 11
+  
+
+11.5   Pipelines
+*=*=*=*=*=*=*=*=
+
+  
+  Pipelines are sequences of commands, where the output from each
+command is sent to the next. Pipelines are defined with the `|' and `|&'
+syntax. With `|' the output is redirected, but errors are not. With `|&'
+both output and errors are redirected.
+<<   # Send the output of the ls command to the printer
+     ls *.c | lpr
+  
+     # Send output and errors to jyh as email
+     gcc -o hugefile *.c |& mail jyh
+>>
+  
+
+Node: Section 11-6,	Next: Section 11-7,	Prev: Section 11-5,	Up: Chapter 11
+  
+
+11.6   Conditional execution
+*=*=*=*=*=*=*=*=*=*=*=*=*=*=
+
+  
+  Commands may also be composed though conditional evaluation using the
+`||' and `&&' syntax. Every command has an integer exit code, which may
+be zero or some other integer. A command is said to succeed if its exit
+code is zero. The expression `command1 && command2' executes `command2'
+only if `command1' succeeds. The expression `command1 || command2'
+executes `command2' only if `command1' fails.
+<<   # Display the x/y file if possible
+     cd x && cat y
+  
+     # Run foo.exe, or print an error message
+     (test -x foo.exe && foo.exe) || echo "foo.exe is not executable"
+>>
+  
+
 Node: Section 11-7,	Next: Section 11-8,	Prev: Section 11-6,	Up: Chapter 11
   
 
@@ -408,6 +623,10 @@ sequential elements. It provides the following methods.
   
   
  - `$(s.length)': the number of elements in the sequence. 
+ - `$(s.is-nonempty)': true iff the expression `$(s.nth 0)' will
+   complete without failure. 
+ - `$(s.nth <i>)': return the n'th element of the sequence. 
+ - `$(s.nth-tl <i>)': return the n'th tail of the sequence. 
  - `$(s.map <fun>)': maps a function over the fields in the sequence.
    The function should take one argument. The result is a new sequence
    constructed from the values returned by the function. 
@@ -860,9 +1079,7 @@ single array containing an argument list.
      See the documentation for the 'test' function.
     
     - `find'
-      <<   find \emph{expression}
-      >>
-    
+    `find' expression
     See the documentation for the 'find' function.
   
    
@@ -1270,12 +1487,15 @@ Node: Subsection 13-4-2,	Next: Section 13-5,	Prev: Subsection 13-4-1,	Up: Sectio
  DIRSEP
  The normal directory separator (`/' on
 `Unix', `\' on `Win32'). 
- EXT_LIB
- File suffix for a static library
-(default is `.a' on `Unix', and `.lib' on `Win32'). 
  EXT_OBJ
  File suffix for an object file
 (default is `.o' on `Unix', and `.obj' on `Win32'). 
+ EXT_LIB
+ File suffix for a static library
+(default is `.a' on `Unix', and `.lib' on `Win32'). 
+ EXT_DLL
+ File suffix for a shared library
+(default is `.so' on `Unix', and `.dll' on `Win32'). 
  EXT_ASM
  File suffix for an assembly file
 (default is `.s' on `Unix', and `.asm' on `Win32'). 
@@ -1398,6 +1618,10 @@ static libraries (defaults to `ar cq' on `Unix', and `lib' on `Win32').
  LDFLAGS
  Options to pass to the linker (default
 is empty). 
+ LDFLAGS_DLL
+ Options to pass to the linker when
+compiling a shared library (defaults to `-shared' on `Unix' and `/DLL'
+on `Win32'). 
  LDOUT
  The option to use for specifying the
 output file in C and C++ linkers (defaults to `-o' on `Unix' and `/Fe'
@@ -1437,261 +1661,3 @@ generated files, specify:
 generated before any C files anywhere in the project are scanned for
 dependencies. The `LocalCGeneratedFiles' function follows the normal
 scoping rules of OMake.
-
-Node: Subsection 13-5-4,	Next: Section 13-6,	Prev: Subsection 13-5-3,	Up: Section 13-5
-  
-
-13.5.4   Building C programs and Libraries
-==========================================
-
-
-13.5.4.1   StaticCLibrary
--------------------------
-
-  The `StaticCLibrary' builds a static library.
-  `StaticCLibrary(<target>, <files>)'
-  The `<target>' does not include the library suffix, and The `<files>'
-list does not include the object suffix. These are obtained from the
-`EXT_LIB' and `EXT_OBJ' variables.
-  This function returns the library filename.
-  The following command builds the library `libfoo.a' from the files
-`a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
-`a.obj b.obj c.obj' on `Win32'.
-<<StaticCLibrary(libfoo, a b c)
-  .DEFAULT: $(StaticCLibrary libbar, a b c d)
->>
-  
-
-13.5.4.2   StaticCLibraryCopy
------------------------------
-
-  The `StaticCLibraryCopy' function copies the static library to an
-install location.
-  `StaticCLibraryCopy(<tag>, <dir>, <lib>)'
-  The `<tag>' is the name of a target (typically a `.PHONY' target); the
-`<dir>' is the installation directory, and `<lib>' is the library to be
-copied (without the library suffix).
-  This function returns the filename of the library in the target
-directory.
-  For example, the following code copies the library `libfoo.a' to the
-`/usr/lib' directory.
-<<.PHONY: install
-  
-  StaticCLibraryCopy(install, /usr/lib, libfoo)
->>
-  
-
-13.5.4.3   StaticCLibraryInstall
---------------------------------
-
-  The `StaticCLibraryInstall' function builds a library, and sets the
-install location in one step. It returns the filename of the library in
-the target directory.
-  `StaticCLibraryInstall(<tag>, <dir>, <libname>, <files>)'
-<<StaticCLibraryInstall(install, /usr/lib, libfoo, a b c)
->>
-  
-
-13.5.4.4   StaticCObject, StaticCObjectCopy, StaticCObjectInstall
------------------------------------------------------------------
-
-  These functions mirror the `StaticCLibrary', `StaticCLibraryCopy', and
-`StaticCLibraryInstall' functions, but they build an object file (a `.o'
-file on `Unix', and a `.obj' file on `Win32').
-
-13.5.4.5   CProgram
--------------------
-
-  The `CProgram' function builds a C program from a set of object files
-and libraries.
-  `CProgram(<name>, <files>)'
-  The `<name>' argument specifies the name of the program to be built;
-the `<files>' argument specifies the files to be linked. The function
-returns the filename of the executable.
-  Additional options can be passed through the following variables. 
-  
- CFLAGS  Flags used by the C compiler during the link step. 
- LDFLAGS  Flags to pass to the loader. 
- LIBS  Additional libraries to be linked. 
-  
-  For example, the following code specifies that the program `foo' is to
-be produced by linking the files `bar.o' and `baz.o' and libraries
-`libfoo.a'.
-<<section
-     LIBS = libfoo
-     LDFLAGS += -lbar
-     CProgram(foo, bar baz)
->>
-  
-
-13.5.4.6   CProgramCopy
------------------------
-
-  The `CProgramCopy' function copies a file to an install location.
-  `CProgramCopy(<tag>, <dir>, <program>)'
-<<CProgramCopy(install, /usr/bin, foo)
->>
-  
-
-13.5.4.7   CProgramInstall
---------------------------
-
-  The `CProgramInstall' function specifies a program to build, and a
-location to install, simultaneously.
-  `CProgramInstall(<tag>, <dir>, <name>, <files>)'
-<<section
-     LIBS = libfoo
-     LDFLAGS += -lbar
-     CProgramInstall(install, /usr/bin, foo, bar baz)
->>
-  
-
-13.5.4.8   CXXProgram, CXXProgramInstall
-----------------------------------------
-
-  The `CXXProgram' and `CXXProgramInstall' functions are equivalent to
-their C counterparts, except that would use `$(CXX)' and `$(CXXFLAGS)'
-for linking instead of `$(CC)' and `$(CFLAGS)'.
-
-13.5.4.9   StaticCXXLibrary, StaticCXXLibraryCopy,
---------------------------------------------------
-StaticCXXLibraryInstall
------------------------
-\@nam
-e{function:StaticCXXLibraryCopy}\@name
-{function:StaticCXXLibraryInstall}
-  Similarly, `StaticCXXLibrary', `StaticCXXLibraryCopy' and
-`StaticCXXLibraryInstall' are the C++ equivalents of `StaticCLibrary',
-`StaticCLibraryCopy' and `StaticCLibraryInstall' functions. 
-
-Node: Section 13-6,	Next: Subsection 13-6-1,	Prev: Section 13-5,	Up: Chapter 13
-  
-
-13.6   Building OCaml code
-*=*=*=*=*=*=*=*=*=*=*=*=*=
-
-  
-  OMake provides extensive support for building OCaml code, including
-support for tools like `ocamlfind', `ocamlyacc' and `menhir'. In order
-to use the functions defined in this section, you need to make sure the
-line 
-<<open build/OCaml
->>
-  is present in your `OMakeroot' file.
-* Menu:
-
-* Subsection 13-6-1::	Autoconfiguration variables for OCaml compilation
-* Subsection 13-6-2::	Configuration variables for OCaml compilation
-* Subsection 13-6-3::	OCaml command flags
-* Subsection 13-6-4::	Library variables
-* Subsection 13-6-5::	Generated OCaml Files
-* Subsection 13-6-6::	Using the Menhir parser generator
-
-
-Node: Subsection 13-6-1,	Next: Subsection 13-6-2,	Prev: Section 13-6,	Up: Section 13-6
-  
-
-13.6.1   Autoconfiguration variables for OCaml compilation
-==========================================================
-   These variables will get defined based on the "autoconf-style" tests
-executed when you run OMake for the first time. You can use them to
-configure your project accordingly, and you should not redefine them.
-  You can use the `--configure' command line option (Section
-A.3.9*Note Subsection A-3-9::) to force re-execution of all the
-tests.
- OCAMLOPT_EXISTS
- True when `ocamlopt' (or
-`ocamlopt.opt') is available on your machine. 
- OCAMLFIND_EXISTS
- True when the ocamlfind is available
-on your machines. 
- OCAMLDEP_MODULES_AVAILABLE
- True when a version of `ocamldep' that
-understands the `-modules' option is available on your machine. 
- MENHIR_AVAILABLE
- True when the Menhir parser-generator
-is available on your machine.
-
-Node: Subsection 13-6-2,	Next: Subsection 13-6-3,	Prev: Subsection 13-6-1,	Up: Section 13-6
-  
-
-13.6.2   Configuration variables for OCaml compilation
-======================================================
-  
-  The following variables can be redefined in your project. 
- USE_OCAMLFIND
- Whether to use the `ocamlfind' utility
-(default `false') 
- OCAMLC
- The OCaml bytecode compiler (default
-`ocamlc.opt' if it exists and `USE_OCAMLFIND' is not set, otherwise
-`ocamlc'). 
- OCAMLOPT
- The OCaml native-code compiler
-(default `ocamlopt.opt' if it exists and `USE_OCAMLFIND' is not set,
-otherwise `ocamlopt'). 
- CAMLP4
- The `camlp4' preprocessor (default
-`camlp4'). 
- OCAMLLEX
- The OCaml lexer generator (default
-`ocamllex'). 
- OCAMLLEXFLAGS
- The flags to pass to `ocamllex'
-(default `-q'). 
- OCAMLYACC
- The OCaml parser generator (default
-`ocamlyacc'). 
- OCAMLYACCFLAGS
- Additional options to pass to
-`$(OCAMLYACC)'. 
- OCAMLDEP
- The OCaml dependency analyzer (default
-`ocamldep'). 
- OCAMLDEP_MODULES
- The OCaml dependency analyzer that
-understands the `-module' option (default `ocamldep', if `ocamldep
--modules' works, or `ocamlrun ocamldep-omake', if `ocamlrun
-ocamldep-omake -modules' works, and empty when neither works). 
- OCAMLDEP_MODULES_ENABLED
- Instead of using `OCAMLDEP' in a
-traditional `make'-style fashion, run `$(OCAMLDEP_MODULES) -modules' and
-then postprocess the output internally to discover all the relevant
-generated `.ml' and `.mli' files. See Section
-13.6.5*Note Subsection 13-6-5:: for more information on
-interactions between OMake, `OCAMLDEP' and generated files. Set to
-`$(OCAMLDEP_MODULES_AVAILABLE)' by default. 
- OCAMLMKTOP
- The OCaml toploop compiler (default
-`ocamlmktop'). 
- OCAMLLINK
- The OCaml bytecode linker (default
-`$(OCAMLC)'). 
- OCAMLOPTLINK
- The OCaml native-code linker (default
-`$(OCAMLOPT)'). 
- OCAMLINCLUDES
- Search path to pass to the OCaml
-compilers (default `.'). The search path with the `-I' prefix is defined
-by the `PREFIXED_OCAMLINCLUDES' variable. 
- OCAMLFIND
- The `ocamlfind' utility (default
-`ocamlfind' if `USE_OCAMLFIND' is set, otherwise empty). 
- OCAMLFINDFLAGS
- The flags to pass to `ocamlfind'
-(default empty, `USE_OCAMLFIND' must be set). 
- OCAMLPACKS
- Package names to pass to `ocamlfind'
-(`USE_OCAMLFIND' must be set). 
- BYTE_ENABLED
- Flag indicating whether to use the
-bytecode compiler (default `true', when no `ocamlopt' found, `false'
-otherwise). 
- NATIVE_ENABLED
- Flag indicating whether to use the
-native-code compiler (default `true', when ocamlopt is found, `false'
-otherwise). Both `BYTE_ENABLED' and `NATIVE_ENABLED' can be set to true;
-at least one should be set to true. 
- MENHIR_ENABLED
- Define this as `true' if you wish to
-use `menhir' instead of `ocamlyacc' (default `false'). 

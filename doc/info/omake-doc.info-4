@@ -1,5 +1,91 @@
 This file has been translated from LaTeX by HeVeA.
 
+Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: Section 8-11
+  
+
+8.11.2   Scoping of '.SCANNER' rules
+====================================
+   
+  Scanner rules are scoped the same way as normal rules. If the
+`.SCANNER' rule is explicit (containing no wildcard patterns), then the
+scope of the scan target is the same as the the rule. If the `.SCANNER'
+rule is implicit, then the environment is taken from the `:scanner:'
+dependency.
+<<    # The executable is compiled with debugging
+      CFLAGS = -g
+      hello: hello_code.o hello_lib.o
+         $(CC) $(CFLAGS) -o $@ $+
+  
+      # scanner for .c files
+      .SCANNER: scan-c-%.c: %.c
+         $(CC) $(CFLAGS) -MM $<
+  
+      # Compile hello_lib.o with CFLAGS = -g -DLIBRARY
+      section
+          CFLAGS += -DLIBRARY
+          hello_lib.o: hello_lib.c :scanner: scan-c-hello_lib.c
+             $(CC) $(CFLAGS) -c $<
+  
+      # Compile hello_code.c with CFLAGS = -g -O3
+      section
+          CFLAGS += -O3
+          hello_code.o: hello_code.c :scanner: scan-c-hello_code.c
+             $(CC) $(CFLAGS) -c $<
+>>
+  
+  Again, this is for illustration---it is unlikely you would need to
+write a complicated configuration like this! In this case, the
+`.SCANNER' rule specifies that the C-compiler should be called with the
+`-MM' flag to compute dependencies. For the target `hello_lib.o', the
+scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
+is called with `CFLAGS=-g -O3'.
+
+Node: Subsection 8-11-3,	Next: Section 8-12,	Prev: Subsection 8-11-2,	Up: Section 8-11
+  
+
+8.11.3   Scoping for '.PHONY' targets
+=====================================
+   
+  Phony targets (targets that do not correspond to files) are defined
+with a `.PHONY:' rule. Phony targets are scoped as usual. The following
+illustrates a common mistake, where the `.PHONY' target is declared
+after it is used.
+<<    # !!This example is broken!!
+      all: hello
+  
+      hello: hello_code.o hello_lib.o
+          $(CC) $(CFLAGS) -o $@ $+
+  
+      .PHONY: all
+>>
+  
+  This doesn't work as expected because the `.PHONY' declaration occurs
+too late. The proper way to write this example is to place the `.PHONY'
+declaration first.
+<<    # Phony targets must be declared before being used
+      .PHONY: all
+  
+      all: hello
+  
+      hello: hello_code.o hello_lib.o
+          $(CC) $(CFLAGS) -o $@ $+
+>>
+  
+  Phony targets are passed to subdirectories. As a practical matter, it
+is wise to declare all `.PHONY' targets in your root `OMakefile', before
+any `.SUBDIRS'. This will ensure that 1) they are considered as phony
+targets in each of the subdirectories, and 2) you can build them from
+the project root.
+<<    .PHONY: all install clean
+  
+      .SUBDIRS: src lib clib
+>>
+  
+  Note that when a `.PHONY' target is inherited by a subdirectory via a
+`.SUBDIRS', a whole hierarchy of `.PHONY' targets (that are a part of
+the global one) is created, as described in Section
+8.12.2*Note Subsection 8-12-2:: below.
+
 Node: Section 8-12,	Next: Subsection 8-12-1,	Prev: Section 8-11,	Up: Chapter 8
   
 
@@ -32,7 +118,7 @@ Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Sectio
 8.12.1   Phony targets in a subdirectory
 ========================================
    \@n
-ame{@default64}
+ame{@default65}
   Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
 and both the root `OMakefile' and the `OMakefile' in some of the
 subdirectories contain `clean:' rules. In this case 
@@ -201,7 +287,7 @@ follows.
  OMAKEPATH
  An array of directories specifying the
 lookup path for the `include' and `open' directives (see Section
-4.7*Note Section 4-7::). The default value is an array of two
+4.8*Note Section 4-8::). The default value is an array of two
 elements --- `.' and `$(STDLIB)'. 
  OSTYPE
  Set to the machine architecture omake is
@@ -355,7 +441,7 @@ Node: Subsection 9-2-5,	Next: Subsection 9-2-6,	Prev: Subsection 9-2-4,	Up: Sect
 9.2.5   if
 ==========
 \@na
-me{@default87}
+me{@default88}
 <<    $(if e1, e2[, e3]) : value
          e1 : String
          e2, e3 : value
@@ -910,7 +996,7 @@ Node: Subsection 9-3-9,	Next: Subsection 9-3-10,	Prev: Subsection 9-3-8,	Up: Sec
 9.3.9   subrange
 ================
 
-<<   $(subrange off, len, sequent) : value
+<<   $(subrange off, len, sequence) : value
         off : Int
         len : Int
         sequence : Sequence
@@ -977,7 +1063,7 @@ Node: Subsection 9-3-13,	Next: Subsection 9-3-14,	Prev: Subsection 9-3-12,	Up: S
         sequence : Sequence
 >>
   
-  The `string-lenght' returns a length (number of characters) in  its
+  The `string-lenght' returns a length (number of characters) in its
 argument. If the argument is a sequence, it flattens it, so
 `$(string-length sequence)' is equivalent to `$(string-length $(string
 sequence))'. 
@@ -1076,9 +1162,10 @@ Node: Subsection 9-3-18,	Next: Subsection 9-3-19,	Prev: Subsection 9-3-17,	Up: S
 >>
   
   The `html-string' function flattens a sequence into a single string,
-and escaped special HTML characters. This is similar to the `concat'
+and escapes special HTML characters. This is similar to the `concat'
 function, but the elements are separated by whitespace. The result is
-treated as a unit; whitespace is significant. 
+treated as a unit; whitespace inside sequence elements is preserved
+literally. 
 
 Node: Subsection 9-3-19,	Next: Subsection 9-3-20,	Prev: Subsection 9-3-18,	Up: Section 9-3
   
@@ -1460,7 +1547,7 @@ function allows one to capture the current environment in a variable.
   A = 2
   B = 2
   C = 2
-  export $(SAVE_ENV)
+  export($(SAVE_ENV))
   println($A $B $C)
 >>
   will print `1 1 2'.
@@ -1517,10 +1604,13 @@ value is printed.
       while $(lt $i, 10)
       case $(equal $i, 0)
          echo zero
+         i = $(add $i, 1)
       case $(equal $i, 1)
          echo one
+         i = $(add $i, 1)
       default
          echo $i
+         i = $(add $i, 1)
 >>
   
   The 'break' function can be used to break out of the `while' loop
@@ -1551,7 +1641,7 @@ Node: Subsection 9-3-44,	Next: Section 9-4,	Prev: Subsection 9-3-43,	Up: Section
   
   Produce a random number. The numbers are pseudo-random, and are not
 cryptographically secure.
-  The generator is initialized form semi-random system data. Subsequent
+  The generator is initialized from semi-random system data. Subsequent
 runs should produce different results. The `rando-init' function can be
 used to return the generator to a known state. 
 
@@ -1579,153 +1669,3 @@ Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9
   The `int' function can be used to create integers. It returns an `Int'
 object.
   `$(int 17)'.
-
-Node: Subsection 9-4-2,	Next: Subsection 9-4-3,	Prev: Subsection 9-4-1,	Up: Section 9-4
-  
-
-9.4.2   float
-=============
- The `float'
-function can be used to create floating-point numbers. It returns a
-`Float' object.
-  `$(float 3.1415926)'. 
-
-Node: Subsection 9-4-3,	Next: Subsection 9-4-4,	Prev: Subsection 9-4-2,	Up: Section 9-4
-  
-
-9.4.3   Basic arithmetic
-========================
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  The following functions can be used to perform basic arithmetic.
-  
-  
- - `$(neg <numbers>)': arithmetic inverse 
- - `$(add <numbers>)': addition. 
- - `$(sub <numbers>)': subtraction. 
- - `$(mul <numbers>)': multiplication. 
- - `$(div <numbers>)': division. 
- - `$(mod <numbers>)': remainder. 
- - `$(lnot <numbers>)': bitwise inverse. 
- - `$(land <numbers>)': bitwise and. 
- - `$(lor <numbers>)': bitwise or. 
- - `$(lxor <numbers>)': bitwise exclusive-or. 
- - `$(lsl <numbers>)': logical shift left. 
- - `$(lsr <numbers>)': logical shift right. 
- - `$(asr <numbers>)': arithmetic shift right. 
- - `$(min <numbers>)': smallest element. 
- - `$(max <numbers>)': largest element. 
-   
-
-Node: Subsection 9-4-4,	Next: Section 9-5,	Prev: Subsection 9-4-3,	Up: Section 9-4
-  
-
-9.4.4   Comparisons
-===================
-   
-
-
-
-
-
-
-
-
-  The following functions can be used to perform numerical comparisons.
-  
-  
- - `$(lt <numbers>)': less then. 
- - `$(le <numbers>)': no more than. 
- - `$(eq <numbers>)': equal. 
- - `$(ge <numbers>)': no less than. 
- - `$(gt <numbers>)': greater than. 
- - `$(ult <numbers>)': unsigned less than. 
- - `$(ule <numbers>)': unsigned greater than. 
- - `$(uge <numbers>)': unsigned greater than or equal. 
- - `$(ugt <numbers>)': unsigned greater than. 
-   
-
-Node: Section 9-5,	Next: Subsection 9-5-1,	Prev: Section 9-4,	Up: Chapter 9
-  
-
-9.5   First-class functions
-*=*=*=*=*=*=*=*=*=*=*=*=*=*
-
-   
-* Menu:
-
-* Subsection 9-5-1::	fun
-* Subsection 9-5-2::	apply
-* Subsection 9-5-3::	applya
-* Subsection 9-5-4::	create-map, create-lazy-map
-
-
-Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9-5
-  
-
-9.5.1   fun
-===========
-
-  The `fun' form introduces anonymous functions.
-  `$(fun <v1>, ..., <vn>, <body>)'
-  The last argument is the body of the function. The other arguments are
-the parameter names.
-  The three following definitions are equivalent.
-<<    F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
-  
-      F = $(fun X, Y, $(addsuffix $(Y), $(X)))
-  
-      F =
-         fun(X, Y)
-            value $(addsuffix $(Y), $(X))
->>
-
-Node: Subsection 9-5-2,	Next: Subsection 9-5-3,	Prev: Subsection 9-5-1,	Up: Section 9-5
-  
-
-9.5.2   apply
-=============
-
-  The `apply' operator is used to apply a function.
-  `$(apply <fun>, <args>)'
-  Suppose we have the following function definition.
-<<    F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
->>
-  
-  The the two expressions below are equivalent.
-<<    X = F(a b c, .c)
-      X = $(apply $(F), a b c, .c)
->>
-
-Node: Subsection 9-5-3,	Next: Subsection 9-5-4,	Prev: Subsection 9-5-2,	Up: Section 9-5
-  
-
-9.5.3   applya
-==============
-
-  The `applya' operator is used to apply a function to an array of
-arguments.
-  `$(applya <fun>, <args>)'
-  For example, in the following program, the value of `Z' is `file.c'.
-<<    F(X, Y) =
-         return($(addsuffix $(Y), $(X)))
-      args[] =
-         file
-         .c
-      Z = $(applya $(F), $(args))
->>

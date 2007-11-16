@@ -10,9 +10,9 @@
 </HEAD>
 <BODY >
 
-<img src="images/omake-manual.gif" border="0" align="top" alt=""><br>
+<img src="../images/omake-manual.gif" border="0" align="top" alt=""><br>
 
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
@@ -30,16 +30,17 @@
 <LI><A HREF="omake-language.html#toc18">Arrays</A></LI>
 <LI><A HREF="omake-language.html#toc19">Special characters and quoting</A></LI>
 <LI><A HREF="omake-language.html#toc20">Function definitions</A></LI>
-<LI><A HREF="omake-language.html#toc21">Comments</A></LI>
-<LI><A HREF="omake-language.html#toc22">File inclusion</A></LI>
-<LI><A HREF="omake-language.html#toc23">Scoping, sections</A></LI>
-<LI><A HREF="omake-language.html#toc24">Conditionals</A></LI>
-<LI><A HREF="omake-language.html#toc25">Matching</A></LI>
-<LI><A HREF="omake-language.html#toc26">Objects</A></LI>
-<LI><A HREF="omake-language.html#toc27">Classes</A></LI>
-<LI><A HREF="omake-language.html#toc28">Inheritance</A></LI>
-<LI><A HREF="omake-language.html#toc29">static.</A></LI>
-<LI><A HREF="omake-language.html#toc30">Constants</A></LI>
+<LI><A HREF="omake-language.html#toc21">Curried functions</A></LI>
+<LI><A HREF="omake-language.html#toc22">Comments</A></LI>
+<LI><A HREF="omake-language.html#toc23">File inclusion</A></LI>
+<LI><A HREF="omake-language.html#toc24">Scoping, sections</A></LI>
+<LI><A HREF="omake-language.html#toc25">Conditionals</A></LI>
+<LI><A HREF="omake-language.html#toc26">Matching</A></LI>
+<LI><A HREF="omake-language.html#toc27">Objects</A></LI>
+<LI><A HREF="omake-language.html#toc28">Classes</A></LI>
+<LI><A HREF="omake-language.html#toc29">Inheritance</A></LI>
+<LI><A HREF="omake-language.html#toc30">static.</A></LI>
+<LI><A HREF="omake-language.html#toc31">Constants</A></LI>
 </UL>
 <P>
 <A NAME="chapter:language"></A>
@@ -68,8 +69,8 @@ definition. The following two definitions are equivalent.</P><PRE CLASS="verbati
    CFLAGS += -Wall -g
 </PRE><H2 CLASS="section"><A NAME="toc18"></A><A NAME="htoc33">4.3</A>&#XA0;&#XA0;Arrays</H2><P>
 <A NAME="@default11"></A></P><P>Arrays can be defined by appending the <CODE>[]</CODE> sequence to the variable name and defining initial
-values for the elements as separate lines. Whitespace is significant on each line. The following
-code sequence prints <CODE>c d e</CODE>.</P><PRE CLASS="verbatim">    X[] =
+values for the elements as separate lines. Whitespace on each line is
+taken literally. The following code sequence prints <CODE>c d e</CODE>.</P><PRE CLASS="verbatim">    X[] =
         a b
         c d e
         f
@@ -129,9 +130,73 @@ prints the string &#X201C;She says: Hello world&#X201D;.</P><PRE CLASS="verbatim
         println($(name) says: Hello world)
 
     Printer(She)
-</PRE><H2 CLASS="section"><A NAME="toc21"></A><A NAME="htoc36">4.6</A>&#XA0;&#XA0;Comments</H2><P>Comments begin with the <CODE>#</CODE> character and continue to the end of the line.</P><H2 CLASS="section"><A NAME="toc22"></A><A NAME="htoc37">4.7</A>&#XA0;&#XA0;File inclusion</H2><P>
+</PRE><H3 CLASS="subsection"><A NAME="htoc36">4.5.1</A>&#XA0;&#XA0;Keyword arguments</H3><P>
+<A NAME="section:keyword-arguments"></A>
+<A NAME="@default16"></A></P><P><I>This feature will be introduced in version 0.9.8.6.</I></P><P>Functions can also have keyword parameters and arguments. The syntax of a keyword
+parameter/argument is <CODE>[~|?]&lt;id&gt; [= &lt;expression&gt;]</CODE>, where the keyword name <CODE>&lt;id&gt;</CODE>
+is preceeded by the character <CODE>~</CODE> (for required arguments), or <CODE>?</CODE> (for optional
+arguments). If a default value <CODE>= &lt;expression&gt;</CODE> is provided, the argument is
+always optional.</P><P>Keyword arguments and normal anonymous arguments are completely separate. Also, it is an error to
+pass a keyword argument to a function that does not define it as a keyword parameter.</P><PRE CLASS="verbatim">    osh&gt;f(x, ?y = 1, z) =
+           add($(mul $x, 100), $(mul $y, 10), $z)
+    - : &lt;fun 0&gt;
+    osh&gt;f(1, ~y = 2, 3)
+    - : 123 : Int
+    osh&gt;f(1, 3, ~y = 2)
+    - : 123 : Int
+    osh&gt;f(1, 3)
+    - : 113 : Int
+    osh&gt;f(1, 2, 3)
+    *** omake error:
+       File -: line 11, characters 0-10
+       arity mismatch: expected 2 args, got 3
+    osh&gt;f(~z = 7)
+    *** omake error:
+       File -: line 12, characters 0-8
+       no such keyword: z
+</PRE><P>An optional keyword argument defaults to the empty value.</P><PRE CLASS="verbatim">    osh&gt; g(?x) =
+             println($"&gt;&gt;&gt;$x&lt;&lt;&lt;")
+    - : &lt;fun 0&gt;
+    osh&gt; g()
+    &gt;&gt;&gt;&lt;&lt;&lt;
+    osh&gt; g(~x = xxx)
+    &gt;&gt;&gt;xxx&lt;&lt;&lt;
+</PRE><P>It is an error to omit a required keyword argument.</P><PRE CLASS="verbatim">    osh&gt; h(~x, ~y) =
+             println(x = $x; y = $y)
+    - : &lt;fun 0&gt;
+    osh&gt; h(~y = 2, ~x = 1)
+    x = 1; y = 2
+    osh&gt; h(~y = 2)
+    *** omake error:
+       File -: line 11, characters 0-9
+       keyword argument is required: x
+</PRE><H2 CLASS="section"><A NAME="toc21"></A><A NAME="htoc37">4.6</A>&#XA0;&#XA0;Curried functions</H2><P><I>This feature will be introduced in version 0.9.8.6.</I></P><P>Functions that are marked with the classifier <CODE>curry</CODE> can be called with &#X201C;too many&#X201D; arguments.
+It is expected that a curried function returns a function that consumes the remaining arguments.
+All arguments must be specified.</P><PRE CLASS="verbatim">    osh&gt;curry.f(x, y) =
+            println($"Got two arguments: x = $x, y = $y")
+            g(z) =
+               add($x, $y, $z)
+    osh&gt; f(1, 2, 3)
+    Got two arguments: x = 1, y = 2
+    - : 6 : Int
+    osh&gt; f(1, 2)
+    Got two arguments: x = 1, y = 2
+    *** omake error:
+       File -: line 62, characters 0-7
+       arity mismatch: expected 1 args, got 0
+</PRE><P>The function <CODE>apply</CODE> can be used to compute partial applications, whether or not the function
+is labeled as a curried function.</P><PRE CLASS="verbatim">    osh&gt; f1(a, ~b = 2, ~c = 3, d) =
+            println($"a = $a, b = $b, c = $c, d = $d")
+    - : &lt;fun 0&gt;
+    osh&gt; f2 = $(apply $(f1), ~c = 13, 11)
+    - : &lt;curry 0&gt;
+    osh&gt; f2(14, ~b = 12)
+    a = 11, b = 12, c = 13, d = 14
+    osh&gt; f2(24)
+    a = 11, b = 2, c = 13, d = 24
+</PRE><H2 CLASS="section"><A NAME="toc22"></A><A NAME="htoc38">4.7</A>&#XA0;&#XA0;Comments</H2><P>Comments begin with the <CODE>#</CODE> character and continue to the end of the line.</P><H2 CLASS="section"><A NAME="toc23"></A><A NAME="htoc39">4.8</A>&#XA0;&#XA0;File inclusion</H2><P>
 <A NAME="section:include"></A>
-<A NAME="@default16"></A><A NAME="@fun0"></A><A NAME="@default17"></A></P><P>Files may be included with the <CODE>include</CODE> or <CODE>open</CODE> form. The included file must use
+<A NAME="@default17"></A><A NAME="@fun0"></A><A NAME="@default18"></A></P><P>Files may be included with the <CODE>include</CODE> or <CODE>open</CODE> form. The included file must use
 the same syntax as an <TT>OMakefile</TT>.</P><PRE CLASS="verbatim">    include $(Config_file)
 </PRE><P>The <CODE>open</CODE> operation is similar to an <CODE>include</CODE>, but the file is included at most once.
 </P><PRE CLASS="verbatim">    open Config
@@ -143,9 +208,9 @@ the same syntax as an <TT>OMakefile</TT>.</P><PRE CLASS="verbatim">    include $
 <CODE>open</CODE> operations search for the file based on the
 <A HREF="omake-base.html#var:OMAKEPATH"><CODE>OMAKEPATH</CODE> variable</A>. In case of the <CODE>open</CODE> directive, the search is
 performed at <EM>parse</EM> time, and the argument to <CODE>open</CODE> may not
-contain any expressions.</P><H2 CLASS="section"><A NAME="toc23"></A><A NAME="htoc38">4.8</A>&#XA0;&#XA0;Scoping, sections</H2><P>
+contain any expressions.</P><H2 CLASS="section"><A NAME="toc24"></A><A NAME="htoc40">4.9</A>&#XA0;&#XA0;Scoping, sections</H2><P>
 <A NAME="section:section"></A>
-<A NAME="@default18"></A></P><P>Scopes in <TT>omake</TT> are defined by indentation level. When indentation is
+<A NAME="@default19"></A></P><P>Scopes in <TT>omake</TT> are defined by indentation level. When indentation is
 increased, such as in the body of a function, a new scope is introduced.</P><P>The <CODE>section</CODE> form can also be used to define a new scope. For example, the following code
 prints the line <CODE>X = 2</CODE>, followed by the line <CODE>X = 1</CODE>.</P><PRE CLASS="verbatim">    X = 1
     section
@@ -184,12 +249,12 @@ variable by the <CODE>foo</CODE> subdirectory, but not by the <CODE>bar</CODE> a
 <CODE>baz</CODE> directories. The implicit rules are scoped as well and in this
 example, the newly added yacc rule will be inherited by the <CODE>foo</CODE>
 subdirectory, but not by the <CODE>bar</CODE> and <CODE>baz</CODE> ones; furthermore
-this implicit rule will not be in scope in the current directory.</P><H2 CLASS="section"><A NAME="toc24"></A><A NAME="htoc39">4.9</A>&#XA0;&#XA0;Conditionals</H2><P>
+this implicit rule will not be in scope in the current directory.</P><H2 CLASS="section"><A NAME="toc25"></A><A NAME="htoc41">4.10</A>&#XA0;&#XA0;Conditionals</H2><P>
 <A NAME="section:conditionals"></A>
-<A NAME="@default19"></A>
-<A NAME="@default20"></A></P><P>Top level conditionals have the following form.</P><PRE CLASS="verbatim">    if &lt;test&gt;
+<A NAME="@default20"></A>
+<A NAME="@default21"></A></P><P>Top level conditionals have the following form.</P><PRE CLASS="verbatim">    if &lt;test&gt;
        &lt;true-clause&gt;
-    elseif &lt;text&gt;
+    elseif &lt;test2&gt;
        &lt;elseif-clause&gt;
     else
        &lt;else-clause&gt;
@@ -217,10 +282,10 @@ representation is the empty string, or one of the strings <CODE>false</CODE>, <C
        # Abort on other architectures
        eprintln(OS type $(OSTYPE) is not recognized)
        exit(1)
-</PRE><H2 CLASS="section"><A NAME="toc25"></A><A NAME="htoc40">4.10</A>&#XA0;&#XA0;Matching</H2><P>
+</PRE><H2 CLASS="section"><A NAME="toc26"></A><A NAME="htoc42">4.11</A>&#XA0;&#XA0;Matching</H2><P>
 <A NAME="section:match"></A>
-<A NAME="@default21"></A><A NAME="@fun1"></A>
-<A NAME="@default22"></A><A NAME="@fun2"></A></P><P>Pattern matching is performed with the <CODE>switch</CODE> and <CODE>match</CODE> forms.</P><PRE CLASS="verbatim">    switch &lt;string&gt;
+<A NAME="@default22"></A><A NAME="@fun1"></A>
+<A NAME="@default23"></A><A NAME="@fun2"></A></P><P>Pattern matching is performed with the <CODE>switch</CODE> and <CODE>match</CODE> forms.</P><PRE CLASS="verbatim">    switch &lt;string&gt;
     case &lt;pattern1&gt;
         &lt;clause1&gt;
     case &lt;pattern2&gt;
@@ -257,9 +322,9 @@ that are matched by <CODE>\(...\)</CODE> expressions.</P><PRE CLASS="verbatim"> 
     default
         eprintln(Machine configuration not implemented)
         exit(1)
-</PRE><H2 CLASS="section"><A NAME="toc26"></A><A NAME="htoc41">4.11</A>&#XA0;&#XA0;Objects</H2><P>
+</PRE><H2 CLASS="section"><A NAME="toc27"></A><A NAME="htoc43">4.12</A>&#XA0;&#XA0;Objects</H2><P>
 <A NAME="section:objects"></A>
-<A NAME="@default23"></A></P><P>OMake is an object-oriented language. Generally speaking, an object is a value that contains fields
+<A NAME="@default24"></A></P><P>OMake is an object-oriented language. Generally speaking, an object is a value that contains fields
 and methods. An object is defined with a <CODE>.</CODE> suffix for a variable. For example, the
 following object might be used to specify a point (1, 5) on the two-dimensional plane.</P><PRE CLASS="verbatim">    Coord. =
         x = 1
@@ -273,8 +338,8 @@ following object might be used to specify a point (1, 5) on the two-dimensional 
     # This prints the string, "Hi: the point is (1, 5)"
     Coord.print(Hi)
 </PRE><P>The fields <CODE>x</CODE> and <CODE>y</CODE> represent the coordinates of the point. The method <CODE>print</CODE>
-prints out the position of the point.</P><H2 CLASS="section"><A NAME="toc27"></A><A NAME="htoc42">4.12</A>&#XA0;&#XA0;Classes</H2><P>
-<A NAME="@default24"></A></P><P>We can also define <EM>classes</EM>. For example, suppose we wish to define a generic <CODE>Point</CODE>
+prints out the position of the point.</P><H2 CLASS="section"><A NAME="toc28"></A><A NAME="htoc44">4.13</A>&#XA0;&#XA0;Classes</H2><P>
+<A NAME="@default25"></A></P><P>We can also define <EM>classes</EM>. For example, suppose we wish to define a generic <CODE>Point</CODE>
 class with some methods to create, move, and print a point. A class is really just an object with
 a name, defined with the <CODE>class</CODE> directive.</P><PRE CLASS="verbatim">    Point. =
         class Point
@@ -309,8 +374,8 @@ a name, defined with the <CODE>class</CODE> directive.</P><PRE CLASS="verbatim">
 </PRE><P>Note that the variable <CODE>$(this)</CODE> is used to refer to the current object. Also, classes and
 objects are <EM>functional</EM>&#X2014;the <CODE>new</CODE> and <CODE>move-right</CODE> methods return new objects. In
 this example, the object <CODE>p2</CODE> is a different object from <CODE>p1</CODE>, which retains the original
-(1, 5) coordinates.</P><H2 CLASS="section"><A NAME="toc28"></A><A NAME="htoc43">4.13</A>&#XA0;&#XA0;Inheritance</H2><P>
-<A NAME="@default25"></A></P><P>Classes and objects support inheritance (including multiple inheritance) with the <CODE>extends</CODE>
+(1, 5) coordinates.</P><H2 CLASS="section"><A NAME="toc29"></A><A NAME="htoc45">4.14</A>&#XA0;&#XA0;Inheritance</H2><P>
+<A NAME="@default26"></A></P><P>Classes and objects support inheritance (including multiple inheritance) with the <CODE>extends</CODE>
 directive. The following definition of <CODE>Point3D</CODE> defines a point with <CODE>x</CODE>, <CODE>y</CODE>, and
 <CODE>z</CODE> fields. The new object inherits all of the methods and fields of the parent classes/objects.</P><PRE CLASS="verbatim">    Z. =
        z = 0
@@ -326,9 +391,9 @@ directive. The following definition of <CODE>Point3D</CODE> defines a point with
     # The "new" method was not redefined, so this
     # defines a new point (1, 5, 0).
     p = $(Point3D.new 1, 5)
-</PRE><H2 CLASS="section"><A NAME="toc29"></A><A NAME="htoc44">4.14</A>&#XA0;&#XA0;static.</H2><P>
+</PRE><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc46">4.15</A>&#XA0;&#XA0;static.</H2><P>
 <A NAME="section:static."></A>
-<A NAME="@default26"></A></P><P>The <CODE>static.</CODE> object is used to specify values that are persistent across runs of OMake. They
+<A NAME="@default27"></A></P><P>The <CODE>static.</CODE> object is used to specify values that are persistent across runs of OMake. They
 are frequently used for configuring a project. Configuring a project can be expensive, so the
 <CODE>static.</CODE> object ensure that the configuration is performed just once. In the following
 (somewhat trivial) example, a <CODE>static</CODE> section is used to determine if the L<sup>A</sup>T<sub>E</sub>X command is
@@ -353,10 +418,10 @@ be rewritten as</P><PRE CLASS="verbatim">   open configure/Configure
 </PRE><P>As a matter of style, a <CODE>static.</CODE> section that is used for configuration should print what it
 is doing using the <CODE><A HREF="omake-autoconf.html#fun:ConfMsgChecking">ConfMsgChecking</A></CODE> and
 <CODE><A HREF="omake-autoconf.html#fun:ConfMsgResult">ConfMsgResult</A></CODE> functions (of course, most of helper functions in
-the standard library would do that automatically).</P><H3 CLASS="subsection"><A NAME="htoc45">4.14.1</A>&#XA0;&#XA0;.STATIC</H3><P>
+the standard library would do that automatically).</P><H3 CLASS="subsection"><A NAME="htoc47">4.15.1</A>&#XA0;&#XA0;.STATIC</H3><P>
 <A NAME="section:.STATIC"></A>
-<A NAME="@default27"></A>
-<A NAME="@target0"></A></P><P><I>This feature will be introduced in version 0.9.8.5.</I></P><P>There is also a rule form of static section. The syntax can be any of the following three forms.</P><PRE CLASS="verbatim">    # Export all variables defined by the body
+<A NAME="@default28"></A>
+<A NAME="@target0"></A></P><P><I>This feature was introduced in version 0.9.8.5.</I></P><P>There is also a rule form of static section. The syntax can be any of the following three forms.</P><PRE CLASS="verbatim">    # Export all variables defined by the body
     .STATIC:
         &lt;body&gt;
 
@@ -391,12 +456,12 @@ added the the <CODE>TABLE</CODE>.</P><PRE CLASS="verbatim">    .STATIC: table-fi
             export
 </PRE><P>It is appropriate to think of a <CODE>.STATIC</CODE> section as a rule that must be recomputed whenever
 the dependencies of the rule change. The targets of the rule are the variables it exports (in this
-case, the <CODE>TABLE</CODE> variable).</P><H4 CLASS="subsubsection"><A NAME="htoc46">4.14.1.1</A>&#XA0;&#XA0;.MEMO</H4><P>
+case, the <CODE>TABLE</CODE> variable).</P><H4 CLASS="subsubsection"><A NAME="htoc48">4.15.1.1</A>&#XA0;&#XA0;.MEMO</H4><P>
 <A NAME="section:.MEMO"></A>
-<A NAME="@default28"></A>
+<A NAME="@default29"></A>
 <A NAME="@target1"></A></P><P>A <CODE>.MEMO</CODE> rule is just like a <CODE>.STATIC</CODE> rule, except that the results are not saved
-between independent runs of <CODE>omake</CODE>.</P><H4 CLASS="subsubsection"><A NAME="htoc47">4.14.1.2</A>&#XA0;&#XA0;:key:</H4><P>
-<A NAME="@default29"></A></P><P>The <CODE>.STATIC</CODE> and <CODE>.MEMO</CODE> rules also accept a <CODE>:key:</CODE> value, which specifies a
+between independent runs of <CODE>omake</CODE>.</P><H4 CLASS="subsubsection"><A NAME="htoc49">4.15.1.2</A>&#XA0;&#XA0;:key:</H4><P>
+<A NAME="@default30"></A></P><P>The <CODE>.STATIC</CODE> and <CODE>.MEMO</CODE> rules also accept a <CODE>:key:</CODE> value, which specifies a
 &#X201C;key&#X201D; associated with the values being computed. It is useful to think of a <CODE>.STATIC</CODE> rule
 as a dictionary that associates keys with their values. When a <CODE>.STATIC</CODE> rule is evaluated,
 the result is saved in the table with the <CODE>:key:</CODE> defined by the rule (if a <CODE>:key:</CODE> is not
@@ -453,8 +518,8 @@ dependency. Here is the output of the Fibonacci program with an omitted <CODE>:k
 <CODE>i = 0 || i = 1</CODE> is reached, so <CODE>fib</CODE> calls itself recursively until reaching
 <CODE>fib(0)</CODE>, whereupon the <CODE>result</CODE> value is fixed at 0.</P><P>In any case, recursive definitions are perfectly acceptable, but you will usually want a
 <CODE>:key:</CODE> argument so that each recursive call has a different <CODE>:key:</CODE>. In most cases, this
-means that the <CODE>:key:</CODE> should include all arguments to the function.</P><H2 CLASS="section"><A NAME="toc30"></A><A NAME="htoc48">4.15</A>&#XA0;&#XA0;Constants</H2><P>
-<A NAME="@default30"></A></P><P>Internally, OMake represents values in several forms, which we list here.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
+means that the <CODE>:key:</CODE> should include all arguments to the function.</P><H2 CLASS="section"><A NAME="toc31"></A><A NAME="htoc50">4.16</A>&#XA0;&#XA0;Constants</H2><P>
+<A NAME="@default31"></A></P><P>Internally, OMake represents values in several forms, which we list here.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 int<UL CLASS="itemize"><LI CLASS="li-itemize">
 Constructor: <CODE>$(int &lt;i&gt;)</CODE>&#XA0;<A HREF="omake-base.html#function:int">9.4.1</A>.
 </LI><LI CLASS="li-itemize">Object: <CODE>Int</CODE>&#XA0;<A HREF="omake-pervasives.html#object:Int">12.1.4</A>.
@@ -494,7 +559,7 @@ A string often represents an array of values separated by whitespace.
        : Sequence
     osh&gt;length($S)
     - : 4 : Int
-</PRE></LI><LI CLASS="li-itemize">A <EM>data</EM> string is a string where whitespace is significant. It represents a single value,
+</PRE></LI><LI CLASS="li-itemize">A <EM>data</EM> string is a string where whitespace is taken literally. It represents a single value,
 not an array. The constructors are the quotations <CODE>$"..."</CODE> and <CODE>$'...'</CODE>.<PRE CLASS="verbatim">    osh&gt;S = $'''This is a string'''
     - : &lt;data "This is a string"&gt; : String
 </PRE></LI><LI CLASS="li-itemize">See also: Quoted strings&#XA0;<A HREF="omake-language-examples.html#section:quoted-strings">7.2</A>.
@@ -540,7 +605,8 @@ As an anonymous function,
 </PRE></LI><LI CLASS="li-itemize">As a named function,
 <PRE CLASS="verbatim">    f(i, j) =
         add($i, $j)
-</PRE></LI><LI CLASS="li-itemize"><I>This feature will be introduced in version 0.9.9.0.</I>As an anonymous function argument.
+</PRE></LI><LI CLASS="li-itemize">(<I>This feature will be introduced in version 0.9.8.6.</I>)
+As an anonymous function argument.
 <PRE CLASS="verbatim">    osh&gt;foreach(i =&gt; $(add $i, 1), 1 2 3)
     - : &lt;array 2 3 4&gt; : Array
 </PRE></LI></UL>
@@ -551,7 +617,7 @@ Object: <CODE>Lexer</CODE>&#XA0;<A HREF="omake-system.html#object:Lexer">10.11.9
 Object: <CODE>Parser</CODE>&#XA0;<A HREF="omake-system.html#object:Parser">10.11.13</A>.
 </LI><LI CLASS="li-itemize">This object represents a parser.
 </LI></UL></LI></UL>
-<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="http://omake.metaprl.org/">OMake Home</A>
+<TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
 &bull;&nbsp;<A HREF="omake-toc.html">Contents (short)</A>
