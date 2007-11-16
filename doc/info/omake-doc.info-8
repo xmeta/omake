@@ -18,7 +18,7 @@ function builds a shared library (DLL).
   
   The `<target>' does not include the library suffix, and The `<files>'
 list does not include the object suffix. These are obtained from the
-'EXT_LIB' ('EXT_DLL') and 'EXT_OBJ' variables.
+`EXT_LIB' (`EXT_DLL') and `EXT_OBJ' variables.
   This function returns the library filename.
   The following command builds the library `libfoo.a' from the files
 `a.o b.o c.o' on `Unix', or the library `libfoo.lib' from the files
@@ -354,7 +354,7 @@ from `bar.mly'.
   OMake currently provides two methods for addressing this problem ---
 one that requires manually specifying the generated files, and an
 experimental method for discovering such "hidden" dependencies
-automatically. The 'OCAMLDEP_MODULES_ENABLED' variable controls which
+automatically. The `OCAMLDEP_MODULES_ENABLED' variable controls which
 method is going to be used. When this variable is false, the manual
 specifications are expected and when it is true, the automated discovery
 will be attempted.
@@ -368,7 +368,7 @@ name{function:LocalOCamlGeneratedFiles}
   LocalOCamlGeneratedFiles(files)
 >>
   
-  When the 'OCAMLDEP_MODULES_ENABLED' variable variable is set to
+  When the `OCAMLDEP_MODULES_ENABLED' variable variable is set to
 `false', the `OCamlGeneratedFiles' and `LocalOCamlGeneratedFiles'
 functions specify files that need to be generated before any OCaml files
 are scanned for dependencies. For example, if `parser.ml' and `lexer.ml'
@@ -380,7 +380,7 @@ are both generated files, specify:
 generated before any OCaml files anywhere in the project are scanned for
 dependencies. The `LocalOCamlGeneratedFiles' function follows the normal
 scoping rules of OMake.
-  These functions have no effect when the 'OCAMLDEP_MODULES_ENABLED'
+  These functions have no effect when the `OCAMLDEP_MODULES_ENABLED'
 variable is true.
   
 
@@ -393,12 +393,12 @@ discover them automatically is obviously suboptimal. To address this, we
 tell `ocamldep' to only find the free module names in a file and then
 post-process the results internally.
   This automated functionality is enabled when the
-'OCAMLDEP_MODULES_ENABLED' variable is set to `true'. By default,
-'OCAMLDEP_MODULES_ENABLED' variable will be set to
+`OCAMLDEP_MODULES_ENABLED' variable is set to `true'. By default,
+`OCAMLDEP_MODULES_ENABLED' variable will be set to
 `$(OCAMLDEP_MODULES_AVAILABLE)'.
   Note that the `ocamldep' functionality this relies upon is only
 included in the OCaml version 3.10 and higher. It's availability will be
-discovered automatically and the 'OCAMLDEP_MODULES_AVAILABLE' variable
+discovered automatically and the `OCAMLDEP_MODULES_AVAILABLE' variable
 will be set accordingly.
 
 Node: Subsection 13-6-6,	Next: Section 13-7,	Prev: Subsection 13-6-5,	Up: Section 13-6
@@ -512,15 +512,15 @@ the `NATIVE_ENABLED' and `BYTE_ENABLED' variables).
   `OCamlProgram(<name>, <files>)'
   Additional variables used: 
   
- 'OCAML_LIBS'  Additional libraries passed to the linker, without
+ `OCAML_LIBS'  Additional libraries passed to the linker, without
    suffix. These files become dependencies of the target program. 
- 'OCAML_OTHER_LIBS'  Additional libraries passed to the linker, without
+ `OCAML_OTHER_LIBS'  Additional libraries passed to the linker, without
    suffix. These files do not become dependencies of the target program.
    
- 'OCAML_CLIBS'  C libraries to pass to the linker. 
- 'OCAML_BYTE_LINK_FLAGS'  Flags to pass to the bytecode linker. 
- 'OCAML_NATIVE_LINK_FLAGS'  Flags to pass to the native code linker. 
- 'OCAML_LINK_FLAGS'  Flags to pass to both linkers. 
+ `OCAML_CLIBS'  C libraries to pass to the linker. 
+ `OCAML_BYTE_LINK_FLAGS'  Flags to pass to the bytecode linker. 
+ `OCAML_NATIVE_LINK_FLAGS'  Flags to pass to the native code linker. 
+ `OCAML_LINK_FLAGS'  Flags to pass to both linkers. 
 
 
 13.6.6.6   OCamlProgramCopy
@@ -531,7 +531,7 @@ location.
   `OCamlProgramCopy(<tag>, <bindir>, <name>)'
   Additional variables used: 
   
- NATIVE_ENABLED  If the 'NATIVE_ENABLED' variable is set, the
+ NATIVE_ENABLED  If the `NATIVE_ENABLED' variable is set, the
    native-code executable is copied; otherwise the byte-code executable
    is copied. 
 
@@ -685,7 +685,7 @@ build environments.
 * Menu:
 
 * Section 14-1::	General-purpose autoconfiguration functions
-* Section 14-2::	Translating 'autoconf' scripts
+* Section 14-2::	Translating `autoconf' scripts
 * Section 14-3::	Predefined configuration tests
 
 
@@ -767,9 +767,9 @@ Node: Subsection 14-1-3,	Next: Subsection 14-1-4,	Prev: Subsection 14-1-2,	Up: S
   
   The `ConfMsgFound' function expects to receive a boolean flag
 describing whether a test previously announced using the
-'ConfMsgChecking' function found what it was looking for. `ConfMsgFound'
+`ConfMsgChecking' function found what it was looking for. `ConfMsgFound'
 will output the appropriate result ("found" or "NOT found") using the
-'ConfMsgResult' function and return its argument back.
+`ConfMsgResult' function and return its argument back.
   The `ConfMsgYesNo' function is similar, outputting a simple ("yes" or
 "NO"). 
 
@@ -788,13 +788,13 @@ Node: Subsection 14-1-4,	Next: Subsection 14-1-5,	Prev: Subsection 14-1-3,	Up: S
 `TryRunC' functions would try to compile / compile and link / compile,
 link, and run, the given program and return a boolean flag indicating
 whether the attempt was successful.
-  `TryCompileC' will use the 'CC', 'CFLAGS' and 'INCLUDES' variables  to
-run the C compiler. `TryLinkC' and `TryRunC' will also use the 'LDFLAGS'
+  `TryCompileC' will use the `CC', `CFLAGS' and `INCLUDES' variables  to
+run the C compiler. `TryLinkC' and `TryRunC' will also use the `LDFLAGS'
 variable to run the C compiler and linker. However, the flags like
 `/WX', `-Werror' and `-warn-error' will be not be passed to the
 compiler, even if they occur in `CFLAGS'.
   These functions are silent and should normally be used with an
-appropriate 'ConfMsgChecking' ... 'ConfMsgResult'. 
+appropriate `ConfMsgChecking' ... `ConfMsgResult'. 
 
 Node: Subsection 14-1-5,	Next: Subsection 14-1-6,	Prev: Subsection 14-1-4,	Up: Section 14-1
   
@@ -805,7 +805,7 @@ Node: Subsection 14-1-5,	Next: Subsection 14-1-6,	Prev: Subsection 14-1-4,	Up: S
 <<output = $(RunCProg <prog>)
 >>
   
-  `RunCProg' is similar to the 'RunCProg' function, except that it
+  `RunCProg' is similar to the `RunCProg' function, except that it
 returns the output of the function (will return `false' if the program
 fails to compile or run). 
 
@@ -819,12 +819,12 @@ Node: Subsection 14-1-6,	Next: Subsection 14-1-7,	Prev: Subsection 14-1-5,	Up: S
   success = $(VerboseCheckCHeader <files>)
 >>
   
-  Use the 'TryCompileC' function to check whether your C compiler can
+  Use the `TryCompileC' function to check whether your C compiler can
 locate and process the specified headers files. Will incude `<stdio.h>'
 before including the header files.
   Both functions return a boolean value. The `CheckCHeader' function is
 silent; the `VerboseCheckCHeader' function will use the
-'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
+`ConfMsgChecking' and `ConfMsgResult' functions to describe the test and
 the outcome.
   Example: 
 <<static. =
@@ -841,12 +841,12 @@ Node: Subsection 14-1-7,	Next: Subsection 14-1-8,	Prev: Subsection 14-1-6,	Up: S
   success = $(VerboseCheckCLib <libs>, <functions>)
 >>
   
-  Use the 'TryLinkC' function to check whether your C compiler and
+  Use the `TryLinkC' function to check whether your C compiler and
 linker can find the named functions when linking with the named
 libraries. Will pass the `<libs>' to the compiler using the `-l' flag.
   Both functions return a boolean value. The `CheckCLib' function is
 silent; the `VerboseCheckCHeader' function will use the
-'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
+`ConfMsgChecking' and `ConfMsgResult' functions to describe the test and
 the outcome.
   Example: 
 <<static. =
@@ -862,33 +862,33 @@ Node: Subsection 14-1-8,	Next: Section 14-2,	Prev: Subsection 14-1-7,	Up: Sectio
  `success =
 $(CheckProg <prog>)'
   Checks whether the program `<prog>' exists in your path. Will use the
-'ConfMsgChecking' and 'ConfMsgResult' functions to describe the test and
+`ConfMsgChecking' and `ConfMsgResult' functions to describe the test and
 the outcome.
 
 Node: Section 14-2,	Next: Section 14-3,	Prev: Section 14-1,	Up: Chapter 14
   
 
-14.2   Translating 'autoconf' scripts
+14.2   Translating `autoconf' scripts
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 
    Some of the functions described above are very similar to the ones
 present in `autoconf'. Below is a brief translation table for such
 functions. 
   
-  'AC_MSG_CHECKING' is very similar to
-   'ConfMsgChecking' function. 
-  'AC_MSG_RESULT' is very similar to 'ConfMsgResult'
+  `AC_MSG_CHECKING' is very similar to
+   `ConfMsgChecking' function. 
+  `AC_MSG_RESULT' is very similar to `ConfMsgResult'
    function. 
-  'AC_MSG_WARN' is very similar to 'ConfMsgWarn'
+  `AC_MSG_WARN' is very similar to `ConfMsgWarn'
    function. 
-  'AC_MSG_ERROR' is very similar to 'ConfMsgError'
+  `AC_MSG_ERROR' is very similar to `ConfMsgError'
    function. 
-  'AC_TRY_COMPILE' is somewhat similar to
-   'TryCompileC' function, except the 'TryCompileC' function returns a
+  `AC_TRY_COMPILE' is somewhat similar to
+   `TryCompileC' function, except the `TryCompileC' function returns a
    boolean value and only works for `C'. Similarly, 
-  'AC_TRY_LINK' is approximated by 'TryLinkC'
+  `AC_TRY_LINK' is approximated by `TryLinkC'
    function, and 
-  'AC_TRY_RUN' is approximated by 'TryRunC' function.
+  `AC_TRY_RUN' is approximated by `TryRunC' function.
    
   
 
@@ -1017,7 +1017,7 @@ command-line prompt. It can be a simple string.
   
   If you include any "invisible" text in the prompt (such as various
 terminal escape sequences), they must be wrapped using the
-'prompt-invisible' function. For example, to create a bold prompt on
+`prompt-invisible' function. For example, to create a bold prompt on
 terminals that support it, you can use the following. 
 <<    prompt =
          bold-begin = $(prompt-invisible $(tgetstr bold))

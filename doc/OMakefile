@@ -219,11 +219,11 @@ if $(HEVEA_OK)
             $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
 
     .SUBDIRS: txt
-        omake-doc.txt: $(TEX_FILES)
+        omake-doc.txt: $(TEX_FILES) $(HEVEA_DEPS)
             $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
 
     .SUBDIRS: info
-        $(INFO_FILES): $(TEX_FILES)
+        $(INFO_FILES): $(TEX_FILES) $(HEVEA_DEPS)
             rm -f omake-doc.info*
             $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
             if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))

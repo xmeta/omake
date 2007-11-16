@@ -1005,7 +1005,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+echo+
+   # \itemidx{echo}
    #
    # The \verb+echo+ function prints its arguments to the standard output channel.
    # \end{doc}
@@ -1014,7 +1014,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+jobs+
+   # \itemidx{jobs}
    #
    # The \verb+jobs+ method prints the status of currently running commands.
    # \end{doc}
@@ -1028,7 +1028,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+cd+
+   # \itemidx{cd}
    #
    # The \verb+cd+ function changes the current directory.
    # Note that the current directory follows the usual scoping
@@ -1051,7 +1051,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+bg+
+   # \itemidx{bg}
    #
    # The \verb+bg+ method places a job in the background.
    # The job is resumed if it has been suspended.
@@ -1061,7 +1061,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+fg+
+   # \itemidx{fg}
    #
    # The \verb+fg+ method brings a job to the foreground.
    # The job is resumed if it has been suspended.
@@ -1071,7 +1071,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+stop+
+   # \itemidx{stop}
    #
    # The \verb+stop+ method suspends a running job.
    # \end{doc}
@@ -1080,7 +1080,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+wait+
+   # \itemidx{wait}
    #
    # The \verb+wait+ function waits for a running job to terminate.
    # It is not possible to wait for a suspended job.
@@ -1093,7 +1093,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+kill+
+   # \itemidx{kill}
    #
    # The \verb+kill+ function signal a job.
    #
@@ -1110,7 +1110,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+exit+
+   # \itemidx{exit}
    #
    # The \verb+exit+ function terminates the current session.
    # \end{doc}
@@ -1119,7 +1119,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+which+, \verb+where+
+   # \itemtwoidx{which}{where}
    #
    # See the documentation for the corresponding functions.
    # \end{doc}
@@ -1133,7 +1133,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+rehash+
+   # \itemidx{rehash}
    #
    # Reset the search path.
    # \end{doc}
@@ -1143,7 +1143,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+ln-or-cp+ \em{src} \em{dst}
+   # \itemidx{ln-or-cp} \em{src} \em{dst}
    #
    # Links or copies \em{src} to \em{dst}, overwriting \em{dst}. Namely, \verb+ln-or-cp+ would first
    # delete the \em{dst} file (unless it is a directory), if it exists. Next it would try to create
@@ -1187,7 +1187,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+history+
+   # \itemidx{history}
    #
    # Print the current command-line history.
    # \end{doc}
@@ -1199,7 +1199,7 @@ Shell. +=
 
    #
    # \begin{doc}
-   # \item \verb+digest+
+   # \itemidx{digest}
    #
    # Print the digests of the given files.
    # \end{doc}
@@ -1225,14 +1225,13 @@ Shell. +=
    if $(equal $(OSTYPE), Win32)
        #
        # \begin{doc}
-       # \item \verb+grep+
+       # \itemidx{grep}
        #
        # \begin{verbatim}
-       #    grep [-q] [-n] pattern files...
+       #    grep [-q] [-n] [-v] [-h] pattern files...
        # \end{verbatim}
        #
-       # The \verb+grep+ function calls the \Prog{omake}
-       # \verb+grep+ function.
+       # The \verb+grep+ alias calls the \Prog{omake}'s internal \hyperfun{grep}.
        # \end{doc}
        #
        grep = $(builtin-grep)
@@ -1245,8 +1244,7 @@ Shell. +=
    #
 
    #
-   # \begin{doc}
-   # \item Internal versions of standard system commands.
+   # \begin{doc} Internal versions of standard system commands.
    #
    # By default, \Prog{omake} uses internal versions of the following commands:
    # \verb+cp+, \verb+mv+, \verb+cat+, \verb+rm+, \verb+mkdir+, \verb+chmod+,
@@ -1263,7 +1261,7 @@ Shell. +=
    if $(not $(defined USE_SYSTEM_COMMANDS))
        #
        # \begin{doc}
-       # \item \verb+pwd+
+       # \itemidx{pwd}
        #
        # \begin{verbatim}
        #     pwd
@@ -1277,7 +1275,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+mkdir+
+       # \itemidx{mkdir}
        #
        # \begin{verbatim}
        #     mkdir [-m <mode>] [-p] files
@@ -1293,8 +1291,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+cp+
-       # \item \verb+mv+
+       # \itemtwoidx{cp}{mv}
        #
        # \begin{verbatim}
        #     cp [-f] [-i] [-v] src dst
@@ -1321,7 +1318,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+rm+
+       # \itemidx{rm}
        #
        # \begin{verbatim}
        #    rm [-f] [-i] [-v] [-r] files
@@ -1346,7 +1343,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+chmod+
+       # \itemidx{chmod}
        #
        # \begin{verbatim}
        #     chmod [-r] [-v] [-f] mode files
@@ -1370,7 +1367,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+cat+
+       # \itemidx{cat}
        #
        # \begin{verbatim}
        #    cat files...
@@ -1384,7 +1381,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+test+
+       # \itemidx{test}
        #
        #    \verb+test+ \emph{expression}\\
        #    \verb+[+ \emph{expression} +]+\\
@@ -1400,7 +1397,7 @@ Shell. +=
 
        #
        # \begin{doc}
-       # \item \verb+find+
+       # \itemidx{find}
        #
        #    \verb+find+ \emph{expression}
        #

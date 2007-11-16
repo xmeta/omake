@@ -235,9 +235,9 @@ This exception has the following fields:</P><UL CLASS="itemize"><LI CLASS="li-it
 available as shell commands.</P><P>You can define aliases by extending this object with additional methods.
 All methods in this class are called with one argument: a single array
 containing an argument list.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>echo</CODE><P>The <CODE>echo</CODE> function prints its arguments to the standard output channel.
-</P></LI><LI CLASS="li-itemize"><CODE>jobs</CODE><P>The <CODE>jobs</CODE> method prints the status of currently running commands.
-</P></LI><LI CLASS="li-itemize"><CODE>cd</CODE><P>The <CODE>cd</CODE> function changes the current directory.
+<CODE>echo</CODE><A NAME="@default384"></A><P>The <CODE>echo</CODE> function prints its arguments to the standard output channel.
+</P></LI><LI CLASS="li-itemize"><CODE>jobs</CODE><A NAME="@default385"></A><P>The <CODE>jobs</CODE> method prints the status of currently running commands.
+</P></LI><LI CLASS="li-itemize"><CODE>cd</CODE><A NAME="@default386"></A><P>The <CODE>cd</CODE> function changes the current directory.
 Note that the current directory follows the usual scoping
 rules. For example, the following program lists the
 files in the <CODE>foo</CODE> directory, but the current
@@ -248,51 +248,49 @@ directory is not changed.</P><PRE CLASS="verbatim">   section
 
    echo Listing files in the current directory...
    ls
-</PRE></LI><LI CLASS="li-itemize"><CODE>bg</CODE><P>The <CODE>bg</CODE> method places a job in the background.
+</PRE></LI><LI CLASS="li-itemize"><CODE>bg</CODE><A NAME="@default387"></A><P>The <CODE>bg</CODE> method places a job in the background.
 The job is resumed if it has been suspended.
-</P></LI><LI CLASS="li-itemize"><CODE>fg</CODE><P>The <CODE>fg</CODE> method brings a job to the foreground.
+</P></LI><LI CLASS="li-itemize"><CODE>fg</CODE><A NAME="@default388"></A><P>The <CODE>fg</CODE> method brings a job to the foreground.
 The job is resumed if it has been suspended.
-</P></LI><LI CLASS="li-itemize"><CODE>stop</CODE><P>The <CODE>stop</CODE> method suspends a running job.
-</P></LI><LI CLASS="li-itemize"><CODE>wait</CODE><P>The <CODE>wait</CODE> function waits for a running job to terminate.
+</P></LI><LI CLASS="li-itemize"><CODE>stop</CODE><A NAME="@default389"></A><P>The <CODE>stop</CODE> method suspends a running job.
+</P></LI><LI CLASS="li-itemize"><CODE>wait</CODE><A NAME="@default390"></A><P>The <CODE>wait</CODE> function waits for a running job to terminate.
 It is not possible to wait for a suspended job.</P><P>The job is not brought to the foreground. If the <CODE>wait</CODE>
 is interrupted, the job continues to run in the background.
-</P></LI><LI CLASS="li-itemize"><CODE>kill</CODE><P>The <CODE>kill</CODE> function signal a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>.</P><P>The signals are either numeric, or symbolic.
+</P></LI><LI CLASS="li-itemize"><CODE>kill</CODE><A NAME="@default391"></A><P>The <CODE>kill</CODE> function signal a job.</P><P><CODE>kill [signal] &lt;pid...&gt;</CODE>.</P><P>The signals are either numeric, or symbolic.
 The symbolic signals are named as follows.</P><P>ABRT, ALRM, HUP, ILL, KILL, QUIT, SEGV, TERM, USR1,
 USR2, CHLD, STOP, TSTP, TTIN, TTOU, VTALRM, PROF.
-</P></LI><LI CLASS="li-itemize"><CODE>exit</CODE><P>The <CODE>exit</CODE> function terminates the current session.
-</P></LI><LI CLASS="li-itemize"><CODE>which</CODE>, <CODE>where</CODE><P>See the documentation for the corresponding functions.
-</P></LI><LI CLASS="li-itemize"><CODE>rehash</CODE><P>Reset the search path.
-</P></LI><LI CLASS="li-itemize"><CODE>ln-or-cp</CODE> <EM>src</EM> dst<P>Links or copies <EM>src to </EM>dst, overwriting <EM>dst. Namely, <CODE>ln-or-cp</CODE> would first
+</P></LI><LI CLASS="li-itemize"><CODE>exit</CODE><A NAME="@default392"></A><P>The <CODE>exit</CODE> function terminates the current session.
+</P></LI><LI CLASS="li-itemize"><CODE>which</CODE>, <CODE>where</CODE><A NAME="@default393"></A><A NAME="@default394"></A><P>See the documentation for the corresponding functions.
+</P></LI><LI CLASS="li-itemize"><CODE>rehash</CODE><A NAME="@default395"></A><P>Reset the search path.
+</P></LI><LI CLASS="li-itemize"><CODE>ln-or-cp</CODE><A NAME="@default396"></A> <EM>src</EM> dst<P>Links or copies <EM>src to </EM>dst, overwriting <EM>dst. Namely, <CODE>ln-or-cp</CODE> would first
 delete the </EM>dst file (unless it is a directory), if it exists. Next it would try to create
 a symbolic link <EM>dst poiting to </EM>src (it will make all the necessary adjustmnents of
 relative paths). If symbolic link can not be created (<EM>e.g.</EM> the OS or the filesystem does
 not support symbolic links), it will try to create a hard link. If that fails too, it will try
 to forcibly copy <EM>src to </EM>dst.
-</P></LI><LI CLASS="li-itemize"><CODE>history</CODE><P>Print the current command-line history.
-</P></LI><LI CLASS="li-itemize"><CODE>digest</CODE><P>Print the digests of the given files.
+</P></LI><LI CLASS="li-itemize"><CODE>history</CODE><A NAME="@default397"></A><P>Print the current command-line history.
+</P></LI><LI CLASS="li-itemize"><CODE>digest</CODE><A NAME="@default398"></A><P>Print the digests of the given files.
 </P></LI><LI CLASS="li-itemize">Win32 functions.<P>Win32 doesn't provide very many programs for scripting, except
 for the functions that are builtin to the DOS <CODE>cmd.exe</CODE>.
 The following functions are defined on Win32 and only on Win32.
 On other systems, it is expected that these programs already
 exist.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>grep</CODE><PRE CLASS="verbatim">   grep [-q] [-n] pattern files...
-</PRE><P>The <CODE>grep</CODE> function calls the <TT>omake</TT>
-<CODE>grep</CODE> function.
-</P></LI></UL></LI><LI CLASS="li-itemize">Internal versions of standard system commands.<P>By default, <TT>omake</TT> uses internal versions of the following commands:
+<CODE>grep</CODE><A NAME="@default399"></A><PRE CLASS="verbatim">   grep [-q] [-n] [-v] [-h] pattern files...
+</PRE><P>The <CODE>grep</CODE> alias calls the <TT>omake</TT>'s internal <A HREF="omake-system.html#fun:grep"><CODE>grep</CODE> function</A>.
+</P></LI></UL><P>By default, <TT>omake</TT> uses internal versions of the following commands:
 <CODE>cp</CODE>, <CODE>mv</CODE>, <CODE>cat</CODE>, <CODE>rm</CODE>, <CODE>mkdir</CODE>, <CODE>chmod</CODE>,
 <CODE>test</CODE>, <CODE>find</CODE>.
 If you really want to use the standard system versions of these
 commands, set the <CODE>USE_SYSTEM_COMMANDS</CODE> as one of the first
 definitions in your <CODE>OMakeroot</CODE> file.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
-<CODE>pwd</CODE><PRE CLASS="verbatim">    pwd
+<CODE>pwd</CODE><A NAME="@default400"></A><PRE CLASS="verbatim">    pwd
 </PRE><P>The <CODE>pwd</CODE> alias would print the absolute path to current directory.
-</P></LI><LI CLASS="li-itemize"><CODE>mkdir</CODE><PRE CLASS="verbatim">    mkdir [-m &lt;mode&gt;] [-p] files
+</P></LI><LI CLASS="li-itemize"><CODE>mkdir</CODE><A NAME="@default401"></A><PRE CLASS="verbatim">    mkdir [-m &lt;mode&gt;] [-p] files
 </PRE><P>The <CODE>mkdir</CODE> function is used to create directories.
 The -verb+-m+ option can be used to specify the permission
 mode of the created directory. If the <CODE>-p</CODE> option
 is specified, the full path is created.
-</P></LI><LI CLASS="li-itemize"><CODE>cp</CODE>
-</LI><LI CLASS="li-itemize"><CODE>mv</CODE><PRE CLASS="verbatim">    cp [-f] [-i] [-v] src dst
+</P></LI><LI CLASS="li-itemize"><CODE>cp</CODE>, <CODE>mv</CODE><A NAME="@default402"></A><A NAME="@default403"></A><PRE CLASS="verbatim">    cp [-f] [-i] [-v] src dst
     cp [-f] [-i] [-v] files dst
     mv [-f] [-i] [-v] src dst
     mv [-f] [-i] [-v] files dst
@@ -304,7 +302,7 @@ into the directory.</P><DL CLASS="description"><DT CLASS="dt-description">
 <B>-f</B></DT><DD CLASS="dd-description"> Copy files forcibly, do not prompt.
 </DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before removing destination files.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>rm</CODE><PRE CLASS="verbatim">   rm [-f] [-i] [-v] [-r] files
+</DD></DL></LI><LI CLASS="li-itemize"><CODE>rm</CODE><A NAME="@default404"></A><PRE CLASS="verbatim">   rm [-f] [-i] [-v] [-r] files
    rmdir [-f] [-i] [-v] [-r] dirs
 </PRE><P>The <CODE>rm</CODE> function removes a set of files.
 No warnings are issued if the files do not exist, or if
@@ -314,7 +312,7 @@ they cannot be removed.</P><P>Options:
 </DD><DT CLASS="dt-description"><B>-i</B></DT><DD CLASS="dd-description"> Prompt before removal.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
 </DD><DT CLASS="dt-description"><B>-r</B></DT><DD CLASS="dd-description"> Remove contents of directories recursively.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>chmod</CODE><PRE CLASS="verbatim">    chmod [-r] [-v] [-f] mode files
+</DD></DL></LI><LI CLASS="li-itemize"><CODE>chmod</CODE><A NAME="@default405"></A><PRE CLASS="verbatim">    chmod [-r] [-v] [-f] mode files
 </PRE><P>The <CODE>chmod</CODE> function changes the permissions on a set of
 files or directories. This function does nothing on Win32.
 The <CODE>mode</CODE> may be specified as an octal number,
@@ -324,14 +322,14 @@ See the man page for <CODE>chmod</CODE> for details.</P><P>Options:
 <B>-r</B></DT><DD CLASS="dd-description"> Change permissions of all files in a directory recursively.
 </DD><DT CLASS="dt-description"><B>-v</B></DT><DD CLASS="dd-description"> Explain what is happening.
 </DD><DT CLASS="dt-description"><B>-f</B></DT><DD CLASS="dd-description"> Continue on errors.
-</DD></DL></LI><LI CLASS="li-itemize"><CODE>cat</CODE><PRE CLASS="verbatim">   cat files...
+</DD></DL></LI><LI CLASS="li-itemize"><CODE>cat</CODE><A NAME="@default406"></A><PRE CLASS="verbatim">   cat files...
 </PRE><P>The <CODE>cat</CODE> function prints the contents of the files to stdout
-</P></LI><LI CLASS="li-itemize"><CODE>test</CODE><P><CODE>test</CODE> <EM>expression</EM><BR>
+</P></LI><LI CLASS="li-itemize"><CODE>test</CODE><A NAME="@default407"></A><P><CODE>test</CODE> <EM>expression</EM><BR>
  <CODE>[</CODE> <EM>expression</EM> +]+<BR>
  <CODE>[ --help</CODE><BR>
  <CODE>[ --version</CODE><BR>
 
-See the documentation for the <A HREF="omake-system.html#fun:test"><CODE>test</CODE> function</A>.</P></LI><LI CLASS="li-itemize"><CODE>find</CODE><P><CODE>find</CODE> <EM>expression</EM></P><P>See the documentation for the <A HREF="omake-system.html#fun:find"><CODE>find</CODE> function</A>.</P></LI></UL></LI></UL>
+See the documentation for the <A HREF="omake-system.html#fun:test"><CODE>test</CODE> function</A>.</P></LI><LI CLASS="li-itemize"><CODE>find</CODE><A NAME="@default408"></A><P><CODE>find</CODE> <EM>expression</EM></P><P>See the documentation for the <A HREF="omake-system.html#fun:find"><CODE>find</CODE> function</A>.</P></LI></UL></LI></UL>
 <TABLE CELLSPACING=6 CELLPADDING=0><TR><TD ALIGN=left NOWRAP>Jump to:</TD><TD VALIGN=top ALIGN=center NOWRAP>&#XA0;&#XA0;</TD><TD ALIGN=left NOWRAP><A HREF="../index.html">OMake Home</A>
 &bull;&nbsp;<A HREF="omake.html">Guide Home</A>
 &bull;&nbsp;<A HREF="omake-doc.html">Guide (single-page)</A>
