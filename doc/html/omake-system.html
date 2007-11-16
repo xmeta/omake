@@ -4,7 +4,7 @@
 <HEAD>
 
 <META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.09">
+<META name="GENERATOR" content="hevea 1.10">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>File, I/O and system operations</TITLE>
 </HEAD>
@@ -25,18 +25,18 @@
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
 <H1 CLASS="chapter"><A NAME="htoc185">Chapter&#XA0;10</A>&#XA0;&#XA0;File, I/O and system operations</H1><UL>
-<LI><A HREF="omake-system.html#toc74">File names</A></LI>
-<LI><A HREF="omake-system.html#toc75">Path search</A></LI>
-<LI><A HREF="omake-system.html#toc76">File stats</A></LI>
-<LI><A HREF="omake-system.html#toc77">Globbing and file listings</A></LI>
-<LI><A HREF="omake-system.html#toc78">Filesystem operations</A></LI>
-<LI><A HREF="omake-system.html#toc79">vmount</A></LI>
-<LI><A HREF="omake-system.html#toc80">File predicates</A></LI>
-<LI><A HREF="omake-system.html#toc81">IO functions</A></LI>
-<LI><A HREF="omake-system.html#toc82">Printing functions</A></LI>
-<LI><A HREF="omake-system.html#toc83">Value printing functions</A></LI>
-<LI><A HREF="omake-system.html#toc84">Higher-level IO functions</A></LI>
-</UL>
+<LI><A HREF="omake-system.html#toc74">File names</A>
+</LI><LI><A HREF="omake-system.html#toc75">Path search</A>
+</LI><LI><A HREF="omake-system.html#toc76">File stats</A>
+</LI><LI><A HREF="omake-system.html#toc77">Globbing and file listings</A>
+</LI><LI><A HREF="omake-system.html#toc78">Filesystem operations</A>
+</LI><LI><A HREF="omake-system.html#toc79">vmount</A>
+</LI><LI><A HREF="omake-system.html#toc80">File predicates</A>
+</LI><LI><A HREF="omake-system.html#toc81">IO functions</A>
+</LI><LI><A HREF="omake-system.html#toc82">Printing functions</A>
+</LI><LI><A HREF="omake-system.html#toc83">Value printing functions</A>
+</LI><LI><A HREF="omake-system.html#toc84">Higher-level IO functions</A>
+</LI></UL>
 <P>
 <A NAME="chapter:system"></A>
 </P><H2 CLASS="section"><A NAME="toc74"></A><A NAME="htoc186">10.1</A>&#XA0;&#XA0;File names</H2><H3 CLASS="subsection"><A NAME="htoc187">10.1.1</A>&#XA0;&#XA0;file, dir</H3><P><A NAME="fun:file"></A><A NAME="function:file"></A><A NAME="@default190"></A><A NAME="@fun109"></A><A NAME="fun:dir"></A><A NAME="function:dir"></A><A NAME="@default191"></A><A NAME="@fun110"></A></P><PRE CLASS="verbatim">   $(file sequence) : File Sequence
@@ -44,7 +44,7 @@
    $(dir sequence) : Dir Sequence
       sequence : Sequence
 </PRE><P>The <CODE>file</CODE> and <CODE>dir</CODE> functions define location-independent references to files and directories.
-In <TT>omake</TT>, the commands to build a target are executed in the target's directory. Since there may be
+In <TT>omake</TT>, the commands to build a target are executed in the target&#X2019;s directory. Since there may be
 many directories in an <TT>omake</TT> project, the build system provides a way to construct a reference to a file
 in one directory, and use it in another without explicitly modifying the file name. The functions have the following
 syntax, where the name should refer to a file or directory.</P><P>For example, we can construct a reference to a file <CODE>foo</CODE> in the current directory.</P><PRE CLASS="verbatim">   FOO = $(file foo)
@@ -152,9 +152,9 @@ file does no exist. MD5 digests are cached.
     $(find-in-path-optional path, files) : File Array
 </PRE><P>The <CODE>find-in-path</CODE> function searches for the files in a search
 path. Only the tail of the filename is significant. The <CODE>find-in-path</CODE>
-function raises an exception if the file can't be found.
+function raises an exception if the file can&#X2019;t be found.
 The <CODE>find-in-path-optional</CODE> function silently removes
-files that can't be found.
+files that can&#X2019;t be found.
 </P><H3 CLASS="subsection"><A NAME="htoc205">10.2.7</A>&#XA0;&#XA0;digest-in-path, digest-in-path-optional</H3><P><A NAME="fun:digest-in-path"></A><A NAME="function:digest-in-path"></A><A NAME="@default210"></A><A NAME="@fun129"></A><A NAME="fun:digest-in-path-optional"></A><A NAME="function:digest-in-path-optional"></A><A NAME="@default211"></A><A NAME="@fun130"></A></P><PRE CLASS="verbatim">    $(digest-in-path path, files) : String/File Array
        path : Dir Array
        files : String Array
@@ -164,8 +164,8 @@ files that can't be found.
 </PRE><P>The <CODE>digest-in-path</CODE> function searches for the files in a search
 path and returns the file and digest for each file. Only the tail of the
 filename is significant. The <CODE>digest-in-path</CODE> function raises an exception
-if the file can't be found. The <CODE>digest-in-path-optional</CODE>
-function silently removes elements that can't be found.
+if the file can&#X2019;t be found. The <CODE>digest-in-path-optional</CODE>
+function silently removes elements that can&#X2019;t be found.
 </P><H2 CLASS="section"><A NAME="toc76"></A><A NAME="htoc206">10.3</A>&#XA0;&#XA0;File stats</H2><H3 CLASS="subsection"><A NAME="htoc207">10.3.1</A>&#XA0;&#XA0;file-exists, target-exists, target-is-proper</H3><P><A NAME="fun:file-exists"></A><A NAME="function:file-exists"></A><A NAME="@default212"></A><A NAME="@fun131"></A><A NAME="fun:target-exists"></A><A NAME="function:target-exists"></A><A NAME="@default213"></A><A NAME="@fun132"></A><A NAME="fun:target-is-proper"></A><A NAME="function:target-is-proper"></A><A NAME="@default214"></A><A NAME="@fun133"></A></P><PRE CLASS="verbatim">   $(file-exists files) : String
    $(target-exists files) : String
    $(target-is-proper files) : String
@@ -238,9 +238,9 @@ if the files have not already been built.</P><PRE CLASS="verbatim">    $(find-ta
     # Evaluates to
     src/fee.o src/foo.o
 </PRE><P>The <CODE>find-targets-in-path</CODE>
-function raises an exception if the file can't be found.
+function raises an exception if the file can&#X2019;t be found.
 The <CODE>find-targets-in-path-optional</CODE> function silently removes
-targets that can't be found.</P><PRE CLASS="verbatim">    $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
+targets that can&#X2019;t be found.</P><PRE CLASS="verbatim">    $(find-targets-in-path-optional lib src, fee.o foo.o fum.o)
 
     # Evaluates to
     src/fee.o src/foo.o
@@ -436,7 +436,7 @@ It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-descr
 </DD><DT CLASS="dt-description"><B>perm</B></DT><DD CLASS="dd-description">: access rights, represented as an integer.
 </DD><DT CLASS="dt-description"><B>nlink</B></DT><DD CLASS="dd-description">: number of links.
 </DD><DT CLASS="dt-description"><B>uid</B></DT><DD CLASS="dd-description">: user id of the owner.
-</DD><DT CLASS="dt-description"><B>gid</B></DT><DD CLASS="dd-description">: group id of the file's group.
+</DD><DT CLASS="dt-description"><B>gid</B></DT><DD CLASS="dd-description">: group id of the file&#X2019;s group.
 </DD><DT CLASS="dt-description"><B>rdev</B></DT><DD CLASS="dd-description">: device minor number.
 </DD><DT CLASS="dt-description"><B>size</B></DT><DD CLASS="dd-description">: size in bytes.
 </DD><DT CLASS="dt-description"><B>atime</B></DT><DD CLASS="dd-description">: last access time, as a floating point number.
@@ -606,11 +606,11 @@ same name.
 </LI><LI CLASS="li-itemize"><CODE>-e</CODE> <EM>file</EM> : The file exists
 </LI><LI CLASS="li-itemize"><CODE>-f</CODE> <EM>file</EM> : The file is a normal file
 </LI><LI CLASS="li-itemize"><CODE>-g</CODE> <EM>file</EM> : The set<CODE>-group-id</CODE> bit is set on the file
-</LI><LI CLASS="li-itemize"><CODE>-G</CODE> <EM>file</EM> : The file's group is the current effective group
+</LI><LI CLASS="li-itemize"><CODE>-G</CODE> <EM>file</EM> : The file&#X2019;s group is the current effective group
 </LI><LI CLASS="li-itemize"><CODE>-h</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-L</CODE>)
-</LI><LI CLASS="li-itemize"><CODE>-k</CODE> <EM>file</EM> : The file's sticky bit is set
+</LI><LI CLASS="li-itemize"><CODE>-k</CODE> <EM>file</EM> : The file&#X2019;s sticky bit is set
 </LI><LI CLASS="li-itemize"><CODE>-L</CODE> <EM>file</EM> : The file is a symbolic link (also <CODE>-h</CODE>)
-</LI><LI CLASS="li-itemize"><CODE>-O</CODE> <EM>file</EM> : The file's owner is the current effective user
+</LI><LI CLASS="li-itemize"><CODE>-O</CODE> <EM>file</EM> : The file&#X2019;s owner is the current effective user
 </LI><LI CLASS="li-itemize"><CODE>-p</CODE> <EM>file</EM> : The file is a named pipe
 </LI><LI CLASS="li-itemize"><CODE>-r</CODE> <EM>file</EM> : The file is readable
 </LI><LI CLASS="li-itemize"><CODE>-s</CODE> <EM>file</EM> : The file is empty
@@ -1351,7 +1351,7 @@ the <CODE>Parser</CODE> calls the lexer, it calls it with the lexer returned
 from the previous lex invocation.
 </P><H3 CLASS="subsection"><A NAME="htoc293">10.11.13</A>&#XA0;&#XA0;Parser</H3><P><A NAME="obj:Parser"></A><A NAME="object:Parser"></A><A NAME="@default312"></A><A NAME="@obj6"></A></P><P>The <CODE>Parser</CODE> object provides a facility for syntactic analysis based
 on context-free grammars.</P><P><CODE>Parser</CODE> objects are specified as a sequence of directives,
-specified with method calls; and productions, specified as rules.</P><P>For example, let's finish building the desktop calculator started
+specified with method calls; and productions, specified as rules.</P><P>For example, let&#X2019;s finish building the desktop calculator started
 in the <CODE>Lexer</CODE> example.</P><PRE CLASS="verbatim">   parser1. =
       extends $(Parser)
 
@@ -1423,7 +1423,7 @@ While not required, it is wise to finish each complete parser with
 a call to the <CODE>build(debug)</CODE> method. If the <CODE>debug</CODE> variable
 is set, this also prints with parser table together with any conflicts.</P><P>The <CODE>loc</CODE> variable is defined within action bodies, and represents
 the input range for all tokens on the right-hand-side of the production.</P><H3 CLASS="subsection"><A NAME="htoc296">10.11.16</A>&#XA0;&#XA0;Extending parsers</H3><P>Parsers may also be extended by inheritance.
-For example, let's extend the grammar so that it also recognizes
+For example, let&#X2019;s extend the grammar so that it also recognizes
 the <CODE>&lt;&lt;</CODE> and <CODE>&gt;&gt;</CODE> shift operations.</P><P>First, we extend the lexer so that it recognizes these tokens.
 This time, we choose to leave <CODE>lexer1</CODE> intact, instead of
 using the += operator.</P><PRE CLASS="verbatim">   lexer2. =
@@ -1451,39 +1451,39 @@ of the <CODE>left</CODE> method accomplishes this.</P><PRE CLASS="verbatim">   p
          asr($1, $3)
 </PRE><P>In this case, we use the new lexer <CODE>lexer2</CODE>, and we add productions
 for the new shift operations.
-</P><H3 CLASS="subsection"><A NAME="htoc297">10.11.17</A>&#XA0;&#XA0;Passwd</H3><P><A NAME="obj:Passwd"></A><A NAME="object:Passwd"></A><A NAME="@default313"></A><A NAME="@obj7"></A></P><P>The <CODE>Passwd</CODE> object represents an entry in the system's user database.
+</P><H3 CLASS="subsection"><A NAME="htoc297">10.11.17</A>&#XA0;&#XA0;Passwd</H3><P><A NAME="obj:Passwd"></A><A NAME="object:Passwd"></A><A NAME="@default313"></A><A NAME="@obj7"></A></P><P>The <CODE>Passwd</CODE> object represents an entry in the system&#X2019;s user database.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 </DT><DD CLASS="dd-description"><CODE>pw_name</CODE><A NAME="@default314"></A>: the login name.
 </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_passwd</CODE><A NAME="@default315"></A>: the encrypted password.
 </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_uid</CODE><A NAME="@default316"></A>: user id of the user.
 </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gid</CODE><A NAME="@default317"></A>: group id of the user.
 </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_gecos</CODE><A NAME="@default318"></A>: the user name or comment field.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_dir</CODE><A NAME="@default319"></A>: the user's home directory.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_shell</CODE><A NAME="@default320"></A>: the user's default shell.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_dir</CODE><A NAME="@default319"></A>: the user&#X2019;s home directory.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>pw_shell</CODE><A NAME="@default320"></A>: the user&#X2019;s default shell.
 </DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc298">10.11.18</A>&#XA0;&#XA0;getpwnam, getpwuid</H3><P><A NAME="fun:getpwnam"></A><A NAME="function:getpwnam"></A><A NAME="@default321"></A><A NAME="@fun217"></A><A NAME="fun:getpwuid"></A><A NAME="function:getpwuid"></A><A NAME="@default322"></A><A NAME="@fun218"></A></P><PRE CLASS="verbatim">    $(getpwnam name...) : Passwd
        name : String
     $(getpwuid uid...) : Passwd
        uid : Int
     raises RuntimeException
-</PRE><P>The <CODE>getpwnam</CODE> function looks up an entry by the user's login and the <CODE>getpwuid</CODE>
-function looks up an entry by user's numerical id (uid). If no entry is found, an exception
+</PRE><P>The <CODE>getpwnam</CODE> function looks up an entry by the user&#X2019;s login and the <CODE>getpwuid</CODE>
+function looks up an entry by user&#X2019;s numerical id (uid). If no entry is found, an exception
 will be raised.</P><H3 CLASS="subsection"><A NAME="htoc299">10.11.19</A>&#XA0;&#XA0;getpwents</H3><P><A NAME="fun:getpwents"></A><A NAME="function:getpwents"></A><A NAME="@default323"></A><A NAME="@fun219"></A></P><PRE CLASS="verbatim">    $(getpwents) : Array
 </PRE><P>The <CODE>getpwents</CODE> function returns an array of <CODE>Passwd</CODE> objects, one for every user
 fund in the system user database. Note that depending on the operating system and on the setup
 of the user database, the returned array may be incomplete or even empty.
-</P><H3 CLASS="subsection"><A NAME="htoc300">10.11.20</A>&#XA0;&#XA0;Group</H3><P><A NAME="obj:Group"></A><A NAME="object:Group"></A><A NAME="@default324"></A><A NAME="@obj8"></A></P><P>The <CODE>Group</CODE> object represents an entry in the system's user group database.
+</P><H3 CLASS="subsection"><A NAME="htoc300">10.11.20</A>&#XA0;&#XA0;Group</H3><P><A NAME="obj:Group"></A><A NAME="object:Group"></A><A NAME="@default324"></A><A NAME="@obj8"></A></P><P>The <CODE>Group</CODE> object represents an entry in the system&#X2019;s user group database.
 It contains the following fields.</P><DL CLASS="description"><DT CLASS="dt-description">
 </DT><DD CLASS="dd-description"><CODE>gr_name</CODE><A NAME="@default325"></A>: the group name.
 </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_group</CODE><A NAME="@default326"></A>: the encrypted password.
 </DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_gid</CODE><A NAME="@default327"></A>: group id of the group.
-</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_mem</CODE><A NAME="@default328"></A>: the group member's user names.
+</DD><DT CLASS="dt-description"></DT><DD CLASS="dd-description"><CODE>gr_mem</CODE><A NAME="@default328"></A>: the group member&#X2019;s user names.
 </DD></DL><P>Not all the fields will have meaning on all operating systems.</P><H3 CLASS="subsection"><A NAME="htoc301">10.11.21</A>&#XA0;&#XA0;getgrnam, getgrgid</H3><P><A NAME="fun:getgrnam"></A><A NAME="function:getgrnam"></A><A NAME="@default329"></A><A NAME="@fun220"></A><A NAME="fun:getgrgid"></A><A NAME="function:getgrgid"></A><A NAME="@default330"></A><A NAME="@fun221"></A></P><PRE CLASS="verbatim">    $(getgrnam name...) : Group
        name : String
     $(getgrgid gid...) : Group
        gid : Int
     raises RuntimeException
-</PRE><P>The <CODE>getgrnam</CODE> function looks up a group entry by the group's name and the <CODE>getgrgid</CODE>
-function looks up an entry by groups's numerical id (gid). If no entry is found, an exception
+</PRE><P>The <CODE>getgrnam</CODE> function looks up a group entry by the group&#X2019;s name and the <CODE>getgrgid</CODE>
+function looks up an entry by groups&#X2019;s numerical id (gid). If no entry is found, an exception
 will be raised.</P><H3 CLASS="subsection"><A NAME="htoc302">10.11.22</A>&#XA0;&#XA0;tgetstr</H3><P><A NAME="fun:tgetstr"></A><A NAME="function:tgetstr"></A><A NAME="@default331"></A><A NAME="@fun222"></A></P><PRE CLASS="verbatim">   $(tgetstr id) : String
       id : String
 </PRE><P>The <CODE>tgetstr</CODE> function looks up the terminal capability with the indicated <CODE>id</CODE>.
@@ -1508,7 +1508,7 @@ returns an empty value.</P><P>Note: if you intend to use the value returned by <
 that must used to mark the &#X201C;invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various escape sequences).
 </P><H3 CLASS="subsection"><A NAME="htoc306">10.11.26</A>&#XA0;&#XA0;prompt-invisible</H3><P><A NAME="fun:prompt-invisible"></A><A NAME="function:prompt-invisible"></A><A NAME="@default337"></A><A NAME="@fun228"></A></P><PRE CLASS="verbatim">   $(prompt-invisible s) : Sequence
 </PRE><P>The <CODE>prompt-invisible</CODE> will wrap its argument with <CODE>$(prompt-invisible-begin)</CODE> and
-<CODE>$(prompt-invisible-end)</CODE>. All the `invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various
+<CODE>$(prompt-invisible-end)</CODE>. All the &#X2018;invisible&#X201D; sections of the shell <CODE><A HREF="osh.html#var:prompt">prompt</A></CODE> (such as various
 escape sequences) must be wrapped this way.
 </P><H3 CLASS="subsection"><A NAME="htoc307">10.11.27</A>&#XA0;&#XA0;gettimeofday</H3><P><A NAME="fun:gettimeofday"></A><A NAME="function:gettimeofday"></A><A NAME="@default338"></A><A NAME="@fun229"></A></P><PRE CLASS="verbatim">   $(gettimeofday) : Float
 </PRE><P>The <CODE>gettimeofday</CODE> function returns the time of day in seconds

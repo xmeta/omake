@@ -170,16 +170,17 @@ section
     export INFO_FILES
 
 #
-# At least 1.09 is needed, future versions may work as well.
+# At least 1.10 is needed, future versions may work as well.
 # Please do not add old versions here, as they will produce very different output. :-(
 #
 ALLOWED_HEVEA_VERSIONS[] =
-    1.09
+    1.10
 
 public.HEVEA = hevea
 public.HACHA = hacha
 .STATIC:
     HEVEA_DIR =
+    HEVEA_VERSION =
     HEVEA_OK = $(and $(CheckProg $(HEVEA)), $(CheckProg $(HACHA)))
     if $(HEVEA_OK)
         ConfMsgChecking(for $(HEVEA) configs and version)
@@ -198,7 +199,7 @@ If you think this is a mistake, edit the ALLOWED_HEVEA_VERSIONS variable
 in $(in $(ROOT), $(file OMakefile))
 (HEVEA DISABLED)""")
             export 
-        export HEVEA_DIR HEVEA_OK
+        export HEVEA_DIR HEVEA_OK HEVEA_VERSION
 
 HEVEA_OPTIONS = -fix -I $(dir src) -I $(dir tex) -pedantic -O -exec xxdate.exe
 HACHA_OPTIONS = -tocter -nolinks
@@ -212,18 +213,18 @@ if $(not $(VERBOSE))
 
 if $(HEVEA_OK)
     .SUBDIRS: html
-        omake-doc.html: $(TEX_FILES) $(HEVEA_DEPS)
+        omake-doc.html: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
             $(HEVEA) $(HEVEA_OPTIONS) omake-doc
 
         $(HTML_FILES): omake-doc.html
             $(HACHA) $(HACHA_OPTIONS) -o omake-toc.html $<
 
     .SUBDIRS: txt
-        omake-doc.txt: $(TEX_FILES) $(HEVEA_DEPS)
+        omake-doc.txt: $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
             $(HEVEA) $(HEVEA_OPTIONS) -text omake-doc
 
     .SUBDIRS: info
-        $(INFO_FILES): $(TEX_FILES) $(HEVEA_DEPS)
+        $(INFO_FILES): $(TEX_FILES) $(HEVEA_DEPS) :value: $(HEVEA_VERSION)
             rm -f omake-doc.info*
             $(HEVEA) $(HEVEA_OPTIONS) -info omake-doc
             if $(test -e $(INFO_BASE)-$(add $(NUM_INFOS), 1))

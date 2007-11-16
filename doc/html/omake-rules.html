@@ -4,7 +4,7 @@
 <HEAD>
 
 <META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.09">
+<META name="GENERATOR" content="hevea 1.10">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>Rules</TITLE>
 </HEAD>
@@ -25,20 +25,20 @@
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
 <H1 CLASS="chapter"><A NAME="htoc79">Chapter&#XA0;8</A>&#XA0;&#XA0;Rules</H1><UL>
-<LI><A HREF="omake-rules.html#toc54">Implicit rules</A></LI>
-<LI><A HREF="omake-rules.html#toc55">Bounded implicit rules</A></LI>
-<LI><A HREF="omake-rules.html#toc56">section</A></LI>
-<LI><A HREF="omake-rules.html#toc57">section rule</A></LI>
-<LI><A HREF="omake-rules.html#toc58">Special dependencies</A></LI>
-<LI><A HREF="omake-rules.html#toc59"><CODE>.SCANNER</CODE> rules</A></LI>
-<LI><A HREF="omake-rules.html#toc60">.DEFAULT</A></LI>
-<LI><A HREF="omake-rules.html#toc61">.SUBDIRS</A></LI>
-<LI><A HREF="omake-rules.html#toc62">.INCLUDE</A></LI>
-<LI><A HREF="omake-rules.html#toc63">.PHONY</A></LI>
-<LI><A HREF="omake-rules.html#toc64">Rule scoping</A></LI>
-<LI><A HREF="omake-rules.html#toc65">Running OMake from a subdirectory</A></LI>
-<LI><A HREF="omake-rules.html#toc66">Pathnames in rules</A></LI>
-</UL>
+<LI><A HREF="omake-rules.html#toc54">Implicit rules</A>
+</LI><LI><A HREF="omake-rules.html#toc55">Bounded implicit rules</A>
+</LI><LI><A HREF="omake-rules.html#toc56">section</A>
+</LI><LI><A HREF="omake-rules.html#toc57">section rule</A>
+</LI><LI><A HREF="omake-rules.html#toc58">Special dependencies</A>
+</LI><LI><A HREF="omake-rules.html#toc59"><CODE>.SCANNER</CODE> rules</A>
+</LI><LI><A HREF="omake-rules.html#toc60">.DEFAULT</A>
+</LI><LI><A HREF="omake-rules.html#toc61">.SUBDIRS</A>
+</LI><LI><A HREF="omake-rules.html#toc62">.INCLUDE</A>
+</LI><LI><A HREF="omake-rules.html#toc63">.PHONY</A>
+</LI><LI><A HREF="omake-rules.html#toc64">Rule scoping</A>
+</LI><LI><A HREF="omake-rules.html#toc65">Running OMake from a subdirectory</A>
+</LI><LI><A HREF="omake-rules.html#toc66">Pathnames in rules</A>
+</LI></UL>
 <P>
 <A NAME="chapter:rules"></A>
 </P><P>Rules are used by OMake to specify how to build files. At its simplest, a rule has the following
@@ -73,7 +73,7 @@ files. The files in the argument are specified without a suffix, so the first li
 definition defines a variable <CODE>OFILES</CODE> that adds the <CODE>.o</CODE> suffix to each of the file
 names. The next step defines a rule to build a target library <CODE>$(name).a</CODE> from the
 <CODE>$(OFILES)</CODE> files. The expression <CODE>$(AR)</CODE> is evaluated when the function is called, and
-the value of the variable <CODE>AR</CODE> is taken from the caller's scope (see also the section on
+the value of the variable <CODE>AR</CODE> is taken from the caller&#X2019;s scope (see also the section on
 Scoping).</P><H2 CLASS="section"><A NAME="toc54"></A><A NAME="htoc80">8.1</A>&#XA0;&#XA0;Implicit rules</H2><P>
 <A NAME="@default47"></A></P><P>Rules may also be implicit. That is, the files may be specified by wildcard patterns.
 The wildcard character is <CODE>%</CODE>. For example, the following rule specifies a default
@@ -156,7 +156,7 @@ information).</P><P>We can use this to specify a scanner for C files that adds t
 be computed by running <CODE>gcc -MM foo.c</CODE>. Furthermore, <CODE>foo.c</CODE> is a dependency, so the
 scanner should be recomputed whenever the <CODE>foo.c</CODE> file changes.</P><PRE CLASS="verbatim">    .SCANNER: %.o: %.c
         gcc -MM $&lt;
-</PRE><P>Let's suppose that the command <CODE>gcc -MM foo.c</CODE> prints the following line.</P><PRE CLASS="verbatim">    foo.o: foo.h /usr/include/stdio.h
+</PRE><P>Let&#X2019;s suppose that the command <CODE>gcc -MM foo.c</CODE> prints the following line.</P><PRE CLASS="verbatim">    foo.o: foo.h /usr/include/stdio.h
 </PRE><P>The result is that the files <CODE>foo.h</CODE> and <CODE>/usr/include/stdio.h</CODE> are considered to be
 dependencies of <CODE>foo.o</CODE>&#X2014;that is, <CODE>foo.o</CODE> should be rebuilt if either of these files
 changes.</P><P>This works, to an extent. One nice feature is that the scanner will be re-run whenever the
@@ -199,7 +199,7 @@ for this. In this case, the scanner dependencies are specified explicitly.</P><P
     $(GCC_FILES): %.o: %.c :scanner: scan-all-c
         ...
 </PRE><P>The above has the advantage of only running <TT>gcc</TT> once and a disadvantage that when a single
-source file changes, all the files will end up being re-scanned.</P><H3 CLASS="subsection"><A NAME="htoc90">8.6.2</A>&#XA0;&#XA0;Notes</H3><P>In most cases, you won't need to define scanners of your own. The standard installation includes
+source file changes, all the files will end up being re-scanned.</P><H3 CLASS="subsection"><A NAME="htoc90">8.6.2</A>&#XA0;&#XA0;Notes</H3><P>In most cases, you won&#X2019;t need to define scanners of your own. The standard installation includes
 default scanners (both explicitly and implicitly named ones) for C, OCaml, and L<sup>A</sup>T<sub>E</sub>X files.</P><P>The <A HREF="omake-build.html#var:SCANNER_MODE"><CODE>SCANNER_MODE</CODE> variable</A> controls the usage of implicit scanner dependencies.</P><P>The explicit <CODE>:scanner:</CODE> dependencies reduce the chances of scanner mis-specifications. In
 large complicated projects it might be a good idea to set <CODE>SCANNER_MODE</CODE> to <CODE>error</CODE> and
 use only the named <CODE>.SCANNER</CODE> rules and explicit <CODE>:scanner:</CODE> specifications.</P><H2 CLASS="section"><A NAME="toc60"></A><A NAME="htoc91">8.7</A>&#XA0;&#XA0;.DEFAULT</H2><P>
@@ -241,7 +241,7 @@ the target,
 </LI><LI CLASS="li-itemize">the commands-text.
 </LI></UL>
 </LI></UL><P>In some of the cases, this will mean that the rule is executed even if the target file already
-exists. If the target is a file that you expect to edit by hand (and therefore you don't want to
+exists. If the target is a file that you expect to edit by hand (and therefore you don&#X2019;t want to
 overwrite it), you should make the rule evaluation conditional on whether the target already exists.</P><PRE CLASS="verbatim">   .INCLUDE: config: config.defaults
        # Don't overwrite my carefully hand-edited file
        if $(not $(file-exists config))
@@ -266,7 +266,7 @@ wildcards), the context for that rule determines the scope for building the targ
 configuration file <CODE>dir/OMakefile</CODE> exists (although, see the <CODE>.SUBDIRS</CODE> section for
 another way to specify the <CODE>OMakefile</CODE>). In this case, the scope of the target is the scope at
 the end of the <CODE>dir/OMakefile</CODE>.
-</LI></UL><P>To illustrate rule scoping, let's go back to the example of a &#X201C;Hello world&#X201D; program with two
+</LI></UL><P>To illustrate rule scoping, let&#X2019;s go back to the example of a &#X201C;Hello world&#X201D; program with two
 files. Here is an example <CODE>OMakefile</CODE> (the two definitions of <CODE>CFLAGS</CODE> are for
 illustration).</P><PRE CLASS="verbatim">    # The executable is compiled with debugging
     CFLAGS = -g
@@ -353,7 +353,7 @@ Phony targets are scoped as usual. The following illustrates a common mistake, w
         $(CC) $(CFLAGS) -o $@ $+
 
     .PHONY: all
-</PRE><P>This doesn't work as expected because the <CODE>.PHONY</CODE> declaration occurs too late. The proper way
+</PRE><P>This doesn&#X2019;t work as expected because the <CODE>.PHONY</CODE> declaration occurs too late. The proper way
 to write this example is to place the <CODE>.PHONY</CODE> declaration first.</P><PRE CLASS="verbatim">    # Phony targets must be declared before being used
     .PHONY: all
 

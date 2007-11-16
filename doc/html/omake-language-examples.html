@@ -4,7 +4,7 @@
 <HEAD>
 
 <META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.09">
+<META name="GENERATOR" content="hevea 1.10">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>Additional language examples</TITLE>
 </HEAD>
@@ -25,19 +25,19 @@
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
 <H1 CLASS="chapter"><A NAME="htoc69">Chapter&#XA0;7</A>&#XA0;&#XA0;Additional language examples</H1><UL>
-<LI><A HREF="omake-language-examples.html#toc46">Strings and arrays</A></LI>
-<LI><A HREF="omake-language-examples.html#toc47">Quoted strings</A></LI>
-<LI><A HREF="omake-language-examples.html#toc48">Files and directories</A></LI>
-<LI><A HREF="omake-language-examples.html#toc49">Iteration, mapping, and foreach</A></LI>
-<LI><A HREF="omake-language-examples.html#toc50">Lazy expressions</A></LI>
-<LI><A HREF="omake-language-examples.html#toc51">Scoping and exports</A></LI>
-<LI><A HREF="omake-language-examples.html#toc52">Shell aliases</A></LI>
-<LI><A HREF="omake-language-examples.html#toc53">Input/output redirection on the cheap</A></LI>
-</UL>
+<LI><A HREF="omake-language-examples.html#toc46">Strings and arrays</A>
+</LI><LI><A HREF="omake-language-examples.html#toc47">Quoted strings</A>
+</LI><LI><A HREF="omake-language-examples.html#toc48">Files and directories</A>
+</LI><LI><A HREF="omake-language-examples.html#toc49">Iteration, mapping, and foreach</A>
+</LI><LI><A HREF="omake-language-examples.html#toc50">Lazy expressions</A>
+</LI><LI><A HREF="omake-language-examples.html#toc51">Scoping and exports</A>
+</LI><LI><A HREF="omake-language-examples.html#toc52">Shell aliases</A>
+</LI><LI><A HREF="omake-language-examples.html#toc53">Input/output redirection on the cheap</A>
+</LI></UL>
 <P>
 <A NAME="chapter:language-examples"></A>
-</P><P>In this section, we'll explore the core language through a series of examples (examples of the build
-system are the topic of the Chapter&#XA0;<A HREF="omake-build-examples.html#chapter:build-examples">3</A>).</P><P>For most of these examples, we'll use the <CODE>osh</CODE> command interpreter. For simplicity, the
+</P><P>In this section, we&#X2019;ll explore the core language through a series of examples (examples of the build
+system are the topic of the Chapter&#XA0;<A HREF="omake-build-examples.html#chapter:build-examples">3</A>).</P><P>For most of these examples, we&#X2019;ll use the <CODE>osh</CODE> command interpreter. For simplicity, the
 values printed by <CODE>osh</CODE> have been abbreviated.</P><H2 CLASS="section"><A NAME="toc46"></A><A NAME="htoc70">7.1</A>&#XA0;&#XA0;Strings and arrays</H2><P>The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
 values separated by whitespace; the sequences are split on demand by functions that expect arrays.</P><PRE CLASS="verbatim">   osh&gt; X = 1 2
    - : "1 2" : Sequence
@@ -157,7 +157,7 @@ element before each of the original elements.</P><P>Even though most functions w
 The <CODE>foreach</CODE> function is the way to go. The <CODE>foreach</CODE> function has two forms, but the
 form with a body is most useful. In this form, the function takes two arguments and a body. The
 second argument is an array, and the first is a variable. The body is evaluated once for each
-element of the array, where the variable is bound to the element. Let's define a function to add 1
+element of the array, where the variable is bound to the element. Let&#X2019;s define a function to add 1
 to each element of an array of numbers.</P><PRE CLASS="verbatim">   osh&gt; add1(l) =
             foreach(i, $l):
                 add($i, 1)
@@ -235,8 +235,8 @@ OMakefile.</P><PRE CLASS="verbatim">    # Generic way to compile C files.
            $(CC) $(CFLAGS) -o $@ $(OFILES)
 </PRE><P>But this is not quite right. The problem is that INCLUDES is an array of options, not directories.
 If we later wanted to recover the directories, we would have to strip the leading <CODE>-I</CODE> prefix,
-which is a hassle. Furthermore, we aren't using proper names for the directories. The solution
-here is to use a lazy expression. We'll define INCLUDES as a directory array, and a new variable
+which is a hassle. Furthermore, we aren&#X2019;t using proper names for the directories. The solution
+here is to use a lazy expression. We&#X2019;ll define INCLUDES as a directory array, and a new variable
 <CODE>PREFIXED_INCLUDES</CODE> that adds the -I prefix. The <CODE>PREFIXED_INCLUDES</CODE> is computed lazily,
 ensuring that the value uses the most recent value of the INCLUDES variable.</P><PRE CLASS="verbatim">    # Generic way to compile C files.
     CFLAGS = -g
@@ -262,7 +262,7 @@ could equivalently define <CODE>PREFIXED_INCLUDES</CODE> as a function with zero
 </PRE><H2 CLASS="section"><A NAME="toc51"></A><A NAME="htoc76">7.6</A>&#XA0;&#XA0;Scoping and exports</H2><P>The OMake language is functional (apart from IO and shell commands). This comes in two parts:
 functions are first-class, and variables are immutable (there is no assignment operator). The
 latter property may seem strange to users used to GNU make, but it is actually a central point of
-OMake. Since variables can't be modified, it is impossible (or at least hard) for one part of the
+OMake. Since variables can&#X2019;t be modified, it is impossible (or at least hard) for one part of the
 project to interfere with another.</P><P>To be sure, pure functional programming can be awkward. In OMake, each new indentation level
 introduces a new scope, and new definitions in that scope are lost when the scope ends. If OMake
 were overly strict about scoping, we would wind up with a lot of convoluted code.</P><PRE CLASS="verbatim">   osh&gt; X = 1

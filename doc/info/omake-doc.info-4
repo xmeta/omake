@@ -3,13 +3,13 @@ This file has been translated from LaTeX by HeVeA.
 Node: Subsection 8-11-2,	Next: Subsection 8-11-3,	Prev: Subsection 8-11-1,	Up: Section 8-11
   
 
-8.11.2   Scoping of `.SCANNER' rules
+8.11.2   Scoping of '.SCANNER' rules
 ====================================
    
   Scanner rules are scoped the same way as normal rules. If the
-`.SCANNER' rule is explicit (containing no wildcard patterns), then the
-scope of the scan target is the same as the the rule. If the `.SCANNER'
-rule is implicit, then the environment is taken from the `:scanner:'
+'.SCANNER' rule is explicit (containing no wildcard patterns), then the
+scope of the scan target is the same as the the rule. If the '.SCANNER'
+rule is implicit, then the environment is taken from the ':scanner:'
 dependency.
 <<    # The executable is compiled with debugging
       CFLAGS = -g
@@ -35,20 +35,20 @@ dependency.
   
   Again, this is for illustration---it is unlikely you would need to
 write a complicated configuration like this! In this case, the
-`.SCANNER' rule specifies that the C-compiler should be called with the
-`-MM' flag to compute dependencies. For the target `hello_lib.o', the
-scanner is called with `CFLAGS=-g -DLIBRARY', and for `hello_code.o' it
-is called with `CFLAGS=-g -O3'.
+'.SCANNER' rule specifies that the C-compiler should be called with the
+'-MM' flag to compute dependencies. For the target 'hello_lib.o', the
+scanner is called with 'CFLAGS=-g -DLIBRARY', and for 'hello_code.o' it
+is called with 'CFLAGS=-g -O3'.
 
 Node: Subsection 8-11-3,	Next: Section 8-12,	Prev: Subsection 8-11-2,	Up: Section 8-11
   
 
-8.11.3   Scoping for `.PHONY' targets
+8.11.3   Scoping for '.PHONY' targets
 =====================================
    
   Phony targets (targets that do not correspond to files) are defined
-with a `.PHONY:' rule. Phony targets are scoped as usual. The following
-illustrates a common mistake, where the `.PHONY' target is declared
+with a '.PHONY:' rule. Phony targets are scoped as usual. The following
+illustrates a common mistake, where the '.PHONY' target is declared
 after it is used.
 <<    # !!This example is broken!!
       all: hello
@@ -59,8 +59,8 @@ after it is used.
       .PHONY: all
 >>
   
-  This doesn't work as expected because the `.PHONY' declaration occurs
-too late. The proper way to write this example is to place the `.PHONY'
+  This doesn't work as expected because the '.PHONY' declaration occurs
+too late. The proper way to write this example is to place the '.PHONY'
 declaration first.
 <<    # Phony targets must be declared before being used
       .PHONY: all
@@ -72,8 +72,8 @@ declaration first.
 >>
   
   Phony targets are passed to subdirectories. As a practical matter, it
-is wise to declare all `.PHONY' targets in your root `OMakefile', before
-any `.SUBDIRS'. This will ensure that 1) they are considered as phony
+is wise to declare all '.PHONY' targets in your root 'OMakefile', before
+any '.SUBDIRS'. This will ensure that 1) they are considered as phony
 targets in each of the subdirectories, and 2) you can build them from
 the project root.
 <<    .PHONY: all install clean
@@ -81,10 +81,10 @@ the project root.
       .SUBDIRS: src lib clib
 >>
   
-  Note that when a `.PHONY' target is inherited by a subdirectory via a
-`.SUBDIRS', a whole hierarchy of `.PHONY' targets (that are a part of
-the global one) is created, as described in Section
-8.12.2*Note Subsection 8-12-2:: below.
+  Note that when a '.PHONY' target is inherited by a subdirectory via a
+'.SUBDIRS', a whole hierarchy of '.PHONY' targets (that are a part of
+the global one) is created, as described in
+Section 8.12.2*Note Subsection 8-12-2:: below.
 
 Node: Section 8-12,	Next: Subsection 8-12-1,	Prev: Section 8-11,	Up: Chapter 8
   
@@ -92,24 +92,24 @@ Node: Section 8-12,	Next: Subsection 8-12-1,	Prev: Section 8-11,	Up: Chapter 8
 8.12   Running OMake from a subdirectory
 *=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=
 
-    Running `omake foo' asks OMake to
-build the file `foo' in context of the whole project, even when running
-from a subdirectory of the project. Therefore, if `bar/baz' is a regular
-target (not a `.PHONY' one), then running `omake bar/baz' and running
-`(cd bar; omake baz)' are usually equivalent.
+    Running 'omake foo' asks OMake to
+build the file 'foo' in context of the whole project, even when running
+from a subdirectory of the project. Therefore, if 'bar/baz' is a regular
+target (not a '.PHONY' one), then running 'omake bar/baz' and running
+'(cd bar; omake baz)' are usually equivalent.
   There are two noteworthy exceptions to the above rule: 
   
- - If the subdirectory is not a part of the project (there is no
-   `.SUBDIRS') for it, then OMake will complain if you try to run it in
+   - If the subdirectory is not a part of the project (there is no
+   '.SUBDIRS') for it, then OMake will complain if you try to run it in
    that directory. 
- - If a subdirectory contains an `OMakeroot' of its own, this would
+   - If a subdirectory contains an 'OMakeroot' of its own, this would
    designate the subdirectory as a separate project (which is usually a
    bad idea and is not recommended). 
   
 * Menu:
 
 * Subsection 8-12-1::	Phony targets in a subdirectory
-* Subsection 8-12-2::	Hierarchy of `.PHONY' targets
+* Subsection 8-12-2::	Hierarchy of '.PHONY' targets
 
 
 Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Section 8-12
@@ -119,21 +119,21 @@ Node: Subsection 8-12-1,	Next: Subsection 8-12-2,	Prev: Section 8-12,	Up: Sectio
 ========================================
    \@n
 ame{@default65}
-  Suppose you have a `.PHONY: clean' declared in your root `OMakefile'
-and both the root `OMakefile' and the `OMakefile' in some of the
-subdirectories contain `clean:' rules. In this case 
+  Suppose you have a '.PHONY: clean' declared in your root 'OMakefile'
+and both the root 'OMakefile' and the 'OMakefile' in some of the
+subdirectories contain 'clean:' rules. In this case 
   
- - Running `omake clean' in the root directory will execute all the
+   - Running 'omake clean' in the root directory will execute all the
    rules (each in the appropriate directory); 
- - Running `omake clean' in the subdirectory will execute just its local
-   one, as well as the ones from the subdirectories of the current
+   - Running 'omake clean' in the subdirectory will execute just its
+   local one, as well as the ones from the subdirectories of the current
    directory. 
   
-  The above equally applies to the built-in `.PHONY' targets, including
-`.DEFAULT'. Namely, if OMake is executed (without argument) in the root
-directory of a project, all the `.DEFAULT' targets in the project will
+  The above equally applies to the built-in '.PHONY' targets, including
+'.DEFAULT'. Namely, if OMake is executed (without argument) in the root
+directory of a project, all the '.DEFAULT' targets in the project will
 be built. On the other hand, when OMake is executed (without argument)
-in a subdirectory, only the `.DEFAULT' targets defined in and under that
+in a subdirectory, only the '.DEFAULT' targets defined in and under that
 subdirectory will be built.
   The following Section explains the underlying semantics that gives
 rise to the above behavior.
@@ -141,39 +141,39 @@ rise to the above behavior.
 Node: Subsection 8-12-2,	Next: Section 8-13,	Prev: Subsection 8-12-1,	Up: Section 8-12
   
 
-8.12.2   Hierarchy of `.PHONY' targets
+8.12.2   Hierarchy of '.PHONY' targets
 ======================================
    
-  When the the root `OMakefile' contains a `.PHONY: clean' directive, it
+  When the the root 'OMakefile' contains a '.PHONY: clean' directive, it
 creates: 
   
- - A "global" phony target `/.PHONY/clean' (note the leading "`/'"); 
- - A "relative" phony target attached to the current directory ---
-   `.PHONY/clean' (note the lack of the leading "`/'"); 
- - A dependency `/.PHONY/clean: .PHONY/clean'. 
+   - A "global" phony target '/.PHONY/clean' (note the leading "'/'"); 
+   - A "relative" phony target attached to the current directory ---
+   '.PHONY/clean' (note the lack of the leading "'/'"); 
+   - A dependency '/.PHONY/clean: .PHONY/clean'. 
   
-  All the `clean: ...' rules in the root `OMakefile' following this
-`.PHONY: clean' declaration would be interpreted as rules for the
-`.PHONY/clean' target.
-  Now when OMake then comes across a `.SUBDIRS: foo' directive (when it
-is in scope of the above `.PHONY: clean' declaration), it does the
+  All the 'clean: ...' rules in the root 'OMakefile' following this
+'.PHONY: clean' declaration would be interpreted as rules for the
+'.PHONY/clean' target.
+  Now when OMake then comes across a '.SUBDIRS: foo' directive (when it
+is in scope of the above '.PHONY: clean' declaration), it does the
 following: 
   
- - Creates a new `.PHONY/foo/clean' "relative" phony target; 
- - Creates the dependency `.PHONY/clean: .PHONY/foo/clean'; 
- - Processes the body of the `.SUBDIRS: foo' directive, or reads the
-   `foo/OMakefile' file, if the body is empty. While doing that, it
-   interprets its instructions relative to the `foo' directory. In
-   particular, all the `clean: ...' rules will be taken to apply to
-   `.PHONY/foo/clean'. 
+   - Creates a new '.PHONY/foo/clean' "relative" phony target; 
+   - Creates the dependency '.PHONY/clean: .PHONY/foo/clean'; 
+   - Processes the body of the '.SUBDIRS: foo' directive, or reads the
+   'foo/OMakefile' file, if the body is empty. While doing that, it
+   interprets its instructions relative to the 'foo' directory. In
+   particular, all the 'clean: ...' rules will be taken to apply to
+   '.PHONY/foo/clean'. 
   
-  Now when you run `omake clean' in the root directory of the project,
-it is interpreted as `omake .PHONY/clean' (similar to how it happens
-with the normal targets), so both the rules for `.PHONY/clean' are
-executed and the rules for its dependency  `.PHONY/foo/clean'. Running
-`(cd foo; omake clean)' is, as for normal targets, equivalent to running
-`omake .PHONY/foo/clean' and only those rules that apply to
-`.PHONY/foo/clean' will be executed.
+  Now when you run 'omake clean' in the root directory of the project,
+it is interpreted as 'omake .PHONY/clean' (similar to how it happens
+with the normal targets), so both the rules for '.PHONY/clean' are
+executed and the rules for its dependency  '.PHONY/foo/clean'. Running
+'(cd foo; omake clean)' is, as for normal targets, equivalent to running
+'omake .PHONY/foo/clean' and only those rules that apply to
+'.PHONY/foo/clean' will be executed.
 
 Node: Section 8-13,	Next: Chapter 9,	Prev: Section 8-12,	Up: Chapter 8
   
@@ -183,10 +183,10 @@ Node: Section 8-13,	Next: Chapter 9,	Prev: Section 8-12,	Up: Chapter 8
 
   
   In rules, the targets and dependencies are first translated to file
-values (as in the `file' function). They are then translated to strings
+values (as in the 'file' function). They are then translated to strings
 for the command line. This can cause some unexpected behavior. In the
-following example, the `absname' function is the absolute pathname for
-the file `a', but the rule still prints the relative pathname.
+following example, the 'absname' function is the absolute pathname for
+the file 'a', but the rule still prints the relative pathname.
 <<    .PHONY: demo
       demo: $(absname a)
           echo $<
@@ -195,9 +195,9 @@ the file `a', but the rule still prints the relative pathname.
       a
 >>
   
-  There is arguably a good reason for this. On Win32 systems, the `/'
+  There is arguably a good reason for this. On Win32 systems, the '/'
 character is viewed as an "option specifier." The pathname separator is
-the `\' character. OMake translates the filenames automatically so that
+the '\' character. OMake translates the filenames automatically so that
 things work as expected on both systems.
 <<   demo: a/b
          echo $<
@@ -222,15 +222,15 @@ literally.
   Alternately, you might wish that filenames be automatically expanded
 to absolute pathnames. For example, this might be useful when parsing
 the OMake output to look for errors. For this, you can use the
-`--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
-call `omake' with the `--absname' option, all filenames will be expanded
+'--absname' option (Section A.3.20*Note Subsection A-3-20::). If you
+call 'omake' with the '--absname' option, all filenames will be expanded
 to absolute names.
 <<    # omake --absname demo (on a Unix system)
       /home/.../a/b /home/.../c/d
 >>
   
-  Alternately, the `--absname' option is scoped. If you want to use it
-for only a few rules, you can use the `OMakeFlags' function to control
+  Alternately, the '--absname' option is scoped. If you want to use it
+for only a few rules, you can use the 'OMakeFlags' function to control
 how it is applied.
 <<   section
         OMakeFlags(--absname)
@@ -241,7 +241,7 @@ how it is applied.
      /home/.../a
 >>
   
-  N.B. The `--absname' option is currently an experimental feature.
+  N.B. The '--absname' option is currently an experimental feature.
    
 
 Node: Chapter 9,	Next: Section 9-1,	Prev: Chapter 8,	Up: Top
@@ -275,25 +275,25 @@ Node: Section 9-1,	Next: Section 9-2,	Prev: Chapter 9,	Up: Chapter 9
 library files reside. At startup, the default value is determined as
 follows. 
   
- - The value of the `OMAKELIB' environment variable, if set (must
+   - The value of the 'OMAKELIB' environment variable, if set (must
    contain an absolute path, if set), otherwise 
- - On Windows, the registry keys
-   `HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and
-   `HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
+   - On Windows, the registry keys
+   'HKEY_CURRENT_USER\SOFTWARE\MetaPRL\OMake\OMAKELIB' and
+   'HKEY_LOCAL_MACHINE\SOFTWARE\MetaPRL\OMake\OMAKELIB' are looked up
    and the value is used, if exist. 
- - Otherwise a compile-time default it used. 
-   The current default value may be accessed by running `omake
+   - Otherwise a compile-time default it used. 
+   The current default value may be accessed by running 'omake
 --version' 
  OMAKEPATH
  An array of directories specifying the
-lookup path for the `include' and `open' directives (see Section
-4.8*Note Section 4-8::). The default value is an array of two
-elements --- `.' and `$(STDLIB)'. 
+lookup path for the 'include' and 'open' directives (see
+Section 4.8*Note Section 4-8::). The default value is an array
+of two elements --- '.' and '$(STDLIB)'. 
  OSTYPE
  Set to the machine architecture omake is
-running on. Possible values are `Unix' (for all Unix versions, including
-Linux and Mac OS X), `Win32' (for MS-Windows, OMake compiled with MSVC++
-or Mingw), and `Cygwin' (for MS-Windows, OMake compiled with Cygwin). 
+running on. Possible values are 'Unix' (for all Unix versions, including
+Linux and Mac OS X), 'Win32' (for MS-Windows, OMake compiled with MSVC++
+or Mingw), and 'Cygwin' (for MS-Windows, OMake compiled with Cygwin). 
  SYSNAME
  The name of the operating system for the
 current machine. 
@@ -302,10 +302,10 @@ current machine.
  OS_VERSION
  The operating system release. 
  MACHINE
- The machine architecture, e.g. `i386',
-`sparc', etc. 
+ The machine architecture, e.g. 'i386',
+'sparc', etc. 
  HOST
- Same as `NODENAME'. 
+ Same as 'NODENAME'. 
  USER
  The login name of the user executing
 the process. 
@@ -320,10 +320,10 @@ example, if OMake is invoked with the following command line,
 <<      omake CFLAGS=1 foo bar.c
 >>
   
-  then `TARGETS' is defined as `foo bar.c'.
+  then 'TARGETS' is defined as 'foo bar.c'.
  BUILD_SUMMARY
- The `BUILD_SUMMARY' variable refers to
-the file that `omake' uses to summarize a build (the message that is
+ The 'BUILD_SUMMARY' variable refers to
+the file that 'omake' uses to summarize a build (the message that is
 printed at the very end of a build). The file is empty when the build
 starts. If you wish to add additional messages to the build summary, you
 can edit/modify this file during the build.
@@ -336,8 +336,8 @@ can append a message to the build summary.
   
  VERBOSE
  Whether certain commands should be
-verbose. A boolean flag that is `false' by default and is set to `true'
-when OMake is invoked with the `--verbose' option. 
+verbose. A boolean flag that is 'false' by default and is set to 'true'
+when OMake is invoked with the '--verbose' option. 
 
 Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
   
@@ -347,8 +347,8 @@ Node: Section 9-2,	Next: Subsection 9-2-1,	Prev: Section 9-1,	Up: Chapter 9
 
    
   Boolean values in omake are represented by case-insensitive strings.
-The false value can be represented by the strings `false', `no', `nil',
-`undefined' or `0', and everything else is true.
+The false value can be represented by the strings 'false', 'no', 'nil',
+'undefined' or '0', and everything else is true.
 * Menu:
 
 * Subsection 9-2-1::	not
@@ -380,9 +380,9 @@ Node: Subsection 9-2-1,	Next: Subsection 9-2-2,	Prev: Section 9-2,	Up: Section 9
         e : String
 >>
   
-  The `not' function negates a Boolean value.
-  For example, `$(not false)' expands to the string `true', and `$(not
-hello world)' expands to `false'. 
+  The 'not' function negates a Boolean value.
+  For example, '$(not false)' expands to the string 'true', and '$(not
+hello world)' expands to 'false'. 
 
 Node: Subsection 9-2-2,	Next: Subsection 9-2-3,	Prev: Subsection 9-2-1,	Up: Section 9-2
   
@@ -395,9 +395,9 @@ Node: Subsection 9-2-2,	Next: Subsection 9-2-3,	Prev: Subsection 9-2-1,	Up: Sect
         e2 : String
 >>
   
-  The `equal' function tests for equality of two values.
-  For example `$(equal a, b)' expands to `false', and `$(equal hello
-world, hello world)' expands to `true'. 
+  The 'equal' function tests for equality of two values.
+  For example '$(equal a, b)' expands to 'false', and '$(equal hello
+world, hello world)' expands to 'true'. 
 
 Node: Subsection 9-2-3,	Next: Subsection 9-2-4,	Prev: Subsection 9-2-2,	Up: Section 9-2
   
@@ -409,8 +409,8 @@ Node: Subsection 9-2-3,	Next: Subsection 9-2-4,	Prev: Subsection 9-2-2,	Up: Sect
          e1, ..., en: Sequence
 >>
   
-  The `and' function evaluates to the conjunction of its arguments.
-  For example, in the following code, `X' is true, and `Y' is false.
+  The 'and' function evaluates to the conjunction of its arguments.
+  For example, in the following code, 'X' is true, and 'Y' is false.
 <<    A = a
       B = b
       X = $(and $(equal $(A), a) true $(equal $(B), b))
@@ -427,8 +427,8 @@ Node: Subsection 9-2-4,	Next: Subsection 9-2-5,	Prev: Subsection 9-2-3,	Up: Sect
         e1, ..., en: String Sequence
 >>
   
-  The `or' function evaluates to the disjunction of its arguments.
-  For example, in the following code, `X' is true, and `Y' is false.
+  The 'or' function evaluates to the disjunction of its arguments.
+  For example, in the following code, 'X' is true, and 'Y' is false.
 <<    A = a
       B = b
       X = $(or $(equal $(A), a) false $(equal $(A), $(B)))
@@ -447,8 +447,8 @@ me{@default88}
          e2, e3 : value
 >>
   
-  The `if' function represents a conditional based on a Boolean value.
-For example `$(if $(equal a, b), c, d)' evaluates to `d'.
+  The 'if' function represents a conditional based on a Boolean value.
+For example '$(if $(equal a, b), c, d)' evaluates to 'd'.
   Conditionals may also be declared with an alternate syntax.
 <<   if e1
         body1
@@ -459,17 +459,17 @@ For example `$(if $(equal a, b), c, d)' evaluates to `d'.
         bodyn
 >>
   
-  If the expression `e1' is not false, then the expressions in `body1'
+  If the expression 'e1' is not false, then the expressions in 'body1'
 are evaluated and the result is returned as the value of the
-conditional. Otherwise, if `e1' evaluates to false, the evaluation
-continues with the `e2' expression. If none of the conditional
-expressions is true, then the expressions in `bodyn' are evaluated and
+conditional. Otherwise, if 'e1' evaluates to false, the evaluation
+continues with the 'e2' expression. If none of the conditional
+expressions is true, then the expressions in 'bodyn' are evaluated and
 the result is returned as the value of the conditional.
-  There can be any number of `elseif' clauses; the `else' clause is
+  There can be any number of 'elseif' clauses; the 'else' clause is
 optional.
   Note that each branch of the conditional defines its own scope, so
 variables defined in the branches are normally not visible outside the
-conditional. The `export' command may be used to export the variables
+conditional. The 'export' command may be used to export the variables
 defined in a scope. For example, the following expression represents a
 common idiom for defining the C compiler configuration.
 <<   if $(equal $(OSTYPE), Win32)
@@ -488,32 +488,32 @@ Node: Subsection 9-2-6,	Next: Subsection 9-2-7,	Prev: Subsection 9-2-5,	Up: Sect
 9.2.6   switch, match
 =====================
 
-  The `switch' and `match' functions perform pattern matching.
-  `$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
-`$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
-  The number of `<pattern>/<value>' pairs is arbitrary. They strictly
-alternate; the total number of arguments to `<match>' must be odd.
-  The `<arg>' is evaluated to a string, and compared with `<pattern_1>'.
-If it matches, the result of the expression is `<value_1>'. Otherwise
+  The 'switch' and 'match' functions perform pattern matching.
+  '$(switch <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
+'$(match <arg>, <pattern_1>, <value_1>, ..., <pattern_n>, <value_n>)'
+  The number of '<pattern>/<value>' pairs is arbitrary. They strictly
+alternate; the total number of arguments to '<match>' must be odd.
+  The '<arg>' is evaluated to a string, and compared with '<pattern_1>'.
+If it matches, the result of the expression is '<value_1>'. Otherwise
 evaluation continues with the remaining patterns until a match is found.
 If no pattern matches, the value is the empty string.
-  The `switch' function uses string comparison to compare the argument
+  The 'switch' function uses string comparison to compare the argument
 with the patterns. For example, the following expression defines the
-`FILE' variable to be either `foo', `bar', or the empty string,
-depending on the value of the `OSTYPE' variable.
+'FILE' variable to be either 'foo', 'bar', or the empty string,
+depending on the value of the 'OSTYPE' variable.
 <<    FILE = $(switch $(OSTYPE), Win32, foo, Unix, bar)
 >>
   
-  The `match' function uses regular expression patterns (see the `grep'
-function). If a match is found, the variables `$1, $2, ...' are bound to
-the substrings matched between `\(' and `\)' delimiters. The `$0'
-variable contains the entire match, and `$*' is an array of the matched
+  The 'match' function uses regular expression patterns (see the 'grep'
+function). If a match is found, the variables '$1, $2, ...' are bound to
+the substrings matched between '\(' and '\)' delimiters. The '$0'
+variable contains the entire match, and '$*' is an array of the matched
 substrings. to the matched substrings.
 <<    FILE = $(match foo_xyz/bar.a, foo_\\\(.*\\\)/\\\(.*\\\)\.a,
 foo_$2/$1.o)
 >>
   
-  The `switch' and `match' functions also have an alternate (more
+  The 'switch' and 'match' functions also have an alternate (more
 usable) form.
 <<   match e
      case pattern1
@@ -525,9 +525,9 @@ usable) form.
         bodyd
 >>
   
-  If the value of expression `e' matches `pattern_i' and no previous
-pattern, then `body_i' is evaluated and returned as the result of the
-`match'. The `switch' function uses string comparison; the `match'
+  If the value of expression 'e' matches 'pattern_i' and no previous
+pattern, then 'body_i' is evaluated and returned as the result of the
+'match'. The 'switch' function uses string comparison; the 'match'
 function uses regular expression matching.
 <<   match $(FILE)
      case $".*\(\.[^\/.]*\)"
@@ -553,25 +553,25 @@ Node: Subsection 9-2-7,	Next: Subsection 9-2-8,	Prev: Subsection 9-2-6,	Up: Sect
         finally-body
 >>
   
-  The `try' form is used for exception handling. First, the expressions
-in the `try-body' are evaluated.
-  If evaluation results in a value `v' without raising an exception,
-then the expressions in the `finally-body' are evaluated and the value
-`v' is returned as the result.
-  If evaluation of the `try-body' results in a exception object `obj',
-the `catch' clauses are examined in order. When examining `catch' clause
-`catch class(v)', if the exception object `obj' is an instance of the
-class name `class', the variable `v' is bound to the exception object,
-and the expressions in the `catch-body' are evaluated.
-  If a `when' clause is encountered while a `catch' body is being
-evaluated, the predicate `expr' is evaluated. If the result is true,
-evaluation continues with the expressions in the `when-body'. Otherwise,
-the next `catch' clause is considered for evaluation.
-  If evaluation of a `catch-body' or `when-body' completes successfully,
-returning a value `v', without encountering another `when' clause, then
-the expressions in the `finally-body' are evaluated and the value `v' is
+  The 'try' form is used for exception handling. First, the expressions
+in the 'try-body' are evaluated.
+  If evaluation results in a value 'v' without raising an exception,
+then the expressions in the 'finally-body' are evaluated and the value
+'v' is returned as the result.
+  If evaluation of the 'try-body' results in a exception object 'obj',
+the 'catch' clauses are examined in order. When examining 'catch' clause
+'catch class(v)', if the exception object 'obj' is an instance of the
+class name 'class', the variable 'v' is bound to the exception object,
+and the expressions in the 'catch-body' are evaluated.
+  If a 'when' clause is encountered while a 'catch' body is being
+evaluated, the predicate 'expr' is evaluated. If the result is true,
+evaluation continues with the expressions in the 'when-body'. Otherwise,
+the next 'catch' clause is considered for evaluation.
+  If evaluation of a 'catch-body' or 'when-body' completes successfully,
+returning a value 'v', without encountering another 'when' clause, then
+the expressions in the 'finally-body' are evaluated and the value 'v' is
 returned as the result.
-  There can be any number of `catch' clauses; the `finally' clause is
+  There can be any number of 'catch' clauses; the 'finally' clause is
 optional. 
 
 Node: Subsection 9-2-8,	Next: Subsection 9-2-9,	Prev: Subsection 9-2-7,	Up: Section 9-2
@@ -584,12 +584,12 @@ Node: Subsection 9-2-8,	Next: Subsection 9-2-9,	Prev: Subsection 9-2-7,	Up: Sect
         exn : Exception
 >>
   
-  The `raise' function raises an exception. The `exn' object can be any
-object. However, the normal convention is to raise an `Exception'
+  The 'raise' function raises an exception. The 'exn' object can be any
+object. However, the normal convention is to raise an 'Exception'
 object.
   If the exception is never caught, the whole object will be verbosely
-printed in the error message. However, if the object is an `Exception'
-one and contains a `message' field, only that field will be included in
+printed in the error message. However, if the object is an 'Exception'
+one and contains a 'message' field, only that field will be included in
 the error message. 
 
 Node: Subsection 9-2-9,	Next: Subsection 9-2-10,	Prev: Subsection 9-2-8,	Up: Section 9-2
@@ -602,9 +602,9 @@ Node: Subsection 9-2-9,	Next: Subsection 9-2-10,	Prev: Subsection 9-2-8,	Up: Sec
         code : Int
 >>
   
-  The `exit' function terminates omake abnormally.
-  `$(exit <code>)'
-  The `exit' function takes one integer argument, which is exit code.
+  The 'exit' function terminates omake abnormally.
+  '$(exit <code>)'
+  The 'exit' function takes one integer argument, which is exit code.
 Non-zero values indicate abnormal termination. 
 
 Node: Subsection 9-2-10,	Next: Subsection 9-2-11,	Prev: Subsection 9-2-9,	Up: Section 9-2
@@ -617,8 +617,8 @@ Node: Subsection 9-2-10,	Next: Subsection 9-2-11,	Prev: Subsection 9-2-9,	Up: Se
         sequence : Sequence
 >>
   
-  The `defined' function test whether all the variables in the sequence
-are currently defined. For example, the following code defines the `X'
+  The 'defined' function test whether all the variables in the sequence
+are currently defined. For example, the following code defines the 'X'
 variable if it is not already defined.
 <<    if $(not $(defined X))
          X = a b c
@@ -640,10 +640,10 @@ Node: Subsection 9-2-11,	Next: Subsection 9-2-12,	Prev: Subsection 9-2-10,	Up: S
         sequence : String
 >>
   
-  The `defined-env' function tests whether a variable is defined as part
+  The 'defined-env' function tests whether a variable is defined as part
 of the process environment.
-  For example, the following code adds the `-g' compile option if the
-environment variable `DEBUG' is defined.
+  For example, the following code adds the '-g' compile option if the
+environment variable 'DEBUG' is defined.
 <<if $(defined-env DEBUG)
       CFLAGS += -g
       export
@@ -659,15 +659,15 @@ Node: Subsection 9-2-12,	Next: Subsection 9-2-13,	Prev: Subsection 9-2-11,	Up: S
      $(getenv name, default) : String
 >>
   
-  The `getenv' function gets the value of a variable from the process
+  The 'getenv' function gets the value of a variable from the process
 environment. The function takes one or two arguments.
   In the single argument form, an exception is raised if the variable
 variable is not defined in the environment. In the two-argument form,
 the second argument is returned as the result if the value is not
 defined.
-  For example, the following code defines the variable `X' to be a
-space-separated list of elements of the `PATH' environment variable if
-it is defined, and to `/bin /usr/bin' otherwise.
+  For example, the following code defines the variable 'X' to be a
+space-separated list of elements of the 'PATH' environment variable if
+it is defined, and to '/bin /usr/bin' otherwise.
 <<    X = $(split $(PATHSEP), $(getenv PATH, /bin:/usr/bin))
 >>
   
@@ -687,7 +687,7 @@ Node: Subsection 9-2-13,	Next: Subsection 9-2-14,	Prev: Subsection 9-2-12,	Up: S
         value : String
 >>
   
-  The `setenv' function sets the value of a variable in the process
+  The 'setenv' function sets the value of a variable in the process
 environment. Environment variables are scoped like normal variables.
 
 Node: Subsection 9-2-14,	Next: Subsection 9-2-15,	Prev: Subsection 9-2-13,	Up: Section 9-2
@@ -700,7 +700,7 @@ Node: Subsection 9-2-14,	Next: Subsection 9-2-15,	Prev: Subsection 9-2-13,	Up: S
         names : String Array
 >>
   
-  The `unsetenv' function removes some variable definitions from the
+  The 'unsetenv' function removes some variable definitions from the
 process environment. Environment variables are scoped like normal
 variables.
 
@@ -717,23 +717,23 @@ Node: Subsection 9-2-15,	Next: Subsection 9-2-16,	Prev: Subsection 9-2-14,	Up: S
          field : String
 >>
   
-  The `get-registry' function retrieves a string value from the system
+  The 'get-registry' function retrieves a string value from the system
 registry on Win32. On other architectures, there is no registry.
-  The `hive' (I think that is the right word), indicates which part of
+  The 'hive' (I think that is the right word), indicates which part of
 the registry to use. It should be one of the following values.
   
   
- - `HKEY_CLASSES_ROOT' 
- - `HKEY_CURRENT_CONFIG' 
- - `HKEY_CURRENT_USER' 
- - `HKEY_LOCAL_MACHINE' 
- - `HKEY_USERS' 
+   - 'HKEY_CLASSES_ROOT' 
+   - 'HKEY_CURRENT_CONFIG' 
+   - 'HKEY_CURRENT_USER' 
+   - 'HKEY_LOCAL_MACHINE' 
+   - 'HKEY_USERS' 
    Refer to the Microsoft documentation if you want to know what these
 mean.
-  The `key' is the field you want to get from the registry. It should
-have a form like `A\B\C' (if you use forward slashes, they will be
+  The 'key' is the field you want to get from the registry. It should
+have a form like 'A\B\C' (if you use forward slashes, they will be
 converted to backslashes). The field is the sub-field of the key.
-  In the 4-argument form, the `default' is returned on failure. You may
+  In the 4-argument form, the 'default' is returned on failure. You may
 also use the alternate form.
 <<    get-registry(hkey, key, field)
          default
@@ -749,7 +749,7 @@ Node: Subsection 9-2-16,	Next: Subsection 9-2-17,	Prev: Subsection 9-2-15,	Up: S
 <<   $(getvar name) : String
 >>
   
-  The `getvar' function gets the value of a variable.
+  The 'getvar' function gets the value of a variable.
   An exception is raised if the variable variable is not defined.
   For example, the following code defines X to be the string abc.
 <<    NAME = foo
@@ -772,8 +772,8 @@ Node: Subsection 9-2-17,	Next: Section 9-3,	Prev: Subsection 9-2-16,	Up: Section
         value : String
 >>
   
-  The `setvar' function defines a new variable. For example, the
-following code defines the variable `X' to be the string `abc'.
+  The 'setvar' function defines a new variable. For example, the
+following code defines the variable 'X' to be the string 'abc'.
 <<   NAME = X
      setvar($(NAME), abc)
 >>
@@ -847,7 +847,7 @@ Node: Subsection 9-3-1,	Next: Subsection 9-3-2,	Prev: Section 9-3,	Up: Section 9
          elements : Sequence
 >>
   
-  The `array' function creates an array from a sequence. If the `<arg>'
+  The 'array' function creates an array from a sequence. If the '<arg>'
 is a string, the elements of the array are the whitespace-separated
 elements of the string, respecting quotes.
   In addition, array variables can be declared as follows.
@@ -857,8 +857,8 @@ elements of the string, respecting quotes.
          <valn>
 >>
   
-  In this case, the elements of the array are exactly `<val1>', ...,
-`<valn>', and whitespace is preserved literally. 
+  In this case, the elements of the array are exactly '<val1>', ...,
+'<valn>', and whitespace is preserved literally. 
 
 Node: Subsection 9-3-2,	Next: Subsection 9-3-3,	Prev: Subsection 9-3-1,	Up: Section 9-3
   
@@ -871,17 +871,17 @@ Node: Subsection 9-3-2,	Next: Subsection 9-3-3,	Prev: Subsection 9-3-1,	Up: Sect
         elements : Sequence
 >>
   
-  The `split' function takes two arguments, a string of separators, and
+  The 'split' function takes two arguments, a string of separators, and
 a string argument. The result is an array of elements determined by
 splitting the elements by all occurrence of the separator in the
-`elements' sequence.
-  For example, in the following code, the `X' variable is defined to be
-the array `/bin /usr/bin /usr/local/bin'.
+'elements' sequence.
+  For example, in the following code, the 'X' variable is defined to be
+the array '/bin /usr/bin /usr/local/bin'.
 <<    PATH = /bin:/usr/bin:/usr/local/bin
       X = $(split :, $(PATH))
 >>
   
-  The `sep' argument may be omitted. In this case `split' breaks its
+  The 'sep' argument may be omitted. In this case 'split' breaks its
 arguments along the white space. Quotations are not split. 
 
 Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Section 9-3
@@ -895,11 +895,11 @@ Node: Subsection 9-3-3,	Next: Subsection 9-3-4,	Prev: Subsection 9-3-2,	Up: Sect
         elements : Sequence
 >>
   
-  The `concat' function takes two arguments, a separator string, and a
+  The 'concat' function takes two arguments, a separator string, and a
 sequence of elements. The result is a string formed by concatenating the
 elements, placing the separator between adjacent elements.
-  For example, in the following code, the `X' variable is defined to be
-the string `foo_x_bar_x_baz'.
+  For example, in the following code, the 'X' variable is defined to be
+the string 'foo_x_bar_x_baz'.
 <<    X = foo  bar     baz
       Y = $(concat _x_, $(X))
 >>
@@ -914,8 +914,8 @@ Node: Subsection 9-3-4,	Next: Subsection 9-3-5,	Prev: Subsection 9-3-3,	Up: Sect
         sequence : Sequence
 >>
   
-  The `length' function returns the number of elements in its argument.
-  For example, the expression `$(length a  b "c d")' evaluates to 3. 
+  The 'length' function returns the number of elements in its argument.
+  For example, the expression '$(length a  b "c d")' evaluates to 3. 
 
 Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Section 9-3
   
@@ -929,10 +929,10 @@ Node: Subsection 9-3-5,	Next: Subsection 9-3-6,	Prev: Subsection 9-3-4,	Up: Sect
      raises RuntimeException
 >>
   
-  The `nth' function returns the nth element of its argument, treated as
+  The 'nth' function returns the nth element of its argument, treated as
 a list. Counting starts at 0. An exception is raised if the index is not
 in bounds.
-  For example, the expression `$(nth 1, a "b c" d)' evaluates to `"b
+  For example, the expression '$(nth 1, a "b c" d)' evaluates to '"b
 c"'.
 
 Node: Subsection 9-3-6,	Next: Subsection 9-3-7,	Prev: Subsection 9-3-5,	Up: Section 9-3
@@ -948,11 +948,11 @@ Node: Subsection 9-3-6,	Next: Subsection 9-3-7,	Prev: Subsection 9-3-5,	Up: Sect
      raises RuntimeException
 >>
   
-  The `replace-nth' function replaces the nth element of its argument
-with a new value `x'. Counting starts at 0. An exception is raised if
+  The 'replace-nth' function replaces the nth element of its argument
+with a new value 'x'. Counting starts at 0. An exception is raised if
 the index is not in bounds.
-  For example, the expression `$(replace-nth 1, a "b c" d, x)' evaluates
-to `a x d'. 
+  For example, the expression '$(replace-nth 1, a "b c" d, x)' evaluates
+to 'a x d'. 
 
 Node: Subsection 9-3-7,	Next: Subsection 9-3-8,	Prev: Subsection 9-3-6,	Up: Section 9-3
   
@@ -966,10 +966,10 @@ Node: Subsection 9-3-7,	Next: Subsection 9-3-8,	Prev: Subsection 9-3-6,	Up: Sect
      raises RuntimeException
 >>
   
-  The `nth-hd' function returns the first `i' elements of the sequence.
-An exception is raised if the sequence is not at least `i' elements
+  The 'nth-hd' function returns the first 'i' elements of the sequence.
+An exception is raised if the sequence is not at least 'i' elements
 long.
-  For example, the expression `$(nth-hd 2, a "b c" d)' evaluates to `a
+  For example, the expression '$(nth-hd 2, a "b c" d)' evaluates to 'a
 "b c"'.
 
 Node: Subsection 9-3-8,	Next: Subsection 9-3-9,	Prev: Subsection 9-3-7,	Up: Section 9-3
@@ -984,10 +984,10 @@ Node: Subsection 9-3-8,	Next: Subsection 9-3-9,	Prev: Subsection 9-3-7,	Up: Sect
      raises RuntimeException
 >>
   
-  The `nth-tl' function skips `i' elements of the sequence and returns
-the rest. An exception is raised if the sequence is not at least `i'
+  The 'nth-tl' function skips 'i' elements of the sequence and returns
+the rest. An exception is raised if the sequence is not at least 'i'
 elements long.
-  For example, the expression `$(nth-tl 1, a "b c" d)' evaluates to `"b
+  For example, the expression '$(nth-tl 1, a "b c" d)' evaluates to '"b
 c" d'.
 
 Node: Subsection 9-3-9,	Next: Subsection 9-3-10,	Prev: Subsection 9-3-8,	Up: Section 9-3
@@ -1003,11 +1003,11 @@ Node: Subsection 9-3-9,	Next: Subsection 9-3-10,	Prev: Subsection 9-3-8,	Up: Sec
      raises RuntimeException
 >>
   
-  The `subrange' function returns a subrange of the sequence. Counting
+  The 'subrange' function returns a subrange of the sequence. Counting
 starts at 0. An exception is raised if the specified range is not in
 bounds.
-  For example, the expression `$(subrange 1, 2, a "b c" d e)' evaluates
-to `"b c" d'. 
+  For example, the expression '$(subrange 1, 2, a "b c" d e)' evaluates
+to '"b c" d'. 
 
 Node: Subsection 9-3-10,	Next: Subsection 9-3-11,	Prev: Subsection 9-3-9,	Up: Section 9-3
   
@@ -1019,8 +1019,8 @@ Node: Subsection 9-3-10,	Next: Subsection 9-3-11,	Prev: Subsection 9-3-9,	Up: Se
          sequence : Sequence
 >>
   
-  The `rev' function returns the elements of a sequence in reverse
-order. For example, the expression `$(rev a "b c" d)' evaluates to `d "b
+  The 'rev' function returns the elements of a sequence in reverse
+order. For example, the expression '$(rev a "b c" d)' evaluates to 'd "b
 c" a'. 
 
 Node: Subsection 9-3-11,	Next: Subsection 9-3-12,	Prev: Subsection 9-3-10,	Up: Section 9-3
@@ -1034,8 +1034,8 @@ Node: Subsection 9-3-11,	Next: Subsection 9-3-12,	Prev: Subsection 9-3-10,	Up: S
         sequence2 : Sequence
 >>
   
-  The `join' function joins together the elements of the two sequences.
-For example, `$(join a b c, .c .cpp .h)' evaluates to `a.c b.cpp c.h'.
+  The 'join' function joins together the elements of the two sequences.
+For example, '$(join a b c, .c .cpp .h)' evaluates to 'a.c b.cpp c.h'.
 If the two input sequences have different lengths, the remainder of the
 longer sequence is copied at the end of the output unmodified. 
 
@@ -1049,8 +1049,8 @@ Node: Subsection 9-3-12,	Next: Subsection 9-3-13,	Prev: Subsection 9-3-11,	Up: S
         sequence : Sequence
 >>
   
-  The `string' function flattens a sequence into a single string. This
-is similar to the `concat' function, but the elements are separated by
+  The 'string' function flattens a sequence into a single string. This
+is similar to the 'concat' function, but the elements are separated by
 whitespace. The result is treated as a unit; whitespace is significant. 
 
 Node: Subsection 9-3-13,	Next: Subsection 9-3-14,	Prev: Subsection 9-3-12,	Up: Section 9-3
@@ -1063,9 +1063,9 @@ Node: Subsection 9-3-13,	Next: Subsection 9-3-14,	Prev: Subsection 9-3-12,	Up: S
         sequence : Sequence
 >>
   
-  The `string-lenght' returns a length (number of characters) in its
+  The 'string-lenght' returns a length (number of characters) in its
 argument. If the argument is a sequence, it flattens it, so
-`$(string-length sequence)' is equivalent to `$(string-length $(string
+'$(string-length sequence)' is equivalent to '$(string-length $(string
 sequence))'. 
 
 Node: Subsection 9-3-14,	Next: Subsection 9-3-15,	Prev: Subsection 9-3-13,	Up: Section 9-3
@@ -1086,20 +1086,20 @@ c-escaped, id-escaped
         sequence : Array
 >>
   
-  The `string-escaped' function converts each element of its argument to
+  The 'string-escaped' function converts each element of its argument to
 a string, escaping it, if it contains symbols that are special to OMake.
-The special characters include `:()\,$'"#' and whitespace. This function
+The special characters include ':()\,$'"#' and whitespace. This function
 can be used in scanner rules to escape file names before printing then
-to `stdout'.
-  The `ocaml-escaped' function converts each element of its argument to
+to 'stdout'.
+  The 'ocaml-escaped' function converts each element of its argument to
 a string, escaping characters that are special to OCaml.
-  The `c-escaped' function converts a string to a form that can be used
+  The 'c-escaped' function converts a string to a form that can be used
 as a string constant in C.
-  The `id-escaped' function turns a string into an identifier that may
+  The 'id-escaped' function turns a string into an identifier that may
 be used in OMake.
-  The `html-escaped' function turns a literal string into a form
-acceptable as HTML. The `html-pre-escaped' function is similar, but it
-does not translate newlines into `<br>'.
+  The 'html-escaped' function turns a literal string into a form
+acceptable as HTML. The 'html-pre-escaped' function is similar, but it
+does not translate newlines into '<br>'.
 <<    println($(string $(string-escaped $"a b" $"y:z")))
       a\ b y\:z
 >>
@@ -1132,10 +1132,10 @@ Node: Subsection 9-3-16,	Next: Subsection 9-3-17,	Prev: Subsection 9-3-15,	Up: S
         sequence : Sequence
 >>
   
-  The `quote' function flattens a sequence into a single string and adds
+  The 'quote' function flattens a sequence into a single string and adds
 quotes around the string. Inner quotation symbols are escaped.
-  For example, the expression `$(quote a "b c" d)' evaluates to `"a \"b
-c\" d"', and `$(quote abc)' evaluates to `"abc"'. 
+  For example, the expression '$(quote a "b c" d)' evaluates to '"a \"b
+c\" d"', and '$(quote abc)' evaluates to '"abc"'. 
 
 Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: Section 9-3
   
@@ -1147,7 +1147,7 @@ Node: Subsection 9-3-17,	Next: Subsection 9-3-18,	Prev: Subsection 9-3-16,	Up: S
         sequence : Sequence
 >>
   
-  The `quote-argv' function flattens a sequence into a single string,
+  The 'quote-argv' function flattens a sequence into a single string,
 and adds quotes around the string. The quotation is formed so that a
 command-line parse can separate the string back into its components. 
 
@@ -1161,8 +1161,8 @@ Node: Subsection 9-3-18,	Next: Subsection 9-3-19,	Prev: Subsection 9-3-17,	Up: S
         sequence : Sequence
 >>
   
-  The `html-string' function flattens a sequence into a single string,
-and escapes special HTML characters. This is similar to the `concat'
+  The 'html-string' function flattens a sequence into a single string,
+and escapes special HTML characters. This is similar to the 'concat'
 function, but the elements are separated by whitespace. The result is
 treated as a unit; whitespace inside sequence elements is preserved
 literally. 
@@ -1178,10 +1178,10 @@ Node: Subsection 9-3-19,	Next: Subsection 9-3-20,	Prev: Subsection 9-3-18,	Up: S
         sequence : Sequence
 >>
   
-  The `addsuffix' function adds a suffix to each component of sequence.
+  The 'addsuffix' function adds a suffix to each component of sequence.
 The number of elements in the array is exactly the same as the number of
 elements in the sequence.
-  For example, `$(addsuffix .c, a b "c d")' evaluates to `a.c b.c "c
+  For example, '$(addsuffix .c, a b "c d")' evaluates to 'a.c b.c "c
 d".c'. 
 
 Node: Subsection 9-3-20,	Next: Subsection 9-3-21,	Prev: Subsection 9-3-19,	Up: Section 9-3
@@ -1195,11 +1195,11 @@ Node: Subsection 9-3-20,	Next: Subsection 9-3-21,	Prev: Subsection 9-3-19,	Up: S
         sequence : Sequence
 >>
   
-  The `mapsuffix' function adds a suffix to each component of sequence.
-It is similar to `addsuffix', but uses array concatenation instead of
+  The 'mapsuffix' function adds a suffix to each component of sequence.
+It is similar to 'addsuffix', but uses array concatenation instead of
 string concatenation. The number of elements in the array is twice the
 number of elements in the sequence.
-  For example, `$(mapsuffix .c, a b "c d")' evaluates to `a .c b .c "c
+  For example, '$(mapsuffix .c, a b "c d")' evaluates to 'a .c b .c "c
 d" .c'. 
 
 Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: Section 9-3
@@ -1213,11 +1213,11 @@ Node: Subsection 9-3-21,	Next: Subsection 9-3-22,	Prev: Subsection 9-3-20,	Up: S
         sequence : Sequence
 >>
   
-  The `addsuffixes' function adds all suffixes in its first argument to
-each component of a sequence. If `suffixes' has `n' elements, and
-`sequence' has `m' elements, the the result has `n * m' elements.
-  For example, the `$(addsuffixes .c .o, a b c)' expressions evaluates
-to `a.c a.o b.c b.o c.o c.a'. 
+  The 'addsuffixes' function adds all suffixes in its first argument to
+each component of a sequence. If 'suffixes' has 'n' elements, and
+'sequence' has 'm' elements, the the result has 'n * m' elements.
+  For example, the '$(addsuffixes .c .o, a b c)' expressions evaluates
+to 'a.c a.o b.c b.o c.o c.a'. 
 
 Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: Section 9-3
   
@@ -1230,7 +1230,7 @@ Node: Subsection 9-3-22,	Next: Subsection 9-3-23,	Prev: Subsection 9-3-21,	Up: S
         sequence : Array
 >>
   
-  The `removeprefix' function removes a prefix from each component of a
+  The 'removeprefix' function removes a prefix from each component of a
 sequence. 
 
 Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: Section 9-3
@@ -1243,9 +1243,9 @@ Node: Subsection 9-3-23,	Next: Subsection 9-3-24,	Prev: Subsection 9-3-22,	Up: S
         sequence : String
 >>
   
-  The `removesuffix' function removes the suffixes from each component
+  The 'removesuffix' function removes the suffixes from each component
 of a sequence.
-  For example, `$(removesuffix a.c b.foo "c d")' expands to `a b "c d"'.
+  For example, '$(removesuffix a.c b.foo "c d")' expands to 'a b "c d"'.
 
 Node: Subsection 9-3-24,	Next: Subsection 9-3-25,	Prev: Subsection 9-3-23,	Up: Section 9-3
   
@@ -1259,11 +1259,11 @@ Node: Subsection 9-3-24,	Next: Subsection 9-3-25,	Prev: Subsection 9-3-23,	Up: S
         sequence : Sequence
 >>
   
-  The `replacesuffixes' function modifies the suffix of each component
-in sequence. The `old-suffixes' and `new-suffixes' sequences should have
+  The 'replacesuffixes' function modifies the suffix of each component
+in sequence. The 'old-suffixes' and 'new-suffixes' sequences should have
 the same length.
-  For example, `$(replacesuffixes .h .c, .o .o, a.c b.h c.z)' expands to
-`a.o b.o c.z'. 
+  For example, '$(replacesuffixes .h .c, .o .o, a.c b.h c.z)' expands to
+'a.o b.o c.z'. 
 
 Node: Subsection 9-3-25,	Next: Subsection 9-3-26,	Prev: Subsection 9-3-24,	Up: Section 9-3
   
@@ -1276,10 +1276,10 @@ Node: Subsection 9-3-25,	Next: Subsection 9-3-26,	Prev: Subsection 9-3-24,	Up: S
         sequence : Sequence
 >>
   
-  The `addprefix' function adds a prefix to each component of a
+  The 'addprefix' function adds a prefix to each component of a
 sequence. The number of element in the result array is exactly the same
 as the number of elements in the argument sequence.
-  For example, `$(addprefix foo/, a b "c d")' evaluates to `foo/a foo/b
+  For example, '$(addprefix foo/, a b "c d")' evaluates to 'foo/a foo/b
 foo/"c d"'. 
 
 Node: Subsection 9-3-26,	Next: Subsection 9-3-27,	Prev: Subsection 9-3-25,	Up: Section 9-3
@@ -1293,11 +1293,11 @@ Node: Subsection 9-3-26,	Next: Subsection 9-3-27,	Prev: Subsection 9-3-25,	Up: S
         sequence : Sequence
 >>
   
-  The `mapprefix' function adds a prefix to each component of a
-sequence. It is similar to `addprefix', but array concatenation is used
+  The 'mapprefix' function adds a prefix to each component of a
+sequence. It is similar to 'addprefix', but array concatenation is used
 instead of string concatenation. The result array contains twice as many
 elements as the argument sequence.
-  For example, `$(mapprefix foo, a b "c d")' expands to `foo a foo b foo
+  For example, '$(mapprefix foo, a b "c d")' expands to 'foo a foo b foo
 "c d"'. 
 
 Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: Section 9-3
@@ -1312,9 +1312,9 @@ Node: Subsection 9-3-27,	Next: Subsection 9-3-28,	Prev: Subsection 9-3-26,	Up: S
         sequence : Sequence
 >>
   
-  The `add-wrapper' functions adds both a prefix and a suffix to each
-component of a sequence. For example, the expression `$(add-wrapper
-dir/, .c, a b)' evaluates to `dir/a.c dir/b.c'. String concatenation is
+  The 'add-wrapper' functions adds both a prefix and a suffix to each
+component of a sequence. For example, the expression '$(add-wrapper
+dir/, .c, a b)' evaluates to 'dir/a.c dir/b.c'. String concatenation is
 used. The array result has the same number of elements as the argument
 sequence. 
 
@@ -1328,9 +1328,9 @@ Node: Subsection 9-3-28,	Next: Subsection 9-3-29,	Prev: Subsection 9-3-27,	Up: S
         sequence : Sequence
 >>
   
-  The `set' function sorts a set of string components, eliminating
+  The 'set' function sorts a set of string components, eliminating
 duplicates.
-  For example, `$(set z y z "m n" w a)' expands to `"m n" a w y z'. 
+  For example, '$(set z y z "m n" w a)' expands to '"m n" a w y z'. 
 
 Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: Section 9-3
   
@@ -1343,9 +1343,9 @@ Node: Subsection 9-3-29,	Next: Subsection 9-3-30,	Prev: Subsection 9-3-28,	Up: S
         sequence : Sequence
 >>
   
-  The `mem' function tests for membership in a sequence.
-  For example, `$(mem "m n", y z "m n" w a)' evaluates to `true', while
-`$(mem m n, y z "m n" w a)' evaluates to `false'. 
+  The 'mem' function tests for membership in a sequence.
+  For example, '$(mem "m n", y z "m n" w a)' evaluates to 'true', while
+'$(mem m n, y z "m n" w a)' evaluates to 'false'. 
 
 Node: Subsection 9-3-30,	Next: Subsection 9-3-31,	Prev: Subsection 9-3-29,	Up: Section 9-3
   
@@ -1358,12 +1358,12 @@ Node: Subsection 9-3-30,	Next: Subsection 9-3-31,	Prev: Subsection 9-3-29,	Up: S
         sequence2 : Sequence
 >>
   
-  The `intersection' function takes two arguments, treats them as sets
+  The 'intersection' function takes two arguments, treats them as sets
 of strings, and computes their intersection. The order of the result is
-undefined, and it may contain duplicates. Use the `set' function to sort
+undefined, and it may contain duplicates. Use the 'set' function to sort
 the result and eliminate duplicates in the result if desired.
-  For example, the expression `$(intersection c a b a, b a)' evaluates
-to `a b a'. 
+  For example, the expression '$(intersection c a b a, b a)' evaluates
+to 'a b a'. 
 
 Node: Subsection 9-3-31,	Next: Subsection 9-3-32,	Prev: Subsection 9-3-30,	Up: Section 9-3
   
@@ -1376,11 +1376,11 @@ Node: Subsection 9-3-31,	Next: Subsection 9-3-32,	Prev: Subsection 9-3-30,	Up: S
         sequence2 : Sequence
 >>
   
-  The `intersects' function tests whether two sets have a non-empty
+  The 'intersects' function tests whether two sets have a non-empty
 intersection. This is slightly more efficient than computing the
 intersection and testing whether it is empty.
-  For example, the expression `$(intersects a b c, d c e)' evaluates to
-`true', and `$(intersects a b c a, d e f)' evaluates to `false'. 
+  For example, the expression '$(intersects a b c, d c e)' evaluates to
+'true', and '$(intersects a b c a, d e f)' evaluates to 'false'. 
 
 Node: Subsection 9-3-32,	Next: Subsection 9-3-33,	Prev: Subsection 9-3-31,	Up: Section 9-3
   
@@ -1393,13 +1393,13 @@ Node: Subsection 9-3-32,	Next: Subsection 9-3-33,	Prev: Subsection 9-3-31,	Up: S
         sequence2 : Sequence
 >>
   
-  The `set-diff' function takes two arguments, treats them as sets of
+  The 'set-diff' function takes two arguments, treats them as sets of
 strings, and computes their difference (all the elements of the first
 set that are not present in the second one). The order of the result is
-undefined and it may contain duplicates. Use the `set' function to sort
+undefined and it may contain duplicates. Use the 'set' function to sort
 the result and eliminate duplicates in the result if desired.
-  For example, the expression `$(set-diff c a b a e, b a)' evaluates to
-`c e'. 
+  For example, the expression '$(set-diff c a b a e, b a)' evaluates to
+'c e'. 
 
 Node: Subsection 9-3-33,	Next: Subsection 9-3-34,	Prev: Subsection 9-3-32,	Up: Section 9-3
   
@@ -1412,11 +1412,11 @@ Node: Subsection 9-3-33,	Next: Subsection 9-3-34,	Prev: Subsection 9-3-32,	Up: S
         sequence : Sequence
 >>
   
-  The `filter' function picks elements from a sequence. The patterns is
+  The 'filter' function picks elements from a sequence. The patterns is
 a non-empty sequence of patterns, each may contain one occurrence of the
-wildcard `%' character.
-  For example `$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
-evaluates to `x.o b.h y.o'. 
+wildcard '%' character.
+  For example '$(filter %.h %.o, a.c x.o b.h y.o "hello world".c)'
+evaluates to 'x.o b.h y.o'. 
 
 Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: Section 9-3
   
@@ -1429,11 +1429,11 @@ Node: Subsection 9-3-34,	Next: Subsection 9-3-35,	Prev: Subsection 9-3-33,	Up: S
         sequence : Sequence
 >>
   
-  The `filter-out' function removes elements from a sequence. The
+  The 'filter-out' function removes elements from a sequence. The
 patterns is a non-empty sequence of patterns, each may contain one
-occurrence of the wildcard `%' character.
-  For example `$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
-evaluates to `x.o y.o'. 
+occurrence of the wildcard '%' character.
+  For example '$(filter-out %.c %.h, a.c x.o b.h y.o "hello world".c)'
+evaluates to 'x.o y.o'. 
 
 Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: Section 9-3
   
@@ -1445,8 +1445,8 @@ Node: Subsection 9-3-35,	Next: Subsection 9-3-36,	Prev: Subsection 9-3-34,	Up: S
         sequence : Sequence
 >>
   
-  The `capitalize' function capitalizes each word in a sequence. For
-example, `$(capitalize through the looking Glass)' evaluates to `Through
+  The 'capitalize' function capitalizes each word in a sequence. For
+example, '$(capitalize through the looking Glass)' evaluates to 'Through
 The Looking Glass'. 
 
 Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: Section 9-3
@@ -1459,9 +1459,9 @@ Node: Subsection 9-3-36,	Next: Subsection 9-3-37,	Prev: Subsection 9-3-35,	Up: S
         sequence : Sequence
 >>
   
-  The `uncapitalize' function uncapitalizes each word in its argument.
-  For example, `$(uncapitalize through the looking Glass)' evaluates to
-`through the looking glass'. 
+  The 'uncapitalize' function uncapitalizes each word in its argument.
+  For example, '$(uncapitalize through the looking Glass)' evaluates to
+'through the looking glass'. 
 
 Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: Section 9-3
   
@@ -1473,9 +1473,9 @@ Node: Subsection 9-3-37,	Next: Subsection 9-3-38,	Prev: Subsection 9-3-36,	Up: S
         sequence : Sequence
 >>
   
-  The `uppercase' function converts each word in a sequence to
-uppercase. For example, `$(uppercase through the looking Glass)'
-evaluates to `THROUGH THE LOOKING GLASS'. 
+  The 'uppercase' function converts each word in a sequence to
+uppercase. For example, '$(uppercase through the looking Glass)'
+evaluates to 'THROUGH THE LOOKING GLASS'. 
 
 Node: Subsection 9-3-38,	Next: Subsection 9-3-39,	Prev: Subsection 9-3-37,	Up: Section 9-3
   
@@ -1487,10 +1487,10 @@ Node: Subsection 9-3-38,	Next: Subsection 9-3-39,	Prev: Subsection 9-3-37,	Up: S
         sequence : Sequence
 >>
   
-  The `lowercase' function reduces each word in its argument to
+  The 'lowercase' function reduces each word in its argument to
 lowercase.
-  For example, `$(lowercase through tHe looking Glass)' evaluates to
-`through the looking glass'. 
+  For example, '$(lowercase through tHe looking Glass)' evaluates to
+'through the looking glass'. 
 
 Node: Subsection 9-3-39,	Next: Subsection 9-3-40,	Prev: Subsection 9-3-38,	Up: Section 9-3
   
@@ -1502,10 +1502,10 @@ Node: Subsection 9-3-39,	Next: Subsection 9-3-40,	Prev: Subsection 9-3-38,	Up: S
         s : Sequence
 >>
   
-  The `system' function is used to evaluate a shell expression. This
+  The 'system' function is used to evaluate a shell expression. This
 function is used internally by omake to evaluate shell commands.
   For example, the following program is equivalent to the expression
-`system(ls foo)'.
+'system(ls foo)'.
 <<   ls foo
 >>
 
@@ -1521,15 +1521,15 @@ Node: Subsection 9-3-40,	Next: Subsection 9-3-41,	Prev: Subsection 9-3-39,	Up: S
         command : Sequence
 >>
   
-  The `shell' function evaluates a command using the command shell, and
+  The 'shell' function evaluates a command using the command shell, and
 returns the whitespace-separated words of the standard output as the
 result.
-  The `shella' function acts similarly, but it returns the lines as
+  The 'shella' function acts similarly, but it returns the lines as
 separate items in the array.
-  The `shell-code' function returns the exit code. The output is not
+  The 'shell-code' function returns the exit code. The output is not
 diverted.
-  For example, if the current directory contains the files `OMakeroot',
-`OMakefile', and `hello.c', then `$(shell ls)' evaluates to `hello.c
+  For example, if the current directory contains the files 'OMakeroot',
+'OMakefile', and 'hello.c', then '$(shell ls)' evaluates to 'hello.c
 OMakefile OMakeroot' (on a Unix system). 
 
 Node: Subsection 9-3-41,	Next: Subsection 9-3-42,	Prev: Subsection 9-3-40,	Up: Section 9-3
@@ -1537,7 +1537,7 @@ Node: Subsection 9-3-41,	Next: Subsection 9-3-42,	Prev: Subsection 9-3-40,	Up: S
 
 9.3.41   export
 ===============
- The `export'
+ The 'export'
 function allows one to capture the current environment in a variable.
   For example, the following code: 
 <<A = 1
@@ -1550,10 +1550,10 @@ function allows one to capture the current environment in a variable.
   export($(SAVE_ENV))
   println($A $B $C)
 >>
-  will print `1 1 2'.
+  will print '1 1 2'.
   The arguments to this function are interpreted the exact same way as
-the arguments to the `export' special form (see Section
-6.3*Note Section 6-3::).  
+the arguments to the 'export' special form (see
+Section 6.3*Note Section 6-3::).  
 
 Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: Section 9-3
   
@@ -1577,13 +1577,13 @@ Node: Subsection 9-3-42,	Next: Subsection 9-3-43,	Prev: Subsection 9-3-41,	Up: S
 >>
   
   The loop is executed while the test is true. In the first form, the
-`<body>' is executed on every loop iteration. In the second form, the
-body `<bodyI>' is selected, as the first case where the test `<testI>'
+'<body>' is executed on every loop iteration. In the second form, the
+body '<bodyI>' is selected, as the first case where the test '<testI>'
 is true. If none apply, the optional default case is evaluated. If no
 cases are true, the loop exits. The environment is automatically
 exported.
   Examples.
-  Iterate for `i' from `0' to `9'.
+  Iterate for 'i' from '0' to '9'.
 <<    i = 0
       while $(lt $i, 10)
          echo $i
@@ -1613,7 +1613,7 @@ value is printed.
          i = $(add $i, 1)
 >>
   
-  The `break' function can be used to break out of the `while' loop
+  The 'break' function can be used to break out of the 'while' loop
 early.  
 
 Node: Subsection 9-3-43,	Next: Subsection 9-3-44,	Prev: Subsection 9-3-42,	Up: Section 9-3
@@ -1642,7 +1642,7 @@ Node: Subsection 9-3-44,	Next: Section 9-4,	Prev: Subsection 9-3-43,	Up: Section
   Produce a random number. The numbers are pseudo-random, and are not
 cryptographically secure.
   The generator is initialized from semi-random system data. Subsequent
-runs should produce different results. The `rando-init' function can be
+runs should produce different results. The 'rando-init' function can be
 used to return the generator to a known state. 
 
 Node: Section 9-4,	Next: Subsection 9-4-1,	Prev: Section 9-3,	Up: Chapter 9
@@ -1666,6 +1666,6 @@ Node: Subsection 9-4-1,	Next: Subsection 9-4-2,	Prev: Section 9-4,	Up: Section 9
 9.4.1   int
 ===========
 
-  The `int' function can be used to create integers. It returns an `Int'
+  The 'int' function can be used to create integers. It returns an 'Int'
 object.
-  `$(int 17)'.
+  '$(int 17)'.
