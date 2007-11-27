@@ -411,9 +411,9 @@ public.StaticCLibraryCopy(tag, lib, name) =
 public.DynamicCLibraryCopy(tag, lib, name) =
     TARGETS = 
         EXT_LIB = $(EXT_DLL)
-        value $(StaticCLibraryCopy tag, lib, name)
+        value $(StaticCLibraryCopy $(tag), $(lib), $(name))
     if $(CDLL_IMPLIES_STATIC)
-        TARGETS[] += $(StaticCLibraryCopy tag, lib, name)
+        TARGETS[] += $(StaticCLibraryCopy $(tag), $(lib), $(name))
         export
     return $(TARGETS)
 
@@ -660,12 +660,12 @@ public.StaticCXXLibrary(name, files) =
 public.StaticCXXLibraryCopy(tag, lib, name) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(StaticCLibraryCopy tag, lib, name)
+    return $(StaticCLibraryCopy $(tag), $(lib), $(name))
 
 public.StaticCXXLibraryInstall(tag, lib, name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(StaticCLibraryInstall tag, lib, name, files)
+    return $(StaticCLibraryInstall $(tag), $(lib), $(name), $(files))
 
 public.DynamicCXXLibrary(name, files) =
     CC = $(CXX)
@@ -675,10 +675,10 @@ public.DynamicCXXLibrary(name, files) =
 public.DynamicCXXLibraryCopy(tag, lib, name) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(DynamicCLibraryCopy tag, lib, name)
+    return $(DynamicCLibraryCopy $(tag), $(lib), $(name))
 
 public.DynamicCXXLibraryInstall(tag, lib, name, files) =
     CC = $(CXX)
     CFLAGS = $(CXXFLAGS)
-    return $(DynamicCLibraryInstall tag, lib, name, files)
+    return $(DynamicCLibraryInstall $(tag), $(lib), $(name), $(files))
 
