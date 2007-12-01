@@ -490,16 +490,16 @@ static value handle_wait(const char *debug, Process **processpp)
 #endif
     switch(processp->status) {
     case STATUS_STOPPED:
-        status = alloc_small(1, TAG_WSTOPPED);
+        status = caml_alloc_small(1, TAG_WSTOPPED);
         Field(status, 0) = Val_int(processp->code);
-        tuple = alloc_tuple(2);
+        tuple = caml_alloc_small(2, 0);
         Field(tuple, 0) = Val_int(processp->pid);
         Field(tuple, 1) = status;
         break;
     case STATUS_EXITED:
-        status = alloc_small(1, TAG_WEXITED);
+        status = caml_alloc_small(1, TAG_WEXITED);
         Field(status, 0) = Val_int(processp->code);
-        tuple = alloc_tuple(2);
+        tuple = caml_alloc_small(2, 0);
         Field(tuple, 0) = Val_int(processp->pid);
         Field(tuple, 1) = status;
 
@@ -773,10 +773,9 @@ value omake_shell_sys_check_thread(value v_unit)
  *               if false, wait only for the children
  *    nohang: if true, don't block
  */
-static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_nohang)
+value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
 {
     CAMLparam3(v_pgrp, v_leader, v_nohang);
-    CAMLlocal3(list, tuple, status);
     int processes[MAXIMUM_WAIT_OBJECTS];
     HANDLE handles[MAXIMUM_WAIT_OBJECTS];
     Process **processpp, *processp;
@@ -793,6 +792,7 @@ static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_noha
     leader = Int_val(v_leader);
     timeout = Int_val(v_nohang) ? 0 : INFINITE;
 
+  restart:
     /* Collect the processes and their handles */
     ncount = 1;
     handles[0] = state->changed;
@@ -857,7 +857,7 @@ static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_noha
 
     /* If the process is not found, some other thread waited for it */
     if(processp == 0)
-        CAMLreturn((value) 0);
+        goto restart;
 
     /* Otherwise, handle the wait */
     processp->changed = 1;
@@ -867,25 +867,13 @@ static value omake_shell_sys_wait_aux(value v_pgrp, value v_leader, value v_noha
     if(processp->is_thread == 0) {
         if(GetExitCodeProcess(handles[index], &exitcode) == FALSE)
             exitcode = 111;
+        else if(exitcode == STILL_ACTIVE)
+            goto restart;
         processp->code = exitcode;
     }
 
     /* Return the value */
     CAMLreturn(handle_wait("done", processpp));
-}
-
-/*
- * Restart the wait if it returns 0.
- */
-value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
-{
-    CAMLparam3(v_pgrp, v_leader, v_nohang);
-    value result;
-
-    do {
-        result = omake_shell_sys_wait_aux(v_pgrp, v_leader, v_nohang);
-    } while(result == 0);
-    CAMLreturn(result);
 }
 
 /*
