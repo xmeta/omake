@@ -11,16 +11,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- * 
+ *
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -51,7 +51,7 @@ external check_thread       : unit -> bool                = "omake_shell_sys_che
 external suspend            : pgrp -> unit                = "omake_shell_sys_suspend"
 external resume             : pgrp -> unit                = "omake_shell_sys_resume"
 external kill               : pgrp -> unit                = "omake_shell_sys_kill"
-external ext_wait           : pgrp -> bool -> bool -> pid * Unix.process_status = "omake_shell_sys_wait"
+external ext_wait           : pgrp -> bool -> bool -> bool * pid * int = "omake_shell_sys_wait"
 
 external init_shell         : unit -> unit                = "omake_shell_sys_init"
 external close              : unit -> unit                = "omake_shell_sys_close"
@@ -91,8 +91,18 @@ let kill pgrp signo =
 (*
  * Wait is blocking.
  *)
+let unix_wait pgrp leader nohang =
+   let exited, pid, code = ext_wait pgrp leader nohang in
+   let status =
+      if exited then
+         Unix.WEXITED code
+      else
+         Unix.WSTOPPED code
+   in
+      pid, status
+
 let wait pgrp leader nohang =
-   Lm_thread_pool.blocking_section (ext_wait pgrp leader) nohang
+   Lm_thread_pool.blocking_section (unix_wait pgrp leader) nohang
 
 (*
  * Try to close a descriptor.

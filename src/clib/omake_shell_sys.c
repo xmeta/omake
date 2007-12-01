@@ -472,50 +472,6 @@ static int alloc_pid(void)
 }
 
 /*
- * The process has changed.
- * Fixup the process list, and
- * return a wait code.
- */
-#pragma warning( disable : 4100 )
-static value handle_wait(const char *debug, Process **processpp)
-{
-    CAMLparam0();
-    CAMLlocal2(tuple, status);
-    Process *processp;
-
-    processp = *processpp;
-    processp->changed = 0;
-#ifdef OSH_DEBUG
-    fprintf(stderr, "+++ wait: %s: pid=%d, group=%d, status=%d\n", debug, processp->pid, processp->pgrp, processp->status);
-#endif
-    switch(processp->status) {
-    case STATUS_STOPPED:
-        status = caml_alloc_small(1, TAG_WSTOPPED);
-        Field(status, 0) = Val_int(processp->code);
-        tuple = caml_alloc_small(2, 0);
-        Field(tuple, 0) = Val_int(processp->pid);
-        Field(tuple, 1) = status;
-        break;
-    case STATUS_EXITED:
-        status = caml_alloc_small(1, TAG_WEXITED);
-        Field(status, 0) = Val_int(processp->code);
-        tuple = caml_alloc_small(2, 0);
-        Field(tuple, 0) = Val_int(processp->pid);
-        Field(tuple, 1) = status;
-
-        CloseHandle(processp->handle);
-        *processpp = processp->next;
-        free(processp);
-        break;
-    case STATUS_RUNNING:
-    default:
-        invalid_argument("wait_process: process is running");
-        break;
-    }
-    CAMLreturn(tuple);
-}
-
-/*
  * Terminate all jobs and exit.
  */
 static void terminate_processes(void)
@@ -772,10 +728,18 @@ value omake_shell_sys_check_thread(value v_unit)
  *       leader: if true, wait only for the group leader
  *               if false, wait only for the children
  *    nohang: if true, don't block
+ *
+ * JYH: this code has caused trouble with bogus exit codes
+ * and memory corruption.  For safety:
+ *    - Return a triple of results, as (bool * int * int),
+ *      not a (int * Unix.process_status).
+ *    - Perform all allocated within this function,
+ *      hence the gotos.
  */
 value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
 {
     CAMLparam3(v_pgrp, v_leader, v_nohang);
+    CAMLlocal1(tuple);
     int processes[MAXIMUM_WAIT_OBJECTS];
     HANDLE handles[MAXIMUM_WAIT_OBJECTS];
     Process **processpp, *processp;
@@ -804,7 +768,7 @@ value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
             continue;
         }
         else if(processp->changed)
-            CAMLreturn(handle_wait("changed", processpp));
+            goto done;
         else {
             if(ncount == MAXIMUM_WAIT_OBJECTS)
                 invalid_argument("omake_shell_sys_wait: too many processes");
@@ -833,7 +797,7 @@ value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
         if(index == WAIT_OBJECT_0) {
             for(processpp = &state->processes; processp = *processpp; processpp = &(*processpp)->next) {
                 if(processp->pgrp == pgrp && processp->changed)
-                    CAMLreturn(handle_wait("state changed", processpp));
+                    goto done;
             }
         }
         else
@@ -872,8 +836,38 @@ value omake_shell_sys_wait(value v_pgrp, value v_leader, value v_nohang)
         processp->code = exitcode;
     }
 
-    /* Return the value */
-    CAMLreturn(handle_wait("done", processpp));
+    /*
+     * processpp points to the process that successfully exited.
+     * Build the result as
+     *    bool * pid * exitcode
+     * bool is true iff exited
+     */
+  done:
+    processp = *processpp;
+    processp->changed = 0;
+#ifdef OSH_DEBUG
+    fprintf(stderr, "+++ wait: pid=%d, group=%d, status=%d\n", processp->pid, processp->pgrp, processp->status);
+#endif
+    tuple = caml_alloc_small(3, 0);
+    Field(tuple, 1) = Val_int(processp->pid);
+    Field(tuple, 2) = Val_int(processp->code);
+    switch(processp->status) {
+    case STATUS_STOPPED:
+        Field(tuple, 0) = Val_false;
+        break;
+    case STATUS_EXITED:
+        Field(tuple, 0) = Val_true;
+        CloseHandle(processp->handle);
+        *processpp = processp->next;
+        free(processp);
+        break;
+    case STATUS_RUNNING:
+    default:
+        invalid_argument("wait_process: process is running");
+        break;
+    }
+
+    CAMLreturn(tuple);
 }
 
 /*
