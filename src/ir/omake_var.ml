@@ -58,7 +58,6 @@ let argv_var                   = create_pervasives_var argv_sym
 let options_var                = create_pervasives_var options_object_sym
 
 let explicit_target_var        = create_pervasives_var explicit_target_sym
-let wild_var                   = create_pervasives_var wild_sym
 let cwd_var                    = create_pervasives_var cwd_sym
 let stdlib_var                 = create_pervasives_var stdlib_sym
 let stdroot_var                = create_pervasives_var stdroot_sym
@@ -150,6 +149,7 @@ let lexer_field_var            = VarThis (loc, lexer_sym)
 
 let file_var                   = VarPrivate (loc, file_sym)
 let file_id_var                = VarPrivate (loc, file_id_sym)
+let wild_var                   = VarPrivate (loc, wild_sym)
 
 (*
  * Special handling for small numeric vars.

@@ -35,7 +35,10 @@ open Om_symbol
 open Omake_node_sig
 open Omake_node
 
-(* %%MAGICBEGIN%% *)
+(*
+ * %%MAGICBEGIN%%
+ * Last manual IR versioning: 12/09/07 by Aleksey Nogin
+ *)
 type var = symbol
 type keyword = symbol
 type curry_flag = bool

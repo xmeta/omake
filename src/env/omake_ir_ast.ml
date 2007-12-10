@@ -872,7 +872,7 @@ let parse_declaration senv pos loc vl =
  * Builtin-vars.
  *)
 let builtin_vars =
-   SymbolSet.of_list [star_sym; gt_sym; at_sym; plus_sym; hat_sym; lt_sym; amp_sym; nf_sym; wild_sym]
+   SymbolSet.of_list [star_sym; gt_sym; at_sym; plus_sym; hat_sym; lt_sym; amp_sym; nf_sym]
 
 (*
  * Get the scope for a variable.
