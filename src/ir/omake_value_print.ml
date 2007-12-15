@@ -175,7 +175,7 @@ let rec pp_print_value buf v =
     | ValOther (ValEnv _) ->
          fprintf buf "<env>"
     | ValDelayed { contents = ValValue v } ->
-         fprintf buf "<delayed:normal %a>" pp_print_value v
+         fprintf buf "<delayed:value %a>" pp_print_value v
     | ValDelayed { contents = ValStaticApply (key, v) } ->
          fprintf buf "<delayed:memo %a::%a>" pp_print_value key pp_print_symbol v
 

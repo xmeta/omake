@@ -941,11 +941,13 @@ and bool_of_value venv pos v =
        | [ValNone]
        | [ValWhite _] ->
             false
+       | [ValInt i] ->
+            i <> 0
+       | [ValFloat x] ->
+            x <> 0.0
        | [ValData s]
        | [ValString s] ->
             Omake_util.bool_of_string s
-       | [ValInt i] ->
-            i <> 0
        | [ValQuote vl] ->
             Omake_util.bool_of_string (string_of_quote venv pos None vl)
        | _ ->
