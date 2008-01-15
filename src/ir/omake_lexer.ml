@@ -10,16 +10,16 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; version 2
  * of the License.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
+ * 
  * Additional permission is given to link this library with the
  * with the Objective Caml runtime, and to redistribute the
  * linked executables.  See the file LICENSE.OMake for more details.
@@ -28,7 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Om_symbol
+open Lm_symbol
 
 open Omake_symbol
 
@@ -43,7 +43,7 @@ struct
    let pp_print_action = pp_print_symbol
 
    let hash = Hashtbl.hash
-   let compare = Om_symbol.compare
+   let compare = Lm_symbol.compare
 end
 
 module Lexer = Lm_lexer.MakeLexer (Lm_channel.LexerInput) (LexerAction);;

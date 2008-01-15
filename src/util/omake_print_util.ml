@@ -29,7 +29,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Om_symbol
+open Lm_symbol
 
 (*
  * Method name.

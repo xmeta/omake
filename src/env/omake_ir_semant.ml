@@ -34,7 +34,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Om_symbol
+open Lm_symbol
 open Lm_printf
 open Lm_location
 
@@ -132,7 +132,7 @@ let env_object_tail env =
  *)
 let new_return_id loc v =
    let _, v = var_of_var_info v in
-      loc, Om_symbol.to_string v
+      loc, Lm_symbol.to_string v
 
 let env_fun env id =
    { env_warnings      = env.env_warnings;

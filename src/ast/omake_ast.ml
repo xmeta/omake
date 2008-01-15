@@ -28,7 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Om_symbol
+open Lm_symbol
 open Lm_location
 
 type var = symbol

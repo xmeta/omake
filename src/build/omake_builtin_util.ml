@@ -30,7 +30,7 @@
  *)
 open Lm_printf
 
-open Om_symbol
+open Lm_symbol
 open Lm_location
 open Lm_string_set
 
@@ -45,7 +45,7 @@ open Omake_state
 open Omake_node_sig
 open Omake_value_type
 open Omake_build_type
-open Om_symbol
+open Omake_symbol
 
 module Pos = MakePos (struct let name = "Omake_builtin" end)
 open Pos
@@ -58,7 +58,7 @@ open Pos
  * We may want to move this into there.
  *)
 let parse_path unlinked venv pos loc s =
-   let vl = List.map Om_symbol.add (Lm_string_util.split "." s) in
+   let vl = List.map Lm_symbol.add (Lm_string_util.split "." s) in
       match Omake_ir_ast.parse_declaration venv pos loc vl with
          NameEmpty _ ->
             raise (OmakeException (pos, StringError "empty name"))

@@ -29,7 +29,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Om_symbol
+open Lm_symbol
 open Lm_location
 open Lm_string_set
 
@@ -637,7 +637,7 @@ and create_compose venv pgrp stdin stdout stderr divert_stderr pipe1 pipe2 =
          stderr
    in
    let () = set_close_on_exec stdout' in
-   let exp2 =
+   let exp2 = 
       try create_pipe_aux venv pgrp true stdin' stdout stderr pipe2 with
          exn ->
             close_fd stdin';
@@ -646,10 +646,10 @@ and create_compose venv pgrp stdin stdout stderr divert_stderr pipe1 pipe2 =
    in
    let () = close_fd stdin' in
    let () = clear_close_on_exec stdout' in
-   let exp1 =
+   let exp1 = 
       try
          create_pipe_aux venv pgrp true stdin stdout' stderr' pipe1
-      with
+      with 
          OmakeException _
        | Unix.Unix_error _
        | Failure _ as exn ->
@@ -715,7 +715,7 @@ and create_group venv pgrp stdin stdout stderr group =
    in
    let create_fun stdin stdout stderr pgrp =
       let exp =
-         try
+         try 
             create_pipe_aux venv pgrp false stdin stdout stderr pipe
          with
             ExitException (_, code) ->
@@ -971,7 +971,7 @@ let rec create_job_aux venv pipe stdin stdout stderr =
             0, venv, ValNone
     | PipeCompose _
       (*
-       * XXX: TODO (Aleksey 2007/06/26)
+       * XXX: TODO (Aleksey 2007/06/26) 
        * PipeCompose should be handled similar to PipeCond, where only the left hand
        * side should be forked, while the right hand side should be evaluated in the current process.
        *)

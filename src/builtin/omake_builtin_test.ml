@@ -44,7 +44,7 @@ open Omake_env
 open Omake_pos
 open Omake_node
 open Omake_value
-open Om_symbol
+open Omake_symbol
 open Omake_builtin
 open Omake_builtin_type
 open Omake_builtin_util

@@ -24,7 +24,7 @@
  */
 %{
 open Lm_printf
-open Om_symbol
+open Lm_symbol
 open Lm_location
 
 open Omake_pos
@@ -50,13 +50,13 @@ let define_flag (s, loc) =
  * Convert arguments to parameters.
  *)
 let key_of_id s =
-   Om_symbol.add (String.sub s 1 (String.length s - 1))
+   Lm_symbol.add (String.sub s 1 (String.length s - 1))
 
 let parse_id_param s loc =
    match s.[0] with
       '?' -> OptionalParam (key_of_id s, NullExp loc, loc)
     | '~' -> RequiredParam (key_of_id s, loc)
-    | _   -> NormalParam (Om_symbol.add s, loc)
+    | _   -> NormalParam (Lm_symbol.add s, loc)
 
 let param_of_arg arg =
    match arg with
@@ -113,7 +113,7 @@ let sequence_exp l loc =
  * Intern the method name.
  *)
 let method_id_intern idl =
-   List.map Om_symbol.add idl
+   List.map Lm_symbol.add idl
 
 (*
  * Get a string from a method name.
@@ -270,14 +270,14 @@ shell_line:
           { let id, loc1 = $1 in
             let body, arg = get_optcolon_text $3 $4 in
             let loc = union_loc loc1 $4 in
-               body, CommandExp (Om_symbol.add id, arg, [], loc)
+               body, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
         | TokKeyword opt_literal_colon TokEol
           { let id, loc1 = $1 in
             let body = $2 in
             let loc = union_loc loc1 $3 in
             let arg = NullExp loc in
-               body, CommandExp (Om_symbol.add id, arg, [], loc)
+               body, CommandExp (Lm_symbol.add id, arg, [], loc)
           }
 
           /* Keyword applications */
@@ -286,7 +286,7 @@ shell_line:
             let body = $6 in
             let loc = union_loc loc1 $7 in
 	    let args = args_of_parse_args $4 in
-            let e = ApplyExp (CommandApply, Om_symbol.add id, args, loc) in
+            let e = ApplyExp (CommandApply, Lm_symbol.add id, args, loc) in
                body, e
           }
 
@@ -296,14 +296,14 @@ shell_line:
             let loc = union_loc loc1 $11 in
             let name, _ = $3 in
             let v, _ = $7 in
-               $10, CatchExp (Om_symbol.add name, Om_symbol.add v, [], loc)
+               $10, CatchExp (Lm_symbol.add name, Lm_symbol.add v, [], loc)
           }
 
           /* Class expression is special */
         | TokClass opt_id_list TokEol
           { let _, loc1 = $1 in
             let loc = union_loc loc1 $3 in
-               NoBody, ClassExp (List.map Om_symbol.add $2, loc)
+               NoBody, ClassExp (List.map Lm_symbol.add $2, loc)
           }
 
           /* Variable definition with a body */
@@ -385,7 +385,7 @@ shell_line:
             let e =
                match id with
                   [id] ->
-                     ApplyExp (CommandApply, Om_symbol.add id, args, loc)
+                     ApplyExp (CommandApply, Lm_symbol.add id, args, loc)
                 | _ ->
                      MethodApplyExp (CommandApply, method_id_intern id, args, loc)
             in
@@ -402,7 +402,7 @@ shell_line:
             let e =
                match id with
                   [id] ->
-                     ApplyExp (CommandApply, Om_symbol.add id, [arg], loc)
+                     ApplyExp (CommandApply, Lm_symbol.add id, [arg], loc)
                 | _ ->
                      MethodApplyExp (CommandApply, method_id_intern id, [arg], loc)
             in
@@ -456,7 +456,7 @@ shell_line:
             let e =
                match super, name with
                   [super], [name] ->
-                     SuperApplyExp (CommandApply, Om_symbol.add super, Om_symbol.add name, args, loc)
+                     SuperApplyExp (CommandApply, Lm_symbol.add super, Lm_symbol.add name, args, loc)
                 | _, [_] ->
                      raise (OmakeException (loc_exp_pos loc, StringStringError ("illegal super class", method_id_string super)))
                 | _ ->
@@ -523,7 +523,7 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
             let loc = union_loc loc1 loc2 in
                match idl with
                   [id] ->
-                     ApplyExp (strategy, Om_symbol.add id, args, loc), loc
+                     ApplyExp (strategy, Lm_symbol.add id, args, loc), loc
                 | _ ->
                      MethodApplyExp (strategy, method_id_intern idl, args, loc), loc
           }
@@ -534,11 +534,11 @@ apply:    TokDollar opt_white TokLeftParen opt_white method_name opt_apply_args 
             let v, _ = $7 in
             let args = args_of_parse_args $8 in
             let loc = union_loc loc1 loc2 in
-               SuperApplyExp (strategy, Om_symbol.add super, Om_symbol.add v, args, loc), loc
+               SuperApplyExp (strategy, Lm_symbol.add super, Lm_symbol.add v, args, loc), loc
           }
         | TokVar
           { let strategy, id, loc = $1 in
-               ApplyExp (strategy, Om_symbol.add id, [], loc), loc
+               ApplyExp (strategy, Lm_symbol.add id, [], loc), loc
           }
         | TokBeginQuote rev_text TokEndQuote
           { let id1, loc1 = $1 in
@@ -843,7 +843,7 @@ source:
            let name, _ = $2 in
               match $3 with
                  Some (e, _) ->
-                    SymbolTable.add table (Om_symbol.add name) e
+                    SymbolTable.add table (Lm_symbol.add name) e
                | None ->
                     table
          }
@@ -865,7 +865,7 @@ source_nonapply:
            let name, _ = $2 in
               match $3 with
                  Some (e, _) ->
-                    SymbolTable.add table (Om_symbol.add name) e
+                    SymbolTable.add table (Lm_symbol.add name) e
                | None ->
                     table
          }

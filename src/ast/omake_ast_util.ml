@@ -28,7 +28,7 @@
  * @email{jyh@cs.caltech.edu}
  * @end[license]
  *)
-open Om_symbol
+open Lm_symbol
 open Lm_location
 
 open Omake_ast
@@ -98,13 +98,13 @@ let key_of_exp = function
  | ApplyExp (_, v, _, _)
  | CommandExp (v, _, _, _)
  | SuperApplyExp (_, v, _, _, _) ->
-      Om_symbol.to_string v
+      Lm_symbol.to_string v
  | VarDefExp (vl, _, _, _, _)
  | VarDefBodyExp (vl, _, _, _, _)
  | ObjectDefExp (vl, _, _, _)
  | FunDefExp (vl, _, _, _)
  | MethodApplyExp (_, vl, _, _) ->
-      Om_symbol.to_string (last vl)
+      Lm_symbol.to_string (last vl)
  | KeyExp _
  | KeyDefExp _
  | KeyDefBodyExp _ ->
@@ -285,7 +285,7 @@ let continue_commands =
 
 let continue_syms =
    List.fold_left (fun set (s1, s2) ->
-         SymbolTable.add set (Om_symbol.add s1) s2) SymbolTable.empty continue_commands
+         SymbolTable.add set (Lm_symbol.add s1) s2) SymbolTable.empty continue_commands
 
 let can_continue e =
    match e with

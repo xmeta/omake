@@ -34,7 +34,7 @@
  *)
 open Lm_hash
 open Lm_printf
-open Om_symbol
+open Lm_symbol
 open Lm_hash_sig
 open Lm_location
 open Lm_string_util

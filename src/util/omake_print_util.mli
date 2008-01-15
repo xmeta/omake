@@ -29,7 +29,7 @@
  * @end[license]
  *)
 open Lm_printf
-open Om_symbol
+open Lm_symbol
 
 val pp_print_method_name : out_channel -> symbol list -> unit
 

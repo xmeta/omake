@@ -36,7 +36,7 @@
  *)
 open Lm_printf
 
-open Om_symbol
+open Lm_symbol
 open Lm_location
 open Lm_string_set
 
@@ -51,7 +51,7 @@ open Omake_rule
 open Omake_lexer
 open Omake_value
 open Omake_state
-open Om_symbol
+open Omake_symbol
 open Omake_builtin
 open Omake_value_type
 open Omake_builtin_type

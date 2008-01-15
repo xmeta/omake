@@ -328,11 +328,11 @@ lm_fs_case_sensitive.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmoja
 lm_fs_case_sensitive.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_fs_case_sensitive.mli
 	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)unix$(slash)lm_fs_case_sensitive.mli lm_fs_case_sensitive.mli
 
-lm_symbol.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol.ml
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol.ml lm_symbol.ml
+lm_symbol.ml: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.ml
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.ml lm_symbol.ml
 
-lm_symbol.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol.mli
-	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol.mli lm_symbol.mli
+lm_symbol.mli: ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.mli
+	$(LN) ..$(slash)src$(slash)libmojave$(slash)..$(slash)libmojave-external$(slash)util$(slash)lm_symbol_hash.mli lm_symbol.mli
 
 CMOFILES_lm = lm_printf.cmo lm_debug.cmo lm_heap.cmo lm_list_util.cmo lm_array_util.cmo lm_set_sig.cmo lm_set.cmo lm_map_sig.cmo lm_map.cmo lm_int_set.cmo lm_termsize.cmo lm_terminfo.cmo lm_arg.cmo lm_index.cmo lm_thread_sig.cmo lm_thread_core.cmo lm_thread.cmo lm_string_util.cmo lm_string_set.cmo lm_hash_sig.cmo lm_hash.cmo lm_symbol.cmo lm_location.cmo lm_position.cmo lm_filename_util.cmo lm_uname.cmo lm_thread_pool.cmo lm_channel.cmo lm_lexer.cmo lm_parser.cmo lm_unix_util.cmo lm_glob.cmo lm_db.cmo lm_notify.cmo lm_fs_case_sensitive.cmo
 OCAML_LIB_FLAGS_lm =
@@ -351,7 +351,7 @@ SRC_libmojave = ..$(slash)src$(slash)libmojave
 ALLFILES_libmojave =  lm_printf.ml lm_debug.ml lm_heap.ml lm_list_util.ml lm_array_util.ml lm_set_sig.ml lm_set.ml lm_map_sig.ml lm_map.ml lm_int_set.ml lm_index.ml lm_thread_sig.ml lm_thread.ml lm_string_util.ml lm_string_set.ml lm_printf.mli lm_debug.mli lm_list_util.mli lm_array_util.mli lm_set.mli lm_map.mli lm_int_set.mli lm_index.mli lm_thread_core.mli lm_thread.mli lm_string_util.mli lm_string_set.mli lm_thread_pool.mli lm_arg.ml lm_hash_sig.ml lm_hash.ml lm_location.ml lm_position.ml lm_channel.ml lm_lexer.ml lm_parser.ml lm_glob.ml lm_db.ml lm_arg.mli lm_hash.mli lm_location.mli lm_position.mli lm_channel.mli lm_lexer.mli lm_parser.mli lm_glob.mli lm_db.mli lm_termsize.ml lm_termsize.mli lm_terminfo.ml lm_terminfo.mli lm_filename_util.ml lm_filename_util.mli lm_uname.ml lm_unix_util.ml lm_uname.mli lm_unix_util.mli lm_notify.ml lm_notify.mli lm_fs_case_sensitive.ml lm_fs_case_sensitive.mli lm_symbol.ml lm_symbol.mli lm_thread_pool.ml lm_thread_core.ml
 
 
-CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo om_symbol.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo
+CMOFILES_util = fmarshal.cmo ocaml_patch.cmo omake_util.cmo omake_wild.cmo omake_print_util.cmo omake_readline.cmo omake_printf.cmo omake_marshal.cmo omake_handle_table.cmo
 OCAML_LIB_FLAGS_util =
 
 util.cma: $(CMOFILES_util)
@@ -371,9 +371,6 @@ fmarshal.ml: $(SRC_util)$(slash)fmarshal.ml
 
 ocaml_patch.mli: $(SRC_util)$(slash)ocaml_patch.mli
 	$(LN) $(SRC_util)$(slash)ocaml_patch.mli ocaml_patch.mli
-
-om_symbol.ml: $(SRC_util)$(slash)om_symbol.ml
-	$(LN) $(SRC_util)$(slash)om_symbol.ml om_symbol.ml
 
 omake_handle_table.ml: $(SRC_util)$(slash)omake_handle_table.ml
 	$(LN) $(SRC_util)$(slash)omake_handle_table.ml omake_handle_table.ml
@@ -408,7 +405,7 @@ omake_wild.ml: $(SRC_util)$(slash)omake_wild.ml
 omake_wild.mli: $(SRC_util)$(slash)omake_wild.mli
 	$(LN) $(SRC_util)$(slash)omake_wild.mli omake_wild.mli
 
-ALLFILES_util = fmarshal.ml ocaml_patch.mli om_symbol.ml omake_handle_table.ml omake_marshal.ml omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
+ALLFILES_util = fmarshal.ml ocaml_patch.mli omake_handle_table.ml omake_marshal.ml omake_print_util.ml omake_print_util.mli omake_printf.ml omake_readline.ml omake_readline.mli omake_util.ml omake_util.mli omake_wild.ml omake_wild.mli ocaml_patch.ml
 
 
 CMOFILES_omake_gen_magic = omake_gen_magic.cmo

@@ -29,7 +29,7 @@
  * @end[license]
  *)
 open Lm_location
-open Om_symbol
+open Lm_symbol
 open Lm_debug
 open Lm_printf
 

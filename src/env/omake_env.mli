@@ -34,7 +34,7 @@ open Lm_printf
 open Lm_string_util
 open Lm_string_set
 open Lm_location
-open Om_symbol
+open Lm_symbol
 
 open Omake_ir
 open Omake_pos

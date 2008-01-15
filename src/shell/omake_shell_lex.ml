@@ -49,7 +49,7 @@ open Pos;;
 (*
  * Locations.
  *)
-let shell_sym = Om_symbol.add "shell"
+let shell_sym = Lm_symbol.add "shell"
 
 let syntax_error s loc =
    raise (OmakeException (loc_exp_pos loc, SyntaxError s))
@@ -260,7 +260,7 @@ let scan_define arg =
       ArgString s :: args ->
          (try
              let i = String.index s '=' in
-             let v = Om_symbol.add (String.sub s 0 i) in
+             let v = Lm_symbol.add (String.sub s 0 i) in
              let i = succ i in
              let len = String.length s in
              let args =

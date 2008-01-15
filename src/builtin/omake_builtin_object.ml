@@ -30,7 +30,7 @@
  *)
 open Lm_printf
 
-open Om_symbol
+open Lm_symbol
 open Lm_location
 open Lm_string_set
 
@@ -101,7 +101,7 @@ let object_mem venv pos loc args =
          [arg; v] ->
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
-            let v = Om_symbol.add s in
+            let v = Lm_symbol.add s in
                val_of_bool (venv_defined_field venv obj v)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -112,7 +112,7 @@ let object_find venv pos loc args =
          [arg; v] ->
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
-            let v = Om_symbol.add s in
+            let v = Lm_symbol.add s in
                venv_find_field venv obj pos v
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -126,7 +126,7 @@ let object_add venv pos loc args kargs =
          [arg; v; x], [] ->
             let obj = eval_object venv pos arg in
             let s = string_of_value venv pos v in
-            let v = Om_symbol.add s in
+            let v = Lm_symbol.add s in
             let venv, obj = venv_add_field venv obj pos v x in
                venv, ValObject obj
        | _ ->
@@ -163,7 +163,7 @@ let object_map venv pos loc args kargs =
    (* If the body exports the environment, preserve it across calls *)
    let venv, obj =
       venv_object_fold_internal (fun (venv, obj) v x ->
-            let venv, x = f venv pos loc [ValString (Om_symbol.to_string v); x] [] in
+            let venv, x = f venv pos loc [ValString (Lm_symbol.to_string v); x] [] in
             let obj = venv_add_field_internal obj v x in
                venv, obj) (venv, obj) obj
    in
@@ -182,7 +182,7 @@ let object_instanceof venv pos loc args =
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
    in
    let obj = eval_object venv pos obj in
-   let v = Om_symbol.add (string_of_value venv pos v) in
+   let v = Lm_symbol.add (string_of_value venv pos v) in
       if venv_instanceof obj v then
          val_true
       else

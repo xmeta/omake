@@ -39,7 +39,7 @@ open Lm_printf
 
 open Lm_heap
 open Lm_debug
-open Om_symbol
+open Lm_symbol
 open Lm_notify
 open Lm_location
 open Lm_string_util
@@ -55,7 +55,7 @@ open Omake_exec
 open Omake_rule
 open Omake_eval
 open Omake_state
-open Om_symbol
+open Omake_symbol
 open Omake_command
 open Omake_node_sig
 open Omake_exec_type
