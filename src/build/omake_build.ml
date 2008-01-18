@@ -1640,28 +1640,22 @@ let save_and_finish_rule_success env command =
    let cache = env.env_cache in
    let commands, commands_digest = command_lines command in
 
-   (* Collect the effects that are not phony *)
+   (* Collect the effects that are not phony, check that they were created *)
    let effects =
       NodeSet.fold (fun effects effect ->
             let digest = Omake_cache.force_stat cache effect in
-               if Node.is_phony effect || digest = None then
+               if Node.is_phony effect then
                   effects
-               else
+               else if digest = None then begin
+                  abort_command env command exn_error_code;
+                  raise (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build its target", target)))
+               end else
                   NodeSet.add effects effect) NodeSet.empty effects
    in
 
-   (* Re-stat the locks *)
-   let () =
+      (* Re-stat the locks *)
       NodeSet.iter (fun lock ->
-            ignore (Omake_cache.force_stat cache lock)) locks
-   in
-
-   (* Check that the target actually got built *)
-   let digest = Omake_cache.stat cache target in
-      if not (Node.is_phony target) && digest = None then begin
-         abort_command env command exn_error_code;
-         raise (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build target", target)));
-      end;
+            ignore (Omake_cache.force_stat cache lock)) locks;
 
       (* Add a memo for a specific target *)
       if debug debug_rule then
