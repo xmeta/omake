@@ -1871,23 +1871,10 @@ let save_aux env =
    let () = venv_save_static_values env.env_venv in
 
    (* Save the .omakedb *)
-   let options = env_options env in
    let cache = env.env_cache in
 
-   (*
-    * BUG: On Win32, when polling is enabled,
-    * rename will fail if the dst file exists.
-    * This is bogus, but let's hope that we don't
-    * get interrupted while writing the .omakedb
-    *)
-   let db_win32_bug = Sys.os_type = "Win32" && opt_poll options in
-   let db_tmp =
-      if db_win32_bug then
-         db_name
-      else
-         (* We want the name to be fairly unique in case locking had failed us. *)
-         sprintf ".#%s.%s.%i" db_name (Unix.gethostname ()) pid
-   in
+   (* We want the name to be fairly unique in case locking had failed us. *)
+   let db_tmp = sprintf ".#%s.%s.%i" db_name (Unix.gethostname ()) pid in
 
    (* Marshal the state to the output file *)
    let outx = Pervasives.open_out_bin db_tmp in
@@ -1900,20 +1887,17 @@ let save_aux env =
          Omake_cache.add cache env_fun env_target targets includes None (MemoSuccess NodeTable.empty);
          Omake_cache.to_channel outx cache;
          close_out outx;
-         if not db_win32_bug then
-            Unix.rename db_tmp db_name
+         Unix.rename db_tmp db_name
       with
          Unix.Unix_error (errno, name, arg) ->
             eprintf "*** omake: failure during saving: %s: %s(%s)@." (Unix.error_message errno) name arg;
             close_out outx;
-            if not db_win32_bug then
-               unlink_file db_tmp
+            unlink_file db_tmp
        | Sys_error _
        | Failure _ as exn ->
             eprintf "*** omake: failure during saving: %s@." (Printexc.to_string exn);
             close_out outx;
-            if not db_win32_bug then
-               unlink_file db_tmp
+            unlink_file db_tmp
 
 (*
  * Save to the .omakedb.
