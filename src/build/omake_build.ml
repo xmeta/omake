@@ -2425,13 +2425,13 @@ let notify_wait_simple venv cwd exec cache =
       else
          fun node -> ()
    in
-   let rec loop () =
+   let rec loop changed =
       let event = Exec.next_event exec in
-      let changed = process_changes (NodeSet.mem files) print_msg venv cwd cache event in
+      let changed = changed || process_changes (NodeSet.mem files) print_msg venv cwd cache event in
          if (not changed || Exec.pending exec) then
-            loop ()
+            loop changed
    in
-      loop ()
+      loop false
 
 let print_restart options reason =
    if opt_print_status options then
