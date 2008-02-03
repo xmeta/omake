@@ -103,7 +103,6 @@ val eval_value : venv -> pos -> value -> value
  * Evaluate ValBody expressions.
  *)
 val eval_body_value : venv -> pos -> value -> value
-val eval_body_value_env : venv -> pos -> value -> venv * value
 val eval_body_exp   : venv -> pos -> value -> value -> venv * value
 
 (*

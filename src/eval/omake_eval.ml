@@ -1183,43 +1183,6 @@ and eval_body_value venv pos v =
     | ValDelayed _ ->
          raise (Invalid_argument "eval_body_value")
 
-(* XXX: JYH: this is temporary, there is no need for it in 0.9.9 *)
-and eval_body_value_env venv pos v =
-   match eval_value venv pos v with
-      ValSequence sl ->
-         venv, ValSequence (List.map (eval_body_value venv pos) sl)
-    | ValArray sl ->
-         venv, ValArray (List.map (eval_body_value venv pos) sl)
-    | ValBody (body, export) ->
-         eval_sequence_exp venv pos body
-    | ValNone
-    | ValInt _
-    | ValFloat _
-    | ValData _
-    | ValWhite _
-    | ValString _
-    | ValQuote _
-    | ValQuoteString _
-    | ValDir _
-    | ValNode _
-    | ValFun _
-    | ValFunCurry _
-    | ValPrim _
-    | ValPrimCurry _
-    | ValRules _
-    | ValMap _
-    | ValObject _
-    | ValChannel _
-    | ValClass _
-    | ValCases _
-    | ValVar _
-    | ValOther _ as result ->
-         venv, result
-    | ValStringExp _
-    | ValMaybeApply _
-    | ValDelayed _ ->
-         raise (Invalid_argument "eval_body_value_env")
-
 and eval_body_exp venv pos x v =
    match eval_value venv pos v with
       ValSequence sl ->

@@ -633,7 +633,7 @@ let try_fun venv pos loc args kargs =
    in
    let e =
       try
-         let result = eval_body_value_env venv pos e in
+         let result = eval_body_exp venv pos ValNone e in
             TrySuccessExp result
       with
          OmakeException (pos, exp) as exn ->
