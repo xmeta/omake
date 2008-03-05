@@ -458,7 +458,7 @@ let builtin_grep venv pos loc args =
  *         stdout = $(fopen script.out, w)
  *         scan(script.in)
  *            ...
- *         close(stdout)
+ *         close($(stdout))
  * \end{verbatim}
  * \end{doc}
  *)
@@ -706,7 +706,7 @@ let scan venv pos loc args kargs =
  *         stdout = $(fopen file.out, w)
  *         awk(Awk.in)
  *            ...
- *         close(stdout)
+ *         close($(stdout))
  * \end{verbatim}
  *
  * Options.
@@ -944,7 +944,7 @@ let awk venv pos loc args kargs =
  *        fsubst(Subst.in)
  *        case $"\<\([[:alnum:]]+\)\." g
  *           value $(capitalize $1).
- *        close(stdout)
+ *        close($(stdout))
  * \end{verbatim}
  * \end{doc}
  *)
