@@ -348,13 +348,11 @@ $(base).cmx $(base)$(EXT_OBJ):$(esc)
     $(cmideps)"""
         export text
     if $(cmxdeps)
-        private.odeps = $(string-escaped $(addsuffix $(EXT_OBJ), $(removesuffix $(cmxdeps))))
         if $(not $(text))
             text = $"""$(base).cmx $(base)$(EXT_OBJ):"""
             export
         text += $"""$(esc)
-    $(string-escaped $(cmxdeps))$(esc)
-    $(odeps)"""
+    $(string-escaped $(cmxdeps))"""
         export text
     # eprintln($(text))
     println($(text))
