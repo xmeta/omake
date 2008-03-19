@@ -351,7 +351,7 @@ public.DynamicCLibrary(name, files) =
     private.TARGETS = $(LIB)
     if $(CDLL_IMPLIES_STATIC)
         TARGETS[] += $(file $(name)$(EXT_LIB))
-        export
+        export TARGETS
     
     $(TARGETS): $(OFILES) $(LFILES)
         $(CC) $(CFLAGS) $(LDOUT)$(LIB) $(OFILES) $(LFILES) $(LDFLAGS) $(LDFLAGS_DLL)
@@ -414,7 +414,7 @@ public.DynamicCLibraryCopy(tag, lib, name) =
         value $(StaticCLibraryCopy $(tag), $(lib), $(name))
     if $(CDLL_IMPLIES_STATIC)
         TARGETS[] += $(StaticCLibraryCopy $(tag), $(lib), $(name))
-        export
+        export TARGETS
     return $(TARGETS)
 
 #
