@@ -1648,7 +1648,7 @@ let save_and_finish_rule_success env command =
                   effects
                else if digest = None then begin
                   abort_command env command exn_error_code;
-                  raise (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build its target", target)))
+                  raise (OmakeException (loc_exp_pos loc, StringNodeError ("rule failed to build its target", effect)))
                end else
                   NodeSet.add effects effect) NodeSet.empty effects
    in
