@@ -1,12 +1,12 @@
-   
+     
   OMake manual:  
                                      
                The OMake user guide and reference manual
                *****************************************
                   Jason Hickey, Aleksey Nogin, et. al.
                   ====================================
-                          16^thNovember, 2007
-                          ===================
+                            18^thMarch, 2008
+                            ================
   
    All the documentation on a single page (23)
   OMake table of contents 
@@ -3066,12 +3066,12 @@ here.
    - function
  
      
-      - Constructor: '$(fun <params>, <body>)' 9.5.1. 
+      - Constructor: '$(fun <params> => <body>)' 9.5.1. 
       - Object: 'Fun' 12.1.9. 
       - Functions can be defined in several ways. 
         
          - As an anonymous function, 
-         <<    $(fun i, j, $(add $i, $j))
+         <<    $(fun i, j => $(add $i, $j))
          >>
        
          - As a named function, 
@@ -4016,7 +4016,7 @@ evaluated once for each element of the array, where the variable is
 bound to the element. Let's define a function to add 1 to each element
 of an array of numbers.
 <<   osh> add1(l) =
-              foreach(i, $l):
+              foreach(i => $l):
                   add($i, 1)
      osh> add1(7 21 75)
      - : 8 22 76 : Array
@@ -4030,7 +4030,7 @@ directory.
 <<   TMP = $(dir tmp)
   
      my-special-rule(files) =
-        foreach(name, $(files))
+        foreach(name => $(files))
            $(TMP)/$(name): $(name)
               process $< > $@
 >>
@@ -4211,7 +4211,7 @@ iteration of a loop to the next.
 <<   # Ok, let's try to add up the elements of the array
      osh>sum(l) =
              total = 0
-             foreach(i, $l)
+             foreach(i => $l)
                  total = $(add $(total), $i)
              value $(total)
      osh>sum(1 2 3)
@@ -4220,7 +4220,7 @@ iteration of a loop to the next.
      # Oops, that didn't work!
      osh>sum(l) =
              total = 0
-             foreach(i, $l)
+             foreach(i => $l)
                  total = $(add $(total), $i)
                  export
              value $(total)
@@ -6303,7 +6303,7 @@ returns a 'Float' object.
 ==========
   
   The 'fun' form introduces anonymous functions.
-  '$(fun <v1>, ..., <vn>, <body>)'
+  '$(fun <v1>, ..., <vn> => <body>)'
   The last argument is the body of the function. The other arguments are
 the parameter names.
   The three following definitions are equivalent.
@@ -6399,25 +6399,25 @@ lazily. The following two definitions are equivalent.
   The 'foreach' function maps a function over a sequence.
 <<    $(foreach <fun>, <args>)
   
-      foreach(<var>, <args>)
+      foreach(<var> => <args>)
          <body>
 >>
   
   For example, the following program defines the variable 'X' as an
 array 'a.c b.c c.c'.
 <<    X =
-         foreach(x, a b c)
+         foreach(x => a b c)
             value $(x).c
   
       # Equivalent expression
-      X = $(foreach $(fun x, $(x).c), a b c)
+      X = $(foreach $(fun x => $(x).c), a b c)
 >>
   
   There is also an abbreviated syntax.
   The 'export' form can also be used in a 'foreach' body. The final
 value of 'X' is 'a.c b.c c.c'.
 <<    X =
-      foreach(x, a b c)
+      foreach(x => a b c)
          X += $(x).c
          export
 >>
@@ -8348,7 +8348,7 @@ meaning of 'stdout' outside the 'calc' function.
           stdout = $(fopen script.out, w)
           scan(script.in)
              ...
-          close(stdout)
+          close($(stdout))
 >>
   
 
@@ -8426,7 +8426,7 @@ meaning of 'stdout' outside the 'filter' function.
           stdout = $(fopen file.out, w)
           awk(Awk.in)
              ...
-          close(stdout)
+          close($(stdout))
 >>
   
   Options. 
@@ -8472,7 +8472,7 @@ expression 'word.' with its capitalized form.
          fsubst(Subst.in)
          case $"\<\([[:alnum:]]+\)\." g
             value $(capitalize $1).
-         close(stdout)
+         close($(stdout))
 >>
   
 
@@ -9347,14 +9347,14 @@ following objects are defined.
    constructed from the values returned by the function. 
    - 'o.object-foreach': the 'object-foreach' form is equivalent to
    'object-map', but with altered syntax.
-   <<   o.object-foreach(<var1>, <var2>)
+   <<   o.object-foreach(<var1>, <var2>) =>
            <body>
         >>
  
  For example, the following function prints all the fields of an object
    'o'.
    <<   PrintObject(o) =
-           o.object-foreach(v, x)
+           o.object-foreach(v, x) =>
               println($(v) = $(x))
         >>
  
@@ -9362,7 +9362,7 @@ following objects are defined.
    function collects just the field names of an object.
    <<   FieldNames(o) =
            names[] =
-           o.object-foreach(v, x)
+           o.object-foreach(v, x) =>
               names[] += $(v)
               export
            return $(names)
@@ -9396,22 +9396,21 @@ numbers, strings, files, directories, and arrays of simple values.
    values returned by the function. 
    - 'o.foreach': the 'foreach' form is equivalent to 'map', but with
    altered syntax.
-   <<   o.foreach(<var1>, <var2>)
+   <<   o.foreach(<var1>, <var2>) =>
            <body>
         >>
  
- For example, the following function prints all the fields of an object
-   'o'.
-   <<   PrintObject(o) =
-           o.foreach(v, x)
+ For example, the following function prints all the fields of a map 'o'.
+   <<   PrintMap(o) =
+           o.foreach(v, x) =>
               println($(v) = $(x))
         >>
  
  The 'export' form is valid in a 'foreach' body. The following function
-   collects just the field names of the map.
+   reimplements the 'key' method.
    <<   FieldNames(o) =
            names =
-           o.foreach(v, x)
+           o.foreach(v, x) =>
               names += $(v)
               export
            return $(names)
@@ -9468,14 +9467,14 @@ sequential elements. It provides the following methods.
    constructed from the values returned by the function. 
    - 's.foreach': the 'foreach' form is equivalent to 'map', but with
    altered syntax.
-   <<   s.foreach(<var>)
+   <<   s.foreach(<var>) =>
            <body>
         >>
  
  For example, the following function prints all the elements of the
    sequence.
    <<   PrintSequence(s) =
-           s.foreach(x)
+           s.foreach(x) =>
               println(Elem = $(x))
         >>
  
@@ -9483,7 +9482,7 @@ sequential elements. It provides the following methods.
    counts the number of zeros in the sequence.
    <<   Zeros(s) =
            count = $(int 0)
-           s.foreach(v)
+           s.foreach(v) =>
               if $(equal $(v), 0)
                  count = $(add $(count), 1)
                  export
@@ -12203,7 +12202,7 @@ colon ':' to indicate that the application has a body.
       # the element value.
       #
       # The colon is required only for interactive sessions.
-      osh> foreach(x, 1 2 3):
+      osh> foreach(x => 1 2 3):
               add($x, 1)
       - : 2 3 4
 >>
@@ -13799,7 +13798,7 @@ C.2  Version
 
   
   Version: 0.9.8.5+ (working towards version 0.9.8.6 and/or 0.9.9+) of
-16^thNovember, 2007.
+18^thMarch, 2008.
   
 
 C.3  License and Copyright

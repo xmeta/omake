@@ -100,7 +100,7 @@ Node: Subsection 9-5-1,	Next: Subsection 9-5-2,	Prev: Section 9-5,	Up: Section 9
 ===========
 
   The 'fun' form introduces anonymous functions.
-  '$(fun <v1>, ..., <vn>, <body>)'
+  '$(fun <v1>, ..., <vn> => <body>)'
   The last argument is the body of the function. The other arguments are
 the parameter names.
   The three following definitions are equivalent.
@@ -212,25 +212,25 @@ Node: Subsection 9-6-1,	Next: Section 9-7,	Prev: Section 9-6,	Up: Section 9-6
   The 'foreach' function maps a function over a sequence.
 <<    $(foreach <fun>, <args>)
   
-      foreach(<var>, <args>)
+      foreach(<var> => <args>)
          <body>
 >>
   
   For example, the following program defines the variable 'X' as an
 array 'a.c b.c c.c'.
 <<    X =
-         foreach(x, a b c)
+         foreach(x => a b c)
             value $(x).c
   
       # Equivalent expression
-      X = $(foreach $(fun x, $(x).c), a b c)
+      X = $(foreach $(fun x => $(x).c), a b c)
 >>
   
   There is also an abbreviated syntax.
   The 'export' form can also be used in a 'foreach' body. The final
 value of 'X' is 'a.c b.c c.c'.
 <<    X =
-      foreach(x, a b c)
+      foreach(x => a b c)
          X += $(x).c
          export
 >>

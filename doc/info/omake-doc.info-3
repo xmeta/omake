@@ -583,7 +583,7 @@ evaluated once for each element of the array, where the variable is
 bound to the element. Let's define a function to add 1 to each element
 of an array of numbers.
 <<   osh> add1(l) =
-              foreach(i, $l):
+              foreach(i => $l):
                   add($i, 1)
      osh> add1(7 21 75)
      - : 8 22 76 : Array
@@ -597,7 +597,7 @@ directory.
 <<   TMP = $(dir tmp)
   
      my-special-rule(files) =
-        foreach(name, $(files))
+        foreach(name => $(files))
            $(TMP)/$(name): $(name)
               process $< > $@
 >>
@@ -788,7 +788,7 @@ iteration of a loop to the next.
 <<   # Ok, let's try to add up the elements of the array
      osh>sum(l) =
              total = 0
-             foreach(i, $l)
+             foreach(i => $l)
                  total = $(add $(total), $i)
              value $(total)
      osh>sum(1 2 3)
@@ -797,7 +797,7 @@ iteration of a loop to the next.
      # Oops, that didn't work!
      osh>sum(l) =
              total = 0
-             foreach(i, $l)
+             foreach(i => $l)
                  total = $(add $(total), $i)
                  export
              value $(total)

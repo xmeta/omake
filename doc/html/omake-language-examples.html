@@ -159,7 +159,7 @@ form with a body is most useful. In this form, the function takes two arguments 
 second argument is an array, and the first is a variable. The body is evaluated once for each
 element of the array, where the variable is bound to the element. Let&#X2019;s define a function to add 1
 to each element of an array of numbers.</P><PRE CLASS="verbatim">   osh&gt; add1(l) =
-            foreach(i, $l):
+            foreach(i =&gt; $l):
                 add($i, 1)
    osh&gt; add1(7 21 75)
    - : 8 22 76 : Array
@@ -168,7 +168,7 @@ not special, you can define them anywhere a statement is expected. Say we want t
 that describes how to process each file, placing the result in the <CODE>tmp/</CODE> directory.</P><PRE CLASS="verbatim">   TMP = $(dir tmp)
 
    my-special-rule(files) =
-      foreach(name, $(files))
+      foreach(name =&gt; $(files))
          $(TMP)/$(name): $(name)
             process $&lt; &gt; $@
 </PRE><P>Later, in some other part of the project, we may decide that we want to use this function to process some files.</P><PRE CLASS="verbatim">   # These are the files to process in src/lib
@@ -284,7 +284,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
 </PRE><P>Exports are especially useful in loop to export values from one iteration of a loop to the next.</P><PRE CLASS="verbatim">   # Ok, let's try to add up the elements of the array
    osh&gt;sum(l) =
            total = 0
-           foreach(i, $l)
+           foreach(i =&gt; $l)
                total = $(add $(total), $i)
            value $(total)
    osh&gt;sum(1 2 3)
@@ -293,7 +293,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
    # Oops, that didn't work!
    osh&gt;sum(l) =
            total = 0
-           foreach(i, $l)
+           foreach(i =&gt; $l)
                total = $(add $(total), $i)
                export
            value $(total)

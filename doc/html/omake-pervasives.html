@@ -44,16 +44,16 @@ should take two arguments; the first is a field name, the second is the
 value of that field. The result is a new object constructed from the
 values returned by the function.
 </LI><LI CLASS="li-itemize"><CODE>o.object-foreach</CODE>: the <CODE>object-foreach</CODE> form is equivalent to <CODE>object-map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;)
+but with altered syntax.<PRE CLASS="verbatim">   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
       &lt;body&gt;
    </PRE><P>For example, the following function prints all the fields of an
 object <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintObject(o) =
-      o.object-foreach(v, x)
+      o.object-foreach(v, x) =&gt;
          println($(v) = $(x))
    </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>object-foreach</CODE> body. The following
 function collects just the field names of an object.</P><PRE CLASS="verbatim">   FieldNames(o) =
       names[] =
-      o.object-foreach(v, x)
+      o.object-foreach(v, x) =&gt;
          names[] += $(v)
          export
       return $(names)
@@ -74,16 +74,16 @@ should take two arguments; the first is a field name, the second is the
 value of that field. The result is a new object constructed from the
 values returned by the function.
 </LI><LI CLASS="li-itemize"><CODE>o.foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   o.foreach(&lt;var1&gt;, &lt;var2&gt;)
+but with altered syntax.<PRE CLASS="verbatim">   o.foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
       &lt;body&gt;
-   </PRE><P>For example, the following function prints all the fields of an
-object <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintObject(o) =
-      o.foreach(v, x)
+   </PRE><P>For example, the following function prints all the fields of a
+map <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintMap(o) =
+      o.foreach(v, x) =&gt;
          println($(v) = $(x))
    </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
-function collects just the field names of the map.</P><PRE CLASS="verbatim">   FieldNames(o) =
+function reimplements the <CODE>key</CODE> method.</P><PRE CLASS="verbatim">   FieldNames(o) =
       names =
-      o.foreach(v, x)
+      o.foreach(v, x) =&gt;
          names += $(v)
          export
       return $(names)
@@ -108,15 +108,15 @@ will complete without failure.
 The function should take one argument. The result is a new sequence
 constructed from the values returned by the function.
 </LI><LI CLASS="li-itemize"><CODE>s.foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   s.foreach(&lt;var&gt;)
+but with altered syntax.<PRE CLASS="verbatim">   s.foreach(&lt;var&gt;) =&gt;
       &lt;body&gt;
    </PRE><P>For example, the following function prints all the elements of the sequence.</P><PRE CLASS="verbatim">   PrintSequence(s) =
-      s.foreach(x)
+      s.foreach(x) =&gt;
          println(Elem = $(x))
    </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
 function counts the number of zeros in the sequence.</P><PRE CLASS="verbatim">   Zeros(s) =
       count = $(int 0)
-      s.foreach(v)
+      s.foreach(v) =&gt;
          if $(equal $(v), 0)
             count = $(add $(count), 1)
             export

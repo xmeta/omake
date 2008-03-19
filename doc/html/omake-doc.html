@@ -43,7 +43,7 @@ CODE{padding-left:0.2ex; padding-right:0.2ex; background:#eef7ff;}
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
 <!--ENDHTML-->
-<!--CUT DEF chapter 1 --><TABLE CLASS="title"><TR><TD><H1 CLASS="titlemain">The OMake user guide and reference manual</H1><H3 CLASS="titlerest">Jason Hickey, Aleksey Nogin, <EM>et. al.</EM></H3><H3 CLASS="titlerest">16<SUP>th</SUP>November,&#XA0;2007</H3></TD></TR>
+<!--CUT DEF chapter 1 --><TABLE CLASS="title"><TR><TD><H1 CLASS="titlemain">The OMake user guide and reference manual</H1><H3 CLASS="titlerest">Jason Hickey, Aleksey Nogin, <EM>et. al.</EM></H3><H3 CLASS="titlerest">18<SUP>th</SUP>March,&#XA0;2008</H3></TD></TR>
 </TABLE><P>
 <A HREF="omake-doc.html">All the documentation on a single page</A></P><P><B>OMake table of contents</B>
 </P><!--TOC chapter Contents-->
@@ -2289,12 +2289,12 @@ Constructor: <CODE>$(fopen &lt;filename&gt;, &lt;mode&gt;)</CODE>&#XA0;<A HREF="
 </LI><LI CLASS="li-itemize">Objects: <CODE>InChannel</CODE>&#XA0;<A HREF="#object:InChannel">12.1.16</A>, <CODE>OutChannel</CODE>&#XA0;<A HREF="#object:OutChannel">12.1.17</A>.
 </LI><LI CLASS="li-itemize">Channels are used for buffered input/output.
 </LI></UL></LI><LI CLASS="li-itemize">function<UL CLASS="itemize"><LI CLASS="li-itemize">
-Constructor: <CODE>$(fun &lt;params&gt;, &lt;body&gt;)</CODE>&#XA0;<A HREF="#function:fun">9.5.1</A>.
+Constructor: <CODE>$(fun &lt;params&gt; =&gt; &lt;body&gt;)</CODE>&#XA0;<A HREF="#function:fun">9.5.1</A>.
 </LI><LI CLASS="li-itemize">Object: <CODE>Fun</CODE>&#XA0;<A HREF="#object:Fun">12.1.9</A>.
 </LI><LI CLASS="li-itemize">Functions can be defined in several ways.
 <UL CLASS="itemize"><LI CLASS="li-itemize">
 As an anonymous function,
-<PRE CLASS="verbatim">    $(fun i, j, $(add $i, $j))
+<PRE CLASS="verbatim">    $(fun i, j =&gt; $(add $i, $j))
 </PRE></LI><LI CLASS="li-itemize">As a named function,
 <PRE CLASS="verbatim">    f(i, j) =
         add($i, $j)
@@ -2928,7 +2928,7 @@ form with a body is most useful. In this form, the function takes two arguments 
 second argument is an array, and the first is a variable. The body is evaluated once for each
 element of the array, where the variable is bound to the element. Let&#X2019;s define a function to add 1
 to each element of an array of numbers.</P><PRE CLASS="verbatim">   osh&gt; add1(l) =
-            foreach(i, $l):
+            foreach(i =&gt; $l):
                 add($i, 1)
    osh&gt; add1(7 21 75)
    - : 8 22 76 : Array
@@ -2937,7 +2937,7 @@ not special, you can define them anywhere a statement is expected. Say we want t
 that describes how to process each file, placing the result in the <CODE>tmp/</CODE> directory.</P><PRE CLASS="verbatim">   TMP = $(dir tmp)
 
    my-special-rule(files) =
-      foreach(name, $(files))
+      foreach(name =&gt; $(files))
          $(TMP)/$(name): $(name)
             process $&lt; &gt; $@
 </PRE><P>Later, in some other part of the project, we may decide that we want to use this function to process some files.</P><PRE CLASS="verbatim">   # These are the files to process in src/lib
@@ -3056,7 +3056,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
 </PRE><P>Exports are especially useful in loop to export values from one iteration of a loop to the next.</P><PRE CLASS="verbatim">   # Ok, let's try to add up the elements of the array
    osh&gt;sum(l) =
            total = 0
-           foreach(i, $l)
+           foreach(i =&gt; $l)
                total = $(add $(total), $i)
            value $(total)
    osh&gt;sum(1 2 3)
@@ -3065,7 +3065,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
    # Oops, that didn't work!
    osh&gt;sum(l) =
            total = 0
-           foreach(i, $l)
+           foreach(i =&gt; $l)
                total = $(add $(total), $i)
                export
            value $(total)
@@ -4293,7 +4293,7 @@ It returns a <CODE>Float</CODE> object.</P><P><CODE>$(float 3.1415926)</CODE>.
 </LI><LI CLASS="li-itemize"><CODE>$(ugt &lt;numbers&gt;)</CODE>: unsigned greater than.
 </LI></UL><!--TOC section First-class functions-->
 <H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc173">9.5</A>&#XA0;&#XA0;First-class functions</H2><!--SEC END --><!--TOC subsection fun-->
-<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc174">9.5.1</A>&#XA0;&#XA0;fun</H3><!--SEC END --><P><A NAME="fun:fun"></A><A NAME="function:fun"></A><A NAME="@default181"></A><A NAME="@fun100"></A></P><P>The <CODE>fun</CODE> form introduces anonymous functions.</P><P><CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt;, &lt;body&gt;)</CODE></P><P>The last argument is the body of the function.
+<H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc174">9.5.1</A>&#XA0;&#XA0;fun</H3><!--SEC END --><P><A NAME="fun:fun"></A><A NAME="function:fun"></A><A NAME="@default181"></A><A NAME="@fun100"></A></P><P>The <CODE>fun</CODE> form introduces anonymous functions.</P><P><CODE>$(fun &lt;v1&gt;, ..., &lt;vn&gt; =&gt; &lt;body&gt;)</CODE></P><P>The last argument is the body of the function.
 The other arguments are the parameter names.</P><P>The three following definitions are equivalent.</P><PRE CLASS="verbatim">    F(X, Y) =
        return($(addsuffix $(Y), $(X)))
 
@@ -4345,18 +4345,18 @@ lazily. The following two definitions are equivalent.</P><PRE CLASS="verbatim"> 
 <H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc178">9.6</A>&#XA0;&#XA0;Iteration and mapping</H2><!--SEC END --><!--TOC subsection foreach-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc179">9.6.1</A>&#XA0;&#XA0;foreach</H3><!--SEC END --><P><A NAME="fun:foreach"></A><A NAME="function:foreach"></A><A NAME="@default186"></A><A NAME="@fun105"></A></P><P>The <CODE>foreach</CODE> function maps a function over a sequence.</P><PRE CLASS="verbatim">    $(foreach &lt;fun&gt;, &lt;args&gt;)
 
-    foreach(&lt;var&gt;, &lt;args&gt;)
+    foreach(&lt;var&gt; =&gt; &lt;args&gt;)
        &lt;body&gt;
 </PRE><P>For example, the following program defines the variable <CODE>X</CODE>
 as an array <CODE>a.c b.c c.c</CODE>.</P><PRE CLASS="verbatim">    X =
-       foreach(x, a b c)
+       foreach(x =&gt; a b c)
           value $(x).c
 
     # Equivalent expression
-    X = $(foreach $(fun x, $(x).c), a b c)
+    X = $(foreach $(fun x =&gt; $(x).c), a b c)
 </PRE><P>There is also an abbreviated syntax.</P><P>The <CODE>export</CODE> form can also be used in a <CODE>foreach</CODE>
 body. The final value of <CODE>X</CODE> is <CODE>a.c b.c c.c</CODE>.</P><PRE CLASS="verbatim">    X =
-    foreach(x, a b c)
+    foreach(x =&gt; a b c)
        X += $(x).c
        export
 </PRE><P>The <A HREF="#fun:break"><CODE>break</CODE> function</A> can be used to break out of the loop early.
@@ -5566,7 +5566,7 @@ same way as other variables, so this definition does not affect the meaning of
         stdout = $(fopen script.out, w)
         scan(script.in)
            ...
-        close(stdout)
+        close($(stdout))
 </PRE><!--TOC subsection awk-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc285">10.11.5</A>&#XA0;&#XA0;awk</H3><!--SEC END --><P><A NAME="fun:awk"></A><A NAME="function:awk"></A><A NAME="@default307"></A><A NAME="@fun213"></A></P><PRE CLASS="verbatim">   awk(input-files)
    case pattern1:
@@ -5626,7 +5626,7 @@ same way as other variables, so this definition does not affect the meaning of
         stdout = $(fopen file.out, w)
         awk(Awk.in)
            ...
-        close(stdout)
+        close($(stdout))
 </PRE><P>Options.
 </P><DL CLASS="description"><DT CLASS="dt-description">
 <B>b</B></DT><DD CLASS="dd-description"> &#X201C;Break&#X201D; when evaluating cases. Only the first case that matches will be selected.
@@ -5656,7 +5656,7 @@ an expression <CODE>word.</CODE> with its capitalized form.</P><PRE CLASS="verba
        fsubst(Subst.in)
        case $"\&lt;\([[:alnum:]]+\)\." g
           value $(capitalize $1).
-       close(stdout)
+       close($(stdout))
 </PRE><!--TOC subsection lex-->
 <H3 CLASS="subsection"><!--SEC ANCHOR --><A NAME="htoc287">10.11.7</A>&#XA0;&#XA0;lex</H3><!--SEC END --><P><A NAME="fun:lex"></A><A NAME="function:lex"></A><A NAME="@default309"></A><A NAME="@fun215"></A></P><PRE CLASS="verbatim">   lex(files)
    case pattern1
@@ -6174,16 +6174,16 @@ should take two arguments; the first is a field name, the second is the
 value of that field. The result is a new object constructed from the
 values returned by the function.
 </LI><LI CLASS="li-itemize"><CODE>o.object-foreach</CODE>: the <CODE>object-foreach</CODE> form is equivalent to <CODE>object-map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;)
+but with altered syntax.<PRE CLASS="verbatim">   o.object-foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
       &lt;body&gt;
    </PRE><P>For example, the following function prints all the fields of an
 object <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintObject(o) =
-      o.object-foreach(v, x)
+      o.object-foreach(v, x) =&gt;
          println($(v) = $(x))
    </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>object-foreach</CODE> body. The following
 function collects just the field names of an object.</P><PRE CLASS="verbatim">   FieldNames(o) =
       names[] =
-      o.object-foreach(v, x)
+      o.object-foreach(v, x) =&gt;
          names[] += $(v)
          export
       return $(names)
@@ -6205,16 +6205,16 @@ should take two arguments; the first is a field name, the second is the
 value of that field. The result is a new object constructed from the
 values returned by the function.
 </LI><LI CLASS="li-itemize"><CODE>o.foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   o.foreach(&lt;var1&gt;, &lt;var2&gt;)
+but with altered syntax.<PRE CLASS="verbatim">   o.foreach(&lt;var1&gt;, &lt;var2&gt;) =&gt;
       &lt;body&gt;
-   </PRE><P>For example, the following function prints all the fields of an
-object <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintObject(o) =
-      o.foreach(v, x)
+   </PRE><P>For example, the following function prints all the fields of a
+map <CODE>o</CODE>.</P><PRE CLASS="verbatim">   PrintMap(o) =
+      o.foreach(v, x) =&gt;
          println($(v) = $(x))
    </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
-function collects just the field names of the map.</P><PRE CLASS="verbatim">   FieldNames(o) =
+function reimplements the <CODE>key</CODE> method.</P><PRE CLASS="verbatim">   FieldNames(o) =
       names =
-      o.foreach(v, x)
+      o.foreach(v, x) =&gt;
          names += $(v)
          export
       return $(names)
@@ -6243,15 +6243,15 @@ will complete without failure.
 The function should take one argument. The result is a new sequence
 constructed from the values returned by the function.
 </LI><LI CLASS="li-itemize"><CODE>s.foreach</CODE>: the <CODE>foreach</CODE> form is equivalent to <CODE>map</CODE>,
-but with altered syntax.<PRE CLASS="verbatim">   s.foreach(&lt;var&gt;)
+but with altered syntax.<PRE CLASS="verbatim">   s.foreach(&lt;var&gt;) =&gt;
       &lt;body&gt;
    </PRE><P>For example, the following function prints all the elements of the sequence.</P><PRE CLASS="verbatim">   PrintSequence(s) =
-      s.foreach(x)
+      s.foreach(x) =&gt;
          println(Elem = $(x))
    </PRE><P>The <CODE>export</CODE> form is valid in a <CODE>foreach</CODE> body. The following
 function counts the number of zeros in the sequence.</P><PRE CLASS="verbatim">   Zeros(s) =
       count = $(int 0)
-      s.foreach(v)
+      s.foreach(v) =&gt;
          if $(equal $(v), 0)
             count = $(add $(count), 1)
             export
@@ -7777,7 +7777,7 @@ must be followed by a colon <CODE>:</CODE> to indicate that the application has 
     # the element value.
     #
     # The colon is required only for interactive sessions.
-    osh&gt; foreach(x, 1 2 3):
+    osh&gt; foreach(x =&gt; 1 2 3):
             add($x, 1)
     - : 2 3 4
 </PRE><P>Functions are defined in a similar form, where the parameter list is specified as a comma-separated
@@ -9291,7 +9291,7 @@ Array, <A HREF="#@obj16">12.1.7</A>
 osh(1) (Chapter&#XA0;<A HREF="#chapter:osh">15</A>),
 make(1)</P><!--TOC section Version-->
 <H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc500">C.2</A>&#XA0;&#XA0;Version</H2><!--SEC END --><P>Version: 0.9.8.5+ (working towards version 0.9.8.6 and/or
-0.9.9+) of 16<SUP>th</SUP>November,&#XA0;2007.</P><!--TOC section License and Copyright-->
+0.9.9+) of 18<SUP>th</SUP>March,&#XA0;2008.</P><!--TOC section License and Copyright-->
 <H2 CLASS="section"><!--SEC ANCHOR --><A NAME="htoc501">C.3</A>&#XA0;&#XA0;License and Copyright</H2><!--SEC END --><P>&#XA9; 2003-2006, Mojave Group, Caltech</P><P>This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation; version 2

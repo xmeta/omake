@@ -498,14 +498,14 @@ Node: Subsection 12-1-1,	Next: Subsection 12-1-2,	Prev: Section 12-1,	Up: Sectio
    constructed from the values returned by the function. 
    - 'o.object-foreach': the 'object-foreach' form is equivalent to
    'object-map', but with altered syntax.
-   <<   o.object-foreach(<var1>, <var2>)
+   <<   o.object-foreach(<var1>, <var2>) =>
            <body>
         >>
  
  For example, the following function prints all the fields of an object
    'o'.
    <<   PrintObject(o) =
-           o.object-foreach(v, x)
+           o.object-foreach(v, x) =>
               println($(v) = $(x))
         >>
  
@@ -513,7 +513,7 @@ Node: Subsection 12-1-1,	Next: Subsection 12-1-2,	Prev: Section 12-1,	Up: Sectio
    function collects just the field names of an object.
    <<   FieldNames(o) =
            names[] =
-           o.object-foreach(v, x)
+           o.object-foreach(v, x) =>
               names[] += $(v)
               export
            return $(names)
@@ -549,22 +549,21 @@ numbers, strings, files, directories, and arrays of simple values.
    values returned by the function. 
    - 'o.foreach': the 'foreach' form is equivalent to 'map', but with
    altered syntax.
-   <<   o.foreach(<var1>, <var2>)
+   <<   o.foreach(<var1>, <var2>) =>
            <body>
         >>
  
- For example, the following function prints all the fields of an object
-   'o'.
-   <<   PrintObject(o) =
-           o.foreach(v, x)
+ For example, the following function prints all the fields of a map 'o'.
+   <<   PrintMap(o) =
+           o.foreach(v, x) =>
               println($(v) = $(x))
         >>
  
  The 'export' form is valid in a 'foreach' body. The following function
-   collects just the field names of the map.
+   reimplements the 'key' method.
    <<   FieldNames(o) =
            names =
-           o.foreach(v, x)
+           o.foreach(v, x) =>
               names += $(v)
               export
            return $(names)
@@ -632,14 +631,14 @@ sequential elements. It provides the following methods.
    constructed from the values returned by the function. 
    - 's.foreach': the 'foreach' form is equivalent to 'map', but with
    altered syntax.
-   <<   s.foreach(<var>)
+   <<   s.foreach(<var>) =>
            <body>
         >>
  
  For example, the following function prints all the elements of the
    sequence.
    <<   PrintSequence(s) =
-           s.foreach(x)
+           s.foreach(x) =>
               println(Elem = $(x))
         >>
  
@@ -647,7 +646,7 @@ sequential elements. It provides the following methods.
    counts the number of zeros in the sequence.
    <<   Zeros(s) =
            count = $(int 0)
-           s.foreach(v)
+           s.foreach(v) =>
               if $(equal $(v), 0)
                  count = $(add $(count), 1)
                  export
