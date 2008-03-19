@@ -144,7 +144,7 @@ prompt-invisible(s) =
 #    but with altered syntax.
 #
 #    \begin{verbatim}
-#    o.object-foreach(<var1>, <var2>)
+#    o.object-foreach(<var1>, <var2>) =>
 #       <body>
 #    \end{verbatim}
 #
@@ -153,7 +153,7 @@ prompt-invisible(s) =
 #
 #    \begin{verbatim}
 #    PrintObject(o) =
-#       o.object-foreach(v, x)
+#       o.object-foreach(v, x) =>
 #          println($(v) = $(x))
 #    \end{verbatim}
 #
@@ -163,7 +163,7 @@ prompt-invisible(s) =
 #    \begin{verbatim}
 #    FieldNames(o) =
 #       names[] =
-#       o.object-foreach(v, x)
+#       o.object-foreach(v, x) =>
 #          names[] += $(v)
 #          export
 #       return $(names)
@@ -192,9 +192,9 @@ Object. +=
 
    curry.object-foreach() =
       private.THIS = $(this)
-      g(v, x, body) =
+      g(f) =
          export
-         obj-map($(THIS), $(v), $(x), $(body))
+         obj-map($(THIS), $(f))
 
    instanceof(v) =
       return $(obj-instanceof $(this), $(v))
@@ -236,26 +236,26 @@ extends $(Object)
 #    but with altered syntax.
 #
 #    \begin{verbatim}
-#    o.foreach(<var1>, <var2>)
+#    o.foreach(<var1>, <var2>) =>
 #       <body>
 #    \end{verbatim}
 #
-#    For example, the following function prints all the fields of an
-#    object \verb+o+.
+#    For example, the following function prints all the fields of a
+#    map \verb+o+.
 #
 #    \begin{verbatim}
-#    PrintObject(o) =
-#       o.foreach(v, x)
+#    PrintMap(o) =
+#       o.foreach(v, x) =>
 #          println($(v) = $(x))
 #    \end{verbatim}
 #
 #    The \verb+export+ form is valid in a \verb+foreach+ body.  The following
-#    function collects just the field names of the map.
+#    function reimplements the \verb+key+ method.
 #
 #    \begin{verbatim}
 #    FieldNames(o) =
 #       names =
-#       o.foreach(v, x)
+#       o.foreach(v, x) =>
 #          names += $(v)
 #          export
 #       return $(names)
@@ -376,7 +376,7 @@ Float. +=
 #    but with altered syntax.
 #
 #    \begin{verbatim}
-#    s.foreach(<var>)
+#    s.foreach(<var>) =>
 #       <body>
 #    \end{verbatim}
 #
@@ -384,7 +384,7 @@ Float. +=
 #
 #    \begin{verbatim}
 #    PrintSequence(s) =
-#       s.foreach(x)
+#       s.foreach(x) =>
 #          println(Elem = $(x))
 #    \end{verbatim}
 #
@@ -394,7 +394,7 @@ Float. +=
 #    \begin{verbatim}
 #    Zeros(s) =
 #       count = $(int 0)
-#       s.foreach(v)
+#       s.foreach(v) =>
 #          if $(equal $(v), 0)
 #             count = $(add $(count), 1)
 #             export

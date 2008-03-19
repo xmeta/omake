@@ -59,7 +59,7 @@ open Pos
  *
  * The \verb+fun+ form introduces anonymous functions.
  *
- * \verb+$(fun <v1>, ..., <vn>, <body>)+
+ * \verb+$(fun <v1>, ..., <vn> => <body>)+
  *
  * The last argument is the body of the function.
  * The other arguments are the parameter names.
