@@ -1518,7 +1518,7 @@ let string_length venv pos loc args =
 
 (*
  * \begin{doc}
- * \sixfuns{string-escaped}{ocaml-escaped}{html-escaped}{html-pre-escaped}{c-escaped}{id-escaped}
+ * \sevenfuns{string-escaped}{ocaml-escaped}{html-escaped}{html-pre-escaped}{c-escaped}{id-escaped}{sql-escaped}
  *
  * \begin{verbatim}
  *    $(string-escaped sequence) : String Array
@@ -1526,7 +1526,8 @@ let string_length venv pos loc args =
  *    $(html-escaped sequence) : String Array
  *    $(html-pre-escaped sequence) : String Array
  *    $(c-escaped sequence) : String Array
- *    $(hex-escaped sequence) : StringArray
+ *    $(id-escaped sequence) : StringArray
+ *    $(sql-escaped sequence) : StringArray
  *       sequence : Array
  * \end{verbatim}
  *
@@ -1670,6 +1671,7 @@ let any_escaped escaped venv pos loc args =
 let string_escaped = any_escaped single_escaped
 let ocaml_escaped  = any_escaped String.escaped
 let c_escaped      = any_escaped Lm_string_util.c_escaped
+let sql_escaped    = any_escaped Lm_string_util.sql_escaped
 let id_escaped     = any_escaped id_single_escaped
 let html_escaped   = any_escaped Lm_string_util.html_escaped
 let html_pre_escaped = any_escaped Lm_string_util.html_pre_escaped
@@ -2801,6 +2803,7 @@ let () =
        true,  "string-length",         string_length,       ArityExact 1;
        true,  "ocaml-escaped",         ocaml_escaped,       ArityExact 1;
        true,  "c-escaped",             c_escaped,           ArityExact 1;
+       true,  "sql-escaped",           sql_escaped,         ArityExact 1;
        true,  "id-escaped",            id_escaped,          ArityExact 1;
        true,  "html-escaped",          html_escaped,        ArityExact 1;
        true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;

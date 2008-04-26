@@ -193,7 +193,7 @@ let token_of_string s =
     | "-w"  -> TokUnop (IsWritableFileOp, s)
     | "-x"  -> TokUnop (IsExecutableFileOp, s)
     | "-name" -> TokName s
-    | "-regex" 
+    | "-regex"
     | "-regexp" -> TokRegex s
     | _     -> TokString s
 
