@@ -1663,7 +1663,12 @@ let any_escaped escaped venv pos loc args =
       match args with
          [arg] ->
             let args = strings_of_value venv pos arg in
-            let args = List.map (fun s -> ValData (escaped s)) args in
+            let args =
+               List.map (fun s ->
+                     try ValData (escaped s) with
+                        Failure _ ->
+                           raise (OmakeException (loc_pos loc pos, StringStringError ("illegal string argument", s)))) args
+            in
                ValArray args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 1, List.length args)))
@@ -1675,6 +1680,27 @@ let sql_escaped    = any_escaped Lm_string_util.sql_escaped
 let id_escaped     = any_escaped id_single_escaped
 let html_escaped   = any_escaped Lm_string_util.html_escaped
 let html_pre_escaped = any_escaped Lm_string_util.html_pre_escaped
+
+(*
+ * \begin{doc}
+ * \twofuns{hexify}{unhexify}
+ *
+ * \begin{verbatim}
+ *    $(hexify sequence) : sequence
+ *        sequence : Sequence
+ * \end{verbatim}
+ *
+ * The function \verb+hexify+ converts a string to a HEX ASCII representation.
+ * The inverse function is \verb+unhexify+.
+ *
+ * \begin{verbatim}
+ *    osh> hexify($"Hello world")
+ *    - : <array <data "48656c6c6f"> <data "776f726c64">>
+ * \end{verbatim}
+ * \end{doc}
+ *)
+let hexify = any_escaped Lm_string_util.hexify
+let unhexify = any_escaped Lm_string_util.unhexify
 
 (*
  * \begin{doc}
@@ -2807,6 +2833,8 @@ let () =
        true,  "id-escaped",            id_escaped,          ArityExact 1;
        true,  "html-escaped",          html_escaped,        ArityExact 1;
        true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;
+       true,  "hexify",                hexify,              ArityExact 1;
+       true,  "unhexify",              unhexify,            ArityExact 1;
        true,  "decode-uri",            decode_uri,          ArityExact 1;
        true,  "encode-uri",            encode_uri,          ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
