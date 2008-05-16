@@ -46,8 +46,6 @@ open Omake_exec_notify
 open Omake_options
 open Omake_command_type
 
-external sync : unit -> unit = "caml_sync"
-
 module Exec =
 struct
    (*
