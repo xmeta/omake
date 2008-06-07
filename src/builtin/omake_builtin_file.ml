@@ -616,7 +616,7 @@ let exists_in_path venv pos loc args =
 
 (*
  * \begin{doc}
- * \twofuns{digest}{digest-optional}
+ * \threefuns{digest}{digest-optional}{digest-string}
  *
  * \begin{verbatim}
  *      $(digest files) : String Array
@@ -625,6 +625,9 @@ let exists_in_path venv pos loc args =
  *
  *      $(digest-optional files) : String Array
  *         file : File Array
+ *
+ *      $(digest-string s) : String
+ *         s : String
  * \end{verbatim}
  *
  * The \verb+digest+ and \verb+digest-optional+ functions compute MD5 digests
@@ -663,6 +666,20 @@ let digest_aux fail venv pos loc args =
 
 let digest = digest_aux true
 let digest_optional = digest_aux false
+
+(*
+ * A simple string.
+ *)
+let digest_string venv pos loc args =
+   let pos = string_pos "digest_string" pos in
+   let s =
+      match args with
+         [arg] ->
+            string_of_value venv pos arg
+       | _ ->
+            raise (OmakeException (pos, ArityMismatch (ArityExact 1, List.length args)))
+   in
+      ValData (Digest.string s)
 
 (*
  * \begin{doc}
@@ -2938,6 +2955,7 @@ let () =
        true, "chown",                   chown,                    ArityRange (2, 3);
        true, "utimes",                  utimes,                   ArityExact 3;
        true, "umask",                   umask,                    ArityExact 1;
+       true, "digest-string",           digest_string,            ArityExact 1;
        true, "digest",                  digest,                   ArityExact 1;
        true, "digest-optional",         digest_optional,          ArityExact 1;
        true, "find-in-path",            find_in_path,             ArityExact 2;
