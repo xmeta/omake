@@ -1519,7 +1519,7 @@ let string_length venv pos loc args =
 (*
  * \begin{doc}
  * \fourfuns{string-escaped}{ocaml-escaped}{html-escaped}{html-pre-escaped}
- * \fourfuns{c-escaped}{id-escaped}{sql-escaped}{url-escaped}
+ * \fourfuns{c-escaped}{id-escaped}{sql-escaped}{uri-escaped}
  *
  * \begin{verbatim}
  *    $(string-escaped sequence) : String Array
@@ -1529,7 +1529,7 @@ let string_length venv pos loc args =
  *    $(c-escaped sequence) : String Array
  *    $(id-escaped sequence) : StringArray
  *    $(sql-escaped sequence) : StringArray
- *    $(url-escaped sequence) : StringArray
+ *    $(uri-escaped sequence) : StringArray
  *       sequence : Array
  * \end{verbatim}
  *
@@ -1682,7 +1682,6 @@ let sql_escaped    = any_escaped Lm_string_util.sql_escaped
 let id_escaped     = any_escaped id_single_escaped
 let html_escaped   = any_escaped Lm_string_util.html_escaped
 let html_pre_escaped = any_escaped Lm_string_util.html_pre_escaped
-let url_escaped      = any_escaped Lm_string_util.url_escaped
 
 (*
  * \begin{doc}
@@ -2834,13 +2833,13 @@ let () =
        true,  "c-escaped",             c_escaped,           ArityExact 1;
        true,  "sql-escaped",           sql_escaped,         ArityExact 1;
        true,  "id-escaped",            id_escaped,          ArityExact 1;
-       true,  "url-escaped",           url_escaped,         ArityExact 1;
        true,  "html-escaped",          html_escaped,        ArityExact 1;
        true,  "html-pre-escaped",      html_pre_escaped,    ArityExact 1;
        true,  "hexify",                hexify,              ArityExact 1;
        true,  "unhexify",              unhexify,            ArityExact 1;
        true,  "decode-uri",            decode_uri,          ArityExact 1;
        true,  "encode-uri",            encode_uri,          ArityExact 1;
+       true,  "uri-escaped",           encode_uri,          ArityExact 1;
        true,  "quote",                 quote,               ArityExact 1;
        true,  "quote-argv",            quote_argv,          ArityExact 1;
        true,  "html-string",           html_string,         ArityExact 1;
