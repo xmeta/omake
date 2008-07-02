@@ -254,7 +254,7 @@ let dir_of_value venv pos dir =
        | ValDelayed _ ->
             raise (OmakeException (pos, StringError "not a directory"))
 
-let node_value_of_value venv pos v =
+let node_value_of_value venv pos ?(follow_symlinks=true) v =
    let pos = string_pos "node_value_of_value" pos in
    let arg = eval_prim_value venv pos v in
       match arg with
@@ -275,7 +275,7 @@ let node_value_of_value venv pos v =
             let name = string_of_value venv pos v in
             let node = venv_intern venv PhonyExplicit name in
             let cache = venv_cache venv in
-               if Omake_cache.is_dir cache node then
+               if Omake_cache.is_dir cache ~follow_symlinks node then
                   ValDir (venv_intern_dir venv name)
                else
                   ValNode node

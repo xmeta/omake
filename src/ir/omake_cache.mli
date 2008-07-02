@@ -78,8 +78,8 @@ val stats : t -> int * int
 val stat             : t -> Node.t -> digest
 val stat_set         : t -> NodeSet.t -> digest NodeTable.t
 val stat_table       : t -> 'b NodeTable.t -> digest NodeTable.t
-val stat_unix        : t -> ?force:bool -> Node.t -> Unix.LargeFile.stats
-val is_dir           : t -> ?force:bool -> Node.t -> bool
+val stat_unix        : t -> ?force:bool -> ?follow_symlinks:bool -> Node.t -> Unix.LargeFile.stats
+val is_dir           : t -> ?force:bool -> ?follow_symlinks:bool -> Node.t -> bool
 
 val reset            : t -> Node.t -> unit
 val reset_set        : t -> NodeSet.t -> unit

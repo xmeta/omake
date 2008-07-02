@@ -172,6 +172,7 @@ type stat = Unix.LargeFile.stats
 type cache =
    { (* State *)
      mutable cache_nodes             : node_memo NodeTable.t;
+     mutable cache_lstats            : Unix.LargeFile.stats option NodeTable.t;
      mutable cache_info              : memo_deps cache_info array;
      mutable cache_static_values     : obj memo ValueTable.t;
      mutable cache_memo_values       : obj memo ValueTable.t;
@@ -286,6 +287,7 @@ let output_magic = Omake_magic.output_magic
  *)
 let create () =
    { cache_nodes           = NodeTable.empty;
+     cache_lstats          = NodeTable.empty;
      cache_info            = [||];
      cache_static_values   = ValueTable.empty;
      cache_memo_values     = ValueTable.empty;
@@ -428,7 +430,8 @@ let reset cache node =
          Not_found ->
             nodes
    in
-      cache.cache_nodes <- nodes
+      cache.cache_nodes <- nodes;
+      cache.cache_lstats <- NodeTable.remove cache.cache_lstats node
 
 let reset_set cache nodes =
    NodeSet.iter (reset cache) nodes
@@ -679,19 +682,7 @@ let do_stat_unix cache node =
       cache.cache_nodes <- NodeTable.add cache.cache_nodes node nmemo;
       stat_unix_simple nmemo.nmemo_stats
 
-let stat_unix cache ?(force=false) node =
-   let node =
-      match Node.kind node with
-         NodePhony
-       | NodeScanner ->
-            raise Not_found
-       | NodeNormal ->
-            node
-       | NodeOptional
-       | NodeSquashed
-       | NodeExists ->
-            Node.core node
-   in
+let stat_unix_node cache ~force node =
    let nodes = cache.cache_nodes in
    let stats =
       try Some (NodeTable.find nodes node) with
@@ -736,10 +727,74 @@ let stat_unix cache ?(force=false) node =
             do_stat_unix cache node
 
 (*
+ * lstat versions, for not following symlinks.
+ *)
+let lstat_unix_simple stats =
+   match stats with
+      Some stats ->
+         stats
+    | None ->
+         raise Not_found
+
+let do_lstat_unix cache node =
+   let name = Node.fullname node in
+   let stats =
+      try
+         let stats = Unix.LargeFile.lstat name in
+            cache.cache_file_stat_count <- succ cache.cache_file_stat_count;
+            Some stats
+      with
+         Unix.Unix_error _
+       | Sys_error _ ->
+            None
+   in
+      cache.cache_lstats <- NodeTable.add cache.cache_lstats node stats;
+      lstat_unix_simple stats
+
+let lstat_unix_node cache ~force node =
+   let nodes = cache.cache_lstats in
+   let stats =
+      try Some (NodeTable.find nodes node) with
+         Not_found ->
+            None
+   in
+      match stats with
+         Some (Some lstats) ->
+            lstats
+       | Some None ->
+            if force then
+               do_lstat_unix cache node
+            else
+               raise Not_found
+       | None ->
+            do_lstat_unix cache node
+
+(*
+ * Cached stat.
+ *)
+let stat_unix cache ?(force=false) ?(follow_symlinks=true) node =
+   let node =
+      match Node.kind node with
+         NodePhony
+       | NodeScanner ->
+            raise Not_found
+       | NodeNormal ->
+            node
+       | NodeOptional
+       | NodeSquashed
+       | NodeExists ->
+            Node.core node
+   in
+      if follow_symlinks then
+         stat_unix_node cache ~force node
+      else
+         lstat_unix_node cache ~force node
+
+(*
  * Check if a file is a directory.
  *)
-let is_dir cache ?(force=false) node =
-   try (stat_unix cache ~force node).Unix.LargeFile.st_kind = Unix.S_DIR with
+let is_dir cache ?(force=false) ?(follow_symlinks=true) node =
+   try (stat_unix cache ~force ~follow_symlinks node).Unix.LargeFile.st_kind = Unix.S_DIR with
       Not_found ->
          false
 

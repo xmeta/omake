@@ -912,7 +912,7 @@ let shell_test cmd venv pos loc args =
  *)
 let rec find_file venv pos nodes name e =
    (* Convert the name to to a value *)
-   let v = node_value_of_value venv pos (ValString name) in
+   let v = node_value_of_value venv pos ~follow_symlinks:false (ValString name) in
 
    (* Add this node if the expression matches *)
    let nodes =

@@ -83,7 +83,7 @@ val map_of_value        : venv -> pos -> value -> map
 
 val dir_of_value        : venv -> pos -> value -> Dir.t
 val file_of_value       : venv -> pos -> value -> Node.t
-val node_value_of_value : venv -> pos -> value -> value
+val node_value_of_value : venv -> pos -> ?follow_symlinks:bool -> value -> value
 val dir_value_of_value  : venv -> pos -> value -> value
 val filename_of_value   : venv -> pos -> value -> string
 
