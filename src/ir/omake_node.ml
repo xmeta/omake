@@ -185,7 +185,7 @@ struct
           | ".." ->
                dir_test_all_entries_exn absdir dir_handle
           | _ ->
-               try 
+               try
                   let result = stat_with_toggle_case absdir name in
                      Unix.closedir dir_handle;
                      result
@@ -1231,7 +1231,9 @@ struct
        | RelativePath _ ->
             raise (Invalid_argument ("Omake_node.home_dir specified as relative path: " ^ home_dir))
 
-   let () = make_dotdot_fail home
+   let () =
+      make_dotdot_fail root;
+      make_dotdot_fail home
 
    (*
     * Equality.
