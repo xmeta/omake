@@ -728,7 +728,7 @@ and parse_exp venv pos tokens =
  * \item    \verb+-O+ \emph{file}                      : The file's owner is the current effective user
  * \item    \verb+-p+ \emph{file}                      : The file is a named pipe
  * \item    \verb+-r+ \emph{file}                      : The file is readable
- * \item    \verb+-s+ \emph{file}                      : The file is empty
+ * \item    \verb+-s+ \emph{file}                      : The file has a non-zero size
  * \item    \verb+-S+ \emph{file}                      : The file is a socket
  * \item    \verb+-u+ \emph{file}                      : The set\verb+-user+\verb+-id+ bit is set on the file
  * \item    \verb+-w+ \emph{file}                      : The file is writable
