@@ -170,15 +170,6 @@ let env_close_failed_tee env command =
 (*
  * Print a diversion.
  *)
-let eprint_tee command =
-   match tee_file command.command_tee with
-      Some name ->
-         progress_flush ();
-         eprintf "*** omake: failed: %a@." pp_print_node command.command_target;
-         eprint_file name
-    | None ->
-         ()
-
 let format_tee_with_nl buf command =
    match tee_file command.command_tee with
       Some name ->
