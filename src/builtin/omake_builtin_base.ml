@@ -1869,11 +1869,14 @@ let mapsuffix venv pos loc args =
  * Add all suffixes.
  *
  * \begin{doc}
- * \fun{addsuffixes}
+ * \twofuns{addsuffixes, addprefixes}
  *
  * \begin{verbatim}
  *    $(addsuffixes suffixes, sequence) : Array
  *       suffixes : Sequence
+ *       sequence : Sequence
+ *    $(addprefixes prefixes, sequence) : Array
+ *       prefixes : Sequence
  *       sequence : Sequence
  * \end{verbatim}
  *
@@ -1883,6 +1886,8 @@ let mapsuffix venv pos loc args =
  *
  * For example, the \verb+$(addsuffixes .c .o, a b c)+ expressions evaluates to
  * \verb+a.c a.o b.c b.o c.o c.a+.
+ *
+ * \verb+$(addprefixes prefixes, sequence)+ is roughly equivalent to \verb+$(addsuffixes sequence, prefixes)+.
  * \end{doc}
  *)
 let addsuffixes venv pos loc args =
@@ -1893,6 +1898,18 @@ let addsuffixes venv pos loc args =
             let suffixes = List.map (fun s -> ValString s) suffixes in
             let args = values_of_value venv pos arg in
             let args = List.map (fun suffix -> List.map (fun s -> ValSequence [s; suffix]) args) suffixes in
+               ValArray (List.flatten args)
+       | _ ->
+            raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
+
+let addprefixes venv pos loc args =
+   let pos = string_pos "addprefixes" pos in
+      match args with
+         [prefixes; arg] -> 
+            let prefixes = strings_of_value venv pos prefixes in
+            let prefixes = List.map (fun s -> ValString s) prefixes in
+            let args = values_of_value venv pos arg in
+            let args = List.map (fun prefix -> List.map (fun s -> ValSequence [prefix; s]) args) prefixes in
                ValArray (List.flatten args)
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -2817,6 +2834,7 @@ let () =
    let builtin_funs =
       [true,  "addprefix",             addprefix,           ArityExact 2;
        true,  "mapprefix",             mapprefix,           ArityExact 2;
+       true,  "addprefixes",           addprefixes,         ArityExact 2;
        true,  "removeprefix",          removeprefix,        ArityExact 2;
 
        true,  "addsuffix",             addsuffix,           ArityExact 2;
