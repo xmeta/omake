@@ -136,7 +136,7 @@ let set_job_count options s =
                   job_count, (job, 1) :: remote_servers
    in
    let job_count, remote_servers = List.fold_left set_job (1, []) (Lm_string_util.split ":" s) in
-      set_job_count_and_servers_opt options job_count (List.rev remote_servers)
+      set_job_count_and_servers_opt options (max 1 job_count) (List.rev remote_servers)
 
 let opt_dry_run opts =
    opts.opt_dry_run
