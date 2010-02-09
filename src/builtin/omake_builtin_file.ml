@@ -67,7 +67,7 @@ open Pos
  * Utilities.
  *)
 let is_dir dir =
-   try (Unix.LargeFile.stat dir).Unix.LargeFile.st_kind = Unix.S_DIR with
+   try (Unix.LargeFile.lstat dir).Unix.LargeFile.st_kind = Unix.S_DIR with
       Unix.Unix_error _ ->
          false
 
@@ -2008,14 +2008,13 @@ let rm_aux unlink info filename =
  * Remove a directory or file recursively.
  *)
 let rec rm_rec info filename =
-   try
+   if is_dir filename then begin
       let names = Lm_filename_util.lsdir filename in
       let names = List.map (fun name -> Filename.concat filename name) names in
          List.iter (rm_rec info) names;
          rm_aux Unix.rmdir info filename
-   with
-      Unix.Unix_error _ ->
-         rm_aux Unix.unlink info filename
+   end else
+      rm_aux Unix.unlink info filename
 
 (*
  * Main command.
