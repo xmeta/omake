@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2006 Mojave Group, Caltech
+ * Copyright (C) 2006-2010 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -83,8 +83,8 @@ type value =
  | ValCases       of (var * value * exp list * export) list
 
    (* Functions *)
- | ValFun         of arity * env * keyword_param_value list * param list * exp list * export
- | ValFunCurry    of arity * env * param_value list * keyword_param_value list * param list * exp list * export * keyword_value list
+ | ValFun         of env * keyword_param_value list * param list * exp list * export
+ | ValFunCurry    of env * param_value list * keyword_param_value list * param list * exp list * export * keyword_value list
 
    (* Closed values *)
  | ValPrim        of arity * bool * apply_empty_strategy * prim_fun

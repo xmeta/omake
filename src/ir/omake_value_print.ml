@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2006 Mojave Group, Caltech
+ * Copyright (C) 2006-2010 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * Author: Jason Hickey
- * @email{jyh@cs.caltech.edu}
+ * Author: Jason Hickey @email{jyh@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -84,6 +84,20 @@ let rec pp_print_path buf = function
       fprintf buf "%a.%a" pp_print_symbol v pp_print_path path
 
 (************************************************************************
+ * Arity approximation.
+ *)
+(*
+ * XXX: TODO: currently keyword args are ignored, we should probably include
+ * them, and also return an ArityRange when some keyword arguments have a default
+ * value defined. See also Bugzilla bug 731.
+ *)
+let fun_arity _keywords params =
+   ArityExact (List.length params)
+
+let curry_fun_arity curry_args _keywords params _curry_kargs =
+   ArityExact ((List.length params) - (List.length curry_args))
+
+(************************************************************************
  * Value printing.
  *)
 let rec pp_print_value buf v =
@@ -113,11 +127,10 @@ let rec pp_print_value buf v =
     | ValMaybeApply (_, v) ->
          fprintf buf "@[<hv 3>ifdefined(%a)@]" (**)
             pp_print_var_info v
-    | ValFun (arity, _, _, _, _, _) ->
-         fprintf buf "<fun %a>" pp_print_arity arity
-    | ValFunCurry (arity, _, _, _, _, _, _, kargs) ->
-         fprintf buf "<curry %a>" pp_print_arity arity
-
+    | ValFun (_, keywords, params, _, _) ->
+         fprintf buf "<fun %a>" pp_print_arity (fun_arity keywords params)
+    | ValFunCurry (_, curry_args, keywords, params, _, _, curry_kargs) ->
+         fprintf buf "<curry %a>" pp_print_arity (curry_fun_arity curry_args keywords params curry_kargs)
     | ValPrim (_, special, _, name)
     | ValPrimCurry (_, special, name, _, _) ->
          if special then

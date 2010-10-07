@@ -85,7 +85,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2007 Mojave Group, California Institute of Technology, and
+ * Copyright (C) 2004-2010 Mojave Group, California Institute of Technology, and
  * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
@@ -1543,7 +1543,7 @@ let lex_rule venv pos loc args kargs =
 
             (* Add the method *)
             let action_var = VarThis (loc, action_sym) in
-            let venv = venv_add_var venv action_var (ValFun (ArityExact 0, venv_get_env venv, [], [], body, export)) in
+            let venv = venv_add_var venv action_var (ValFun (venv_get_env venv, [], [], body, export)) in
             let venv = venv_add_var venv builtin_field_var (ValOther (ValLexer lexer)) in
                venv, ValNone
 
@@ -1881,7 +1881,7 @@ let parse_rule venv pos loc args kargs =
             let body =
                LetVarExp (loc, VarThis (loc, val_sym), [], VarDefNormal, ConstString (loc, "")) :: body
             in
-               venv_add_var venv (VarThis (loc, action)) (ValFun (ArityExact 0, venv_get_env venv, [], [], body, export))
+               venv_add_var venv (VarThis (loc, action)) (ValFun (venv_get_env venv, [], [], body, export))
        | [] ->
             venv
    in

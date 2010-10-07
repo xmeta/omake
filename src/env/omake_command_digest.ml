@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2005-2007 Mojave Group, California Insitute of Technology and
+ * Copyright (C) 2005-2010 Mojave Group, California Insitute of Technology and
  * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
@@ -685,7 +685,7 @@ let rec squash_value pos buf v =
        | ValMaybeApply (_, v) ->
             Hash.add_code buf CodeValMaybeApply;
             squash_var_info buf v
-       | ValFun (_, _, keywords, params, body, export) ->
+       | ValFun (_, keywords, params, body, export) ->
             Hash.add_code buf CodeValFun;
             squash_keyword_param_values pos buf keywords;
             Hash.add_code buf CodeSpace;
@@ -694,7 +694,7 @@ let rec squash_value pos buf v =
             squash_exp_list pos buf body;
             Hash.add_code buf CodeSpace;
             squash_export_info buf export
-       | ValFunCurry (_, _, args, keywords, params, body, export, kargs) ->
+       | ValFunCurry (_, args, keywords, params, body, export, kargs) ->
             Hash.add_code buf CodeValFunCurry;
             squash_param_values pos buf args;
             Hash.add_code buf CodeSpace;

@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2004-2006 Mojave Group, Caltech
+ * Copyright (C) 2004-2010 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -50,6 +50,7 @@ open Omake_cache_type
 open Omake_builtin_type
 open Omake_builtin_util
 open Omake_value_type
+open Omake_value_print
 
 module Pos = MakePos (struct let name = "Omake_builtin_object" end)
 open Pos
@@ -154,7 +155,7 @@ let object_map venv pos loc args kargs =
       match args with
          [arg; fun_val] ->
             let obj = eval_object venv pos arg in
-            let _, _, f = eval_fun venv pos fun_val in
+            let _, f = eval_fun venv pos fun_val in
                f, obj
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -286,7 +287,7 @@ let map_map venv pos loc args kargs =
          [arg; fun_val], [] ->
             let obj = eval_object venv pos arg in
             let map = map_of_object venv pos obj in
-            let _, _, f = eval_fun venv pos fun_val in
+            let _, f = eval_fun venv pos fun_val in
                f, obj, map
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -381,6 +382,16 @@ let create_map venv pos loc args =
 (*
  * Return the number of elements in the sequence.
  *)
+let int_of_arity arity =
+   match arity with
+       ArityExact i
+     | ArityRange (i, _) ->
+          i
+     | ArityNone ->
+          0
+     | ArityAny ->
+          max_int
+
 let sequence_length venv pos loc args =
    let pos = string_pos "length" pos in
       match args with
@@ -414,18 +425,13 @@ let sequence_length venv pos loc args =
                      List.length (values_of_value venv pos arg)
                 | ValArray a ->
                      List.length a
-                | ValFun (arity, _, _, _, _, _)
-                | ValFunCurry (arity, _, _, _, _, _, _, _)
+                | ValFun (_, keywords, params, _, _) ->
+                     int_of_arity (fun_arity keywords params)
+                | ValFunCurry (_, curry_args, keywords, params, _, _, curry_kargs) ->
+                     int_of_arity (curry_fun_arity curry_args keywords params curry_kargs)
                 | ValPrim (arity, _, _, _)
                 | ValPrimCurry (arity, _, _, _, _) ->
-                     (match arity with
-                         ArityExact i
-                       | ArityRange (i, _) ->
-                            i
-                       | ArityNone ->
-                            0
-                       | ArityAny ->
-                            max_int)
+                     int_of_arity arity
                 | ValRules l ->
                      List.length l
                 | ValCases cases ->
@@ -836,7 +842,7 @@ let foreach_fun venv pos loc args kargs =
       match args, kargs with
          [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
-            let _, _, f = eval_fun venv pos fun_val in
+            let _, f = eval_fun venv pos fun_val in
                f, args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -873,7 +879,7 @@ let forall_fun venv pos loc args kargs =
       match args, kargs with
          [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
-            let _, _, f = eval_fun venv pos fun_val in
+            let _, f = eval_fun venv pos fun_val in
                f, args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -919,7 +925,7 @@ let exists_fun venv pos loc args kargs =
       match args, kargs with
          [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
-            let _, _, f = eval_fun venv pos fun_val in
+            let _, f = eval_fun venv pos fun_val in
                f, args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -969,7 +975,7 @@ let sort_fun venv pos loc args kargs =
       match args, kargs with
          [fun_val; arg], [] ->
             let args = values_of_value venv pos arg in
-            let _, _, f = eval_fun venv pos fun_val in
+            let _, f = eval_fun venv pos fun_val in
                f, args
        | _ ->
             raise (OmakeException (loc_pos loc pos, ArityMismatch (ArityExact 2, List.length args)))
@@ -1078,7 +1084,7 @@ let () =
        "Float",            value_sym, ValFloat 0.0;
        "String",           value_sym, ValNone;
        "Array",            value_sym, ValArray [];
-       "Fun",              value_sym, ValFun (ArityExact 0, venv_empty_env, [], [], [], ExportNone);
+       "Fun",              value_sym, ValFun (venv_empty_env, [], [], [], ExportNone);
        "Rule",             value_sym, ValRules [];
        "File",             value_sym, ValNone;
        "Dir",              value_sym, ValNone;

@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology, and
+ * Copyright (C) 2003-2010 Mojave Group, California Institute of Technology, and
  * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
@@ -118,7 +118,7 @@ val eval_defined_field : venv -> pos -> loc -> var_info -> var list -> bool
  * Be careful with this: don't create a ValPrim using
  * this function, since marshaling will fail.
  *)
-val eval_fun : venv -> pos -> value -> arity * bool * prim_fun_data
+val eval_fun : venv -> pos -> value -> bool * prim_fun_data
 
 (*
  * Also, if the value is an array of 1 element,

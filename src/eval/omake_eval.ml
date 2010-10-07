@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, California Institute of Technology and
+ * Copyright (C) 2003-2010 Mojave Group, California Institute of Technology and
  * HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
@@ -1226,15 +1226,15 @@ and eval_body_exp venv pos x v =
  *)
 and eval_var venv pos loc v =
    match v with
-      ValFun (_, env, _, [], body, _) ->
+      ValFun (env, _, [], body, _) ->
          let venv = venv_with_env venv env in
          let _, result = eval_sequence venv pos ValNone body in
             result
-    | ValFunCurry (_, env, args, _, [], body, _, []) ->
+    | ValFunCurry (env, args, _, [], body, _, []) ->
          let venv = venv_with_partial_args venv env args in
          let _, result = eval_sequence venv pos ValNone body in
             result
-    | ValFunCurry (_, env, args, _, [], body, export, kargs) ->
+    | ValFunCurry (env, args, _, [], body, export, kargs) ->
          (* XXX: verify that we should pass forward the exports *)
          let venv_new = venv_with_partial_args venv env args in
          let venv_new, v = eval_sequence venv_new pos ValNone body in
@@ -1262,11 +1262,11 @@ and eval_key venv pos loc v =
 and eval_apply venv pos loc v args kargs =
    let pos = string_pos "eval_apply" pos in
    match eval_value venv pos v with
-      ValFun (_, env, keywords, params, body, _) ->
+      ValFun (env, keywords, params, body, _) ->
          let venv = venv_add_args venv pos loc env params args keywords kargs in
          let _, result = eval_sequence_exp venv pos body in
             result
-    | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+    | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
          let venv_new, args, kargs = venv_add_curry_args venv pos loc env pargs params args keywords kargs1 kargs in
          let venv_new, v = eval_sequence_exp venv_new pos body in
          let venv = add_exports venv venv_new pos export in
@@ -1295,13 +1295,13 @@ and eval_apply venv pos loc v args kargs =
 and eval_apply_string_exp venv venv_obj pos loc v args kargs =
    let pos = string_pos "eval_apply_string_exp" pos in
       match eval_value venv pos v with
-         ValFun (_, env, keywords, params, body, _) ->
+         ValFun (env, keywords, params, body, _) ->
             let args = List.map (eval_string_exp venv pos) args in
             let kargs = List.map (fun (v, s) -> v, eval_string_exp venv pos s) kargs in
             let venv_new = venv_add_args venv_obj pos loc env params args keywords kargs in
             let _, result = eval_sequence_exp venv_new pos body in
                result
-       | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+       | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
             let args = List.map (eval_string_exp venv pos) args in
             let kargs = List.map (fun (v, s) -> v, eval_string_exp venv pos s) kargs in
             let venv_new, args, kargs = venv_add_curry_args venv_obj pos loc env pargs params args keywords kargs1 kargs in
@@ -1335,29 +1335,29 @@ and eval_apply_string_exp venv venv_obj pos loc v args kargs =
  *)
 and eval_fun venv pos v =
    match eval_value venv pos v with
-      ValFun (arity, env, keywords, params, body, export) ->
+      ValFun (env, keywords, params, body, export) ->
          let f venv pos loc args kargs =
             let venv_new = venv_add_args venv pos loc env params args keywords kargs in
             let venv_new, result = eval_sequence_exp venv_new pos body in
             let venv = add_exports venv venv_new pos export in
                venv, result
          in
-            arity, true, f
-    | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+            true, f
+    | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
          let f venv pos loc args kargs =
             let venv_new, args, kargs = venv_add_curry_args venv pos loc env pargs params args keywords kargs1 kargs in
             let venv_new, v = eval_sequence_exp venv_new pos body in
             let venv = add_exports venv venv_new pos export in
                eval_apply_export venv pos loc v args kargs
          in
-            arity, true, f
-    | ValPrim (arity, be_eager, _, f) ->
-         arity, be_eager, venv_apply_prim_fun f
-    | ValPrimCurry (arity, be_eager, f, args1, kargs1) ->
+            true, f
+    | ValPrim (_, be_eager, _, f) ->
+         be_eager, venv_apply_prim_fun f
+    | ValPrimCurry (_, be_eager, f, args1, kargs1) ->
          let f venv pos loc args2 kargs2 =
             venv_apply_prim_fun f venv pos loc (List.rev_append args1 args2) (List.rev_append kargs1 kargs2)
          in
-            arity, be_eager, f
+            be_eager, f
     | ValBody (body, export) ->
          let arity = ArityExact 0 in
          let f venv pos loc args kargs =
@@ -1365,7 +1365,7 @@ and eval_fun venv pos v =
                raise (OmakeException (loc_pos loc pos, ArityMismatch (arity, List.length args)));
             eval_sequence_export_exp venv pos body export
          in
-            arity, true, f
+            true, f
     | _ ->
          raise (OmakeException (pos, StringError "not a function"))
 
@@ -1674,7 +1674,7 @@ and eval_string_exp venv pos s =
        | FunString (loc, opt_params, params, body, export) ->
             let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
             let env = venv_get_env venv in
-               ValFun (ArityExact 0, env, opt_params, params, body, export)
+               ValFun (env, opt_params, params, body, export)
        | ApplyString (loc, v, [], []) ->
             eval_var venv pos loc (venv_find_var venv pos loc v)
        | ApplyString (loc, v, args, kargs) ->
@@ -1748,17 +1748,17 @@ and eval_var_export venv pos loc v =
 
    (* Do not use eval_value; we don't want to force evaluation *)
    match v with
-      ValFun (_, env, _, [], body, export) ->
+      ValFun (env, _, [], body, export) ->
          let venv_new = venv_with_env venv env in
          let venv_new, result = eval_sequence venv_new pos ValNone body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunCurry (_, env, pargs, _, [], body, export, []) ->
+    | ValFunCurry (env, pargs, _, [], body, export, []) ->
          let venv_new = venv_with_partial_args venv env pargs in
          let venv_new, result = eval_sequence venv_new pos ValNone body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunCurry (_, env, pargs, _, [], body, export, kargs) ->
+    | ValFunCurry (env, pargs, _, [], body, export, kargs) ->
          let venv_new = venv_with_partial_args venv env pargs in
          let venv_new, v = eval_sequence venv_new pos ValNone body in
          let venv = add_exports venv venv_new pos export in
@@ -1774,12 +1774,12 @@ and eval_var_export venv pos loc v =
 and eval_apply_export venv pos loc v args kargs =
    let pos = string_pos "eval_apply_export" pos in
    match eval_value venv pos v with
-      ValFun (_, env, keywords, params, body, export) ->
+      ValFun (env, keywords, params, body, export) ->
          let venv_new = venv_add_args venv pos loc env params args keywords kargs in
          let venv_new, result = eval_sequence_exp venv_new pos body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+    | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
          let venv_new, args, kargs = venv_add_curry_args venv pos loc env pargs params args keywords kargs1 kargs in
          let venv_new, v = eval_sequence_exp venv_new pos body in
          let venv = add_exports venv venv_new pos export in
@@ -1804,18 +1804,18 @@ and eval_apply_export venv pos loc v args kargs =
 
 and eval_partial_apply venv pos loc v args kargs =
    match eval_value venv pos v with
-      ValFun (arity, env, keywords, params, body, export) ->
+      ValFun (env, keywords, params, body, export) ->
          (match venv_add_partial_args venv pos loc env [] params args keywords [] kargs with
              PartialApply (env, pargs, keywords, params, kargs) ->
-                venv, ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs)
+                venv, ValFunCurry (env, pargs, keywords, params, body, export, kargs)
            | FullApply (venv, args, kargs) ->
                 let venv_new, v = eval_sequence_exp venv pos body in
                 let venv = add_exports venv venv_new pos export in
                    eval_partial_apply venv pos loc v args kargs)
-    | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+    | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
          (match venv_add_partial_args venv pos loc env pargs params args keywords kargs1 kargs with
              PartialApply (env, pargs, keywords, params, kargs) ->
-                venv, ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs)
+                venv, ValFunCurry (env, pargs, keywords, params, body, export, kargs)
            | FullApply (venv, args, kargs) ->
                 let venv_new, v = eval_sequence_exp venv pos body in
                 let venv = add_exports venv venv_new pos export in
@@ -1853,14 +1853,14 @@ and eval_partial_apply venv pos loc v args kargs =
 and eval_apply_string_export_exp venv venv_new pos loc v args kargs =
    let pos = string_pos "eval_apply_string_export_exp" pos in
    match eval_value venv pos v with
-      ValFun (_, env, keywords, params, body, export) ->
+      ValFun (env, keywords, params, body, export) ->
          let args = List.map (eval_string_exp venv pos) args in
          let kargs = List.map (fun (v, s) -> v, eval_string_exp venv pos s) kargs in
          let venv_new = venv_add_args venv_new pos loc env params args keywords kargs in
          let venv_new, result = eval_sequence_exp venv_new pos body in
          let venv = add_exports venv venv_new pos export in
             venv, result
-    | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+    | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
          let args = List.map (eval_string_exp venv pos) args in
          let kargs = List.map (fun (v, s) -> v, eval_string_exp venv pos s) kargs in
          let venv_new, args, kargs = venv_add_curry_args venv_new pos loc env pargs params args keywords kargs1 kargs in
@@ -1892,14 +1892,14 @@ and eval_apply_string_export_exp venv venv_new pos loc v args kargs =
 and eval_apply_method_export_exp venv venv_obj pos loc path v args kargs =
    let pos = string_pos "eval_apply_method_export_exp" pos in
    match eval_value venv pos v with
-      ValFun (_, env, keywords, params, body, export) ->
+      ValFun (env, keywords, params, body, export) ->
          let args = List.map (eval_string_exp venv pos) args in
          let kargs = List.map (fun (v, s) -> v, eval_string_exp venv pos s) kargs in
          let venv_new = venv_add_args venv_obj pos loc env params args keywords kargs in
          let venv_new, result = eval_sequence_exp venv_new pos body in
          let venv = add_path_exports venv venv_obj venv_new pos path export in
             venv, result
-    | ValFunCurry (arity, env, pargs, keywords, params, body, export, kargs1) ->
+    | ValFunCurry (env, pargs, keywords, params, body, export, kargs1) ->
          (* XXX: JYH: this, need to think about *)
          let args = List.map (eval_string_exp venv pos) args in
          let kargs = List.map (fun (v, s) -> v, eval_string_exp venv pos s) kargs in
@@ -1954,7 +1954,7 @@ and eval_string_export_exp venv pos s =
        | FunString (loc, opt_params, params, body, export) ->
             let opt_params = eval_keyword_param_value_list_exp venv pos opt_params in
             let env = venv_get_env venv in
-               venv, ValFun (ArityExact 0, env, opt_params, params, body, export)
+               venv, ValFun (env, opt_params, params, body, export)
        | ApplyString (loc, v, [], []) ->
             eval_var_export venv pos loc (venv_find_var venv pos loc v)
        | ApplyString (loc, v, args, kargs) ->
@@ -2120,9 +2120,9 @@ and eval_let_fun_exp venv pos loc v curry opt_params params body export =
    let env = venv_get_env venv in
    let e =
       if curry then
-         ValFunCurry (ArityExact 0, env, [], opt_params, params, body, export, [])
+         ValFunCurry (env, [], opt_params, params, body, export, [])
       else
-         ValFun (ArityExact 0, env, opt_params, params, body, export)
+         ValFun (env, opt_params, params, body, export)
    in
    let venv = venv_add_var venv v e in
       venv, e
@@ -2132,9 +2132,9 @@ and eval_let_fun_field_exp venv pos loc v vl curry opt_params params body export
    let env = venv_get_env venv in
    let e =
       if curry then
-         ValFunCurry (ArityExact 0, env, [], opt_params, params, body, export, [])
+         ValFunCurry (env, [], opt_params, params, body, export, [])
       else
-         ValFun (ArityExact 0, env, opt_params, params, body, export)
+         ValFun (env, opt_params, params, body, export)
    in
    let path, obj, v = eval_find_field venv pos loc v vl in
    let venv, obj = venv_add_field venv obj pos v e in

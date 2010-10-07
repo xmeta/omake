@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------
  *
  * @begin[license]
- * Copyright (C) 2003-2007 Mojave Group, Caltech
+ * Copyright (C) 2003-2010 Mojave Group, Caltech and HRL Laboratories, LLC
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
  * linked executables.  See the file LICENSE.OMake for more details.
  *
  * Author: Jason Hickey @email{jyh@cs.caltech.edu}
- * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}
+ * Modified By: Aleksey Nogin @email{nogin@cs.caltech.edu}, @email{anogin@hrl.com}
  * @end[license]
  *)
 open Lm_printf
@@ -603,7 +603,7 @@ let find_alias_exn shell_obj venv pos loc exe =
    (* If this is an internal command, create the PipeApply *)
    let name = Lm_symbol.add exe in
    let v = venv_find_field_internal_exn shell_obj name in
-   let _, _, f = eval_fun venv pos v in
+   let _, f = eval_fun venv pos v in
 
    (* Found the function, no exceptions now *)
    let f venv_orig stdin stdout stderr env argv =
