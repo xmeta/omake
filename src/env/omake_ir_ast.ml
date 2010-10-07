@@ -1459,8 +1459,8 @@ and build_compat_args genv oenv senv cenv v args pos loc =
                 [Omake_ast.ArrowArg ([Omake_ast.NormalParam (Lm_symbol.add x, loc)], body); Omake_ast.ExpArg e]
            | None ->
                 args)
-    | [Omake_ast.ExpArg body;
-       Omake_ast.ExpArg x]
+    | [Omake_ast.ExpArg x;
+       Omake_ast.ExpArg body]
       when Lm_symbol.eq v fun_sym ->
          (match build_literal_string_opt x with
              Some x ->
