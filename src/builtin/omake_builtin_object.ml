@@ -443,7 +443,7 @@ let sequence_length venv pos loc args =
                 | ValStringExp _
                 | ValMaybeApply _
                 | ValDelayed _ ->
-                     raise (Invalid_argument "Omake_builtin_base.length")
+                     raise (Invalid_argument "Omake_builtin_error.sequence_length")
             in
                ValInt len
        | _ ->
