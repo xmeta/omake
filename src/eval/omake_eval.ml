@@ -1385,7 +1385,8 @@ and eval_object venv pos x =
          raise (OmakeException (pos, StringError "not an object"))
 
 and eval_object_exn venv pos x =
-   match eval_value venv pos x with
+   let x = eval_value venv pos x in
+   match x with
       ValObject env ->
          env
     | ValInt _
