@@ -32,6 +32,7 @@
 <h2> OMake Change Log</h2>
 
 <p>Jump to version
+  <a href="#0.9.8.6">0.9.8.6</a>,
   <a href="#0.9.8.5">0.9.8.5</a>,
   <a href="#0.9.8.4">0.9.8.4</a>,
   <a href="#0.9.8.3">0.9.8.3</a>,
@@ -51,7 +52,145 @@
   href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/CHANGELOG.txt">the
   brief summary change log</a>.
 
-<!--
+<h3><a name="0.9.8.6">Version 0.9.8.6 (October 26, 2010)</a></h3>
+This is a major feature enhancement and bugfix release
+<ul>
+   <li>Added keyword and optional function arguments.<p>
+The syntax of a keyword parameter/argument is "identifier = expr".
+
+<pre>
+   Function     Application
+   -------------------------------------------
+   f(a)         f(1)
+   f(~a, b)     f(~a = 10, 11)     Required keyword argument
+   f(?a, b)     f(~a = 10, 12)     Optional keyword argument
+                f(12)              -- defaults to empty
+   f(?a = 1, b) f(~a = 10, 11)     Optional keyword argument with default value
+   f(~a = 1, b) f(11)              -- ~a is same as ?a if there is a default value
+                f(?a = 10, 11)     -- Arguments can use ?, but it means the same thing
+</pre>
+
+Keyword arguments and normal arguments are processed independently.
+Normal arguments have to appear in the same order as in the parameter
+list, but keyword arguments can go anywhere.<p>
+
+This also adds the function notation.
+
+<pre>
+    fun(x, y) =>
+       add($x, $y)
+
+    foreach(x => ..., a b c)
+       println($x)
+</pre>
+where the "<tt>...</tt>" essentially means "parse as if the indented block
+below was actually an expression in here"<p>
+
+Old-style foreach generate a warning.
+   <li>Added "program" syntax.  This provides a more standard programming
+   language, where strings must be explicit, and variables represent
+   applications.<p>
+
+   The outer syntax is normal; the program syntax is an ast to ast
+   translation.  The translation is turned on with the command
+   "<tt>.LANGUAGE: program</tt>", which is scoped like "<tt>export</tt>".
+   Here is an example:
+<pre>
+   #!/usr/bin/env osh
+   .LANGUAGE: program
+
+   f(x) =
+      return x + 1
+
+   println(f(f(1)))
+</pre>
+
+   The normal $-style expressions are always allowed, but in program-syntax
+   mode, identifiers stand for variables, function application is the
+   <tt>f(e1, ..., e2)</tt> form, and there are the standard infix
+   operators. To switch back to the default syntax, use <tt>.LANGUAGE:
+   make</tt><p> 
+
+   Note, shell commands and rules never use program syntax, except within
+   function arguments.<p>
+
+   This is not heavily tested. 
+   <li>Added support for partial and curried function applications. Normal
+funcation application still require using the correct number of arguments
+(as relaxed by the introduction of optional arguments), but <tt>apply</tt>
+function can be used to create curried and partial applications.
+<pre>
+   f(x,y) =
+      return $(add $x, $y)
+
+   g = $(apply $f, 2)      # Partial applications must use apply
+   println($(g 3))         # 5
+
+   ff(x) =
+      gg(y) =
+         return $(add $x, $y)
+
+   println($(apply $(ff), 3, 5)) # Prints 8, also need to use apply here
+</pre>
+   <tt>apply</tt> can also take keyword arguments.
+   <li>A high-quality C parser was added to OMake &mdash; see
+   <a
+href=http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/lib/parse/C/Parse.om"><tt>lib/parse/C/Parse.om</tt></a>
+   <li>Added a LaTeX parser and spellchecker - see
+<a
+href="http://svn.metaprl.org/viewcvs/*checkout*/mojave/omake-branches/0.9.8.x/lib/parse/LaTeX/README.txt"><tt>lib/parse/LaTeX/README.txt</tt></a>
+   <li>New functions added:
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:localtime"><tt>localtime</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:gmtime"><tt>gmtime</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:mktime"><tt>mktime</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:normalize-tm"><tt>normalize-tm</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:utimes"><tt>utimes</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:digest-string"><tt>digest-string</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:url-escaped"><tt>url-escaped</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:find-all"><tt>find-all</tt></a>,
+<a
+href="http://omake.metaprl.org/manual/omake-doc.html#fun:addprefixes"><tt>addprefixes</tt></a>
+   <li>New object added: <a
+href="http://omake.metaprl.org/manual/omake-doc.html#obj:Tm"><tt>Tm</tt></a>
+   <li>Bugs fixed:
+      <ul>
+      <li>From Bugzilla:
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=693">693</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=699">699</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=702">702</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=707">707</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=709">709</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=710">710</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=711">711</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=712">712</a>,
+<a href="http://bugzilla.metaprl.org/show_bug.cgi?id=717">717</a>
+      <li><tt>find</tt> no longer follows symbolic links
+      <li>Globbing functions worked incorrectly on absolute names. Here is the
+      previous behavior.
+<pre>
+   osh> ls(R, /etc/httpd)
+   /home/jyh/omake/etc/httpd
+</pre>
+      <li><tt>chmod(mode, files)</tt> had a bug where the mode could not be an
+      integer.
+      <li>Empty mode string should be supported in cp.
+
+
+<li>Whitespace is not gobbled eagerly, so, for example, trailing comments
+work as expected.
+<pre>
+   X = abc   # 123
+      equal($X, abc)  # this is now true
+</pre>
+   </ul>
    <li><b>[Experimental]</b> Object methods can now export their fields back into the parent object.
 For example, <pre>
    Z. =
@@ -63,7 +202,7 @@ For example, <pre>
    echo $(Z.x)
    # Prints "2"
 </pre> This works with arbitrary levels of nesting.
--->
+</ul>
 
 <h3><a name="0.9.8.5">Version 0.9.8.5 (August 7, 2007)</a></h3>
 This is a somehat major feature enhancement release
