@@ -4,7 +4,7 @@
 <HEAD>
 
 <META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.09">
+<META name="GENERATOR" content="hevea 1.10">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>Additional build examples</TITLE>
 </HEAD>
@@ -25,18 +25,18 @@
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
 <H1 CLASS="chapter"><A NAME="htoc15">Chapter&#XA0;3</A>&#XA0;&#XA0;Additional build examples</H1><UL>
-<LI><A HREF="omake-build-examples.html#toc11">OMakeroot vs. OMakefile</A></LI>
-<LI><A HREF="omake-build-examples.html#toc12">An example C project</A></LI>
-<LI><A HREF="omake-build-examples.html#toc13">An example OCaml project</A></LI>
-<LI><A HREF="omake-build-examples.html#toc14">Handling new languages</A></LI>
-<LI><A HREF="omake-build-examples.html#toc15">Collapsing the hierarchy, .SUBDIRS bodies</A></LI>
-</UL>
+<LI><A HREF="omake-build-examples.html#toc11">OMakeroot vs. OMakefile</A>
+</LI><LI><A HREF="omake-build-examples.html#toc12">An example C project</A>
+</LI><LI><A HREF="omake-build-examples.html#toc13">An example OCaml project</A>
+</LI><LI><A HREF="omake-build-examples.html#toc14">Handling new languages</A>
+</LI><LI><A HREF="omake-build-examples.html#toc15">Collapsing the hierarchy, .SUBDIRS bodies</A>
+</LI></UL>
 <P>
 <A NAME="chapter:build-examples"></A>
 <A NAME="@default3"></A>
-</P><P>Let's explain the OMake build model a bit more.
+</P><P>Let&#X2019;s explain the OMake build model a bit more.
 One issue that dominates this discussion is that OMake is based on global project analysis. That
-means you define a configuration for the <EM>entire</EM> project, and you run <EM>one</EM> instance of omake.</P><P>For single-directory projects this doesn't mean much. For multi-directory projects it means a lot.
+means you define a configuration for the <EM>entire</EM> project, and you run <EM>one</EM> instance of omake.</P><P>For single-directory projects this doesn&#X2019;t mean much. For multi-directory projects it means a lot.
 With GNU make, you would usually invoke the <CODE>make</CODE> program recursively for each directory in
 the project. For example, suppose you had a project with some project root directory, containing a
 directory of sources <CODE>src</CODE>, which in turn contains subdirectories <CODE>lib</CODE> and <CODE>main</CODE>.
@@ -54,7 +54,7 @@ So your project looks like this nice piece of ASCII art.</P><PRE CLASS="verbatim
 would in term start an instance of <CODE>make</CODE> in the <CODE>src/</CODE> directory; and this would start
 new instances in <CODE>lib/</CODE> and <CODE>main/</CODE>. Basically, you count up the number of
 <CODE>Makefile</CODE>s in the project, and that is the number of instances of <CODE>make</CODE> processes that
-will be created.</P><P>The number of processes is no big deal with today's machines (sometimes contrary the the author's opinion, we
+will be created.</P><P>The number of processes is no big deal with today&#X2019;s machines (sometimes contrary the the author&#X2019;s opinion, we
 no longer live in the 1970s). The problem with the scheme was that each <CODE>make</CODE> process had a
 separate configuration, and it took a lot of work to make sure that everything was consistent.
 Furthermore, suppose the programmer runs <CODE>make</CODE> in the <CODE>main/</CODE> directory, but the
@@ -100,7 +100,7 @@ In practice rarely seems to be a concern; omake takes up much less space than yo
 on large projects.</P><P>Some notes to the GNU/BSD make user.
 </P><UL CLASS="itemize"><LI CLASS="li-itemize">
 OMakefiles are a lot like Makefiles. The syntax is similar, and there many of the builtin
-functions are similar. However, the two build systems are not the same. Some evil features (in the authors'
+functions are similar. However, the two build systems are not the same. Some evil features (in the authors&#X2019;
 opinions) have been dropped in OMake, and some new features have been added.</LI><LI CLASS="li-itemize">OMake works the same way on all platforms, including Win32. The standard configuration does
 the right thing, but if you care about porting your code to multiple platforms, and you use some
 tricky features, you may need to condition parts of your build config on the <CODE>$(OSTYPE)</CODE>
@@ -108,13 +108,13 @@ variable.</LI><LI CLASS="li-itemize">A minor issue is that OMake dependency anal
 dependencies are based on file <EM>contents</EM>, not file <EM>modification times</EM>. Say goodbye to
 false rebuilds based on spurious timestamp changes and mismatches between local time and fileserver
 time.
-</LI></UL><H2 CLASS="section"><A NAME="toc11"></A><A NAME="htoc16">3.1</A>&#XA0;&#XA0;OMakeroot vs. OMakefile</H2><P>Before we begin with examples, let's ask the first question, &#X201C;What is the difference between the
+</LI></UL><H2 CLASS="section"><A NAME="toc11"></A><A NAME="htoc16">3.1</A>&#XA0;&#XA0;OMakeroot vs. OMakefile</H2><P>Before we begin with examples, let&#X2019;s ask the first question, &#X201C;What is the difference between the
 project root OMakeroot and OMakefile?&#X201D; A short answer is, there is no difference, but you must
 have an OMakeroot file (or Root.om file).</P><P>However, the normal style is that OMakeroot is boilerplate and is more-or-less the same for all
-projects. The OMakefile is where you put all your project-specific stuff.</P><P>To get started, you don't have to do this yourself. In most cases you just perform the following
+projects. The OMakefile is where you put all your project-specific stuff.</P><P>To get started, you don&#X2019;t have to do this yourself. In most cases you just perform the following
 step in your project root directory.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 Run <CODE>omake --install</CODE> in your project root.
-</LI></UL><P>This will create the initial OMakeroot and OMakefile files that you can edit to get started.</P><H2 CLASS="section"><A NAME="toc12"></A><A NAME="htoc17">3.2</A>&#XA0;&#XA0;An example C project</H2><P>To begin, let's start with a simple example. Let's say that we have a full directory tree,
+</LI></UL><P>This will create the initial OMakeroot and OMakefile files that you can edit to get started.</P><H2 CLASS="section"><A NAME="toc12"></A><A NAME="htoc17">3.2</A>&#XA0;&#XA0;An example C project</H2><P>To begin, let&#X2019;s start with a simple example. Let&#X2019;s say that we have a full directory tree,
 containing the following files.</P><PRE CLASS="verbatim">    my_project/
     |--&gt; OMakeroot
     |--&gt; OMakefile
@@ -187,7 +187,7 @@ way to build C libraries and programs.
 </LI><LI CLASS="li-itemize">Defining a mechanism for <EM>scanning</EM> each of the source programs to discover dependencies.
 That is, it defines .SCANNER rules for C source files.
 </LI></UL><P>Variables are inherited down the hierarchy, so for example, the value of CFLAGS in
-src/main/OMakefile is &#X201C;<CODE>-g -O2</CODE>&#X201D;.</P><H2 CLASS="section"><A NAME="toc13"></A><A NAME="htoc18">3.3</A>&#XA0;&#XA0;An example OCaml project</H2><P>Let's repeat the example, assuming we are using OCaml instead of C.
+src/main/OMakefile is &#X201C;<CODE>-g -O2</CODE>&#X201D;.</P><H2 CLASS="section"><A NAME="toc13"></A><A NAME="htoc18">3.3</A>&#XA0;&#XA0;An example OCaml project</H2><P>Let&#X2019;s repeat the example, assuming we are using OCaml instead of C.
 This time, the directory tree looks like this.</P><PRE CLASS="verbatim">    my_project/
     |--&gt; OMakeroot
     |--&gt; OMakefile
@@ -263,8 +263,8 @@ particular configuration, files in <CODE>my_project/src/lib</CODE> are compiled 
 option <CODE>-inline 10</CODE>, but files in <CODE>my_project/src/lib</CODE> are compiled normally.</P><H2 CLASS="section"><A NAME="toc14"></A><A NAME="htoc19">3.4</A>&#XA0;&#XA0;Handling new languages</H2><P>
 <A NAME="@default7"></A></P><P>The previous two examples seem to be easy enough, but they rely on the OMake standard library (the
 files <CODE>build/C</CODE> and <CODE>build/OCaml</CODE>) to do all the work. What happens if we want to write a
-build configuration for a language that is not already supported in the OMake standard library?</P><P>For this example, let's suppose we are adopting a new language. The language uses the standard
-compile/link model, but is not in the OMake standard library. Specifically, let's say we have the
+build configuration for a language that is not already supported in the OMake standard library?</P><P>For this example, let&#X2019;s suppose we are adopting a new language. The language uses the standard
+compile/link model, but is not in the OMake standard library. Specifically, let&#X2019;s say we have the
 following setup.</P><UL CLASS="itemize"><LI CLASS="li-itemize">
 Source files are defined in files with a <CODE>.cat</CODE> suffix (for Categorical Abstract Terminology).
 </LI><LI CLASS="li-itemize"><CODE>.cat</CODE> files are compiled with the <CODE>catc</CODE> compiler to produce <CODE>.woof</CODE> files
@@ -281,11 +281,11 @@ search path for dependencies.
 Define a <CODE>.SCANNER</CODE> rule for discovering dependency information for the source files.
 </LI><LI CLASS="li-enumerate">Define a generic rule for compiling a <CODE>.cat</CODE> file to a <CODE>.woof</CODE> file.
 </LI><LI CLASS="li-enumerate">Define a rule (as a function) for linking <CODE>.woof</CODE> files to produce a <CODE>.dog</CODE> executable.
-</LI></OL><P>Initially, these definitions will be placed in the project root <CODE>OMakefile</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc20">3.4.1</A>&#XA0;&#XA0;Defining a default compilation rule</H3><P>Let's start with part 2, defining a generic compilation rule. We'll define the build rule as an
-<EM>implicit</EM> rule. To handle the include path, we'll define a variable <CODE>CAT_INCLUDES</CODE> that
-specifies the include path. This will be an array of directories. To define the options, we'll use
+</LI></OL><P>Initially, these definitions will be placed in the project root <CODE>OMakefile</CODE>.</P><H3 CLASS="subsection"><A NAME="htoc20">3.4.1</A>&#XA0;&#XA0;Defining a default compilation rule</H3><P>Let&#X2019;s start with part 2, defining a generic compilation rule. We&#X2019;ll define the build rule as an
+<EM>implicit</EM> rule. To handle the include path, we&#X2019;ll define a variable <CODE>CAT_INCLUDES</CODE> that
+specifies the include path. This will be an array of directories. To define the options, we&#X2019;ll use
 a lazy variable (Section&#XA0;<A HREF="omake-language-examples.html#section:lazy">7.5</A>). In case there
-are any other standard flags, we'll define a <CODE>CAT_FLAGS</CODE> variable.</P><PRE CLASS="verbatim">   # Define the catc command, in case we ever want to override it
+are any other standard flags, we&#X2019;ll define a <CODE>CAT_FLAGS</CODE> variable.</P><PRE CLASS="verbatim">   # Define the catc command, in case we ever want to override it
    CATC = catc
 
    # The default flags are empty
@@ -302,8 +302,8 @@ are any other standard flags, we'll define a <CODE>CAT_FLAGS</CODE> variable.</P
        $(CATC) $(PREFIXED_INCLUDES) $(CAT_FLAGS) -c $&lt;
 </PRE><P>The final part is the build rule itself, where we call the <CODE>catc</CODE> compiler with the include
 path, and the <CODE>CAT_FLAGS</CODE> that have been defined. The <CODE>$&lt;</CODE> variable represents the source
-file.</P><H3 CLASS="subsection"><A NAME="htoc21">3.4.2</A>&#XA0;&#XA0;Defining a rule for linking</H3><P>For linking, we'll define another rule describing how to perform linking. Instead of defining an
-implicit rule, we'll define a function that describes the linking step. The function will take two
+file.</P><H3 CLASS="subsection"><A NAME="htoc21">3.4.2</A>&#XA0;&#XA0;Defining a rule for linking</H3><P>For linking, we&#X2019;ll define another rule describing how to perform linking. Instead of defining an
+implicit rule, we&#X2019;ll define a function that describes the linking step. The function will take two
 arguments; the first is the name of the executable (without suffix), and the second is the files to
 link (also without suffixes). Here is the code fragment.</P><PRE CLASS="verbatim">    # Optional link options
     CAT_LINK_FLAGS =
@@ -312,7 +312,7 @@ link (also without suffixes). Here is the code fragment.</P><PRE CLASS="verbatim
     CatProgram(program, files) =
         # Add the suffixes
         file_names = $(addsuffix .woof, $(files))
-        prog_name = $(addsuffix .dog, $(files))
+        prog_name = $(addsuffix .dog, $(program))
 
         # The build rule
         $(prog_name): $(file_names)
@@ -328,9 +328,9 @@ and the <CODE>CatProgram</CODE> function specifies how to build the executable.<
     # Compile it by default.
     .DEFAULT: $(CatProgram rover, neko chat)
 </PRE><H3 CLASS="subsection"><A NAME="htoc22">3.4.3</A>&#XA0;&#XA0;Dependency scanning</H3><P>
-<A NAME="section:scanner-exm"></A><A NAME="@default8"></A></P><P>That's it, almost. The part we left out was automated dependency scanning. This is one of the
+<A NAME="section:scanner-exm"></A><A NAME="@default8"></A></P><P>That&#X2019;s it, almost. The part we left out was automated dependency scanning. This is one of the
 nicer features of OMake, and one that makes build specifications easier to write and more robust.
-Strictly speaking, it isn't required, but you definitely want to do it.</P><P>The mechanism is to define a <CODE>.SCANNER</CODE> rule, which is like a normal rule, but it specifies how
+Strictly speaking, it isn&#X2019;t required, but you definitely want to do it.</P><P>The mechanism is to define a <CODE>.SCANNER</CODE> rule, which is like a normal rule, but it specifies how
 to compute dependencies, not the target itself. In this case, we want to define a <CODE>.SCANNER</CODE>
 rule of the following form.</P><PRE CLASS="verbatim">    .SCANNER: %.woof: %.cat
         &lt;commands&gt;
@@ -351,7 +351,7 @@ like the following.</P><PRE CLASS="verbatim">    foo.o: fum.h
 should scan <CODE>neko.cat</CODE>, line-by-line, looking for lines of the form <CODE>open &lt;name&gt;</CODE>. We
 could do this by writing a program, but it is easy enough to do it in <CODE>omake</CODE> itself. We can
 use the builtin <A HREF="omake-system.html#fun:awk"><CODE>awk</CODE> function</A> to scan the source file. One slight complication
-is that the dependencies depend on the <CODE>INCLUDE</CODE> path. We'll use the
+is that the dependencies depend on the <CODE>INCLUDE</CODE> path. We&#X2019;ll use the
 <A HREF="omake-system.html#fun:find-in-path"><CODE>find-in-path</CODE> function</A> to find them. Here we go.</P><PRE CLASS="verbatim">    .SCANNER: %.woof: %.cat
         section
             # Scan the file
@@ -366,7 +366,7 @@ is that the dependencies depend on the <CODE>INCLUDE</CODE> path. We'll use the
 
             # Print the dependencies
             println($"$@: $(deps)")
-</PRE><P>Let's look at the parts. First, the entire body is defined in a <CODE>section</CODE> because we are
+</PRE><P>Let&#X2019;s look at the parts. First, the entire body is defined in a <CODE>section</CODE> because we are
 computing it internally, not as a sequence of shell commands.</P><P>We use the <CODE>deps</CODE> variable to collect all the dependencies. The <CODE>awk</CODE> function scans the
 source file (<CODE>$&lt;</CODE>) line-by-line. For lines that match the regular expression <CODE>^open</CODE>
 (meaning that the line begins with the word <CODE>open</CODE>), we add the second word on the line to the
@@ -374,7 +374,7 @@ source file (<CODE>$&lt;</CODE>) line-by-line. For lines that match the regular 
 <CODE>chat</CODE> string to the <CODE>deps</CODE> array. All other lines in the source file are ignored.</P><P>Next, the <CODE>$(set $(deps))</CODE> expression removes any duplicate values in the <CODE>deps</CODE> array
 (sorting the array alphabetically in the process). The <CODE>find-in-path</CODE> function then finds the
 actual location of each file in the include path.</P><P>The final step is print the result as the string <CODE>$"$@: $(deps)"</CODE> The quotations are added to
-flatten the <CODE>deps</CODE> array to a simple string.</P><H3 CLASS="subsection"><A NAME="htoc23">3.4.4</A>&#XA0;&#XA0;Pulling it all together</H3><P>To complete the example, let's pull it all together into a single project, much like our previous
+flatten the <CODE>deps</CODE> array to a simple string.</P><H3 CLASS="subsection"><A NAME="htoc23">3.4.4</A>&#XA0;&#XA0;Pulling it all together</H3><P>To complete the example, let&#X2019;s pull it all together into a single project, much like our previous
 example.</P><PRE CLASS="verbatim">    my_project/
     |--&gt; OMakeroot
     |--&gt; OMakefile
@@ -483,7 +483,7 @@ my_project/src/main/OMakefile:
 </PRE><P>Some notes. The configuration in the project <CODE>OMakeroot</CODE> defines the standard configuration, including
 the dependency scanner, the default rule for compiling source files, and functions for building
 libraries and programs.</P><P>These rules and functions are inherited by subdirectories, so the <CODE>.SCANNER</CODE> and build rules
-are used automatically in each subdirectory, so you don't need to repeat them.</P><H3 CLASS="subsection"><A NAME="htoc24">3.4.5</A>&#XA0;&#XA0;Finishing up</H3><P>At this point we are done, but there are a few things we can consider.</P><P>First, the rules for building cat programs is defined in the project <CODE>OMakefile</CODE>. If you had
+are used automatically in each subdirectory, so you don&#X2019;t need to repeat them.</P><H3 CLASS="subsection"><A NAME="htoc24">3.4.5</A>&#XA0;&#XA0;Finishing up</H3><P>At this point we are done, but there are a few things we can consider.</P><P>First, the rules for building cat programs is defined in the project <CODE>OMakefile</CODE>. If you had
 another cat project somewhere, you would need to copy the <CODE>OMakeroot</CODE> (and modify it as
 needed). Instead of that, you should consider moving the configuration to a shared library
 directory, in a file like <CODE>Cat.om</CODE>. That way, instead of copying the code, you could include
@@ -576,7 +576,7 @@ files.</P><P>Returning to our original example, we modify it as follows.</P><PRE
             genhtml $+ &gt; $@
 </PRE><H3 CLASS="subsection"><A NAME="htoc29">3.5.4</A>&#XA0;&#XA0;Temporary directories</H3><P>Sometimes, your project may include temporary directories&#X2013;directories where you place intermediate
 results. these directories are deleted whenever the project is cleanup up. This means, in
-particular, that you can't place an <CODE>OMakefile</CODE> in a temporary directory, because it will be
+particular, that you can&#X2019;t place an <CODE>OMakefile</CODE> in a temporary directory, because it will be
 removed when the directory is removed.</P><P>Instead, if you need to define a configuration for any of these directories, you will need to define
 it using a <CODE>.SUBDIRS</CODE> body.</P><PRE CLASS="verbatim">    section
         CREATE_SUBDIRS = true

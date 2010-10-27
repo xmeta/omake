@@ -4,7 +4,7 @@
 <HEAD>
 
 <META http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<META name="GENERATOR" content="hevea 1.09">
+<META name="GENERATOR" content="hevea 1.10">
 <LINK rel="stylesheet" type="text/css" href="omake-doc.css">
 <TITLE>Additional language examples</TITLE>
 </HEAD>
@@ -24,21 +24,21 @@
 &bull;&nbsp;<A HREF="omake-target-index.html">Targets</A>
 &bull;&nbsp;<A HREF="omake-option-index.html">Options</A></TD></TR>
 </TABLE>
-<H1 CLASS="chapter"><A NAME="htoc67">Chapter&#XA0;7</A>&#XA0;&#XA0;Additional language examples</H1><UL>
-<LI><A HREF="omake-language-examples.html#toc45">Strings and arrays</A></LI>
-<LI><A HREF="omake-language-examples.html#toc46">Quoted strings</A></LI>
-<LI><A HREF="omake-language-examples.html#toc47">Files and directories</A></LI>
-<LI><A HREF="omake-language-examples.html#toc48">Iteration, mapping, and foreach</A></LI>
-<LI><A HREF="omake-language-examples.html#toc49">Lazy expressions</A></LI>
-<LI><A HREF="omake-language-examples.html#toc50">Scoping and exports</A></LI>
-<LI><A HREF="omake-language-examples.html#toc51">Shell aliases</A></LI>
-<LI><A HREF="omake-language-examples.html#toc52">Input/output redirection on the cheap</A></LI>
-</UL>
+<H1 CLASS="chapter"><A NAME="htoc69">Chapter&#XA0;7</A>&#XA0;&#XA0;Additional language examples</H1><UL>
+<LI><A HREF="omake-language-examples.html#toc46">Strings and arrays</A>
+</LI><LI><A HREF="omake-language-examples.html#toc47">Quoted strings</A>
+</LI><LI><A HREF="omake-language-examples.html#toc48">Files and directories</A>
+</LI><LI><A HREF="omake-language-examples.html#toc49">Iteration, mapping, and foreach</A>
+</LI><LI><A HREF="omake-language-examples.html#toc50">Lazy expressions</A>
+</LI><LI><A HREF="omake-language-examples.html#toc51">Scoping and exports</A>
+</LI><LI><A HREF="omake-language-examples.html#toc52">Shell aliases</A>
+</LI><LI><A HREF="omake-language-examples.html#toc53">Input/output redirection on the cheap</A>
+</LI></UL>
 <P>
 <A NAME="chapter:language-examples"></A>
-</P><P>In this section, we'll explore the core language through a series of examples (examples of the build
-system are the topic of the Chapter&#XA0;<A HREF="omake-build-examples.html#chapter:build-examples">3</A>).</P><P>For most of these examples, we'll use the <CODE>osh</CODE> command interpreter. For simplicity, the
-values printed by <CODE>osh</CODE> have been abbreviated.</P><H2 CLASS="section"><A NAME="toc45"></A><A NAME="htoc68">7.1</A>&#XA0;&#XA0;Strings and arrays</H2><P>The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
+</P><P>In this section, we&#X2019;ll explore the core language through a series of examples (examples of the build
+system are the topic of the Chapter&#XA0;<A HREF="omake-build-examples.html#chapter:build-examples">3</A>).</P><P>For most of these examples, we&#X2019;ll use the <CODE>osh</CODE> command interpreter. For simplicity, the
+values printed by <CODE>osh</CODE> have been abbreviated.</P><H2 CLASS="section"><A NAME="toc46"></A><A NAME="htoc70">7.1</A>&#XA0;&#XA0;Strings and arrays</H2><P>The basic OMake values are strings, sequences, and arrays of values. Sequences are like arrays of
 values separated by whitespace; the sequences are split on demand by functions that expect arrays.</P><PRE CLASS="verbatim">   osh&gt; X = 1 2
    - : "1 2" : Sequence
    osh&gt; addsuffix(.c, $X)
@@ -48,7 +48,7 @@ variable name, and list each array entry on a single indented line.</P><PRE CLAS
            Hello world
            $(getenv HOME)
    - : &lt;array "Hello world" "/home/jyh"&gt; : Array
-</PRE><P>One central property of arrays is that whitespace in the elements is significant. This can be
+</PRE><P>One central property of arrays is that whitespace in the elements is taken literally. This can be
 useful, especially for filenames that contain whitespace. </P><PRE CLASS="verbatim">   # List the current files in the directory
     osh&gt; ls -Q
     "fee"  "fi"  "foo"  "fum"
@@ -58,9 +58,9 @@ useful, especially for filenames that contain whitespace. </P><PRE CLASS="verbat
     osh&gt; touch $(NAME)
     osh&gt; ls -Q
     "fee"  "fi"  "foo"  "fum"  "Hello world"
-</PRE><H2 CLASS="section"><A NAME="toc46"></A><A NAME="htoc69">7.2</A>&#XA0;&#XA0;Quoted strings</H2><P>
+</PRE><H2 CLASS="section"><A NAME="toc47"></A><A NAME="htoc71">7.2</A>&#XA0;&#XA0;Quoted strings</H2><P>
 <A NAME="section:quoted-strings"></A>
-<A NAME="@default40"></A></P><P>A <CODE>String</CODE> is a single value; whitespace is significant in a string. Strings are introduced
+<A NAME="@default41"></A></P><P>A <CODE>String</CODE> is a single value; whitespace is taken literally in a string. Strings are introduced
 with quotes. There are four kinds of quoted elements; the kind is determined by the opening quote.
 The symbols <CODE>'</CODE> (single-quote) and <CODE>"</CODE> (double-quote) introduce the normal shell-style
 quoted elements. The quotation symbols are <EM>included</EM> in the result string. Variables are
@@ -124,7 +124,7 @@ with an indented body. The elements may include whitespace.</P><PRE CLASS="verba
     osh&gt; CFILES = $(addsuffix .c, $(FILES))
     osh&gt; echo $(CFILES)
     c:\Documents and Settings\jyh\one file.c c:\Program Files\omake\second file.c
-</PRE><H2 CLASS="section"><A NAME="toc47"></A><A NAME="htoc70">7.3</A>&#XA0;&#XA0;Files and directories</H2><P>OMake projects usually span multiple directories, and different parts of the project execute
+</PRE><H2 CLASS="section"><A NAME="toc48"></A><A NAME="htoc72">7.3</A>&#XA0;&#XA0;Files and directories</H2><P>OMake projects usually span multiple directories, and different parts of the project execute
 commands in different directories. There is a need to define a location-independent name for a file
 or directory.</P><P>This is done with the <CODE>$(file &lt;names&gt;)</CODE> and <CODE>$(dir &lt;names&gt;)</CODE> functions.</P><PRE CLASS="verbatim">   osh&gt; mkdir tmp
    osh&gt; F = $(file fee)
@@ -144,7 +144,7 @@ file.</P><PRE CLASS="verbatim">    osh&gt; cat OMakefile
     TMP  = $(dir tmp)
     BIN  = $(dir bin)
     ...
-</PRE><H2 CLASS="section"><A NAME="toc48"></A><A NAME="htoc71">7.4</A>&#XA0;&#XA0;Iteration, mapping, and foreach</H2><P>Most builtin functions operate transparently on arrays.</P><PRE CLASS="verbatim">    osh&gt; addprefix(-D, DEBUG WIN32)
+</PRE><H2 CLASS="section"><A NAME="toc49"></A><A NAME="htoc73">7.4</A>&#XA0;&#XA0;Iteration, mapping, and foreach</H2><P>Most builtin functions operate transparently on arrays.</P><PRE CLASS="verbatim">    osh&gt; addprefix(-D, DEBUG WIN32)
     - : -DDEBUG -DWIN32 : Array
     osh&gt; mapprefix(-I, /etc /tmp)
     - : -I /etc -I /tmp : Array
@@ -157,9 +157,9 @@ element before each of the original elements.</P><P>Even though most functions w
 The <CODE>foreach</CODE> function is the way to go. The <CODE>foreach</CODE> function has two forms, but the
 form with a body is most useful. In this form, the function takes two arguments and a body. The
 second argument is an array, and the first is a variable. The body is evaluated once for each
-element of the array, where the variable is bound to the element. Let's define a function to add 1
+element of the array, where the variable is bound to the element. Let&#X2019;s define a function to add 1
 to each element of an array of numbers.</P><PRE CLASS="verbatim">   osh&gt; add1(l) =
-            foreach(i, $l):
+            foreach(i =&gt; $l):
                 add($i, 1)
    osh&gt; add1(7 21 75)
    - : 8 22 76 : Array
@@ -168,7 +168,7 @@ not special, you can define them anywhere a statement is expected. Say we want t
 that describes how to process each file, placing the result in the <CODE>tmp/</CODE> directory.</P><PRE CLASS="verbatim">   TMP = $(dir tmp)
 
    my-special-rule(files) =
-      foreach(name, $(files))
+      foreach(name =&gt; $(files))
          $(TMP)/$(name): $(name)
             process $&lt; &gt; $@
 </PRE><P>Later, in some other part of the project, we may decide that we want to use this function to process some files.</P><PRE CLASS="verbatim">   # These are the files to process in src/lib
@@ -187,7 +187,7 @@ exactly the same as if we had written the following three rules explicitly.</P><
 </PRE><P>Of course, writing these rules is not nearly as pleasant as calling the function. The usual
 properties of function abstraction give us the usual benefits. The code is less redundant, and
 there is a single location (the <CODE>my-special-rule</CODE> function) that defines the build rule.
-Later, if we want to modify/update the rule, we need do so in only one location.</P><H2 CLASS="section"><A NAME="toc49"></A><A NAME="htoc72">7.5</A>&#XA0;&#XA0;Lazy expressions</H2><P>
+Later, if we want to modify/update the rule, we need do so in only one location.</P><H2 CLASS="section"><A NAME="toc50"></A><A NAME="htoc74">7.5</A>&#XA0;&#XA0;Lazy expressions</H2><P>
 <A NAME="section:lazy"></A></P><P>Evaluation in <TT>omake</TT> is normally eager. That is, expressions
 are evaluated as soon as they are encountered by the evaluator. One effect
 of this is that the right-hand-side of a variable definition is expanded
@@ -213,7 +213,7 @@ Within this expression, the value <CODE>$,(B)</CODE> specifies that <CODE>B</COD
 to be evaluated immediately, even though it is defined in a lazy expression.</P><P>The first time that we print the value of <CODE>C</CODE>, it evaluates to 3
 since <CODE>A</CODE> is 1 and <CODE>B</CODE> is 2. The second time we evaluate <CODE>C</CODE>,
 it evaluates to 7 because <CODE>A</CODE> has been redefined to <CODE>5</CODE>. The second
-definition of <CODE>B</CODE> has no effect, since it was evaluated at definition time.</P><H3 CLASS="subsection"><A NAME="htoc73">7.5.1</A>&#XA0;&#XA0;A larger example of lazy expressions</H3><P>Lazy expressions are not evaluated until their result is needed. Some people,
+definition of <CODE>B</CODE> has no effect, since it was evaluated at definition time.</P><H3 CLASS="subsection"><A NAME="htoc75">7.5.1</A>&#XA0;&#XA0;A larger example of lazy expressions</H3><P>Lazy expressions are not evaluated until their result is needed. Some people,
 including this author, frown on overuse of lazy expressions, mainly because it is difficult to know
 when evaluation actually happens. However, there are cases where they pay off.</P><P>One example comes from option processing. Consider the specification of &#X201C;include&#X201D; directories on
 the command line for a C compiler. If we want to include files from /home/jyh/include and ../foo,
@@ -235,8 +235,8 @@ OMakefile.</P><PRE CLASS="verbatim">    # Generic way to compile C files.
            $(CC) $(CFLAGS) -o $@ $(OFILES)
 </PRE><P>But this is not quite right. The problem is that INCLUDES is an array of options, not directories.
 If we later wanted to recover the directories, we would have to strip the leading <CODE>-I</CODE> prefix,
-which is a hassle. Furthermore, we aren't using proper names for the directories. The solution
-here is to use a lazy expression. We'll define INCLUDES as a directory array, and a new variable
+which is a hassle. Furthermore, we aren&#X2019;t using proper names for the directories. The solution
+here is to use a lazy expression. We&#X2019;ll define INCLUDES as a directory array, and a new variable
 <CODE>PREFIXED_INCLUDES</CODE> that adds the -I prefix. The <CODE>PREFIXED_INCLUDES</CODE> is computed lazily,
 ensuring that the value uses the most recent value of the INCLUDES variable.</P><PRE CLASS="verbatim">    # Generic way to compile C files.
     CFLAGS = -g
@@ -259,10 +259,10 @@ ensuring that the value uses the most recent value of the INCLUDES variable.</P>
 </PRE><P>Note that there is a close connection between lazy values and functions. In the example above, we
 could equivalently define <CODE>PREFIXED_INCLUDES</CODE> as a function with zero arguments.</P><PRE CLASS="verbatim">    PREFIXED_INCLUDES() =
         addprefix(-I, $(INCLUDES))
-</PRE><H2 CLASS="section"><A NAME="toc50"></A><A NAME="htoc74">7.6</A>&#XA0;&#XA0;Scoping and exports</H2><P>The OMake language is functional (apart from IO and shell commands). This comes in two parts:
+</PRE><H2 CLASS="section"><A NAME="toc51"></A><A NAME="htoc76">7.6</A>&#XA0;&#XA0;Scoping and exports</H2><P>The OMake language is functional (apart from IO and shell commands). This comes in two parts:
 functions are first-class, and variables are immutable (there is no assignment operator). The
 latter property may seem strange to users used to GNU make, but it is actually a central point of
-OMake. Since variables can't be modified, it is impossible (or at least hard) for one part of the
+OMake. Since variables can&#X2019;t be modified, it is impossible (or at least hard) for one part of the
 project to interfere with another.</P><P>To be sure, pure functional programming can be awkward. In OMake, each new indentation level
 introduces a new scope, and new definitions in that scope are lost when the scope ends. If OMake
 were overly strict about scoping, we would wind up with a lot of convoluted code.</P><PRE CLASS="verbatim">   osh&gt; X = 1
@@ -284,7 +284,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
 </PRE><P>Exports are especially useful in loop to export values from one iteration of a loop to the next.</P><PRE CLASS="verbatim">   # Ok, let's try to add up the elements of the array
    osh&gt;sum(l) =
            total = 0
-           foreach(i, $l)
+           foreach(i =&gt; $l)
                total = $(add $(total), $i)
            value $(total)
    osh&gt;sum(1 2 3)
@@ -293,7 +293,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
    # Oops, that didn't work!
    osh&gt;sum(l) =
            total = 0
-           foreach(i, $l)
+           foreach(i =&gt; $l)
                total = $(add $(total), $i)
                export
            value $(total)
@@ -306,7 +306,7 @@ variable environment) from an inner scope to an outer one.</P><PRE CLASS="verbat
             i = $(add $i, 1)
     osh&gt;println($(total))
     45
-</PRE><H2 CLASS="section"><A NAME="toc51"></A><A NAME="htoc75">7.7</A>&#XA0;&#XA0;Shell aliases</H2><P>Sometimes you may want to define an <EM>alias</EM>, an OMake command that masquerades as a real shell
+</PRE><H2 CLASS="section"><A NAME="toc52"></A><A NAME="htoc77">7.7</A>&#XA0;&#XA0;Shell aliases</H2><P>Sometimes you may want to define an <EM>alias</EM>, an OMake command that masquerades as a real shell
 command. You can do this by adding your function as a method to the <CODE>Shell</CODE> object.</P><P>For an example, suppose we use the <CODE>awk</CODE> function to print out all the comments in a file.</P><PRE CLASS="verbatim">    osh&gt;cat comment.om
     # Comment function
     comments(filename) =
@@ -326,7 +326,7 @@ command. You can do this by adding your function as a method to the <CODE>Shell<
    # Comment function
    # File finished
 </PRE><P>A shell command is passed an array of arguments <CODE>argv</CODE>. This does <EM>not</EM> include the name
-of the alias.</P><H2 CLASS="section"><A NAME="toc52"></A><A NAME="htoc76">7.8</A>&#XA0;&#XA0;Input/output redirection on the cheap</H2><P>As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
+of the alias.</P><H2 CLASS="section"><A NAME="toc53"></A><A NAME="htoc78">7.8</A>&#XA0;&#XA0;Input/output redirection on the cheap</H2><P>As it turns out, scoping also provides a nice alternate way to perform redirection. Suppose you
 have already written a lot of code that prints to the standard output channel, but now you decide
 you want to redirect it. One way to do it is using the technique in the previous example: define
 your function as an alias, and then use shell redirection to place the output where you want.</P><P>There is an alternate method that is easier in some cases. The variables <CODE>stdin</CODE>,
